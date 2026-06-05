@@ -1,0 +1,457 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  PROFESSOR
+  RESEARCHER
+  ADMIN
+}
+
+enum LessonContentType {
+  VIDEO
+  PDF
+  IMAGE
+  TEXT
+}
+
+enum AttachmentType {
+  VIDEO
+  PDF
+  IMAGE
+  FILE
+}
+
+model User {
+  id                     String                  @id @default(cuid())
+  email                  String                  @unique
+  passwordHash           String
+  fullName               String
+  role                   UserRole
+  emailVerified          Boolean                 @default(false)
+  levelOrTitle           String?
+  filiere                String?
+  avatarUrl              String?
+  invoices               Json                    @default("[]")
+  failedLoginAttempts    Int                     @default(0)
+  lockoutUntil           DateTime?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  enrollments            Enrollment[]
+  liveSessions           LiveSession[]           @relation("ProfessorLiveSessions")
+  liveMessages           LiveMessage[]
+  usedInviteCodes        ProfessorInviteCode[]   @relation("UsedInviteCodes")
+  createdInviteCodes     ProfessorInviteCode[]   @relation("CreatedInviteCodes")
+  createdCourses         Course[]                @relation("CreatedCourses")
+  createdChapters        Chapter[]               @relation("CreatedChapters")
+  createdSections        ContentSection[]        @relation("CreatedSections")
+  createdContents        LessonContent[]         @relation("CreatedContents")
+  createdAttachments     Attachment[]            @relation("CreatedAttachments")
+  emailVerificationCodes EmailVerificationCode[]
+  emailDeliveryLogs      EmailDeliveryLog[]
+  academicProfile        AcademicProfile?
+  quizAttempts           QuizAttempt[]
+  refreshTokens          RefreshToken[]
+  auditLogs              AuditLog[]
+  liveAttendances        LiveAttendance[]
+  liveActionLogs         LiveActionLog[]         @relation("LiveActionActor")
+
+  @@index([role])
+}
+
+model AcademicProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  title           String?
+  department      String?
+  lab             String?
+  speciality      String?
+  teachingDomains Json     @default("[]")
+  researchDomains Json     @default("[]")
+  bio             String?
+  avatarUrl       String?
+  links           Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model EmailVerificationCode {
+  id        String    @id @default(cuid())
+  userId    String
+  codeHash  String
+  expiresAt DateTime
+  usedAt    DateTime?
+  attempts  Int       @default(0)
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
+}
+
+model EmailDeliveryLog {
+  id              String   @id @default(cuid())
+  userId          String?
+  purpose         String
+  recipientDomain String
+  smtp            Json
+  messageId       String?
+  accepted        Json
+  rejected        Json
+  envelope        Json?
+  response        String?
+  providerStatus  String
+  createdAt       DateTime @default(now())
+  user            User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
+}
+
+model ProfessorInviteCode {
+  code        String    @id
+  createdAt   DateTime  @default(now())
+  usedAt      DateTime?
+  revokedAt   DateTime?
+  usedById    String?
+  createdById String?
+  usedBy      User?     @relation("UsedInviteCodes", fields: [usedById], references: [id])
+  createdBy   User?     @relation("CreatedInviteCodes", fields: [createdById], references: [id])
+}
+
+model FacultyDomain {
+  id          Int          @id
+  name        String       @unique
+  slug        String       @unique
+  iconName    String
+  color       String
+  description String
+  order       Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  disciplines Discipline[]
+}
+
+model Discipline {
+  id        Int           @id
+  domainId  Int
+  name      String
+  slug      String        @unique
+  order     Int           @default(0)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  domain    FacultyDomain @relation(fields: [domainId], references: [id])
+  courses   Course[]
+
+  @@index([domainId, order])
+}
+
+model Course {
+  id           Int              @id @default(autoincrement())
+  title        String
+  level        String
+  credits      Int
+  duration     String
+  category     String
+  price        Float
+  iconName     String
+  color        String
+  instructor   String
+  description  String
+  progress     Int              @default(0)
+  isLiveNow    Boolean          @default(false)
+  liveSubject  String?
+  modules      Json
+  published    Boolean          @default(true)
+  disciplineId Int
+  createdById  String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  enrollments  Enrollment[]
+  liveSessions LiveSession[]
+  discipline   Discipline       @relation(fields: [disciplineId], references: [id])
+  createdBy    User?            @relation("CreatedCourses", fields: [createdById], references: [id])
+  chapters     Chapter[]
+  sections     ContentSection[]
+  contents     LessonContent[]
+  attachments  Attachment[]
+  quizzes      Quiz[]
+  quizAttempts QuizAttempt[]
+
+  @@index([disciplineId])
+  @@index([createdById])
+}
+
+model Chapter {
+  id          String           @id @default(cuid())
+  courseId    Int
+  title       String
+  description String?
+  order       Int              @default(0)
+  published   Boolean          @default(false)
+  createdById String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  course      Course           @relation(fields: [courseId], references: [id])
+  createdBy   User?            @relation("CreatedChapters", fields: [createdById], references: [id])
+  sections    ContentSection[]
+
+  @@index([courseId])
+  @@index([createdById])
+}
+
+model ContentSection {
+  id          String           @id @default(cuid())
+  courseId    Int
+  chapterId   String?
+  parentId    String?
+  title       String
+  description String?
+  order       Int              @default(0)
+  published   Boolean          @default(false)
+  createdById String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  course      Course           @relation(fields: [courseId], references: [id])
+  chapter     Chapter?         @relation(fields: [chapterId], references: [id])
+  parent      ContentSection?  @relation("SectionChildren", fields: [parentId], references: [id])
+  children    ContentSection[] @relation("SectionChildren")
+  contents    LessonContent[]
+  quizzes     Quiz[]
+  createdBy   User?            @relation("CreatedSections", fields: [createdById], references: [id])
+
+  @@index([courseId])
+  @@index([chapterId])
+  @@index([parentId])
+  @@index([createdById])
+}
+
+model LessonContent {
+  id          String            @id @default(cuid())
+  courseId    Int
+  sectionId   String?
+  type        LessonContentType
+  title       String
+  body        String?
+  published   Boolean           @default(false)
+  createdById String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  course      Course            @relation(fields: [courseId], references: [id])
+  section     ContentSection?   @relation(fields: [sectionId], references: [id])
+  createdBy   User?             @relation("CreatedContents", fields: [createdById], references: [id])
+  attachments Attachment[]
+
+  @@index([courseId])
+  @@index([sectionId])
+  @@index([createdById])
+}
+
+model Attachment {
+  id          String         @id @default(cuid())
+  courseId    Int
+  contentId   String
+  type        AttachmentType
+  fileName    String
+  fileKey     String
+  url         String
+  mimeType    String?
+  size        Int
+  createdById String?
+  createdAt   DateTime       @default(now())
+  course      Course         @relation(fields: [courseId], references: [id])
+  content     LessonContent  @relation(fields: [contentId], references: [id])
+  createdBy   User?          @relation("CreatedAttachments", fields: [createdById], references: [id])
+
+  @@index([courseId])
+  @@index([contentId])
+  @@index([createdById])
+}
+
+model Enrollment {
+  id        String    @id @default(cuid())
+  userId    String
+  courseId  Int
+  active    Boolean   @default(true)
+  startDate DateTime  @default(now())
+  endDate   DateTime?
+  user      User      @relation(fields: [userId], references: [id])
+  course    Course    @relation(fields: [courseId], references: [id])
+
+  @@unique([userId, courseId])
+}
+
+model Quiz {
+  id        String         @id @default(cuid())
+  courseId  Int
+  moduleId  Int?
+  sectionId String?
+  title     String
+  published Boolean        @default(false)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  course    Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  section   ContentSection? @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  questions QuizQuestion[]
+  attempts  QuizAttempt[]
+
+  @@index([courseId])
+  @@index([courseId, moduleId])
+  @@index([sectionId])
+}
+
+model QuizQuestion {
+  id          String       @id @default(cuid())
+  quizId      String
+  question    String
+  options     Json
+  answer      String
+  explanation String
+  order       Int          @default(0)
+  quiz        Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  answers     QuizAnswer[]
+
+  @@index([quizId, order])
+}
+
+model QuizAttempt {
+  id           String       @id @default(cuid())
+  quizId       String
+  courseId     Int
+  moduleId     Int?
+  userId       String
+  score        Int
+  total        Int
+  scoreOutOf20 Float
+  createdAt    DateTime     @default(now())
+  quiz         Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  course       Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers      QuizAnswer[]
+
+  @@index([courseId, userId, createdAt])
+  @@index([quizId, userId, createdAt])
+}
+
+model QuizAnswer {
+  id             String        @id @default(cuid())
+  attemptId      String
+  questionId     String?
+  selectedAnswer String
+  isCorrect      Boolean
+  attempt        QuizAttempt   @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question       QuizQuestion? @relation(fields: [questionId], references: [id], onDelete: SetNull)
+
+  @@index([attemptId])
+}
+
+model LiveSession {
+  id          String        @id @default(cuid())
+  roomName    String        @unique
+  title       String?
+  courseId    Int
+  professorId String?
+  isActive    Boolean       @default(true)
+  startTime   DateTime      @default(now())
+  endTime     DateTime?
+  course      Course        @relation(fields: [courseId], references: [id])
+  professor   User?         @relation("ProfessorLiveSessions", fields: [professorId], references: [id])
+  messages    LiveMessage[]
+  attendances LiveAttendance[]
+  actionLogs  LiveActionLog[]
+
+  @@index([courseId])
+  @@index([professorId])
+}
+
+model LiveMessage {
+  id        String       @id @default(cuid())
+  clientId  String?      @unique
+  roomName  String
+  text      String
+  createdAt DateTime     @default(now())
+  sessionId String?
+  userId    String?
+  session   LiveSession? @relation(fields: [sessionId], references: [id])
+  user      User?        @relation(fields: [userId], references: [id])
+
+  @@index([roomName])
+  @@index([sessionId])
+  @@index([userId])
+}
+
+model LiveAttendance {
+  id                 String      @id @default(cuid())
+  sessionId          String
+  roomName           String
+  userId             String?
+  role               UserRole
+  joinedAt           DateTime    @default(now())
+  leftAt             DateTime?
+  durationSeconds    Int         @default(0)
+  participationScore Int         @default(0)
+  handRaised         Boolean     @default(false)
+  lastSeenAt         DateTime    @default(now())
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  session            LiveSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user               User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([sessionId])
+  @@index([roomName])
+  @@index([userId])
+  @@index([joinedAt])
+}
+
+model LiveActionLog {
+  id             String       @id @default(cuid())
+  sessionId      String?
+  roomName       String
+  actorId        String?
+  actorRole      UserRole?
+  action         String
+  targetIdentity String?
+  targetName     String?
+  details        Json         @default("{}")
+  createdAt      DateTime     @default(now())
+  session        LiveSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  actor          User?        @relation("LiveActionActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([sessionId])
+  @@index([roomName])
+  @@index([actorId])
+  @@index([createdAt])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  revokedAt DateTime?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  userEmail  String?
+  action     String
+  resource   String
+  resourceId String?
+  details    Json?
+  ip         String?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([createdAt])
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Axelmond Research Labs",
+  "description": "Laboratoire de recherche et d'éducation numérique pour l'innovation académique, l'IA et les sciences informatiques.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,46 @@
+const fs = require('fs');
+const readline = require('readline');
+
+const logFilePath = 'C:\\Users\\saadg\\.gemini\\antigravity-ide\\brain\\83ab9e24-386d-420e-893c-9557d61b3a09\\.system_generated\\logs\\transcript.jsonl';
+
+async function main() {
+  const fileStream = fs.createReadStream(logFilePath);
+  const rl = readline.createInterface({
+    input: fileStream,
+    crlfDelay: Infinity
+  });
+
+  const steps = [];
+  for await (const line of rl) {
+    if (!line.trim()) continue;
+    try {
+      const step = JSON.parse(line);
+      steps.push(step);
+    } catch (e) {}
+  }
+
+  const rangeSteps = steps.filter(s => s.step_index >= 1070 && s.step_index <= 1615);
+  console.log(`Found ${rangeSteps.length} steps in range 1070-1615`);
+
+  for (const s of rangeSteps) {
+    if (s.type === 'USER_INPUT' || s.source === 'USER_EXPLICIT') {
+      console.log(`\n--- [${s.step_index}] USER INPUT ---`);
+      console.log(s.content);
+    } else if (s.tool_calls && s.tool_calls.length > 0) {
+      console.log(`\n[${s.step_index}] Model Tool Calls:`);
+      s.tool_calls.forEach(tc => {
+        const name = tc.name || tc.ToolName;
+        const args = tc.arguments || tc.Arguments || {};
+        console.log(`  - ${name}`);
+        if (name === 'replace_file_content' || name === 'write_to_file' || name === 'multi_replace_file_content' || name === 'default_api:replace_file_content' || name === 'default_api:write_to_file' || name === 'default_api:multi_replace_file_content') {
+          console.log(`    File: ${args.TargetFile}`);
+          console.log(`    Instruction: ${args.Instruction || args.Description}`);
+        } else if (name === 'run_command' || name === 'default_api:run_command') {
+          console.log(`    Command: ${args.CommandLine}`);
+        }
+      });
+    }
+  }
+}
+
+main().catch(console.error);

@@ -1,0 +1,23 @@
+{
+  "name": "Axelmond Research Labs",
+  "short_name": "Axelmond Labs",
+  "description": "Plateforme Académique Intelligente de Recherche, Formation et Innovation.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#020617",
+  "icons": [
+    {
+      "src": "/logo-symbol.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

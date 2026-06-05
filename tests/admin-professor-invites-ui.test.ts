@@ -1,0 +1,15 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+
+const apiSource = readFileSync("src/api.ts", "utf8");
+const serverSource = readFileSync("server.ts", "utf8");
+
+assert.match(serverSource, /app\.get\("\/api\/admin\/professor-invites",\s*requireAuth,\s*requireAdmin/);
+assert.match(serverSource, /app\.post\("\/api\/admin\/professor-invites",\s*requireAuth,\s*requireAdmin/);
+assert.match(serverSource, /app\.delete\("\/api\/admin\/professor-invites\/:code",\s*requireAuth,\s*requireAdmin/);
+
+assert.match(apiSource, /getProfessorInvites/);
+assert.match(apiSource, /createProfessorInvite/);
+assert.match(apiSource, /deleteProfessorInvite/);
+
+console.log("Admin professor invite UI rules passed");
