@@ -18,7 +18,7 @@ import {
   Lightbulb,
 } from "lucide-react";
 
-import { Course, CourseModule, Invoice, FacultyDomain, CourseGrade, AcademicProfilePayload } from "./types";
+import { Course, CourseModule, Invoice, FacultyDomain, CourseGrade } from "./types";
 import { api } from "./api";
 import { uploadFiles, getUploadedFileUrl, getUploadErrorMessage, validateUploadFile } from "./uploadthing-client";
 import Sidebar from "./components/Sidebar";
@@ -42,6 +42,7 @@ import { useCourseContent } from "./hooks/useCourseContent";
 import { useTeacherCurriculum } from "./hooks/useTeacherCurriculum";
 import { useAppSession } from "./hooks/useAppSession";
 import { usePlatformNavigation } from "./hooks/usePlatformNavigation";
+import { useAcademicProfile } from "./hooks/useAcademicProfile";
 import { isStudentRole } from "./rbac";
 
 export default function App() {
@@ -147,24 +148,6 @@ export default function App() {
   const [emailDeliveryStatusMsg, setEmailDeliveryStatusMsg] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarStatusMsg, setAvatarStatusMsg] = useState("");
-  const [academicProfileData, setAcademicProfileData] = useState<AcademicProfilePayload | null>(null);
-  const [academicProfileForm, setAcademicProfileForm] = useState({
-    title: "",
-    department: "",
-    lab: "",
-    speciality: "",
-    teachingDomains: "",
-    researchDomains: "",
-    bio: "",
-    avatarUrl: "",
-    linkedIn: "",
-    orcid: "",
-    googleScholar: "",
-    website: "",
-  });
-  const [academicProfileStatusMsg, setAcademicProfileStatusMsg] = useState("");
-  const [academicProfileErrorMsg, setAcademicProfileErrorMsg] = useState("");
-  const [academicPasswordForm, setAcademicPasswordForm] = useState({ currentPassword: "", newPassword: "" });
 
   // Live broadcast controls (Teacher side — course selection stays in App)
   const [liveCourseId, setLiveCourseId] = useState<number>(1);
@@ -314,6 +297,15 @@ export default function App() {
     setQuizScore,
     setQuizSubmitError,
   });
+
+  const academicProfileBindings = useAcademicProfile({
+    role,
+    teacherView,
+    currentUser,
+    updateSessionUser,
+  });
+
+  const { setAcademicProfileForm } = academicProfileBindings;
 
   // Helper code mapped to icon component
   const getCourseIcon = (iconName: string, colorClass = "w-6 h-6") => {
@@ -655,113 +647,6 @@ export default function App() {
     return new Date(value).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
   };
 
-  const hydrateAcademicProfileForm = (payload: AcademicProfilePayload) => {
-    const profile = payload.profile;
-    setAcademicProfileForm({
-      title: profile.title || "",
-      department: profile.department || "",
-      lab: profile.lab || "",
-      speciality: profile.speciality || "",
-      teachingDomains: profile.teachingDomains.join(", "),
-      researchDomains: profile.researchDomains.join(", "),
-      bio: profile.bio || "",
-      avatarUrl: profile.avatarUrl || "",
-      linkedIn: profile.links?.linkedIn || "",
-      orcid: profile.links?.orcid || "",
-      googleScholar: profile.links?.googleScholar || "",
-      website: profile.links?.website || "",
-    });
-  };
-
-  const parseAcademicDomains = (value: string) =>
-    value.split(/[,\n]/).map((item) => item.trim()).filter(Boolean);
-
-  const refreshAcademicProfile = async () => {
-    if (role !== "teacher") return;
-    setAcademicProfileStatusMsg("Chargement du profil académique...");
-    setAcademicProfileErrorMsg("");
-    try {
-      const payload = await api.getAcademicProfile();
-      setAcademicProfileData(payload);
-      hydrateAcademicProfileForm(payload);
-      setAcademicProfileStatusMsg("");
-    } catch (err: any) {
-      setAcademicProfileData(null);
-      setAcademicProfileErrorMsg(err.message || "Profil académique indisponible.");
-      setAcademicProfileStatusMsg("");
-    }
-  };
-
-  useEffect(() => {
-    if (role === "teacher" && teacherView === "academic-profile") {
-      refreshAcademicProfile();
-    }
-  }, [role, teacherView, currentUser?.id]);
-
-  const handleUpdateAcademicProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAcademicProfileStatusMsg("Enregistrement du profil académique...");
-    setAcademicProfileErrorMsg("");
-    try {
-      const payload = await api.updateAcademicProfile({
-        title: academicProfileForm.title,
-        department: academicProfileForm.department,
-        lab: academicProfileForm.lab,
-        speciality: academicProfileForm.speciality,
-        teachingDomains: parseAcademicDomains(academicProfileForm.teachingDomains),
-        researchDomains: parseAcademicDomains(academicProfileForm.researchDomains),
-        bio: academicProfileForm.bio,
-        avatarUrl: academicProfileForm.avatarUrl,
-        links: {
-          linkedIn: academicProfileForm.linkedIn,
-          orcid: academicProfileForm.orcid,
-          googleScholar: academicProfileForm.googleScholar,
-          website: academicProfileForm.website,
-        },
-      });
-      setAcademicProfileData(payload);
-      hydrateAcademicProfileForm(payload);
-      setAcademicProfileStatusMsg(payload.message || "Profil académique mis à jour.");
-    } catch (err: any) {
-      setAcademicProfileErrorMsg(err.message || "Mise à jour du profil impossible.");
-      setAcademicProfileStatusMsg("");
-    }
-  };
-
-  const handleUpdateAcademicAvatar = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!academicProfileForm.avatarUrl.trim()) {
-      setAcademicProfileErrorMsg("URL de photo requise.");
-      return;
-    }
-    setAcademicProfileStatusMsg("Mise à jour de la photo...");
-    setAcademicProfileErrorMsg("");
-    try {
-      const payload = await api.updateAcademicAvatar(academicProfileForm.avatarUrl.trim());
-      setAcademicProfileData(payload);
-      hydrateAcademicProfileForm(payload);
-      if (currentUser) updateSessionUser({ ...currentUser, avatarUrl: academicProfileForm.avatarUrl.trim() });
-      setAcademicProfileStatusMsg(payload.message || "Photo de profil mise à jour.");
-    } catch (err: any) {
-      setAcademicProfileErrorMsg(err.message || "Mise à jour de la photo impossible.");
-      setAcademicProfileStatusMsg("");
-    }
-  };
-
-  const handleChangeAcademicPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAcademicProfileStatusMsg("Mise à jour du mot de passe...");
-    setAcademicProfileErrorMsg("");
-    try {
-      const payload = await api.changeAcademicPassword(academicPasswordForm.currentPassword, academicPasswordForm.newPassword);
-      setAcademicPasswordForm({ currentPassword: "", newPassword: "" });
-      setAcademicProfileStatusMsg(payload.message || "Mot de passe mis à jour.");
-    } catch (err: any) {
-      setAcademicProfileErrorMsg(err.message || "Changement de mot de passe impossible.");
-      setAcademicProfileStatusMsg("");
-    }
-  };
-
   const catalogCourses = courses.filter((c) => {
     const searchLower = searchQuery.toLowerCase();
     const matchesSearch = (
@@ -869,21 +754,11 @@ export default function App() {
               {teacherView === "academic-profile" && currentUser && (
                 <TeacherAcademicProfileView
                   currentUser={currentUser}
-                  academicProfileData={academicProfileData}
-                  academicProfileForm={academicProfileForm}
-                  setAcademicProfileForm={setAcademicProfileForm}
-                  academicProfileStatusMsg={academicProfileStatusMsg}
-                  academicProfileErrorMsg={academicProfileErrorMsg}
-                  refreshAcademicProfile={refreshAcademicProfile}
-                  handleUpdateAcademicProfile={handleUpdateAcademicProfile}
                   handleUploadAvatar={handleUploadAvatar}
-                  handleUpdateAcademicAvatar={handleUpdateAcademicAvatar}
                   handleDeleteAvatar={handleDeleteAvatar}
                   setAvatarFile={setAvatarFile}
                   avatarStatusMsg={avatarStatusMsg}
-                  academicPasswordForm={academicPasswordForm}
-                  setAcademicPasswordForm={setAcademicPasswordForm}
-                  handleChangeAcademicPassword={handleChangeAcademicPassword}
+                  {...academicProfileBindings}
                 />
               )}
 {teacherView === "curriculum" && (
