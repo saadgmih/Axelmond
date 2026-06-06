@@ -4,6 +4,8 @@ import fs from "node:fs";
 const schema = fs.readFileSync("prisma/schema.prisma", "utf8");
 
 assert.match(schema, /provider\s*=\s*"postgresql"/);
+assert.match(schema, /schemas\s*=\s*\["unicode"\]/);
+assert.match(schema, /@@schema\("unicode"\)/);
 for (const modelName of ["User", "AcademicProfile", "EmailVerificationCode", "EmailDeliveryLog", "ProfessorInviteCode", "FacultyDomain", "Discipline", "Course", "Enrollment", "LiveSession", "LiveMessage", "LiveAttendance", "LiveActionLog", "Chapter", "ContentSection", "LessonContent", "Attachment", "Quiz", "QuizQuestion", "QuizAttempt", "QuizAnswer"]) {
   assert.match(schema, new RegExp(`model\\s+${modelName}\\s+{`));
 }

@@ -37,7 +37,7 @@ import {
 } from "./src/email-verification";
 import { getEmailErrorDetails, getSmtpPublicConfig, readSmtpBanner, sendAdminTestEmail, sendVerificationEmail, verifySmtpConnection } from "./src/email";
 import { buildEmailDeliverySummary } from "./src/email-delivery-summary";
-import { prisma } from "./src/db";
+import { prisma, getActivePgSchema } from "./src/db";
 import { uploadRouter, deleteCloudFiles } from "./src/uploadthing";
 import { ACADEMIC_DOMAINS, DEFAULT_DISCIPLINE_ID, getDisciplineIdForCourse } from "./src/academic-taxonomy";
 import { buildCourseGradeRows } from "./src/grades";
@@ -1296,12 +1296,13 @@ async function seedDatabase() {
 }
 
 async function synchronizePostgresSequences() {
+  const targetSchema = getActivePgSchema();
   const tables = await prisma.$queryRaw<Array<{ table_schema: string }>>`
     SELECT table_schema
     FROM information_schema.tables
     WHERE table_name = 'Course'
+      AND table_schema = ${targetSchema}
       AND table_type = 'BASE TABLE'
-    ORDER BY CASE WHEN table_schema = current_schema() THEN 0 WHEN table_schema = 'public' THEN 1 ELSE 2 END
     LIMIT 1
   `;
   const tableSchema = tables[0]?.table_schema;
