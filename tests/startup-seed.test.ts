@@ -11,6 +11,8 @@ assert.match(serverSource, /shouldSkipStartupSeed\(\)/);
 assert.match(serverSource, /Startup seed failed — server continuing/);
 assert.match(serverSource, /Startup seed skipped/);
 assert.match(dbSource, /PrismaPg/);
+assert.match(dbSource, /search_path=\$\{schema\}|options: `-c search_path=\$\{schema\}`/);
+assert.match(dbSource, /PostgreSQL active schema/);
 assert.match(schemaSource, /engineType = "client"/);
 assert.match(packageJsonSource, /"postinstall": "prisma generate"/);
 assert.match(packageJsonSource, /"build": "prisma generate && vite build/);
