@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 
 import { Course, CourseModule, Invoice, FacultyDomain, CourseGrade, AcademicProfilePayload } from "./types";
-import { api, setSessionToken, getFreshSessionToken, getStoredRefreshToken } from "./api";
+import { api } from "./api";
 import { uploadFiles, getUploadedFileUrl, getUploadErrorMessage, validateUploadFile } from "./uploadthing-client";
 import Sidebar from "./components/Sidebar";
 import Topbar from "./components/Topbar";
@@ -41,6 +41,7 @@ import StudentLiveView from "./views/student/StudentLiveView";
 import { useLiveKitRoom } from "./hooks/useLiveKitRoom";
 import { useCourseContent } from "./hooks/useCourseContent";
 import { useTeacherCurriculum } from "./hooks/useTeacherCurriculum";
+import { useAppSession } from "./hooks/useAppSession";
 import { getAllowedUiRole, getRedirectPathForRole, isStudentRole } from "./rbac";
 
 export default function App() {
@@ -56,6 +57,7 @@ export default function App() {
   const [selectedDisciplineId, setSelectedDisciplineId] = useState<number | null>(null);
   const [activeLiveCourse, setActiveLiveCourse] = useState<Course | null>(null);
   const [selectedModule, setSelectedModule] = useState<CourseModule | null>(null);
+  const [teacherView, setTeacherView] = useState<string>("dashboard"); // 'dashboard', 'curriculum', 'live-control'
 
   const {
     courseContentSections,
@@ -65,6 +67,31 @@ export default function App() {
     flattenSections,
     refreshCourseContent,
   } = useCourseContent();
+
+  const onSessionExpiredRef = useRef<() => void>(() => {});
+
+  const {
+    currentUser,
+    isAuthReady,
+    role,
+    enrolledCourses,
+    setEnrolledCourses,
+    invoices,
+    setInvoices,
+    updateSessionUser,
+    handleLoginSuccess,
+    handleLogout: logoutAuth,
+  } = useAppSession({
+    setCourses,
+    onAfterLogin: (user) => {
+      if (!isStudentRole(user.role)) {
+        setTeacherView("dashboard");
+      } else {
+        setCurrentView("dashboard");
+      }
+    },
+    onSessionExpired: () => onSessionExpiredRef.current(),
+  });
 
   // Fetch courses from API on mount
   useEffect(() => {
@@ -77,25 +104,6 @@ export default function App() {
       .catch((err) => { console.error("Failed to fetch academic catalog:", err); setIsLoading(false); });
   }, []);
 
-  // Session-persisted Authenticated active user
-  const [currentUser, setCurrentUser] = useState<AppUser | null>(() => {
-    const saved = localStorage.getItem("axelmond_session_user");
-    const token = localStorage.getItem("axelmond_session_token");
-    if (saved && token) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    localStorage.removeItem("axelmond_session_user");
-    return null;
-  });
-  const [isAuthReady, setIsAuthReady] = useState(() => !localStorage.getItem("axelmond_session_token"));
-
-  // Role & Teacher View Mode
-  const role = currentUser ? getAllowedUiRole(currentUser.role) : "student";
-  const [teacherView, setTeacherView] = useState<string>("dashboard"); // 'dashboard', 'curriculum', 'live-control'
   const [teacherChartTab, setTeacherChartTab] = useState<"revenue" | "engagement">("revenue");
   const [studentChartTab, setStudentChartTab] = useState<"hours" | "skills">("hours");
   const [gradesCourseId, setGradesCourseId] = useState<number>(1);
@@ -162,14 +170,7 @@ export default function App() {
 
   // Live broadcast controls (Teacher side — course selection stays in App)
   const [liveCourseId, setLiveCourseId] = useState<number>(1);
-  const lastSyncedUserStateRef = useRef("");
 
-  // By default, the student is subscribed to the first module
-  const [enrolledCourses, setEnrolledCourses] = useState<number[]>([1]); 
-  
-  // Stripe billing history invoices
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [courseToPurchase, setCourseToPurchase] = useState<Course | null>(null);
@@ -362,88 +363,6 @@ export default function App() {
   }, [currentUser?.id, currentView, selectedCourse?.id, refreshCourseContent]);
 
   useEffect(() => {
-    if (currentUser) {
-      if (isStudentRole(currentUser.role)) {
-        const nextEnrolledCourses = currentUser.enrolledCourses || [1];
-        const nextInvoices = currentUser.invoices || [];
-        lastSyncedUserStateRef.current = JSON.stringify({ enrolledCourses: nextEnrolledCourses, invoices: nextInvoices });
-        setEnrolledCourses(nextEnrolledCourses);
-        setInvoices(nextInvoices);
-      } else {
-        setEnrolledCourses([1, 2, 3, 4]);
-      }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser?.id, currentUser?.role]);
-
-  // Handle local state updates for purchased courses & invoices
-  useEffect(() => {
-    if (currentUser && isStudentRole(currentUser.role)) {
-      const nextSignature = JSON.stringify({ enrolledCourses, invoices });
-      if (lastSyncedUserStateRef.current === nextSignature) return;
-
-      const isEnrolledDiff = JSON.stringify(currentUser.enrolledCourses) !== JSON.stringify(enrolledCourses);
-      const isInvoicesDiff = JSON.stringify(currentUser.invoices) !== JSON.stringify(invoices);
-      
-      if (isEnrolledDiff || isInvoicesDiff) {
-        lastSyncedUserStateRef.current = nextSignature;
-        const updatedUser: AppUser = {
-          ...currentUser,
-          enrolledCourses,
-          invoices
-        };
-        // Update session state
-        setCurrentUser(updatedUser);
-        localStorage.setItem("axelmond_session_user", JSON.stringify(updatedUser));
-      }
-    }
-  }, [enrolledCourses, invoices]);
-
-  const updateSessionUser = (user: AppUser) => {
-    setCurrentUser(user);
-    const { token, ...sessionUser } = user;
-    localStorage.setItem("axelmond_session_user", JSON.stringify(sessionUser));
-  };
-
-  const handleLoginSuccess = (user: AppUser & { refreshToken?: string }) => {
-    setCurrentUser(user);
-    const { token, refreshToken, ...sessionUser } = user;
-    if (token) setSessionToken(token, refreshToken);
-    localStorage.setItem("axelmond_session_user", JSON.stringify(sessionUser));
-    
-    if (!isStudentRole(user.role)) {
-      setTeacherView("dashboard");
-    } else {
-      setCurrentView("dashboard");
-      setEnrolledCourses(user.enrolledCourses || [1]);
-      setInvoices(user.invoices || []);
-    }
-    api.getCourses().then(setCourses).catch((err) => console.error("Failed to refresh courses after login:", err));
-  };
-
-  useEffect(() => {
-    getFreshSessionToken()
-      .then((token) => {
-        if (!token) {
-          setIsAuthReady(true);
-          return;
-        }
-        return api.me()
-          .then((user) => {
-            setCurrentUser(user);
-            localStorage.setItem("axelmond_session_user", JSON.stringify(user));
-          })
-          .catch((err) => {
-            console.warn("[rbac] Session validation failed", err);
-            setCurrentUser(null);
-            localStorage.removeItem("axelmond_session_user");
-            setSessionToken(undefined);
-          });
-      })
-      .finally(() => setIsAuthReady(true));
-  }, []);
-
-  useEffect(() => {
     if (!isAuthReady || !currentUser || !isStudentRole(currentUser.role)) return;
     const params = new URLSearchParams(window.location.search);
     if (params.get("success") !== "true") return;
@@ -624,32 +543,12 @@ export default function App() {
     teacherView,
   });
 
+  onSessionExpiredRef.current = disconnectLiveSession;
+
   const handleLogout = () => {
-    const refreshToken = getStoredRefreshToken();
-    if (refreshToken) {
-      api.logout(refreshToken).catch((err) => console.warn("[auth] Logout request failed", err));
-    }
+    logoutAuth();
     disconnectLiveSession();
-    setCurrentUser(null);
-    localStorage.removeItem("axelmond_session_user");
-    setSessionToken(undefined);
-    setEnrolledCourses([]);
-    setInvoices([]);
   };
-
-  useEffect(() => {
-    const handleSessionExpired = () => {
-      disconnectLiveSession();
-      setCurrentUser(null);
-      localStorage.removeItem("axelmond_session_user");
-      setSessionToken(undefined);
-      setEnrolledCourses([]);
-      setInvoices([]);
-    };
-
-    window.addEventListener("axelmond:session-expired", handleSessionExpired);
-    return () => window.removeEventListener("axelmond:session-expired", handleSessionExpired);
-  }, [disconnectLiveSession]);
 
   const markModuleCompleted = async (modId: number) => {
     if (!selectedCourse) return;
