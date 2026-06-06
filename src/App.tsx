@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
 import {
   Code,
   Database,
@@ -27,7 +26,7 @@ import Topbar from "./components/Topbar";
 import PaymentModal from "./components/PaymentModal";
 import AuthScreen, { AppUser } from "./components/AuthScreen";
 import InstitutionalViewSwitch from "./views/InstitutionalViewSwitch";
-import { buildPlatformPath, INSTITUTIONAL_VIEWS, parsePlatformPath } from "./navigation/platformPaths";
+import { INSTITUTIONAL_VIEWS } from "./navigation/platformPaths";
 import TeacherWorkspace from "./views/teacher/TeacherWorkspace";
 import TeacherDashboardView from "./views/teacher/TeacherDashboardView";
 import TeacherAcademicProfileView from "./views/teacher/TeacherAcademicProfileView";
@@ -42,11 +41,10 @@ import { useLiveKitRoom } from "./hooks/useLiveKitRoom";
 import { useCourseContent } from "./hooks/useCourseContent";
 import { useTeacherCurriculum } from "./hooks/useTeacherCurriculum";
 import { useAppSession } from "./hooks/useAppSession";
-import { getAllowedUiRole, getRedirectPathForRole, isStudentRole } from "./rbac";
+import { usePlatformNavigation } from "./hooks/usePlatformNavigation";
+import { isStudentRole } from "./rbac";
 
 export default function App() {
-  const navigate = useNavigate();
-  const location = useLocation();
   const [courses, setCourses] = useState<Course[]>([]);
   const [domains, setDomains] = useState<FacultyDomain[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -392,95 +390,25 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthReady, currentUser?.id, courses.length]);
 
-  useEffect(() => {
-    if (!currentUser) return;
-    const redirectPath = getRedirectPathForRole(currentUser.role, location.pathname);
-    if (redirectPath) {
-      console.info("[rbac] Client route redirected", {
-        role: currentUser.role,
-        from: location.pathname,
-        to: redirectPath,
-      });
-      navigate(redirectPath, { replace: true });
-      if (isStudentRole(currentUser.role)) {
-        setCurrentView("dashboard");
-      } else {
-        setTeacherView("dashboard");
-      }
-    }
-  }, [currentUser, location.pathname, navigate]);
-
-  useEffect(() => {
-    if (!currentUser) return;
-    const parsed = parsePlatformPath(location.pathname);
-    if (parsed.institutionalView) {
-      setCurrentView(parsed.institutionalView);
-      return;
-    }
-    if (isStudentRole(currentUser.role)) {
-      setCurrentView(parsed.studentView);
-    } else {
-      setTeacherView(parsed.teacherView);
-    }
-  }, [location.pathname, currentUser]);
-
-  // Navigate utility
-  const navigateTo = (view: string, targetCourse: Course | null = null) => {
-    if (currentUser && !isStudentRole(currentUser.role)) {
-      console.info("[rbac] Blocked student navigation for teacher-space user", {
-        role: currentUser.role,
-        view,
-      });
-      setTeacherView("dashboard");
-      window.history.replaceState(null, "", "/teacher");
-      return;
-    }
-
-    if (view === "course" && targetCourse) {
-      // If student is not subscribed/enrolled to this module, present the Stripe payment checkout
-      if (!enrolledCourses.includes(targetCourse.id)) {
-        setCourseToPurchase(targetCourse);
-        return;
-      }
-      setSelectedCourse(targetCourse);
-      // Select the first chapter of the syllabus by default
-      if (targetCourse.modules && targetCourse.modules.length > 0) {
-        setSelectedModule(targetCourse.modules[0]);
-      } else {
-        setSelectedModule(null);
-      }
-      // Reset video & quiz states
-      setIsVideoPlaying(false);
-      setVideoProgress(15);
-      setQuizAnswers({});
-      setQuizSubmitted(false);
-      setQuizScore(null);
-      setQuizSubmitError("");
-    }
-
-    if (view === "live" && targetCourse) {
-      if (!enrolledCourses.includes(targetCourse.id)) {
-        setCourseToPurchase(targetCourse);
-        return;
-      }
-      setSelectedCourse(targetCourse);
-      setActiveLiveCourse(targetCourse);
-    }
-
-    setCurrentView(view);
-    setIsMobileMenuOpen(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    if (currentUser) {
-      const uiRole = getAllowedUiRole(currentUser.role);
-      navigate(buildPlatformPath(uiRole, view, uiRole === "teacher" ? teacherView : undefined));
-    }
-  };
-
-  const handleTeacherViewChange = (view: string) => {
-    setTeacherView(view);
-    setIsMobileMenuOpen(false);
-    navigate(buildPlatformPath("teacher", currentView, view));
-  };
+  const { navigateTo, handleTeacherViewChange } = usePlatformNavigation({
+    currentUser,
+    currentView,
+    setCurrentView,
+    teacherView,
+    setTeacherView,
+    enrolledCourses,
+    setSelectedCourse,
+    setSelectedModule,
+    setActiveLiveCourse,
+    setCourseToPurchase,
+    setIsMobileMenuOpen,
+    setIsVideoPlaying,
+    setVideoProgress,
+    setQuizAnswers,
+    setQuizSubmitted,
+    setQuizScore,
+    setQuizSubmitError,
+  });
 
   // Helper code mapped to icon component
   const getCourseIcon = (iconName: string, colorClass = "w-6 h-6") => {
