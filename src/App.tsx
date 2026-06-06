@@ -1,56 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Room, RoomEvent, Track } from "livekit-client";
-import { 
-  PlayCircle, 
-  CheckCircle, 
-  FileText, 
-  HelpCircle, 
-  Download, 
-  BookOpen, 
-  Clock, 
-  Award, 
-  ChevronRight, 
-  Menu, 
-  X, 
-  Code, 
-  Database, 
-  Terminal, 
-  Cpu, 
-  Network, 
-  Brain, 
-  Send, 
-  MoreVertical, 
-  Fullscreen, 
-  ScreenShare,
-  ScreenShareOff,
-  Lock, 
-  CreditCard, 
-  ShoppingCart, 
-  Video, 
-  Radio, 
-  Mic, 
-  MicOff, 
-  VideoOff, 
-  MessageSquare, 
-  Users, 
-  User, 
-  Mail, 
-  Settings, 
-  Camera, 
-  Star, 
-  Shield, 
-  BarChart, 
-  Calendar, 
-  ChevronLeft,
-  DollarSign,
-  Briefcase,
-  Layers,
-  Sparkles,
-  Info,
+import {
+  Code,
+  Database,
+  Terminal,
+  Cpu,
+  Brain,
   GraduationCap,
-  TrendingUp,
-  Activity,
   Calculator,
   Atom,
   FlaskConical,
@@ -61,17 +18,6 @@ import {
   BriefcaseBusiness,
   CircuitBoard,
   Lightbulb,
-  Plus,
-  Trash2,
-  Edit3,
-  Save,
-  FolderTree,
-  Check,
-  ChevronDown,
-  ChevronUp,
-  FilePlus,
-  Eye,
-  EyeOff
 } from "lucide-react";
 
 import { Course, CourseModule, Invoice, ContentSection, LessonContent, FacultyDomain, CourseGrade, AcademicProfilePayload } from "./types";
@@ -80,7 +26,6 @@ import { uploadFiles, getUploadedFileUrl, getUploadErrorMessage, validateUploadF
 import Sidebar from "./components/Sidebar";
 import Topbar from "./components/Topbar";
 import PaymentModal from "./components/PaymentModal";
-import AITutorChat from "./components/AITutorChat";
 import AuthScreen, { AppUser } from "./components/AuthScreen";
 import InstitutionalViewSwitch from "./views/InstitutionalViewSwitch";
 import { buildPlatformPath, INSTITUTIONAL_VIEWS, parsePlatformPath } from "./navigation/platformPaths";
@@ -195,11 +140,6 @@ export default function App() {
   const [quizChapterId, setQuizChapterId] = useState<string>("");
   const [quizPartId, setQuizPartId] = useState<string>("");
   const [quizSubpartId, setQuizSubpartId] = useState<string>("");
-  const [newModuleCourseId, setNewModuleCourseId] = useState<number>(1);
-  const [newModuleTitle, setNewModuleTitle] = useState("");
-  const [newModuleType, setNewModuleType] = useState<"video" | "pdf" | "quiz">("video");
-  const [newModuleDuration, setNewModuleDuration] = useState("15 min");
-  const [newModuleMarkdown, setNewModuleMarkdown] = useState("");
   const [curriculumSuccessMsg, setCurriculumSuccessMsg] = useState("");
   const [curriculumErrorMsg, setCurriculumErrorMsg] = useState("");
   const [courseContentSections, setCourseContentSections] = useState<ContentSection[]>([]);
@@ -264,7 +204,6 @@ export default function App() {
   // État CRUD Quiz professeur (bug #3 — interface manquante)
   const [teacherQuizzes, setTeacherQuizzes] = useState<any[]>([]);
   const [quizCourseId, setQuizCourseId] = useState<number>(1);
-  const [newQuizModuleId, setNewQuizModuleId] = useState<string>("");
   const [newQuizTitle, setNewQuizTitle] = useState("");
   const [selectedQuizId, setSelectedQuizId] = useState<string>("");
   const [newQuestionText, setNewQuestionText] = useState("");
@@ -275,7 +214,6 @@ export default function App() {
   const [quizManagerError, setQuizManagerError] = useState("");
 
   // Live broadcast controls (Teacher side)
-  const [teacherBroadcastMsg, setTeacherBroadcastMsg] = useState("");
   const [liveCourseId, setLiveCourseId] = useState<number>(1);
   const [liveRoom, setLiveRoom] = useState<Room | null>(null);
   const [liveParticipants, setLiveParticipants] = useState<LiveParticipantCard[]>([]);
@@ -345,7 +283,6 @@ export default function App() {
     }
     if (!managedCourses.some((course) => course.id === newSectionCourseId)) {
       const firstManagedCourseId = managedCourses[0].id;
-      setNewModuleCourseId(firstManagedCourseId);
       setNewSectionCourseId(firstManagedCourseId);
       setUploadCourseId(firstManagedCourseId);
       setQuizCourseId(firstManagedCourseId);
@@ -1419,213 +1356,6 @@ export default function App() {
         onLiveEvent={publishLiveAction}
       />
     );
-    const isTeacherConsole = mode === "teacher";
-    const participantCards = (liveParticipants.length > 0 ? liveParticipants : [{
-      identity: "connecting",
-      name: "Connexion...",
-      initials: "LK",
-      isLocal: true,
-    }]).slice(0, 8);
-
-    const centralPanel = (
-      <div className={`${isTeacherConsole ? "p-4 md:p-6" : "flex-1 p-4 md:p-6"} flex flex-col gap-4 overflow-y-auto`}>
-        <div className="flex items-center justify-between bg-slate-900 border border-slate-800 px-4 py-3 rounded-2xl text-white">
-          <div className="flex items-center gap-3 min-w-0">
-            {!isTeacherConsole && (
-              <button
-                onClick={() => navigateTo("course", activeLiveCourse)}
-                className="p-1.5 bg-slate-800 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-            )}
-            <div className="min-w-0">
-              <h2 className="text-sm font-bold truncate leading-tight">{activeLiveCourse.title}</h2>
-              <p className="text-[11px] text-slate-400 truncate">{activeLiveCourse.liveSubject} • Animé par {activeLiveCourse.instructor}</p>
-            </div>
-          </div>
-
-          <span className="flex h-2.5 w-2.5 relative flex-shrink-0">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
-          </span>
-        </div>
-
-        <div ref={liveStageRef} className={`flex-1 bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden relative ${isTeacherConsole ? "min-h-[360px]" : "min-h-[300px]"} flex flex-col justify-between p-4`}>
-          <div className="absolute top-4 left-4 z-20 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-lg text-white text-xs font-bold flex items-center gap-2 border border-slate-700">
-            <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-            <span>{liveParticipants.find((participant) => !participant.isLocal && participant.videoTrack)?.name || activeLiveCourse.instructor} (Hôte principal)</span>
-          </div>
-
-          <div className="flex-1 flex items-center justify-center p-4">
-            {(liveParticipants.some((participant) => participant.videoTrack)) ? (
-              <video
-                ref={primaryLiveVideoRef}
-                autoPlay
-                playsInline
-                muted={liveParticipants.find((participant) => participant.videoTrack)?.isLocal}
-                className="w-full h-full max-h-[520px] object-contain rounded-xl bg-slate-950 border border-slate-800"
-              />
-            ) : (
-              <div className="bg-slate-950/90 backdrop-blur-md border border-slate-800 rounded-xl p-5 max-w-2xl w-full shadow-2xl font-mono text-xs text-indigo-300 space-y-2">
-                <p className="text-slate-500">// Whiteboard Académique Axelmond Research Labs : Exemple d'insertion dans un arbre binaire</p>
-                <p className="text-slate-400">Node* insertNode(Node* root, int value) &#123;</p>
-                <p className="pl-4">if (root == NULL) return createNode(value);</p>
-                <p className="pl-4">if (value &lt; root-&gt;data) &#123;</p>
-                <p className="pl-8 text-indigo-400">root-&gt;left = insertNode(root-&gt;left, value);</p>
-                <p className="pl-4">&#125; else if (value &gt; root-&gt;data) &#123;</p>
-                <p className="pl-8 text-indigo-400">root-&gt;right = insertNode(root-&gt;right, value);</p>
-                <p className="pl-4">&#125;</p>
-                <p className="pl-4">return root;</p>
-                <p className="text-slate-400">&#125;</p>
-              </div>
-            )}
-          </div>
-
-          <div className="bg-slate-950/80 px-4 py-2.5 rounded-xl border border-slate-800/60 max-w-sm self-start text-slate-400 text-[11px]">
-            {liveStatusMsg || "Note : Le tableau blanc reste disponible tant qu'aucune caméra ou partage d'écran n'est publié."}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {participantCards.map((participant) => (
-            <div
-              key={participant.identity}
-              className={`bg-slate-900 border rounded-xl p-3 text-center flex flex-col items-center justify-center text-white relative h-24 overflow-hidden ${
-                participant.isLocal ? "border-indigo-500 shadow-md" : "border-slate-800"
-              }`}
-            >
-              {participant.videoTrack ? (
-                <video
-                  ref={(el) => { liveVideoRefs.current[participant.identity] = el; }}
-                  autoPlay
-                  playsInline
-                  muted={participant.isLocal}
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-              ) : (
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${participant.isLocal ? "bg-indigo-600" : "bg-slate-800"}`}>
-                  {participant.initials}
-                </div>
-              )}
-              <span className={`text-[10px] mt-1.5 block relative z-10 ${participant.isLocal ? "text-indigo-400 font-bold" : "text-slate-400"}`}>
-                {participant.name}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        <div className="bg-slate-900 border border-slate-800 px-6 py-3 rounded-2xl flex items-center justify-center gap-4 text-white">
-          <button
-            title={isMicEnabled ? "Couper le micro" : "Activer le micro"}
-            aria-label={isMicEnabled ? "Couper le micro" : "Activer le micro"}
-            onClick={toggleLiveMic}
-            className={`p-3 rounded-full transition-colors cursor-pointer ${isMicEnabled ? "bg-indigo-600 text-white" : "bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white"}`}
-          >
-            {isMicEnabled ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
-          </button>
-          <button
-            title={isCameraEnabled ? "Couper la caméra" : "Activer la caméra"}
-            aria-label={isCameraEnabled ? "Couper la caméra" : "Activer la caméra"}
-            onClick={toggleLiveCamera}
-            className={`p-3 rounded-full transition-colors cursor-pointer ${isCameraEnabled ? "bg-indigo-600 text-white" : "bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white"}`}
-          >
-            {isCameraEnabled ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
-          </button>
-          <button
-            title={isScreenShareEnabled ? "Arrêter le partage d'écran" : "Partager l'écran"}
-            aria-label={isScreenShareEnabled ? "Arrêter le partage d'écran" : "Partager l'écran"}
-            onClick={toggleLiveScreenShare}
-            className={`p-3 rounded-full transition-colors cursor-pointer ${isScreenShareEnabled ? "bg-indigo-600 text-white" : "bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white"}`}
-          >
-            {isScreenShareEnabled ? <ScreenShareOff className="w-5 h-5" /> : <ScreenShare className="w-5 h-5" />}
-          </button>
-          <button
-            title={isLiveFullscreen ? "Quitter le plein écran" : "Plein écran"}
-            aria-label={isLiveFullscreen ? "Quitter le plein écran" : "Plein écran"}
-            onClick={toggleLiveFullscreen}
-            className={`p-3 rounded-full transition-colors cursor-pointer ${isLiveFullscreen ? "bg-indigo-600 text-white" : "bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white"}`}
-          >
-            <Fullscreen className="w-5 h-5" />
-          </button>
-          <button
-            onClick={leaveLiveRoom}
-            className="bg-red-600 hover:bg-red-700 font-bold text-xs text-white px-5 py-2.5 rounded-xl transition-colors cursor-pointer"
-          >
-            Quitter le live
-          </button>
-        </div>
-      </div>
-    );
-
-    const chatPanel = (
-      <div className={`${isTeacherConsole ? "bg-slate-900 border-t xl:border-t-0 xl:border-l border-slate-800 min-h-[420px]" : "w-full lg:w-96 bg-slate-900 border-l border-slate-800 flex-shrink-0"} p-4 md:p-6 flex flex-col overflow-y-auto space-y-6 text-white`}>
-        <div className="space-y-1">
-          <h3 className="text-sm font-bold flex items-center gap-1.5">
-            <MessageSquare className="w-4 h-4 text-indigo-400" />
-            Messagerie de la promotion (Live)
-          </h3>
-          <p className="text-[10px] text-slate-400">Participez à la discussion interactive avec la classe</p>
-        </div>
-
-        <div className="flex-1 bg-slate-950/70 border border-slate-800 p-4 rounded-xl space-y-4 max-h-[300px] overflow-y-auto font-sans text-xs">
-          {liveChatMessages.length === 0 ? (
-            <div>
-              <span className="font-extrabold text-indigo-400">LiveKit</span>
-              <p className="text-slate-300 mt-0.5">Le chat de la salle est prêt. Les messages seront diffusés en temps réel aux participants connectés.</p>
-            </div>
-          ) : liveChatMessages.map((message) => (
-            <div key={message.id}>
-              <span className={`font-extrabold ${message.isMe ? "text-blue-400" : "text-indigo-400"}`}>{message.sender}</span>
-              <span className="text-[10px] text-slate-500 ml-2">{message.time}</span>
-              <p className={message.isMe ? "text-indigo-200 mt-0.5" : "text-slate-300 mt-0.5"}>{message.text}</p>
-            </div>
-          ))}
-        </div>
-
-        <form onSubmit={sendLiveChatMessage} className="flex items-center gap-2">
-          <input
-            value={liveChatDraft}
-            onChange={(e) => setLiveChatDraft(e.target.value)}
-            disabled={!liveRoom}
-            placeholder="Message au groupe live..."
-            className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
-          />
-          <button
-            type="submit"
-            disabled={!liveRoom || !liveChatDraft.trim()}
-            className="p-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-800 disabled:text-slate-500 rounded-xl text-white transition-colors cursor-pointer"
-          >
-            <Send className="w-4 h-4" />
-          </button>
-        </form>
-
-        <div className="border-t border-slate-800 pt-4">
-          <AITutorChat
-            courseTitle={activeLiveCourse.title}
-            moduleTitle={activeLiveCourse.liveSubject || "Révision générale"}
-          />
-        </div>
-      </div>
-    );
-
-    if (isTeacherConsole) {
-      return (
-        <div className="bg-slate-950 border border-slate-800 rounded-3xl overflow-hidden shadow-sm text-white">
-          <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px]">
-            {centralPanel}
-            {chatPanel}
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="flex flex-col lg:flex-row h-[calc(100vh-73px)] overflow-hidden bg-slate-950">
-        {centralPanel}
-        {chatPanel}
-      </div>
-    );
   };
 
   const showCurriculumSuccess = (message: string) => {
@@ -1638,34 +1368,6 @@ export default function App() {
     setCurriculumSuccessMsg("");
     setCurriculumErrorMsg(message);
     setTimeout(() => setCurriculumErrorMsg(""), 8500);
-  };
-
-  const handleAddCourseModule = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newModuleTitle.trim()) return;
-
-    const targetCourse = managedCourses.find((c) => c.id === newModuleCourseId);
-    if (!targetCourse) return;
-
-    try {
-      const updatedCourse = await api.addModule(newModuleCourseId, {
-        title: newModuleTitle,
-        type: newModuleType,
-        duration: newModuleDuration,
-        contentMarkdown: newModuleType === "pdf" ? (newModuleMarkdown || undefined) : undefined,
-      });
-
-      setCourses((prev) => prev.map((c) => (c.id === updatedCourse.id ? updatedCourse : c)));
-
-      setCurriculumSuccessMsg(
-        `Succès académique ! Le chapitre "${newModuleTitle}" a été rajouté au syllabus du module "${targetCourse.title}".`
-      );
-      setNewModuleTitle("");
-      setNewModuleMarkdown("");
-      setTimeout(() => setCurriculumSuccessMsg(""), 5050);
-    } catch (err) {
-      console.error("Failed to add module:", err);
-    }
   };
 
   const handleCreateCourse = async (e: React.FormEvent) => {
@@ -1688,7 +1390,6 @@ export default function App() {
         published: newCoursePublished,
       });
       setCourses((prev) => [...prev, course]);
-      setNewModuleCourseId(course.id);
       setNewSectionCourseId(course.id);
       setUploadCourseId(course.id);
       setUploadSectionId("");
@@ -2268,17 +1969,6 @@ export default function App() {
     if (score >= 10) return "text-indigo-700 bg-indigo-50";
     return "text-red-700 bg-red-50";
   };
-  const quickTestItems = [
-    { label: "Créer un module", done: managedCourses.length > 0 },
-    { label: "Créer un chapitre", done: chapterSections.length > 0 },
-    { label: "Ajouter une partie", done: managedSections.some((section) => Boolean(section.parentId)) },
-    { label: "Uploader un PDF", done: managedSections.some((section) => section.contents.some((content) => content.type === "PDF")) },
-    { label: "Uploader une image", done: managedSections.some((section) => section.contents.some((content) => content.type === "IMAGE")) },
-    { label: "Uploader une vidéo", done: managedSections.some((section) => section.contents.some((content) => content.type === "VIDEO")) },
-    { label: "Publier", done: managedSections.some((section) => section.published) || managedCourses.some((course) => course.published) },
-    { label: "Voir comme étudiant", done: false },
-  ];
-
   if (isLoading || !isAuthReady) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
