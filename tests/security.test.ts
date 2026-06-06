@@ -39,6 +39,19 @@ assert.match(serverSource, /user\.lockoutUntil/);
 assert.match(serverSource, /failedLoginAttempts:\s*attempts/);
 assert.match(serverSource, /app\.use\("\/api\/auth\/login",\s*authRateLimiter\)/);
 
+// 6b. Inscription publique validée par Zod (mot de passe 8+, email normalisé)
+assert.match(serverSource, /app\.post\("\/api\/auth\/register",\s*validateBody\(registerSchema\)/);
+assert.match(serverSource, /password:\s*z\.string\(\)\.min\(8/);
+
+// 6c. CORS piloté par APP_URL / ALLOWED_ORIGINS ; localhost uniquement hors production
+assert.match(serverSource, /function buildAllowedOrigins/);
+assert.match(serverSource, /process\.env\.APP_URL/);
+assert.match(serverSource, /process\.env\.ALLOWED_ORIGINS/);
+assert.match(serverSource, /if\s*\(!isProduction\)/);
+
+// 6d. CSP durcie en production (pas de unsafe-eval)
+assert.match(serverSource, /scriptSrc:\s*isProduction/);
+
 // 7. Vérification d'e-mail avec rate limiters et protection
 assert.match(serverSource, /app\.use\("\/api\/auth\/verify-email",\s*emailVerificationRateLimiter\)/);
 assert.match(serverSource, /app\.use\("\/api\/auth\/resend-verification-code",\s*emailVerificationRateLimiter\)/);

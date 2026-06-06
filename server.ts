@@ -45,6 +45,7 @@ const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SEC
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
+const isProduction = process.env.NODE_ENV === "production";
 const AUTH_MAX_ATTEMPTS = Number(process.env.AUTH_MAX_ATTEMPTS) || 20;
 const AUTH_LOCKOUT_WINDOW_MS = Number(process.env.AUTH_LOCKOUT_WINDOW_MS) || 1 * 60 * 1000;
 const uploadThingCallbackUrl = process.env.UPLOADTHING_CALLBACK_URL || (process.env.APP_URL ? `${process.env.APP_URL}/api/uploadthing` : undefined);
@@ -52,45 +53,90 @@ const isUploadThingDevMode = process.env.UPLOADTHING_IS_DEV === "true"
   || process.env.NODE_ENV !== "production"
   || Boolean(uploadThingCallbackUrl?.includes("localhost") || uploadThingCallbackUrl?.includes("127.0.0.1"));
 
+function normalizeOriginUrl(value: string): string {
+  return value.trim().replace(/\/+$/, "");
+}
+
+function buildAllowedOrigins(): Set<string> {
+  const origins = new Set<string>();
+
+  if (process.env.APP_URL?.trim()) {
+    origins.add(normalizeOriginUrl(process.env.APP_URL));
+  }
+
+  if (process.env.ALLOWED_ORIGINS?.trim()) {
+    for (const part of process.env.ALLOWED_ORIGINS.split(",")) {
+      const normalized = normalizeOriginUrl(part);
+      if (normalized) origins.add(normalized);
+    }
+  }
+
+  if (!isProduction) {
+    origins.add(`http://localhost:${PORT}`);
+    origins.add(`http://127.0.0.1:${PORT}`);
+    origins.add("http://localhost:5173");
+    origins.add("http://127.0.0.1:5173");
+  }
+
+  return origins;
+}
+
+const allowedOrigins = buildAllowedOrigins();
+
+function buildCspConnectSrc(): string[] {
+  const connectSrc = [
+    "'self'",
+    "wss://*.livekit.cloud",
+    "https://*.livekit.cloud",
+    "https://uploadthing.com",
+    "https://*.uploadthing.com",
+    "https://ufs.sh",
+    "https://*.ufs.sh",
+    "https://utfs.io",
+    "https://*.utfs.io",
+  ];
+
+  if (!isProduction) {
+    connectSrc.push(
+      "ws://localhost:*",
+      "ws://127.0.0.1:*",
+      "http://localhost:*",
+      "http://127.0.0.1:*",
+    );
+  }
+
+  for (const origin of allowedOrigins) {
+    connectSrc.push(origin);
+    if (origin.startsWith("https://")) {
+      connectSrc.push(origin.replace(/^https:/, "wss:"));
+    }
+  }
+
+  return connectSrc;
+}
+
 app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+        scriptSrc: isProduction
+          ? ["'self'", "'unsafe-inline'"]
+          : ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", "data:", "blob:", "https://uploadthing.com", "https://*.uploadthing.com", "https://ufs.sh", "https://*.ufs.sh", "https://utfs.io", "https://*.utfs.io"],
         mediaSrc: ["'self'", "https://uploadthing.com", "https://*.uploadthing.com", "https://ufs.sh", "https://*.ufs.sh", "https://utfs.io", "https://*.utfs.io"],
-        connectSrc: [
-          "'self'",
-          "ws://localhost:*",
-          "ws://127.0.0.1:*",
-          "http://localhost:*",
-          "http://127.0.0.1:*",
-          "wss://*.livekit.cloud",
-          "https://*.livekit.cloud",
-          "https://uploadthing.com",
-          "https://*.uploadthing.com",
-          "https://ufs.sh",
-          "https://*.ufs.sh",
-          "https://utfs.io",
-          "https://*.utfs.io",
-        ],
+        connectSrc: buildCspConnectSrc(),
       },
     },
     crossOriginEmbedderPolicy: false,
+    hsts: isProduction ? { maxAge: 31536000, includeSubDomains: true } : false,
   })
 );
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  const allowedOrigins = new Set([
-    `http://localhost:${PORT}`,
-    `http://127.0.0.1:${PORT}`,
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-  ]);
-  if (origin && allowedOrigins.has(origin)) {
+  if (origin && allowedOrigins.has(normalizeOriginUrl(origin))) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Vary", "Origin");
     res.setHeader("Access-Control-Allow-Credentials", "true");
@@ -360,15 +406,27 @@ function isConfiguredEnv(name: string) {
 
 function logEnvironmentStatus() {
   logDb("INFO", "Environment configuration loaded", {
+    NODE_ENV: process.env.NODE_ENV || "development",
+    APP_URL: isConfiguredEnv("APP_URL"),
+    ALLOWED_ORIGINS: isConfiguredEnv("ALLOWED_ORIGINS"),
+    corsOriginCount: allowedOrigins.size,
     DATABASE_URL: isConfiguredEnv("DATABASE_URL"),
+    AUTH_TOKEN_SECRET: isConfiguredEnv("AUTH_TOKEN_SECRET"),
+    STRIPE_SECRET_KEY: isConfiguredEnv("STRIPE_SECRET_KEY"),
+    STRIPE_WEBHOOK_SECRET: isConfiguredEnv("STRIPE_WEBHOOK_SECRET"),
     LIVEKIT_URL: isConfiguredEnv("LIVEKIT_URL"),
     LIVEKIT_API_KEY: isConfiguredEnv("LIVEKIT_API_KEY"),
     LIVEKIT_API_SECRET: isConfiguredEnv("LIVEKIT_API_SECRET"),
     UPLOADTHING_TOKEN: isConfiguredEnv("UPLOADTHING_TOKEN"),
+    UPLOADTHING_IS_DEV: process.env.UPLOADTHING_IS_DEV === "true",
     SMTP_HOST: isConfiguredEnv("SMTP_HOST"),
     SMTP_USER: isConfiguredEnv("SMTP_USER"),
     SMTP_PASS: isConfiguredEnv("SMTP_PASS"),
+    GEMINI_API_KEY: isConfiguredEnv("GEMINI_API_KEY"),
   });
+  if (isProduction && allowedOrigins.size === 0) {
+    logSecurity("WARN", "Production CORS has no allowed origins — set APP_URL and/or ALLOWED_ORIGINS", {});
+  }
 }
 
 function logApiResponse(req: express.Request, res: express.Response, startedAt: number) {
@@ -1398,8 +1456,8 @@ function validateBody(schema: z.ZodType<any>) {
 }
 
 const registerSchema = z.object({
-  email: z.string().email("Adresse email invalide").trim().toLowerCase(),
-  password: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères"),
+  email: z.string().email("Adresse email invalide").trim().toLowerCase().max(255),
+  password: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères").max(128),
   fullName: z.string().min(2, "Le nom complet doit contenir au moins 2 caractères").max(100).trim(),
   role: z.enum(["STUDENT", "PROFESSOR", "RESEARCHER", "ADMIN"]),
   levelOrTitle: z.string().max(100).trim().optional().nullable(),
@@ -2926,12 +2984,8 @@ app.post("/api/test-email", requireAuth, requireAdmin, async (req, res) => {
 });
 
 // POST /api/auth/register
-app.post("/api/auth/register", async (req, res) => {
+app.post("/api/auth/register", validateBody(registerSchema), async (req, res) => {
   const { email, password, fullName, role, levelOrTitle, filiere, professorInviteCode } = req.body;
-  if (!email || !password || !fullName || !role) {
-    res.status(400).json({ error: "email, password, fullName, role required" });
-    return;
-  }
 
   const normalizedRole = normalizeRole(role);
   if (!normalizedRole) {
@@ -2939,12 +2993,12 @@ app.post("/api/auth/register", async (req, res) => {
     return;
   }
   if (normalizedRole === "ADMIN") {
-    logSecurity("WARN", "Public admin registration denied", { email: String(email).trim().toLowerCase() });
+    logSecurity("WARN", "Public admin registration denied", { email });
     res.status(403).json({ error: "La création d'un compte administrateur n'est pas autorisée depuis l'inscription publique" });
     return;
   }
 
-  const normalizedEmail = email.trim().toLowerCase();
+  const normalizedEmail = email;
   const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
   if (existing) {
     res.status(409).json({ error: "Un compte avec cet email existe déjà" });
@@ -2990,7 +3044,7 @@ app.post("/api/auth/register", async (req, res) => {
         data: {
           email: normalizedEmail,
           passwordHash,
-          fullName: fullName.trim(),
+          fullName,
           role: normalizedRole,
           emailVerified: false,
           levelOrTitle: finalLevel,
