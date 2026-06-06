@@ -39,6 +39,7 @@ import StudentCourseView from "./views/student/StudentCourseView";
 import StudentProfileView from "./views/student/StudentProfileView";
 import StudentLiveView from "./views/student/StudentLiveView";
 import { useLiveKitRoom } from "./hooks/useLiveKitRoom";
+import { useCourseContent } from "./hooks/useCourseContent";
 import { getAllowedUiRole, getRedirectPathForRole, isStudentRole } from "./rbac";
 
 export default function App() {
@@ -54,6 +55,15 @@ export default function App() {
   const [selectedDisciplineId, setSelectedDisciplineId] = useState<number | null>(null);
   const [activeLiveCourse, setActiveLiveCourse] = useState<Course | null>(null);
   const [selectedModule, setSelectedModule] = useState<CourseModule | null>(null);
+
+  const {
+    courseContentSections,
+    setCourseContentSections,
+    selectedLessonContent,
+    setSelectedLessonContent,
+    flattenSections,
+    refreshCourseContent,
+  } = useCourseContent();
 
   // Fetch courses from API on mount
   useEffect(() => {
@@ -140,8 +150,6 @@ export default function App() {
   const [quizSubpartId, setQuizSubpartId] = useState<string>("");
   const [curriculumSuccessMsg, setCurriculumSuccessMsg] = useState("");
   const [curriculumErrorMsg, setCurriculumErrorMsg] = useState("");
-  const [courseContentSections, setCourseContentSections] = useState<ContentSection[]>([]);
-  const [selectedLessonContent, setSelectedLessonContent] = useState<LessonContent | null>(null);
   const [newCourseTitle, setNewCourseTitle] = useState("");
   const [newCourseDescription, setNewCourseDescription] = useState("");
   const [newCourseDisciplineId, setNewCourseDisciplineId] = useState(601);
@@ -567,41 +575,6 @@ export default function App() {
       return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
     return name.slice(0, 2).toUpperCase();
-  };
-
-  const flattenSections = (sections: ContentSection[], depth = 0): (ContentSection & { depth: number })[] => {
-    return sections.flatMap((section) => {
-      const flatSection: ContentSection & { depth: number } = { ...section, depth };
-      return [
-        flatSection,
-        ...flattenSections(section.children || [], depth + 1),
-      ];
-    });
-  };
-
-  const flattenContents = (sections: ContentSection[]): LessonContent[] => {
-    return sections.flatMap((section) => [
-      ...(section.contents || []),
-      ...flattenContents(section.children || []),
-    ]);
-  };
-
-  const refreshCourseContent = async (courseId: number) => {
-    try {
-      const sections = await api.getCourseContent(courseId);
-      setCourseContentSections(sections);
-      const contents = flattenContents(sections);
-      setSelectedLessonContent((current) => {
-        if (current && contents.some((content) => content.id === current.id)) return current;
-        return contents[0] || null;
-      });
-      return sections;
-    } catch (err) {
-      console.error("Failed to load course content:", err);
-      setCourseContentSections([]);
-      setSelectedLessonContent(null);
-      return [];
-    }
   };
 
   const {
