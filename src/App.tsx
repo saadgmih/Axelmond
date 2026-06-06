@@ -18,7 +18,7 @@ import {
   Lightbulb,
 } from "lucide-react";
 
-import { Course, CourseModule, Invoice, FacultyDomain, CourseGrade } from "./types";
+import { Course, CourseModule, Invoice, FacultyDomain } from "./types";
 import { api } from "./api";
 import { uploadFiles, getUploadedFileUrl, getUploadErrorMessage, validateUploadFile } from "./uploadthing-client";
 import Sidebar from "./components/Sidebar";
@@ -43,6 +43,7 @@ import { useTeacherCurriculum } from "./hooks/useTeacherCurriculum";
 import { useAppSession } from "./hooks/useAppSession";
 import { usePlatformNavigation } from "./hooks/usePlatformNavigation";
 import { useAcademicProfile } from "./hooks/useAcademicProfile";
+import { useTeacherDashboard } from "./hooks/useTeacherDashboard";
 import { isStudentRole } from "./rbac";
 
 export default function App() {
@@ -103,49 +104,13 @@ export default function App() {
       .catch((err) => { console.error("Failed to fetch academic catalog:", err); setIsLoading(false); });
   }, []);
 
-  const [teacherChartTab, setTeacherChartTab] = useState<"revenue" | "engagement">("revenue");
   const [studentChartTab, setStudentChartTab] = useState<"hours" | "skills">("hours");
-  const [gradesCourseId, setGradesCourseId] = useState<number>(1);
-  const [courseGrades, setCourseGrades] = useState<CourseGrade[]>([]);
-  const [gradesStatusMsg, setGradesStatusMsg] = useState("");
-
-  useEffect(() => {
-    if (courses.length && !courses.some((course) => course.id === gradesCourseId)) {
-      setGradesCourseId(courses[0].id);
-    }
-  }, [courses, gradesCourseId]);
-
-  useEffect(() => {
-    if (role !== "teacher" || !gradesCourseId) return;
-    let disposed = false;
-    setGradesStatusMsg("Chargement des notes réelles...");
-    api.getCourseGrades(gradesCourseId)
-      .then((grades) => {
-        if (disposed) return;
-        setCourseGrades(grades);
-        setGradesStatusMsg(grades.length ? "" : "Aucun étudiant inscrit à ce module.");
-      })
-      .catch((err) => {
-        if (disposed) return;
-        console.error("Failed to fetch course grades:", err);
-        setCourseGrades([]);
-        setGradesStatusMsg(err.message || "Notes indisponibles.");
-      });
-    return () => {
-      disposed = true;
-    };
-  }, [role, gradesCourseId, courses.length]);
 
   useEffect(() => {
     document.documentElement.classList.add("dark");
     localStorage.removeItem("axelmond_theme");
   }, []);
 
-  const [testEmailTo, setTestEmailTo] = useState("");
-  const [testEmailStatusMsg, setTestEmailStatusMsg] = useState("");
-  const [isSendingTestEmail, setIsSendingTestEmail] = useState(false);
-  const [emailDeliverySummary, setEmailDeliverySummary] = useState<any | null>(null);
-  const [emailDeliveryStatusMsg, setEmailDeliveryStatusMsg] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarStatusMsg, setAvatarStatusMsg] = useState("");
 
@@ -194,6 +159,25 @@ export default function App() {
   };
 
   const { newSectionCourseId, quizCourseId } = curriculumBindings;
+
+  const teacherDashboardBindings = {
+    ...useTeacherDashboard({
+      role,
+      courses,
+      setCourses,
+      managedCourses,
+      currentUser,
+      setActiveLiveCourse,
+    }),
+    managedCourses,
+    courses,
+  };
+
+  const {
+    setGradesCourseId,
+    handleToggleCourseLive,
+    handleUpdateCourseLiveSubject,
+  } = teacherDashboardBindings;
 
   useEffect(() => {
     if (role !== "teacher") return;
@@ -513,50 +497,6 @@ export default function App() {
     setQuizSubmitError("");
   };
 
-  // Teacher Action Handlers
-  const handleUpdateCoursePrice = async (id: number, newPrice: number) => {
-    try {
-      const updatedCourse = await api.updateCourse(id, { price: Number(newPrice.toFixed(2)) });
-      setCourses((prev) =>
-        prev.map((c) => (c.id === id ? updatedCourse : c))
-      );
-    } catch (err) {
-      console.error("Failed to update course price:", err);
-    }
-  };
-
-  const handleToggleCourseLive = async (id: number) => {
-    const course = courses.find((c) => c.id === id);
-    if (!course) return;
-    const nextState = !course.isLiveNow;
-    try {
-      const updatedCourse = await api.updateCourse(id, {
-        isLiveNow: nextState,
-        liveSubject: nextState
-          ? course.liveSubject || "Rotation d'arbres AVL & complexités algorithmiques"
-          : null,
-      });
-      setCourses((prev) =>
-        prev.map((c) => (c.id === id ? updatedCourse : c))
-      );
-      setActiveLiveCourse((current) => (current?.id === id ? updatedCourse : current));
-    } catch (err) {
-      console.error("Failed to toggle course live:", err);
-    }
-  };
-
-  const handleUpdateCourseLiveSubject = async (id: number, liveSubject: string) => {
-    try {
-      const updatedCourse = await api.updateCourse(id, { liveSubject: liveSubject.trim() || null });
-      setCourses((prev) =>
-        prev.map((c) => (c.id === id ? updatedCourse : c))
-      );
-      setActiveLiveCourse((current) => (current?.id === id ? updatedCourse : current));
-    } catch (err) {
-      console.error("Failed to update course live subject:", err);
-    }
-  };
-
   const handleUploadAvatar = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("axelmond_session_token");
@@ -605,48 +545,6 @@ export default function App() {
     }
   };
 
-  const handleSendTestEmail = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!testEmailTo.trim()) return;
-    setIsSendingTestEmail(true);
-    setTestEmailStatusMsg("Envoi du diagnostic SMTP...");
-    try {
-      const response = await api.sendTestEmail(testEmailTo.trim());
-      setTestEmailStatusMsg(response.message || "E-mail de diagnostic envoyé");
-      refreshEmailDeliverySummary();
-    } catch (err: any) {
-      setTestEmailStatusMsg(err.message || "Échec d'envoi SMTP");
-      refreshEmailDeliverySummary();
-    } finally {
-      setIsSendingTestEmail(false);
-    }
-  };
-
-  const refreshEmailDeliverySummary = async () => {
-    if (currentUser?.role !== "ADMIN") return;
-    try {
-      const summary = await api.getEmailDeliverySummary();
-      setEmailDeliverySummary(summary);
-      setEmailDeliveryStatusMsg("");
-    } catch (err: any) {
-      setEmailDeliveryStatusMsg(err.message || "Diagnostic SMTP indisponible");
-    }
-  };
-
-  useEffect(() => {
-    if (currentUser?.role === "ADMIN") {
-      refreshEmailDeliverySummary();
-    } else {
-      setEmailDeliverySummary(null);
-      setEmailDeliveryStatusMsg("");
-    }
-  }, [currentUser?.id, currentUser?.role]);
-
-  const formatEmailLogDate = (value?: string) => {
-    if (!value) return "Aucun envoi";
-    return new Date(value).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
-  };
-
   const catalogCourses = courses.filter((c) => {
     const searchLower = searchQuery.toLowerCase();
     const matchesSearch = (
@@ -661,13 +559,6 @@ export default function App() {
     if (selectedDomainId) return c.discipline?.domainId === selectedDomainId;
     return true;
   });
-  const selectedGradesCourse = managedCourses.find((course) => course.id === gradesCourseId) || managedCourses[0] || null;
-  const getGradeBadgeClass = (score: number | null) => {
-    if (score === null) return "text-slate-500 bg-slate-100";
-    if (score >= 16) return "text-emerald-700 bg-emerald-50";
-    if (score >= 10) return "text-indigo-700 bg-indigo-50";
-    return "text-red-700 bg-red-50";
-  };
   if (isLoading || !isAuthReady) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
@@ -728,27 +619,8 @@ export default function App() {
               {teacherView === "dashboard" && (
                 <TeacherDashboardView
                   currentUser={currentUser}
-                  emailDeliverySummary={emailDeliverySummary}
-                  formatEmailLogDate={formatEmailLogDate}
-                  emailDeliveryStatusMsg={emailDeliveryStatusMsg}
-                  handleSendTestEmail={handleSendTestEmail}
-                  testEmailTo={testEmailTo}
-                  setTestEmailTo={setTestEmailTo}
-                  isSendingTestEmail={isSendingTestEmail}
-                  testEmailStatusMsg={testEmailStatusMsg}
-                  teacherChartTab={teacherChartTab}
-                  setTeacherChartTab={setTeacherChartTab}
-                  managedCourses={managedCourses}
-                  courses={courses}
-                  handleUpdateCoursePrice={handleUpdateCoursePrice}
-                  handleToggleCourseLive={handleToggleCourseLive}
-                  gradesCourseId={gradesCourseId}
-                  setGradesCourseId={setGradesCourseId}
-                  selectedGradesCourse={selectedGradesCourse}
-                  gradesStatusMsg={gradesStatusMsg}
-                  courseGrades={courseGrades}
                   getInitials={getInitials}
-                  getGradeBadgeClass={getGradeBadgeClass}
+                  {...teacherDashboardBindings}
                 />
               )}
               {teacherView === "academic-profile" && currentUser && (
