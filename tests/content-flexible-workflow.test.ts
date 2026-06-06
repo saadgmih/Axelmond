@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const appSource = readFileSync("src/App.tsx", "utf8");
+const curriculumSource = readFileSync("src/views/teacher/TeacherCurriculumView.tsx", "utf8");
 const apiSource = readFileSync("src/api.ts", "utf8");
 const serverSource = readFileSync("server.ts", "utf8");
 const uploadthingSource = readFileSync("src/uploadthing.ts", "utf8");
@@ -10,7 +11,7 @@ assert.match(appSource, /useState<"chapter" \| "part" \| "subpart">\("chapter"\)
 assert.match(appSource, /const \[uploadChapterId, setUploadChapterId\]/);
 assert.match(appSource, /const \[uploadPartId, setUploadPartId\]/);
 assert.match(appSource, /const \[uploadSubpartId, setUploadSubpartId\]/);
-assert.match(appSource, /Directement dans le module/);
+assert.match(curriculumSource, /Directement dans le module/);
 assert.doesNotMatch(appSource, /!uploadFile \|\| !uploadSectionId \|\| !uploadTitle\.trim\(\)/);
 assert.match(appSource, /sectionId:\s*uploadSectionId \|\| null/);
 assert.match(appSource, /getCourseContent/);

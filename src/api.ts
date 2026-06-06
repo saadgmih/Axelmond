@@ -231,8 +231,6 @@ export const api = {
     request<any>("PUT", "/api/me/profile", data),
   updateAcademicAvatar: (avatarUrl: string) =>
     request<any>("POST", "/api/me/avatar", { avatarUrl }),
-  updateAvatar: (avatarUrl: string) =>
-    request<any>("POST", "/api/me/avatar", { avatarUrl }),
   deleteAvatar: () =>
     request<any>("DELETE", "/api/me/avatar"),
   changeAcademicPassword: (currentPassword: string, newPassword: string) =>

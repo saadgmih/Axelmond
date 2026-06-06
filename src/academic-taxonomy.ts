@@ -193,11 +193,3 @@ export function getDisciplineIdForCourse(course: { title: string; category: stri
   if (title.includes("linux") || title.includes("système") || category.includes("système")) return 604;
   return DEFAULT_DISCIPLINE_ID;
 }
-
-export function findDisciplineSeed(disciplineId: number) {
-  for (const domain of ACADEMIC_DOMAINS) {
-    const discipline = domain.disciplines.find((item) => item.id === disciplineId);
-    if (discipline) return { domain, discipline };
-  }
-  return null;
-}

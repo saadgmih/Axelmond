@@ -60,10 +60,6 @@ export function getRoleLabel(role: unknown): string {
   return "Professeur";
 }
 
-export function getHomePathForRole(role: unknown): string {
-  return isTeacherSpaceRole(role) ? "/teacher" : "/student";
-}
-
 export function getRedirectPathForRole(role: unknown, pathname: string): string | null {
   const normalized = normalizeRole(role);
   if (!normalized) return "/login";

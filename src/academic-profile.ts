@@ -70,7 +70,3 @@ export function sanitizeAcademicProfileInput(value: unknown): AcademicProfileInp
 export function sanitizeAvatarUrl(value: unknown) {
   return cleanText(value, 500);
 }
-
-export function canUseAcademicProfile(role: unknown) {
-  return isTeacherSpaceRole(role);
-}

@@ -28,9 +28,9 @@ assert.match(serverSource, /logAudit\(/);
 assert.match(apiSource, /submitContact:\s*\(data:\s*\{\s*name:\s*string;\s*email:\s*string;\s*subject:\s*string;\s*category:\s*string;\s*message:\s*string\s*\}\)/);
 assert.match(apiSource, /request<any>\("POST",\s*["']\/api\/contact["'],\s*data\)/);
 
-// 5. Check ContactView import and integration inside App.tsx
-assert.match(appSource, /import ContactView from "\.\/components\/ContactView";/);
-assert.match(appSource, /currentView === "contact"\s*\?\s*\(\s*<ContactView/);
+// 5. Check ContactView integration via InstitutionalViewSwitch inside App.tsx
+assert.match(appSource, /InstitutionalViewSwitch/);
+assert.match(appSource, /INSTITUTIONAL_VIEWS\.has\(currentView\)/);
 
 // 6. Check that ContactView uses API and renders the complete required elements
 assert.match(contactViewSource, /import\s*\{\s*api\s*\}\s*from\s*"\.\.\/api";/);

@@ -32,9 +32,9 @@ assert.match(uploadthingSource, /image:\s*\{\s*maxFileSize:\s*["']4MB["'],\s*max
 assert.match(apiSource, /createSupportTicket:\s*\(data:\s*\{\s*subject:\s*string;\s*category:\s*string;\s*description:\s*string;\s*screenshotUrl\??:\s*string\s*\|\s*null\s*\}\)/);
 assert.match(apiSource, /request<any>\("POST",\s*["']\/api\/support\/tickets["'],\s*data\)/);
 
-// 6. Check SupportView import and integration inside App.tsx
-assert.match(appSource, /import SupportView from "\.\/components\/SupportView";/);
-assert.match(appSource, /currentView === "support"\s*\?\s*\(\s*<SupportView/);
+// 6. Check SupportView integration via InstitutionalViewSwitch inside App.tsx
+assert.match(appSource, /InstitutionalViewSwitch/);
+assert.match(appSource, /INSTITUTIONAL_VIEWS\.has\(currentView\)/);
 
 // 7. Check that SupportView renders the search input, categories, live status, and upload block
 assert.match(supportViewSource, /import\s*\{\s*api\s*\}\s*from\s*"\.\.\/api";/);

@@ -5,6 +5,7 @@ const schema = readFileSync("prisma/schema.prisma", "utf8");
 const serverSource = readFileSync("server.ts", "utf8");
 const apiSource = readFileSync("src/api.ts", "utf8");
 const appSource = readFileSync("src/App.tsx", "utf8");
+const curriculumSource = readFileSync("src/views/teacher/TeacherCurriculumView.tsx", "utf8");
 
 const quizModel = schema.match(/model Quiz \{[\s\S]*?\n\}/)?.[0] || "";
 assert.match(quizModel, /moduleId\s+Int\?/);
@@ -28,7 +29,7 @@ assert.match(apiSource, /submitQuizAttemptById/);
 assert.match(appSource, /const \[quizChapterId, setQuizChapterId\]/);
 assert.match(appSource, /const \[quizPartId, setQuizPartId\]/);
 assert.match(appSource, /const \[quizSubpartId, setQuizSubpartId\]/);
-assert.match(appSource, /Directement dans le module/);
+assert.match(curriculumSource, /Directement dans le module/);
 assert.match(appSource, /teacherQuizzes/);
 assert.match(appSource, /loadTeacherQuizzes/);
 

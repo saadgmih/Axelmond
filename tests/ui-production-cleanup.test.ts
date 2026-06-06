@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 const appSource = fs.readFileSync("src/App.tsx", "utf8");
+const curriculumSource = fs.readFileSync("src/views/teacher/TeacherCurriculumView.tsx", "utf8");
 const topbarSource = fs.readFileSync("src/components/Topbar.tsx", "utf8");
 const tutorSource = fs.readFileSync("src/components/AITutorChat.tsx", "utf8");
 const paymentSource = fs.readFileSync("src/components/PaymentModal.tsx", "utf8");
@@ -17,8 +18,8 @@ assert.match(appSource, /Mentions légales/);
 assert.match(appSource, /Plateforme Académique de Recherche, Formation et Innovation/);
 assert.match(appSource, /avatarImage/);
 assert.match(schema, /avatarUrl\s+String\?/);
-assert.match(appSource, /Titre du module/);
-assert.match(appSource, /Crédits ECTS/);
+assert.match(curriculumSource, /Titre du module/);
+assert.match(curriculumSource, /Crédits ECTS/);
 assert.match(appSource, /managedCourses/);
 
 console.log("UI production cleanup rules passed");

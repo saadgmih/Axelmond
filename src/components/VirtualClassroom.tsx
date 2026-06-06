@@ -69,7 +69,7 @@ export interface LiveParticipantCard {
   audioTrack?: any;
 }
 
-interface VirtualClassroomProps {
+export interface VirtualClassroomProps {
   mode: "student" | "teacher";
   course: Course;
   currentUserRole: string;
