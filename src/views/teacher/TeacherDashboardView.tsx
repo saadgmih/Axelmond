@@ -345,7 +345,7 @@ export default function TeacherDashboardView({
 
                   {/* Operational KPI Indicators Row */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {/* StatCard 1: Stripe Revenue */}
+                    {/* StatCard 1: PayPal Revenue */}
                     <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex items-center gap-4 hover:border-pink-300 transition-colors">
                       <div className="w-12 h-12 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center flex-shrink-0">
                         <DollarSign className="w-6 h-6" />

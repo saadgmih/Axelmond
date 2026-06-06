@@ -219,32 +219,13 @@ export default function App() {
   useEffect(() => {
     if (!isAuthReady || !currentUser || !isStudentRole(currentUser.role)) return;
     const params = new URLSearchParams(window.location.search);
-    if (params.get("success") !== "true") return;
-    const courseId = Number(params.get("courseId"));
-    if (!courseId || Number.isNaN(courseId)) return;
+    if (params.get("canceled") !== "true") return;
 
-    (async () => {
-      try {
-        const syncedUser = await api.me();
-        updateSessionUser(syncedUser);
-        setEnrolledCourses(syncedUser.enrolledCourses || []);
-        setInvoices(syncedUser.invoices || []);
-        const course = courses.find((item) => item.id === courseId) || await api.getCourse(courseId);
-        setSelectedCourse(course);
-        setSelectedModule(course.modules?.[0] || null);
-        setCurrentView("course");
-        console.info("[student] Enrollment refreshed after Stripe checkout", { courseId });
-      } catch (err) {
-        console.error("[student] Failed to refresh enrollment after Stripe return", err);
-      } finally {
-        params.delete("success");
-        params.delete("courseId");
-        const nextQuery = params.toString();
-        window.history.replaceState(null, "", `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ""}`);
-      }
-    })();
+    params.delete("canceled");
+    const nextQuery = params.toString();
+    window.history.replaceState(null, "", `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ""}`);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthReady, currentUser?.id, courses.length]);
+  }, [isAuthReady, currentUser?.id]);
 
   const { navigateTo, handleTeacherViewChange } = usePlatformNavigation({
     currentUser,
@@ -641,7 +622,7 @@ export default function App() {
         </button>
       )}
 
-      {/* STRIPE SANDBOX PAYMENTS OVERLAY MODAL */}
+      {/* PAYPAL CHECKOUT PAYMENTS OVERLAY MODAL */}
       <PaymentModal
         course={courseToPurchase}
         onClose={() => setCourseToPurchase(null)}

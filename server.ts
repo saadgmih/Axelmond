@@ -10,8 +10,16 @@ import { createRouteHandler } from "uploadthing/express";
 import compression from "compression";
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import helmet from "helmet";
-import Stripe from "stripe";
 import { z } from "zod";
+import {
+  capturePayPalOrder,
+  createPayPalOrder,
+  formatPayPalAmount,
+  getPayPalRuntimeEnv,
+  isPayPalConfigured,
+  logPayPalError,
+  parsePayPalCustomId,
+} from "./src/paypal-server";
 import { Course, CourseModule, DEFAULT_MODULE_CLASSIFICATION, DEFAULT_STUDENT_LABEL } from "./src/types";
 import { UserRole, canAccessAcademicProfile, canAccessApiRoute, canLoginToRequestedRole, normalizeRole } from "./src/rbac";
 import { signAuthToken, verifyAuthToken, createRefreshToken, rotateRefreshToken } from "./src/auth-token";
@@ -38,10 +46,9 @@ import { cacheGet, cacheSet, cacheDel, startCachePruner } from "./src/cache";
 import { startPerformanceMonitor, requestTimingMiddleware } from "./src/performance";
 import { logSecurity, logAudit, alertFailedLogins, alertMassDeletions, alertSuspectUpload } from "./src/security-logger";
 import { decodeStoredText, decodeStoredValue } from "./src/text";
+import { shouldSkipStartupSeed } from "./src/startup-seed";
 
 dotenv.config();
-
-const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2025-01-27.acacia" as any }) : null;
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -94,6 +101,10 @@ function buildCspConnectSrc(): string[] {
     "https://*.ufs.sh",
     "https://utfs.io",
     "https://*.utfs.io",
+    "https://api-m.sandbox.paypal.com",
+    "https://api-m.paypal.com",
+    "https://www.paypal.com",
+    "https://www.sandbox.paypal.com",
   ];
 
   if (!isProduction) {
@@ -121,8 +132,9 @@ app.use(
       directives: {
         defaultSrc: ["'self'"],
         scriptSrc: isProduction
-          ? ["'self'", "'unsafe-inline'"]
-          : ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+          ? ["'self'", "'unsafe-inline'", "https://www.paypal.com", "https://www.sandbox.paypal.com"]
+          : ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://www.paypal.com", "https://www.sandbox.paypal.com"],
+        frameSrc: ["'self'", "https://www.paypal.com", "https://www.sandbox.paypal.com"],
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", "data:", "blob:", "https://uploadthing.com", "https://*.uploadthing.com", "https://ufs.sh", "https://*.ufs.sh", "https://utfs.io", "https://*.utfs.io"],
         mediaSrc: ["'self'", "https://uploadthing.com", "https://*.uploadthing.com", "https://ufs.sh", "https://*.ufs.sh", "https://utfs.io", "https://*.utfs.io"],
@@ -162,108 +174,6 @@ app.use(
     },
   }),
 );
-
-// Stripe webhook must be placed BEFORE app.use(express.json()) to handle raw body parsing correctly.
-app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), async (req, res) => {
-  const sig = req.headers["stripe-signature"];
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-  if (!sig || !webhookSecret) {
-    res.status(400).json({ error: "Signature ou secret manquant" });
-    return;
-  }
-
-  if (!stripe) {
-    res.status(503).json({ error: "Stripe non configuré" });
-    return;
-  }
-
-  let event;
-  try {
-    event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
-  } catch (err: any) {
-    logSecurity("ERROR", "Stripe webhook signature verification failed", { error: err.message });
-    res.status(400).send(`Webhook Error: ${err.message}`);
-    return;
-  }
-
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object as Stripe.Checkout.Session;
-    const userId = session.metadata?.userId;
-    const courseId = Number(session.metadata?.courseId);
-
-    if (!userId || !courseId) {
-      logSecurity("ERROR", "Stripe webhook missing metadata", { sessionId: session.id });
-      res.status(400).json({ error: "Metadata manquantes" });
-      return;
-    }
-
-    try {
-      const course = await prisma.course.findUnique({ where: { id: courseId } });
-      if (!course) {
-        logSecurity("ERROR", "Stripe webhook course not found", { courseId });
-        res.status(404).json({ error: "Module non trouvé" });
-        return;
-      }
-
-      const invoiceId = `INV-STRIPE-${session.id.slice(-8).toUpperCase()}`;
-      const expectedAmountCents = Math.round(course.price * 100);
-      if (session.amount_total != null && session.amount_total !== expectedAmountCents) {
-        logSecurity("ERROR", "Stripe webhook amount mismatch", {
-          courseId,
-          expectedAmountCents,
-          actualAmountCents: session.amount_total,
-          sessionId: session.id,
-        });
-        res.status(400).json({ error: "Montant de paiement incorrect" });
-        return;
-      }
-
-      const user = await prisma.user.findUnique({ where: { id: userId } });
-      if (!user) {
-        logSecurity("ERROR", "Stripe webhook user not found", { userId, sessionId: session.id });
-        res.status(404).json({ error: "Utilisateur non trouvé" });
-        return;
-      }
-
-      const currentInvoices = Array.isArray(user.invoices) ? (user.invoices as any[]) : [];
-      if (currentInvoices.some((invoice) => invoice?.id === invoiceId)) {
-        logSecurity("INFO", "Stripe webhook duplicate ignored", { userId, courseId, invoiceId });
-        res.json({ received: true });
-        return;
-      }
-
-      const newInvoice = {
-        id: invoiceId,
-        date: new Date().toLocaleDateString("fr-FR"),
-        courseTitle: course.title,
-        amount: course.price,
-        status: "Payé"
-      };
-
-      await prisma.$transaction([
-          prisma.enrollment.upsert({
-            where: { userId_courseId: { userId, courseId } },
-            update: { active: true },
-            create: { userId, courseId, active: true }
-          }),
-        prisma.user.update({
-          where: { id: userId },
-          data: { invoices: [...currentInvoices, newInvoice] }
-        })
-      ]);
-
-      invalidateAuthUserCache(userId);
-      await logAudit(userId, user.email, "PAYMENT_STRIPE_SUCCESS", "Course", String(courseId), { price: course.price, invoiceId }, undefined);
-    } catch (err) {
-      logDb("ERROR", "Stripe enrollment persistence failed", { userId, courseId, error: String(err) });
-      res.status(500).json({ error: "Erreur de persistance" });
-      return;
-    }
-  }
-
-  res.json({ received: true });
-});
 
 app.use(express.json());
 
@@ -412,8 +322,9 @@ function logEnvironmentStatus() {
     corsOriginCount: allowedOrigins.size,
     DATABASE_URL: isConfiguredEnv("DATABASE_URL"),
     AUTH_TOKEN_SECRET: isConfiguredEnv("AUTH_TOKEN_SECRET"),
-    STRIPE_SECRET_KEY: isConfiguredEnv("STRIPE_SECRET_KEY"),
-    STRIPE_WEBHOOK_SECRET: isConfiguredEnv("STRIPE_WEBHOOK_SECRET"),
+    PAYPAL_CLIENT_ID: isConfiguredEnv("PAYPAL_CLIENT_ID"),
+    PAYPAL_CLIENT_SECRET: isConfiguredEnv("PAYPAL_CLIENT_SECRET"),
+    PAYPAL_ENV: getPayPalRuntimeEnv(),
     LIVEKIT_URL: isConfiguredEnv("LIVEKIT_URL"),
     LIVEKIT_API_KEY: isConfiguredEnv("LIVEKIT_API_KEY"),
     LIVEKIT_API_SECRET: isConfiguredEnv("LIVEKIT_API_SECRET"),
@@ -1234,6 +1145,14 @@ function canReadCourseGrades(authUser: AppUser, course: { id: number; createdByI
 }
 
 async function seedDatabase() {
+  if (shouldSkipStartupSeed()) {
+    logDb("INFO", "Startup seed skipped", {
+      nodeEnv: process.env.NODE_ENV || "development",
+      runStartupSeed: process.env.RUN_STARTUP_SEED || "(unset)",
+    });
+    return;
+  }
+
   for (const domain of ACADEMIC_DOMAINS) {
     await prisma.facultyDomain.upsert({
       where: { id: domain.id },
@@ -4013,6 +3932,240 @@ app.put("/api/users/sync", requireAuth, requireRbac, validateBody(syncUserSchema
   }
 });
 
+async function persistCoursePaymentEnrollment(params: {
+  userId: string;
+  courseId: number;
+  courseTitle: string;
+  coursePrice: number;
+  invoiceId: string;
+  auditAction: string;
+  reqIp?: string;
+}) {
+  const user = await prisma.user.findUnique({ where: { id: params.userId } });
+  if (!user) {
+    throw new Error("USER_NOT_FOUND");
+  }
+
+  const currentInvoices = Array.isArray(user.invoices) ? (user.invoices as any[]) : [];
+  if (currentInvoices.some((invoice) => invoice?.id === params.invoiceId)) {
+    const existingUser = await prisma.user.findUnique({
+      where: { id: params.userId },
+      include: { enrollments: true },
+    });
+    return { duplicate: true as const, user: existingUser, invoice: currentInvoices.find((invoice) => invoice?.id === params.invoiceId) };
+  }
+
+  const newInvoice = {
+    id: params.invoiceId,
+    date: new Date().toLocaleDateString("fr-FR"),
+    courseTitle: params.courseTitle,
+    amount: params.coursePrice,
+    status: "Payé",
+  };
+
+  const [, , updatedUser] = await prisma.$transaction([
+    prisma.enrollment.upsert({
+      where: { userId_courseId: { userId: params.userId, courseId: params.courseId } },
+      update: { active: true },
+      create: { userId: params.userId, courseId: params.courseId, active: true },
+    }),
+    prisma.user.update({
+      where: { id: params.userId },
+      data: { invoices: [...currentInvoices, newInvoice] },
+    }),
+    prisma.user.findUnique({
+      where: { id: params.userId },
+      include: { enrollments: true },
+    }),
+  ]);
+
+  if (!updatedUser) {
+    throw new Error("USER_NOT_FOUND");
+  }
+
+  invalidateAuthUserCache(params.userId);
+  await logAudit(
+    params.userId,
+    user.email,
+    params.auditAction,
+    "Course",
+    String(params.courseId),
+    { price: params.coursePrice, invoiceId: params.invoiceId },
+    params.reqIp,
+  );
+
+  return { duplicate: false as const, user: updatedUser, invoice: newInvoice };
+}
+
+// GET /api/paypal/config - Public PayPal client configuration for the SDK
+app.get("/api/paypal/config", (_req, res) => {
+  const clientId = process.env.PAYPAL_CLIENT_ID?.trim();
+  if (!clientId || !isPayPalConfigured()) {
+    res.status(503).json({ error: "PayPal non configuré" });
+    return;
+  }
+
+  res.json({
+    clientId,
+    env: getPayPalRuntimeEnv(),
+  });
+});
+
+// POST /api/paypal/create-order - Create a PayPal checkout order
+app.post("/api/paypal/create-order", requireAuth, async (req, res) => {
+  const authUser = (req as any).authUser as AppUser;
+  const courseId = Number(req.body?.courseId);
+  if (!courseId || Number.isNaN(courseId)) {
+    res.status(400).json({ error: "courseId requis" });
+    return;
+  }
+
+  if (!isPayPalConfigured()) {
+    res.status(503).json({ error: "Le service de paiement PayPal n'est pas configuré" });
+    return;
+  }
+
+  const course = await prisma.course.findUnique({ where: { id: courseId } });
+  if (!course) {
+    res.status(404).json({ error: "Module non trouvé" });
+    return;
+  }
+
+  const existing = await prisma.enrollment.findUnique({
+    where: { userId_courseId: { userId: authUser.id, courseId } },
+  });
+  if (existing?.active) {
+    res.status(400).json({ error: "Déjà inscrit à ce module" });
+    return;
+  }
+
+  try {
+    const order = await createPayPalOrder({
+      courseId,
+      courseTitle: course.title,
+      courseDescription: course.description,
+      amount: course.price,
+      userId: authUser.id,
+    });
+    res.json({ id: order.id });
+  } catch (err: any) {
+    logPayPalError("PayPal create-order route failed", {
+      userId: authUser.id,
+      courseId,
+      error: String(err?.message || err),
+    });
+    res.status(500).json({ error: err?.message || "Erreur lors de la création de la commande PayPal" });
+  }
+});
+
+// POST /api/paypal/capture-order - Capture payment and enroll student
+app.post("/api/paypal/capture-order", requireAuth, async (req, res) => {
+  const authUser = (req as any).authUser as AppUser;
+  const orderId = String(req.body?.orderId || "").trim();
+  const courseId = Number(req.body?.courseId);
+  if (!orderId) {
+    res.status(400).json({ error: "orderId requis" });
+    return;
+  }
+  if (!courseId || Number.isNaN(courseId)) {
+    res.status(400).json({ error: "courseId requis" });
+    return;
+  }
+
+  if (!isPayPalConfigured()) {
+    res.status(503).json({ error: "Le service de paiement PayPal n'est pas configuré" });
+    return;
+  }
+
+  const course = await prisma.course.findUnique({ where: { id: courseId } });
+  if (!course) {
+    res.status(404).json({ error: "Module non trouvé" });
+    return;
+  }
+
+  try {
+    const captureResult = await capturePayPalOrder(orderId);
+    const purchaseUnit = captureResult?.purchase_units?.[0];
+    const metadata = parsePayPalCustomId(purchaseUnit?.custom_id);
+    const capture = purchaseUnit?.payments?.captures?.[0];
+
+    if (!metadata || metadata.userId !== authUser.id || metadata.courseId !== courseId) {
+      logPayPalError("PayPal capture metadata mismatch", {
+        orderId,
+        authUserId: authUser.id,
+        courseId,
+        metadata,
+      });
+      res.status(400).json({ error: "Commande PayPal invalide pour ce compte" });
+      return;
+    }
+
+    if (captureResult?.status !== "COMPLETED" || capture?.status !== "COMPLETED") {
+      logPayPalError("PayPal capture incomplete", {
+        orderId,
+        orderStatus: captureResult?.status,
+        captureStatus: capture?.status,
+      });
+      res.status(400).json({ error: "Paiement PayPal non finalisé" });
+      return;
+    }
+
+    const paidAmount = String(capture?.amount?.value || "");
+    const paidCurrency = String(capture?.amount?.currency_code || "").toUpperCase();
+    if (paidCurrency !== "EUR" || paidAmount !== formatPayPalAmount(course.price)) {
+      logPayPalError("PayPal capture amount mismatch", {
+        orderId,
+        courseId,
+        expectedAmount: formatPayPalAmount(course.price),
+        paidAmount,
+        paidCurrency,
+      });
+      res.status(400).json({ error: "Montant de paiement incorrect" });
+      return;
+    }
+
+    const captureId = String(capture?.id || orderId);
+    const invoiceId = `INV-PAYPAL-${captureId.slice(-8).toUpperCase()}`;
+    const enrollmentResult = await persistCoursePaymentEnrollment({
+      userId: authUser.id,
+      courseId,
+      courseTitle: course.title,
+      coursePrice: course.price,
+      invoiceId,
+      auditAction: "PAYMENT_PAYPAL_SUCCESS",
+      reqIp: req.ip,
+    });
+
+    if (enrollmentResult.duplicate) {
+      logSecurity("INFO", "PayPal capture duplicate ignored", {
+        userId: authUser.id,
+        courseId,
+        invoiceId,
+        orderId,
+      });
+    }
+
+    res.json({
+      ok: true,
+      message: "Paiement confirmé",
+      invoice: enrollmentResult.invoice,
+      user: toAppUser(enrollmentResult.user!),
+    });
+  } catch (err: any) {
+    logPayPalError("PayPal capture-order route failed", {
+      userId: authUser.id,
+      courseId,
+      orderId,
+      error: String(err?.message || err),
+    });
+    if (err?.message === "USER_NOT_FOUND") {
+      res.status(404).json({ error: "Utilisateur non trouvé" });
+      return;
+    }
+    res.status(500).json({ error: err?.message || "Erreur lors de la capture PayPal" });
+  }
+});
+
 // POST /api/payments/enroll-mock - Mock enrollment backend validation
 app.post("/api/payments/enroll-mock", requireAuth, async (req, res) => {
   if (process.env.NODE_ENV === "production") {
@@ -4086,67 +4239,6 @@ app.post("/api/payments/enroll-mock", requireAuth, async (req, res) => {
   } catch (err) {
     logDb("ERROR", "Mock enrollment failed", { userId: authUser.id, courseId, error: String(err) });
     res.status(500).json({ error: "Erreur lors de l'inscription" });
-  }
-});
-
-// POST /api/payments/create-checkout-session - Create a verified Stripe checkout session
-app.post("/api/payments/create-checkout-session", requireAuth, async (req, res) => {
-  const authUser = (req as any).authUser as AppUser;
-  const courseId = Number(req.body?.courseId);
-  if (!courseId || isNaN(courseId)) {
-    res.status(400).json({ error: "courseId requis" });
-    return;
-  }
-
-  const course = await prisma.course.findUnique({ where: { id: courseId } });
-  if (!course) {
-    res.status(404).json({ error: "Module non trouvé" });
-    return;
-  }
-
-  const existing = await prisma.enrollment.findUnique({
-    where: { userId_courseId: { userId: authUser.id, courseId } }
-  });
-  if (existing && existing.active) {
-    res.status(400).json({ error: "Déjà inscrit à ce module" });
-    return;
-  }
-
-  if (!stripe) {
-    res.status(503).json({ error: "Le service de paiement Stripe n'est pas configuré" });
-    return;
-  }
-
-  try {
-    const appUrl = process.env.APP_URL || `http://localhost:${PORT}`;
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      line_items: [
-        {
-          price_data: {
-            currency: "eur",
-            product_data: {
-              name: course.title,
-              description: course.description,
-            },
-            unit_amount: Math.round(course.price * 100),
-          },
-          quantity: 1,
-        },
-      ],
-      mode: "payment",
-      success_url: `${appUrl}/student/courses?success=true&courseId=${courseId}`,
-      cancel_url: `${appUrl}/catalog?canceled=true`,
-      metadata: {
-        userId: authUser.id,
-        courseId: String(courseId),
-      },
-    });
-
-    res.json({ url: session.url });
-  } catch (err) {
-    logDb("ERROR", "Stripe session creation failed", { userId: authUser.id, courseId, error: String(err) });
-    res.status(500).json({ error: "Erreur lors de la création de la session de paiement" });
   }
 });
 
@@ -4363,8 +4455,18 @@ async function setupApp() {
   });
 
   logEnvironmentStatus();
-  await seedDatabase();
-  await synchronizePostgresSequences();
+
+  try {
+    await seedDatabase();
+  } catch (err) {
+    logDb("ERROR", "Startup seed failed — server continuing", { error: String(err) });
+  }
+
+  try {
+    await synchronizePostgresSequences();
+  } catch (err) {
+    logDb("WARN", "PostgreSQL sequence sync skipped", { error: String(err) });
+  }
   const smtpCheck = await verifySmtpConnection();
   if (smtpCheck.ok) {
     logEmail("INFO", "SMTP connection verified at startup", { smtp: smtpCheck.details });

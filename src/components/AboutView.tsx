@@ -191,8 +191,8 @@ export default function AboutView() {
     {
       icon: <Lock className="w-5 h-5 text-orange-300" />,
       accent: "bg-orange-500/15 border border-orange-500/20",
-      title: "Paiements Sécurisés (Stripe)",
-      description: "Abonnements à l'accès aux modules avec facturation automatique, reçus archivés et intégration Stripe complète.",
+      title: "Paiements Sécurisés (PayPal)",
+      description: "Abonnements à l'accès aux modules avec facturation automatique, reçus archivés et intégration PayPal Checkout complète.",
     },
     {
       icon: <Activity className="w-5 h-5 text-rose-300" />,
@@ -633,7 +633,7 @@ export default function AboutView() {
                   <p>
                     Toute l'infrastructure repose sur une <strong className="text-white">architecture sécurisée de niveau production</strong> :
                     RBAC strict, authentification JWT, vérification email, rate-limiting, audit trail et
-                    chiffrement des données sensibles. Les paiements sont gérés par Stripe avec une conformité totale.
+                    chiffrement des données sensibles. Les paiements sont gérés par PayPal avec une conformité totale.
                   </p>
                 </div>
 
@@ -647,7 +647,7 @@ export default function AboutView() {
                       { label: "Prisma + PostgreSQL", color: "text-indigo-300 bg-indigo-900/20 border-indigo-800/40" },
                       { label: "LiveKit WebRTC", color: "text-pink-300 bg-pink-900/20 border-pink-800/40" },
                       { label: "Gemini AI", color: "text-violet-300 bg-violet-900/20 border-violet-800/40" },
-                      { label: "Stripe Payments", color: "text-amber-300 bg-amber-900/20 border-amber-800/40" },
+                      { label: "PayPal Checkout", color: "text-amber-300 bg-amber-900/20 border-amber-800/40" },
                       { label: "UploadThing CDN", color: "text-orange-300 bg-orange-900/20 border-orange-800/40" },
                       { label: "JWT + Bcrypt", color: "text-rose-300 bg-rose-900/20 border-rose-800/40" },
                     ].map(({ label, color }) => (

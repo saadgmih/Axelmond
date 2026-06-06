@@ -199,8 +199,12 @@ export const api = {
     request<any>("PATCH", `/api/courses/${courseId}`, data),
   enrollMock: (courseId: number) =>
     request<any>("POST", "/api/payments/enroll-mock", { courseId }),
-  createCheckoutSession: (courseId: number) =>
-    request<{ url: string }>("POST", "/api/payments/create-checkout-session", { courseId }),
+  getPayPalConfig: () =>
+    request<{ clientId: string; env: "sandbox" | "live" }>("GET", "/api/paypal/config"),
+  createPayPalOrder: (courseId: number) =>
+    request<{ id: string }>("POST", "/api/paypal/create-order", { courseId }),
+  capturePayPalOrder: (orderId: string, courseId: number) =>
+    request<{ ok: boolean; invoice?: any; user?: any; message?: string }>("POST", "/api/paypal/capture-order", { orderId, courseId }),
   login: (email: string, password: string, role: string) =>
     request<any>("POST", "/api/auth/login", { email, password, role }),
   register: (data: { email: string; password: string; fullName: string; role: string; levelOrTitle?: string; filiere?: string; professorInviteCode?: string }) =>

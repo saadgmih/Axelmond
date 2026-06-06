@@ -96,21 +96,23 @@ export function useStudentCourseSession({
     }
   };
 
-  const handlePaymentSuccess = async (courseId: number, amountPaid: number) => {
+  const handlePaymentSuccess = async (courseId: number, amountPaid: number, syncedUser?: AppUser) => {
     const course = courses.find((c) => c.id === courseId);
     if (!course) return;
 
-    let enrollmentUser: AppUser | null = null;
+    let enrollmentUser: AppUser | null = syncedUser || null;
     let enrollmentInvoice: Invoice | undefined;
 
-    try {
-      const enrollment = await api.enrollMock(courseId);
-      if (enrollment.user) {
-        enrollmentUser = enrollment.user;
-        enrollmentInvoice = enrollment.invoice;
+    if (!enrollmentUser) {
+      try {
+        const enrollment = await api.enrollMock(courseId);
+        if (enrollment.user) {
+          enrollmentUser = enrollment.user;
+          enrollmentInvoice = enrollment.invoice;
+        }
+      } catch (err: any) {
+        if (err?.status !== 403) throw err;
       }
-    } catch (err: any) {
-      if (err?.status !== 403) throw err;
     }
 
     const user = enrollmentUser || await api.me();

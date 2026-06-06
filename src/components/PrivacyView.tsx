@@ -298,7 +298,7 @@ export default function PrivacyView() {
               <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
               <p className="text-[12px] text-amber-200/80">
                 <strong className="text-amber-300">Aucune donnée sensible</strong> (numéro de carte bancaire, données de santé, données biométriques)
-                n'est stockée directement sur les serveurs d'Axelmond Research Labs. Les paiements sont traités exclusivement par Stripe.
+                n'est stockée directement sur les serveurs d'Axelmond Research Labs. Les paiements sont traités exclusivement par PayPal.
               </p>
             </div>
           </Section>
@@ -345,7 +345,7 @@ export default function PrivacyView() {
               color="text-violet-400"
               items={[
                 "Envoi d'e-mails de vérification et de notifications de service (aucun e-mail marketing sans consentement explicite)",
-                "Génération des factures et reçus Stripe associés à vos inscriptions aux modules",
+                "Génération des factures et reçus PayPal associés à vos inscriptions aux modules",
                 "Audit log interne à des fins de sécurité et de conformité (non partagé avec des tiers)",
                 "Personnalisation de l'expérience pédagogique (recommandations de modules basées sur votre filière)",
               ]}
@@ -445,10 +445,10 @@ export default function PrivacyView() {
             <div className="space-y-3">
               {[
                 {
-                  name: "Stripe",
+                  name: "PayPal",
                   role: "Traitement sécurisé des paiements",
                   data: "Adresse e-mail, montant de la transaction (aucune donnée bancaire stockée par ARL)",
-                  url: "stripe.com/fr/privacy",
+                  url: "paypal.com/fr/webapps/mpp/ua/privacy-full",
                   color: "border-indigo-800/40 bg-indigo-950/20",
                   chip: "text-indigo-300 border-indigo-500/30 bg-indigo-500/10",
                 },

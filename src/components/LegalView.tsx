@@ -411,7 +411,7 @@ export default function LegalView() {
                 <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
                 <p className="text-[12px] text-slate-400 leading-relaxed">
                   <strong className="text-amber-300">Liens externes :</strong> La plateforme peut contenir
-                  des liens vers des sites tiers (Stripe, LiveKit, Google, etc.). Axelmond Research Labs n'est
+                  des liens vers des sites tiers (PayPal, LiveKit, Google, etc.). Axelmond Research Labs n'est
                   pas responsable du contenu, de la politique de confidentialité ou des pratiques de ces sites externes.
                   Consultez leurs mentions légales respectives avant tout usage.
                 </p>

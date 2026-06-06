@@ -7,8 +7,8 @@ module.exports = {
     {
       name: "axelmond-research-labs",
       script: "./dist/server.cjs",
-      instances: "max",        // cluster = nombre de cœurs CPU
-      exec_mode: "cluster",
+      instances: 1,
+      exec_mode: "fork",
       node_args: "--max-old-space-size=1024",
       env: {
         NODE_ENV: "production",

@@ -1,30 +1,50 @@
-import React, { useState } from "react";
-import { X, CreditCard, Shield, CheckCircle, Ticket } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
+import { X, Shield, CheckCircle, Ticket } from "lucide-react";
 import { Course } from "../types";
+import type { AppUser } from "./AuthScreen";
 import { api } from "../api";
 
 interface PaymentModalProps {
   course: Course | null;
   onClose: () => void;
-  onSuccess: (courseId: number, amountPaid: number) => void | Promise<void>;
+  onSuccess: (courseId: number, amountPaid: number, syncedUser?: AppUser) => void | Promise<void>;
 }
 
+type PayPalConfig = {
+  clientId: string;
+  env: "sandbox" | "live";
+};
+
 export default function PaymentModal({ course, onClose, onSuccess }: PaymentModalProps) {
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [cvv, setCvv] = useState("");
-  const [cardHolder, setCardHolder] = useState("");
   const [promoCode, setPromoCode] = useState("");
-  const [appliedDiscount, setAppliedDiscount] = useState(0); // in percent
+  const [appliedDiscount, setAppliedDiscount] = useState(0);
   const [promoError, setPromoError] = useState("");
   const [promoSuccess, setPromoSuccess] = useState("");
+  const [paymentError, setPaymentError] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [step, setStep] = useState<"form" | "loading" | "success">("form");
-  const [paymentError, setPaymentError] = useState("");
+  const [paypalConfig, setPaypalConfig] = useState<PayPalConfig | null>(null);
+  const [configError, setConfigError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    api.getPayPalConfig()
+      .then((config) => {
+        if (active) setPaypalConfig(config);
+      })
+      .catch((err: any) => {
+        if (active) {
+          setConfigError(err?.message || "PayPal indisponible pour le moment.");
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   if (!course) return null;
 
-  // Code promo "AXELMOND20" -> 20%
   const handleApplyPromo = () => {
     setPromoError("");
     setPromoSuccess("");
@@ -39,91 +59,30 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
   const originalPrice = course.price;
   const finalPrice = originalPrice * (1 - appliedDiscount / 100);
 
-  const formatCardNumber = (value: string) => {
-    const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
-    const matches = v.match(/\d{4,16}/g);
-    const match = (matches && matches[0]) || "";
-    const parts = [];
-
-    for (let i = 0, len = match.length; i < len; i += 4) {
-      parts.push(match.substring(i, i + 4));
-    }
-
-    if (parts.length > 0) {
-      return parts.join(" ");
-    } else {
-      return v;
-    }
-  };
-
-  const handleCardChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCardNumber(formatCardNumber(e.target.value));
-  };
-
-  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/[^0-9]/g, "");
-    if (value.length > 2) {
-      value = value.substring(0, 2) + "/" + value.substring(2, 4);
-    }
-    setExpiry(value.substring(0, 5));
-  };
-
-  const handleCvvChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCvv(e.target.value.replace(/[^0-9]/g, "").substring(0, 3));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (cardNumber.length < 19 || expiry.length < 5 || cvv.length < 3 || !cardHolder) {
-      alert("Veuillez remplir correctement les détails de carte.");
-      return;
-    }
-
+  const handlePayPalApprove = async (orderId: string) => {
     setStep("loading");
     setIsProcessing(true);
     setPaymentError("");
 
     try {
-      const checkout = await api.createCheckoutSession(course.id);
-      if (checkout?.url) {
-        window.location.assign(checkout.url);
-        return;
-      }
-      setPaymentError("Session Stripe indisponible.");
-      setStep("form");
+      const result = await api.capturePayPalOrder(orderId, course.id);
+      await onSuccess(course.id, result.invoice?.amount ?? course.price, result.user);
+      setStep("success");
     } catch (err: any) {
-      if (err?.status === 503) {
-        setTimeout(() => {
-          setIsProcessing(false);
-          setStep("success");
-        }, 1500);
-        return;
-      }
-      setPaymentError(err?.message || "Impossible de démarrer le paiement Stripe.");
+      setPaymentError(err?.message || "Impossible de finaliser le paiement PayPal.");
       setStep("form");
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const handleSuccessClose = async () => {
-    setPaymentError("");
-    setIsProcessing(true);
-    try {
-      await onSuccess(course.id, finalPrice);
-      onClose();
-    } catch (err: any) {
-      setPaymentError(err?.message || "Synchronisation de l'inscription impossible.");
-    } finally {
-      setIsProcessing(false);
-    }
+  const handleSuccessClose = () => {
+    onClose();
   };
 
   return (
     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transition-all transform scale-100 border border-slate-100 animate-in fade-in duration-200">
-        
-        {/* Step: PAYMENT FORM */}
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transition-all transform scale-100 border border-slate-100 animate-in fade-in duration-200 max-h-[90vh] overflow-y-auto">
         {step === "form" && (
           <div>
             <div className="bg-slate-900 p-6 text-white relative">
@@ -138,18 +97,18 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                 Paiement sécurisé
               </span>
               <h2 className="text-2xl font-bold leading-tight mb-1">Activer votre abonnement</h2>
-              <p className="text-slate-400 text-sm">Débloquez l'accès complet au module : <span className="text-white font-medium">{course.title}</span>.</p>
+              <p className="text-slate-400 text-sm">
+                Débloquez l&apos;accès complet au module : <span className="text-white font-medium">{course.title}</span>.
+              </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-5">
-              
-              {/* Recapitulation prices */}
-              <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 flex items-center justify-between">
+            <div className="p-6 space-y-5">
+              <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 flex items-center justify-between gap-4">
                 <div>
                   <p className="font-bold text-slate-800 text-base">Abonnement Mensuel</p>
                   <p className="text-xs text-slate-500">Résiliable en 1 clic à tout moment</p>
                 </div>
-                <div className="text-right">
+                <div className="text-right shrink-0">
                   {appliedDiscount > 0 && (
                     <p className="text-sm text-slate-400 line-through font-medium">{originalPrice.toFixed(2)}€</p>
                   )}
@@ -160,10 +119,9 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                 </div>
               </div>
 
-              {/* Promo code field */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Code Promo</label>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <div className="relative flex-1">
                     <Ticket className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
@@ -184,94 +142,70 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                 </div>
                 {promoError && <p className="text-xs font-semibold text-red-500">{promoError}</p>}
                 {promoSuccess && <p className="text-xs font-semibold text-emerald-600">{promoSuccess}</p>}
-                {appliedDiscount === 0 && (
-                  <p className="text-[11px] text-indigo-600 font-medium">Astuce académique : utilisez le code <strong>AXELMOND20</strong> pour économiser 20%.</p>
+              </div>
+
+              <div className="border-t border-slate-100 pt-4 space-y-3">
+                <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">Payer avec PayPal</p>
+                {configError && (
+                  <p className="text-sm font-semibold text-red-500">{configError}</p>
                 )}
+                {!paypalConfig && !configError && (
+                  <p className="text-sm text-slate-500">Chargement du module PayPal...</p>
+                )}
+                {paypalConfig && (
+                  <PayPalScriptProvider
+                    options={{
+                      clientId: paypalConfig.clientId,
+                      currency: "EUR",
+                      intent: "capture",
+                      components: "buttons",
+                    }}
+                  >
+                    <div className="min-h-[120px]">
+                      <PayPalButtons
+                        style={{ layout: "vertical", color: "gold", shape: "rect", label: "paypal", height: 45 }}
+                        disabled={isProcessing}
+                        createOrder={async () => {
+                          setPaymentError("");
+                          const order = await api.createPayPalOrder(course.id);
+                          return order.id;
+                        }}
+                        onApprove={async (data) => {
+                          if (!data.orderID) {
+                            setPaymentError("Commande PayPal invalide.");
+                            return;
+                          }
+                          await handlePayPalApprove(data.orderID);
+                        }}
+                        onError={(err) => {
+                          console.error("[paypal] checkout error", err);
+                          setPaymentError("Erreur PayPal. Veuillez réessayer ou utiliser un autre moyen de paiement.");
+                        }}
+                        onCancel={() => {
+                          setPaymentError("Paiement annulé.");
+                        }}
+                      />
+                    </div>
+                  </PayPalScriptProvider>
+                )}
+                {paymentError && <p className="text-xs font-semibold text-red-500">{paymentError}</p>}
               </div>
 
-              <div className="border-t border-slate-100 my-4 pt-4 space-y-4">
-                <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">Informations de carte de crédit</p>
-                
-                {/* Holder */}
-                <div className="space-y-1">
-                  <label className="text-xs text-slate-500 font-medium">Nom disponible sur la carte</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Nom complet"
-                    value={cardHolder}
-                    onChange={(e) => setCardHolder(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  />
-                </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full py-3 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-all text-center"
+              >
+                Annuler
+              </button>
 
-                {/* Card Number */}
-                <div className="space-y-1">
-                  <label className="text-xs text-slate-500 font-medium">Numéro de carte</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      required
-                      placeholder="4242 4242 4242 4242"
-                      value={cardNumber}
-                      onChange={handleCardChange}
-                      className="w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                    <CreditCard className="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-xs text-slate-500 font-medium">Date d'Expiration</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="MM/AA"
-                      value={expiry}
-                      onChange={handleExpiryChange}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm font-mono text-center focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs text-slate-500 font-medium">CVV (Code secret)</label>
-                    <input
-                      type="password"
-                      required
-                      placeholder="•••"
-                      value={cvv}
-                      onChange={handleCvvChange}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm font-mono text-center focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="pt-4 flex flex-col sm:flex-row gap-3">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="w-full sm:w-1/3 py-3 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-all text-center"
-                >
-                  Annuler
-                </button>
-                <button
-                  type="submit"
-                  className="w-full sm:w-2/3 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm shadow-md shadow-indigo-100 flex items-center justify-center gap-2 transition-all hover:scale-[1.01]"
-                >
-                  <CreditCard className="w-4 h-4" /> S'abonner — {finalPrice.toFixed(2)}€ / mois
-                </button>
-              </div>
-
-              <p className="text-center text-[10px] text-slate-400 flex items-center justify-center gap-1 mt-2">
-                <Shield className="w-3.5 h-3.5" /> Paiement sécurisé via Stripe Checkout. En développement sans Stripe, l'inscription mock reste disponible.
+              <p className="text-center text-[10px] text-slate-400 flex items-center justify-center gap-1">
+                <Shield className="w-3.5 h-3.5" /> Paiement sécurisé via PayPal Checkout.
               </p>
-            </form>
+            </div>
           </div>
         )}
 
-        {/* Step: LOADING SPLASH */}
         {step === "loading" && (
           <div className="p-12 text-center space-y-6">
             <div className="relative w-16 h-16 mx-auto">
@@ -281,16 +215,12 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
             <div>
               <h3 className="text-xl font-bold text-slate-800">Validation de la transaction...</h3>
               <p className="text-slate-500 text-sm mt-1.5 max-w-xs mx-auto">
-                Communication sécurisée avec les serveurs d'autorisation Stripe bancaire. Veuillez patienter.
+                Capture sécurisée de votre paiement PayPal. Veuillez patienter.
               </p>
-            </div>
-            <div className="bg-slate-50 border border-slate-100 py-3 px-4 rounded-xl text-slate-400 text-xs font-mono max-w-xs mx-auto">
-              POST https://api.stripe.com/v3/subscriptions
             </div>
           </div>
         )}
 
-        {/* Step: SUCCESS STATUS */}
         {step === "success" && (
           <div className="p-10 text-center space-y-6 animate-in zoom-in-95 duration-200">
             <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-600 shadow-md border border-emerald-200">
@@ -299,34 +229,17 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
             <div>
               <h3 className="text-2xl font-black text-slate-900 leading-tight">Merci pour votre confiance !</h3>
               <p className="text-slate-500 text-sm mt-2">
-                Votre abonnement mensuel au module <strong className="text-slate-800 font-semibold">{course.title}</strong> a bien été activé. Les crédits ARL et les vidéos sont maintenant débloqués.
+                Votre abonnement mensuel au module <strong className="text-slate-800 font-semibold">{course.title}</strong> a bien été activé.
               </p>
-            </div>
-            <div className="bg-emerald-50 border border-emerald-100 py-4 px-6 rounded-2xl max-w-sm mx-auto space-y-2 text-left">
-              <div className="flex justify-between text-xs text-slate-600 font-medium">
-                <span>Date de facturation :</span>
-                <span className="text-slate-800 font-bold">{new Date().toLocaleDateString("fr-FR")}</span>
-              </div>
-              <div className="flex justify-between text-xs text-slate-600 font-medium">
-                <span>Montant prélevé (Simulé) :</span>
-                <span className="text-slate-800 font-bold">{finalPrice.toFixed(2)}€</span>
-              </div>
-              <div className="flex justify-between text-xs text-slate-600 font-medium border-t border-emerald-200 pt-2">
-                <span>État de la transaction :</span>
-                <span className="text-semibold text-emerald-700 flex items-center gap-1">🟢 Approuvée</span>
-              </div>
             </div>
             <button
               onClick={handleSuccessClose}
-              disabled={isProcessing}
               className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm shadow-lg transition-transform hover:scale-105"
             >
-              {isProcessing ? "Synchronisation..." : "Accéder au module immédiatement"}
+              Accéder au module immédiatement
             </button>
-            {paymentError && <p className="text-xs font-semibold text-red-500">{paymentError}</p>}
           </div>
         )}
-
       </div>
     </div>
   );

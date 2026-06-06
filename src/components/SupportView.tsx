@@ -104,12 +104,12 @@ export default function SupportView({ currentUser, navigateTo }: SupportViewProp
     {
       category: "Paiements",
       question: "Quels sont les modes de paiement acceptés ?",
-      answer: "Nous acceptons les paiements sécurisés par carte bancaire (Visa, MasterCard, Amex) gérés par notre partenaire Stripe. Toutes les transactions sont cryptées."
+      answer: "Nous acceptons les paiements sécurisés via PayPal Checkout. Toutes les transactions sont cryptées."
     },
     {
       category: "Paiements",
       question: "Où puis-je télécharger mes factures ?",
-      answer: "Toutes vos factures et reçus Stripe sont archivés et accessibles en téléchargement dans la section facturation de votre profil utilisateur."
+      answer: "Toutes vos factures et reçus PayPal sont archivés et accessibles en téléchargement dans la section facturation de votre profil utilisateur."
     },
     {
       category: "Paiements",
