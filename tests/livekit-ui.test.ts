@@ -2,16 +2,18 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const appSource = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
+const liveKitHookSource = readFileSync(new URL("../src/hooks/useLiveKitRoom.tsx", import.meta.url), "utf8");
+const liveKitSource = appSource + liveKitHookSource;
 const classroomSource = readFileSync(new URL("../src/components/VirtualClassroom.tsx", import.meta.url), "utf8");
 
 assert.match(classroomSource, /<ScreenShare\b/);
 assert.match(classroomSource, /<Fullscreen\b/);
 assert.doesNotMatch(appSource, /<Maximize\b/);
 assert.match(appSource, /activeLiveCourse/);
-assert.match(appSource, /leaveLiveRoom/);
+assert.match(liveKitSource, /leaveLiveRoom/);
 assert.match(appSource, /renderLiveRoomInterface\("teacher"\)/);
-assert.match(appSource, /api\.leaveLiveAttendance/);
-assert.match(appSource, /api\.moderateLiveParticipant/);
+assert.match(liveKitSource, /api\.leaveLiveAttendance/);
+assert.match(liveKitSource, /api\.moderateLiveParticipant/);
 assert.match(classroomSource, /Classe virtuelle sécurisée/);
 assert.match(classroomSource, /Tableau blanc collaboratif/);
 assert.match(classroomSource, /Rapport de présence/);
