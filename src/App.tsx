@@ -44,13 +44,13 @@ import { useAppSession } from "./hooks/useAppSession";
 import { usePlatformNavigation } from "./hooks/usePlatformNavigation";
 import { useAcademicProfile } from "./hooks/useAcademicProfile";
 import { useTeacherDashboard } from "./hooks/useTeacherDashboard";
+import { useStudentCourseSession } from "./hooks/useStudentCourseSession";
 import { isStudentRole } from "./rbac";
 
 export default function App() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [domains, setDomains] = useState<FacultyDomain[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [quizQuestions, setQuizQuestions] = useState<any[] | null>(null);
   const [currentView, setCurrentView] = useState<string>("dashboard"); // 'dashboard', 'catalog', 'course', 'profile', 'live'
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [selectedDomainId, setSelectedDomainId] = useState<number | null>(null);
@@ -120,15 +120,6 @@ export default function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [courseToPurchase, setCourseToPurchase] = useState<Course | null>(null);
-  
-  // Quiz evaluation state
-  const [quizAnswers, setQuizAnswers] = useState<Record<string, string>>({});
-  const [quizSubmitted, setQuizSubmitted] = useState(false);
-  const [quizScore, setQuizScore] = useState<number | null>(null);
-  const [quizSubmitError, setQuizSubmitError] = useState("");
-  
-  // AI Tutor slide panel state
-  const [showAITutor, setShowAITutor] = useState(false);
 
   const allDisciplines = domains.flatMap((domain) => domain.disciplines);
   const selectedDomain = domains.find((domain) => domain.id === selectedDomainId) || null;
@@ -189,48 +180,41 @@ export default function App() {
     }
   }, [role, managedCourseIds, newSectionCourseId, managedCourses]);
 
-  // Video playback states
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-  const [videoProgress, setVideoProgress] = useState(30); // percents
-  const [videoSpeed, setVideoSpeed] = useState("1.0x");
-  const intervalRef = useRef<any>(null);
+  const studentCourseSession = useStudentCourseSession({
+    courses,
+    setCourses,
+    selectedCourse,
+    setSelectedCourse,
+    selectedModule,
+    setSelectedModule,
+    currentUser,
+    currentView,
+    refreshCourseContent,
+    updateSessionUser,
+    setEnrolledCourses,
+    setInvoices,
+    invoices,
+    setCurrentView,
+    setIsMobileMenuOpen,
+  });
 
-  // Dynamic video playback loop
-  useEffect(() => {
-    if (isVideoPlaying) {
-      intervalRef.current = setInterval(() => {
-        setVideoProgress((prev) => {
-          if (prev >= 100) {
-            setIsVideoPlaying(false);
-            return 100;
-          }
-          return prev + 1;
-        });
-      }, 1000);
-    } else {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    }
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [isVideoPlaying]);
+  const {
+    setIsVideoPlaying,
+    setVideoProgress,
+    setQuizAnswers,
+    setQuizSubmitted,
+    setQuizScore,
+    setQuizSubmitError,
+    handlePaymentSuccess,
+  } = studentCourseSession;
 
-  // Synchronize state with logged in user details on startup or login
-  // Fetch quiz data when a quiz module is selected
-  useEffect(() => {
-    if (selectedModule && selectedModule.type === "quiz") {
-      api.getQuiz(selectedModule.id)
-        .then((data) => setQuizQuestions(data))
-        .catch((err) => { console.error("Failed to fetch quiz:", err); setQuizQuestions(null); });
-    } else {
-      setQuizQuestions(null);
-    }
-  }, [selectedModule]);
-
-  useEffect(() => {
-    if (!currentUser || currentView !== "course" || !selectedCourse) return;
-    refreshCourseContent(selectedCourse.id);
-  }, [currentUser?.id, currentView, selectedCourse?.id, refreshCourseContent]);
+  const studentCourseBindings = {
+    ...studentCourseSession,
+    courseContentSections,
+    flattenSections,
+    selectedLessonContent,
+    setSelectedLessonContent,
+  };
 
   useEffect(() => {
     if (!isAuthReady || !currentUser || !isStudentRole(currentUser.role)) return;
@@ -357,144 +341,6 @@ export default function App() {
   const handleLogout = () => {
     logoutAuth();
     disconnectLiveSession();
-  };
-
-  const markModuleCompleted = async (modId: number) => {
-    if (!selectedCourse) return;
-    try {
-      const updatedCourse = await api.completeModule(selectedCourse.id, modId);
-      setCourses((prev) => prev.map((c) => (c.id === updatedCourse.id ? updatedCourse : c)));
-      setSelectedCourse(updatedCourse);
-      const mod = updatedCourse.modules.find((m: any) => m.id === modId);
-      if (mod) setSelectedModule(mod);
-    } catch (err) {
-      console.error("Failed to mark module as completed:", err);
-    }
-  };
-
-  // Handle successful payments
-  const handlePaymentSuccess = async (courseId: number, amountPaid: number) => {
-    const course = courses.find((c) => c.id === courseId);
-    if (!course) return;
-
-    let enrollmentUser: AppUser | null = null;
-    let enrollmentInvoice: Invoice | undefined;
-
-    try {
-      const enrollment = await api.enrollMock(courseId);
-      if (enrollment.user) {
-        enrollmentUser = enrollment.user;
-        enrollmentInvoice = enrollment.invoice;
-      }
-    } catch (err: any) {
-      if (err?.status !== 403) throw err;
-    }
-
-    const user = enrollmentUser || await api.me();
-    updateSessionUser(user);
-    setEnrolledCourses(user.enrolledCourses || []);
-    setInvoices(user.invoices || []);
-
-    const newInvoice: Invoice = {
-      id: enrollmentInvoice?.id || `INV-2026-00${invoices.length + 1}`,
-      date: new Date().toLocaleDateString("fr-FR"),
-      courseTitle: course.title,
-      amount: enrollmentInvoice?.amount ?? amountPaid,
-      status: "Payé"
-    };
-
-    if (!enrollmentUser) setInvoices((prev) => [newInvoice, ...prev]);
-
-    console.info("[student] Enrollment synchronized with backend", { courseId, invoiceId: newInvoice.id });
-    setSelectedCourse(course);
-    setSelectedModule(course.modules?.[0] || null);
-    setIsVideoPlaying(false);
-    setVideoProgress(15);
-    setQuizAnswers({});
-    setQuizSubmitted(false);
-    setQuizScore(null);
-    setQuizSubmitError("");
-    setCurrentView("course");
-    setIsMobileMenuOpen(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  // Submit interactive Quiz answer option checking
-  const handleQuizAnswerSelect = (index: number, optionValue: string) => {
-    if (quizSubmitted) return;
-    setQuizSubmitError("");
-    setQuizAnswers((prev) => ({
-      ...prev,
-      [index]: optionValue
-    }));
-  };
-
-  const handleQuizSubmit = async () => {
-    if (!selectedModule || !quizQuestions || !selectedCourse) return;
-    const questions = quizQuestions;
-
-    let correctCount = 0;
-    questions.forEach((q, i) => {
-      if (quizAnswers[i] === q.answer) {
-        correctCount++;
-      }
-    });
-
-    try {
-      const attempt = await api.submitQuizAttempt(selectedCourse.id, selectedModule.id, quizAnswers);
-      correctCount = Number(attempt.score);
-    } catch (err) {
-      console.error("Failed to persist quiz attempt:", err);
-      setQuizSubmitError(err instanceof Error ? err.message : "Enregistrement du quiz impossible.");
-      return;
-    }
-
-    setQuizScore(correctCount);
-    setQuizSubmitted(true);
-
-    // Dynamic Module progress record update
-    if (selectedCourse) {
-      const updatedCourses = courses.map((c) => {
-        if (c.id === selectedCourse.id) {
-          const updatedModules = c.modules.map((m) => {
-            if (m.id === selectedModule.id) {
-              return { 
-                ...m, 
-                completed: true, 
-                score: `${correctCount}/${questions.length}` 
-              };
-            }
-            return m;
-          });
-
-          const completedCount = updatedModules.filter((m) => m.completed).length;
-          const totalCount = updatedModules.length;
-          const progressPercentage = Math.round((completedCount / totalCount) * 100);
-
-          return {
-            ...c,
-            modules: updatedModules,
-            progress: progressPercentage
-          };
-        }
-        return c;
-      });
-
-      setCourses(updatedCourses);
-      const activeC = updatedCourses.find((c) => c.id === selectedCourse.id);
-      if (activeC) {
-        setSelectedCourse(activeC);
-        const activeMod = activeC.modules.find((m) => m.id === selectedModule.id);
-        if (activeMod) setSelectedModule(activeMod);
-      }
-    }
-  };
-
-  const resetQuiz = () => {
-    setQuizAnswers({});
-    setQuizSubmitted(false);
-    setQuizScore(null);
-    setQuizSubmitError("");
   };
 
   const handleUploadAvatar = async (e: React.FormEvent) => {
@@ -685,29 +531,9 @@ export default function App() {
             <StudentCourseView
               selectedCourse={selectedCourse}
               selectedModule={selectedModule}
-              courseContentSections={courseContentSections}
-              flattenSections={flattenSections}
-              selectedLessonContent={selectedLessonContent}
-              showAITutor={showAITutor}
-              isVideoPlaying={isVideoPlaying}
-              videoProgress={videoProgress}
-              videoSpeed={videoSpeed}
-              quizQuestions={quizQuestions}
-              quizAnswers={quizAnswers}
-              quizSubmitted={quizSubmitted}
-              quizScore={quizScore}
-              quizSubmitError={quizSubmitError}
               navigateTo={navigateTo}
               onModuleSelect={(mod) => setSelectedModule(mod)}
-              setSelectedLessonContent={setSelectedLessonContent}
-              setShowAITutor={setShowAITutor}
-              setIsVideoPlaying={setIsVideoPlaying}
-              setVideoProgress={setVideoProgress}
-              setVideoSpeed={setVideoSpeed}
-              markModuleCompleted={markModuleCompleted}
-              handleQuizAnswerSelect={handleQuizAnswerSelect}
-              handleQuizSubmit={handleQuizSubmit}
-              resetQuiz={resetQuiz}
+              {...studentCourseBindings}
             />
           )}
           {currentView === "profile" && (

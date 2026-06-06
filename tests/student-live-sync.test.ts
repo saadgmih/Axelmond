@@ -3,6 +3,8 @@ import fs from "node:fs";
 
 const apiSource = fs.readFileSync("src/api.ts", "utf8");
 const appSource = fs.readFileSync("src/App.tsx", "utf8");
+const studentCourseSessionSource = fs.readFileSync("src/hooks/useStudentCourseSession.ts", "utf8");
+const studentCourseBundle = appSource + studentCourseSessionSource;
 const liveKitHookSource = fs.readFileSync("src/hooks/useLiveKitRoom.tsx", "utf8");
 const liveKitSource = appSource + liveKitHookSource;
 const serverSource = fs.readFileSync("server.ts", "utf8");
@@ -10,9 +12,9 @@ const serverSource = fs.readFileSync("server.ts", "utf8");
 assert.match(apiSource, /enrollMock:\s*\(courseId:\s*number\)/);
 assert.match(apiSource, /request<any>\("POST",\s*"\/api\/payments\/enroll-mock",\s*\{\s*courseId\s*\}\)/);
 
-assert.match(appSource, /await\s+api\.enrollMock\(courseId\)/);
-assert.match(appSource, /updateSessionUser\(user\)/);
-assert.doesNotMatch(appSource, /setEnrolledCourses\(\(prev\)\s*=>\s*\[\.\.\.prev,\s*courseId\]\)/);
+assert.match(studentCourseBundle, /await\s+api\.enrollMock\(courseId\)/);
+assert.match(studentCourseBundle, /updateSessionUser\(user\)/);
+assert.doesNotMatch(studentCourseBundle, /setEnrolledCourses\(\(prev\)\s*=>\s*\[\.\.\.prev,\s*courseId\]\)/);
 assert.match(liveKitSource, /if\s*\(\(err as any\)\?\.status === 403 && currentUser && isStudentRole\(currentUser\.role\)\)/);
 assert.match(liveKitSource, /const syncedUser = await api\.me\(\)/);
 assert.match(liveKitSource, /setCourseToPurchase\(activeLiveCourse\)/);
