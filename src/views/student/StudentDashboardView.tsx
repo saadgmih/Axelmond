@@ -1,68 +1,346 @@
+import { useMemo } from "react";
+
 import {
   Activity,
-  Award,
+  BookOpen,
+  CheckCircle2,
   ChevronRight,
   Clock,
   Cpu,
+  GraduationCap,
+  HelpCircle,
   Layers,
+  PlayCircle,
   Radio,
   ShoppingCart,
+  Target,
+  TrendingUp,
   Video,
 } from "lucide-react";
+
 import type { ReactNode } from "react";
+
 import type { AppUser } from "../../components/AuthScreen";
-import type { Course } from "../../types";
+
+import type { Course, CourseModule } from "../../types";
 
 type NavigateTo = (view: string, targetCourse?: Course | null) => void;
-type StudentChartTab = "hours" | "skills";
+
 type CourseIconRenderer = (iconName: string, colorClass?: string) => ReactNode;
 
 interface StudentDashboardViewProps {
   currentUser: AppUser | null;
+
   navigateTo: NavigateTo;
-  studentChartTab: StudentChartTab;
-  setStudentChartTab: (tab: StudentChartTab) => void;
+
   enrolledCourses: number[];
+
   courses: Course[];
+
   getCourseIcon: CourseIconRenderer;
+}
+
+function parseQuizScore(
+  score?: string,
+): { correct: number; total: number } | null {
+  if (!score) return null;
+
+  const match = score.trim().match(/^(\d+)\s*\/\s*(\d+)$/);
+
+  if (!match) return null;
+
+  const correct = Number(match[1]);
+
+  const total = Number(match[2]);
+
+  if (!Number.isFinite(correct) || !Number.isFinite(total) || total <= 0)
+    return null;
+
+  return { correct, total };
+}
+
+function findContinueTarget(enrolledList: Course[]): {
+  course: Course;
+
+  nextModule: CourseModule | null;
+} | null {
+  if (enrolledList.length === 0) return null;
+
+  const sorted = [...enrolledList].sort((a, b) => {
+    if (a.progress >= 100 && b.progress < 100) return 1;
+
+    if (b.progress >= 100 && a.progress < 100) return -1;
+
+    return b.progress - a.progress;
+  });
+
+  const course = sorted.find((item) => item.progress < 100) || sorted[0];
+
+  const nextModule = course.modules.find((module) => !module.completed) || null;
+
+  return { course, nextModule };
+}
+
+function findLastActivity(
+  enrolledList: Course[],
+): { courseTitle: string; moduleTitle: string } | null {
+  let last: { courseTitle: string; moduleTitle: string } | null = null;
+
+  for (const course of enrolledList) {
+    for (const module of course.modules) {
+      if (module.completed) {
+        last = { courseTitle: course.title, moduleTitle: module.title };
+      }
+    }
+  }
+
+  return last;
 }
 
 export default function StudentDashboardView({
   currentUser,
+
   navigateTo,
-  studentChartTab,
-  setStudentChartTab,
+
   enrolledCourses,
+
   courses,
+
   getCourseIcon,
 }: StudentDashboardViewProps) {
+  const enrolledList = useMemo(
+    () => courses.filter((course) => enrolledCourses.includes(course.id)),
+
+    [courses, enrolledCourses],
+  );
+
+  const progress = useMemo(() => {
+    const completedChapters = enrolledList.reduce(
+      (sum, course) =>
+        sum + course.modules.filter((module) => module.completed).length,
+
+      0,
+    );
+
+    const totalChapters = enrolledList.reduce(
+      (sum, course) => sum + course.modules.length,
+      0,
+    );
+
+    const globalProgress =
+      enrolledList.length > 0
+        ? Math.round(
+            enrolledList.reduce((sum, course) => sum + course.progress, 0) /
+              enrolledList.length,
+          )
+        : 0;
+
+    const ectsTarget = enrolledList.reduce(
+      (sum, course) => sum + course.credits,
+      0,
+    );
+
+    const quizModules = enrolledList.flatMap((course) =>
+      course.modules.filter((module) => module.type === "quiz"),
+    );
+
+    const passedQuizzes = quizModules.filter(
+      (module) => module.completed,
+    ).length;
+
+    const quizPercentages = quizModules
+
+      .map((module) => parseQuizScore(module.score))
+
+      .filter(
+        (value): value is { correct: number; total: number } => value !== null,
+      )
+
+      .map((value) => Math.round((value.correct / value.total) * 100));
+
+    const averageQuizScore =
+      quizPercentages.length > 0
+        ? Math.round(
+            quizPercentages.reduce((sum, value) => sum + value, 0) /
+              quizPercentages.length,
+          )
+        : null;
+
+    const continueTarget = findContinueTarget(enrolledList);
+
+    const lastActivity = findLastActivity(enrolledList);
+
+    const activeModules = enrolledList
+
+      .filter((course) => course.progress > 0 && course.progress < 100)
+
+      .sort((a, b) => b.progress - a.progress);
+
+    return {
+      completedChapters,
+
+      totalChapters,
+
+      globalProgress,
+
+      ectsTarget,
+
+      passedQuizzes,
+
+      totalQuizzes: quizModules.length,
+
+      averageQuizScore,
+
+      continueTarget,
+
+      lastActivity,
+
+      activeModules,
+    };
+  }, [enrolledList]);
+
+  const statCards = [
+    {
+      label: "Modules inscrits",
+
+      value: String(enrolledList.length),
+
+      hint: enrolledList.length === 1 ? "module actif" : "modules actifs",
+
+      icon: BookOpen,
+
+      accent: "text-indigo-300",
+    },
+
+    {
+      label: "Progression globale",
+
+      value: `${progress.globalProgress}%`,
+
+      hint: "moyenne de vos parcours",
+
+      icon: TrendingUp,
+
+      accent: "text-sky-300",
+    },
+
+    {
+      label: "Chapitres complétés",
+
+      value: String(progress.completedChapters),
+
+      hint:
+        progress.totalChapters > 0
+          ? `sur ${progress.totalChapters} chapitres`
+          : "aucun chapitre disponible",
+
+      icon: CheckCircle2,
+
+      accent: "text-emerald-300",
+    },
+
+    {
+      label: "Quiz réussis",
+
+      value: String(progress.passedQuizzes),
+
+      hint:
+        progress.totalQuizzes > 0
+          ? `sur ${progress.totalQuizzes} quiz`
+          : "aucun quiz disponible",
+
+      icon: HelpCircle,
+
+      accent: "text-violet-300",
+    },
+
+    {
+      label: "Score moyen quiz",
+
+      value:
+        progress.averageQuizScore !== null
+          ? `${progress.averageQuizScore}%`
+          : "—",
+
+      hint:
+        progress.averageQuizScore !== null
+          ? "basé sur vos tentatives enregistrées"
+          : "aucune tentative enregistrée",
+
+      icon: Target,
+
+      accent: "text-amber-300",
+    },
+
+    {
+      label: "Crédits ECTS visés",
+
+      value: String(progress.ectsTarget),
+
+      hint: "crédits cumulés inscrits",
+
+      icon: GraduationCap,
+
+      accent: "text-pink-300",
+    },
+
+    {
+      label: "Dernière activité",
+
+      value: progress.lastActivity ? progress.lastActivity.moduleTitle : "—",
+
+      hint: progress.lastActivity
+        ? progress.lastActivity.courseTitle
+        : "commencez votre premier module",
+
+      icon: Clock,
+
+      accent: "text-slate-300",
+
+      wide: true,
+    },
+  ];
+
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-200">
+    <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-200">
       <div className="bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-lg border border-indigo-950">
         <div className="absolute right-0 top-0 w-1/3 h-full opacity-10 pointer-events-none">
           <Cpu className="w-full h-full text-white" />
         </div>
+
         <div className="relative z-10 max-w-2xl space-y-3">
           <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full inline-block">
             Espace Étudiant Actif
           </span>
-          <h1 className="text-3xl md:text-4xl font-black tracking-tight leading-tight">
-            Bonjour, {currentUser ? currentUser.fullName.split(" ")[0] : "Étudiant"}.
+
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight leading-tight">
+            Bonjour,{" "}
+            {currentUser ? currentUser.fullName.split(" ")[0] : "Étudiant"}.
           </h1>
+
           <p className="text-indigo-200 text-sm md:text-base leading-relaxed">
-            Vous êtes inscrit en <strong>{currentUser ? currentUser.levelOrTitle : "Licence 3 d'Informatique"}</strong> d'Axelmond Research Labs. Poursuivez vos modules interactifs de programmation, SQL, architecture d'OS, ou conversez avec votre tuteur IA.
+            Vous êtes inscrit en{" "}
+            <strong>
+              {currentUser
+                ? currentUser.levelOrTitle
+                : "Licence 3 d'Informatique"}
+            </strong>{" "}
+            d'Axelmond Research Labs. Poursuivez vos modules interactifs de
+            programmation, SQL, architecture d'OS, ou conversez avec votre
+            tuteur IA.
           </p>
 
-          <div className="pt-2 flex flex-wrap gap-4">
+          <div className="pt-2 flex flex-wrap gap-3">
             <button
               onClick={() => navigateTo("catalog")}
-              className="bg-white text-indigo-900 hover:bg-slate-100 px-5 py-2.5 rounded-xl font-bold text-xs transition-colors shadow-sm"
+              className="bg-white text-indigo-900 hover:bg-slate-100 px-5 py-2.5 min-h-[44px] rounded-xl font-bold text-xs transition-colors shadow-sm"
             >
               Parcourir le catalogue
             </button>
+
             <button
               onClick={() => navigateTo("profile")}
-              className="bg-indigo-600/50 hover:bg-indigo-600/70 text-white border border-indigo-500/30 px-5 py-2.5 rounded-xl font-bold text-xs transition-colors"
+              className="bg-indigo-600/50 hover:bg-indigo-600/70 text-white border border-indigo-500/30 px-5 py-2.5 min-h-[44px] rounded-xl font-bold text-xs transition-colors"
             >
               Consulter mes notes académiques
             </button>
@@ -70,188 +348,229 @@ export default function StudentDashboardView({
         </div>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-100">
-          <div>
-            <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
-              <Activity className="w-5 h-5 text-indigo-600" />
-              Mon Suivi de Performance Académique
+      <section className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/40 p-5 sm:p-6 md:p-8 shadow-xl space-y-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="space-y-2 min-w-0">
+            <h3 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
+              <Activity className="w-5 h-5 text-indigo-400 shrink-0" />
+              Ma progression académique
             </h3>
-            <p className="text-xs text-slate-400">Progression individuelle et validation des compétences d'ingénierie Logicielle</p>
+
+            <p className="text-xs sm:text-sm text-slate-400 max-w-2xl">
+              Vue d'ensemble basée sur vos modules inscrits, chapitres complétés
+              et résultats de quiz enregistrés.
+            </p>
           </div>
-          <div className="flex bg-slate-100 p-1 rounded-xl gap-1 max-w-fit">
+
+          {progress.continueTarget ? (
             <button
-              onClick={() => setStudentChartTab("hours")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                studentChartTab === "hours"
-                  ? "bg-white text-indigo-700 shadow-sm"
-                  : "text-slate-500 hover:text-slate-800"
-              }`}
+              onClick={() =>
+                navigateTo("course", progress.continueTarget.course)
+              }
+              className="inline-flex items-center justify-center gap-2 self-start rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs px-5 py-3 min-h-[44px] transition-colors shadow-lg shadow-indigo-950/40"
             >
-              <Clock className="w-3.5 h-3.5 inline mr-1" />
-              Heures d'Étude
+              <PlayCircle className="w-4 h-4 shrink-0" />
+
+              <span className="text-left">
+                Continuer le cours
+                <span className="block text-[10px] font-semibold text-indigo-100/90 truncate max-w-[220px] sm:max-w-[280px]">
+                  {progress.continueTarget.nextModule
+                    ? progress.continueTarget.nextModule.title
+                    : progress.continueTarget.course.title}
+                </span>
+              </span>
+
+              <ChevronRight className="w-4 h-4 shrink-0" />
             </button>
+          ) : enrolledList.length === 0 ? (
             <button
-              onClick={() => setStudentChartTab("skills")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                studentChartTab === "skills"
-                  ? "bg-white text-emerald-700 shadow-sm"
-                  : "text-slate-500 hover:text-slate-800"
-              }`}
+              onClick={() => navigateTo("catalog")}
+              className="inline-flex items-center gap-2 self-start rounded-xl border border-slate-700 bg-slate-900/80 hover:bg-slate-800 text-slate-200 font-bold text-xs px-5 py-3 min-h-[44px] transition-colors"
             >
-              <Award className="w-3.5 h-3.5 inline mr-1" />
-              Compétences
+              Explorer le catalogue
+              <ChevronRight className="w-4 h-4" />
             </button>
+          ) : null}
+        </div>
+
+        <div className="rounded-2xl border border-white/5 bg-slate-950/50 p-4 sm:p-5 space-y-3">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
+                Progression globale
+              </p>
+
+              <p className="text-2xl sm:text-3xl font-black text-white mt-1">
+                {progress.globalProgress}%
+              </p>
+            </div>
+
+            <p className="text-xs text-slate-400">
+              {progress.completedChapters} chapitre
+              {progress.completedChapters !== 1 ? "s" : ""} complété
+              {progress.completedChapters !== 1 ? "s" : ""}
+              {progress.totalChapters > 0
+                ? ` sur ${progress.totalChapters}`
+                : ""}
+            </p>
+          </div>
+
+          <div className="h-2.5 w-full rounded-full bg-slate-800 overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-500 ${
+                progress.globalProgress >= 100
+                  ? "bg-emerald-500"
+                  : "bg-gradient-to-r from-indigo-500 to-sky-400"
+              }`}
+              style={{
+                width: `${Math.min(100, Math.max(0, progress.globalProgress))}%`,
+              }}
+            />
           </div>
         </div>
 
-        {studentChartTab === "hours" ? (
-          <div className="space-y-4 animate-in fade-in duration-200">
-            <div className="relative">
-              <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-[10px] font-mono font-bold text-slate-400 pb-6">
-                <span>40h</span>
-                <span>25h</span>
-                <span>10h</span>
-                <span>0h</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+          {statCards.map((card) => (
+            <div
+              key={card.label}
+              className={`rounded-2xl border border-white/5 bg-slate-900/70 p-4 space-y-2 ${
+                card.wide ? "md:col-span-2 xl:col-span-2" : ""
+              }`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                  {card.label}
+                </span>
+
+                <card.icon className={`w-4 h-4 shrink-0 ${card.accent}`} />
               </div>
 
-              <div className="pl-14 h-48 w-full relative">
-                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-6">
-                  <div className="border-b border-dashed border-slate-100 w-full h-0"></div>
-                  <div className="border-b border-dashed border-slate-100 w-full h-0"></div>
-                  <div className="border-b border-dashed border-slate-100 w-full h-0"></div>
-                  <div className="border-b border-dashed border-slate-200 w-full h-0"></div>
-                </div>
+              <p className="text-lg sm:text-xl font-black text-white truncate">
+                {card.value}
+              </p>
 
-                <svg className="w-full h-full overflow-visible" viewBox="0 0 500 130" preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient id="studentProgressGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#4f46e5" stopOpacity="0.2" />
-                      <stop offset="100%" stopColor="#4f46e5" stopOpacity="0.0" />
-                    </linearGradient>
-                  </defs>
-                  <path
-                    d="M 0 110 L 80 90 L 160 55 L 240 65 L 320 20 L 400 35 L 480 15 L 480 130 L 0 130 Z"
-                    fill="url(#studentProgressGrad)"
-                  />
-                  <path
-                    d="M 0 110 L 80 90 L 160 55 L 240 65 L 320 20 L 400 35 L 480 15"
-                    fill="none"
-                    stroke="#4f46e5"
-                    strokeWidth="3.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <circle cx="0" cy="110" r="4.5" fill="#4f46e5" stroke="#ffffff" strokeWidth="1.5" />
-                  <circle cx="80" cy="90" r="4.5" fill="#4f46e5" stroke="#ffffff" strokeWidth="1.5" />
-                  <circle cx="160" cy="55" r="4.5" fill="#4f46e5" stroke="#ffffff" strokeWidth="1.5" />
-                  <circle cx="240" cy="65" r="4.5" fill="#4f46e5" stroke="#ffffff" strokeWidth="1.5" />
-                  <circle cx="320" cy="20" r="4.5" fill="#4f46e5" stroke="#ffffff" strokeWidth="1.5" />
-                  <circle cx="400" cy="35" r="4.5" fill="#4f46e5" stroke="#ffffff" strokeWidth="1.5" />
-                  <circle cx="480" cy="15" r="5.5" fill="#4f46e5" stroke="#ffffff" strokeWidth="1.5" />
-                </svg>
-              </div>
-
-              <div className="pl-14 flex justify-between text-[11px] font-bold text-slate-400 uppercase pt-2 font-sans font-extrabold">
-                <span>Semaine 1</span>
-                <span>Semaine 2</span>
-                <span>Semaine 3</span>
-                <span>Semaine 4</span>
-                <span>Semaine 5</span>
-                <span>Semaine 6</span>
-                <span>Semaine 7</span>
-              </div>
+              <p className="text-[11px] text-slate-400 leading-snug line-clamp-2">
+                {card.hint}
+              </p>
             </div>
+          ))}
+        </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 border-t border-slate-100">
-              <div className="p-3 bg-slate-50 rounded-xl">
-                <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider block">Modules inscrits</span>
-                <p className="text-sm font-bold text-slate-800 mt-1">{enrolledCourses.length} module{enrolledCourses.length !== 1 ? "s" : ""} actif{enrolledCourses.length !== 1 ? "s" : ""}</p>
-              </div>
-              <div className="p-3 bg-slate-50 rounded-xl">
-                <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider block">Chapitres complétés</span>
-                <p className="text-sm font-bold text-indigo-700 mt-1">
-                  {courses.filter((c) => enrolledCourses.includes(c.id)).reduce((sum, c) => sum + c.modules.filter((m) => m.completed).length, 0)} chapitres validés
-                </p>
-              </div>
-              <div className="p-3 bg-slate-50 rounded-xl">
-                <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider block">Crédits accumulables</span>
-                <p className="text-sm font-bold text-emerald-700 mt-1">
-                  {enrolledCourses.reduce((sum, id) => {
-                    const found = courses.find((c) => c.id === id);
-                    return sum + (found ? found.credits : 0);
-                  }, 0)} ECTS visés
-                </p>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-4 animate-in fade-in duration-200">
-            <span className="text-xs font-semibold text-slate-500 block mb-1">
-              Visualisation de l'acquisition par pile technologique et compétences :
+        <div className="space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <h4 className="text-sm font-black text-white">Modules en cours</h4>
+
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+              {progress.activeModules.length} actif
+              {progress.activeModules.length !== 1 ? "s" : ""}
             </span>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 border border-slate-100 rounded-2xl space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs font-bold text-slate-800">Algorithmes & Structures complexes</span>
-                  <span className="text-xs font-bold text-indigo-600">85% acquis</span>
-                </div>
-                <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                  <div className="h-full rounded-full bg-indigo-600 transition-all duration-1000" style={{ width: "85%" }}></div>
-                </div>
-              </div>
-
-              <div className="p-4 border border-slate-100 rounded-2xl space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs font-bold text-slate-800">Conception de Bases de Données (SQL)</span>
-                  <span className="text-xs font-bold text-indigo-600">92% acquis</span>
-                </div>
-                <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                  <div className="h-full rounded-full bg-indigo-600 transition-all duration-1000" style={{ width: "92%" }}></div>
-                </div>
-              </div>
-
-              <div className="p-4 border border-slate-100 rounded-2xl space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs font-bold text-slate-800">Architecture des Systèmes d'Exploitation (Unix)</span>
-                  <span className="text-xs font-bold text-indigo-600">70% acquis</span>
-                </div>
-                <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                  <div className="h-full rounded-full bg-indigo-600 transition-all duration-1000" style={{ width: "70%" }}></div>
-                </div>
-              </div>
-
-              <div className="p-4 border border-slate-100 rounded-2xl space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs font-bold text-slate-800">Protocoles Réseaux & Sécurité Internet</span>
-                  <span className="text-xs font-bold text-indigo-600">95% acquis</span>
-                </div>
-                <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                  <div className="h-full rounded-full bg-indigo-600 transition-all duration-1000" style={{ width: "95%" }}></div>
-                </div>
-              </div>
-            </div>
           </div>
-        )}
-      </div>
 
-      {courses.filter((c) => enrolledCourses.includes(c.id) && c.isLiveNow).length > 0 && (
-        <div className="bg-red-50/70 border border-red-100 rounded-2xl p-6 shadow-sm">
+          {progress.activeModules.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-950/40 px-4 py-6 text-center">
+              <p className="text-sm font-semibold text-slate-300">
+                {enrolledList.length === 0
+                  ? "Aucun module inscrit pour le moment."
+                  : enrolledList.every((course) => course.progress >= 100)
+                    ? "Tous vos modules inscrits sont terminés."
+                    : "Ouvrez un module pour démarrer votre progression."}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {progress.activeModules.map((course) => {
+                const completed = course.modules.filter(
+                  (module) => module.completed,
+                ).length;
+
+                const total = course.modules.length;
+
+                const nextModule = course.modules.find(
+                  (module) => !module.completed,
+                );
+
+                return (
+                  <div
+                    key={course.id}
+                    className="rounded-2xl border border-white/5 bg-slate-900/60 p-4 flex flex-col sm:flex-row sm:items-center gap-4"
+                  >
+                    <div className="flex items-start gap-3 min-w-0 flex-1">
+                      <div
+                        className={`p-2.5 rounded-xl shrink-0 ${course.color}`}
+                      >
+                        {getCourseIcon(
+                          course.iconName,
+                          "w-5 h-5 text-slate-800",
+                        )}
+                      </div>
+
+                      <div className="min-w-0 space-y-1">
+                        <p className="text-sm font-bold text-white truncate">
+                          {course.title}
+                        </p>
+
+                        <p className="text-[11px] text-slate-400 truncate">
+                          {nextModule
+                            ? `Prochain : ${nextModule.title}`
+                            : `${completed}/${total} chapitres`}
+                        </p>
+
+                        <div className="flex items-center gap-2 pt-1">
+                          <div className="h-1.5 flex-1 max-w-[180px] rounded-full bg-slate-800 overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-indigo-500"
+                              style={{ width: `${course.progress}%` }}
+                            />
+                          </div>
+
+                          <span className="text-[11px] font-bold text-indigo-300 font-mono">
+                            {course.progress}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => navigateTo("course", course)}
+                      className="self-start sm:self-center inline-flex items-center gap-1.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-200 text-xs font-bold px-4 py-2.5 min-h-[44px] transition-colors"
+                    >
+                      Continuer
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {courses.filter((c) => enrolledCourses.includes(c.id) && c.isLiveNow)
+        .length > 0 && (
+        <div className="bg-red-950/40 border border-red-900/50 rounded-2xl p-5 sm:p-6 shadow-sm">
           <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center text-red-600 relative flex-shrink-0 border border-red-200">
+            <div className="flex items-start gap-4 min-w-0">
+              <div className="w-12 h-12 bg-red-500/10 rounded-2xl flex items-center justify-center text-red-400 relative flex-shrink-0 border border-red-500/20">
                 <Radio className="w-6 h-6 animate-pulse" />
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>
+
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-slate-950"></span>
               </div>
-              <div>
-                <span className="text-[10px] font-bold text-red-600 uppercase tracking-wider bg-red-100 px-2 py-0.5 rounded-md border border-red-200">
+
+              <div className="min-w-0">
+                <span className="text-[10px] font-bold text-red-300 uppercase tracking-wider bg-red-500/10 px-2 py-0.5 rounded-md border border-red-500/20">
                   SÉMINAIRE INTERACTIF EN DIRECT
                 </span>
-                <h3 className="text-base font-bold text-slate-800 mt-1">
-                  {courses.find((c) => c.isLiveNow)?.instructor || "Votre enseignant"} anime une session en direct !
+
+                <h3 className="text-base font-bold text-white mt-1 truncate">
+                  {courses.find((c) => c.isLiveNow)?.instructor ||
+                    "Votre enseignant"}{" "}
+                  anime une session en direct !
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  {courses.find((c) => c.isLiveNow && enrolledCourses.includes(c.id))?.liveSubject
+
+                <p className="text-xs text-slate-400 mt-0.5">
+                  {courses.find(
+                    (c) => c.isLiveNow && enrolledCourses.includes(c.id),
+                  )?.liveSubject
                     ? `Sujet : ${courses.find((c) => c.isLiveNow && enrolledCourses.includes(c.id))!.liveSubject}`
                     : "Rejoignez la salle de classe pour suivre la session en direct."}
                 </p>
@@ -260,10 +579,13 @@ export default function StudentDashboardView({
 
             <button
               onClick={() => {
-                const activeCourse = courses.find((c) => c.isLiveNow && enrolledCourses.includes(c.id));
+                const activeCourse = courses.find(
+                  (c) => c.isLiveNow && enrolledCourses.includes(c.id),
+                );
+
                 if (activeCourse) navigateTo("live", activeCourse);
               }}
-              className="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-5 py-3 rounded-xl transition-all shadow-md shadow-red-100 flex items-center gap-2"
+              className="bg-red-600 hover:bg-red-500 text-white font-bold text-xs px-5 py-3 min-h-[44px] rounded-xl transition-all shadow-md shadow-red-950/30 flex items-center gap-2"
             >
               <Video className="w-4 h-4" /> Rejoindre la salle de classe
             </button>
@@ -272,100 +594,118 @@ export default function StudentDashboardView({
       )}
 
       <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-black text-slate-800 flex items-center gap-2">
-            <Layers className="w-5 h-5 text-indigo-600" />
+        <div className="flex justify-between items-center gap-3 flex-wrap">
+          <h2 className="text-xl font-black text-slate-100 flex items-center gap-2">
+            <Layers className="w-5 h-5 text-indigo-400" />
             Mes Modules d'Étude Actifs ({enrolledCourses.length})
           </h2>
+
           <span className="text-xs font-semibold text-slate-500">
             Vos modules en accès
           </span>
         </div>
 
-        {courses.filter((c) => enrolledCourses.includes(c.id)).length === 0 ? (
-          <div className="bg-white rounded-2xl p-12 text-center border border-slate-200 space-y-4 shadow-sm">
-            <ShoppingCart className="w-12 h-12 text-slate-300 mx-auto" />
-            <h3 className="text-lg font-bold text-slate-800 font-sans">Aucun module actif</h3>
-            <p className="text-sm text-slate-500 max-w-sm mx-auto">
-              Abonnez-vous aux modules de votre choix à prix abordable dans notre catalogue de formation.
+        {enrolledList.length === 0 ? (
+          <div className="rounded-2xl p-10 sm:p-12 text-center border border-slate-800 bg-slate-900/50 space-y-4 shadow-sm">
+            <ShoppingCart className="w-12 h-12 text-slate-600 mx-auto" />
+
+            <h3 className="text-lg font-bold text-slate-100 font-sans">
+              Aucun module actif
+            </h3>
+
+            <p className="text-sm text-slate-400 max-w-sm mx-auto">
+              Abonnez-vous aux modules de votre choix à prix abordable dans
+              notre catalogue de formation.
             </p>
+
             <button
               onClick={() => navigateTo("catalog")}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-5 py-3 rounded-xl shadow-md cursor-pointer"
+              className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-5 py-3 min-h-[44px] rounded-xl shadow-md cursor-pointer"
             >
               Découvrir le catalogue d'Axelmond Research Labs
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {courses
-              .filter((c) => enrolledCourses.includes(c.id))
-              .map((course) => {
-                const completedChapters = course.modules.filter((m) => m.completed).length;
-                const totalChapters = course.modules.length;
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {enrolledList.map((course) => {
+              const completedChapters = course.modules.filter(
+                (m) => m.completed,
+              ).length;
 
-                return (
-                  <div
-                    key={course.id}
-                    className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex flex-col overflow-hidden"
-                  >
-                    <div className="p-6 flex-1 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className={`p-3 rounded-xl ${course.color} text-slate-800`}>
-                          {getCourseIcon(course.iconName, "w-6 h-6 text-slate-800")}
-                        </div>
-                        <span className="bg-slate-100 text-slate-600 text-[10px] font-extrabold uppercase tracking-wide px-2.5 py-1 rounded-full border border-slate-200">
-                          {course.level}
+              const totalChapters = course.modules.length;
+
+              return (
+                <div
+                  key={course.id}
+                  className="rounded-2xl border border-slate-800 bg-slate-900/60 shadow-sm hover:shadow-lg hover:border-slate-700 transition-all flex flex-col overflow-hidden"
+                >
+                  <div className="p-5 sm:p-6 flex-1 space-y-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className={`p-3 rounded-xl ${course.color}`}>
+                        {getCourseIcon(
+                          course.iconName,
+                          "w-6 h-6 text-slate-800",
+                        )}
+                      </div>
+
+                      <span className="bg-slate-800 text-slate-300 text-[10px] font-extrabold uppercase tracking-wide px-2.5 py-1 rounded-full border border-slate-700">
+                        {course.level}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <h3 className="font-extrabold text-base text-white leading-tight truncate">
+                        {course.title}
+                      </h3>
+
+                      <p className="text-xs text-slate-400 font-medium truncate">
+                        Par {course.instructor}
+                      </p>
+                    </div>
+
+                    <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                      {course.description}
+                    </p>
+
+                    <div className="pt-2 space-y-1.5">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-slate-400 font-semibold">
+                          {completedChapters} / {totalChapters} chapitres
+                        </span>
+
+                        <span className="text-indigo-300 font-bold font-mono">
+                          {course.progress}%
                         </span>
                       </div>
 
-                      <div className="space-y-1">
-                        <h3 className="font-extrabold text-base text-slate-800 leading-tight truncate">
-                          {course.title}
-                        </h3>
-                        <p className="text-xs text-slate-400 font-medium">
-                          Par {course.instructor}
-                        </p>
+                      <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-300 ${
+                            course.progress === 100
+                              ? "bg-emerald-500"
+                              : "bg-indigo-500"
+                          }`}
+                          style={{ width: `${course.progress}%` }}
+                        />
                       </div>
-
-                      <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
-                        {course.description}
-                      </p>
-
-                      <div className="pt-2 space-y-1.5">
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-slate-500 font-semibold">
-                            {completedChapters} / {totalChapters} chapitres
-                          </span>
-                          <span className="text-indigo-600 font-bold font-mono">
-                            {course.progress}%
-                          </span>
-                        </div>
-                        <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                          <div
-                            className={`h-full rounded-full transition-all duration-300 ${
-                              course.progress === 100 ? "bg-emerald-500" : "bg-indigo-600"
-                            }`}
-                            style={{ width: `${course.progress}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-slate-50 px-6 py-4 border-t border-slate-100 flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-slate-400 uppercase">
-                        {course.credits} Crédits ECTS
-                      </span>
-                      <button
-                        onClick={() => navigateTo("course", course)}
-                        className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 cursor-pointer"
-                      >
-                        Étudier le syllabus <ChevronRight className="w-4 h-4" />
-                      </button>
                     </div>
                   </div>
-                );
-              })}
+
+                  <div className="bg-slate-950/50 px-5 sm:px-6 py-4 border-t border-slate-800 flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-bold text-slate-500 uppercase">
+                      {course.credits} Crédits ECTS
+                    </span>
+
+                    <button
+                      onClick={() => navigateTo("course", course)}
+                      className="text-xs font-bold text-indigo-300 hover:text-indigo-200 flex items-center gap-1 cursor-pointer min-h-[44px]"
+                    >
+                      Étudier le syllabus <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

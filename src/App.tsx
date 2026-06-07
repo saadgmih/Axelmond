@@ -104,8 +104,6 @@ export default function App() {
       .catch((err) => { console.error("Failed to fetch academic catalog:", err); setIsLoading(false); });
   }, []);
 
-  const [studentChartTab, setStudentChartTab] = useState<"hours" | "skills">("hours");
-
   useEffect(() => {
     document.documentElement.classList.add("dark");
     localStorage.removeItem("axelmond_theme");
@@ -509,8 +507,6 @@ export default function App() {
                 <StudentDashboardView
                   currentUser={currentUser}
                   navigateTo={navigateTo}
-                  studentChartTab={studentChartTab}
-                  setStudentChartTab={setStudentChartTab}
                   enrolledCourses={enrolledCourses}
                   courses={courses}
                   getCourseIcon={getCourseIcon}
