@@ -74,6 +74,7 @@ const app = express();
 patchExpressAsyncRoutes(app);
 const PORT = Number(process.env.PORT) || 3000;
 const isProduction = process.env.NODE_ENV === "production";
+const isSecurityRuntimeTest = process.env.SECURITY_RUNTIME_TEST === "1";
 const AUTH_MAX_ATTEMPTS = Number(process.env.AUTH_MAX_ATTEMPTS) || 20;
 const AUTH_LOCKOUT_WINDOW_MS = Number(process.env.AUTH_LOCKOUT_WINDOW_MS) || 1 * 60 * 1000;
 const uploadThingCallbackUrl = process.env.UPLOADTHING_CALLBACK_URL || (process.env.APP_URL ? `${process.env.APP_URL}/api/uploadthing` : undefined);
@@ -4661,25 +4662,29 @@ async function setupApp() {
   } catch (err) {
     logDb("WARN", "PostgreSQL sequence sync skipped", { error: String(err) });
   }
-  const smtpCheck = await verifySmtpConnection();
-  if (smtpCheck.ok) {
-    logEmail("INFO", "SMTP connection verified at startup", { smtp: smtpCheck.details });
-  } else {
-    logEmail(smtpCheck.configured ? "ERROR" : "WARN", "SMTP connection verification failed at startup", {
-      smtp: smtpCheck.details,
-      error: smtpCheck.error,
-    });
-  }
-  const smtpBanner = await readSmtpBanner();
-  if (smtpBanner.ok) {
-    logEmail("INFO", "SMTP banner received at startup", { smtp: smtpBanner.details, banner: smtpBanner.banner });
-  } else {
-    logEmail("WARN", "SMTP banner check failed at startup", { smtp: smtpBanner.details, error: "error" in smtpBanner ? smtpBanner.error : undefined });
-  }
+  if (!isSecurityRuntimeTest) {
+    const smtpCheck = await verifySmtpConnection();
+    if (smtpCheck.ok) {
+      logEmail("INFO", "SMTP connection verified at startup", { smtp: smtpCheck.details });
+    } else {
+      logEmail(smtpCheck.configured ? "ERROR" : "WARN", "SMTP connection verification failed at startup", {
+        smtp: smtpCheck.details,
+        error: smtpCheck.error,
+      });
+    }
+    const smtpBanner = await readSmtpBanner();
+    if (smtpBanner.ok) {
+      logEmail("INFO", "SMTP banner received at startup", { smtp: smtpBanner.details, banner: smtpBanner.banner });
+    } else {
+      logEmail("WARN", "SMTP banner check failed at startup", { smtp: smtpBanner.details, error: "error" in smtpBanner ? smtpBanner.error : undefined });
+    }
 
-  // ─── Cache pruner + monitoring de performance ────────────────────────────
-  startCachePruner();
-  startPerformanceMonitor(Number(process.env.PERF_MONITOR_INTERVAL_MS) || 30_000);
+    // ─── Cache pruner + monitoring de performance ────────────────────────────
+    startCachePruner();
+    startPerformanceMonitor(Number(process.env.PERF_MONITOR_INTERVAL_MS) || 30_000);
+  } else {
+    logDb("INFO", "Security runtime test mode: skipping SMTP checks and background monitors");
+  }
 
   app.use("/api", (err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
     const status = apiErrorStatus(err);
@@ -4706,7 +4711,9 @@ async function setupApp() {
     );
   });
 
-  if (process.env.NODE_ENV !== "production") {
+  if (isSecurityRuntimeTest) {
+    console.log("Security runtime test mode: API-only server (no Vite/static middleware).");
+  } else if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
