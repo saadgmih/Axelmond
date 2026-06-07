@@ -19,4 +19,14 @@ assert.match(classroomSource, /Tableau blanc collaboratif/);
 assert.match(classroomSource, /Rapport de présence/);
 assert.match(appSource, /Live actif/);
 
+assert.match(classroomSource, /LiveSettingsPanel/);
+assert.match(classroomSource, /Paramètres Live/);
+assert.match(classroomSource, /PictureInPicture2/);
+assert.match(classroomSource, /Mode concentration/);
+assert.match(classroomSource, /resolveLayoutParticipants/);
+assert.match(classroomSource, /applyLiveVideoQuality/);
+assert.match(classroomSource, /key: "v"/);
+assert.match(classroomSource, /key: "t"/);
+assert.match(readFileSync(new URL("../src/components/live/LiveSettingsPanel.tsx", import.meta.url), "utf8"), /Bientôt disponible/);
+
 console.log("LiveKit UI rules passed");

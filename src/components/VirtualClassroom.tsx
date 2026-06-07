@@ -14,6 +14,7 @@ import {
   Download,
   FileText,
   FileUp,
+  Focus,
   Fullscreen,
   Hand,
   Link,
@@ -23,6 +24,7 @@ import {
   MoreVertical,
   Paperclip,
   PenTool,
+  PictureInPicture2,
   PieChart,
   Presentation,
   Radio,
@@ -46,8 +48,12 @@ import {
 import { Course } from "../types";
 import { LiveChatMessage } from "../livekit";
 import AITutorChat from "./AITutorChat";
+import LiveSettingsPanel from "./live/LiveSettingsPanel";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
+import { useLiveSettings } from "../hooks/useLiveSettings";
+import { usePictureInPicture } from "../hooks/usePictureInPicture";
 import { useTvNavigation } from "../hooks/useTvNavigation";
+import { applyLiveVideoQuality, isTeacherLikeRole, type LiveLayoutMode } from "../live/liveSettings";
 
 export interface LiveParticipantCard {
   identity: string;
@@ -105,12 +111,44 @@ export interface VirtualClassroomProps {
   onReconnectLive?: () => void;
 }
 
-const tabs = [
+const sidebarTabs = [
   { id: "participants", label: "Participants", icon: Users },
   { id: "chat", label: "Chat", icon: MessageSquare },
   { id: "whiteboard", label: "Tableau blanc", icon: PenTool },
   { id: "attendance", label: "Présence", icon: ClipboardList },
 ];
+
+function resolveLayoutParticipants(
+  participants: LiveParticipantCard[],
+  layoutMode: LiveLayoutMode,
+  activeSpeaker: LiveParticipantCard | undefined,
+  classroomMode: "student" | "teacher",
+) {
+  const withVideo = participants.filter((participant) => participant.videoTrack);
+  if (withVideo.length === 0) return withVideo;
+
+  if (layoutMode === "tile") return withVideo;
+
+  if (layoutMode === "active-speaker") {
+    const featured = (activeSpeaker?.videoTrack ? activeSpeaker : undefined)
+      || withVideo.find((participant) => participant.isSpeaking)
+      || withVideo.find((participant) => !participant.isLocal)
+      || withVideo[0];
+    return featured ? [featured] : withVideo.slice(0, 1);
+  }
+
+  const teachers = withVideo.filter((participant) => isTeacherLikeRole(participant.role));
+  if (teachers.length > 0) {
+    if (classroomMode === "teacher") {
+      const localTeacher = teachers.find((participant) => participant.isLocal);
+      return localTeacher ? [localTeacher] : [teachers[0]!];
+    }
+    const remoteTeacher = teachers.find((participant) => !participant.isLocal);
+    return remoteTeacher ? [remoteTeacher] : [teachers[0]!];
+  }
+
+  return withVideo.slice(0, 1);
+}
 
 function formatDuration(seconds: number) {
   const safe = Math.max(0, seconds || 0);
@@ -191,6 +229,23 @@ export default function VirtualClassroom({
   const [pollOptions, setPollOptions] = useState(["Oui, c'est très clair", "J'ai besoin de plus d'exemples", "Non, je suis perdu"]);
   const [pollVotes, setPollVotes] = useState<Record<string, number>>({});
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const featuredVideoRef = useRef<HTMLVideoElement | null>(null);
+  const {
+    settings: liveSettings,
+    setVideoQuality,
+    setLayoutMode,
+    setFocusMode,
+    toggleFocusMode,
+    setSubtitleLanguage,
+  } = useLiveSettings();
+  const {
+    isPiPActive,
+    pipError,
+    isSupported: pipSupported,
+    togglePictureInPicture,
+    clearPipError,
+  } = usePictureInPicture(featuredVideoRef);
   const liveStartedAtMs = useMemo(() => {
     const parsed = course.liveStartedAt ? Date.parse(course.liveStartedAt) : NaN;
     return Number.isFinite(parsed) ? parsed : Date.now();
@@ -223,12 +278,32 @@ export default function VirtualClassroom({
     });
   }, [stageVolume, isStageVideoPaused, primaryVideoRef, videoRefs, participants.length]);
 
+  useEffect(() => {
+    void applyLiveVideoQuality(liveRoom, liveSettings.videoQuality, isCameraEnabled);
+  }, [liveRoom, liveSettings.videoQuality, isCameraEnabled]);
+
+  useEffect(() => {
+    if (!liveSettings.focusMode) return;
+    if (activeTab === "chat" || activeTab === "participants" || activeTab === "attendance") {
+      setActiveTab("whiteboard");
+    }
+  }, [liveSettings.focusMode, activeTab]);
+
+  const visibleSidebarTabs = useMemo(
+    () => (liveSettings.focusMode
+      ? sidebarTabs.filter((tab) => tab.id === "whiteboard")
+      : sidebarTabs),
+    [liveSettings.focusMode],
+  );
+
   const openPanelTab = (tabId: string) => {
+    if (liveSettings.focusMode && tabId !== "whiteboard") return;
     setIsSidebarOpen(true);
     setActiveTab(tabId);
   };
 
   const togglePanelTab = (tabId: string) => {
+    if (liveSettings.focusMode && tabId !== "whiteboard") return;
     if (isSidebarOpen && activeTab === tabId) {
       setIsSidebarOpen(false);
       return;
@@ -237,7 +312,7 @@ export default function VirtualClassroom({
   };
 
   const cyclePanelTab = (delta: number) => {
-    const ids = tabs.map((tab) => tab.id);
+    const ids = visibleSidebarTabs.map((tab) => tab.id);
     const currentIndex = Math.max(0, ids.indexOf(activeTab));
     const nextId = ids[(currentIndex + delta + ids.length) % ids.length];
     openPanelTab(nextId);
@@ -253,9 +328,11 @@ export default function VirtualClassroom({
   useKeyboardShortcuts([
     { key: "f", handler: () => onToggleFullscreen() },
     { key: "m", handler: () => onToggleMic() },
+    { key: "v", handler: () => onToggleCamera() },
+    { key: "h", handler: () => onRaiseHand() },
+    { key: "p", handler: () => { void togglePictureInPicture(); } },
+    { key: "t", handler: () => togglePanelTab("chat") },
     { key: " ", handler: () => setIsStageVideoPaused((value) => !value) },
-    { key: "c", handler: () => togglePanelTab("chat") },
-    { key: "p", handler: () => togglePanelTab("participants") },
     {
       key: "l",
       handler: () => {
@@ -277,7 +354,15 @@ export default function VirtualClassroom({
     {
       key: "Escape",
       handler: () => {
+        if (isSettingsOpen) {
+          setIsSettingsOpen(false);
+          return;
+        }
         if (isSidebarOpen && typeof window !== "undefined" && !window.matchMedia("(min-width: 1024px)").matches) {
+          setIsSidebarOpen(false);
+          return;
+        }
+        if (isSidebarOpen && liveSettings.focusMode) {
           setIsSidebarOpen(false);
           return;
         }
@@ -337,7 +422,12 @@ export default function VirtualClassroom({
     || connectedParticipants.find((participant) => !participant.isLocal && participant.videoTrack)
     || connectedParticipants.find((participant) => participant.videoTrack)
     || connectedParticipants[0];
-  const videoParticipants = connectedParticipants.filter((participant) => participant.videoTrack);
+  const videoParticipants = resolveLayoutParticipants(
+    connectedParticipants,
+    liveSettings.layoutMode,
+    activeSpeaker,
+    mode,
+  );
   const videoGridClass = videoParticipants.length <= 1
     ? "grid-cols-1"
     : videoParticipants.length === 2
@@ -444,6 +534,30 @@ export default function VirtualClassroom({
       <span className="sr-only">Tableau blanc collaboratif</span>
       <span className="sr-only">Rapport de présence</span>
       
+      {pipError && (
+        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-50 bg-zinc-900 border border-amber-500/40 shadow-2xl rounded-xl p-4 flex items-center gap-4 max-w-md animate-in slide-in-from-bottom-4 fade-in duration-300">
+          <div className="bg-amber-500/20 p-2 rounded-full">
+            <PictureInPicture2 className="w-5 h-5 text-amber-300" />
+          </div>
+          <div className="flex-1">
+            <h4 className="text-xs font-bold text-white mb-0.5">Picture-in-Picture</h4>
+            <p className="text-[11px] text-zinc-300">{pipError}</p>
+          </div>
+          <button
+            onClick={clearPipError}
+            className="px-3 py-1.5 bg-white text-zinc-900 text-[11px] font-bold rounded-lg hover:bg-zinc-200 transition-colors shrink-0"
+          >
+            OK
+          </button>
+        </div>
+      )}
+
+      {liveSettings.focusMode && (
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-40 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-4 py-1.5 text-[11px] font-bold text-emerald-200 shadow-lg backdrop-blur-md">
+          Mode concentration actif
+        </div>
+      )}
+
       {/* Toast Notification - Erreurs Micro */}
       {micError && (
         <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-50 bg-zinc-900 border border-red-500/50 shadow-2xl rounded-xl p-4 flex items-center gap-4 max-w-md animate-in slide-in-from-bottom-4 fade-in duration-300">
@@ -494,17 +608,37 @@ export default function VirtualClassroom({
         </div>
         
         <div className="flex items-center gap-3">
-          <button 
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="relative touch-target p-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors border border-white/5 flex items-center gap-2 min-h-[44px]"
-            title="Ouvrir/Fermer le panneau académique"
-            aria-label="Ouvrir ou fermer le panneau interactif"
+          {liveSettings.focusMode ? (
+            <button
+              onClick={() => openPanelTab("whiteboard")}
+              className="relative touch-target p-2.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 transition-colors border border-emerald-400/20 flex items-center gap-2 min-h-[44px]"
+              title="Ouvrir le tableau blanc"
+              aria-label="Ouvrir le tableau blanc"
+            >
+              <PenTool className="w-4 h-4 text-emerald-300" />
+              <span className="text-xs font-bold text-emerald-100 hidden sm:block">Tableau blanc</span>
+            </button>
+          ) : (
+            <button 
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="relative touch-target p-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors border border-white/5 flex items-center gap-2 min-h-[44px]"
+              title="Ouvrir/Fermer le panneau académique"
+              aria-label="Ouvrir ou fermer le panneau interactif"
+            >
+              <span className="text-xs font-bold text-zinc-300 hidden sm:block">Panneau interactif</span>
+              {isSidebarOpen ? <ChevronRight className="w-4 h-4" /> : <MoreVertical className="w-4 h-4" />}
+              {!isSidebarOpen && raisedHands > 0 && (
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border border-zinc-900"></span>
+              )}
+            </button>
+          )}
+          <button
+            onClick={() => setIsSettingsOpen(true)}
+            className="touch-target p-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors border border-white/5 min-h-[44px] min-w-[44px] flex items-center justify-center"
+            title="Paramètres Live"
+            aria-label="Ouvrir les paramètres live"
           >
-            <span className="text-xs font-bold text-zinc-300 hidden sm:block">Panneau interactif</span>
-            {isSidebarOpen ? <ChevronRight className="w-4 h-4" /> : <MoreVertical className="w-4 h-4" />}
-            {!isSidebarOpen && raisedHands > 0 && (
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border border-zinc-900"></span>
-            )}
+            <Settings className="w-4 h-4 text-zinc-200" />
           </button>
         </div>
       </header>
@@ -532,22 +666,26 @@ export default function VirtualClassroom({
               <Timer className="w-4 h-4 text-blue-400" />
               <span className="font-mono">{formatDuration(elapsedSeconds)}</span>
             </div>
-            <div className="flex items-center gap-2 text-xs text-zinc-300">
-              <UserCheck className="w-4 h-4 text-emerald-400" />
-              <span className="font-bold">{connectedParticipants.length} connectés</span>
-            </div>
-            <div className="flex items-center gap-2 text-xs text-zinc-300">
-              <Hand className="w-4 h-4 text-amber-400" />
-              <span className="font-bold">{raisedHands} levées</span>
-            </div>
-            <div className="flex items-center gap-2 text-xs text-zinc-300 hidden sm:flex">
-              <MessageSquare className="w-4 h-4 text-indigo-400" />
-              <span className="font-bold">{questionsCount} questions</span>
-            </div>
-            <div className="flex items-center gap-2 text-xs text-zinc-300 hidden lg:flex">
-              <Wifi className="w-4 h-4 text-zinc-400" />
-              <span className="font-medium text-zinc-400">{averageQuality}</span>
-            </div>
+            {!liveSettings.focusMode && (
+              <>
+                <div className="flex items-center gap-2 text-xs text-zinc-300">
+                  <UserCheck className="w-4 h-4 text-emerald-400" />
+                  <span className="font-bold">{connectedParticipants.length} connectés</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-zinc-300">
+                  <Hand className="w-4 h-4 text-amber-400" />
+                  <span className="font-bold">{raisedHands} levées</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-zinc-300 hidden sm:flex">
+                  <MessageSquare className="w-4 h-4 text-indigo-400" />
+                  <span className="font-bold">{questionsCount} questions</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-zinc-300 hidden lg:flex">
+                  <Wifi className="w-4 h-4 text-zinc-400" />
+                  <span className="font-medium text-zinc-400">{averageQuality}</span>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Control Bar — au-dessus de la vidéo */}
@@ -575,7 +713,7 @@ export default function VirtualClassroom({
                   data-tv-focusable
                   tabIndex={0}
                   onClick={onToggleCamera}
-                  aria-label={isCameraEnabled ? "Couper la caméra" : "Activer la caméra"}
+                  aria-label={isCameraEnabled ? "Couper la caméra (V)" : "Activer la caméra (V)"}
                   aria-pressed={isCameraEnabled}
                   className={`kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${isCameraEnabled ? "hover:bg-zinc-800 text-zinc-200" : "bg-red-600/20 border border-red-500/40 text-red-300 hover:bg-red-600/30"}`}
                 >
@@ -602,11 +740,39 @@ export default function VirtualClassroom({
                   data-tv-focusable
                   tabIndex={0}
                   onClick={onRaiseHand}
-                  aria-label="Lever la main"
+                  aria-label="Lever la main (H)"
                   className="kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl hover:bg-zinc-800 text-zinc-300 transition-all group"
                 >
                   <Hand className="w-5 h-5 mb-1.5 group-hover:text-amber-400 transition-colors" />
                   <span className="text-[10px] font-bold">Main</span>
+                </button>
+                <button
+                  type="button"
+                  data-tv-focusable
+                  tabIndex={0}
+                  onClick={() => { void togglePictureInPicture(); }}
+                  aria-label={isPiPActive ? "Quitter Picture-in-Picture (P)" : "Activer Picture-in-Picture (P)"}
+                  aria-pressed={isPiPActive}
+                  className={`kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${
+                    isPiPActive ? "bg-indigo-500/10 border border-indigo-400/30 text-indigo-300" : "hover:bg-zinc-800 text-zinc-300"
+                  }`}
+                >
+                  <PictureInPicture2 className="w-5 h-5 mb-1.5" />
+                  <span className="text-[10px] font-bold">PiP</span>
+                </button>
+                <button
+                  type="button"
+                  data-tv-focusable
+                  tabIndex={0}
+                  onClick={toggleFocusMode}
+                  aria-label="Mode concentration"
+                  aria-pressed={liveSettings.focusMode}
+                  className={`kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all hidden md:flex ${
+                    liveSettings.focusMode ? "bg-emerald-500/10 border border-emerald-400/30 text-emerald-300" : "hover:bg-zinc-800 text-zinc-300"
+                  }`}
+                >
+                  <Focus className="w-5 h-5 mb-1.5" />
+                  <span className="text-[10px] font-bold">Focus</span>
                 </button>
                 <button
                   type="button"
@@ -668,7 +834,12 @@ export default function VirtualClassroom({
                         }`}
                       >
                         <video
-                          ref={(el) => { videoRefs.current[participant.identity] = el; }}
+                          ref={(el) => {
+                            videoRefs.current[participant.identity] = el;
+                            if (videoParticipants[0]?.identity === participant.identity) {
+                              featuredVideoRef.current = el;
+                            }
+                          }}
                           autoPlay
                           playsInline
                           muted={participant.isLocal}
@@ -726,8 +897,10 @@ export default function VirtualClassroom({
           className={`absolute lg:static right-0 top-0 bottom-0 w-[min(100vw,360px)] lg:w-[360px] max-w-full lg:min-w-[360px] shrink-0 bg-zinc-900 border-l border-white/5 flex flex-col transition-transform duration-300 ease-out z-40 box-border lg:min-h-[480px] shadow-2xl lg:shadow-none ${isSidebarOpen ? "translate-x-0 lg:flex" : "translate-x-full lg:hidden"}`}
         >
           {/* Sidebar Tabs */}
-          <div className="px-3 pt-4 pb-2 grid grid-cols-4 gap-1 shrink-0 border-b border-white/5 bg-zinc-900/50">
-            {tabs.map((tab) => (
+          <div className={`px-3 pt-4 pb-2 grid gap-1 shrink-0 border-b border-white/5 bg-zinc-900/50 ${
+            visibleSidebarTabs.length === 1 ? "grid-cols-1" : "grid-cols-4"
+          }`}>
+            {visibleSidebarTabs.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
@@ -964,6 +1137,19 @@ export default function VirtualClassroom({
         </aside>
 
       </div>
+
+      <LiveSettingsPanel
+        open={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        settings={liveSettings}
+        onVideoQualityChange={setVideoQuality}
+        onLayoutModeChange={setLayoutMode}
+        onFocusModeChange={setFocusMode}
+        onSubtitleLanguageChange={setSubtitleLanguage}
+        pipSupported={pipSupported}
+        isPiPActive={isPiPActive}
+        onTogglePiP={() => { void togglePictureInPicture(); }}
+      />
     </div>
   );
 }
