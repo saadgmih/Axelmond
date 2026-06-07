@@ -31,6 +31,7 @@ import {
   publishedBadge,
   publishedLabel,
 } from "./curriculum-theme";
+import PremiumVideoPlayer from "../../components/PremiumVideoPlayer";
 
 export interface TeacherCurriculumViewProps {
   domains: FacultyDomain[];
@@ -1270,7 +1271,12 @@ export default function TeacherCurriculumView({
                                         <img src={attachment.url} alt={content.title} className="w-full max-h-48 object-contain rounded-xl bg-slate-950" />
                                       )}
                                       {content.type === "VIDEO" && (
-                                        <video src={attachment.url} controls className="w-full max-h-56 rounded-xl bg-black" />
+                                        <PremiumVideoPlayer
+                                          src={attachment.url}
+                                          title={content.title}
+                                          instructor={managedCourse?.instructor ?? "Professeur"}
+                                          activeSector="teacher"
+                                        />
                                       )}
                                       {content.type === "PDF" && (
                                         <div className="py-6 flex flex-col items-center justify-center gap-2">
