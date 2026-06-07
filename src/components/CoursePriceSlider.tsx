@@ -10,8 +10,19 @@ function clampPrice(value: number) {
   return Math.min(MAX_PRICE, Math.max(MIN_PRICE, Number(stepped.toFixed(2))));
 }
 
-function sliderProgress(price: number) {
-  return `${(clampPrice(price) / MAX_PRICE) * 100}%`;
+/** Normalized slider position 0 → 1, aligned to thumb travel axis */
+export function getCoursePriceSliderPct(
+  value: number,
+  min: number = MIN_PRICE,
+  max: number = MAX_PRICE,
+) {
+  const clamped = clampPrice(value);
+  if (max <= min) return 0;
+  return (clamped - min) / (max - min);
+}
+
+export function getCoursePriceSliderPercentage(value: number) {
+  return getCoursePriceSliderPct(value) * 100;
 }
 
 interface CoursePriceSliderProps {
@@ -30,11 +41,14 @@ export default function CoursePriceSlider({
   onDraftChange,
 }: CoursePriceSliderProps) {
   const [draft, setDraft] = useState(() => clampPrice(price));
+  const [isDragging, setIsDragging] = useState(false);
   const draggingRef = useRef(false);
   const draftRef = useRef(draft);
   const onDraftChangeRef = useRef(onDraftChange);
   draftRef.current = draft;
   onDraftChangeRef.current = onDraftChange;
+
+  const sliderPct = getCoursePriceSliderPct(draft);
 
   useEffect(() => {
     if (!draggingRef.current) {
@@ -61,6 +75,7 @@ export default function CoursePriceSlider({
     const stopDragging = () => {
       if (!draggingRef.current) return;
       draggingRef.current = false;
+      setIsDragging(false);
       commitDraft();
     };
 
@@ -78,38 +93,49 @@ export default function CoursePriceSlider({
         <span>Frais d&apos;inscription</span>
         <span className="font-mono font-bold text-white">{formatMad(draft)}</span>
       </div>
-      <input
-        type="range"
-        min={MIN_PRICE}
-        max={MAX_PRICE}
-        step={STEP}
-        value={draft}
-        onPointerDown={() => {
-          draggingRef.current = true;
-        }}
-        onChange={(e) => {
-          updateDraft(parseFloat(e.target.value));
-        }}
-        onKeyUp={(e) => {
-          if (e.key === "Enter") {
-            draggingRef.current = false;
-            commitDraft();
-          }
-        }}
-        onBlur={() => {
-          if (!draggingRef.current) {
-            commitDraft();
-          }
-        }}
-        className="course-price-slider w-full cursor-pointer"
-        style={{ "--slider-progress": sliderProgress(draft) } as CSSProperties}
-        aria-label={`Tarif du module ${courseTitle}`}
-        aria-valuemin={MIN_PRICE}
-        aria-valuemax={MAX_PRICE}
-        aria-valuenow={draft}
-      />
+
+      <div
+        className={`course-price-slider-root${isDragging ? " is-dragging" : ""}`}
+        style={{ "--slider-pct": sliderPct } as CSSProperties}
+      >
+        <div className="course-price-slider-track" aria-hidden="true">
+          <div className="course-price-slider-active" />
+        </div>
+        <div className="course-price-slider-thumb" aria-hidden="true" />
+        <input
+          type="range"
+          min={MIN_PRICE}
+          max={MAX_PRICE}
+          step={STEP}
+          value={draft}
+          onPointerDown={() => {
+            draggingRef.current = true;
+            setIsDragging(true);
+          }}
+          onChange={(e) => {
+            updateDraft(parseFloat(e.target.value));
+          }}
+          onKeyUp={(e) => {
+            if (e.key === "Enter") {
+              draggingRef.current = false;
+              setIsDragging(false);
+              commitDraft();
+            }
+          }}
+          onBlur={() => {
+            if (!draggingRef.current) {
+              commitDraft();
+            }
+          }}
+          className="course-price-slider-input"
+          aria-label={`Tarif du module ${courseTitle}`}
+          aria-valuemin={MIN_PRICE}
+          aria-valuemax={MAX_PRICE}
+          aria-valuenow={draft}
+        />
+      </div>
     </div>
   );
 }
 
-export { clampPrice as clampCoursePrice, sliderProgress as coursePriceSliderProgress };
+export { clampPrice as clampCoursePrice };
