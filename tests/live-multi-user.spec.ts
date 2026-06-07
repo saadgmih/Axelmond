@@ -235,9 +235,7 @@ test("Campagne de test Live multi-utilisateurs (7 clients simultanés)", async (
   if (await toggleLiveBtn.isVisible()) {
     await toggleLiveBtn.click();
   }
-  
-  // Attendre que l'état passe à "Entrer dans la salle"
-  await prof1Page.click('button:has-text("Entrer dans la salle")');
+
   await expect(prof1Page.locator('text="Classe virtuelle sécurisée"')).toBeVisible({ timeout: 15000 });
   console.log("   ✅ [Prof-1] Live démarré et salle rejointe.");
 
@@ -247,7 +245,7 @@ test("Campagne de test Live multi-utilisateurs (7 clients simultanés)", async (
     [pages[1], pages[2], pages[3]].map(async (page, index) => {
       const name = TEST_USERS[index + 1].name;
       await page.click('button:has-text("Contrôleur de Modules Live")');
-      await page.click('button:has-text("Entrer dans la salle")');
+      await page.click('button:has-text("Rejoindre la session live")');
       await expect(page.locator('text="Classe virtuelle sécurisée"')).toBeVisible({ timeout: 15000 });
       console.log(`   ✅ [${name}] Salle Live rejointe.`);
     })

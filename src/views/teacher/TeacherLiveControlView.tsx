@@ -4,7 +4,6 @@ import {
   Code2,
   FileText,
   GraduationCap,
-  LogIn,
   Pencil,
   Radio,
   Sparkles,
@@ -20,8 +19,8 @@ export interface TeacherLiveControlViewProps {
   setLiveCourseId: (id: number) => void;
   setCourses: Dispatch<SetStateAction<Course[]>>;
   handleUpdateCourseLiveSubject: (courseId: number, subject: string) => void | Promise<void>;
-  handleToggleCourseLive: (id: number) => void | Promise<void>;
-  joinTeacherLiveRoom: () => void | Promise<void>;
+  handleToggleCourseLive: (id: number) => Promise<Course | null>;
+  toggleTeacherLiveSession: (courseId: number, toggleCourseLive: (id: number) => Promise<Course | null>) => void | Promise<void>;
   activeLiveCourse: Course | null;
   renderTeacherLiveRoom: () => ReactNode;
 }
@@ -45,7 +44,7 @@ export default function TeacherLiveControlView({
   setCourses,
   handleUpdateCourseLiveSubject,
   handleToggleCourseLive,
-  joinTeacherLiveRoom,
+  toggleTeacherLiveSession,
   activeLiveCourse,
   renderTeacherLiveRoom,
 }: TeacherLiveControlViewProps) {
@@ -168,10 +167,15 @@ export default function TeacherLiveControlView({
             <div className={`${liveControlUi.actions} mt-5 border-t border-white/[0.06] pt-5`}>
               <button
                 type="button"
-                onClick={() => handleToggleCourseLive(liveCourseId)}
-                className={isLive ? liveControlUi.stopBtn : liveControlUi.startBtn}
+                onClick={() => toggleTeacherLiveSession(liveCourseId, handleToggleCourseLive)}
+                className={isLive && isRoomOpen ? liveControlUi.stopBtn : liveControlUi.startBtn}
               >
-                {isLive ? (
+                {!isLive ? (
+                  <>
+                    <Radio className="h-3.5 w-3.5" />
+                    Lancer la session live
+                  </>
+                ) : isRoomOpen ? (
                   <>
                     <Square className="h-3.5 w-3.5 fill-current" />
                     Éteindre le signal
@@ -179,17 +183,9 @@ export default function TeacherLiveControlView({
                 ) : (
                   <>
                     <Radio className="h-3.5 w-3.5" />
-                    Lancer la session live
+                    Rejoindre la session live
                   </>
                 )}
-              </button>
-              <button
-                type="button"
-                onClick={joinTeacherLiveRoom}
-                className={isRoomOpen ? liveControlUi.enterBtnActive : liveControlUi.enterBtn}
-              >
-                <LogIn className="h-4 w-4" />
-                {isRoomOpen ? "Salle LiveKit ouverte" : "Entrer dans la salle"}
               </button>
             </div>
           </section>

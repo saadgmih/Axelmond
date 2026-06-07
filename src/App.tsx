@@ -305,7 +305,7 @@ export default function App() {
 
   const {
     liveAudioContainerRef,
-    joinTeacherLiveRoom,
+    toggleTeacherLiveSession,
     disconnectLiveSession,
     renderLiveRoomInterface,
     classroomBindings,
@@ -551,7 +551,7 @@ export default function App() {
                   setCourses={setCourses}
                   handleUpdateCourseLiveSubject={handleUpdateCourseLiveSubject}
                   handleToggleCourseLive={handleToggleCourseLive}
-                  joinTeacherLiveRoom={joinTeacherLiveRoom}
+                  toggleTeacherLiveSession={toggleTeacherLiveSession}
                   activeLiveCourse={activeLiveCourse}
                   renderTeacherLiveRoom={() => renderLiveRoomInterface("teacher")}
                 />

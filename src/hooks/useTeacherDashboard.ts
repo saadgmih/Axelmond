@@ -89,9 +89,9 @@ export function useTeacherDashboard({
     }
   };
 
-  const handleToggleCourseLive = async (id: number) => {
+  const handleToggleCourseLive = async (id: number): Promise<Course | null> => {
     const course = courses.find((c) => c.id === id);
-    if (!course) return;
+    if (!course) return null;
     const nextState = !course.isLiveNow;
     try {
       const updatedCourse = await api.updateCourse(id, {
@@ -103,9 +103,14 @@ export function useTeacherDashboard({
       setCourses((prev) =>
         prev.map((c) => (c.id === id ? updatedCourse : c))
       );
-      setActiveLiveCourse((current) => (current?.id === id ? updatedCourse : current));
+      setActiveLiveCourse((current) => {
+        if (current?.id !== id) return current;
+        return nextState ? updatedCourse : null;
+      });
+      return updatedCourse;
     } catch (err) {
       console.error("Failed to toggle course live:", err);
+      return null;
     }
   };
 

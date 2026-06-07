@@ -377,13 +377,46 @@ export function useLiveKitRoom({
     return () => window.clearInterval(interval);
   }, [activeLiveCourse?.id]);
 
-  const joinTeacherLiveRoom = () => {
-    const course = courses.find((c) => c.id === liveCourseId);
+  const joinTeacherLiveRoom = (courseOverride?: Course) => {
+    const course = courseOverride ?? courses.find((c) => c.id === liveCourseId);
     if (!course) return;
     console.info("[livekit] Teacher opening live room", { courseId: course.id, role: currentUser?.role });
     setSelectedCourse(course);
     setActiveLiveCourse(course);
     setTeacherView("live-control");
+  };
+
+  const closeTeacherLiveRoom = () => {
+    const course = activeLiveCourse;
+    if (course) {
+      api.leaveLiveAttendance(course.id).catch((err) => console.warn("[livekit] Attendance leave failed", err));
+    }
+    resetLiveKitState();
+  };
+
+  const toggleTeacherLiveSession = async (
+    courseId: number,
+    toggleCourseLive: (id: number) => Promise<Course | null>,
+  ) => {
+    const course = courses.find((c) => c.id === courseId);
+    if (!course) return;
+
+    const isRoomOpen = activeLiveCourse?.id === courseId;
+
+    if (course.isLiveNow) {
+      if (isRoomOpen) {
+        closeTeacherLiveRoom();
+        await toggleCourseLive(courseId);
+      } else {
+        joinTeacherLiveRoom(course);
+      }
+      return;
+    }
+
+    const updatedCourse = await toggleCourseLive(courseId);
+    if (updatedCourse) {
+      joinTeacherLiveRoom(updatedCourse);
+    }
   };
 
   const leaveLiveRoom = () => {
@@ -640,6 +673,8 @@ export function useLiveKitRoom({
   return {
     liveAudioContainerRef,
     joinTeacherLiveRoom,
+    closeTeacherLiveRoom,
+    toggleTeacherLiveSession,
     leaveLiveRoom,
     disconnectLiveSession,
     renderLiveRoomInterface,
