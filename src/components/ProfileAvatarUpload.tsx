@@ -32,15 +32,42 @@ interface ProfileAvatarUploadProps {
   initials?: string;
   statusMsg: string;
   accent?: AccentVariant;
+  variant?: "light" | "dark";
+  previewSize?: number;
   onUpload: (file: File) => void | Promise<void>;
   onDelete: () => void | Promise<void>;
 }
+
+const darkAccentStyles: Record<AccentVariant, { button: string; border: string; icon: string }> = {
+  indigo: {
+    button: "bg-indigo-600 hover:bg-indigo-500",
+    border: "hover:border-indigo-500/40 hover:bg-indigo-950/30",
+    icon: "text-indigo-400",
+  },
+  pink: {
+    button: "bg-pink-600 hover:bg-pink-500",
+    border: "hover:border-pink-500/40 hover:bg-pink-950/30",
+    icon: "text-pink-400",
+  },
+  violet: {
+    button: "bg-violet-600 hover:bg-violet-500",
+    border: "hover:border-violet-500/40 hover:bg-violet-950/30",
+    icon: "text-violet-400",
+  },
+  teal: {
+    button: "bg-teal-600 hover:bg-teal-500",
+    border: "hover:border-teal-500/40 hover:bg-teal-950/30",
+    icon: "text-teal-400",
+  },
+};
 
 export default function ProfileAvatarUpload({
   avatarUrl,
   initials = "AR",
   statusMsg,
   accent = "indigo",
+  variant = "light",
+  previewSize = 64,
   onUpload,
   onDelete,
 }: ProfileAvatarUploadProps) {
@@ -48,7 +75,8 @@ export default function ProfileAvatarUpload({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const theme = accentStyles[accent];
+  const theme = variant === "dark" ? darkAccentStyles[accent] : accentStyles[accent];
+  const isDark = variant === "dark";
 
   const handleFilePick = (file: File | null) => {
     if (!file || !file.type.startsWith("image/")) return;
@@ -72,26 +100,45 @@ export default function ProfileAvatarUpload({
     <>
       <div className="space-y-4">
         <div className="flex items-center gap-4">
-          <div className="h-16 w-16 overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-sm">
+          <div
+            className={`overflow-hidden rounded-2xl shadow-sm ${
+              isDark
+                ? "border border-white/[0.08] bg-[#020617] shadow-lg shadow-black/30"
+                : "border border-slate-200 bg-slate-100"
+            }`}
+            style={{ width: previewSize, height: previewSize }}
+          >
             {avatarUrl ? (
               <img src={avatarUrl} alt="Photo de profil" className="h-full w-full object-cover" />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900 text-sm font-black text-white">
+              <div
+                className={`flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-950 to-[#020617] font-black text-white ${
+                  previewSize >= 80 ? "text-lg" : "text-sm"
+                }`}
+              >
                 {initials}
               </div>
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold text-slate-800">Aperçu actuel</p>
-            <p className="text-[11px] text-slate-500">Recadrez la zone visible de votre photo de profil.</p>
+            <p className={`text-xs font-bold ${isDark ? "text-slate-200" : "text-slate-800"}`}>Aperçu actuel</p>
+            <p className={`text-[11px] ${isDark ? "text-slate-500" : "text-slate-500"}`}>
+              Recadrez la zone visible de votre photo de profil.
+            </p>
           </div>
         </div>
 
         <label
-          className={`flex cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/80 px-4 py-5 transition-colors ${theme.border}`}
+          className={`flex cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 border-dashed px-4 py-5 transition-colors ${theme.border} ${
+            isDark
+              ? "border-white/[0.08] bg-[#020617]/60"
+              : "border-slate-200 bg-slate-50/80"
+          }`}
         >
           <Camera className={`h-5 w-5 ${theme.icon}`} />
-          <span className="text-center text-[11px] font-semibold text-slate-600">
+          <span
+            className={`text-center text-[11px] font-semibold ${isDark ? "text-slate-400" : "text-slate-600"}`}
+          >
             Choisir une photo et recadrer
           </span>
           <input
@@ -106,14 +153,22 @@ export default function ProfileAvatarUpload({
         <button
           type="button"
           onClick={onDelete}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 py-3 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-100"
+          className={`flex w-full items-center justify-center gap-2 rounded-xl border py-3 text-xs font-bold transition-colors ${
+            isDark
+              ? "border-white/[0.08] bg-[#020617]/60 text-slate-400 hover:border-red-500/30 hover:bg-red-950/30 hover:text-red-300"
+              : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
+          }`}
         >
           <Trash2 className="h-3.5 w-3.5" />
           Supprimer la photo
         </button>
 
         {statusMsg && (
-          <p className="rounded-xl bg-slate-50 px-3 py-2 text-center text-[11px] font-semibold text-slate-500">
+          <p
+            className={`rounded-xl px-3 py-2 text-center text-[11px] font-semibold ${
+              isDark ? "bg-indigo-950/40 text-indigo-300" : "bg-slate-50 text-slate-500"
+            }`}
+          >
             {statusMsg}
           </p>
         )}
