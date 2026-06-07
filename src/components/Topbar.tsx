@@ -4,6 +4,7 @@ import { Course } from "../types";
 import { AppUser } from "./AuthScreen";
 import LogoSymbol from "./LogoSymbol";
 import { useVoiceSearch } from "../hooks/useVoiceSearch";
+import AccessibilityControls from "./AccessibilityControls";
 
 interface TopbarProps {
   currentView: string;
@@ -145,7 +146,8 @@ export default function Topbar({
       </div>
 
       {/* Credits & Quick Info */}
-      <div className="flex items-center gap-3 md:gap-6 flex-shrink-0">
+      <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
+        <AccessibilityControls />
         <div className="hidden sm:flex flex-col items-end text-right">
           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
             Utilisateur Actuel
@@ -178,7 +180,8 @@ export default function Topbar({
             if (role === "student") navigateTo("profile");
           }}
           disabled={role === "teacher"}
-          className="flex items-center gap-2.5 hover:opacity-80 transition-opacity disabled:opacity-100 cursor-pointer"
+          aria-label={currentUser ? `Profil de ${currentUser.fullName}` : "Profil utilisateur"}
+          className="flex items-center gap-2.5 hover:opacity-80 transition-opacity disabled:opacity-100 cursor-pointer kbd-nav-focus rounded-full"
         >
           {currentUser?.avatarUrl ? (
             <img src={currentUser.avatarUrl} alt="Photo de profil" className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800" />

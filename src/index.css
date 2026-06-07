@@ -305,3 +305,75 @@ body {
 .voice-search-listening-label {
   animation: voice-search-pulse 1.1s ease-in-out infinite;
 }
+
+/* Skip link — WCAG bypass block */
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -100%;
+  z-index: 200;
+  border-radius: 0.75rem;
+  border: 2px solid #818cf8;
+  background: #0f172a;
+  color: #f8fafc;
+  padding: 0.75rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.35);
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  top: 1rem;
+}
+
+/* High contrast mode (user toggle) */
+.a11y-high-contrast {
+  color-scheme: dark;
+}
+
+.a11y-high-contrast .text-slate-400,
+.a11y-high-contrast .text-slate-500,
+.a11y-high-contrast .text-slate-600 {
+  color: #e2e8f0 !important;
+}
+
+.a11y-high-contrast .border-slate-700,
+.a11y-high-contrast .border-slate-800,
+.a11y-high-contrast .border-slate-200 {
+  border-color: #cbd5e1 !important;
+}
+
+.a11y-high-contrast :where(button, a, input, select, textarea, [tabindex]:not([tabindex='-1'])):focus-visible,
+.a11y-high-contrast .kbd-nav-focus:focus-visible,
+.a11y-high-contrast [data-tv-focusable]:focus-visible {
+  outline-color: #fde047 !important;
+  box-shadow: 0 0 0 6px rgba(253, 224, 71, 0.45) !important;
+}
+
+/* Reduced motion — system + user preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.a11y-reduce-motion *,
+.a11y-reduce-motion *::before,
+.a11y-reduce-motion *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+
+.a11y-reduce-motion .voice-search-mic-pulse,
+.a11y-reduce-motion .voice-search-mic-active,
+.a11y-reduce-motion .voice-search-listening-label {
+  animation: none !important;
+}

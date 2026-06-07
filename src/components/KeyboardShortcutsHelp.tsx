@@ -1,5 +1,6 @@
 import { Keyboard, X } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { useFocusTrap } from "../hooks/useFocusTrap";
 
 interface ShortcutGroup {
   title: string;
@@ -49,6 +50,8 @@ interface KeyboardShortcutsHelpProps {
 
 export default function KeyboardShortcutsHelp({ open, onClose }: KeyboardShortcutsHelpProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(dialogRef, open);
 
   useEffect(() => {
     if (!open) return;
@@ -76,6 +79,7 @@ export default function KeyboardShortcutsHelp({ open, onClose }: KeyboardShortcu
 
   return (
     <div
+      ref={dialogRef}
       className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"

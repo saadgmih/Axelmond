@@ -13,6 +13,9 @@ import { Course, Invoice } from "../types";
 import { api, setSessionToken } from "../api";
 import { UserRole } from "../rbac";
 import LogoSymbol from "./LogoSymbol";
+import SkipLink from "./SkipLink";
+import { useAccessibilityPreferences } from "../hooks/useAccessibilityPreferences";
+import AccessibilityControls from "./AccessibilityControls";
 
 // ─── Real-time Rate-Limit Countdown Banner ────────────────────────────────────
 interface RateLimitBannerProps {
@@ -104,6 +107,7 @@ interface AuthScreenProps {
 }
 
 export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps) {
+  const { preferences } = useAccessibilityPreferences();
   const [activeSector, setActiveSector] = useState<"student" | "teacher">("student");
   const [authMode, setAuthMode] = useState<"login" | "register" | "forgot" | "reset">("register");
 
@@ -280,6 +284,7 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
 
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col justify-center items-center p-4 py-8 md:py-12 relative overflow-y-auto font-sans">
+      <SkipLink href="#auth-main" />
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-pink-600/10 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -299,12 +304,15 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
         </div>
 
         <motion.div 
-          initial={{ opacity: 0, y: 15 }} 
+          initial={preferences.reduceMotion ? false : { opacity: 0, y: 15 }} 
           animate={{ opacity: 1, y: 0 }}
           className="bg-slate-950/80 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-xl"
         >
+          <main id="auth-main" tabIndex={-1} className="outline-none">
           <div className="grid grid-cols-2 bg-slate-900 border-b border-slate-800 p-2 gap-2">
             <button
+              type="button"
+              aria-pressed={activeSector === "student"}
               onClick={() => {
                 setActiveSector("student");
                 setVerificationEmail("");
@@ -313,16 +321,18 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
                 setRateLimitError(null);
                 setSuccessMsg("");
               }}
-              className={`flex items-center justify-center gap-1.5 py-3.5 px-2 sm:px-4 rounded-2xl text-[10px] sm:text-xs font-extrabold tracking-wide uppercase transition-all ${
+              className={`kbd-nav-focus flex items-center justify-center gap-1.5 py-3.5 px-2 sm:px-4 rounded-2xl text-[10px] sm:text-xs font-extrabold tracking-wide uppercase transition-all ${
                 activeSector === "student"
                   ? "bg-indigo-600 text-white shadow-lg shadow-indigo-950/40"
                   : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/40"
               }`}
             >
-              <User className="w-4 h-4" />
+              <User className="w-4 h-4" aria-hidden="true" />
               Espace Étudiant
             </button>
             <button
+              type="button"
+              aria-pressed={activeSector === "teacher"}
               onClick={() => {
                 setActiveSector("teacher");
                 setVerificationEmail("");
@@ -331,13 +341,13 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
                 setRateLimitError(null);
                 setSuccessMsg("");
               }}
-              className={`flex items-center justify-center gap-1.5 py-3.5 px-2 sm:px-4 rounded-2xl text-[10px] sm:text-xs font-extrabold tracking-wide uppercase transition-all ${
+              className={`kbd-nav-focus flex items-center justify-center gap-1.5 py-3.5 px-2 sm:px-4 rounded-2xl text-[10px] sm:text-xs font-extrabold tracking-wide uppercase transition-all ${
                 activeSector === "teacher"
                   ? "bg-pink-600 text-white shadow-lg shadow-pink-950/40"
                   : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/40"
               }`}
             >
-              <ShieldAlert className="w-4 h-4" />
+              <ShieldAlert className="w-4 h-4" aria-hidden="true" />
               Espace Professeur / Chercheur
             </button>
           </div>
@@ -387,12 +397,12 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
 
             {/* 401 / validation error */}
             {errorMsg && !rateLimitError && (
-              <div id="auth-error-msg" className="p-3 bg-red-900/30 border border-red-800/50 text-red-300 text-xs font-semibold rounded-xl text-center">
+              <div id="auth-error-msg" role="alert" aria-live="assertive" className="p-3 bg-red-900/30 border border-red-800/50 text-red-300 text-xs font-semibold rounded-xl text-center">
                 {errorMsg}
               </div>
             )}
             {successMsg && (
-              <div id="auth-success-msg" className="p-3 bg-emerald-900/30 border border-emerald-800/50 text-emerald-300 text-xs font-semibold rounded-xl text-center">
+              <div id="auth-success-msg" role="status" aria-live="polite" className="p-3 bg-emerald-900/30 border border-emerald-800/50 text-emerald-300 text-xs font-semibold rounded-xl text-center">
                 {successMsg}
               </div>
             )}
@@ -400,11 +410,12 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
             {verificationEmail ? (
               <form onSubmit={handleVerifyEmail} className="space-y-4">
                 <div className="space-y-1.5 animate-in slide-in-from-top-1 duration-200">
-                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 block">
+                  <label htmlFor="auth-verification-code" className="text-[10px] uppercase font-black tracking-widest text-slate-400 block">
                     Code de vérification e-mail
                   </label>
                   <div className="relative">
                     <input
+                      id="auth-verification-code"
                       type="text"
                       inputMode="numeric"
                       required
@@ -412,9 +423,9 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
                       placeholder="123456"
                       value={verificationCode}
                       onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                      className="w-full bg-slate-900 border border-slate-800 focus:border-slate-700 px-4 py-3 pl-11 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-700 transition-all tracking-[0.35em] font-bold"
+                      className="w-full bg-slate-900 border border-slate-800 focus:border-slate-700 px-4 py-3 pl-11 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-700 transition-all tracking-[0.35em] font-bold kbd-nav-focus"
                     />
-                    <Mail className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
+                    <Mail className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" aria-hidden="true" />
                   </div>
                 </div>
 
@@ -443,11 +454,12 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
             ) : authMode === "forgot" ? (
               <form onSubmit={handleForgotPassword} className="space-y-4">
                 <div className="space-y-1.5 animate-in slide-in-from-top-1 duration-200">
-                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 block">
+                  <label htmlFor="auth-email" className="text-[10px] uppercase font-black tracking-widest text-slate-400 block">
                     Adresse e-mail universitaire
                   </label>
                   <div className="relative">
                     <input
+                      id="auth-email"
                       type="email"
                       required
                       placeholder={activeSector === "student" ? "ex: etudiant@example.fr" : "ex: prof@example.fr"}
@@ -475,11 +487,12 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
             ) : authMode === "reset" ? (
               <form onSubmit={handleResetPassword} className="space-y-4">
                 <div className="space-y-1.5 animate-in slide-in-from-top-1 duration-200">
-                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 block">
+                  <label htmlFor="auth-email" className="text-[10px] uppercase font-black tracking-widest text-slate-400 block">
                     Adresse e-mail universitaire
                   </label>
                   <div className="relative">
                     <input
+                      id="auth-email"
                       type="email"
                       required
                       disabled
@@ -544,11 +557,12 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
               
               {authMode === "register" && (
                 <div className="space-y-1.5 animate-in slide-in-from-top-1 duration-200">
-                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 block">
+                  <label htmlFor="auth-full-name" className="text-[10px] uppercase font-black tracking-widest text-slate-400 block">
                     Nom complet (Prénom Nom)
                   </label>
                   <div className="relative">
                     <input
+                      id="auth-full-name"
                       type="text"
                       required
                       placeholder={activeSector === "student" ? "ex: Étudiant Axelmond" : "ex: Pr. Louise Vitet"}
@@ -562,11 +576,12 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
               )}
 
               <div className="space-y-1.5">
-                <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 block">
+                <label htmlFor="auth-email-login" className="text-[10px] uppercase font-black tracking-widest text-slate-400 block">
                   Adresse e-mail universitaire
                 </label>
                 <div className="relative">
                   <input
+                    id="auth-email-login"
                     type="email"
                     required
                     placeholder={activeSector === "student" ? "ex: etudiant@example.fr" : "ex: prof@example.fr"}
@@ -580,7 +595,7 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
 
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
-                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400">
+                  <label htmlFor="auth-password" className="text-[10px] uppercase font-black tracking-widest text-slate-400">
                     Mot de passe de sécurité
                   </label>
                   {authMode === "login" && (
@@ -601,6 +616,7 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
                 </div>
                 <div className="relative">
                   <input
+                    id="auth-password"
                     type="password"
                     required
                     placeholder="Saisir votre mot de passe"
@@ -682,7 +698,12 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
             </div>
 
           </div>
+          </main>
         </motion.div>
+
+        <div className="flex justify-center">
+          <AccessibilityControls />
+        </div>
 
         <div className="text-center text-slate-500 text-[10px] font-medium leading-relaxed">
           <span>Plateforme numérique conçue pour l'écosystème académique marocain.</span>

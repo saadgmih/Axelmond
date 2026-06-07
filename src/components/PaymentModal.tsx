@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 import {
   ArrowRight,
@@ -15,6 +15,7 @@ import { Course } from "../types";
 import type { AppUser } from "./AuthScreen";
 import { api } from "../api";
 import { formatCredits, formatMad, PLATFORM_CURRENCY_CODE } from "../utils/morocco-locale";
+import { useFocusTrap } from "../hooks/useFocusTrap";
 
 interface PaymentModalProps {
   course: Course | null;
@@ -31,6 +32,7 @@ const scrollAreaClass =
   "overflow-y-auto overscroll-contain [scrollbar-width:thin] [scrollbar-color:rgba(148,163,184,0.35)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-600/50";
 
 export default function PaymentModal({ course, onClose, onSuccess }: PaymentModalProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
   const [promoCode, setPromoCode] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState(0);
   const [promoError, setPromoError] = useState("");
@@ -72,6 +74,8 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
     };
   }, [course, onClose, step, isProcessing]);
 
+  useFocusTrap(dialogRef, Boolean(course));
+
   if (!course) return null;
 
   const handleApplyPromo = () => {
@@ -108,6 +112,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
 
   return (
     <div
+      ref={dialogRef}
       className="fixed inset-0 z-[100] flex items-end justify-center bg-slate-950/80 p-0 backdrop-blur-md sm:items-center sm:p-4"
       onClick={(event) => {
         if (event.target === event.currentTarget && step === "form" && !isProcessing) onClose();

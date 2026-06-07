@@ -48,6 +48,7 @@ import { useStudentCourseSession } from "./hooks/useStudentCourseSession";
 import { isStudentRole } from "./rbac";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import KeyboardShortcutsHelp from "./components/KeyboardShortcutsHelp";
+import SkipLink from "./components/SkipLink";
 
 export default function App() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -464,7 +465,8 @@ export default function App() {
 
   return (
     <div className="flex h-[100dvh] max-h-[100dvh] bg-slate-50 font-sans overflow-hidden">
-      
+      <SkipLink />
+
       {isMobileMenuOpen && (
         <button
           type="button"
@@ -509,7 +511,11 @@ export default function App() {
         )}
 
         {/* Dynamic Screen contents */}
-        <div className={`flex-1 relative bg-slate-50 ${isImmersiveView ? "overflow-hidden min-h-0" : "overflow-y-auto"}`}>
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className={`flex-1 relative bg-slate-50 outline-none ${isImmersiveView ? "overflow-hidden min-h-0" : "overflow-y-auto"}`}
+        >
 
 {INSTITUTIONAL_VIEWS.has(currentView) ? (
             <InstitutionalViewSwitch currentView={currentView} currentUser={currentUser} navigateTo={navigateTo} />
@@ -635,30 +641,30 @@ export default function App() {
               <div className="space-y-3">
                 <h4 className="text-xs font-black text-slate-200 uppercase tracking-widest">Navigation</h4>
                 <div className="space-y-2 text-xs text-slate-400">
-                  <button onClick={() => { if (role === "student") navigateTo("dashboard"); else { setCurrentView("dashboard"); setTeacherView("dashboard"); } }} className="block hover:text-white">Accueil</button>
-                  <button onClick={() => { if (role === "student") navigateTo("catalog"); else { setCurrentView("dashboard"); setTeacherView("curriculum"); } }} className="block hover:text-white">Catalogue</button>
-                  <button onClick={() => setCurrentView("research")} className="block hover:text-white">Recherche</button>
-                  <button onClick={() => setCurrentView("publications")} className="block hover:text-white">Publications</button>
+                  <button type="button" aria-label="Aller à l'accueil" onClick={() => { if (role === "student") navigateTo("dashboard"); else { setCurrentView("dashboard"); setTeacherView("dashboard"); } }} className="kbd-nav-focus block hover:text-white">Accueil</button>
+                  <button type="button" aria-label="Aller au catalogue" onClick={() => { if (role === "student") navigateTo("catalog"); else { setCurrentView("dashboard"); setTeacherView("curriculum"); } }} className="kbd-nav-focus block hover:text-white">Catalogue</button>
+                  <button type="button" aria-label="Aller à la recherche" onClick={() => setCurrentView("research")} className="kbd-nav-focus block hover:text-white">Recherche</button>
+                  <button type="button" aria-label="Aller aux publications" onClick={() => setCurrentView("publications")} className="kbd-nav-focus block hover:text-white">Publications</button>
                 </div>
               </div>
 
               <div className="space-y-3">
                 <h4 className="text-xs font-black text-slate-200 uppercase tracking-widest">Support</h4>
                 <div className="space-y-2 text-xs text-slate-400">
-                  <button onClick={() => setCurrentView("support")} className="block hover:text-white">Centre d'aide</button>
-                  <button onClick={() => setCurrentView("contact")} className="block hover:text-white">Contact</button>
-                  <button onClick={() => setCurrentView("support")} className="block hover:text-white">Signaler un problème</button>
-                  <button onClick={() => setCurrentView("about")} className="block hover:text-white">À propos</button>
+                  <button type="button" aria-label="Aller au centre d'aide" onClick={() => setCurrentView("support")} className="kbd-nav-focus block hover:text-white">Centre d'aide</button>
+                  <button type="button" aria-label="Aller à la page contact" onClick={() => setCurrentView("contact")} className="kbd-nav-focus block hover:text-white">Contact</button>
+                  <button type="button" aria-label="Signaler un problème" onClick={() => setCurrentView("support")} className="kbd-nav-focus block hover:text-white">Signaler un problème</button>
+                  <button type="button" aria-label="Aller à la page à propos" onClick={() => setCurrentView("about")} className="kbd-nav-focus block hover:text-white">À propos</button>
                 </div>
               </div>
 
               <div className="space-y-3">
                 <h4 className="text-xs font-black text-slate-200 uppercase tracking-widest">Légal</h4>
                 <div className="space-y-2 text-xs text-slate-400">
-                  <button onClick={() => setCurrentView("privacy")} className="block hover:text-white">Politique de confidentialité</button>
-                  <button onClick={() => setCurrentView("terms")} className="block hover:text-white">Conditions d'utilisation</button>
-                  <button onClick={() => setCurrentView("cookies")} className="block hover:text-white">Politique des cookies</button>
-                  <button onClick={() => setCurrentView("legal")} className="block hover:text-white">Mentions légales</button>
+                  <button type="button" aria-label="Politique de confidentialité" onClick={() => setCurrentView("privacy")} className="kbd-nav-focus block hover:text-white">Politique de confidentialité</button>
+                  <button type="button" aria-label="Conditions d'utilisation" onClick={() => setCurrentView("terms")} className="kbd-nav-focus block hover:text-white">Conditions d'utilisation</button>
+                  <button type="button" aria-label="Politique des cookies" onClick={() => setCurrentView("cookies")} className="kbd-nav-focus block hover:text-white">Politique des cookies</button>
+                  <button type="button" aria-label="Mentions légales" onClick={() => setCurrentView("legal")} className="kbd-nav-focus block hover:text-white">Mentions légales</button>
                 </div>
               </div>
             </div>
@@ -668,13 +674,15 @@ export default function App() {
           </footer>
           )}
 
-        </div>
+        </main>
       </div>
 
-      {activeLiveCourse && <div ref={liveAudioContainerRef} className="hidden"></div>}
+      {activeLiveCourse && <div ref={liveAudioContainerRef} className="hidden" aria-hidden="true"></div>}
 
       {activeLiveCourse && !((role === "student" && currentView === "live") || (role === "teacher" && teacherView === "live-control")) && (
         <button
+          type="button"
+          aria-label={`Rejoindre le live actif : ${activeLiveCourse.title}`}
           onClick={() => {
             setSelectedCourse(activeLiveCourse);
             setLiveCourseId(activeLiveCourse.id);
@@ -685,7 +693,7 @@ export default function App() {
             }
             setIsMobileMenuOpen(false);
           }}
-          className="fixed right-4 bottom-4 sm:right-5 sm:bottom-5 z-50 bg-slate-950 border border-indigo-500/50 text-white rounded-2xl px-4 py-3 shadow-2xl flex items-center gap-3 max-w-[min(280px,calc(100vw-2rem))] text-left cursor-pointer hover:bg-slate-900 transition-colors touch-target"
+          className="fixed right-4 bottom-4 sm:right-5 sm:bottom-5 z-50 bg-slate-950 border border-indigo-500/50 text-white rounded-2xl px-4 py-3 shadow-2xl flex items-center gap-3 max-w-[min(280px,calc(100vw-2rem))] text-left cursor-pointer hover:bg-slate-900 transition-colors touch-target kbd-nav-focus"
         >
           <span className="relative flex h-3 w-3 flex-shrink-0">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>

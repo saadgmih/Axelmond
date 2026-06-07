@@ -105,7 +105,7 @@ export default function Sidebar({
       </div>
 
       {/* Dynamic Navigation tabs depending on the active user role */}
-      <nav ref={navRef} data-tv-zone="sidebar-nav" className="flex-1 p-4 space-y-1.5 overflow-y-auto">
+      <nav ref={navRef} data-tv-zone="sidebar-nav" aria-label="Navigation principale" className="flex-1 p-4 space-y-1.5 overflow-y-auto">
         {role === "student" ? (
           <>
             <button
@@ -159,8 +159,12 @@ export default function Sidebar({
         ) : (
           <>
             <button
+              type="button"
+              data-tv-focusable
+              tabIndex={0}
+              aria-current={teacherView === "dashboard" ? "page" : undefined}
               onClick={() => setTeacherView("dashboard")}
-              className={`flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
+              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 teacherView === "dashboard"
                   ? "bg-pink-600 text-white shadow-md shadow-pink-950/40"
                   : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
@@ -171,8 +175,12 @@ export default function Sidebar({
             </button>
 
             <button
+              type="button"
+              data-tv-focusable
+              tabIndex={0}
+              aria-current={teacherView === "academic-profile" ? "page" : undefined}
               onClick={() => setTeacherView("academic-profile")}
-              className={`flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
+              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 teacherView === "academic-profile"
                   ? "bg-pink-600 text-white shadow-md shadow-pink-950/40"
                   : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
@@ -183,8 +191,12 @@ export default function Sidebar({
             </button>
 
             <button
+              type="button"
+              data-tv-focusable
+              tabIndex={0}
+              aria-current={teacherView === "curriculum" ? "page" : undefined}
               onClick={() => setTeacherView("curriculum")}
-              className={`flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
+              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 teacherView === "curriculum"
                   ? "bg-pink-600 text-white shadow-md shadow-pink-950/40"
                   : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
@@ -195,8 +207,12 @@ export default function Sidebar({
             </button>
 
             <button
+              type="button"
+              data-tv-focusable
+              tabIndex={0}
+              aria-current={teacherView === "live-control" ? "page" : undefined}
               onClick={() => setTeacherView("live-control")}
-              className={`flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
+              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 teacherView === "live-control"
                   ? "bg-pink-600 text-white shadow-md shadow-pink-950/40"
                   : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
