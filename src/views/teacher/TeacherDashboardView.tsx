@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   Activity,
   ArrowUpRight,
@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { api } from "../../api";
 import type { AppUser } from "../../components/AuthScreen";
+import CoursePriceSlider from "../../components/CoursePriceSlider";
 import type { AcademicProfilePayload, Course, CourseGrade } from "../../types";
 import { formatCredits, formatMad } from "../../utils/morocco-locale";
 
@@ -59,11 +60,6 @@ function formatActivityDate(value?: string | null) {
   return new Date(parsed).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
 }
 
-function coursePriceSliderProgress(price: number) {
-  const clamped = Math.min(499, Math.max(0, price));
-  return `${(clamped / 499) * 100}%`;
-}
-
 export default function TeacherDashboardView({
   currentUser,
   emailDeliverySummary,
@@ -87,6 +83,7 @@ export default function TeacherDashboardView({
 }: TeacherDashboardViewProps) {
   const [profileSnapshot, setProfileSnapshot] = useState<AcademicProfilePayload | null>(null);
   const [gradesByCourse, setGradesByCourse] = useState<Record<number, CourseGrade[]>>({});
+  const [draftPrices, setDraftPrices] = useState<Record<number, number>>({});
   const managedCourseIds = managedCourses.map((course) => course.id).join(",");
 
   useEffect(() => {
@@ -658,7 +655,7 @@ export default function TeacherDashboardView({
                             <Tag className="h-5 w-5 text-indigo-400" />
                           </div>
                           <div>
-                            <h3 className="text-lg font-black text-white">Gestion des Tarifs & Séminaires</h3>
+                            <h3 className="text-lg font-black text-white">Gestion des Tarifs</h3>
                             <p className="mt-0.5 text-xs text-slate-400">
                               Modifiez instantanément les frais d&apos;accès et d&apos;interactivité
                             </p>
@@ -680,7 +677,9 @@ export default function TeacherDashboardView({
                             </p>
                           </div>
                         ) : (
-                          managedCourses.map((course) => (
+                          managedCourses.map((course) => {
+                            const displayPrice = draftPrices[course.id] ?? course.price;
+                            return (
                             <div
                               key={course.id}
                               className="space-y-4 rounded-2xl border border-white/[0.08] bg-[#020617]/70 p-5 transition-colors hover:border-white/[0.12]"
@@ -698,32 +697,22 @@ export default function TeacherDashboardView({
                                   </div>
                                 </div>
                                 <span className="shrink-0 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-2.5 py-1 font-mono text-xs font-black text-white">
-                                  {formatMad(course.price)}
+                                  {formatMad(displayPrice)}
                                 </span>
                               </div>
 
-                              <div className="space-y-2">
-                                <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                                  <span>Frais d&apos;inscription</span>
-                                  <span className="font-mono font-bold text-white">{formatMad(course.price)}</span>
-                                </div>
-                                <input
-                                  type="range"
-                                  min="0"
-                                  max="499"
-                                  step="0.5"
-                                  value={course.price}
-                                  onChange={(e) => handleUpdateCoursePrice(course.id, parseFloat(e.target.value))}
-                                  className="course-price-slider w-full cursor-pointer"
-                                  style={{ "--slider-progress": coursePriceSliderProgress(course.price) } as CSSProperties}
-                                  aria-label={`Tarif du module ${course.title}`}
-                                  aria-valuemin={0}
-                                  aria-valuemax={499}
-                                  aria-valuenow={course.price}
-                                />
-                              </div>
+                              <CoursePriceSlider
+                                courseId={course.id}
+                                price={course.price}
+                                courseTitle={course.title}
+                                onCommit={handleUpdateCoursePrice}
+                                onDraftChange={(nextPrice) =>
+                                  setDraftPrices((prev) => ({ ...prev, [course.id]: nextPrice }))
+                                }
+                              />
                             </div>
-                          ))
+                            );
+                          })
                         )}
                       </div>
                     </div>

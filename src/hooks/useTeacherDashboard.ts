@@ -79,11 +79,11 @@ export function useTeacherDashboard({
   }, [currentUser?.id, currentUser?.role]);
 
   const handleUpdateCoursePrice = async (id: number, newPrice: number) => {
+    const normalized = Number(newPrice.toFixed(2));
+    setCourses((prev) => prev.map((c) => (c.id === id ? { ...c, price: normalized } : c)));
     try {
-      const updatedCourse = await api.updateCourse(id, { price: Number(newPrice.toFixed(2)) });
-      setCourses((prev) =>
-        prev.map((c) => (c.id === id ? updatedCourse : c))
-      );
+      const updatedCourse = await api.updateCourse(id, { price: normalized });
+      setCourses((prev) => prev.map((c) => (c.id === id ? updatedCourse : c)));
     } catch (err) {
       console.error("Failed to update course price:", err);
     }

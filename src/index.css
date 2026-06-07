@@ -201,13 +201,13 @@ body {
   background: #e6007e;
   box-shadow: 0 2px 8px rgba(230, 0, 126, 0.35);
   cursor: grab;
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 
 .course-price-slider:active::-webkit-slider-thumb {
   cursor: grabbing;
-  transform: scale(1.08);
+  transform: scale(1.06);
   box-shadow: 0 0 0 6px rgba(230, 0, 126, 0.18), 0 2px 10px rgba(230, 0, 126, 0.45);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
 
 .course-price-slider::-moz-range-track {
