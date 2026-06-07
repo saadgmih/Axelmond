@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import AITutorChat from "../../components/AITutorChat";
+import PremiumVideoPlayer from "../../components/PremiumVideoPlayer";
 import type { ContentSection, Course, CourseModule, LessonContent } from "../../types";
 import { formatCredits } from "../../utils/morocco-locale";
 
@@ -304,7 +305,12 @@ export default function StudentCourseView({
                         </div>
 
                         {selectedLessonContent.type === "VIDEO" && selectedLessonContent.attachments[0]?.url && (
-                          <video controls className="w-full aspect-video bg-slate-950 rounded-2xl border border-slate-800 shadow-md" src={selectedLessonContent.attachments[0].url}></video>
+                          <PremiumVideoPlayer
+                            src={selectedLessonContent.attachments[0].url}
+                            title={selectedLessonContent.title}
+                            instructor={selectedCourse.instructor}
+                            activeSector="student"
+                          />
                         )}
 
                         {selectedLessonContent.type === "PDF" && selectedLessonContent.attachments[0]?.url && (
