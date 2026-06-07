@@ -470,6 +470,7 @@ export default function App() {
                 <TeacherDashboardView
                   currentUser={currentUser}
                   getInitials={getInitials}
+                  onTeacherNavigate={handleTeacherViewChange}
                   {...teacherDashboardBindings}
                 />
               )}

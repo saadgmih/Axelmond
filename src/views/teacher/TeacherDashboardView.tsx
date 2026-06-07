@@ -1,20 +1,28 @@
-import type { FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   Activity,
-  BarChart,
+  ArrowUpRight,
   BookOpen,
-  Database,
+  ChevronRight,
+  CreditCard,
   DollarSign,
+  FilePlus2,
   GraduationCap,
+  HelpCircle,
+  Layers,
   Mail,
+  PlayCircle,
+  Radio,
+  Target,
   TrendingUp,
+  UserPlus,
   Users,
   Video,
+  Zap,
 } from "lucide-react";
+import { api } from "../../api";
 import type { AppUser } from "../../components/AuthScreen";
-import type { Course, CourseGrade } from "../../types";
-
-type TeacherChartTab = "revenue" | "engagement";
+import type { AcademicProfilePayload, Course, CourseGrade } from "../../types";
 
 interface TeacherDashboardViewProps {
   currentUser: AppUser;
@@ -26,8 +34,8 @@ interface TeacherDashboardViewProps {
   setTestEmailTo: (value: string) => void;
   isSendingTestEmail: boolean;
   testEmailStatusMsg: string;
-  teacherChartTab: TeacherChartTab;
-  setTeacherChartTab: (tab: TeacherChartTab) => void;
+  teacherChartTab?: "revenue" | "engagement";
+  setTeacherChartTab?: (tab: "revenue" | "engagement") => void;
   managedCourses: Course[];
   courses: Course[];
   handleUpdateCoursePrice: (id: number, newPrice: number) => void | Promise<void>;
@@ -39,6 +47,14 @@ interface TeacherDashboardViewProps {
   courseGrades: CourseGrade[];
   getInitials: (name: string) => string;
   getGradeBadgeClass: (score: number | null) => string;
+  onTeacherNavigate?: (view: string) => void;
+}
+
+function formatActivityDate(value?: string | null) {
+  if (!value) return "—";
+  const parsed = Date.parse(value);
+  if (!Number.isFinite(parsed)) return "—";
+  return new Date(parsed).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
 }
 
 export default function TeacherDashboardView({
@@ -51,10 +67,7 @@ export default function TeacherDashboardView({
   setTestEmailTo,
   isSendingTestEmail,
   testEmailStatusMsg,
-  teacherChartTab,
-  setTeacherChartTab,
   managedCourses,
-  courses,
   handleUpdateCoursePrice,
   handleToggleCourseLive,
   gradesCourseId,
@@ -64,7 +77,229 @@ export default function TeacherDashboardView({
   courseGrades,
   getInitials,
   getGradeBadgeClass,
+  onTeacherNavigate,
 }: TeacherDashboardViewProps) {
+  const [profileSnapshot, setProfileSnapshot] = useState<AcademicProfilePayload | null>(null);
+  const [gradesByCourse, setGradesByCourse] = useState<Record<number, CourseGrade[]>>({});
+  const managedCourseIds = managedCourses.map((course) => course.id).join(",");
+
+  useEffect(() => {
+    let disposed = false;
+    api.getAcademicProfile()
+      .then((payload) => {
+        if (!disposed) setProfileSnapshot(payload);
+      })
+      .catch(() => {
+        if (!disposed) setProfileSnapshot(null);
+      });
+    return () => {
+      disposed = true;
+    };
+  }, [currentUser.id]);
+
+  useEffect(() => {
+    if (!managedCourses.length) {
+      setGradesByCourse({});
+      return;
+    }
+    let disposed = false;
+    Promise.all(
+      managedCourses.map((course) =>
+        api.getCourseGrades(course.id)
+          .then((grades) => [course.id, grades] as const)
+          .catch(() => [course.id, [] as CourseGrade[]] as const),
+      ),
+    ).then((entries) => {
+      if (disposed) return;
+      setGradesByCourse(Object.fromEntries(entries));
+    });
+    return () => {
+      disposed = true;
+    };
+  }, [managedCourseIds, managedCourses.length]);
+
+  const dashboard = useMemo(() => {
+    const publishedModules = managedCourses.filter((course) => course.published).length;
+    const publishedChapters = managedCourses.reduce(
+      (sum, course) => sum + course.modules.filter((module) => module.published === true).length,
+      0,
+    );
+    const quizzesCreated = managedCourses.reduce(
+      (sum, course) => sum + course.modules.filter((module) => module.type === "quiz").length,
+      0,
+    );
+    const liveSessions = profileSnapshot?.lives?.length ?? 0;
+
+    const enrollmentRows = managedCourses.flatMap((course) =>
+      (gradesByCourse[course.id] || []).map((grade) => ({ course, grade })),
+    );
+    const uniqueStudentIds = new Set(enrollmentRows.map((row) => row.grade.studentId));
+    const estimatedRevenue = managedCourses.reduce((sum, course) => {
+      const enrollments = gradesByCourse[course.id]?.length || 0;
+      return sum + course.price * enrollments;
+    }, 0);
+
+    const gradedStudents = enrollmentRows
+      .map((row) => row.grade.averageScoreOutOf20)
+      .filter((score): score is number => score !== null);
+    const quizParticipants = enrollmentRows.filter((row) => row.grade.completedQuizzesCount > 0);
+    const passedStudents = quizParticipants.filter(
+      (row) => row.grade.averageScoreOutOf20 !== null && row.grade.averageScoreOutOf20 >= 10,
+    );
+    const passRate =
+      quizParticipants.length > 0
+        ? Math.round((passedStudents.length / quizParticipants.length) * 100)
+        : null;
+    const averageGrade =
+      gradedStudents.length > 0
+        ? Math.round((gradedStudents.reduce((sum, score) => sum + score, 0) / gradedStudents.length) * 10) / 10
+        : null;
+
+    const contentProgressAverage =
+      managedCourses.length > 0
+        ? Math.round(
+            managedCourses.reduce((sum, course) => {
+              if (!course.modules.length) return sum;
+              const publishedCount = course.modules.filter((module) => module.published === true).length;
+              return sum + (publishedCount / course.modules.length) * 100;
+            }, 0) / managedCourses.length,
+          )
+        : 0;
+
+    const recentEnrollments = [...enrollmentRows]
+      .sort((a, b) => a.grade.studentName.localeCompare(b.grade.studentName, "fr"))
+      .slice(0, 5);
+
+    const recentPayments = managedCourses
+      .map((course) => {
+        const enrollments = gradesByCourse[course.id]?.length || 0;
+        if (enrollments === 0 || course.price <= 0) return null;
+        return {
+          id: course.id,
+          label: course.title,
+          amount: course.price * enrollments,
+          detail: `${enrollments} inscription${enrollments > 1 ? "s" : ""} × ${course.price.toFixed(2)} €`,
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null)
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 5);
+
+    const recentQuizzes = enrollmentRows
+      .filter((row) => row.grade.completedQuizzesCount > 0)
+      .sort((a, b) => b.grade.completedQuizzesCount - a.grade.completedQuizzesCount)
+      .slice(0, 5);
+
+    const recentLives = (profileSnapshot?.lives || []).slice(0, 5);
+
+    const moduleRows = managedCourses.map((course) => {
+      const students = gradesByCourse[course.id]?.length || 0;
+      const publishedCount = course.modules.filter((module) => module.published === true).length;
+      const totalModules = course.modules.length;
+      const contentProgress = totalModules
+        ? Math.round((publishedCount / totalModules) * 100)
+        : 0;
+      const status = course.isLiveNow
+        ? "Live actif"
+        : course.published
+          ? "Publié"
+          : "Brouillon";
+
+      return {
+        course,
+        students,
+        publishedCount,
+        totalModules,
+        contentProgress,
+        status,
+      };
+    });
+
+    return {
+      publishedModules,
+      publishedChapters,
+      publishedContents: profileSnapshot?.publishedContentsCount ?? 0,
+      quizzesCreated,
+      liveSessions,
+      enrolledStudents: uniqueStudentIds.size,
+      estimatedRevenue,
+      passRate,
+      averageGrade,
+      contentProgressAverage,
+      recentEnrollments,
+      recentPayments,
+      recentQuizzes,
+      recentLives,
+      moduleRows,
+    };
+  }, [managedCourses, gradesByCourse, profileSnapshot]);
+
+  const kpiCards = [
+    {
+      label: "Étudiants inscrits",
+      value: String(dashboard.enrolledStudents),
+      hint: "sur vos modules gérés",
+      icon: Users,
+      accent: "text-violet-300",
+    },
+    {
+      label: "Modules publiés",
+      value: String(dashboard.publishedModules),
+      hint: `${managedCourses.length} module${managedCourses.length !== 1 ? "s" : ""} au total`,
+      icon: BookOpen,
+      accent: "text-pink-300",
+    },
+    {
+      label: "Chapitres publiés",
+      value: String(dashboard.publishedChapters),
+      hint: `${dashboard.publishedContents} contenu${dashboard.publishedContents !== 1 ? "s" : ""} publié${dashboard.publishedContents !== 1 ? "s" : ""}`,
+      icon: Layers,
+      accent: "text-sky-300",
+    },
+    {
+      label: "Quiz créés",
+      value: String(dashboard.quizzesCreated),
+      hint: "dans vos syllabus",
+      icon: HelpCircle,
+      accent: "text-indigo-300",
+    },
+    {
+      label: "Sessions live",
+      value: String(dashboard.liveSessions),
+      hint: `${managedCourses.filter((course) => course.isLiveNow).length} active${managedCourses.filter((course) => course.isLiveNow).length !== 1 ? "s" : ""} maintenant`,
+      icon: Video,
+      accent: "text-red-300",
+    },
+    {
+      label: "Revenus estimés",
+      value: `${dashboard.estimatedRevenue.toFixed(2)} €`,
+      hint: "inscriptions × tarif module",
+      icon: DollarSign,
+      accent: "text-emerald-300",
+    },
+    {
+      label: "Taux de réussite",
+      value: dashboard.passRate !== null ? `${dashboard.passRate}%` : "—",
+      hint: "quiz ≥ 10/20",
+      icon: Target,
+      accent: "text-amber-300",
+    },
+    {
+      label: "Note moyenne",
+      value: dashboard.averageGrade !== null ? `${dashboard.averageGrade}/20` : "—",
+      hint: "moyenne des tentatives enregistrées",
+      icon: GraduationCap,
+      accent: "text-fuchsia-300",
+    },
+  ];
+
+  const quickActions = [
+    { label: "Créer un module", icon: BookOpen, view: "curriculum" },
+    { label: "Ajouter un chapitre", icon: FilePlus2, view: "curriculum" },
+    { label: "Créer un quiz", icon: HelpCircle, view: "curriculum" },
+    { label: "Lancer un live", icon: Radio, view: "live-control" },
+    { label: "Voir les paiements", icon: CreditCard, view: "dashboard", anchor: "teacher-revenue" },
+  ];
   return (
     <div className="space-y-8">
                   {/* Header Welcome Card */}
@@ -162,247 +397,247 @@ export default function TeacherDashboardView({
                     </div>
                   )}
 
-                  {/* DIAGNOSTIC ANALYTICS PANEL FOR TEACHER */}
-                  <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-100">
-                      <div>
-                        <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
-                          <BarChart className="w-5 h-5 text-pink-600" />
-                          Tableau de Bord & Indicateurs de Performance
+                  {/* Teacher command center */}
+                  <section className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-pink-950/30 p-5 sm:p-6 md:p-8 shadow-xl space-y-6">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                      <div className="space-y-2">
+                        <h3 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
+                          <Activity className="w-5 h-5 text-pink-400" />
+                          Centre de pilotage enseignant
                         </h3>
-                        <p className="text-xs text-slate-400">Analyses visuelles d'activité de la chaire pour l'année universitaire 2026</p>
+                        <p className="text-xs sm:text-sm text-slate-400 max-w-2xl">
+                          Indicateurs calculés à partir de vos modules, inscriptions réelles, tentatives de quiz et sessions live enregistrées.
+                        </p>
                       </div>
-                      <div className="flex bg-slate-100 p-1 rounded-xl gap-1 max-w-fit">
-                        <button
-                          onClick={() => setTeacherChartTab("revenue")}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                            teacherChartTab === "revenue"
-                              ? "bg-white text-pink-700 shadow-sm"
-                              : "text-slate-500 hover:text-slate-800"
-                          }`}
-                        >
-                          <TrendingUp className="w-3.5 h-3.5 inline mr-1" />
-                          Inscriptions (€)
-                        </button>
-                        <button
-                          onClick={() => setTeacherChartTab("engagement")}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                            teacherChartTab === "engagement"
-                              ? "bg-white text-purple-700 shadow-sm"
-                              : "text-slate-500 hover:text-slate-800"
-                          }`}
-                        >
-                          <Activity className="w-3.5 h-3.5 inline mr-1" />
-                          Engagement (%)
-                        </button>
+                      <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-200">
+                        <TrendingUp className="w-3.5 h-3.5" />
+                        Données synchronisées
                       </div>
                     </div>
 
-                    {teacherChartTab === "revenue" ? (
-                      <div className="space-y-4 animate-in fade-in duration-200">
-                        {/* High fidelity SVG line chart for Revenue */}
-                        <div className="relative">
-                          {/* Y-axis metrics */}
-                          <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-[10px] font-mono font-bold text-slate-400 pb-6">
-                            <span>2500€</span>
-                            <span>1500€</span>
-                            <span>500€</span>
-                            <span>0€</span>
-                          </div>
-                          
-                          {/* Visual Grid and Graph line */}
-                          <div className="pl-14 h-48 w-full relative">
-                            {/* Horizontal guide lines */}
-                            <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-6">
-                              <div className="border-b border-dashed border-slate-100 w-full h-0"></div>
-                              <div className="border-b border-dashed border-slate-100 w-full h-0"></div>
-                              <div className="border-b border-dashed border-slate-100 w-full h-0"></div>
-                              <div className="border-b border-dashed border-slate-200 w-full h-0"></div>
-                            </div>
-
-                            {/* Actual SVG line */}
-                            <svg className="w-full h-full overflow-visible" viewBox="0 0 500 130" preserveAspectRatio="none">
-                              <defs>
-                                <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="0%" stopColor="#ec4899" stopOpacity="0.25" />
-                                  <stop offset="100%" stopColor="#ec4899" stopOpacity="0.0" />
-                                </linearGradient>
-                              </defs>
-                              {/* Grid Area Path */}
-                              <path 
-                                d="M 0 100 Q 100 80 150 50 T 300 30 T 450 15 L 450 130 L 0 130 Z" 
-                                fill="url(#revenueGrad)"
-                              />
-                              {/* Stroke line */}
-                              <path 
-                                d="M 0 100 Q 100 80 150 50 T 300 30 T 450 15" 
-                                fill="none" 
-                                stroke="#db2777" 
-                                strokeWidth="3.5" 
-                                strokeLinecap="round"
-                              />
-                              {/* Dots for metrics */}
-                              <circle cx="0" cy="100" r="5" fill="#db2777" stroke="#ffffff" strokeWidth="2" />
-                              <circle cx="125" cy="65" r="5" fill="#db2777" stroke="#ffffff" strokeWidth="2" />
-                              <circle cx="250" cy="40" r="5" fill="#db2777" stroke="#ffffff" strokeWidth="2" />
-                              <circle cx="375" cy="22" r="5" fill="#db2777" stroke="#ffffff" strokeWidth="2" />
-                              <circle cx="450" cy="15" r="6" fill="#db2777" stroke="#ffffff" strokeWidth="2" />
-                            </svg>
-                          </div>
-                          
-                          {/* X-axis labels */}
-                          <div className="pl-14 flex justify-between text-[11px] font-bold text-slate-400 uppercase pt-2 font-sans font-extrabold">
-                            <span>Janvier</span>
-                            <span>Février</span>
-                            <span>Mars</span>
-                            <span>Avril</span>
-                            <span>Mai (Courant)</span>
-                          </div>
+                    <div className="rounded-2xl border border-white/5 bg-slate-950/50 p-4 sm:p-5 space-y-3">
+                      <div className="flex flex-wrap items-end justify-between gap-3">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
+                            Publication globale du contenu
+                          </p>
+                          <p className="text-2xl sm:text-3xl font-black text-white mt-1">
+                            {dashboard.contentProgressAverage}%
+                          </p>
                         </div>
+                        <p className="text-xs text-slate-400">
+                          {dashboard.publishedModules} module{dashboard.publishedModules !== 1 ? "s" : ""} publié{dashboard.publishedModules !== 1 ? "s" : ""} · {dashboard.publishedChapters} chapitre{dashboard.publishedChapters !== 1 ? "s" : ""} publié{dashboard.publishedChapters !== 1 ? "s" : ""}
+                        </p>
+                      </div>
+                      <div className="h-2.5 w-full rounded-full bg-slate-800 overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-pink-500 to-violet-500 transition-all duration-500"
+                          style={{ width: `${Math.min(100, Math.max(0, dashboard.contentProgressAverage))}%` }}
+                        />
+                      </div>
+                    </div>
 
-                        {/* Chart feedback detail overlay */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 border-t border-slate-100">
-                          <div className="p-3 bg-slate-50 rounded-xl">
-                            <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider block">Modules publiés</span>
-                            <p className="text-sm font-bold text-slate-800 mt-1">{managedCourses.filter(c => c.published).length} matière{managedCourses.filter(c => c.published).length !== 1 ? 's' : ''} active{managedCourses.filter(c => c.published).length !== 1 ? 's' : ''}</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+                      {kpiCards.map((card) => (
+                        <div
+                          key={card.label}
+                          id={card.label === "Revenus estimés" ? "teacher-revenue" : undefined}
+                          className="rounded-2xl border border-white/5 bg-slate-900/70 p-4 space-y-2"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                              {card.label}
+                            </span>
+                            <card.icon className={`w-4 h-4 shrink-0 ${card.accent}`} />
                           </div>
-                          <div className="p-3 bg-slate-50 rounded-xl">
-                            <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider block">Chapitres au total</span>
-                            <p className="text-sm font-bold text-slate-800 mt-1">{managedCourses.reduce((sum, c) => sum + c.modules.length, 0)} chapitres</p>
+                          <p className="text-lg sm:text-xl font-black text-white truncate">{card.value}</p>
+                          <p className="text-[11px] text-slate-400 leading-snug">{card.hint}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
+                      <div className="xl:col-span-4 rounded-2xl border border-white/5 bg-slate-900/60 p-4 sm:p-5 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <Zap className="w-4 h-4 text-amber-300" />
+                          <h4 className="text-sm font-black text-white">Actions rapides</h4>
+                        </div>
+                        <div className="grid grid-cols-1 gap-2">
+                          {quickActions.map((action) => (
+                            <button
+                              key={action.label}
+                              type="button"
+                              onClick={() => {
+                                if (action.anchor) {
+                                  document.getElementById(action.anchor)?.scrollIntoView({ behavior: "smooth", block: "center" });
+                                  return;
+                                }
+                                onTeacherNavigate?.(action.view);
+                              }}
+                              className="flex items-center justify-between gap-3 rounded-xl border border-white/5 bg-slate-950/70 hover:bg-slate-900 px-4 py-3 min-h-[44px] text-left transition-colors"
+                            >
+                              <span className="flex items-center gap-2.5 min-w-0">
+                                <action.icon className="w-4 h-4 text-pink-300 shrink-0" />
+                                <span className="text-xs font-bold text-slate-100 truncate">{action.label}</span>
+                              </span>
+                              <ArrowUpRight className="w-4 h-4 text-slate-500 shrink-0" />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="xl:col-span-8 rounded-2xl border border-white/5 bg-slate-900/60 p-4 sm:p-5 space-y-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <h4 className="text-sm font-black text-white">Activité récente</h4>
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Temps réel plateforme</span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-1.5">
+                              <UserPlus className="w-3.5 h-3.5" /> Inscriptions
+                            </p>
+                            {dashboard.recentEnrollments.length === 0 ? (
+                              <p className="text-xs text-slate-500 rounded-xl border border-dashed border-slate-700 px-3 py-4">Aucune inscription enregistrée.</p>
+                            ) : (
+                              dashboard.recentEnrollments.map(({ course, grade }) => (
+                                <div key={`${course.id}-${grade.studentId}`} className="rounded-xl border border-white/5 bg-slate-950/60 px-3 py-2.5">
+                                  <p className="text-xs font-bold text-white truncate">{grade.studentName}</p>
+                                  <p className="text-[11px] text-slate-400 truncate">Inscrit à {course.title}</p>
+                                </div>
+                              ))
+                            )}
                           </div>
-                          <div className="p-3 bg-slate-50 rounded-xl">
-                            <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider block">Paiements validés</span>
-                            <p className="text-sm font-bold text-emerald-700 mt-1">{managedCourses.filter(c => c.price > 0 && c.published).length} modules payants publiés</p>
+
+                          <div className="space-y-2">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-1.5">
+                              <CreditCard className="w-3.5 h-3.5" /> Paiements estimés
+                            </p>
+                            {dashboard.recentPayments.length === 0 ? (
+                              <p className="text-xs text-slate-500 rounded-xl border border-dashed border-slate-700 px-3 py-4">Aucun revenu calculable pour le moment.</p>
+                            ) : (
+                              dashboard.recentPayments.map((payment) => (
+                                <div key={payment.id} className="rounded-xl border border-white/5 bg-slate-950/60 px-3 py-2.5">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <p className="text-xs font-bold text-white truncate">{payment.label}</p>
+                                    <p className="text-xs font-black text-emerald-300 font-mono">{payment.amount.toFixed(2)} €</p>
+                                  </div>
+                                  <p className="text-[11px] text-slate-400">{payment.detail}</p>
+                                </div>
+                              ))
+                            )}
+                          </div>
+
+                          <div className="space-y-2">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-1.5">
+                              <HelpCircle className="w-3.5 h-3.5" /> Quiz terminés
+                            </p>
+                            {dashboard.recentQuizzes.length === 0 ? (
+                              <p className="text-xs text-slate-500 rounded-xl border border-dashed border-slate-700 px-3 py-4">Aucun quiz terminé enregistré.</p>
+                            ) : (
+                              dashboard.recentQuizzes.map(({ course, grade }) => (
+                                <div key={`quiz-${course.id}-${grade.studentId}`} className="rounded-xl border border-white/5 bg-slate-950/60 px-3 py-2.5">
+                                  <p className="text-xs font-bold text-white truncate">{grade.studentName}</p>
+                                  <p className="text-[11px] text-slate-400">
+                                    {grade.completedQuizzesCount} quiz · {course.title}
+                                    {grade.averageScoreOutOf20 !== null ? ` · ${grade.averageScoreOutOf20}/20` : ""}
+                                  </p>
+                                </div>
+                              ))
+                            )}
+                          </div>
+
+                          <div className="space-y-2">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-1.5">
+                              <PlayCircle className="w-3.5 h-3.5" /> Lives
+                            </p>
+                            {dashboard.recentLives.length === 0 ? (
+                              <p className="text-xs text-slate-500 rounded-xl border border-dashed border-slate-700 px-3 py-4">Aucune session live enregistrée.</p>
+                            ) : (
+                              dashboard.recentLives.map((live) => (
+                                <div key={live.id} className="rounded-xl border border-white/5 bg-slate-950/60 px-3 py-2.5">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <p className="text-xs font-bold text-white truncate">{live.course?.title || `Module #${live.courseId}`}</p>
+                                    <span className={`text-[10px] font-bold uppercase ${live.active ? "text-red-300" : "text-slate-500"}`}>
+                                      {live.active ? "Actif" : "Terminé"}
+                                    </span>
+                                  </div>
+                                  <p className="text-[11px] text-slate-400">{formatActivityDate(live.startedAt)}</p>
+                                </div>
+                              ))
+                            )}
                           </div>
                         </div>
                       </div>
-                    ) : (
-                      <div className="space-y-4 animate-in fade-in duration-200">
-                        {/* High fidelity SVG bar chart for Student engagement */}
-                        <div className="relative">
-                          {/* Y-axis metrics */}
-                          <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-[10px] font-mono font-bold text-slate-400 pb-6">
-                            <span>100%</span>
-                            <span>60%</span>
-                            <span>30%</span>
-                            <span>0%</span>
-                          </div>
+                    </div>
 
-                          <div className="pl-14 h-48 w-full relative flex items-end justify-around pb-6 pt-4">
-                            {/* Horizontal guide lines */}
-                            <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-6">
-                              <div className="border-b border-dashed border-slate-100 w-full h-0"></div>
-                              <div className="border-b border-dashed border-slate-100 w-full h-0"></div>
-                              <div className="border-b border-dashed border-slate-100 w-full h-0"></div>
-                              <div className="border-b border-dashed border-slate-200 w-full h-0"></div>
-                            </div>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <h4 className="text-sm font-black text-white">Progression des modules</h4>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                          {dashboard.moduleRows.length} module{dashboard.moduleRows.length !== 1 ? "s" : ""}
+                        </span>
+                      </div>
 
-                            {/* Course stats bars */}
-                            {courses.map((c, idx) => {
-                              const engagements = [92, 86, 74, 98];
-                              const rate = engagements[idx % engagements.length];
-                              return (
-                                <div key={c.id} className="flex flex-col items-center gap-1 w-1/5 group relative z-10">
-                                  {/* Tooltip on hover */}
-                                  <div className="absolute -top-10 scale-0 group-hover:scale-100 transition-transform bg-slate-900 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg pointer-events-none whitespace-nowrap shadow-md">
-                                    {rate}% Engagement
-                                  </div>
-                                  <div className="w-12 bg-slate-100 rounded-lg h-32 flex items-end overflow-hidden border border-slate-100">
-                                    <div 
-                                      className={`w-full rounded-b-md bg-gradient-to-t ${
-                                        idx % 2 === 0 ? "from-purple-600 to-indigo-500" : "from-pink-600 to-rose-500"
-                                      } transition-all duration-1000`} 
-                                      style={{ height: `${rate}%` }}
-                                    ></div>
-                                  </div>
-                                  <span className="text-[10px] font-black text-slate-700 truncate w-full text-center mt-1">
-                                    {c.title.split(" ")[0]}
+                      {dashboard.moduleRows.length === 0 ? (
+                        <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-950/40 px-4 py-8 text-center">
+                          <BookOpen className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                          <p className="text-sm font-semibold text-slate-300">Aucun module géré pour le moment.</p>
+                          <button
+                            type="button"
+                            onClick={() => onTeacherNavigate?.("curriculum")}
+                            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-pink-600 hover:bg-pink-500 text-white text-xs font-bold px-4 py-2.5 min-h-[44px]"
+                          >
+                            Créer un module
+                            <ArrowUpRight className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {dashboard.moduleRows.map((row) => (
+                            <div
+                              key={row.course.id}
+                              className="rounded-2xl border border-white/5 bg-slate-900/60 p-4 flex flex-col lg:flex-row lg:items-center gap-4"
+                            >
+                              <div className="min-w-0 flex-1 space-y-2">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <p className="text-sm font-bold text-white truncate">{row.course.title}</p>
+                                  <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border ${
+                                    row.status === "Live actif"
+                                      ? "border-red-500/30 bg-red-500/10 text-red-300"
+                                      : row.status === "Publié"
+                                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                                        : "border-slate-600 bg-slate-800 text-slate-400"
+                                  }`}>
+                                    {row.status}
                                   </span>
                                 </div>
-                              );
-                            })}
-                          </div>
+                                <p className="text-[11px] text-slate-400">
+                                  {row.students} étudiant{row.students !== 1 ? "s" : ""} · {row.publishedCount}/{row.totalModules} chapitres publiés · {row.course.price.toFixed(2)} €
+                                </p>
+                                <div className="flex items-center gap-2">
+                                  <div className="h-1.5 flex-1 max-w-xs rounded-full bg-slate-800 overflow-hidden">
+                                    <div
+                                      className="h-full rounded-full bg-gradient-to-r from-pink-500 to-indigo-500"
+                                      style={{ width: `${row.contentProgress}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-[11px] font-bold text-pink-200 font-mono">{row.contentProgress}%</span>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => onTeacherNavigate?.("curriculum")}
+                                className="self-start lg:self-center inline-flex items-center gap-1.5 rounded-xl border border-pink-500/30 bg-pink-500/10 hover:bg-pink-500/20 text-pink-100 text-xs font-bold px-4 py-2.5 min-h-[44px] transition-colors"
+                              >
+                                Gérer
+                                <ChevronRight className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
                         </div>
-
-                        {/* Chart feedback detailed metrics */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 border-t border-slate-100">
-                          <div className="p-3 bg-slate-50 rounded-xl">
-                            <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider block">Modules actifs</span>
-                            <p className="text-sm font-bold text-slate-800 mt-1">{managedCourses.filter(c => c.published).length} modules publiés</p>
-                          </div>
-                          <div className="p-3 bg-slate-50 rounded-xl">
-                            <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider block">Quiz disponibles</span>
-                            <p className="text-sm font-bold text-purple-700 mt-1">{managedCourses.reduce((sum, c) => sum + c.modules.filter(m => m.type === 'quiz').length, 0)} quiz au programme</p>
-                          </div>
-                          <div className="p-3 bg-slate-50 rounded-xl">
-                            <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider block">Modules en live</span>
-                            <p className="text-sm font-bold text-pink-700 mt-1">{managedCourses.filter(c => c.isLiveNow).length} en diffusion</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Operational KPI Indicators Row */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {/* StatCard 1: PayPal Revenue */}
-                    <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex items-center gap-4 hover:border-pink-300 transition-colors">
-                      <div className="w-12 h-12 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center flex-shrink-0">
-                        <DollarSign className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Inscriptions Facturées</span>
-                        <h4 className="text-xl font-black text-slate-800 font-mono mt-0.5">
-                          {(managedCourses.reduce((sum, c) => sum + c.price, 0)).toFixed(2)} €
-                        </h4>
-                        <span className="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-1.5 py-0.5 rounded-md mt-1 inline-block">
-                          Paiements Actifs
-                        </span>
-                      </div>
+                      )}
                     </div>
-
-                    {/* StatCard 2: Registered Students */}
-                    <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex items-center gap-4 hover:border-pink-300 transition-colors">
-                      <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center flex-shrink-0">
-                        <Users className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Promotion Active</span>
-                        <h4 className="text-xl font-black text-slate-800 mt-0.5 font-sans">— Étudiants</h4>
-                        <span className="text-[10px] text-slate-400 mt-1 inline-block">Inscrits à vos modules</span>
-                      </div>
-                    </div>
-
-                    {/* StatCard 3: Managed Modules Count */}
-                    <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex items-center gap-4 hover:border-pink-300 transition-colors">
-                      <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center flex-shrink-0">
-                        <Database className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider font-sans">Syllabus Complet</span>
-                        <h4 className="text-xl font-black text-slate-800 mt-0.5 font-mono">
-                          {managedCourses.reduce((sum, c) => sum + c.modules.length, 0)} Chapitres
-                        </h4>
-                        <span className="text-[10px] text-indigo-600 font-bold mt-1 inline-block">Chapitres publiés</span>
-                      </div>
-                    </div>
-
-                    {/* StatCard 4: Direct Live status */}
-                    <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex items-center gap-4 hover:border-pink-300 transition-colors">
-                      <div className="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center flex-shrink-0">
-                        <Video className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Diffusion live</span>
-                        <h4 className="text-xl font-black text-slate-800 mt-0.5 font-sans">
-                          {managedCourses.some(c => c.isLiveNow) ? "En Direct" : "Hors Ligne"}
-                        </h4>
-                        <span className="text-[10px] text-red-500 font-semibold mt-1 inline-block">
-                          {managedCourses.some(c => c.isLiveNow) ? "● Interactivité Active" : "Aucun live stream actif"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                  </section>
 
                   {/* Primary Grid Layout: Courses Price & Live management vs Student Roster list */}
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
