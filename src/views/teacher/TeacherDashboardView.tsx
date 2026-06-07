@@ -42,7 +42,6 @@ interface TeacherDashboardViewProps {
   managedCourses: Course[];
   courses: Course[];
   handleUpdateCoursePrice: (id: number, newPrice: number) => void | Promise<void>;
-  handleToggleCourseLive: (id: number) => void | Promise<void>;
   gradesCourseId: number;
   setGradesCourseId: (id: number) => void;
   selectedGradesCourse: Course | null;
@@ -77,7 +76,6 @@ export default function TeacherDashboardView({
   testEmailStatusMsg,
   managedCourses,
   handleUpdateCoursePrice,
-  handleToggleCourseLive,
   gradesCourseId,
   setGradesCourseId,
   selectedGradesCourse,
@@ -723,34 +721,6 @@ export default function TeacherDashboardView({
                                   aria-valuemax={499}
                                   aria-valuenow={course.price}
                                 />
-                              </div>
-
-                              <div className="flex items-center justify-between gap-3 border-t border-white/[0.06] pt-4">
-                                <div className="flex min-w-0 items-center gap-2">
-                                  <span className="relative flex h-2 w-2 shrink-0">
-                                    {course.isLiveNow && (
-                                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-                                    )}
-                                    <span
-                                      className={`relative inline-flex h-2 w-2 rounded-full ${
-                                        course.isLiveNow ? "bg-red-500" : "bg-slate-600"
-                                      }`}
-                                    />
-                                  </span>
-                                  <span className="truncate text-xs font-bold text-slate-300">Séminaire Virtuel Live</span>
-                                </div>
-
-                                <button
-                                  type="button"
-                                  onClick={() => handleToggleCourseLive(course.id)}
-                                  className={`inline-flex shrink-0 items-center justify-center rounded-xl px-4 py-2 text-xs font-bold transition-all active:scale-[0.98] ${
-                                    course.isLiveNow
-                                      ? "bg-red-600 text-white shadow-md shadow-red-900/30 hover:bg-red-500"
-                                      : "border border-white/[0.08] bg-[#0f172a] text-slate-300 hover:border-indigo-500/30 hover:text-white"
-                                  }`}
-                                >
-                                  {course.isLiveNow ? "Couper le Live" : "Lancer le Live"}
-                                </button>
                               </div>
                             </div>
                           ))
