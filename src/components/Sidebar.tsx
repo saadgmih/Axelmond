@@ -79,7 +79,8 @@ export default function Sidebar({
         </div>
         <button
           onClick={() => setIsMobileMenuOpen(false)}
-          className="md:hidden p-1 rounded-full text-slate-400 hover:text-white hover:bg-slate-800"
+          className="md:hidden touch-target p-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 flex items-center justify-center"
+          aria-label="Fermer le menu"
         >
           <X className="w-6 h-6" />
         </button>
@@ -107,7 +108,7 @@ export default function Sidebar({
             <button
               id="nav-dashboard"
               onClick={() => navigateTo("dashboard")}
-              className={`flex items-center w-full gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+              className={`flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 currentView === "dashboard"
                   ? "bg-indigo-600 text-white shadow-md shadow-indigo-950/40"
                   : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
@@ -120,7 +121,7 @@ export default function Sidebar({
             <button
               id="nav-catalog"
               onClick={() => navigateTo("catalog")}
-              className={`flex items-center w-full gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+              className={`flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 currentView === "catalog"
                   ? "bg-indigo-600 text-white shadow-md shadow-indigo-950/40"
                   : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
@@ -133,7 +134,7 @@ export default function Sidebar({
             <button
               id="nav-profile"
               onClick={() => navigateTo("profile")}
-              className={`flex items-center w-full gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+              className={`flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 currentView === "profile"
                   ? "bg-indigo-600 text-white shadow-md shadow-indigo-950/40"
                   : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
@@ -147,7 +148,7 @@ export default function Sidebar({
           <>
             <button
               onClick={() => setTeacherView("dashboard")}
-              className={`flex items-center w-full gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+              className={`flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 teacherView === "dashboard"
                   ? "bg-pink-600 text-white shadow-md shadow-pink-950/40"
                   : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
@@ -159,7 +160,7 @@ export default function Sidebar({
 
             <button
               onClick={() => setTeacherView("academic-profile")}
-              className={`flex items-center w-full gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+              className={`flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 teacherView === "academic-profile"
                   ? "bg-pink-600 text-white shadow-md shadow-pink-950/40"
                   : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
@@ -171,7 +172,7 @@ export default function Sidebar({
 
             <button
               onClick={() => setTeacherView("curriculum")}
-              className={`flex items-center w-full gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+              className={`flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 teacherView === "curriculum"
                   ? "bg-pink-600 text-white shadow-md shadow-pink-950/40"
                   : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
@@ -183,7 +184,7 @@ export default function Sidebar({
 
             <button
               onClick={() => setTeacherView("live-control")}
-              className={`flex items-center w-full gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+              className={`flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 teacherView === "live-control"
                   ? "bg-pink-600 text-white shadow-md shadow-pink-950/40"
                   : "text-slate-400 hover:bg-slate-800/60 hover:text-white"

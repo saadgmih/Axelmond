@@ -1,4 +1,4 @@
-import type { Dispatch, SetStateAction } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 import {
   Brain,
   Camera,
@@ -8,6 +8,7 @@ import {
   FileText,
   HelpCircle,
   Info,
+  List,
   PlayCircle,
   Video,
   X,
@@ -79,127 +80,176 @@ export default function StudentCourseView({
   handleQuizSubmit,
   resetQuiz,
 }: StudentCourseViewProps) {
-  return (
-            <div className="flex flex-col lg:flex-row h-[calc(100vh-73px)] overflow-hidden">
-              
-              {/* Left Column: Modules menu hierarchy */}
-              <div className="w-full lg:w-80 bg-white border-r border-slate-200 flex flex-col overflow-y-auto flex-shrink-0">
-                <div className="p-5 border-b border-slate-100 space-y-4">
-                  <button
-                    onClick={() => navigateTo("dashboard")}
-                    className="text-xs text-slate-500 font-bold hover:text-indigo-600 flex items-center gap-1 transition-colors"
-                  >
-                    <ChevronLeft className="w-4 h-4" /> Retour tableau de bord
-                  </button>
-                  
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-0.5 rounded">
-                      {selectedCourse.level} ECTS : {selectedCourse.credits}
-                    </span>
-                    <h2 className="text-base font-black text-slate-800 leading-tight">
-                      {selectedCourse.title}
-                    </h2>
-                    <p className="text-xs text-slate-500 font-medium">Syllabus officiel • {selectedCourse.instructor}</p>
-                  </div>
+  const [isModuleDrawerOpen, setIsModuleDrawerOpen] = useState(false);
 
-                  {/* Course visual progression summary */}
-                  <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 space-y-1 mt-2">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-500 font-bold">Progression totale :</span>
-                      <span className="font-extrabold text-indigo-600">{selectedCourse.progress}%</span>
-                    </div>
-                    <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                      <div className="h-full bg-indigo-600" style={{ width: `${selectedCourse.progress}%` }}></div>
-                    </div>
-                  </div>
-                </div>
+  const moduleSidebar = (
+    <>
+      <div className="p-4 sm:p-5 border-b border-slate-100 space-y-4">
+        <button
+          onClick={() => navigateTo("dashboard")}
+          className="text-xs text-slate-500 font-bold hover:text-indigo-600 flex items-center gap-1 transition-colors min-h-[44px]"
+        >
+          <ChevronLeft className="w-4 h-4" /> Retour tableau de bord
+        </button>
+        
+        <div className="space-y-1">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-0.5 rounded">
+            {selectedCourse.level} ECTS : {selectedCourse.credits}
+          </span>
+          <h2 className="text-base font-black text-slate-800 leading-tight">
+            {selectedCourse.title}
+          </h2>
+          <p className="text-xs text-slate-500 font-medium">Syllabus officiel • {selectedCourse.instructor}</p>
+        </div>
 
-                <div className="flex-1 p-4 space-y-1.5">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2.5">
-                    Plan d'apprentissage
-                  </p>
-                  <div className="space-y-1">
-                    {selectedCourse.modules.map((mod) => {
-                      const isCurrent = selectedModule.id === mod.id;
-                      return (
-                        <button
-                          key={mod.id}
-                          onClick={() => {
-                            onModuleSelect(mod);
-                          }}
-                          className={`w-full text-left px-3.5 py-3 rounded-xl text-xs font-semibold flex items-start gap-2.5 transition-all ${
-                            isCurrent
-                              ? "bg-slate-900 text-white shadow-sm"
-                              : "text-slate-600 hover:bg-slate-50"
-                          }`}
-                        >
-                          <div className="mt-0.5 flex-shrink-0">
-                            {mod.completed ? (
-                              <CheckCircle className={`w-4 h-4 ${isCurrent ? "text-indigo-400" : "text-emerald-500"}`} />
-                            ) : mod.type === "quiz" ? (
-                              <HelpCircle className="w-4 h-4 text-purple-400" />
-                            ) : mod.type === "pdf" ? (
-                              <FileText className="w-4 h-4 text-orange-400" />
-                            ) : (
-                              <PlayCircle className="w-4 h-4 text-indigo-400" />
-                            )}
-                          </div>
-                          
-                          <div className="flex-1 min-w-0">
-                            <p className="truncate leading-tight">{mod.title}</p>
-                            <span className={`text-[10px] block mt-1 uppercase font-semibold ${
-                              isCurrent ? "text-indigo-300" : "text-slate-400"
-                            }`}>
-                                {mod.type === "video" ? "Module Vidéo" : mod.type === "pdf" ? "Document Manuel" : "Évaluation interactive"} • {mod.duration}
-                            </span>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
+        <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 space-y-1 mt-2">
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-slate-500 font-bold">Progression totale :</span>
+            <span className="font-extrabold text-indigo-600">{selectedCourse.progress}%</span>
+          </div>
+          <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+            <div className="h-full bg-indigo-600" style={{ width: `${selectedCourse.progress}%` }}></div>
+          </div>
+        </div>
+      </div>
 
-                  {courseContentSections.length > 0 && (
-                    <div className="pt-4 mt-4 border-t border-slate-100 space-y-2">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2.5">
-                        Contenus publiés
-                      </p>
-                      {flattenSections(courseContentSections).map((section) => (
-                        <div key={section.id} className="space-y-1">
-                          <div className="px-3.5 py-2 text-[11px] font-black uppercase tracking-wide text-slate-500">
-                            {"— ".repeat(section.depth)}{section.title}
-                          </div>
-                          {(section.contents || []).map((content) => (
-                            <button
-                              key={content.id}
-                              onClick={() => setSelectedLessonContent(content)}
-                              className={`w-full text-left px-3.5 py-3 rounded-xl text-xs font-semibold flex items-start gap-2.5 transition-all ${
-                                selectedLessonContent?.id === content.id
-                                  ? "bg-indigo-600 text-white shadow-sm"
-                                  : "text-slate-600 hover:bg-slate-50"
-                              }`}
-                            >
-                              {content.type === "VIDEO" ? <PlayCircle className="w-4 h-4 text-indigo-300 mt-0.5" /> : content.type === "PDF" ? <FileText className="w-4 h-4 text-orange-400 mt-0.5" /> : <Camera className="w-4 h-4 text-emerald-400 mt-0.5" />}
-                              <span className="truncate">{content.title}</span>
-                            </button>
-                          ))}
-                        </div>
-                      ))}
-                    </div>
+      <div className="flex-1 p-4 space-y-1.5 overflow-y-auto">
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2.5">
+          Plan d'apprentissage
+        </p>
+        <div className="space-y-1">
+          {selectedCourse.modules.map((mod) => {
+            const isCurrent = selectedModule.id === mod.id;
+            return (
+              <button
+                key={mod.id}
+                onClick={() => {
+                  onModuleSelect(mod);
+                  setIsModuleDrawerOpen(false);
+                }}
+                className={`w-full text-left px-3.5 py-3 min-h-[44px] rounded-xl text-xs font-semibold flex items-start gap-2.5 transition-all ${
+                  isCurrent
+                    ? "bg-slate-900 text-white shadow-sm"
+                    : "text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                <div className="mt-0.5 flex-shrink-0">
+                  {mod.completed ? (
+                    <CheckCircle className={`w-4 h-4 ${isCurrent ? "text-indigo-400" : "text-emerald-500"}`} />
+                  ) : mod.type === "quiz" ? (
+                    <HelpCircle className="w-4 h-4 text-purple-400" />
+                  ) : mod.type === "pdf" ? (
+                    <FileText className="w-4 h-4 text-orange-400" />
+                  ) : (
+                    <PlayCircle className="w-4 h-4 text-indigo-400" />
                   )}
                 </div>
+                
+                <div className="flex-1 min-w-0">
+                  <p className="truncate leading-tight">{mod.title}</p>
+                  <span className={`text-[10px] block mt-1 uppercase font-semibold ${
+                    isCurrent ? "text-indigo-300" : "text-slate-400"
+                  }`}>
+                      {mod.type === "video" ? "Module Vidéo" : mod.type === "pdf" ? "Document Manuel" : "Évaluation interactive"} • {mod.duration}
+                  </span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
 
-                <div className="p-4 border-t border-slate-100">
+        {courseContentSections.length > 0 && (
+          <div className="pt-4 mt-4 border-t border-slate-100 space-y-2">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2.5">
+              Contenus publiés
+            </p>
+            {flattenSections(courseContentSections).map((section) => (
+              <div key={section.id} className="space-y-1">
+                <div className="px-3.5 py-2 text-[11px] font-black uppercase tracking-wide text-slate-500">
+                  {"— ".repeat(section.depth)}{section.title}
+                </div>
+                {(section.contents || []).map((content) => (
                   <button
-                    onClick={() => navigateTo("live", selectedCourse)}
-                    className="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm shadow-red-100 cursor-pointer"
+                    key={content.id}
+                    onClick={() => {
+                      setSelectedLessonContent(content);
+                      setIsModuleDrawerOpen(false);
+                    }}
+                    className={`w-full text-left px-3.5 py-3 min-h-[44px] rounded-xl text-xs font-semibold flex items-start gap-2.5 transition-all ${
+                      selectedLessonContent?.id === content.id
+                        ? "bg-indigo-600 text-white shadow-sm"
+                        : "text-slate-600 hover:bg-slate-50"
+                    }`}
                   >
-                    <Video className="w-4 h-4" /> Accéder à la classe Live
+                    {content.type === "VIDEO" ? <PlayCircle className="w-4 h-4 text-indigo-300 mt-0.5" /> : content.type === "PDF" ? <FileText className="w-4 h-4 text-orange-400 mt-0.5" /> : <Camera className="w-4 h-4 text-emerald-400 mt-0.5" />}
+                    <span className="truncate">{content.title}</span>
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="p-4 border-t border-slate-100">
+        <button
+          onClick={() => {
+            setIsModuleDrawerOpen(false);
+            navigateTo("live", selectedCourse);
+          }}
+          className="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-3 min-h-[44px] rounded-xl flex items-center justify-center gap-1.5 shadow-sm shadow-red-100 cursor-pointer"
+        >
+          <Video className="w-4 h-4" /> Accéder à la classe Live
+        </button>
+      </div>
+    </>
+  );
+
+  return (
+            <div className="flex flex-col lg:flex-row h-full min-h-0 overflow-hidden">
+              
+              {isModuleDrawerOpen && (
+                <button
+                  type="button"
+                  aria-label="Fermer le plan du cours"
+                  className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+                  onClick={() => setIsModuleDrawerOpen(false)}
+                />
+              )}
+
+              {/* Left Column: Modules menu hierarchy */}
+              <div className={`fixed inset-y-0 left-0 z-50 w-[min(320px,88vw)] bg-white border-r border-slate-200 flex flex-col overflow-hidden flex-shrink-0 transform transition-transform duration-200 lg:relative lg:translate-x-0 lg:w-80 lg:z-auto ${
+                isModuleDrawerOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+              }`}>
+                <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-slate-100">
+                  <span className="text-xs font-black uppercase tracking-widest text-slate-500">Plan du cours</span>
+                  <button
+                    type="button"
+                    onClick={() => setIsModuleDrawerOpen(false)}
+                    className="touch-target p-2 rounded-lg text-slate-500 hover:bg-slate-100 flex items-center justify-center"
+                    aria-label="Fermer"
+                  >
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
+                {moduleSidebar}
               </div>
 
               {/* Central Module Lesson space */}
-              <div className="flex-1 bg-white overflow-y-auto flex flex-col p-6 md:p-8 space-y-6">
+              <div className="flex-1 bg-white overflow-y-auto flex flex-col min-w-0 min-h-0">
+                <div className="lg:hidden sticky top-0 z-20 flex items-center gap-2 px-4 py-3 border-b border-slate-100 bg-white/95 backdrop-blur-sm">
+                  <button
+                    type="button"
+                    onClick={() => setIsModuleDrawerOpen(true)}
+                    className="touch-target inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                  >
+                    <List className="w-4 h-4" />
+                    Plan du cours
+                  </button>
+                  <span className="text-xs font-bold text-slate-500 truncate">{selectedModule.title}</span>
+                </div>
+
+                <div className="p-4 sm:p-6 md:p-8 space-y-6 flex-1">
                 
                 {/* Lesson Context Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
@@ -583,7 +633,7 @@ export default function StudentCourseView({
 
                   {/* AI Tutor Chat Widget right inside column layout */}
                   {showAITutor && (
-                    <div className="xl:col-span-5 h-[520px] sticky top-[95px] animate-in slide-in-from-right duration-200">
+                    <div className="xl:col-span-5 min-h-[320px] h-[min(520px,55dvh)] xl:h-[min(520px,calc(100dvh-120px))] xl:sticky xl:top-4 animate-in slide-in-from-right duration-200">
                       <AITutorChat
                         courseTitle={selectedCourse.title}
                         moduleTitle={selectedModule.title}
@@ -591,6 +641,7 @@ export default function StudentCourseView({
                       />
                     </div>
                   )}
+                </div>
                 </div>
               </div>
             </div>

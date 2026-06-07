@@ -95,7 +95,7 @@ server.ts + src/App.tsx → Professor/Researcher course ownership strict : chaqu
 src/App.tsx → Live subject input corrigé : brouillon local par module + réalignement automatique du module live sélectionné pour permettre la saisie sans valeur réinitialisée
 src/livekit.ts + server.ts + src/App.tsx → Default live subject globalisé : `Session académique en direct` remplace les sujets techniques spécifiques par défaut
 server.ts + src/components/VirtualClassroom.tsx → Live timer basé sur `LiveSession.startTime` (`liveStartedAt`) pour conserver le chrono depuis le début du live après arrivée ou reconnexion
-index.html + src/index.css → Desktop viewport fixe à 1280px pour conserver la même forme d'affichage PC sur téléphone, tablette et TV
+index.html + src/index.css → Viewport responsive mobile-first (`device-width`), largeurs max TV (`--app-content-max`), utilitaires scroll/touch
 server.ts → Mot de passe oublié corrigé : `/api/auth/forgot-password` répond avec un message générique sécurisé et journalise les e-mails inconnus sans afficher `Not Found`
 ```
 

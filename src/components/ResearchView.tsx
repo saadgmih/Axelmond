@@ -252,7 +252,7 @@ export default function ResearchView() {
 
             {/* Right — live activity card */}
             <div className="hidden lg:block">
-              <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 backdrop-blur-sm space-y-4 min-w-[280px]">
+              <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 backdrop-blur-sm space-y-4 min-w-0 sm:min-w-[280px]">
                 <div className="flex items-center justify-between">
                   <div className="text-white font-black text-sm">Activité de recherche</div>
                   <span className="flex items-center gap-1.5 text-[10px] text-emerald-400 font-bold">

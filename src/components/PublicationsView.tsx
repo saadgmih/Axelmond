@@ -510,7 +510,7 @@ export default function PublicationsView() {
               <h2 className="text-base font-black text-white">Tableau de bord des publications</h2>
             </div>
           </Fade>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-3">
             {stats.map((s, i) => (
               <Fade key={s.label} inView={statsRef.inView} delay={i * 55}>
                 <StatCard {...s} start={statsRef.inView} />

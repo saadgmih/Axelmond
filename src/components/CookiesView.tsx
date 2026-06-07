@@ -265,7 +265,7 @@ export default function CookiesView() {
             </div>
 
             {/* Right meta card */}
-            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-3 flex-shrink-0 min-w-[210px]">
+            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-3 flex-shrink-0 min-w-0 sm:min-w-[210px]">
               <div>
                 <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Dernière mise à jour</div>
                 <div className="text-white font-black text-base mt-0.5">Juin 2026</div>

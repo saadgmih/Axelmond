@@ -132,7 +132,7 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
   };
 
   return (
-    <div className={`bg-white rounded-2xl shadow-xl border border-slate-200 flex flex-col overflow-hidden ${className || "h-[520px]"}`}>
+    <div className={`bg-white rounded-2xl shadow-xl border border-slate-200 flex flex-col overflow-hidden ${className || "min-h-[320px] h-[min(520px,60dvh)]"}`}>
       {/* Header */}
       <div className="bg-gradient-to-r from-slate-900 to-indigo-900 px-5 py-4 text-white flex items-center justify-between shadow-sm flex-shrink-0">
         <div className="flex items-center gap-2.5">

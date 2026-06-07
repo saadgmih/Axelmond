@@ -171,7 +171,9 @@ export default function VirtualClassroom({
   onLiveEvent,
 }: VirtualClassroomProps) {
   const [activeTab, setActiveTab] = useState("participants");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia("(min-width: 1024px)").matches : false
+  );
   const [participantQuery, setParticipantQuery] = useState("");
   const [messageMode, setMessageMode] = useState<"public" | "question" | "private">("public");
   const [privateTarget, setPrivateTarget] = useState("");
@@ -188,7 +190,40 @@ export default function VirtualClassroom({
     return Number.isFinite(parsed) ? parsed : Date.now();
   }, [course.id, course.liveStartedAt]);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const whiteboardContainerRef = useRef<HTMLDivElement | null>(null);
   const isDrawingRef = useRef(false);
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1024px)");
+    const syncSidebar = (event?: MediaQueryListEvent) => {
+      setIsSidebarOpen(event ? event.matches : media.matches);
+    };
+    syncSidebar();
+    media.addEventListener("change", syncSidebar);
+    return () => media.removeEventListener("change", syncSidebar);
+  }, []);
+
+  useEffect(() => {
+    if (activeTab !== "whiteboard") return;
+    const container = whiteboardContainerRef.current;
+    const canvas = canvasRef.current;
+    if (!container || !canvas) return;
+
+    const resizeCanvas = () => {
+      const rect = container.getBoundingClientRect();
+      const width = Math.max(1, Math.floor(rect.width));
+      const height = Math.max(1, Math.floor(rect.height));
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+    };
+
+    resizeCanvas();
+    const observer = new ResizeObserver(resizeCanvas);
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [activeTab]);
 
   useEffect(() => {
     const updateElapsed = () => {
@@ -317,7 +352,7 @@ export default function VirtualClassroom({
   const totalVotes = useMemo(() => Object.values(pollVotes).reduce<number>((sum, value) => sum + Number(value || 0), 0), [pollVotes]);
 
   return (
-    <div className="h-[calc(100vh-73px)] lg:h-screen w-full max-w-full bg-zinc-950 text-white font-sans flex flex-col overflow-hidden relative box-border">
+    <div className="h-full min-h-0 w-full max-w-full bg-zinc-950 text-white font-sans flex flex-col overflow-hidden relative box-border">
       <span className="sr-only">Classe virtuelle sécurisée</span>
       <span className="sr-only">Tableau blanc collaboratif</span>
       <span className="sr-only">Rapport de présence</span>
@@ -348,8 +383,9 @@ export default function VirtualClassroom({
           {onBack && (
             <button
               onClick={onBack}
-              className="p-1.5 -ml-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
+              className="touch-target p-2 -ml-1 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors flex items-center justify-center"
               title="Retour au module"
+              aria-label="Retour au module"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -373,8 +409,9 @@ export default function VirtualClassroom({
         <div className="flex items-center gap-3">
           <button 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors border border-white/5 flex items-center gap-2"
+            className="relative touch-target p-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors border border-white/5 flex items-center gap-2 min-h-[44px]"
             title="Ouvrir/Fermer le panneau académique"
+            aria-label="Ouvrir ou fermer le panneau interactif"
           >
             <span className="text-xs font-bold text-zinc-300 hidden sm:block">Panneau interactif</span>
             {isSidebarOpen ? <ChevronRight className="w-4 h-4" /> : <MoreVertical className="w-4 h-4" />}
@@ -386,8 +423,17 @@ export default function VirtualClassroom({
       </header>
 
       {/* Main Container */}
-      <div className="flex-1 flex w-full max-w-full overflow-hidden relative box-border">
+      <div className="flex-1 flex w-full max-w-full overflow-hidden relative box-border min-h-0">
         
+        {isSidebarOpen && (
+          <button
+            type="button"
+            aria-label="Fermer le panneau interactif"
+            className="absolute inset-0 z-30 bg-black/40 lg:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+
         {/* Center Stage - Video & Control */}
         <main 
           ref={stageRef}
@@ -494,21 +540,21 @@ export default function VirtualClassroom({
           </div>
 
           {/* Bottom Control Bar Fixed (Non-overlay) */}
-          <div className="shrink-0 h-[80px] w-full max-w-full bg-zinc-900 border-t border-white/5 flex items-center justify-start md:justify-center z-30 px-4 box-border overflow-x-auto hide-scrollbar">
-            <div className="flex items-center gap-2 md:gap-4 shrink-0">
+          <div className="shrink-0 min-h-[80px] w-full max-w-full bg-zinc-900 border-t border-white/5 flex items-center justify-start md:justify-center z-30 px-2 sm:px-4 box-border overflow-x-auto hide-scrollbar py-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 md:gap-4 shrink-0">
               
               {/* Audio / Video Group */}
               <div className="flex items-center gap-2 mr-2 md:mr-4 pr-2 md:pr-4 border-r border-white/10">
                 <button 
                   onClick={onToggleMic} 
-                  className={`flex flex-col items-center justify-center w-[60px] h-[60px] rounded-xl transition-all ${isMicEnabled ? "hover:bg-zinc-800 text-zinc-200" : "bg-red-600/20 border border-red-500/40 text-red-300 hover:bg-red-600/30"}`}
+                  className={`flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${isMicEnabled ? "hover:bg-zinc-800 text-zinc-200" : "bg-red-600/20 border border-red-500/40 text-red-300 hover:bg-red-600/30"}`}
                 >
                   {isMicEnabled ? <Mic className="w-5 h-5 mb-1.5" /> : <MicOff className="w-5 h-5 mb-1.5" />}
                   <span className="text-[10px] font-bold">{isMicEnabled ? "Désactiver" : "Activer"}</span>
                 </button>
                 <button 
                   onClick={onToggleCamera} 
-                  className={`flex flex-col items-center justify-center w-[60px] h-[60px] rounded-xl transition-all ${isCameraEnabled ? "hover:bg-zinc-800 text-zinc-200" : "bg-red-600/20 border border-red-500/40 text-red-300 hover:bg-red-600/30"}`}
+                  className={`flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${isCameraEnabled ? "hover:bg-zinc-800 text-zinc-200" : "bg-red-600/20 border border-red-500/40 text-red-300 hover:bg-red-600/30"}`}
                 >
                   {isCameraEnabled ? <Video className="w-5 h-5 mb-1.5" /> : <VideoOff className="w-5 h-5 mb-1.5" />}
                   <span className="text-[10px] font-bold">{isCameraEnabled ? "Caméra" : "Caméra"}</span>
@@ -519,7 +565,7 @@ export default function VirtualClassroom({
               <div className="flex items-center gap-2">
                 <button 
                   onClick={onToggleScreenShare} 
-                  className={`flex flex-col items-center justify-center w-[60px] h-[60px] rounded-xl transition-all ${isScreenShareEnabled ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400" : "hover:bg-zinc-800 text-zinc-300"}`}
+                  className={`flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${isScreenShareEnabled ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400" : "hover:bg-zinc-800 text-zinc-300"}`}
                 >
                   {isScreenShareEnabled ? <ScreenShareOff className="w-5 h-5 mb-1.5" /> : <ScreenShare className="w-5 h-5 mb-1.5" />}
                   <span className="text-[10px] font-bold">Partager</span>
@@ -527,7 +573,7 @@ export default function VirtualClassroom({
                 
                 <button 
                   onClick={onRaiseHand} 
-                  className="flex flex-col items-center justify-center w-[60px] h-[60px] rounded-xl hover:bg-zinc-800 text-zinc-300 transition-all group"
+                  className="flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl hover:bg-zinc-800 text-zinc-300 transition-all group"
                 >
                   <Hand className="w-5 h-5 mb-1.5 group-hover:text-amber-400 transition-colors" />
                   <span className="text-[10px] font-bold">Main</span>
@@ -535,7 +581,7 @@ export default function VirtualClassroom({
 
                 <button 
                   onClick={onToggleFullscreen} 
-                  className="flex flex-col items-center justify-center w-[60px] h-[60px] rounded-xl hover:bg-zinc-800 text-zinc-300 transition-all hidden sm:flex"
+                  className="flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl hover:bg-zinc-800 text-zinc-300 transition-all hidden sm:flex"
                 >
                   <Fullscreen className="w-5 h-5 mb-1.5" />
                   <span className="text-[10px] font-bold">Plein écran</span>
@@ -547,7 +593,7 @@ export default function VirtualClassroom({
                 <div className="flex items-center gap-2 ml-2 md:ml-4 pl-2 md:pl-4 border-l border-white/10">
                   <button 
                     onClick={onRecordToggle} 
-                    className={`flex flex-col items-center justify-center w-[60px] h-[60px] rounded-xl transition-all ${isRecording ? "bg-red-500/10 border border-red-500/20 text-red-400" : "hover:bg-zinc-800 text-zinc-300"}`}
+                    className={`flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${isRecording ? "bg-red-500/10 border border-red-500/20 text-red-400" : "hover:bg-zinc-800 text-zinc-300"}`}
                   >
                     {isRecording ? <CircleStop className="w-5 h-5 mb-1.5" /> : <CircleDot className="w-5 h-5 mb-1.5" />}
                     <span className="text-[10px] font-bold">Rec</span>
@@ -571,12 +617,13 @@ export default function VirtualClassroom({
 
         {/* Right Sidebar - Onglets Académiques */}
         <aside 
-          className={`absolute lg:static right-0 top-0 bottom-0 w-[320px] lg:w-[360px] max-w-full lg:min-w-[360px] shrink-0 bg-zinc-900 border-l border-white/5 flex flex-col transition-transform duration-300 ease-out z-40 box-border overflow-hidden shadow-2xl lg:shadow-none ${isSidebarOpen ? 'translate-x-0 lg:flex' : 'translate-x-full lg:hidden'}`}
+          className={`absolute lg:static right-0 top-0 bottom-0 w-[min(100vw,360px)] lg:w-[360px] max-w-full lg:min-w-[360px] shrink-0 bg-zinc-900 border-l border-white/5 flex flex-col transition-transform duration-300 ease-out z-40 box-border overflow-hidden shadow-2xl lg:shadow-none ${isSidebarOpen ? 'translate-x-0 lg:flex' : 'translate-x-full lg:hidden'}`}
         >
           {/* Mobile Close Button */}
           <button 
             onClick={() => setIsSidebarOpen(false)}
-            className="absolute top-4 right-4 p-2 bg-zinc-800 rounded-lg lg:hidden z-50"
+            className="absolute top-4 right-4 touch-target p-2 bg-zinc-800 rounded-lg lg:hidden z-50 flex items-center justify-center"
+            aria-label="Fermer le panneau"
           >
             <X className="w-5 h-5" />
           </button>
@@ -730,13 +777,13 @@ export default function VirtualClassroom({
                     <button 
                       type="submit" 
                       disabled={!chatDraft.trim()} 
-                      className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 bg-indigo-500 hover:bg-indigo-600 disabled:bg-transparent disabled:text-zinc-600 text-white rounded-lg transition-colors"
+                      className="absolute right-1.5 top-1/2 -translate-y-1/2 touch-target p-2 bg-indigo-500 hover:bg-indigo-600 disabled:bg-transparent disabled:text-zinc-600 text-white rounded-lg transition-colors flex items-center justify-center"
                     >
                       <Send className="w-4 h-4" />
                     </button>
                   </form>
                   <div className="border-t border-white/5 pt-3">
-                    <AITutorChat courseTitle={course.title} moduleTitle={course.liveSubject || "Session live"} className="h-[460px] border-none shadow-none" />
+                    <AITutorChat courseTitle={course.title} moduleTitle={course.liveSubject || "Session live"} className="min-h-[240px] h-[min(360px,40dvh)] flex-1 border-none shadow-none bg-zinc-950" />
                   </div>
                 </div>
               </div>
@@ -752,11 +799,9 @@ export default function VirtualClassroom({
                     </button>
                   ))}
                 </div>
-                <div className="flex-1 bg-white rounded-xl overflow-hidden shadow-inner border border-white/10 min-h-[300px]">
+                <div ref={whiteboardContainerRef} className="flex-1 bg-white rounded-xl overflow-hidden shadow-inner border border-white/10 min-h-[240px]">
                   <canvas
                     ref={canvasRef}
-                    width={800}
-                    height={600}
                     onPointerDown={startDrawing}
                     onPointerMove={draw}
                     onPointerUp={stopDrawing}

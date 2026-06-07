@@ -99,7 +99,11 @@ export default function TeacherLiveControlView({
         </div>
       </div>
 
-      {activeLiveCourse && renderTeacherLiveRoom()}
+      {activeLiveCourse && (
+        <div className="h-[min(100dvh,960px)] min-h-[420px] w-full overflow-hidden rounded-none lg:rounded-2xl border-y lg:border border-slate-800">
+          {renderTeacherLiveRoom()}
+        </div>
+      )}
     </div>
   );
 }

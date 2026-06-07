@@ -128,7 +128,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                     id="close-payment-modal"
                     type="button"
                     onClick={onClose}
-                    className="group -mr-1 flex h-9 w-9 items-center justify-center rounded-full text-slate-400 transition-all hover:bg-white/10 hover:text-white"
+                    className="group -mr-1 flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-slate-400 transition-all hover:bg-white/10 hover:text-white"
                     aria-label="Fermer"
                   >
                     <X className="h-4 w-4 transition-transform group-hover:scale-110" />

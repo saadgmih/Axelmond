@@ -401,7 +401,7 @@ export default function TeacherAcademicProfileView({
               <h3 className="text-sm font-black text-slate-900">Activité</h3>
             </div>
             <div className="space-y-5 p-6">
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 {[
                   { label: "Modules", value: academicProfileData?.courses.length || 0, icon: BookOpen },
                   { label: "Lives", value: academicProfileData?.lives.length || 0, icon: Video },

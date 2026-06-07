@@ -120,6 +120,15 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [courseToPurchase, setCourseToPurchase] = useState<Course | null>(null);
 
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isMobileMenuOpen]);
+
   const allDisciplines = domains.flatMap((domain) => domain.disciplines);
   const selectedDomain = domains.find((domain) => domain.id === selectedDomainId) || null;
   const selectedDiscipline = allDisciplines.find((discipline) => discipline.id === selectedDisciplineId) || null;
@@ -318,6 +327,14 @@ export default function App() {
 
   onSessionExpiredRef.current = disconnectLiveSession;
 
+  const isStudentLive = role === "student" && currentView === "live" && !!activeLiveCourse;
+  const isTeacherLiveRoom = role === "teacher" && teacherView === "live-control" && !!activeLiveCourse;
+  const isImmersiveView =
+    currentView === "course" ||
+    isStudentLive ||
+    isTeacherLiveRoom;
+  const hideGlobalFooter = isImmersiveView;
+
   const handleLogout = () => {
     logoutAuth();
     disconnectLiveSession();
@@ -399,8 +416,17 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen bg-slate-50 font-sans overflow-hidden">
+    <div className="flex h-[100dvh] max-h-[100dvh] bg-slate-50 font-sans overflow-hidden">
       
+      {isMobileMenuOpen && (
+        <button
+          type="button"
+          aria-label="Fermer le menu de navigation"
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-[1px] md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar navigation */}
       <Sidebar
         currentView={currentView}
@@ -420,25 +446,27 @@ export default function App() {
       <div className="flex-1 flex flex-col overflow-hidden relative">
         
         {/* Header bar */}
-        <Topbar
-          currentView={currentView}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          enrolledCourses={enrolledCourses}
-          courses={courses}
-          navigateTo={navigateTo}
-          role={role}
-          currentUser={currentUser}
-          onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        />
+        {!isStudentLive && (
+          <Topbar
+            currentView={currentView}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            enrolledCourses={enrolledCourses}
+            courses={courses}
+            navigateTo={navigateTo}
+            role={role}
+            currentUser={currentUser}
+            onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          />
+        )}
 
         {/* Dynamic Screen contents */}
-        <div className="flex-1 overflow-y-auto bg-slate-50 relative">
+        <div className={`flex-1 relative bg-slate-50 ${isImmersiveView ? "overflow-hidden min-h-0" : "overflow-y-auto"}`}>
 
 {INSTITUTIONAL_VIEWS.has(currentView) ? (
             <InstitutionalViewSwitch currentView={currentView} currentUser={currentUser} navigateTo={navigateTo} />
           ) : role === "teacher" ? (
-            <TeacherWorkspace>
+            <TeacherWorkspace immersive={isTeacherLiveRoom}>
               
               {teacherView === "dashboard" && (
                 <TeacherDashboardView
@@ -505,13 +533,15 @@ export default function App() {
             />
           )}
           {currentView === "course" && selectedCourse && selectedModule && (
-            <StudentCourseView
+            <div className="h-full min-h-0">
+              <StudentCourseView
               selectedCourse={selectedCourse}
               selectedModule={selectedModule}
               navigateTo={navigateTo}
               onModuleSelect={(mod) => setSelectedModule(mod)}
               {...studentCourseBindings}
             />
+            </div>
           )}
           {currentView === "profile" && (
             <StudentProfileView
@@ -525,19 +555,22 @@ export default function App() {
             />
           )}
           {currentView === "live" && activeLiveCourse && (
-            <StudentLiveView
-              course={activeLiveCourse}
-              currentUserRole={currentUser?.role || "STUDENT"}
-              onBack={() => navigateTo("course", activeLiveCourse)}
-              {...classroomBindings}
-            />
+            <div className="h-full min-h-0">
+              <StudentLiveView
+                course={activeLiveCourse}
+                currentUserRole={currentUser?.role || "STUDENT"}
+                onBack={() => navigateTo("course", activeLiveCourse)}
+                {...classroomBindings}
+              />
+            </div>
           )}
 
             </>
           )}
 
           {/* Global Footer */}
-          <footer className="border-t border-slate-800 bg-slate-950 py-10 px-6 mt-12 transition-colors">
+          {!hideGlobalFooter && (
+          <footer className="border-t border-slate-800 bg-slate-950 py-10 px-4 sm:px-6 mt-12 transition-colors">
             <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-slate-100 font-extrabold text-sm">
@@ -586,6 +619,7 @@ export default function App() {
               © 2026 Axelmond Research Labs. Tous droits réservés.
             </div>
           </footer>
+          )}
 
         </div>
       </div>
@@ -604,7 +638,7 @@ export default function App() {
             }
             setIsMobileMenuOpen(false);
           }}
-          className="fixed right-5 bottom-5 z-50 bg-slate-950 border border-indigo-500/50 text-white rounded-2xl px-4 py-3 shadow-2xl flex items-center gap-3 max-w-[280px] text-left cursor-pointer hover:bg-slate-900 transition-colors"
+          className="fixed right-4 bottom-4 sm:right-5 sm:bottom-5 z-50 bg-slate-950 border border-indigo-500/50 text-white rounded-2xl px-4 py-3 shadow-2xl flex items-center gap-3 max-w-[min(280px,calc(100vw-2rem))] text-left cursor-pointer hover:bg-slate-900 transition-colors touch-target"
         >
           <span className="relative flex h-3 w-3 flex-shrink-0">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
