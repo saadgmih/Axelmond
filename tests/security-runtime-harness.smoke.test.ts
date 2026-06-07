@@ -15,7 +15,7 @@ if (!isSecurityRuntimeDatabaseAvailable()) {
 const handle = startSecurityRuntimeServer(DEFAULT_SECURITY_RUNTIME_PORT);
 
 try {
-  const health = await waitForSecurityRuntimeHealth(handle.baseUrl);
+  const health = await waitForSecurityRuntimeHealth(handle.baseUrl, { process: handle.process });
   assert.equal(health.status, 200);
 
   const body = await health.json() as { status?: string };

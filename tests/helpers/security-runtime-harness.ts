@@ -49,7 +49,7 @@ export function startSecurityRuntimeServer(port = DEFAULT_SECURITY_RUNTIME_PORT)
   const child = spawn("npx", ["tsx", "server.ts"], {
     cwd: projectRoot,
     env,
-    stdio: ["ignore", "pipe", "pipe"],
+    stdio: "ignore",
     shell: true,
     windowsHide: true,
   });
@@ -59,7 +59,7 @@ export function startSecurityRuntimeServer(port = DEFAULT_SECURITY_RUNTIME_PORT)
 
 export async function waitForSecurityRuntimeHealth(
   baseUrl: string,
-  options: { timeoutMs?: number; intervalMs?: number } = {},
+  options: { timeoutMs?: number; intervalMs?: number; process?: ChildProcess } = {},
 ): Promise<Response> {
   const timeoutMs = options.timeoutMs ?? 60_000;
   const intervalMs = options.intervalMs ?? 500;
@@ -67,6 +67,10 @@ export async function waitForSecurityRuntimeHealth(
   let lastError: unknown;
 
   while (Date.now() < deadline) {
+    if (options.process && options.process.exitCode !== null) {
+      throw new Error(`Security runtime server exited early with code ${options.process.exitCode}`);
+    }
+
     try {
       const response = await fetch(`${baseUrl}/api/health`);
       if (response.ok) {
