@@ -587,7 +587,10 @@ export default function App() {
               selectedCourse={selectedCourse}
               selectedModule={selectedModule}
               navigateTo={navigateTo}
-              onModuleSelect={(mod) => setSelectedModule(mod)}
+              onModuleSelect={(mod) => {
+                setSelectedModule(mod);
+                setSelectedLessonContent(null);
+              }}
               {...studentCourseBindings}
             />
             </div>

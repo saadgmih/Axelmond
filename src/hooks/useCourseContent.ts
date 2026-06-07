@@ -30,7 +30,7 @@ export function useCourseContent() {
       const contents = flattenContents(sections);
       setSelectedLessonContent((current) => {
         if (current && contents.some((content) => content.id === current.id)) return current;
-        return contents[0] || null;
+        return null;
       });
       return sections;
     } catch (err) {
