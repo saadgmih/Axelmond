@@ -8,13 +8,15 @@ interface ChatMessage {
 }
 
 interface AITutorChatProps {
+  courseId: number;
+  moduleId?: number;
   courseTitle: string;
   moduleTitle: string;
   onClose?: () => void;
   className?: string;
 }
 
-export default function AITutorChat({ courseTitle, moduleTitle, onClose, className }: AITutorChatProps) {
+export default function AITutorChat({ courseId, moduleId, courseTitle, moduleTitle, onClose, className }: AITutorChatProps) {
   const inputId = useId();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -44,12 +46,28 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
     setIsLoading(true);
 
     try {
-      const response = await fetchWithAuth("/api/chat-tutor", "POST", {
+      const requestBody: {
+        courseId: number;
+        moduleId?: number;
+        prompt: string;
+        chatHistory: ChatMessage[];
+      } = {
+        courseId,
         prompt: messageText,
-        courseContext: courseTitle,
-        moduleContext: moduleTitle,
         chatHistory: messages,
-      });
+      };
+      if (moduleId !== undefined) {
+        requestBody.moduleId = moduleId;
+      }
+
+      const response = await fetchWithAuth("/api/chat-tutor", "POST", requestBody);
+
+      if (response.status === 403) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(
+          payload?.error || "Accès refusé : vous devez être inscrit à ce module pour utiliser l'assistant IA.",
+        );
+      }
 
       if (!response.ok) {
         throw new Error("L'assistant a rencontré une latence réseau.");

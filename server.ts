@@ -50,6 +50,7 @@ import { uploadRouter, deleteCloudFiles } from "./src/uploadthing";
 import { ACADEMIC_DOMAINS, DEFAULT_DISCIPLINE_ID, getDisciplineIdForCourse } from "./src/academic-taxonomy";
 import { buildCourseGradeRows } from "./src/grades";
 import { sanitizeAcademicProfileInput, sanitizeAvatarUrl } from "./src/academic-profile";
+import { assertCourseLearningAccess } from "./src/course-access";
 import { cacheGet, cacheSet, cacheDel, startCachePruner } from "./src/cache";
 import { startPerformanceMonitor, requestTimingMiddleware } from "./src/performance";
 import { logSecurity, logAudit, alertFailedLogins, alertMassDeletions, alertSuspectUpload } from "./src/security-logger";
@@ -1514,9 +1515,9 @@ const resetPasswordSchema = z.object({
 });
 
 const chatTutorSchema = z.object({
+  courseId: z.number().int().positive(),
+  moduleId: z.number().int().positive().optional(),
   prompt: z.string().min(1, "Question requise").max(CHAT_TUTOR_MAX_PROMPT_CHARS).trim(),
-  courseContext: z.string().max(200).trim().optional(),
-  moduleContext: z.string().max(200).trim().optional(),
   chatHistory: z.array(z.object({
     role: z.enum(["user", "model", "assistant"]),
     text: z.string().max(CHAT_TUTOR_MAX_PROMPT_CHARS),
@@ -4465,14 +4466,53 @@ if (apiKey) {
   console.log("Assistant IA: service externe non configuré, réponses pédagogiques locales activées.");
 }
 
-app.post("/api/chat-tutor", requireAuth, validateBody(chatTutorSchema), async (req, res) => {
-  const { prompt, courseContext, moduleContext, chatHistory } = req.body;
+async function findCourseLearningAccessRecord(courseId: number) {
+  return prisma.course.findUnique({
+    where: { id: courseId },
+    select: { id: true, title: true, createdById: true, modules: true, liveSubject: true },
+  });
+}
 
-  const courseName = courseContext || "Informatique Générale";
-  const moduleName = moduleContext || "Sujet Libre";
+function resolveChatTutorModuleTitle(
+  course: { modules?: unknown; liveSubject?: string | null },
+  moduleId?: number,
+): string | null {
+  if (moduleId !== undefined) {
+    const modules = Array.isArray(course.modules) ? course.modules as CourseModule[] : [];
+    const module = modules.find((item) => item.id === moduleId);
+    return module?.title ?? null;
+  }
+
+  const liveSubject = typeof course.liveSubject === "string" ? course.liveSubject.trim() : "";
+  return liveSubject || "Sujet Libre";
+}
+
+app.post("/api/chat-tutor", requireAuth, validateBody(chatTutorSchema), async (req, res) => {
+  const authUser = (req as any).authUser as AppUser;
+  const { courseId, moduleId, prompt, chatHistory } = req.body;
+
+  const access = await assertCourseLearningAccess(
+    authUser,
+    courseId,
+    findCourseLearningAccessRecord,
+  );
+  if (access.ok === false) {
+    logSecurity("WARN", "Chat tutor access denied", { userId: authUser.id, courseId, status: access.status });
+    res.status(access.status).json({ error: access.error });
+    return;
+  }
+
+  const moduleName = resolveChatTutorModuleTitle(access.course, moduleId);
+  if (moduleId !== undefined && !moduleName) {
+    res.status(400).json({ error: "Module introuvable pour ce cours" });
+    return;
+  }
+
+  const courseName = access.course.title;
+  const resolvedModuleName = moduleName || "Sujet Libre";
 
   const systemInstruction = `Tu es l'éminent tuteur IA de l'université Axelmond Research Labs.
-L'étudiant étudie actuellement le module : "${courseName}" et plus particulièrement le chapitre ou l'activité : "${moduleName}".
+L'étudiant étudie actuellement le module : "${courseName}" et plus particulièrement le chapitre ou l'activité : "${resolvedModuleName}".
 Fournis des explications scientifiques et informatiques claires, extrêmement précises et pédagogiques.
 Si l'étudiant pose une question de programmation, donne des exemples de code structurés (en C, Python, SQL, ou Bash selon le contexte) avec des explications.
 Reste bienveillant, universitaire et s'il s'agit d'un exemple pratique, aide l'étudiant à comprendre la logique étape par étape.
@@ -4480,7 +4520,7 @@ Réponds exclusivement en français, de manière polie.`;
 
   if (!ai) {
     const localAnswers: { [key: string]: string } = {
-      default: `Bonjour ! Je suis votre assistant personnel Axelmond Research Labs.\n\nC'est un plaisir de vous aider sur le module **${courseName}** (*${moduleName}*).\n\nVoici quelques conseils fondamentaux sur votre sujet actuel :\n1. **Comprenez la structure** : Avant de coder, dessinez les structures de données (listes, arbres) ou écrivez le pseudo-code.\n2. **Complexité** : N'oubliez pas d'évaluer la complexité O(n) de vos solutions.\n3. **Tests** : Testez toujours les cas limites (pointeur NULL, tableau vide, division par zéro).\n\nAvez-vous une question spécifique concernant le code ou la théorie de ce chapitre ?`
+      default: `Bonjour ! Je suis votre assistant personnel Axelmond Research Labs.\n\nC'est un plaisir de vous aider sur le module **${courseName}** (*${resolvedModuleName}*).\n\nVoici quelques conseils fondamentaux sur votre sujet actuel :\n1. **Comprenez la structure** : Avant de coder, dessinez les structures de données (listes, arbres) ou écrivez le pseudo-code.\n2. **Complexité** : N'oubliez pas d'évaluer la complexité O(n) de vos solutions.\n3. **Tests** : Testez toujours les cas limites (pointeur NULL, tableau vide, division par zéro).\n\nAvez-vous une question spécifique concernant le code ou la théorie de ce chapitre ?`
     };
     let reply = localAnswers.default;
     const lowerPrompt = prompt.toLowerCase();

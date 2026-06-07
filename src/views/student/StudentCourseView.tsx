@@ -596,6 +596,8 @@ export default function StudentCourseView({
                   {showAITutor && (
                     <div className="xl:col-span-5 min-h-[320px] h-[min(520px,55dvh)] xl:h-[min(520px,calc(100dvh-120px))] xl:sticky xl:top-4 animate-in slide-in-from-right duration-200">
                       <AITutorChat
+                        courseId={selectedCourse.id}
+                        moduleId={selectedModule.id}
                         courseTitle={selectedCourse.title}
                         moduleTitle={selectedModule.title}
                         onClose={() => setShowAITutor(false)}

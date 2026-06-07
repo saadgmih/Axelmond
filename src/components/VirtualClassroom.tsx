@@ -885,7 +885,7 @@ export default function VirtualClassroom({
                     </button>
                   </form>
                   <div className="border-t border-white/5 pt-3">
-                    <AITutorChat courseTitle={course.title} moduleTitle={course.liveSubject || "Session live"} className="min-h-[240px] h-[min(360px,40dvh)] flex-1 border-none shadow-none bg-zinc-950" />
+                    <AITutorChat courseId={course.id} courseTitle={course.title} moduleTitle={course.liveSubject || "Session live"} className="min-h-[240px] h-[min(360px,40dvh)] flex-1 border-none shadow-none bg-zinc-950" />
                   </div>
                 </div>
               </div>
