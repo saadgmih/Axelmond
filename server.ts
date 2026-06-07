@@ -50,6 +50,7 @@ import { decodeStoredText, decodeStoredValue } from "./src/text";
 import { shouldSkipStartupSeed } from "./src/startup-seed";
 import { PLATFORM_CURRENCY_CODE } from "./src/utils/morocco-locale";
 import { patchExpressAsyncRoutes } from "./src/express-async";
+import { isBlockedProductionSourcePath } from "./src/static-source-guard";
 import {
   JSON_BODY_LIMIT,
   REFRESH_RATE_LIMIT_MAX,
@@ -4617,8 +4618,35 @@ async function setupApp() {
     console.log("Vite development server middleware activated in Express.");
   } else {
     const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
+
+    app.use((req, res, next) => {
+      if (isBlockedProductionSourcePath(req.path)) {
+        res.status(404).end();
+        return;
+      }
+      next();
+    });
+
+    app.use(express.static(distPath, {
+      dotfiles: "deny",
+      index: false,
+      setHeaders(res, filePath) {
+        res.setHeader("X-Content-Type-Options", "nosniff");
+        if (filePath.endsWith(".html")) {
+          res.setHeader("Cache-Control", "no-store");
+          return;
+        }
+        if (/\.(js|css|woff2?|png|svg|jpg|jpeg|webp|ico)$/i.test(filePath)) {
+          res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+        }
+      },
+    }));
+
     app.get("*", (req, res) => {
+      if (isBlockedProductionSourcePath(req.path)) {
+        res.status(404).end();
+        return;
+      }
       res.sendFile(path.join(distPath, "index.html"));
     });
     console.log("Serving static files in production mode.");

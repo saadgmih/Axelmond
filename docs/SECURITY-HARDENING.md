@@ -52,6 +52,17 @@ Vérifier HTTPS actif, firewall (ports 80/443 seulement), PostgreSQL non exposé
 5. **Monitoring** : alertes sur `logSecurity` WARN/CRITICAL
 6. **Scan CI** : `node scan-secrets.js` avant chaque release
 
+## Protection du code client (production)
+
+| Mesure | Effet |
+|--------|--------|
+| Build Vite | Minification, pas de source maps, suppression `console`/`debugger` |
+| Noms de fichiers | Assets hashés (`assets/[hash].js`) |
+| Serveur | Blocage `/src/`, `*.ts`, `*.map`, `package.json`, etc. |
+| Navigateur | Console neutralisée, raccourcis DevTools limités |
+
+**Limite technique :** le navigateur doit télécharger JS/CSS pour afficher le site. Un utilisateur avancé peut toujours inspecter le réseau ou désactiver ces protections. L'objectif est de rendre le code illisible et d'éviter l'exposition des sources TypeScript.
+
 ## Limitation connue (tokens client)
 
 L'access token JWT reste en **mémoire JavaScript** (15 min). Le refresh token est en cookie **HttpOnly** (`refresh_token`, path `/api/auth`) avec protection **CSRF** (`csrf_token` + header `X-CSRF-Token`).
