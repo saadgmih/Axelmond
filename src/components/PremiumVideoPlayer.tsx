@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
-import { PlayCircle, Pause, Volume2, VolumeX, Maximize } from "lucide-react";
+import React from "react";
+import { PlayCircle, Volume2, VolumeX, Maximize } from "lucide-react";
+import { useCourseVideoPlayer } from "../hooks/useCourseVideoPlayer";
 
 interface PremiumVideoPlayerProps {
   src: string;
@@ -9,128 +10,25 @@ interface PremiumVideoPlayerProps {
 }
 
 export default function PremiumVideoPlayer({ src, title, instructor, activeSector }: PremiumVideoPlayerProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [playbackRate, setPlaybackRate] = useState(1.0);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  void title;
 
-  // Sync state with HTML5 video element events
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
+  const {
+    videoRef,
+    containerRef,
+    isPlaying,
+    currentTime,
+    duration,
+    playbackRate,
+    isMuted,
+    progressPercent,
+    togglePlay,
+    handleSeek,
+    toggleMute,
+    cycleSpeed,
+    toggleFullscreen,
+    formatTime,
+  } = useCourseVideoPlayer(src);
 
-    const handlePlay = () => setIsPlaying(true);
-    const handlePause = () => setIsPlaying(false);
-    const handleTimeUpdate = () => setCurrentTime(video.currentTime);
-    const handleDurationChange = () => setDuration(video.duration || 0);
-
-    video.addEventListener("play", handlePlay);
-    video.addEventListener("pause", handlePause);
-    video.addEventListener("timeupdate", handleTimeUpdate);
-    video.addEventListener("durationchange", handleDurationChange);
-    
-    if (video.duration) {
-      setDuration(video.duration);
-    }
-
-    return () => {
-      video.removeEventListener("play", handlePlay);
-      video.removeEventListener("pause", handlePause);
-      video.removeEventListener("timeupdate", handleTimeUpdate);
-      video.removeEventListener("durationchange", handleDurationChange);
-    };
-  }, [src]);
-
-  // Adjust volume/mute status
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.muted = isMuted;
-    }
-  }, [isMuted]);
-
-  // Adjust playback rate
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.playbackRate = playbackRate;
-    }
-  }, [playbackRate]);
-
-  // Sync fullscreen state
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(document.fullscreenElement === containerRef.current);
-    };
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
-  }, []);
-
-  const togglePlay = (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    const video = videoRef.current;
-    if (!video) return;
-    if (isPlaying) {
-      video.pause();
-    } else {
-      video.play().catch((err) => console.error("Error playing video:", err));
-    }
-  };
-
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const video = videoRef.current;
-    if (!video || !duration) return;
-    const newPercentage = Number(e.target.value);
-    const newTime = (newPercentage / 100) * duration;
-    video.currentTime = newTime;
-    setCurrentTime(newTime);
-  };
-
-  const toggleMute = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsMuted(!isMuted);
-  };
-
-  const cycleSpeed = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setPlaybackRate((prev) => {
-      if (prev === 1.0) return 1.5;
-      if (prev === 1.5) return 2.0;
-      return 1.0;
-    });
-  };
-
-  const toggleFullscreen = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const container = containerRef.current;
-    if (!container) return;
-
-    if (!document.fullscreenElement) {
-      container.requestFullscreen().catch((err) => {
-        console.error("Error attempting to enable fullscreen:", err);
-      });
-    } else {
-      document.exitFullscreen();
-    }
-  };
-
-  const formatTime = (timeInSeconds: number) => {
-    if (isNaN(timeInSeconds) || !isFinite(timeInSeconds)) return "0:00";
-    const hours = Math.floor(timeInSeconds / 3600);
-    const minutes = Math.floor((timeInSeconds % 3600) / 60);
-    const seconds = Math.floor(timeInSeconds % 60);
-
-    const pad = (num: number) => String(num).padStart(2, "0");
-
-    if (hours > 0) {
-      return `${hours}:${pad(minutes)}:${pad(seconds)}`;
-    }
-    return `${minutes}:${pad(seconds)}`;
-  };
-
-  const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
   const isStudent = activeSector === "student";
   const themeAccentClass = isStudent ? "accent-indigo-500" : "accent-pink-500";
   const playButtonThemeClass = isStudent ? "text-indigo-600 fill-indigo-600" : "text-pink-600 fill-pink-600";
@@ -144,7 +42,6 @@ export default function PremiumVideoPlayer({ src, title, instructor, activeSecto
       onClick={() => togglePlay()}
       className="group relative w-full aspect-video bg-slate-950 rounded-2xl overflow-hidden shadow-md border border-slate-800 flex flex-col items-center justify-center cursor-pointer select-none"
     >
-      {/* Video tag */}
       <video
         ref={videoRef}
         src={src}
@@ -153,7 +50,6 @@ export default function PremiumVideoPlayer({ src, title, instructor, activeSecto
         onContextMenu={(e) => e.preventDefault()}
       />
 
-      {/* Big Play/Pause Button in Center (when paused or hovered) */}
       <div className={`absolute inset-0 flex flex-col items-center justify-center z-10 bg-slate-950/20 transition-opacity duration-300 ${isPlaying ? "opacity-0 group-hover:opacity-100" : "opacity-100"}`}>
         {!isPlaying ? (
           <div className="flex flex-col items-center gap-3">
@@ -179,17 +75,14 @@ export default function PremiumVideoPlayer({ src, title, instructor, activeSecto
         )}
       </div>
 
-      {/* Control Panel Bar */}
       <div
-        onClick={(e) => e.stopPropagation()} // Prevent play/pause when clicking controls
+        onClick={(e) => e.stopPropagation()}
         className={`absolute bottom-0 left-0 right-0 bg-slate-950/90 border-t border-slate-800 p-4 flex items-center justify-between gap-4 z-20 text-xs text-white transition-opacity duration-300 ${isPlaying ? "opacity-0 group-hover:opacity-100" : "opacity-100"}`}
       >
-        {/* Playback time */}
         <span className="font-mono text-[11px] min-w-[85px] text-center">
           {formatTime(currentTime)} / {formatTime(duration)}
         </span>
 
-        {/* Range Slider for seeking */}
         <div className="flex-1 flex items-center">
           <input
             type="range"
@@ -202,7 +95,6 @@ export default function PremiumVideoPlayer({ src, title, instructor, activeSecto
           />
         </div>
 
-        {/* Mute/Unmute */}
         <button
           type="button"
           onClick={toggleMute}
@@ -212,7 +104,6 @@ export default function PremiumVideoPlayer({ src, title, instructor, activeSecto
           {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
         </button>
 
-        {/* Speed button */}
         <button
           type="button"
           onClick={cycleSpeed}
@@ -222,7 +113,6 @@ export default function PremiumVideoPlayer({ src, title, instructor, activeSecto
           Vitesse: {playbackRate.toFixed(1)}x
         </button>
 
-        {/* Fullscreen button */}
         <button
           type="button"
           onClick={toggleFullscreen}
