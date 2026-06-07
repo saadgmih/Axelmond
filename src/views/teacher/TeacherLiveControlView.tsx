@@ -1,5 +1,18 @@
 import type { Dispatch, ReactNode, SetStateAction } from "react";
+import {
+  ChevronDown,
+  Code2,
+  FileText,
+  GraduationCap,
+  LogIn,
+  Pencil,
+  Radio,
+  Sparkles,
+  Square,
+  Video,
+} from "lucide-react";
 import type { Course } from "../../types";
+import { liveControlUi } from "./live-control-theme";
 
 export interface TeacherLiveControlViewProps {
   courses: Course[];
@@ -11,6 +24,18 @@ export interface TeacherLiveControlViewProps {
   joinTeacherLiveRoom: () => void | Promise<void>;
   activeLiveCourse: Course | null;
   renderTeacherLiveRoom: () => ReactNode;
+}
+
+function WebcamDecor() {
+  return (
+    <div className={liveControlUi.webcamWrap} aria-hidden="true">
+      <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-slate-800 via-slate-950 to-black shadow-2xl shadow-black/60" />
+      <div className="absolute left-1/2 top-[38%] h-10 w-10 -translate-x-1/2 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 ring-4 ring-slate-800" />
+      <div className="absolute left-1/2 top-[38%] h-5 w-5 -translate-x-1/2 rounded-full bg-gradient-to-br from-indigo-900 to-violet-950 ring-2 ring-violet-500/30" />
+      <div className="absolute bottom-4 left-1/2 h-2 w-12 -translate-x-1/2 rounded-full bg-slate-800" />
+      <div className="absolute -right-1 bottom-8 h-8 w-3 rounded-full bg-slate-900" />
+    </div>
+  );
 }
 
 export default function TeacherLiveControlView({
@@ -25,37 +50,76 @@ export default function TeacherLiveControlView({
   renderTeacherLiveRoom,
 }: TeacherLiveControlViewProps) {
   const selectedCourse = courses.find((course) => course.id === liveCourseId);
+  const isLive = Boolean(selectedCourse?.isLiveNow);
+  const isRoomOpen = activeLiveCourse?.id === liveCourseId;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-1 gap-8 animate-in duration-200">
-      <div className="bg-white border border-slate-200 p-6 md:p-8 rounded-3xl space-y-6 shadow-sm">
-        <div>
-          <h3 className="text-xl font-black text-slate-800">Console de visioconférence Axelmond Research Labs</h3>
-          <p className="text-xs text-slate-400">Configurez et pilotez vos sessions de visioconférence académique</p>
-        </div>
+    <div className={liveControlUi.page}>
+      <div className={liveControlUi.shell}>
+        <div className={liveControlUi.shellGlow} />
+        <div className={liveControlUi.shellBorder} />
 
-        <div className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-600 uppercase">Module Académique en Direct</label>
-            <select
-              value={liveCourseId}
-              onChange={(e) => setLiveCourseId(parseInt(e.target.value))}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500"
-            >
-              {courses.map((course) => (
-                <option key={course.id} value={course.id}>
-                  {course.title}
-                </option>
-              ))}
-            </select>
+        <header className={liveControlUi.hero}>
+          <div className="flex items-start gap-4">
+            <div className={liveControlUi.heroIcon}>
+              <Video className="h-7 w-7 text-white" />
+            </div>
+            <div>
+              <h1 className={liveControlUi.heroTitle}>Console de visioconférence Axelmond Research Labs</h1>
+              <p className={liveControlUi.heroSubtitle}>
+                Configurez et pilotez vos sessions de visioconférence académique
+              </p>
+            </div>
           </div>
+          <WebcamDecor />
+        </header>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-600 uppercase">Sujet de Révision Actif</label>
-            <div className="flex gap-2">
+        <div className="relative z-10 mt-6 space-y-4">
+          <section className={liveControlUi.section}>
+            <div className={liveControlUi.sectionHead}>
+              <div className={liveControlUi.sectionIconPink}>
+                <GraduationCap className="h-5 w-5 text-pink-400" />
+              </div>
+              <div>
+                <h2 className={liveControlUi.sectionTitle}>Module académique en direct</h2>
+                <p className={liveControlUi.sectionDesc}>Sélectionnez le module pour votre visioconférence</p>
+              </div>
+            </div>
+            <div className={liveControlUi.fieldWrap}>
+              <Code2 className={liveControlUi.fieldIcon} />
+              <select
+                value={liveCourseId}
+                onChange={(e) => setLiveCourseId(parseInt(e.target.value, 10))}
+                className={liveControlUi.select}
+                aria-label="Module académique en direct"
+              >
+                {courses.map((course) => (
+                  <option key={course.id} value={course.id}>
+                    {course.title}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className={liveControlUi.selectChevron} />
+            </div>
+          </section>
+
+          <section className={liveControlUi.section}>
+            <div className={liveControlUi.sectionHead}>
+              <div className={liveControlUi.sectionIconPink}>
+                <Pencil className="h-5 w-5 text-violet-400" />
+              </div>
+              <div>
+                <h2 className={liveControlUi.sectionTitle}>Sujet de révision actif</h2>
+                <p className={liveControlUi.sectionDesc}>
+                  Définissez le sujet qui sera synchronisé avec les étudiants
+                </p>
+              </div>
+            </div>
+            <div className={liveControlUi.fieldWrap}>
+              <FileText className={liveControlUi.fieldIcon} />
               <input
                 type="text"
-                placeholder="ex: Résolution par pivot de Gauss..."
+                placeholder="ex: Rotation d'arbres AVL & complexités algorithmiques"
                 value={selectedCourse?.liveSubject || ""}
                 onChange={(e) => {
                   const value = e.target.value;
@@ -64,45 +128,76 @@ export default function TeacherLiveControlView({
                   );
                 }}
                 onBlur={(e) => handleUpdateCourseLiveSubject(liveCourseId, e.target.value)}
-                className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500"
+                className={liveControlUi.input}
+                aria-label="Sujet de révision actif"
               />
             </div>
-            <p className="text-[10px] text-slate-400">Ce message se synchronise instantanément sur l'écran des étudiants inscrits.</p>
-          </div>
+            <p className={liveControlUi.syncNote}>
+              <Sparkles className="h-3.5 w-3.5 shrink-0 text-violet-400" />
+              Ce message se synchronise instantanément sur l&apos;écran des étudiants inscrits.
+            </p>
+          </section>
 
-          <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-            <div>
-              <p className="text-xs font-bold text-slate-800">État de la Diffusion en Direct</p>
-              <p className="text-[11px] text-slate-400">
-                {selectedCourse?.isLiveNow ? "Transmission active sur le flux WebRTC" : "Hors ligne"}
-              </p>
+          <section className={liveControlUi.broadcastCard}>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className={liveControlUi.sectionHead}>
+                <div className={liveControlUi.sectionIconGreen}>
+                  <Radio className="h-5 w-5 text-emerald-400" />
+                </div>
+                <div>
+                  <h2 className={liveControlUi.sectionTitle}>État de la diffusion en direct</h2>
+                  <p className={liveControlUi.sectionDesc}>
+                    {isLive ? "Transmission active sur le flux WebRTC" : "Aucune diffusion en cours pour ce module"}
+                  </p>
+                </div>
+              </div>
+
+              {isLive ? (
+                <span className={liveControlUi.liveBadge}>
+                  <span className={liveControlUi.liveDot}>
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+                  </span>
+                  En direct
+                </span>
+              ) : (
+                <span className={liveControlUi.offlineBadge}>Hors ligne</span>
+              )}
             </div>
-            <div className="flex flex-col sm:flex-row gap-2">
+
+            <div className={`${liveControlUi.actions} mt-5 border-t border-white/[0.06] pt-5`}>
               <button
+                type="button"
                 onClick={() => handleToggleCourseLive(liveCourseId)}
-                className={`px-5 py-2.5 rounded-xl text-xs font-black transition-colors cursor-pointer ${
-                  selectedCourse?.isLiveNow
-                    ? "bg-red-600 text-white hover:bg-red-700"
-                    : "bg-pink-600 hover:bg-pink-700 text-white"
-                }`}
+                className={isLive ? liveControlUi.stopBtn : liveControlUi.startBtn}
               >
-                {selectedCourse?.isLiveNow ? "Éteindre le signal" : "Lancer la session live"}
+                {isLive ? (
+                  <>
+                    <Square className="h-3.5 w-3.5 fill-current" />
+                    Éteindre le signal
+                  </>
+                ) : (
+                  <>
+                    <Radio className="h-3.5 w-3.5" />
+                    Lancer la session live
+                  </>
+                )}
               </button>
               <button
+                type="button"
                 onClick={joinTeacherLiveRoom}
-                className="px-5 py-2.5 rounded-xl text-xs font-black transition-colors cursor-pointer bg-slate-900 text-white hover:bg-slate-800"
+                className={isRoomOpen ? liveControlUi.enterBtnActive : liveControlUi.enterBtn}
               >
-                {activeLiveCourse?.id === liveCourseId ? "Salle LiveKit ouverte" : "Entrer dans la salle"}
+                <LogIn className="h-4 w-4" />
+                {isRoomOpen ? "Salle LiveKit ouverte" : "Entrer dans la salle"}
               </button>
             </div>
-          </div>
+          </section>
         </div>
       </div>
 
       {activeLiveCourse && (
-        <div className="h-[min(100dvh,960px)] min-h-[420px] w-full overflow-hidden rounded-none lg:rounded-2xl border-y lg:border border-slate-800">
-          {renderTeacherLiveRoom()}
-        </div>
+        <div className={liveControlUi.roomShell}>{renderTeacherLiveRoom()}</div>
       )}
     </div>
   );
