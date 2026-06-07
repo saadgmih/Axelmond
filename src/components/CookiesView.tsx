@@ -254,8 +254,8 @@ export default function CookiesView() {
               <div className="flex flex-wrap gap-2 pt-1">
                 {[
                   { label: "Sans tracking publicitaire", color: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10" },
-                  { label: "RGPD Conforme", color: "text-sky-300 border-sky-500/30 bg-sky-500/10" },
-                  { label: "Directive ePrivacy", color: "text-violet-300 border-violet-500/30 bg-violet-500/10" },
+                  { label: "Loi 09-08", color: "text-sky-300 border-sky-500/30 bg-sky-500/10" },
+                  { label: "CNDP", color: "text-violet-300 border-violet-500/30 bg-violet-500/10" },
                 ].map(({ label, color }) => (
                   <span key={label} className={`text-[10px] font-black uppercase tracking-widest border px-2.5 py-1 rounded-full ${color}`}>
                     {label}
@@ -644,7 +644,7 @@ export default function CookiesView() {
                   </div>
                   <p className="text-[12px] text-slate-400 leading-relaxed">
                     Pour toute question relative aux cookies, à vos préférences ou à l'exercice de vos
-                    droits RGPD, notre équipe vous répond dans un délai de 10 jours ouvrables.
+                    droits prévus par la loi n° 09-08, notre équipe vous répond dans un délai de 10 jours ouvrables.
                   </p>
                   <span className="text-[10px] font-black text-rose-300">
                     verification@axelmond.com
@@ -656,10 +656,10 @@ export default function CookiesView() {
               <div className="bg-slate-950/50 border border-slate-800/60 rounded-2xl px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="space-y-0.5">
                   <div className="text-white text-sm font-bold">Axelmond Research Labs — Politique des cookies</div>
-                  <div className="text-slate-500 text-[11px]">Dernière mise à jour : Juin 2026 · Droit français · Directive ePrivacy</div>
+                  <div className="text-slate-500 text-[11px]">Dernière mise à jour : Juin 2026 · Droit marocain · Loi n° 09-08</div>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <span className="text-[10px] font-black uppercase tracking-widest border px-2.5 py-1 rounded-full text-emerald-300 border-emerald-500/30 bg-emerald-500/10">RGPD</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest border px-2.5 py-1 rounded-full text-emerald-300 border-emerald-500/30 bg-emerald-500/10">Loi 09-08</span>
                   <span className="text-[10px] font-black uppercase tracking-widest border px-2.5 py-1 rounded-full text-sky-300 border-sky-500/30 bg-sky-500/10">ePrivacy</span>
                 </div>
               </div>

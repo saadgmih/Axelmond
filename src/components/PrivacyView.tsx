@@ -180,26 +180,26 @@ export default function PrivacyView() {
                 <div className="text-white font-black text-sm">{lastUpdate}</div>
                 <div className="flex items-center justify-end gap-2">
                   <Chip label={version} color="text-indigo-300 border-indigo-500/30 bg-indigo-500/10" />
-                  <Chip label="RGPD" color="text-emerald-300 border-emerald-500/30 bg-emerald-500/10" />
+                  <Chip label="Loi 09-08" color="text-emerald-300 border-emerald-500/30 bg-emerald-500/10" />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* RGPD compliance banner */}
+          {/* Conformité loi 09-08 */}
           <div className="mt-8 flex flex-wrap items-center gap-4 bg-emerald-950/30 border border-emerald-800/40 rounded-2xl px-5 py-4">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
                 <Shield className="w-4 h-4 text-emerald-400" />
               </div>
               <div>
-                <div className="text-emerald-300 text-xs font-black uppercase tracking-wide">Conforme au RGPD</div>
-                <div className="text-emerald-700 text-[11px]">Règlement Général sur la Protection des Données (UE 2016/679)</div>
+                <div className="text-emerald-300 text-xs font-black uppercase tracking-wide">Conforme à la loi 09-08</div>
+                <div className="text-emerald-700 text-[11px]">Loi relative à la protection des personnes physiques (Maroc)</div>
               </div>
             </div>
             <div className="hidden md:block h-8 w-px bg-emerald-800/40 mx-2" />
             <div className="text-[11px] text-emerald-600 leading-relaxed max-w-lg">
-              Axelmond Research Labs s'engage à respecter les obligations légales du RGPD et les bonnes pratiques
+              Axelmond Research Labs s'engage à respecter les obligations légales de la loi n° 09-08 et les bonnes pratiques
               en matière de protection des données personnelles des utilisateurs de la plateforme.
             </div>
           </div>
@@ -314,7 +314,7 @@ export default function PrivacyView() {
           >
             <p>
               Les données personnelles collectées sont utilisées exclusivement dans les finalités suivantes,
-              conformément au principe de limitation des finalités du RGPD.
+              conformément au principe de limitation des finalités prévu par la loi n° 09-08.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
               {[
@@ -505,7 +505,7 @@ export default function PrivacyView() {
           >
             <p>
               Les données personnelles sont conservées uniquement le temps nécessaire aux finalités pour
-              lesquelles elles ont été collectées, conformément au principe de minimisation des données du RGPD.
+              lesquelles elles ont été collectées, conformément au principe de minimisation des données de la loi n° 09-08.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {[
@@ -540,7 +540,7 @@ export default function PrivacyView() {
             inView={s6Ref.inView} delay={50}
           >
             <p>
-              Conformément au Règlement Général sur la Protection des Données (RGPD — UE 2016/679),
+              Conformément à la loi n° 09-08 relative à la protection des personnes physiques,
               vous disposez des droits suivants sur vos données personnelles.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
@@ -548,7 +548,7 @@ export default function PrivacyView() {
                 { icon: <Eye className="w-4 h-4 text-indigo-400" />,   right: "Droit d'accès",         desc: "Obtenir une copie de toutes vos données personnelles détenues par ARL.", color: "border-indigo-800/30 bg-indigo-950/20" },
                 { icon: <RefreshCw className="w-4 h-4 text-violet-400" />, right: "Droit de rectification", desc: "Corriger ou mettre à jour vos informations personnelles inexactes ou incomplètes.", color: "border-violet-800/30 bg-violet-950/20" },
                 { icon: <Trash2 className="w-4 h-4 text-rose-400" />,  right: "Droit à l'effacement",  desc: "Demander la suppression de vos données (\"droit à l'oubli\") sous conditions légales.", color: "border-rose-800/30 bg-rose-950/20" },
-                { icon: <Lock className="w-4 h-4 text-amber-400" />,   right: "Droit à la limitation",  desc: "Restreindre le traitement de vos données dans certains cas prévus par le RGPD.", color: "border-amber-800/30 bg-amber-950/20" },
+                { icon: <Lock className="w-4 h-4 text-amber-400" />,   right: "Droit à la limitation",  desc: "Restreindre le traitement de vos données dans certains cas prévus par la loi 09-08.", color: "border-amber-800/30 bg-amber-950/20" },
                 { icon: <Download className="w-4 h-4 text-emerald-400" />, right: "Droit à la portabilité", desc: "Recevoir vos données dans un format structuré et lisible par machine (JSON/CSV).", color: "border-emerald-800/30 bg-emerald-950/20" },
                 { icon: <AlertTriangle className="w-4 h-4 text-sky-400" />, right: "Droit d'opposition",  desc: "Vous opposer au traitement de vos données à des fins spécifiques.", color: "border-sky-800/30 bg-sky-950/20" },
               ].map(({ icon, right, desc, color }) => (
@@ -566,13 +566,13 @@ export default function PrivacyView() {
               <p className="text-[12px] text-slate-400 leading-relaxed">
                 Envoyez votre demande par e-mail à{" "}
                 <strong className="text-indigo-300">verification@axelmond.com</strong> avec pour objet
-                «&nbsp;Exercice de droits RGPD — [Votre nom]&nbsp;». Nous nous engageons à vous répondre
-                dans un délai de <strong className="text-white">30 jours calendaires</strong> conformément au RGPD.
+                «&nbsp;Exercice de droits — loi 09-08 — [Votre nom]&nbsp;». Nous nous engageons à vous répondre
+                dans un délai de <strong className="text-white">30 jours calendaires</strong> conformément à la loi n° 09-08.
                 Une pièce d'identité peut être demandée pour vérifier votre identité avant traitement.
               </p>
               <p className="text-[11px] text-slate-500">
-                Vous avez également le droit d'introduire une réclamation auprès de la CNIL (Commission Nationale de
-                l'Informatique et des Libertés) — cnil.fr.
+                Vous avez également le droit d'introduire une réclamation auprès de la CNDP (Commission Nationale de
+                contrôle de la protection des Données à caractère Personnel) — cndp.ma.
               </p>
             </div>
           </Section>
@@ -650,10 +650,10 @@ export default function PrivacyView() {
               <InfoRow label="Responsable du traitement" value="Axelmond Research Labs" icon={<Shield className="w-3.5 h-3.5" />} />
               <InfoRow label="Contact DPO / Confidentialité" value="verification@axelmond.com" icon={<Mail className="w-3.5 h-3.5" />} />
               <InfoRow label="Domaine officiel" value="axelmond.com" icon={<Globe className="w-3.5 h-3.5" />} />
-              <InfoRow label="Délai de réponse RGPD" value="30 jours calendaires maximum" icon={<Clock className="w-3.5 h-3.5" />} />
+              <InfoRow label="Délai de réponse" value="30 jours calendaires maximum" icon={<Clock className="w-3.5 h-3.5" />} />
             </div>
             <p>
-              Si vous estimez que le traitement de vos données personnelles constitue une violation du RGPD,
+              Si vous estimez que le traitement de vos données personnelles constitue une violation de la loi n° 09-08,
               vous avez le droit d'introduire une réclamation auprès d'une autorité de contrôle compétente :
             </p>
             <div className="bg-slate-950/60 border border-slate-800 rounded-2xl px-5 py-4 flex items-start gap-4">
@@ -661,8 +661,8 @@ export default function PrivacyView() {
                 <Globe className="w-5 h-5 text-indigo-400" />
               </div>
               <div>
-                <div className="text-white font-bold text-sm">CNIL — Commission Nationale de l'Informatique et des Libertés</div>
-                <div className="text-slate-500 text-[11px] mt-1">3 Place de Fontenoy, 75007 Paris · cnil.fr · +33 1 53 73 22 22</div>
+                <div className="text-white font-bold text-sm">CNDP — Commission Nationale de contrôle de la protection des Données à caractère Personnel</div>
+                <div className="text-slate-500 text-[11px] mt-1">Avenue Allal Ben Abdellah, Rabat · cndp.ma</div>
                 <div className="text-slate-500 text-[11px]">Délai de traitement d'une réclamation : environ 3 mois</div>
               </div>
             </div>
@@ -674,11 +674,11 @@ export default function PrivacyView() {
           <div className="space-y-1">
             <div className="text-white text-sm font-bold">Axelmond Research Labs — Politique de confidentialité</div>
             <div className="text-slate-500 text-[11px]">
-              Dernière mise à jour : {lastUpdate} · Version {version} · Soumis au droit français et au RGPD
+              Dernière mise à jour : {lastUpdate} · Version {version} · Soumis au droit marocain et à la loi n° 09-08
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Chip label="RGPD Conforme" color="text-emerald-300 border-emerald-500/30 bg-emerald-500/10" />
+            <Chip label="Loi 09-08" color="text-emerald-300 border-emerald-500/30 bg-emerald-500/10" />
             <Chip label={version} color="text-indigo-300 border-indigo-500/30 bg-indigo-500/10" />
           </div>
         </div>

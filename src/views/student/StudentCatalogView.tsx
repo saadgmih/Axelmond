@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import type { Course, Discipline, FacultyDomain } from "../../types";
+import { formatCredits, formatMad } from "../../utils/morocco-locale";
 
 type NavigateTo = (view: string, targetCourse?: Course | null) => void;
 type CourseIconRenderer = (iconName: string, colorClass?: string) => ReactNode;
@@ -185,7 +186,7 @@ export default function StudentCatalogView({
                         {course.level}
                       </span>
                       <span className="text-xs font-semibold text-slate-400">
-                        {course.credits} ECTS
+                        {formatCredits(course.credits)}
                       </span>
                     </div>
                   </div>
@@ -226,7 +227,7 @@ export default function StudentCatalogView({
                           Abonnement mensuel
                         </span>
                         <span className="text-lg font-black text-indigo-700 font-mono">
-                          {course.price.toFixed(2)}€
+                          {formatMad(course.price)}
                         </span>
                       </div>
                       <button

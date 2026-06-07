@@ -19,7 +19,8 @@ assert.match(appSource, /Plateforme Académique de Recherche, Formation et Innov
 assert.match(appSource, /avatarImage/);
 assert.match(schema, /avatarUrl\s+String\?/);
 assert.match(curriculumSource, /Titre du module/);
-assert.match(curriculumSource, /Crédits ECTS/);
+assert.match(curriculumSource, /Crédits/);
+assert.match(curriculumSource, /formatMad|formatCredits|morocco-locale/);
 assert.match(appSource, /managedCourses/);
 
 console.log("UI production cleanup rules passed");

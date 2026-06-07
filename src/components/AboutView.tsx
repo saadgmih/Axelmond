@@ -683,7 +683,7 @@ export default function AboutView() {
                   {
                     icon: <BarChart className="w-4 h-4 text-violet-400" />,
                     title: "Conformité",
-                    value: "RGPD Compliant",
+                    value: "Loi 09-08",
                     sub: "Données protégées · Audit trail",
                   },
                 ].map(({ icon, title, value, sub }) => (

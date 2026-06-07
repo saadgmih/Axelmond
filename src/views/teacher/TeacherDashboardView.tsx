@@ -23,6 +23,7 @@ import {
 import { api } from "../../api";
 import type { AppUser } from "../../components/AuthScreen";
 import type { AcademicProfilePayload, Course, CourseGrade } from "../../types";
+import { formatCredits, formatMad } from "../../utils/morocco-locale";
 
 interface TeacherDashboardViewProps {
   currentUser: AppUser;
@@ -178,7 +179,7 @@ export default function TeacherDashboardView({
           id: course.id,
           label: course.title,
           amount: course.price * enrollments,
-          detail: `${enrollments} inscription${enrollments > 1 ? "s" : ""} × ${course.price.toFixed(2)} €`,
+          detail: `${enrollments} inscription${enrollments > 1 ? "s" : ""} × ${formatMad(course.price)}`,
         };
       })
       .filter((item): item is NonNullable<typeof item> => item !== null)
@@ -272,7 +273,7 @@ export default function TeacherDashboardView({
     },
     {
       label: "Revenus estimés",
-      value: `${dashboard.estimatedRevenue.toFixed(2)} €`,
+      value: formatMad(dashboard.estimatedRevenue),
       hint: "inscriptions × tarif module",
       icon: DollarSign,
       accent: "text-emerald-300",
@@ -519,7 +520,7 @@ export default function TeacherDashboardView({
                                 <div key={payment.id} className="rounded-xl border border-white/5 bg-slate-950/60 px-3 py-2.5">
                                   <div className="flex items-center justify-between gap-2">
                                     <p className="text-xs font-bold text-white truncate">{payment.label}</p>
-                                    <p className="text-xs font-black text-emerald-300 font-mono">{payment.amount.toFixed(2)} €</p>
+                                    <p className="text-xs font-black text-emerald-300 font-mono">{formatMad(payment.amount)}</p>
                                   </div>
                                   <p className="text-[11px] text-slate-400">{payment.detail}</p>
                                 </div>
@@ -612,7 +613,7 @@ export default function TeacherDashboardView({
                                   </span>
                                 </div>
                                 <p className="text-[11px] text-slate-400">
-                                  {row.students} étudiant{row.students !== 1 ? "s" : ""} · {row.publishedCount}/{row.totalModules} chapitres publiés · {row.course.price.toFixed(2)} €
+                                  {row.students} étudiant{row.students !== 1 ? "s" : ""} · {row.publishedCount}/{row.totalModules} chapitres publiés · {formatMad(row.course.price)}
                                 </p>
                                 <div className="flex items-center gap-2">
                                   <div className="h-1.5 flex-1 max-w-xs rounded-full bg-slate-800 overflow-hidden">
@@ -664,10 +665,10 @@ export default function TeacherDashboardView({
                             <div className="flex items-start justify-between">
                               <div>
                                 <h4 className="font-extrabold text-sm text-slate-900 leading-snug">{course.title}</h4>
-                                <p className="text-xs text-slate-500 mt-0.5">{course.credits} ECTS • {course.duration}</p>
+                                <p className="text-xs text-slate-500 mt-0.5">{formatCredits(course.credits)} • {course.duration}</p>
                               </div>
                               <span className="font-mono font-black text-xs text-pink-700 bg-pink-50 px-2.5 py-1 rounded-lg">
-                                {course.price.toFixed(2)} €
+                                {formatMad(course.price)}
                               </span>
                             </div>
 
@@ -675,12 +676,12 @@ export default function TeacherDashboardView({
                             <div className="space-y-1.5 pt-1">
                               <div className="flex justify-between text-[11px] font-bold text-slate-400 uppercase">
                                 <span>Frais d'inscription</span>
-                                <span className="text-slate-800 font-mono font-bold">{course.price.toFixed(2)} €</span>
+                                <span className="text-slate-800 font-mono font-bold">{formatMad(course.price)}</span>
                               </div>
                               <input
                                 type="range"
                                 min="0"
-                                max="49"
+                                max="499"
                                 step="0.5"
                                 value={course.price}
                                 onChange={(e) => handleUpdateCoursePrice(course.id, parseFloat(e.target.value))}

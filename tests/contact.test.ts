@@ -36,7 +36,8 @@ assert.match(appSource, /INSTITUTIONAL_VIEWS\.has\(currentView\)/);
 assert.match(contactViewSource, /import\s*\{\s*api\s*\}\s*from\s*"\.\.\/api";/);
 assert.match(contactViewSource, /api\.submitContact\(\{/);
 assert.match(contactViewSource, /verification@axelmond\.com/); // Required contact email
-assert.match(contactViewSource, /\+33\s*\(0\)1\s*43\s*21\s*00\s*00/); // Required telephone number
-assert.match(contactViewSource, /Données Sécurisées/); // GDPR section
+assert.match(contactViewSource, /\+212\s*634772103/); // Required telephone number
+assert.match(contactViewSource, /Données Sécurisées/); // Data protection section
+assert.match(contactViewSource, /loi 09-08|loi n° 09-08/i);
 
 console.log("Contact page redesign tests passed successfully!");

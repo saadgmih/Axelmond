@@ -137,14 +137,14 @@ export default function LegalView() {
               <p className="text-slate-400 text-sm md:text-base leading-relaxed">
                 Les présentes mentions légales régissent les conditions générales d'édition et de publication
                 de la plateforme <strong className="text-white">Axelmond Research Labs</strong>, conformément
-                aux dispositions légales en vigueur en France et au niveau européen.
+                aux dispositions légales en vigueur au Maroc.
               </p>
 
               <div className="flex flex-wrap gap-2 pt-1">
                 {[
-                  { label: "Droit français", color: "text-slate-300 border-slate-600 bg-slate-700/30" },
-                  { label: "RGPD", color: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10" },
-                  { label: "Loi Informatique & Libertés", color: "text-sky-300 border-sky-500/30 bg-sky-500/10" },
+                  { label: "Droit marocain", color: "text-slate-300 border-slate-600 bg-slate-700/30" },
+                  { label: "Loi 09-08", color: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10" },
+                  { label: "CNDP", color: "text-sky-300 border-sky-500/30 bg-sky-500/10" },
                 ].map(({ label, color }) => (
                   <span key={label} className={`text-[10px] font-black uppercase tracking-widest border px-2.5 py-1 rounded-full ${color}`}>
                     {label}
@@ -176,9 +176,9 @@ export default function LegalView() {
           <div className="mt-8 bg-slate-900/60 border border-slate-700/50 rounded-2xl px-5 py-4 flex items-start gap-3">
             <Scale className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
             <p className="text-[12px] text-slate-400 leading-relaxed">
-              En application de la <strong className="text-white">loi n° 2004-575 du 21 juin 2004</strong> pour la confiance dans
-              l'économie numérique (LCEN) et du <strong className="text-white">Règlement Général sur la Protection des Données
-              (RGPD — UE 2016/679)</strong>, les informations ci-dessous permettent à tout utilisateur d'identifier
+              En application de la <strong className="text-white">loi n° 09-08</strong> relative à la protection
+              des personnes physiques à l'égard du traitement des données à caractère personnel, les informations
+              ci-dessous permettent à tout utilisateur d'identifier
               l'éditeur responsable de la plateforme Axelmond Research Labs.
             </p>
           </div>
@@ -292,9 +292,9 @@ export default function LegalView() {
               <div className="bg-slate-950/50 border border-slate-800 rounded-2xl p-5 flex items-start gap-3">
                 <Info className="w-4 h-4 text-sky-400 flex-shrink-0 mt-0.5" />
                 <p className="text-[12px] text-slate-400 leading-relaxed">
-                  L'infrastructure d'hébergement est soumise aux mêmes exigences de conformité RGPD
-                  que la plateforme elle-même. Les données des utilisateurs sont traitées exclusivement
-                  sur des serveurs situés en Europe, conformément aux obligations réglementaires applicables.
+                  L'infrastructure d'hébergement est soumise aux mêmes exigences de conformité prévues par la
+                  loi n° 09-08 que la plateforme elle-même. Les données des utilisateurs sont traitées conformément
+                  aux obligations réglementaires marocaines applicables.
                   Pour toute question relative à l'hébergement, contactez{" "}
                   <strong className="text-white">verification@axelmond.com</strong>.
                 </p>
@@ -431,8 +431,8 @@ export default function LegalView() {
                   accentClass="bg-emerald-500/15 border border-emerald-500/20"
                 />
                 <p className="text-[13px] text-slate-400 leading-relaxed mb-6">
-                  Conformément au <strong className="text-white">RGPD (UE 2016/679)</strong> et à la
-                  <strong className="text-white"> loi Informatique et Libertés</strong>, Axelmond Research Labs
+                  Conformément à la <strong className="text-white">loi n° 09-08</strong> et aux textes
+                  applicables en matière de protection des données personnelles au Maroc, Axelmond Research Labs
                   s'engage à protéger vos données personnelles et à vous informer de vos droits.
                   Consultez les documents ci-dessous pour plus d'informations.
                 </p>
@@ -476,7 +476,7 @@ export default function LegalView() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <InfoRow label="Autorité de contrôle" value="CNIL — cnil.fr — +33 1 53 73 22 22" icon={<Scale className="w-3.5 h-3.5" />} />
+                  <InfoRow label="Autorité de contrôle" value="CNDP — cndp.ma" icon={<Scale className="w-3.5 h-3.5" />} />
                   <InfoRow label="Contact DPO / Confidentialité" value="verification@axelmond.com" icon={<Mail className="w-3.5 h-3.5" />} mono />
                 </div>
               </div>
@@ -509,10 +509,10 @@ export default function LegalView() {
                   },
                   {
                     icon: <Shield className="w-5 h-5 text-emerald-400" />,
-                    title: "Demandes RGPD / Données",
+                    title: "Demandes données personnelles",
                     contact: "verification@axelmond.com",
-                    objet: "Exercice de droits RGPD",
-                    delay: "30 jours calendaires (RGPD)",
+                    objet: "Exercice de droits — loi 09-08",
+                    delay: "30 jours calendaires (loi 09-08)",
                     color: "border-emerald-800/30 bg-emerald-950/15",
                   },
                   {
@@ -560,8 +560,8 @@ export default function LegalView() {
                 <p className="text-[12px] text-slate-400 leading-relaxed">
                   <strong className="text-white">Résolution amiable :</strong> En cas de litige relatif à l'interprétation
                   ou à l'exécution des présentes mentions légales, les parties s'engagent à rechercher en priorité
-                  une solution amiable dans un délai de 30 jours avant tout recours judiciaire. Les juridictions
-                  françaises sont seules compétentes en cas de litige persistant.
+                  une solution amiable dans un délai de 30 jours avant tout recours judiciaire. Les tribunaux
+                  marocains sont seuls compétents en cas de litige persistant.
                 </p>
               </div>
             </Card>
@@ -580,8 +580,8 @@ export default function LegalView() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                 {[
                   { label: "Dernière mise à jour", value: "Juin 2026 — Version v1.2.0" },
-                  { label: "Droit applicable", value: "Droit français · LCEN · RGPD (UE 2016/679) · Loi Informatique & Libertés" },
-                  { label: "Juridiction compétente", value: "Tribunaux compétents du ressort de Paris (France)" },
+                  { label: "Droit applicable", value: "Droit marocain · Loi n° 09-08 · Code du commerce" },
+                  { label: "Juridiction compétente", value: "Tribunaux compétents du ressort de Casablanca (Maroc)" },
                   { label: "Langue officielle", value: "Français — Version faisant foi en cas de litige" },
                 ].map(({ label, value }) => (
                   <div key={label} className="bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-3">
@@ -626,10 +626,10 @@ export default function LegalView() {
                     v1.2.0
                   </span>
                   <span className="text-[10px] font-black uppercase tracking-widest border px-2.5 py-1 rounded-full text-emerald-300 border-emerald-500/30 bg-emerald-500/10">
-                    RGPD
+                    Loi 09-08
                   </span>
                   <span className="text-[10px] font-black uppercase tracking-widest border px-2.5 py-1 rounded-full text-sky-300 border-sky-500/30 bg-sky-500/10">
-                    LCEN
+                    CNDP
                   </span>
                 </div>
               </div>

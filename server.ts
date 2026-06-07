@@ -47,6 +47,7 @@ import { startPerformanceMonitor, requestTimingMiddleware } from "./src/performa
 import { logSecurity, logAudit, alertFailedLogins, alertMassDeletions, alertSuspectUpload } from "./src/security-logger";
 import { decodeStoredText, decodeStoredValue } from "./src/text";
 import { shouldSkipStartupSeed } from "./src/startup-seed";
+import { PLATFORM_CURRENCY_CODE } from "./src/utils/morocco-locale";
 import { patchExpressAsyncRoutes } from "./src/express-async";
 
 dotenv.config();
@@ -453,7 +454,7 @@ const seedCourses: Course[] = [
     duration: "40 heures",
     category: "Programmation",
     disciplineId: 601,
-    price: 15.99,
+    price: 160,
     iconName: "Code",
     color: "bg-blue-100",
     instructor: "Équipe académique Axelmond",
@@ -478,7 +479,7 @@ const seedCourses: Course[] = [
     duration: "30 heures",
     category: "Données",
     disciplineId: 603,
-    price: 12.50,
+    price: 125,
     iconName: "Database",
     color: "bg-emerald-100",
     instructor: "Dr. Sophie Laurent",
@@ -499,7 +500,7 @@ const seedCourses: Course[] = [
     duration: "35 heures",
     category: "Système",
     disciplineId: 604,
-    price: 19.99,
+    price: 200,
     iconName: "Terminal",
     color: "bg-purple-100",
     instructor: "Équipe académique Axelmond",
@@ -521,7 +522,7 @@ const seedCourses: Course[] = [
     duration: "50 heures",
     category: "IA",
     disciplineId: 606,
-    price: 24.99,
+    price: 250,
     iconName: "Brain",
     color: "bg-pink-100",
     instructor: "Dr. Nadia Rahmani",
@@ -4115,7 +4116,7 @@ app.post("/api/paypal/capture-order", requireAuth, async (req, res) => {
 
     const paidAmount = String(capture?.amount?.value || "");
     const paidCurrency = String(capture?.amount?.currency_code || "").toUpperCase();
-    if (paidCurrency !== "EUR" || paidAmount !== formatPayPalAmount(course.price)) {
+    if (paidCurrency !== PLATFORM_CURRENCY_CODE || paidAmount !== formatPayPalAmount(course.price)) {
       logPayPalError("PayPal capture amount mismatch", {
         orderId,
         courseId,

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import AITutorChat from "../../components/AITutorChat";
 import type { ContentSection, Course, CourseModule, LessonContent } from "../../types";
+import { formatCredits } from "../../utils/morocco-locale";
 
 type NavigateTo = (view: string, targetCourse?: Course | null) => void;
 type FlatSection = ContentSection & { depth: number };
@@ -94,7 +95,7 @@ export default function StudentCourseView({
         
         <div className="space-y-1">
           <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-0.5 rounded">
-            {selectedCourse.level} ECTS : {selectedCourse.credits}
+            {selectedCourse.level} · {formatCredits(selectedCourse.credits)}
           </span>
           <h2 className="text-base font-black text-slate-800 leading-tight">
             {selectedCourse.title}

@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import type { Course, ContentSection, FacultyDomain, LessonContent } from "../../types";
+import { formatCredits, formatMad } from "../../utils/morocco-locale";
 
 export interface TeacherCurriculumViewProps {
   domains: FacultyDomain[];
@@ -335,7 +336,7 @@ export default function TeacherCurriculumView({
                           </h3>
                           {managedCourse && (
                             <p className="text-[10px] text-slate-455 mt-1 leading-none">
-                              ID: {managedCourse.id} • {managedCourse.discipline?.name || managedCourse.category} • {managedCourse.credits} ECTS • {managedCourse.duration}
+                              ID: {managedCourse.id} • {managedCourse.discipline?.name || managedCourse.category} • {formatCredits(managedCourse.credits)} • {managedCourse.duration}
                             </p>
                           )}
                         </div>
@@ -447,7 +448,7 @@ export default function TeacherCurriculumView({
                             </label>
 
                             <label className="block space-y-1">
-                              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Crédits ECTS</span>
+                              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Crédits</span>
                               <input
                                 type="number"
                                 min="0"
@@ -474,9 +475,9 @@ export default function TeacherCurriculumView({
                             </label>
 
                             <label className="block space-y-1">
-                              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Tarif (€)</span>
+                              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Tarif (DH)</span>
                               <div className="relative">
-                                <span className="text-slate-400 font-bold text-xs absolute left-3 top-3">€</span>
+                                <span className="text-slate-400 font-bold text-xs absolute left-3 top-3">DH</span>
                                 <input
                                   type="number"
                                   min="0"
@@ -582,17 +583,17 @@ export default function TeacherCurriculumView({
                                       />
                                     </label>
                                     <label className="space-y-1 block">
-                                      <span className="text-[9px] font-bold text-slate-400 uppercase">Crédits ECTS</span>
+                                      <span className="text-[9px] font-bold text-slate-400 uppercase">Crédits</span>
                                       <input
                                         type="number" min="0"
-                                        placeholder="ECTS"
+                                        placeholder="Crédits"
                                         value={editCourseForm.credits}
                                         onChange={(e) => setEditCourseForm((prev) => ({ ...prev, credits: parseInt(e.target.value) || 0 }))}
                                         className="w-full bg-slate-55 border border-slate-250 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-pink-500 font-semibold"
                                       />
                                     </label>
                                     <label className="space-y-1 block">
-                                      <span className="text-[9px] font-bold text-slate-400 uppercase">Prix (€)</span>
+                                      <span className="text-[9px] font-bold text-slate-400 uppercase">Prix (DH)</span>
                                       <input
                                         type="number" min="0" step="0.5"
                                         placeholder="Prix"
@@ -646,7 +647,7 @@ export default function TeacherCurriculumView({
                                   <div className="flex flex-wrap gap-2 text-[10px] font-black text-slate-550 pt-1">
                                     <span className="bg-slate-50 border border-slate-100 px-2.5 py-1.5 rounded-lg flex items-center gap-1">
                                       <Award className="w-3.5 h-3.5 text-slate-400" />
-                                      {course.credits} ECTS
+                                      {formatCredits(course.credits)}
                                     </span>
                                     <span className="bg-slate-50 border border-slate-100 px-2.5 py-1.5 rounded-lg flex items-center gap-1">
                                       <Clock className="w-3.5 h-3.5 text-slate-400" />
@@ -658,7 +659,7 @@ export default function TeacherCurriculumView({
                                         : "bg-slate-50 text-slate-600 border-slate-100"
                                     }`}>
                                       <DollarSign className="w-3.5 h-3.5" />
-                                      {course.price > 0 ? `${course.price.toFixed(2)} €` : "Accès gratuit"}
+                                      {course.price > 0 ? formatMad(course.price) : "Accès gratuit"}
                                     </span>
                                   </div>
 

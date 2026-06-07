@@ -685,7 +685,7 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
         </motion.div>
 
         <div className="text-center text-slate-500 text-[10px] font-medium leading-relaxed">
-          <span>Plateforme numérique conforme au règlement européen d'interopérabilité académique.</span>
+          <span>Plateforme numérique conçue pour l'écosystème académique marocain.</span>
           <br />
           <span>Paiements sécurisés, contenus pédagogiques et services académiques connectés.</span>
         </div>

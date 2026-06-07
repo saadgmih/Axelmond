@@ -120,7 +120,7 @@ export default function SupportView({ currentUser, navigateTo }: SupportViewProp
     {
       category: "Sécurité",
       question: "Mes données personnelles sont-elles protégées ?",
-      answer: "Oui. Toutes vos données sont stockées conformément aux exigences du RGPD. Nous n'exposons aucun secret de base de données ni identifiant sensible dans le code client."
+      answer: "Oui. Toutes vos données sont stockées conformément aux exigences de la loi n° 09-08 relative à la protection des données personnelles. Nous n'exposons aucun secret de base de données ni identifiant sensible dans le code client."
     },
     {
       category: "Sécurité",

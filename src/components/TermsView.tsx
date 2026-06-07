@@ -159,8 +159,8 @@ export default function TermsView() {
               {/* Pill tags */}
               <div className="flex flex-wrap gap-2 pt-1">
                 {[
-                  { label: "Droit français", color: "text-sky-300 border-sky-500/30 bg-sky-500/10" },
-                  { label: "RGPD Conforme", color: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10" },
+                  { label: "Droit marocain", color: "text-sky-300 border-sky-500/30 bg-sky-500/10" },
+                  { label: "Loi 09-08", color: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10" },
                   { label: "Acceptation implicite", color: "text-violet-300 border-violet-500/30 bg-violet-500/10" },
                 ].map(({ label, color }) => (
                   <span key={label} className={`text-[10px] font-black uppercase tracking-widest border px-2.5 py-1 rounded-full ${color}`}>
@@ -229,7 +229,7 @@ export default function TermsView() {
               <RuleCard
                 icon={<Shield className="w-4 h-4 text-emerald-300" />}
                 title="Respect des lois"
-                description="Tout usage de la plateforme doit être conforme aux lois et réglementations applicables, notamment le droit français, le RGPD et le Code de la propriété intellectuelle."
+                description="Tout usage de la plateforme doit être conforme aux lois et réglementations applicables au Maroc, notamment la loi n° 09-08 et le Code de la propriété intellectuelle."
                 border="border-emerald-800/30" bg="bg-emerald-950/20"
               />
             </div>
@@ -643,9 +643,9 @@ export default function TermsView() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 {[
                   { label: "Entité responsable",    value: "Axelmond Research Labs" },
-                  { label: "Droit applicable",       value: "Droit français · RGPD (UE 2016/679)" },
+                  { label: "Droit applicable",       value: "Droit marocain · Loi n° 09-08" },
                   { label: "Dernière mise à jour",   value: "Juin 2026 — Version v3.1.0" },
-                  { label: "Juridiction",            value: "Tribunaux compétents du ressort de Paris" },
+                  { label: "Juridiction",            value: "Tribunaux compétents du ressort de Casablanca (Maroc)" },
                 ].map(({ label, value }) => (
                   <div key={label} className="bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-3">
                     <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-0.5">{label}</div>

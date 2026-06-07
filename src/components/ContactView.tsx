@@ -297,7 +297,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div className="space-y-1">
-              <h4 className="text-sm font-bold text-indigo-300">Données Sécurisées & Protection RGPD</h4>
+              <h4 className="text-sm font-bold text-indigo-300">Données Sécurisées & Protection des données (loi 09-08)</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
                 Les informations recueillies via ce formulaire sont cryptées de bout en bout et font l'objet d'un audit de sécurité. Elles sont utilisées exclusivement pour traiter votre demande par l'administration d'Axelmond Research Labs et ne seront jamais partagées avec des tiers.
               </p>
@@ -322,8 +322,8 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
                 <div>
                   <p className="font-bold text-slate-300">Adresse de l'Institut</p>
                   <p className="text-xs text-slate-400">Axelmond Research Labs</p>
-                  <p className="text-xs text-slate-400">15 Rue de l'École Polytechnique</p>
-                  <p className="text-xs text-slate-400">75005 Paris, France</p>
+                  <p className="text-xs text-slate-400">Casablanca, Maroc</p>
+                  <p className="text-[10px] text-amber-500/80 italic mt-1">TODO : adresse complète du siège social à compléter</p>
                 </div>
               </div>
 
@@ -332,8 +332,8 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
                 <Phone className="w-4 h-4 text-slate-500 flex-shrink-0 mt-1" />
                 <div>
                   <p className="font-bold text-slate-300">Secrétariat Général</p>
-                  <p className="text-xs text-slate-400">+33 (0)1 43 21 00 00</p>
-                  <p className="font-bold text-slate-300 mt-2">Support & Assistance (Maroc)</p>
+                  <p className="text-xs text-slate-400">+212 634772103</p>
+                  <p className="font-bold text-slate-300 mt-2">Support & Assistance</p>
                   <p className="text-xs text-slate-400">+212 634772103</p>
                 </div>
               </div>

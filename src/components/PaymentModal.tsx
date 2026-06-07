@@ -14,6 +14,7 @@ import {
 import { Course } from "../types";
 import type { AppUser } from "./AuthScreen";
 import { api } from "../api";
+import { formatCredits, formatMad, PLATFORM_CURRENCY_CODE } from "../utils/morocco-locale";
 
 interface PaymentModalProps {
   course: Course | null;
@@ -159,19 +160,18 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                       <div className="shrink-0 text-right">
                         {appliedDiscount > 0 && (
                           <p className="text-xs font-medium text-slate-500 line-through">
-                            {originalPrice.toFixed(2)} €
+                            {formatMad(originalPrice)}
                           </p>
                         )}
                         <div className="flex items-baseline justify-end gap-1">
                           <span className="text-[2rem] font-black leading-none tracking-tight text-white">
-                            {finalPrice.toFixed(2)}
+                            {formatMad(finalPrice)}
                           </span>
-                          <span className="text-sm font-semibold text-slate-400">€</span>
                           <span className="text-[10px] font-bold uppercase text-slate-500">/mois</span>
                         </div>
                         {appliedDiscount > 0 && (
                           <span className="mt-1 inline-flex rounded-md bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
-                            Économie {savings.toFixed(2)} €
+                            Économie {formatMad(savings)}
                           </span>
                         )}
                       </div>
@@ -180,7 +180,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                     <div className="mt-3 flex flex-wrap gap-2 border-t border-white/[0.06] pt-3">
                       <span className="inline-flex items-center gap-1 rounded-lg bg-black/20 px-2 py-1 text-[10px] font-semibold text-slate-300">
                         <BookOpen className="h-3 w-3 text-indigo-300" />
-                        {course.credits} ECTS
+                        {formatCredits(course.credits)}
                       </span>
                       <span className="inline-flex items-center gap-1 rounded-lg bg-black/20 px-2 py-1 text-[10px] font-semibold text-slate-300">
                         <Clock className="h-3 w-3 text-indigo-300" />
@@ -246,7 +246,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                         <PayPalScriptProvider
                           options={{
                             clientId: paypalConfig.clientId,
-                            currency: "EUR",
+                            currency: PLATFORM_CURRENCY_CODE,
                             intent: "capture",
                             components: "buttons",
                           }}

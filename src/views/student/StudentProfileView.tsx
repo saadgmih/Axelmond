@@ -12,6 +12,7 @@ import {
 import ProfileAvatarUpload from "../../components/ProfileAvatarUpload";
 import type { AppUser } from "../../components/AuthScreen";
 import type { Course, Invoice } from "../../types";
+import { formatCredits, formatMad } from "../../utils/morocco-locale";
 
 interface StudentProfileViewProps {
   currentUser: AppUser | null;
@@ -140,7 +141,7 @@ export default function StudentProfileView({
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {[
           {
-            label: "Crédits ECTS",
+            label: "Crédits",
             value: stats.totalCredits,
             suffix: "/ 30",
             icon: Sparkles,
@@ -211,7 +212,7 @@ export default function StudentProfileView({
                       <div className="min-w-0">
                         <p className="truncate text-sm font-bold text-slate-800">{course.title}</p>
                         <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                          {course.credits} ECTS · {course.level}
+                          {formatCredits(course.credits)} · {course.level}
                         </p>
                       </div>
                       <span className="shrink-0 rounded-lg bg-white px-2.5 py-1 text-xs font-black text-indigo-700 shadow-sm">
@@ -270,7 +271,7 @@ export default function StudentProfileView({
                           <td className="px-4 py-4">{inv.date}</td>
                           <td className="px-4 py-4 font-semibold text-slate-900">{inv.courseTitle}</td>
                           <td className="px-4 py-4 text-right font-mono font-bold text-indigo-700">
-                            {inv.amount.toFixed(2)}€
+                            {formatMad(inv.amount)}
                           </td>
                           <td className="px-6 py-4 text-center">
                             <span className="rounded-lg border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-emerald-700">
@@ -297,7 +298,7 @@ export default function StudentProfileView({
                       </div>
                       <div className="mt-3 flex items-center justify-between text-xs">
                         <span className="text-slate-500">{inv.date}</span>
-                        <span className="font-mono font-black text-indigo-700">{inv.amount.toFixed(2)}€</span>
+                        <span className="font-mono font-black text-indigo-700">{formatMad(inv.amount)}</span>
                       </div>
                     </div>
                   ))}

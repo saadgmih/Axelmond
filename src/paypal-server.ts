@@ -1,4 +1,5 @@
 import { logSecurity } from "./security-logger";
+import { PLATFORM_CURRENCY_CODE } from "./utils/morocco-locale";
 
 export type PayPalRuntimeEnv = "sandbox" | "live";
 
@@ -134,7 +135,7 @@ export async function createPayPalOrder(params: {
         custom_id: buildPayPalCustomId(params.userId, params.courseId),
         description: params.courseTitle.slice(0, 127),
         amount: {
-          currency_code: "EUR",
+          currency_code: PLATFORM_CURRENCY_CODE,
           value: formatPayPalAmount(params.amount),
         },
       },

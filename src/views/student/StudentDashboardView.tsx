@@ -23,6 +23,7 @@ import type { ReactNode } from "react";
 import type { AppUser } from "../../components/AuthScreen";
 
 import type { Course, CourseModule } from "../../types";
+import { formatCredits, formatMad } from "../../utils/morocco-locale";
 
 type NavigateTo = (view: string, targetCourse?: Course | null) => void;
 
@@ -273,7 +274,7 @@ export default function StudentDashboardView({
     },
 
     {
-      label: "Crédits ECTS visés",
+      label: "Crédits visés",
 
       value: String(progress.ectsTarget),
 
@@ -693,7 +694,7 @@ export default function StudentDashboardView({
 
                   <div className="bg-slate-950/50 px-5 sm:px-6 py-4 border-t border-slate-800 flex items-center justify-between gap-2">
                     <span className="text-[11px] font-bold text-slate-500 uppercase">
-                      {course.credits} Crédits ECTS
+                      {formatCredits(course.credits)}
                     </span>
 
                     <button

@@ -155,17 +155,17 @@ const labs = [
 ];
 
 const collabs = [
-  { type: "Universités partenaires",     icon: <GraduationCap className="w-4 h-4 text-indigo-400" />, items: ["Université Mohammed V — Rabat", "Université Paris-Saclay — France", "École Polytechnique Fédérale — Lausanne", "Université de Montréal — Canada"], color: "border-indigo-800/30 bg-indigo-950/15" },
-  { type: "Centres de recherche",        icon: <Microscope className="w-4 h-4 text-violet-400" />,    items: ["CNRS — Centre National de la Recherche", "INRIA — Institut National de Recherche en IA", "ENSIAS Research Center — Maroc", "Alan Turing Institute — UK"],           color: "border-violet-800/30 bg-violet-950/15" },
-  { type: "Programmes de coopération",   icon: <Globe className="w-4 h-4 text-sky-400" />,            items: ["Programme Erasmus+ Recherche & Innovation", "PHC Toubkal Franco-Marocain", "Accord bilateral ARL–EPFL 2025", "Programme DAAD Allemagne-Maroc"],          color: "border-sky-800/30 bg-sky-950/15" },
+  { type: "Universités partenaires",     icon: <GraduationCap className="w-4 h-4 text-indigo-400" />, items: ["Université Mohammed V — Rabat", "Université Hassan II — Casablanca", "Université Cadi Ayyad — Marrakech", "Université de Montréal — Canada"], color: "border-indigo-800/30 bg-indigo-950/15" },
+  { type: "Centres de recherche",        icon: <Microscope className="w-4 h-4 text-violet-400" />,    items: ["CNRST — Centre National pour la Recherche Scientifique et Technique", "ENSIAS Research Center — Rabat", "UM6P — Mohammed VI Polytechnic", "Alan Turing Institute — UK"],           color: "border-violet-800/30 bg-violet-950/15" },
+  { type: "Programmes de coopération",   icon: <Globe className="w-4 h-4 text-sky-400" />,            items: ["Programme national de recherche et innovation", "PHC Toubkal Franco-Marocain", "Accord bilateral ARL–UM6P 2025", "Programme de coopération académique Afrique du Nord"],          color: "border-sky-800/30 bg-sky-950/15" },
   { type: "Réseaux scientifiques",       icon: <Network className="w-4 h-4 text-emerald-400" />,      items: ["IEEE Computer Society — Member Lab", "ACM SIGAI — Affiliated Research Group", "OpenAI Academic Partnership Program", "African AI Alliance — Founding Member"],   color: "border-emerald-800/30 bg-emerald-950/15" },
 ];
 
 const calls = [
-  { title: "ANR Appel Générique 2026 — IA & Société",              deadline: "30 juil. 2026", funding: "150 000 € – 500 000 €",  domain: "IA / Sciences humaines",   status: "Ouvert",        statusColor: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10" },
-  { title: "Horizon Europe — Digital Innovation 2026",             deadline: "15 sept. 2026", funding: "500 000 € – 2 000 000 €", domain: "Technologies numériques",  status: "Ouvert",        statusColor: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10" },
-  { title: "PHC Toubkal — Coopération Scientifique FR-MA",        deadline: "1er oct. 2026",  funding: "10 000 € – 30 000 €",    domain: "Tous domaines",            status: "Bientôt",       statusColor: "text-amber-300 border-amber-500/30 bg-amber-500/10" },
-  { title: "Appel à Projets Interne ARL — Recherche Émergente",   deadline: "20 juil. 2026", funding: "5 000 € – 20 000 €",     domain: "Interdisciplinaire",       status: "Ouvert",        statusColor: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10" },
+  { title: "CNRST Appel à Projets 2026 — IA & Société",              deadline: "30 juil. 2026", funding: "150 000 – 500 000 DH",  domain: "IA / Sciences humaines",   status: "Ouvert",        statusColor: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10" },
+  { title: "Programme national — Innovation numérique 2026",         deadline: "15 sept. 2026", funding: "500 000 – 2 000 000 DH", domain: "Technologies numériques",  status: "Ouvert",        statusColor: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10" },
+  { title: "PHC Toubkal — Coopération Scientifique FR-MA",           deadline: "1er oct. 2026",  funding: "100 000 – 300 000 DH",    domain: "Tous domaines",            status: "Bientôt",       statusColor: "text-amber-300 border-amber-500/30 bg-amber-500/10" },
+  { title: "Appel à Projets Interne ARL — Recherche Émergente",     deadline: "20 juil. 2026", funding: "50 000 – 200 000 DH",     domain: "Interdisciplinaire",       status: "Ouvert",        statusColor: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10" },
 ];
 
 const resources = [
