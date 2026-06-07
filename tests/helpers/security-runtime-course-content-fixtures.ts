@@ -50,9 +50,17 @@ export async function cleanupCourseContentRuntimeFixtures() {
     await prisma.academicProfile.deleteMany({ where: { userId: { in: userIds } } });
   }
 
-  await prisma.course.deleteMany({
+  const courses = await prisma.course.findMany({
     where: { title: COURSE_CONTENT_RUNTIME_COURSE_TITLE },
+    select: { id: true },
   });
+  const courseIds = courses.map((course) => course.id);
+
+  if (courseIds.length > 0) {
+    await prisma.lessonContent.deleteMany({ where: { courseId: { in: courseIds } } });
+    await prisma.contentSection.deleteMany({ where: { courseId: { in: courseIds } } });
+    await prisma.course.deleteMany({ where: { id: { in: courseIds } } });
+  }
 
   if (userIds.length > 0) {
     await prisma.user.deleteMany({ where: { id: { in: userIds } } });
