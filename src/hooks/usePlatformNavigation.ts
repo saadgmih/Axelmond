@@ -1,7 +1,7 @@
 import { useCallback, useEffect, type Dispatch, type SetStateAction } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import type { AppUser } from "../components/AuthScreen";
-import { buildPlatformPath, parsePlatformPath } from "../navigation/platformPaths";
+import { buildPlatformPath, parsePlatformPath, INSTITUTIONAL_VIEWS } from "../navigation/platformPaths";
 import { getAllowedUiRole, getRedirectPathForRole, isStudentRole } from "../rbac";
 import type { Course, CourseModule } from "../types";
 
@@ -80,6 +80,14 @@ export function usePlatformNavigation({
   }, [location.pathname, currentUser, setCurrentView, setTeacherView]);
 
   const navigateTo = useCallback((view: string, targetCourse: Course | null = null) => {
+    if (INSTITUTIONAL_VIEWS.has(view)) {
+      setCurrentView(view);
+      setIsMobileMenuOpen(false);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      navigate(`/${view}`);
+      return;
+    }
+
     if (currentUser && !isStudentRole(currentUser.role)) {
       console.info("[rbac] Blocked student navigation for teacher-space user", {
         role: currentUser.role,

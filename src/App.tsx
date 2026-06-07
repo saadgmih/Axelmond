@@ -639,30 +639,30 @@ export default function App() {
               <div className="space-y-3">
                 <h4 className="text-xs font-black text-slate-200 uppercase tracking-widest">Navigation</h4>
                 <div className="space-y-2 text-xs text-slate-400">
-                  <button type="button" aria-label="Aller à l'accueil" onClick={() => { if (role === "student") navigateTo("dashboard"); else { setCurrentView("dashboard"); setTeacherView("dashboard"); } }} className="kbd-nav-focus block hover:text-white">Accueil</button>
-                  <button type="button" aria-label="Aller au catalogue" onClick={() => { if (role === "student") navigateTo("catalog"); else { setCurrentView("dashboard"); setTeacherView("curriculum"); } }} className="kbd-nav-focus block hover:text-white">Catalogue</button>
-                  <button type="button" aria-label="Aller à la recherche" onClick={() => setCurrentView("research")} className="kbd-nav-focus block hover:text-white">Recherche</button>
-                  <button type="button" aria-label="Aller aux publications" onClick={() => setCurrentView("publications")} className="kbd-nav-focus block hover:text-white">Publications</button>
+                  <button type="button" aria-label="Aller à l'accueil" onClick={() => { if (role === "student") navigateTo("dashboard"); else handleTeacherViewChange("dashboard"); }} className="kbd-nav-focus block hover:text-white">Accueil</button>
+                  <button type="button" aria-label="Aller au catalogue" onClick={() => { if (role === "student") navigateTo("catalog"); else handleTeacherViewChange("curriculum"); }} className="kbd-nav-focus block hover:text-white">Catalogue</button>
+                  <button type="button" aria-label="Aller à la recherche" onClick={() => navigateTo("research")} className="kbd-nav-focus block hover:text-white">Recherche</button>
+                  <button type="button" aria-label="Aller aux publications" onClick={() => navigateTo("publications")} className="kbd-nav-focus block hover:text-white">Publications</button>
                 </div>
               </div>
 
               <div className="space-y-3">
                 <h4 className="text-xs font-black text-slate-200 uppercase tracking-widest">Support</h4>
                 <div className="space-y-2 text-xs text-slate-400">
-                  <button type="button" aria-label="Aller au centre d'aide" onClick={() => setCurrentView("support")} className="kbd-nav-focus block hover:text-white">Centre d'aide</button>
-                  <button type="button" aria-label="Aller à la page contact" onClick={() => setCurrentView("contact")} className="kbd-nav-focus block hover:text-white">Contact</button>
-                  <button type="button" aria-label="Signaler un problème" onClick={() => setCurrentView("support")} className="kbd-nav-focus block hover:text-white">Signaler un problème</button>
-                  <button type="button" aria-label="Aller à la page à propos" onClick={() => setCurrentView("about")} className="kbd-nav-focus block hover:text-white">À propos</button>
+                  <button type="button" aria-label="Aller au centre d'aide" onClick={() => navigateTo("support")} className="kbd-nav-focus block hover:text-white">Centre d'aide</button>
+                  <button type="button" aria-label="Aller à la page contact" onClick={() => navigateTo("contact")} className="kbd-nav-focus block hover:text-white">Contact</button>
+                  <button type="button" aria-label="Signaler un problème" onClick={() => navigateTo("support")} className="kbd-nav-focus block hover:text-white">Signaler un problème</button>
+                  <button type="button" aria-label="Aller à la page à propos" onClick={() => navigateTo("about")} className="kbd-nav-focus block hover:text-white">À propos</button>
                 </div>
               </div>
 
               <div className="space-y-3">
                 <h4 className="text-xs font-black text-slate-200 uppercase tracking-widest">Légal</h4>
                 <div className="space-y-2 text-xs text-slate-400">
-                  <button type="button" aria-label="Politique de confidentialité" onClick={() => setCurrentView("privacy")} className="kbd-nav-focus block hover:text-white">Politique de confidentialité</button>
-                  <button type="button" aria-label="Conditions d'utilisation" onClick={() => setCurrentView("terms")} className="kbd-nav-focus block hover:text-white">Conditions d'utilisation</button>
-                  <button type="button" aria-label="Politique des cookies" onClick={() => setCurrentView("cookies")} className="kbd-nav-focus block hover:text-white">Politique des cookies</button>
-                  <button type="button" aria-label="Mentions légales" onClick={() => setCurrentView("legal")} className="kbd-nav-focus block hover:text-white">Mentions légales</button>
+                  <button type="button" aria-label="Politique de confidentialité" onClick={() => navigateTo("privacy")} className="kbd-nav-focus block hover:text-white">Politique de confidentialité</button>
+                  <button type="button" aria-label="Conditions d'utilisation" onClick={() => navigateTo("terms")} className="kbd-nav-focus block hover:text-white">Conditions d'utilisation</button>
+                  <button type="button" aria-label="Politique des cookies" onClick={() => navigateTo("cookies")} className="kbd-nav-focus block hover:text-white">Politique des cookies</button>
+                  <button type="button" aria-label="Mentions légales" onClick={() => navigateTo("legal")} className="kbd-nav-focus block hover:text-white">Mentions légales</button>
                 </div>
               </div>
             </div>

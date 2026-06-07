@@ -7,12 +7,12 @@ const paymentModalSource = fs.readFileSync("src/components/PaymentModal.tsx", "u
 const serverSource = fs.readFileSync("server.ts", "utf8");
 const paypalServerSource = fs.readFileSync("src/paypal-server.ts", "utf8");
 
-assert.match(apiSource, /createPayPalOrder:\s*\(courseId:\s*number\)/);
+assert.match(apiSource, /createPayPalOrder:\s*\(courseId:\s*number,\s*promoCode\?:\s*string\)/);
 assert.match(apiSource, /capturePayPalOrder:\s*\(orderId:\s*string,\s*courseId:\s*number\)/);
 assert.match(apiSource, /"\/api\/paypal\/create-order"/);
 assert.match(apiSource, /"\/api\/paypal\/capture-order"/);
 assert.match(paymentModalSource, /PayPalButtons/);
-assert.match(paymentModalSource, /api\.createPayPalOrder\(course\.id\)/);
+assert.match(paymentModalSource, /api\.createPayPalOrder\(course\.id,\s*appliedPromo\)/);
 assert.match(paymentModalSource, /api\.capturePayPalOrder\(/);
 assert.match(serverSource, /app\.post\("\/api\/paypal\/create-order"/);
 assert.match(serverSource, /app\.post\("\/api\/paypal\/capture-order"/);

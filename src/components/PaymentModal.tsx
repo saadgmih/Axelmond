@@ -100,7 +100,10 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
 
     try {
       const result = await api.capturePayPalOrder(orderId, course.id);
-      await onSuccess(course.id, result.invoice?.amount ?? course.price, result.user);
+      if (!result.user) {
+        throw new Error("Inscription non confirmée par le serveur. Contactez le support.");
+      }
+      await onSuccess(course.id, result.invoice?.amount ?? finalPrice, result.user);
       setStep("success");
     } catch (err: any) {
       setPaymentError(err?.message || "Impossible de finaliser le paiement PayPal.");
@@ -273,7 +276,8 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                               disabled={isProcessing}
                               createOrder={async () => {
                                 setPaymentError("");
-                                const order = await api.createPayPalOrder(course.id);
+                                const appliedPromo = appliedDiscount > 0 ? promoCode.trim().toUpperCase() : undefined;
+                                const order = await api.createPayPalOrder(course.id, appliedPromo);
                                 return order.id;
                               }}
                               onApprove={async (data) => {

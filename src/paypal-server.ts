@@ -99,18 +99,27 @@ async function paypalRequest<T>(
   return payload as T;
 }
 
-export function buildPayPalCustomId(userId: string, courseId: number): string {
-  return JSON.stringify({ userId, courseId });
+export function buildPayPalCustomId(userId: string, courseId: number, expectedAmount: number): string {
+  return JSON.stringify({
+    userId,
+    courseId,
+    expectedAmount: formatPayPalAmount(expectedAmount),
+  });
 }
 
-export function parsePayPalCustomId(customId: string | undefined): { userId: string; courseId: number } | null {
+export function parsePayPalCustomId(
+  customId: string | undefined,
+): { userId: string; courseId: number; expectedAmount?: string } | null {
   if (!customId?.trim()) return null;
   try {
     const parsed = JSON.parse(customId);
     const userId = String(parsed?.userId || "").trim();
     const courseId = Number(parsed?.courseId);
+    const expectedAmount = parsed?.expectedAmount != null
+      ? String(parsed.expectedAmount)
+      : undefined;
     if (!userId || !courseId || Number.isNaN(courseId)) return null;
-    return { userId, courseId };
+    return { userId, courseId, expectedAmount };
   } catch {
     return null;
   }
@@ -132,7 +141,7 @@ export async function createPayPalOrder(params: {
     purchase_units: [
       {
         reference_id: `course-${params.courseId}`,
-        custom_id: buildPayPalCustomId(params.userId, params.courseId),
+        custom_id: buildPayPalCustomId(params.userId, params.courseId, params.amount),
         description: params.courseTitle.slice(0, 127),
         amount: {
           currency_code: PLATFORM_CURRENCY_CODE,

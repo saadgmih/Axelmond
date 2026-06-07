@@ -1,0 +1,41 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import {
+  computeDiscountedPrice,
+  resolveCourseChargeAmount,
+  resolvePromoDiscountPercent,
+} from "../src/promo-codes.ts";
+
+assert.equal(resolvePromoDiscountPercent(""), 0);
+assert.equal(resolvePromoDiscountPercent(undefined), 0);
+assert.equal(resolvePromoDiscountPercent("AXELMOND20"), 20);
+assert.equal(resolvePromoDiscountPercent("axelmond20"), 20);
+assert.equal(resolvePromoDiscountPercent("INVALID"), null);
+
+assert.equal(computeDiscountedPrice(160, 20), 128);
+assert.equal(computeDiscountedPrice(125, 20), 100);
+
+const withPromo = resolveCourseChargeAmount(160, "AXELMOND20");
+assert.equal(withPromo.amount, 128);
+assert.equal(withPromo.discountPercent, 20);
+assert.equal(withPromo.error, undefined);
+
+const withoutPromo = resolveCourseChargeAmount(160, "");
+assert.equal(withoutPromo.amount, 160);
+assert.equal(withoutPromo.discountPercent, 0);
+
+const invalidPromo = resolveCourseChargeAmount(160, "BADCODE");
+assert.equal(invalidPromo.error, "Code promo invalide ou expiré.");
+
+const serverSource = fs.readFileSync("server.ts", "utf8");
+const paymentModalSource = fs.readFileSync("src/components/PaymentModal.tsx", "utf8");
+const apiSource = fs.readFileSync("src/api.ts", "utf8");
+const paypalServerSource = fs.readFileSync("src/paypal-server.ts", "utf8");
+
+assert.match(apiSource, /createPayPalOrder:\s*\(courseId:\s*number,\s*promoCode\?:\s*string\)/);
+assert.match(paymentModalSource, /api\.createPayPalOrder\(course\.id,\s*appliedPromo\)/);
+assert.match(serverSource, /resolveCourseChargeAmount\(course\.price,\s*promoCode\)/);
+assert.match(serverSource, /metadata\.expectedAmount/);
+assert.match(paypalServerSource, /buildPayPalCustomId\(params\.userId,\s*params\.courseId,\s*params\.amount\)/);
+
+console.log("Promo codes and PayPal pricing rules passed");

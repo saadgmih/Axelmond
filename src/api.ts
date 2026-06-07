@@ -224,8 +224,8 @@ export const api = {
     request<any>("POST", "/api/payments/enroll-mock", { courseId }),
   getPayPalConfig: () =>
     request<{ clientId: string; env: "sandbox" | "live" }>("GET", "/api/paypal/config"),
-  createPayPalOrder: (courseId: number) =>
-    request<{ id: string }>("POST", "/api/paypal/create-order", { courseId }),
+  createPayPalOrder: (courseId: number, promoCode?: string) =>
+    request<{ id: string }>("POST", "/api/paypal/create-order", { courseId, ...(promoCode ? { promoCode } : {}) }),
   capturePayPalOrder: (orderId: string, courseId: number) =>
     request<{ ok: boolean; invoice?: any; user?: any; message?: string }>("POST", "/api/paypal/capture-order", { orderId, courseId }),
   login: (email: string, password: string, role: string) =>

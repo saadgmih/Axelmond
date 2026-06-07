@@ -21,6 +21,7 @@ import {
   logPayPalError,
   parsePayPalCustomId,
 } from "./src/paypal-server";
+import { resolveCourseChargeAmount } from "./src/promo-codes";
 import { Course, CourseModule, DEFAULT_MODULE_CLASSIFICATION, DEFAULT_STUDENT_LABEL } from "./src/types";
 import { UserRole, canAccessAcademicProfile, canAccessApiRoute, canLoginToRequestedRole, normalizeRole } from "./src/rbac";
 import { signAuthToken, verifyAuthToken, createRefreshToken, rotateRefreshToken, findValidRefreshToken, revokeRefreshToken, revokeAllUserRefreshTokens } from "./src/auth-token";
@@ -591,6 +592,15 @@ const seedQuizzes: Record<number, { question: string; options: string[]; answer:
     { question: "Qu'est-ce qu'une époque (epoch) dans l'apprentissage automatique ?", options: ["La date historique de conception du modèle", "Un balayage complet de l'ensemble des données d'entraînement par l'algorithme", "Le temps d'exécution requis pour compiler le script", "La période d'évaluation d'un stagiaire de recherche"], answer: "Un balayage complet de l'ensemble des données d'entraînement par l'algorithme", explanation: "Une époque désigne le fait que le réseau de neurones a vu et traité une fois l'intégralité du dataset d'entraînement lors de la propagation avant/arrière." }
   ]
 };
+
+const seedQuizModuleCourseMap: Record<number, number> = {};
+for (const course of seedCourses) {
+  for (const module of course.modules) {
+    if (module.type === "quiz" && seedQuizzes[module.id]) {
+      seedQuizModuleCourseMap[module.id] = course.id;
+    }
+  }
+}
 
 const quizzes = seedQuizzes;
 
@@ -2098,6 +2108,21 @@ app.get("/api/quizzes/:moduleId", requireAuth, async (req, res) => {
 
   const data = quizzes[moduleId];
   if (!data) { res.status(404).json({ error: "Quiz not found" }); return; }
+
+  const seedCourseId = seedQuizModuleCourseMap[moduleId];
+  if (!seedCourseId) {
+    res.status(404).json({ error: "Quiz not found" });
+    return;
+  }
+  if (authUser.role === "STUDENT" && !authUser.enrolledCourses.includes(seedCourseId)) {
+    res.status(403).json({ error: "Inscription requise pour consulter ce quiz" });
+    return;
+  }
+  if (authUser.role !== "STUDENT" && !(await verifyCourseAccess(authUser, seedCourseId))) {
+    res.status(403).json({ error: "Accès refusé pour consulter ce quiz" });
+    return;
+  }
+
   if (authUser.role === "STUDENT") {
     res.json(data.map(({ answer, explanation, ...question }) => question));
     return;
@@ -3436,6 +3461,8 @@ app.post("/api/auth/reset-password", validateBody(resetPasswordSchema), async (r
     });
   });
 
+  await revokeAllUserRefreshTokens(user.id);
+
   await logAudit(
     user.id,
     user.email,
@@ -3614,6 +3641,7 @@ app.post("/api/me/password", requireAuth, requireRbac, async (req, res) => {
     where: { id: authUser.id },
     data: { passwordHash: await bcrypt.hash(newPassword, 10) },
   });
+  await revokeAllUserRefreshTokens(authUser.id);
   logSecurity("INFO", "Academic password updated", { userId: authUser.id, role: authUser.role });
   res.json({ message: "Mot de passe mis à jour" });
 });
@@ -4102,12 +4130,19 @@ app.post("/api/paypal/create-order", requireAuth, async (req, res) => {
     return;
   }
 
+  const promoCode = String(req.body?.promoCode || "").trim();
+  const chargePricing = resolveCourseChargeAmount(course.price, promoCode);
+  if (chargePricing.error) {
+    res.status(400).json({ error: chargePricing.error });
+    return;
+  }
+
   try {
     const order = await createPayPalOrder({
       courseId,
       courseTitle: course.title,
       courseDescription: course.description,
-      amount: course.price,
+      amount: chargePricing.amount,
       userId: authUser.id,
     });
     res.json({ id: order.id });
@@ -4175,11 +4210,12 @@ app.post("/api/paypal/capture-order", requireAuth, async (req, res) => {
 
     const paidAmount = String(capture?.amount?.value || "");
     const paidCurrency = String(capture?.amount?.currency_code || "").toUpperCase();
-    if (paidCurrency !== PLATFORM_CURRENCY_CODE || paidAmount !== formatPayPalAmount(course.price)) {
+    const expectedAmount = metadata.expectedAmount ?? formatPayPalAmount(course.price);
+    if (paidCurrency !== PLATFORM_CURRENCY_CODE || paidAmount !== expectedAmount) {
       logPayPalError("PayPal capture amount mismatch", {
         orderId,
         courseId,
-        expectedAmount: formatPayPalAmount(course.price),
+        expectedAmount,
         paidAmount,
         paidCurrency,
       });
@@ -4189,11 +4225,12 @@ app.post("/api/paypal/capture-order", requireAuth, async (req, res) => {
 
     const captureId = String(capture?.id || orderId);
     const invoiceId = `INV-PAYPAL-${captureId.slice(-8).toUpperCase()}`;
+    const coursePricePaid = Number.parseFloat(expectedAmount);
     const enrollmentResult = await persistCoursePaymentEnrollment({
       userId: authUser.id,
       courseId,
       courseTitle: course.title,
-      coursePrice: course.price,
+      coursePrice: Number.isFinite(coursePricePaid) ? coursePricePaid : course.price,
       invoiceId,
       auditAction: "PAYMENT_PAYPAL_SUCCESS",
       reqIp: req.ip,
@@ -4456,7 +4493,10 @@ Réponds exclusivement en français, de manière polie.`;
     res.json({ text: response.text });
   } catch (err: any) {
     console.error("Gemini invocation error:", err);
-    res.status(500).json({ error: "L'assistant a rencontré une erreur.", details: err.message });
+    res.status(500).json({
+      error: "L'assistant a rencontré une erreur.",
+      ...(process.env.NODE_ENV !== "production" ? { details: err.message } : {}),
+    });
   }
 });
 

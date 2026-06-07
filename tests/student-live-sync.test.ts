@@ -12,8 +12,10 @@ const serverSource = fs.readFileSync("server.ts", "utf8");
 assert.match(apiSource, /enrollMock:\s*\(courseId:\s*number\)/);
 assert.match(apiSource, /request<any>\("POST",\s*"\/api\/payments\/enroll-mock",\s*\{\s*courseId\s*\}\)/);
 
-assert.match(studentCourseBundle, /await\s+api\.enrollMock\(courseId\)/);
-assert.match(studentCourseBundle, /updateSessionUser\(user\)/);
+assert.match(studentCourseSessionSource, /if \(!syncedUser\)/);
+assert.match(studentCourseSessionSource, /syncedUser\.enrolledCourses\?\.includes\(courseId\)/);
+assert.match(studentCourseSessionSource, /updateSessionUser\(syncedUser\)/);
+assert.doesNotMatch(studentCourseSessionSource, /await\s+api\.enrollMock\(courseId\)/);
 assert.doesNotMatch(studentCourseBundle, /setEnrolledCourses\(\(prev\)\s*=>\s*\[\.\.\.prev,\s*courseId\]\)/);
 assert.match(liveKitSource, /if\s*\(\(err as any\)\?\.status === 403 && currentUser && isStudentRole\(currentUser\.role\)\)/);
 assert.match(liveKitSource, /const syncedUser = await api\.me\(\)/);

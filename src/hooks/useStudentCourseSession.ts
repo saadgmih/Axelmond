@@ -96,41 +96,20 @@ export function useStudentCourseSession({
     }
   };
 
-  const handlePaymentSuccess = async (courseId: number, amountPaid: number, syncedUser?: AppUser) => {
+  const handlePaymentSuccess = async (courseId: number, _amountPaid: number, syncedUser?: AppUser) => {
     const course = courses.find((c) => c.id === courseId);
     if (!course) return;
 
-    let enrollmentUser: AppUser | null = syncedUser || null;
-    let enrollmentInvoice: Invoice | undefined;
-
-    if (!enrollmentUser) {
-      try {
-        const enrollment = await api.enrollMock(courseId);
-        if (enrollment.user) {
-          enrollmentUser = enrollment.user;
-          enrollmentInvoice = enrollment.invoice;
-        }
-      } catch (err: any) {
-        if (err?.status !== 403) throw err;
-      }
+    if (!syncedUser) {
+      throw new Error("Inscription non confirmée par le serveur. Contactez le support.");
+    }
+    if (!syncedUser.enrolledCourses?.includes(courseId)) {
+      throw new Error("Inscription non confirmée pour ce module.");
     }
 
-    const user = enrollmentUser || await api.me();
-    updateSessionUser(user);
-    setEnrolledCourses(user.enrolledCourses || []);
-    setInvoices(user.invoices || []);
-
-    const newInvoice: Invoice = {
-      id: enrollmentInvoice?.id || `INV-2026-00${invoices.length + 1}`,
-      date: new Date().toLocaleDateString("fr-FR"),
-      courseTitle: course.title,
-      amount: enrollmentInvoice?.amount ?? amountPaid,
-      status: "Payé",
-    };
-
-    if (!enrollmentUser) setInvoices((prev) => [newInvoice, ...prev]);
-
-    console.info("[student] Enrollment synchronized with backend", { courseId, invoiceId: newInvoice.id });
+    updateSessionUser(syncedUser);
+    setEnrolledCourses(syncedUser.enrolledCourses || []);
+    setInvoices(syncedUser.invoices || []);
     setSelectedCourse(course);
     setSelectedModule(course.modules?.[0] || null);
     setIsVideoPlaying(false);
