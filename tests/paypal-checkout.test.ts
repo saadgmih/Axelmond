@@ -16,6 +16,8 @@ assert.match(paymentModalSource, /api\.createPayPalOrder\(course\.id,\s*appliedP
 assert.match(paymentModalSource, /api\.capturePayPalOrder\(/);
 assert.match(serverSource, /app\.post\("\/api\/paypal\/create-order"/);
 assert.match(serverSource, /app\.post\("\/api\/paypal\/capture-order"/);
+assert.match(serverSource, /app\.post\(\s*"\s*\/api\/paypal\/webhook"/);
+assert.match(serverSource, /processPayPalCaptureEnrollment/);
 assert.match(serverSource, /PAYMENT_PAYPAL_SUCCESS/);
 assert.match(serverSource, /PayPal capture duplicate ignored/);
 assert.match(paypalServerSource, /\/v2\/checkout\/orders/);

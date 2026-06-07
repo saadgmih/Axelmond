@@ -69,6 +69,11 @@ async function getPayPalAccessToken(): Promise<string> {
   return token;
 }
 
+/** Exposed for PayPal webhook signature verification (same OAuth cache). */
+export async function getPayPalAccessTokenForWebhook(): Promise<string> {
+  return getPayPalAccessToken();
+}
+
 async function paypalRequest<T>(
   method: string,
   path: string,
@@ -166,6 +171,10 @@ export async function createPayPalOrder(params: {
 
 export async function capturePayPalOrder(orderId: string): Promise<any> {
   return paypalRequest("POST", `/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`, {});
+}
+
+export async function getPayPalOrder(orderId: string): Promise<any> {
+  return paypalRequest("GET", `/v2/checkout/orders/${encodeURIComponent(orderId)}`);
 }
 
 export function logPayPalError(message: string, details: Record<string, unknown>) {

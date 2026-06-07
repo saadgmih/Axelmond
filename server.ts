@@ -15,12 +15,18 @@ import { z } from "zod";
 import {
   capturePayPalOrder,
   createPayPalOrder,
-  formatPayPalAmount,
   getPayPalRuntimeEnv,
   isPayPalConfigured,
   logPayPalError,
-  parsePayPalCustomId,
 } from "./src/paypal-server";
+import { processPayPalCaptureEnrollment } from "./src/paypal-enrollment";
+import {
+  extractPayPalWebhookHeaders,
+  handlePayPalWebhookEvent,
+  isPayPalWebhookConfigured,
+  parsePayPalWebhookEvent,
+  verifyPayPalWebhookSignature,
+} from "./src/paypal-webhook";
 import { resolveCourseChargeAmount } from "./src/promo-codes";
 import { Course, CourseModule, DEFAULT_MODULE_CLASSIFICATION, DEFAULT_STUDENT_LABEL } from "./src/types";
 import { UserRole, canAccessAcademicProfile, canAccessApiRoute, canLoginToRequestedRole, normalizeRole } from "./src/rbac";
@@ -49,7 +55,6 @@ import { startPerformanceMonitor, requestTimingMiddleware } from "./src/performa
 import { logSecurity, logAudit, alertFailedLogins, alertMassDeletions, alertSuspectUpload } from "./src/security-logger";
 import { decodeStoredText, decodeStoredValue } from "./src/text";
 import { shouldSkipStartupSeed } from "./src/startup-seed";
-import { PLATFORM_CURRENCY_CODE } from "./src/utils/morocco-locale";
 import { patchExpressAsyncRoutes } from "./src/express-async";
 import { isBlockedProductionSourcePath } from "./src/static-source-guard";
 import {
@@ -197,6 +202,59 @@ app.use(
 );
 
 app.use(cookieParser());
+
+app.post(
+  "/api/paypal/webhook",
+  express.raw({ type: "application/json", limit: JSON_BODY_LIMIT }),
+  async (req, res) => {
+    if (!isPayPalWebhookConfigured()) {
+      res.status(503).json({ error: "Webhook PayPal non configuré" });
+      return;
+    }
+
+    const headers = extractPayPalWebhookHeaders(req.headers);
+    const event = parsePayPalWebhookEvent(req.body as Buffer);
+    if (!headers || !event) {
+      res.status(400).json({ error: "Webhook PayPal invalide" });
+      return;
+    }
+
+    const verified = await verifyPayPalWebhookSignature({ headers, webhookEvent: event });
+    if (!verified) {
+      logPayPalError("PayPal webhook signature rejected", { transmissionId: headers.transmissionId });
+      res.status(401).json({ error: "Signature PayPal invalide" });
+      return;
+    }
+
+    try {
+      const result = await handlePayPalWebhookEvent(event, {
+        reqIp: req.ip,
+        persistCoursePaymentEnrollment,
+      });
+
+      if ("ignored" in result) {
+        res.status(200).json({ ok: true, ignored: true, eventType: result.eventType });
+        return;
+      }
+
+      if (result.ok === false) {
+        res.status(result.status).json({ error: result.error, code: result.code });
+        return;
+      }
+
+      res.status(200).json({
+        ok: true,
+        duplicate: result.duplicate,
+        invoiceId: result.invoiceId,
+        userId: result.userId,
+        courseId: result.courseId,
+      });
+    } catch (err: any) {
+      logPayPalError("PayPal webhook handler failed", { error: String(err?.message || err) });
+      res.status(500).json({ error: "Traitement webhook PayPal impossible" });
+    }
+  },
+);
 
 app.use(express.json({ limit: JSON_BODY_LIMIT }));
 
@@ -359,6 +417,7 @@ function logEnvironmentStatus() {
     AUTH_TOKEN_SECRET: isConfiguredEnv("AUTH_TOKEN_SECRET"),
     PAYPAL_CLIENT_ID: isConfiguredEnv("PAYPAL_CLIENT_ID"),
     PAYPAL_CLIENT_SECRET: isConfiguredEnv("PAYPAL_CLIENT_SECRET"),
+    PAYPAL_WEBHOOK_ID: isConfiguredEnv("PAYPAL_WEBHOOK_ID"),
     PAYPAL_ENV: getPayPalRuntimeEnv(),
     LIVEKIT_URL: isConfiguredEnv("LIVEKIT_URL"),
     LIVEKIT_API_KEY: isConfiguredEnv("LIVEKIT_API_KEY"),
@@ -4175,72 +4234,30 @@ app.post("/api/paypal/capture-order", requireAuth, async (req, res) => {
     return;
   }
 
-  const course = await prisma.course.findUnique({ where: { id: courseId } });
-  if (!course) {
-    res.status(404).json({ error: "Module non trouvé" });
-    return;
-  }
-
   try {
     const captureResult = await capturePayPalOrder(orderId);
-    const purchaseUnit = captureResult?.purchase_units?.[0];
-    const metadata = parsePayPalCustomId(purchaseUnit?.custom_id);
-    const capture = purchaseUnit?.payments?.captures?.[0];
-
-    if (!metadata || metadata.userId !== authUser.id || metadata.courseId !== courseId) {
-      logPayPalError("PayPal capture metadata mismatch", {
+    const result = await processPayPalCaptureEnrollment(
+      {
         orderId,
-        authUserId: authUser.id,
-        courseId,
-        metadata,
-      });
-      res.status(400).json({ error: "Commande PayPal invalide pour ce compte" });
+        captureResult,
+        reqIp: req.ip,
+        auditAction: "PAYMENT_PAYPAL_SUCCESS",
+        expectedUserId: authUser.id,
+        expectedCourseId: courseId,
+      },
+      persistCoursePaymentEnrollment,
+    );
+
+    if (result.ok === false) {
+      res.status(result.status).json({ error: result.error, code: result.code });
       return;
     }
 
-    if (captureResult?.status !== "COMPLETED" || capture?.status !== "COMPLETED") {
-      logPayPalError("PayPal capture incomplete", {
-        orderId,
-        orderStatus: captureResult?.status,
-        captureStatus: capture?.status,
-      });
-      res.status(400).json({ error: "Paiement PayPal non finalisé" });
-      return;
-    }
-
-    const paidAmount = String(capture?.amount?.value || "");
-    const paidCurrency = String(capture?.amount?.currency_code || "").toUpperCase();
-    const expectedAmount = metadata.expectedAmount ?? formatPayPalAmount(course.price);
-    if (paidCurrency !== PLATFORM_CURRENCY_CODE || paidAmount !== expectedAmount) {
-      logPayPalError("PayPal capture amount mismatch", {
-        orderId,
-        courseId,
-        expectedAmount,
-        paidAmount,
-        paidCurrency,
-      });
-      res.status(400).json({ error: "Montant de paiement incorrect" });
-      return;
-    }
-
-    const captureId = String(capture?.id || orderId);
-    const invoiceId = `INV-PAYPAL-${captureId.slice(-8).toUpperCase()}`;
-    const coursePricePaid = Number.parseFloat(expectedAmount);
-    const enrollmentResult = await persistCoursePaymentEnrollment({
-      userId: authUser.id,
-      courseId,
-      courseTitle: course.title,
-      coursePrice: Number.isFinite(coursePricePaid) ? coursePricePaid : course.price,
-      invoiceId,
-      auditAction: "PAYMENT_PAYPAL_SUCCESS",
-      reqIp: req.ip,
-    });
-
-    if (enrollmentResult.duplicate) {
+    if (result.duplicate) {
       logSecurity("INFO", "PayPal capture duplicate ignored", {
         userId: authUser.id,
         courseId,
-        invoiceId,
+        invoiceId: result.invoiceId,
         orderId,
       });
     }
@@ -4248,8 +4265,8 @@ app.post("/api/paypal/capture-order", requireAuth, async (req, res) => {
     res.json({
       ok: true,
       message: "Paiement confirmé",
-      invoice: enrollmentResult.invoice,
-      user: toAppUser(enrollmentResult.user!),
+      invoice: result.invoice,
+      user: toAppUser(result.user!),
     });
   } catch (err: any) {
     logPayPalError("PayPal capture-order route failed", {

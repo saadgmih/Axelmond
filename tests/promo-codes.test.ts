@@ -31,11 +31,12 @@ const serverSource = fs.readFileSync("server.ts", "utf8");
 const paymentModalSource = fs.readFileSync("src/components/PaymentModal.tsx", "utf8");
 const apiSource = fs.readFileSync("src/api.ts", "utf8");
 const paypalServerSource = fs.readFileSync("src/paypal-server.ts", "utf8");
+const paypalEnrollmentSource = fs.readFileSync("src/paypal-enrollment.ts", "utf8");
 
 assert.match(apiSource, /createPayPalOrder:\s*\(courseId:\s*number,\s*promoCode\?:\s*string\)/);
 assert.match(paymentModalSource, /api\.createPayPalOrder\(course\.id,\s*appliedPromo\)/);
 assert.match(serverSource, /resolveCourseChargeAmount\(course\.price,\s*promoCode\)/);
-assert.match(serverSource, /metadata\.expectedAmount/);
+assert.match(paypalEnrollmentSource, /metadata\.expectedAmount/);
 assert.match(paypalServerSource, /buildPayPalCustomId\(params\.userId,\s*params\.courseId,\s*params\.amount\)/);
 
 console.log("Promo codes and PayPal pricing rules passed");
