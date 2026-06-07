@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from "react";
 import {
   Activity,
   ArrowUpRight,
   BookOpen,
   ChevronRight,
+  Code2,
   CreditCard,
   DollarSign,
   FilePlus2,
@@ -14,6 +15,7 @@ import {
   PlayCircle,
   Radio,
   Target,
+  Tag,
   TrendingUp,
   UserPlus,
   Users,
@@ -56,6 +58,11 @@ function formatActivityDate(value?: string | null) {
   const parsed = Date.parse(value);
   if (!Number.isFinite(parsed)) return "—";
   return new Date(parsed).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
+}
+
+function coursePriceSliderProgress(price: number) {
+  const clamped = Math.min(499, Math.max(0, price));
+  return `${(clamped / 499) * 100}%`;
 }
 
 export default function TeacherDashboardView({
@@ -643,84 +650,112 @@ export default function TeacherDashboardView({
                   {/* Primary Grid Layout: Courses Price & Live management vs Student Roster list */}
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     {/* LHS: Program and Tariffs customization */}
-                    <div className="lg:col-span-7 bg-white border border-slate-200 p-6 md:p-8 rounded-3xl space-y-6 shadow-sm">
-                      <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-                        <div>
-                          <h3 className="text-lg font-black text-slate-800">Gestion des Tarifs & Séminaires</h3>
-                          <p className="text-xs text-slate-400">Modifiez instantanément les frais d'accès et d'interactivité</p>
+                    <div
+                      id="teacher-tariffs"
+                      className="lg:col-span-7 rounded-3xl border border-indigo-500/20 bg-[#0f172a]/80 p-6 shadow-xl shadow-black/30 backdrop-blur-xl md:p-8 space-y-6"
+                    >
+                      <div className="flex flex-col gap-4 border-b border-white/[0.06] pb-5 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-start gap-3">
+                          <div className="shrink-0 rounded-xl border border-indigo-500/30 bg-indigo-600/15 p-2.5">
+                            <Tag className="h-5 w-5 text-indigo-400" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-black text-white">Gestion des Tarifs & Séminaires</h3>
+                            <p className="mt-0.5 text-xs text-slate-400">
+                              Modifiez instantanément les frais d&apos;accès et d&apos;interactivité
+                            </p>
+                          </div>
                         </div>
-                        <span className="text-xs bg-slate-100 text-slate-600 font-bold px-2.5 py-1 rounded-full">
-                          {managedCourses.length} matière{managedCourses.length !== 1 ? 's' : ''} gérables
+                        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-indigo-500/20 bg-indigo-950/50 px-3 py-1.5 text-xs font-bold text-indigo-300">
+                          <BookOpen className="h-3.5 w-3.5" />
+                          {managedCourses.length} matière{managedCourses.length !== 1 ? "s" : ""} gérable
+                          {managedCourses.length !== 1 ? "s" : ""}
                         </span>
                       </div>
 
-                      <div className="space-y-6">
+                      <div className="space-y-4">
                         {managedCourses.length === 0 ? (
-                          <div className="text-center p-6 bg-slate-50 border border-slate-100 rounded-2xl">
-                            <BookOpen className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                            <p className="text-xs text-slate-400 font-semibold">Aucun module créé. Utilisez l'onglet Curriculum pour créer votre premier module.</p>
+                          <div className="rounded-2xl border border-dashed border-slate-700 bg-[#020617]/50 p-6 text-center">
+                            <BookOpen className="mx-auto mb-2 h-8 w-8 text-slate-600" />
+                            <p className="text-xs font-semibold text-slate-400">
+                              Aucun module créé. Utilisez l&apos;onglet Curriculum pour créer votre premier module.
+                            </p>
                           </div>
-                        ) : managedCourses.map((course) => (
-                          <div key={course.id} className="p-5 border border-slate-100 rounded-2xl hover:bg-slate-50/75 transition-all space-y-4">
-                            <div className="flex items-start justify-between">
-                              <div>
-                                <h4 className="font-extrabold text-sm text-slate-900 leading-snug">{course.title}</h4>
-                                <p className="text-xs text-slate-500 mt-0.5">{formatCredits(course.credits)} • {course.duration}</p>
-                              </div>
-                              <span className="font-mono font-black text-xs text-pink-700 bg-pink-50 px-2.5 py-1 rounded-lg">
-                                {formatMad(course.price)}
-                              </span>
-                            </div>
-
-                            {/* Slider control to change price in React state */}
-                            <div className="space-y-1.5 pt-1">
-                              <div className="flex justify-between text-[11px] font-bold text-slate-400 uppercase">
-                                <span>Frais d'inscription</span>
-                                <span className="text-slate-800 font-mono font-bold">{formatMad(course.price)}</span>
-                              </div>
-                              <input
-                                type="range"
-                                min="0"
-                                max="499"
-                                step="0.5"
-                                value={course.price}
-                                onChange={(e) => handleUpdateCoursePrice(course.id, parseFloat(e.target.value))}
-                                className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-pink-600"
-                              />
-                            </div>
-
-                            {/* Active live setup toggle switch */}
-                            <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                              <div className="flex items-center gap-2">
-                                <span className="flex h-2 w-2 relative">
-                                  {course.isLiveNow && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>}
-                                  <span className={`relative inline-flex rounded-full h-2 w-2 ${course.isLiveNow ? "bg-red-500" : "bg-slate-300"}`}></span>
+                        ) : (
+                          managedCourses.map((course) => (
+                            <div
+                              key={course.id}
+                              className="space-y-4 rounded-2xl border border-white/[0.08] bg-[#020617]/70 p-5 transition-colors hover:border-white/[0.12]"
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex min-w-0 items-start gap-3">
+                                  <div className="shrink-0 rounded-xl border border-violet-500/25 bg-violet-600/15 p-2">
+                                    <Code2 className="h-4 w-4 text-violet-400" />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <h4 className="truncate text-sm font-extrabold leading-snug text-white">{course.title}</h4>
+                                    <p className="mt-0.5 text-xs text-slate-500">
+                                      {formatCredits(course.credits)} • {course.duration}
+                                    </p>
+                                  </div>
+                                </div>
+                                <span className="shrink-0 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-2.5 py-1 font-mono text-xs font-black text-white">
+                                  {formatMad(course.price)}
                                 </span>
-                                <span className="text-xs font-bold text-slate-700">Séminaire Virtuel Live</span>
                               </div>
 
-                              <button
-                                onClick={() => handleToggleCourseLive(course.id)}
-                                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                                  course.isLiveNow
-                                    ? "bg-red-600 text-white hover:bg-red-700 shadow-sm"
-                                    : "bg-slate-100 hover:bg-slate-200 text-slate-700"
-                                }`}
-                              >
-                                {course.isLiveNow ? "Couper le Live" : "Lancer le Live"}
-                              </button>
+                              <div className="space-y-2">
+                                <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                                  <span>Frais d&apos;inscription</span>
+                                  <span className="font-mono font-bold text-white">{formatMad(course.price)}</span>
+                                </div>
+                                <input
+                                  type="range"
+                                  min="0"
+                                  max="499"
+                                  step="0.5"
+                                  value={course.price}
+                                  onChange={(e) => handleUpdateCoursePrice(course.id, parseFloat(e.target.value))}
+                                  className="course-price-slider w-full cursor-pointer"
+                                  style={{ "--slider-progress": coursePriceSliderProgress(course.price) } as CSSProperties}
+                                  aria-label={`Tarif du module ${course.title}`}
+                                  aria-valuemin={0}
+                                  aria-valuemax={499}
+                                  aria-valuenow={course.price}
+                                />
+                              </div>
+
+                              <div className="flex items-center justify-between gap-3 border-t border-white/[0.06] pt-4">
+                                <div className="flex min-w-0 items-center gap-2">
+                                  <span className="relative flex h-2 w-2 shrink-0">
+                                    {course.isLiveNow && (
+                                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+                                    )}
+                                    <span
+                                      className={`relative inline-flex h-2 w-2 rounded-full ${
+                                        course.isLiveNow ? "bg-red-500" : "bg-slate-600"
+                                      }`}
+                                    />
+                                  </span>
+                                  <span className="truncate text-xs font-bold text-slate-300">Séminaire Virtuel Live</span>
+                                </div>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleCourseLive(course.id)}
+                                  className={`inline-flex shrink-0 items-center justify-center rounded-xl px-4 py-2 text-xs font-bold transition-all active:scale-[0.98] ${
+                                    course.isLiveNow
+                                      ? "bg-red-600 text-white shadow-md shadow-red-900/30 hover:bg-red-500"
+                                      : "border border-white/[0.08] bg-[#0f172a] text-slate-300 hover:border-indigo-500/30 hover:text-white"
+                                  }`}
+                                >
+                                  {course.isLiveNow ? "Couper le Live" : "Lancer le Live"}
+                                </button>
+                              </div>
                             </div>
-                            
-                            {course.isLiveNow && (
-                              <div className="bg-red-50/50 border border-red-100 p-3 rounded-xl text-xs space-y-1 text-red-800">
-                                <p className="font-bold">Actuellement en cours :</p>
-                                <p className="text-red-700 italic font-medium">"{course.liveSubject}"</p>
-                              </div>
-                            )}
-                          </div>
-                        ))}
+                          ))
+                        )}
                       </div>
-
                     </div>
 
                     {/* RHS: Interactive student roster scores */}

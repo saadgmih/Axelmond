@@ -8,6 +8,9 @@ const cssSource = readFileSync("src/index.css", "utf8");
 assert.match(appSource, /TeacherDashboardView/);
 assert.match(teacherDashboardSource, /type="range"/);
 assert.match(teacherDashboardSource, /course\.price/);
+assert.match(teacherDashboardSource, /course-price-slider/);
+assert.match(teacherDashboardSource, /--slider-progress/);
+assert.doesNotMatch(teacherDashboardSource, /Actuellement en cours/);
 assert.match(cssSource, /\.course-price-slider/);
 
 console.log("Course price slider rules passed");
