@@ -111,7 +111,6 @@ export default function App() {
     localStorage.removeItem("axelmond_theme");
   }, []);
 
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarStatusMsg, setAvatarStatusMsg] = useState("");
 
   // Live broadcast controls (Teacher side — course selection stays in App)
@@ -324,15 +323,14 @@ export default function App() {
     disconnectLiveSession();
   };
 
-  const handleUploadAvatar = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleUploadAvatarFile = async (file: File) => {
     const token = localStorage.getItem("axelmond_session_token");
-    if (!currentUser || !avatarFile || !token) {
-      setAvatarStatusMsg("Sélectionnez une image de profil.");
+    if (!currentUser || !token) {
+      setAvatarStatusMsg("Session expirée. Reconnectez-vous.");
       return;
     }
 
-    const validationError = validateUploadFile(avatarFile, "AVATAR");
+    const validationError = validateUploadFile(file, "AVATAR");
     if (validationError) {
       setAvatarStatusMsg(validationError);
       return;
@@ -341,7 +339,7 @@ export default function App() {
     try {
       setAvatarStatusMsg("Téléversement de la photo...");
       const result = await (uploadFiles as any)("avatarImage", {
-        files: [avatarFile],
+        files: [file],
         headers: { Authorization: `Bearer ${token}` },
         onUploadProgress: ({ progress }) => setAvatarStatusMsg(`Téléversement de la photo : ${progress}%`),
       });
@@ -350,11 +348,11 @@ export default function App() {
       const updatedUser = { ...currentUser, avatarUrl };
       updateSessionUser(updatedUser);
       setAcademicProfileForm((prev) => ({ ...prev, avatarUrl }));
-      setAvatarFile(null);
       setAvatarStatusMsg("Photo de profil mise à jour.");
     } catch (err: any) {
       console.error("Failed to upload avatar:", err);
       setAvatarStatusMsg(getUploadErrorMessage(err));
+      throw err;
     }
   };
 
@@ -365,7 +363,6 @@ export default function App() {
       const updatedUser = response.user ? response.user as AppUser : { ...currentUser, avatarUrl: undefined };
       updateSessionUser(updatedUser);
       setAcademicProfileForm((prev) => ({ ...prev, avatarUrl: "" }));
-      setAvatarFile(null);
       setAvatarStatusMsg(response.message || "Photo de profil supprimée.");
     } catch (err: any) {
       setAvatarStatusMsg(err.message || "Suppression de la photo impossible.");
@@ -453,9 +450,8 @@ export default function App() {
               {teacherView === "academic-profile" && currentUser && (
                 <TeacherAcademicProfileView
                   currentUser={currentUser}
-                  handleUploadAvatar={handleUploadAvatar}
+                  handleUploadAvatarFile={handleUploadAvatarFile}
                   handleDeleteAvatar={handleDeleteAvatar}
-                  setAvatarFile={setAvatarFile}
                   avatarStatusMsg={avatarStatusMsg}
                   {...academicProfileBindings}
                 />
@@ -524,9 +520,8 @@ export default function App() {
               courses={courses}
               invoices={invoices}
               avatarStatusMsg={avatarStatusMsg}
-              handleUploadAvatar={handleUploadAvatar}
+              handleUploadAvatarFile={handleUploadAvatarFile}
               handleDeleteAvatar={handleDeleteAvatar}
-              setAvatarFile={setAvatarFile}
             />
           )}
           {currentView === "live" && activeLiveCourse && (

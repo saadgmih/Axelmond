@@ -9,11 +9,10 @@ import {
   Lock,
   RefreshCw,
   Shield,
-  Trash2,
-  Upload,
   User,
   Video,
 } from "lucide-react";
+import ProfileAvatarUpload from "../../components/ProfileAvatarUpload";
 import type { AppUser } from "../../components/AuthScreen";
 import { getRoleLabel, type UserRole } from "../../rbac";
 import type { AcademicProfilePayload } from "../../types";
@@ -47,10 +46,9 @@ interface TeacherAcademicProfileViewProps {
   academicProfileErrorMsg: string;
   refreshAcademicProfile: () => void | Promise<void>;
   handleUpdateAcademicProfile: (e: FormEvent) => void | Promise<void>;
-  handleUploadAvatar: (e: FormEvent) => void | Promise<void>;
+  handleUploadAvatarFile: (file: File) => void | Promise<void>;
   handleUpdateAcademicAvatar: (e: FormEvent) => void | Promise<void>;
   handleDeleteAvatar: () => void | Promise<void>;
-  setAvatarFile: (file: File | null) => void;
   avatarStatusMsg: string;
   academicPasswordForm: AcademicPasswordFormState;
   setAcademicPasswordForm: Dispatch<SetStateAction<AcademicPasswordFormState>>;
@@ -66,6 +64,7 @@ type RoleTheme = {
   ring: string;
   icon: typeof GraduationCap;
   subtitle: string;
+  uploadAccent: "pink" | "violet" | "teal";
 };
 
 function getRoleTheme(role: UserRole): RoleTheme {
@@ -79,6 +78,7 @@ function getRoleTheme(role: UserRole): RoleTheme {
       ring: "ring-violet-500/20",
       icon: Shield,
       subtitle: "Administration de la plateforme Axelmond",
+      uploadAccent: "violet",
     };
   }
   if (role === "RESEARCHER") {
@@ -91,6 +91,7 @@ function getRoleTheme(role: UserRole): RoleTheme {
       ring: "ring-teal-500/20",
       icon: GraduationCap,
       subtitle: "Profil chercheur et publications",
+      uploadAccent: "teal",
     };
   }
   return {
@@ -102,6 +103,7 @@ function getRoleTheme(role: UserRole): RoleTheme {
     ring: "ring-pink-500/20",
     icon: GraduationCap,
     subtitle: "Identité académique et enseignement",
+    uploadAccent: "pink",
   };
 }
 
@@ -125,10 +127,9 @@ export default function TeacherAcademicProfileView({
   academicProfileErrorMsg,
   refreshAcademicProfile,
   handleUpdateAcademicProfile,
-  handleUploadAvatar,
+  handleUploadAvatarFile,
   handleUpdateAcademicAvatar,
   handleDeleteAvatar,
-  setAvatarFile,
   avatarStatusMsg,
   academicPasswordForm,
   setAcademicPasswordForm,
@@ -339,25 +340,19 @@ export default function TeacherAcademicProfileView({
           <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
             <div className="border-b border-slate-100 px-6 py-5">
               <h3 className="text-sm font-black text-slate-900">Photo de profil</h3>
+              <p className="mt-0.5 text-[11px] text-slate-500">Recadrez la zone visible comme sur WhatsApp</p>
             </div>
-            <div className="space-y-4 p-6">
-              <form onSubmit={handleUploadAvatar} className="space-y-3">
-                <label className="flex cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/80 px-4 py-5 transition-colors hover:border-slate-300">
-                  <Upload className="h-5 w-5 text-slate-400" />
-                  <span className="text-center text-[11px] font-semibold text-slate-500">Téléverser une image</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
-                    className="sr-only"
-                  />
-                </label>
-                <button type="submit" className={`w-full rounded-xl py-3 text-xs font-bold text-white ${theme.accent} ${theme.accentHover}`}>
-                  Confirmer l'upload
-                </button>
-              </form>
+            <div className="p-6">
+              <ProfileAvatarUpload
+                avatarUrl={academicProfileForm.avatarUrl || currentUser.avatarUrl}
+                initials={getInitials(displayName)}
+                statusMsg={avatarStatusMsg}
+                accent={theme.uploadAccent}
+                onUpload={handleUploadAvatarFile}
+                onDelete={handleDeleteAvatar}
+              />
 
-              <form onSubmit={handleUpdateAcademicAvatar} className="space-y-3 border-t border-slate-100 pt-4">
+              <form onSubmit={handleUpdateAcademicAvatar} className="mt-4 space-y-3 border-t border-slate-100 pt-4">
                 <input
                   placeholder="URL de la photo"
                   value={academicProfileForm.avatarUrl}
@@ -368,21 +363,6 @@ export default function TeacherAcademicProfileView({
                   Utiliser cette URL
                 </button>
               </form>
-
-              <button
-                type="button"
-                onClick={handleDeleteAvatar}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 py-3 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-100"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                Supprimer
-              </button>
-
-              {avatarStatusMsg && (
-                <p className="rounded-xl bg-slate-50 px-3 py-2 text-center text-[11px] font-semibold text-slate-500">
-                  {avatarStatusMsg}
-                </p>
-              )}
             </div>
           </section>
 
