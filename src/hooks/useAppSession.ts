@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
-import { api, getFreshSessionToken, getStoredRefreshToken, setSessionToken } from "../api";
+import { api, getFreshSessionToken, setSessionToken } from "../api";
 import type { AppUser } from "../components/AuthScreen";
 import { getAllowedUiRole, isStudentRole } from "../rbac";
 import type { Course, Invoice } from "../types";
@@ -13,18 +13,16 @@ export interface UseAppSessionOptions {
 export function useAppSession({ setCourses, onAfterLogin, onSessionExpired }: UseAppSessionOptions) {
   const [currentUser, setCurrentUser] = useState<AppUser | null>(() => {
     const saved = localStorage.getItem("axelmond_session_user");
-    const token = localStorage.getItem("axelmond_session_token");
-    if (saved && token) {
+    if (saved) {
       try {
         return JSON.parse(saved);
       } catch (e) {
         console.error(e);
       }
     }
-    localStorage.removeItem("axelmond_session_user");
     return null;
   });
-  const [isAuthReady, setIsAuthReady] = useState(() => !localStorage.getItem("axelmond_session_token"));
+  const [isAuthReady, setIsAuthReady] = useState(false);
   const [enrolledCourses, setEnrolledCourses] = useState<number[]>([1]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const lastSyncedUserStateRef = useRef("");
@@ -81,10 +79,10 @@ export function useAppSession({ setCourses, onAfterLogin, onSessionExpired }: Us
     localStorage.setItem("axelmond_session_user", JSON.stringify(sessionUser));
   }, []);
 
-  const handleLoginSuccess = useCallback((user: AppUser & { refreshToken?: string }) => {
+  const handleLoginSuccess = useCallback((user: AppUser & { csrfToken?: string }) => {
     setCurrentUser(user);
-    const { token, refreshToken, ...sessionUser } = user;
-    if (token) setSessionToken(token, refreshToken);
+    const { token, csrfToken, ...sessionUser } = user;
+    if (token) setSessionToken(token, csrfToken);
     localStorage.setItem("axelmond_session_user", JSON.stringify(sessionUser));
 
     if (isStudentRole(user.role)) {
@@ -119,10 +117,7 @@ export function useAppSession({ setCourses, onAfterLogin, onSessionExpired }: Us
   }, []);
 
   const handleLogout = useCallback(() => {
-    const refreshToken = getStoredRefreshToken();
-    if (refreshToken) {
-      api.logout(refreshToken).catch((err) => console.warn("[auth] Logout request failed", err));
-    }
+    api.logout().catch((err) => console.warn("[auth] Logout request failed", err));
     clearAuthState();
   }, [clearAuthState]);
 

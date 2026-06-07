@@ -93,7 +93,7 @@ export interface AppUser {
   role: UserRole;
   emailVerified?: boolean;
   token?: string;
-  refreshToken?: string;
+  csrfToken?: string;
   levelOrTitle: string;
   filiere?: string;
   avatarUrl?: string;
@@ -138,7 +138,7 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
     const normalizedEmail = email.trim().toLowerCase();
     try {
       const user = await api.login(normalizedEmail, password, activeSector === "student" ? "STUDENT" : "PROFESSOR");
-      setSessionToken(user.token, user.refreshToken);
+      setSessionToken(user.token, user.csrfToken);
       setSuccessMsg("Connexion réussie ! Chargement de votre espace...");
       setTimeout(() => onLoginSuccess(user), 800);
     } catch (err: any) {
@@ -211,7 +211,7 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
     setIsLoading(true);
     try {
       const user = await api.verifyEmail(verificationEmail, verificationCode);
-      setSessionToken(user.token, user.refreshToken);
+      setSessionToken(user.token, user.csrfToken);
       setSuccessMsg(user.message || "E-mail vérifié avec succès");
       setTimeout(() => onLoginSuccess(user), 800);
     } catch (err: any) {

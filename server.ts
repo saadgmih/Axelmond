@@ -10,6 +10,7 @@ import { createRouteHandler } from "uploadthing/express";
 import compression from "compression";
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import helmet from "helmet";
+import cookieParser from "cookie-parser";
 import { z } from "zod";
 import {
   capturePayPalOrder,
@@ -56,6 +57,8 @@ import {
   CHAT_TUTOR_MAX_HISTORY_MESSAGES,
   CHAT_TUTOR_MAX_PROMPT_CHARS,
 } from "./src/security-hardening";
+import { clearAuthCookies, readRefreshTokenFromRequest, setAuthCookies } from "./src/auth-cookies";
+import { csrfProtection } from "./src/auth-csrf";
 
 dotenv.config();
 
@@ -168,7 +171,7 @@ app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Vary", "Origin");
     res.setHeader("Access-Control-Allow-Credentials", "true");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-CSRF-Token");
     res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
   }
   if (req.method === "OPTIONS") {
@@ -191,7 +194,11 @@ app.use(
   }),
 );
 
+app.use(cookieParser());
+
 app.use(express.json({ limit: JSON_BODY_LIMIT }));
+
+app.use(csrfProtection);
 
 // ─── Compression gzip ────────────────────────────────────────────────────────
 app.use(compression());
@@ -3146,15 +3153,16 @@ app.post("/api/auth/login", validateBody(loginSchema), async (req, res) => {
 
   const safeUser = toAppUser(user);
   const refreshToken = await createRefreshToken(user.id);
+  const csrfToken = setAuthCookies(res, refreshToken);
   logSecurity("INFO", "User logged in", { userId: user.id, role: user.role });
-  res.json({ ...safeUser, token: signAuthToken(safeUser), refreshToken });
+  res.json({ ...safeUser, token: signAuthToken(safeUser), csrfToken });
 });
 
 // POST /api/auth/refresh
 app.post("/api/auth/refresh", async (req, res) => {
-  const { refreshToken } = req.body;
-  if (!refreshToken || typeof refreshToken !== "string" || refreshToken.length > 128) {
-    res.status(400).json({ error: "Refresh token requis" });
+  const refreshToken = readRefreshTokenFromRequest(req);
+  if (!refreshToken) {
+    res.status(401).json({ error: "Refresh token requis" });
     return;
   }
 
@@ -3189,16 +3197,18 @@ app.post("/api/auth/refresh", async (req, res) => {
     return;
   }
   const token = signAuthToken(safeUser);
+  const csrfToken = setAuthCookies(res, newRefreshToken);
   logSecurity("INFO", "Session token refreshed", { userId: safeUser.id, role: safeUser.role });
-  res.json({ token, refreshToken: newRefreshToken });
+  res.json({ token, csrfToken });
 });
 
 // POST /api/auth/logout
 app.post("/api/auth/logout", async (req, res) => {
-  const { refreshToken } = req.body;
-  if (refreshToken && typeof refreshToken === "string") {
+  const refreshToken = readRefreshTokenFromRequest(req);
+  if (refreshToken) {
     await revokeRefreshToken(refreshToken);
   }
+  clearAuthCookies(res);
   res.json({ ok: true });
 });
 
@@ -3217,7 +3227,8 @@ app.post("/api/auth/verify-email", validateBody(verifyEmailSchema), async (req, 
   if (user.emailVerified) {
     const safeUser = toAppUser(user);
     const newRefreshToken = await createRefreshToken(safeUser.id);
-    res.json({ ...safeUser, token: signAuthToken(safeUser), refreshToken: newRefreshToken, message: "E-mail déjà vérifié" });
+    const csrfToken = setAuthCookies(res, newRefreshToken);
+    res.json({ ...safeUser, token: signAuthToken(safeUser), csrfToken, message: "E-mail déjà vérifié" });
     return;
   }
 
@@ -3274,8 +3285,9 @@ app.post("/api/auth/verify-email", validateBody(verifyEmailSchema), async (req, 
 
   const safeUser = toAppUser(verifiedUser);
   const newRefreshToken = await createRefreshToken(safeUser.id);
+  const csrfToken = setAuthCookies(res, newRefreshToken);
   logEmail("INFO", "Email verified", { userId: safeUser.id, role: safeUser.role });
-  res.json({ ...safeUser, token: signAuthToken(safeUser), refreshToken: newRefreshToken, message: "E-mail vérifié avec succès" });
+  res.json({ ...safeUser, token: signAuthToken(safeUser), csrfToken, message: "E-mail vérifié avec succès" });
 });
 
 // POST /api/auth/resend-verification-code

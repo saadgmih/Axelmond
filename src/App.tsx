@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 
 import { Course, CourseModule, Invoice, FacultyDomain } from "./types";
-import { api } from "./api";
+import { api, getFreshSessionToken } from "./api";
 import { uploadFiles, getUploadedFileUrl, getUploadErrorMessage, validateUploadFile } from "./uploadthing-client";
 import Sidebar from "./components/Sidebar";
 import Topbar from "./components/Topbar";
@@ -389,7 +389,7 @@ export default function App() {
   };
 
   const handleUploadAvatarFile = async (file: File) => {
-    const token = localStorage.getItem("axelmond_session_token");
+    const token = await getFreshSessionToken();
     if (!currentUser || !token) {
       setAvatarStatusMsg("Session expirée. Reconnectez-vous.");
       return;

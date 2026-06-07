@@ -54,7 +54,6 @@ Vérifier HTTPS actif, firewall (ports 80/443 seulement), PostgreSQL non exposé
 
 ## Limitation connue (tokens client)
 
-Les tokens restent en `localStorage` côté navigateur. En cas de XSS, un attaquant pourrait voler la session.
-Mitigation : CSP stricte, pas de `dangerouslySetInnerHTML`, audits réguliers du front.
+L'access token JWT reste en **mémoire JavaScript** (15 min). Le refresh token est en cookie **HttpOnly** (`refresh_token`, path `/api/auth`) avec protection **CSRF** (`csrf_token` + header `X-CSRF-Token`).
 
-Migration future recommandée : refresh en cookie **HttpOnly** + **SameSite=Strict** + CSRF token.
+Migration depuis l'ancien modèle localStorage : les clés legacy sont purgées au login/logout ; reconnexion requise si seule l'ancienne session localStorage subsiste.

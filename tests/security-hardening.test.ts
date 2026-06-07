@@ -25,5 +25,7 @@ assert.match(serverSource, /newPassword:\s*z\.string\(\)\.min\(8/);
 assert.match(serverSource, /Refresh token reuse detected/);
 assert.match(serverSource, /Permissions-Policy/);
 assert.match(serverSource, /express\.json\(\{\s*limit:\s*JSON_BODY_LIMIT/);
+assert.match(serverSource, /setAuthCookies/);
+assert.match(serverSource, /csrfProtection/);
 
 console.log("Security hardening rules passed");

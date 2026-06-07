@@ -6,6 +6,9 @@ import { hashRefreshToken } from "./security-hardening";
 
 const DEFAULT_AUTH_TOKEN_SECRET = "axelmond-dev-secret";
 
+export const REFRESH_TOKEN_TTL_DAYS = 7;
+export const REFRESH_TOKEN_TTL_MS = REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000;
+
 export function getAuthTokenSecret(env: NodeJS.ProcessEnv = process.env) {
   const secret = env.AUTH_TOKEN_SECRET?.trim();
   if (!secret) {

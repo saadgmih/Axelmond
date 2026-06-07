@@ -61,4 +61,11 @@ assert.equal(canAccessApiRoute("STUDENT", "DELETE", "/api/admin/secret-backdoor"
 assert.match(serverSource, /app\.use\("\/api\/auth\/refresh",\s*refreshRateLimiter\)/);
 assert.match(serverSource, /verifyCourseAccess\(authUser,\s*course\.id\)/);
 
+// 9. HttpOnly cookies + CSRF
+assert.match(serverSource, /cookieParser\(\)/);
+assert.match(serverSource, /csrfProtection/);
+assert.match(serverSource, /setAuthCookies/);
+assert.match(serverSource, /clearAuthCookies/);
+assert.match(serverSource, /X-CSRF-Token/);
+
 console.log("Security automated tests passed");

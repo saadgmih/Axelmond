@@ -1,6 +1,8 @@
 const BASE_URL = ((import.meta as any).env?.VITE_API_BASE_URL || "").replace(/\/$/, "");
-const ACCESS_TOKEN_KEY = "axelmond_session_token";
-const REFRESH_TOKEN_KEY = "axelmond_refresh_token";
+const LEGACY_ACCESS_TOKEN_KEY = "axelmond_session_token";
+const LEGACY_REFRESH_TOKEN_KEY = "axelmond_refresh_token";
+const CSRF_COOKIE_NAME = "csrf_token";
+const UNSAFE_HTTP_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 const AUTH_PATHS_WITHOUT_REFRESH = new Set([
   "/api/auth/login",
   "/api/auth/register",
@@ -11,20 +13,46 @@ const AUTH_PATHS_WITHOUT_REFRESH = new Set([
   "/api/auth/refresh",
   "/api/auth/logout",
 ]);
+
 let refreshPromise: Promise<string | null> | null = null;
 let sessionExpiredNotified = false;
+let accessTokenMemory: string | null = null;
+let csrfTokenMemory: string | null = null;
 
 function buildApiErrorMessage(method: string, path: string, status: number, payload: any, fallback: string) {
   return payload?.error || payload?.message || fallback;
 }
 
+function readCsrfFromCookie(): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${CSRF_COOKIE_NAME}=([^;]+)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+function getCsrfToken(): string | null {
+  return csrfTokenMemory || readCsrfFromCookie();
+}
+
+function purgeLegacyTokenStorage() {
+  localStorage.removeItem(LEGACY_ACCESS_TOKEN_KEY);
+  localStorage.removeItem(LEGACY_REFRESH_TOKEN_KEY);
+}
+
 function buildRequestOptions(method: string, body: unknown, token: string | null): RequestInit {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+
+  if (UNSAFE_HTTP_METHODS.has(method)) {
+    const csrfToken = getCsrfToken();
+    if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
+  }
+
   const opts: RequestInit = {
     method,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
+    credentials: "include",
+    headers,
   };
   if (body !== undefined) opts.body = JSON.stringify(body);
   return opts;
@@ -37,25 +65,23 @@ function notifySessionExpired() {
 }
 
 function clearSessionTokens() {
-  localStorage.removeItem(ACCESS_TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
+  accessTokenMemory = null;
+  csrfTokenMemory = null;
+  purgeLegacyTokenStorage();
 }
 
 async function performSessionRefresh(): Promise<string | null> {
-  const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
-  if (!refreshToken) {
-    clearSessionTokens();
-    notifySessionExpired();
-    return null;
-  }
+  const legacyRefreshToken = localStorage.getItem(LEGACY_REFRESH_TOKEN_KEY);
+  const body = legacyRefreshToken ? { refreshToken: legacyRefreshToken } : undefined;
 
   try {
-    const res = await fetch(`${BASE_URL}/api/auth/refresh`, buildRequestOptions("POST", { refreshToken }, null));
+    const res = await fetch(`${BASE_URL}/api/auth/refresh`, buildRequestOptions("POST", body, null));
     if (!res.ok) throw new Error("Refresh token rejected");
     const payload = await res.json();
     if (!payload?.token) throw new Error("Refresh token response missing access token");
-    localStorage.setItem(ACCESS_TOKEN_KEY, payload.token);
-    if (payload.refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, payload.refreshToken);
+    accessTokenMemory = payload.token;
+    if (payload.csrfToken) csrfTokenMemory = payload.csrfToken;
+    purgeLegacyTokenStorage();
     sessionExpiredNotified = false;
     return payload.token;
   } catch (err) {
@@ -85,17 +111,16 @@ function isAccessTokenFresh(token: string): boolean {
 }
 
 export async function getFreshSessionToken(): Promise<string | null> {
-  const token = localStorage.getItem(ACCESS_TOKEN_KEY);
-  if (token && isAccessTokenFresh(token)) return token;
+  if (accessTokenMemory && isAccessTokenFresh(accessTokenMemory)) return accessTokenMemory;
   return refreshSessionToken();
 }
 
 export function getStoredRefreshToken(): string | null {
-  return localStorage.getItem(REFRESH_TOKEN_KEY);
+  return null;
 }
 
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
-  let token = localStorage.getItem(ACCESS_TOKEN_KEY);
+  let token = accessTokenMemory;
   const url = `${BASE_URL}${path}`;
   let res: Response;
   try {
@@ -121,7 +146,6 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
     }
     const error = new Error(buildApiErrorMessage(method, path, res.status, err, res.statusText)) as Error & Record<string, unknown>;
     Object.assign(error, err, { status: res.status, method, path, url, response: text });
-    // Attach rate-limit metadata so the UI can show a precise countdown
     if (res.status === 429) {
       const retryAfterHeader = res.headers.get("Retry-After");
       const resetHeader = res.headers.get("RateLimit-Reset") || res.headers.get("X-RateLimit-Reset");
@@ -129,7 +153,6 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
       if (retryAfterHeader) {
         retryAfterSeconds = parseInt(retryAfterHeader, 10);
       } else if (resetHeader) {
-        // RateLimit-Reset is Unix timestamp in seconds
         const resetTimestamp = parseInt(resetHeader, 10);
         if (!isNaN(resetTimestamp)) {
           retryAfterSeconds = Math.max(0, resetTimestamp - Math.floor(Date.now() / 1000));
@@ -239,8 +262,8 @@ export const api = {
     request<any>("DELETE", "/api/me/avatar"),
   changeAcademicPassword: (currentPassword: string, newPassword: string) =>
     request<any>("POST", "/api/me/password", { currentPassword, newPassword }),
-  logout: (refreshToken: string) =>
-    request<any>("POST", "/api/auth/logout", { refreshToken }),
+  logout: () =>
+    request<any>("POST", "/api/auth/logout"),
   getAdminAcademicProfiles: () =>
     request<any[]>("GET", "/api/admin/academic-profiles"),
   me: () => request<any>("GET", "/api/auth/me"),
@@ -281,12 +304,24 @@ export const api = {
     request<any>("POST", "/api/support/tickets", data),
 };
 
-export function setSessionToken(token: string | undefined, refreshToken?: string) {
+export function setSessionToken(token: string | undefined, csrfToken?: string) {
+  purgeLegacyTokenStorage();
   if (token) {
-    localStorage.setItem(ACCESS_TOKEN_KEY, token);
-    if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    accessTokenMemory = token;
+    if (csrfToken) csrfTokenMemory = csrfToken;
     sessionExpiredNotified = false;
   } else {
     clearSessionTokens();
   }
+}
+
+export async function fetchWithAuth(path: string, method: string, body?: unknown): Promise<Response> {
+  let token = accessTokenMemory;
+  const url = path.startsWith("http") ? path : `${BASE_URL}${path}`;
+  let res = await fetch(url, buildRequestOptions(method, body, token));
+  if (res.status === 401 && !AUTH_PATHS_WITHOUT_REFRESH.has(path)) {
+    token = await refreshSessionToken();
+    if (token) res = await fetch(url, buildRequestOptions(method, body, token));
+  }
+  return res;
 }

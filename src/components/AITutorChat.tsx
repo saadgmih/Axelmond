@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useId } from "react";
 import { Send, Sparkles, Brain, GraduationCap, ArrowRight, RefreshCw, X } from "lucide-react";
-import { getFreshSessionToken } from "../api";
+import { fetchWithAuth } from "../api";
 
 interface ChatMessage {
   role: "user" | "model";
@@ -44,19 +44,11 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
     setIsLoading(true);
 
     try {
-      const token = await getFreshSessionToken();
-      const response = await fetch("/api/chat-tutor", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          prompt: messageText,
-          courseContext: courseTitle,
-          moduleContext: moduleTitle,
-          chatHistory: messages
-        }),
+      const response = await fetchWithAuth("/api/chat-tutor", "POST", {
+        prompt: messageText,
+        courseContext: courseTitle,
+        moduleContext: moduleTitle,
+        chatHistory: messages,
       });
 
       if (!response.ok) {

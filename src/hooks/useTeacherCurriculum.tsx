@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
 import { uploadFiles, getUploadErrorMessage, validateUploadFile } from "../uploadthing-client";
-import { api } from "../api";
+import { api, getFreshSessionToken } from "../api";
 import type { AppUser } from "../components/AuthScreen";
 import type { Course, ContentSection, FacultyDomain, LessonContent } from "../types";
 import { flattenSections } from "./useCourseContent";
@@ -232,7 +232,7 @@ export function useTeacherCurriculum({
 
   const handleUploadLessonAsset = async (e: FormEvent) => {
     e.preventDefault();
-    const token = localStorage.getItem("axelmond_session_token");
+    const token = await getFreshSessionToken();
     if (!uploadFile || !uploadTitle.trim() || !token) {
       setUploadStatusMsg("Sélectionnez un titre et un fichier.");
       return;
