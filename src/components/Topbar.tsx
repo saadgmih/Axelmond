@@ -1,8 +1,9 @@
 import React, { type RefObject } from "react";
-import { Search, Sparkles, Menu } from "lucide-react";
+import { Search, Sparkles, Menu, Mic } from "lucide-react";
 import { Course } from "../types";
 import { AppUser } from "./AuthScreen";
 import LogoSymbol from "./LogoSymbol";
+import { useVoiceSearch } from "../hooks/useVoiceSearch";
 
 interface TopbarProps {
   currentView: string;
@@ -43,6 +44,13 @@ export default function Topbar({
     return name.slice(0, 2).toUpperCase();
   };
 
+  const {
+    isListening,
+    error: voiceSearchError,
+    toggleListening,
+    clearError: clearVoiceSearchError,
+  } = useVoiceSearch({ onTranscript: setSearchQuery });
+
   return (
     <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-40 shadow-sm flex-shrink-0 transition-colors">
       {/* Search Bar / Context Title */}
@@ -73,18 +81,54 @@ export default function Topbar({
             </span>
           </div>
         ) : currentView === "catalog" ? (
-          <div className="relative w-full max-w-md">
-            <Search className="w-5 h-5 absolute left-3 w-4 h-4 text-slate-400 dark:text-slate-500 top-1/2 -translate-y-1/2" />
-            <input
-              ref={catalogSearchRef}
-              id="catalog-search"
-              type="search"
-              placeholder="Rechercher par matière, programmation, bases de données..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              aria-label="Rechercher dans le catalogue"
-              className="kbd-nav-focus w-full pl-9 pr-4 py-2.5 min-h-[44px] border border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-slate-50 dark:bg-slate-950 dark:text-white focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-500 focus:border-indigo-500"
-            />
+          <div className="w-full max-w-md space-y-1">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+              <input
+                ref={catalogSearchRef}
+                id="catalog-search"
+                type="search"
+                placeholder="Rechercher par matière, programmation, bases de données..."
+                value={searchQuery}
+                onChange={(e) => {
+                  clearVoiceSearchError();
+                  setSearchQuery(e.target.value);
+                }}
+                aria-label="Rechercher dans le catalogue"
+                className={`kbd-nav-focus w-full min-h-[44px] rounded-xl border py-2.5 pl-9 text-xs bg-slate-50 dark:bg-slate-950 dark:text-white focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-500 focus:border-indigo-500 border-slate-200 dark:border-slate-800 ${
+                  isListening ? "pr-[7.5rem] ring-2 ring-pink-500/40 border-pink-500/40" : "pr-12"
+                }`}
+              />
+              <div className="absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center gap-1">
+                {isListening && (
+                  <span
+                    className="hidden sm:inline text-[10px] font-bold uppercase tracking-wide text-pink-400 voice-search-listening-label"
+                    aria-live="polite"
+                  >
+                    Écoute...
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={toggleListening}
+                  aria-label={isListening ? "Arrêter la recherche vocale" : "Lancer la recherche vocale"}
+                  aria-pressed={isListening}
+                  title={isListening ? "Arrêter l'écoute" : "Recherche vocale"}
+                  className={`touch-target kbd-nav-focus flex h-9 min-w-9 items-center justify-center rounded-lg border transition-all ${
+                    isListening
+                      ? "voice-search-mic-active border-pink-500/50 bg-pink-950/60 text-pink-400 shadow-[0_0_12px_rgba(236,72,153,0.35)]"
+                      : "border-transparent bg-transparent text-slate-400 hover:border-violet-500/30 hover:bg-violet-950/40 hover:text-violet-400 dark:text-slate-500 dark:hover:text-violet-400"
+                  }`}
+                >
+                  <Mic className={`h-4 w-4 ${isListening ? "voice-search-mic-pulse" : ""}`} />
+                </button>
+              </div>
+            </div>
+            {voiceSearchError && (
+              <p role="alert" className="text-[10px] font-semibold leading-snug text-amber-400 dark:text-amber-300">
+                {voiceSearchError}
+              </p>
+            )}
           </div>
         ) : (
           <div className="flex items-center gap-2.5 min-w-0">

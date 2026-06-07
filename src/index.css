@@ -270,3 +270,38 @@ body {
     min-width: var(--touch-target-min);
   }
 }
+
+/* Voice search — active mic pulse (catalog topbar) */
+@keyframes voice-search-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 0.85;
+  }
+}
+
+@keyframes voice-search-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 8px rgba(236, 72, 153, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(168, 85, 247, 0.55);
+  }
+}
+
+.voice-search-mic-pulse {
+  animation: voice-search-pulse 1.1s ease-in-out infinite;
+}
+
+.voice-search-mic-active {
+  animation: voice-search-glow 1.4s ease-in-out infinite;
+}
+
+.voice-search-listening-label {
+  animation: voice-search-pulse 1.1s ease-in-out infinite;
+}
