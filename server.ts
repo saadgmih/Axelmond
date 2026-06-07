@@ -37,7 +37,7 @@ import {
 } from "./src/email-verification";
 import { getEmailErrorDetails, getSmtpPublicConfig, readSmtpBanner, sendAdminTestEmail, sendVerificationEmail, verifySmtpConnection } from "./src/email";
 import { buildEmailDeliverySummary } from "./src/email-delivery-summary";
-import { prisma, getActivePgSchema } from "./src/db";
+import { prisma, getActivePgSchema, verifyDatabaseConnection } from "./src/db";
 import { uploadRouter, deleteCloudFiles } from "./src/uploadthing";
 import { ACADEMIC_DOMAINS, DEFAULT_DISCIPLINE_ID, getDisciplineIdForCourse } from "./src/academic-taxonomy";
 import { buildCourseGradeRows } from "./src/grades";
@@ -47,10 +47,12 @@ import { startPerformanceMonitor, requestTimingMiddleware } from "./src/performa
 import { logSecurity, logAudit, alertFailedLogins, alertMassDeletions, alertSuspectUpload } from "./src/security-logger";
 import { decodeStoredText, decodeStoredValue } from "./src/text";
 import { shouldSkipStartupSeed } from "./src/startup-seed";
+import { patchExpressAsyncRoutes } from "./src/express-async";
 
 dotenv.config();
 
 const app = express();
+patchExpressAsyncRoutes(app);
 const PORT = Number(process.env.PORT) || 3000;
 const isProduction = process.env.NODE_ENV === "production";
 const AUTH_MAX_ATTEMPTS = Number(process.env.AUTH_MAX_ATTEMPTS) || 20;
@@ -4402,6 +4404,17 @@ Réponds exclusivement en français, de manière polie.`;
 // ─── Vite / Static Setup ────────────────────────────────────────────────────
 
 function apiErrorStatus(err: any) {
+  const dbUnavailableCodes = new Set([
+    "P1000",
+    "P1001",
+    "P1002",
+    "P1003",
+    "P1008",
+    "P1017",
+    "P2021",
+    "P2022",
+  ]);
+  if (dbUnavailableCodes.has(err?.code)) return 503;
   if (err?.code === "P2002") return 409;
   if (err?.code === "P2025") return 404;
   if (err instanceof Prisma.PrismaClientValidationError) return 400;
@@ -4409,13 +4422,25 @@ function apiErrorStatus(err: any) {
 }
 
 function apiErrorMessage(err: any) {
+  const dbUnavailableCodes = new Set([
+    "P1000",
+    "P1001",
+    "P1002",
+    "P1003",
+    "P1008",
+    "P1017",
+    "P2021",
+    "P2022",
+  ]);
+  if (dbUnavailableCodes.has(err?.code)) {
+    return "Service temporairement indisponible. Réessayez dans quelques minutes.";
+  }
   if (err?.code === "P2002") return "Conflit en base de données";
   if (err?.code === "P2025") return "Ressource introuvable";
   if (err instanceof Prisma.PrismaClientValidationError) return "Requête invalide pour la base de données";
 
-  // Masquer les détails de l'erreur 500 / interne pour éviter les fuites d'informations
   const status = apiErrorStatus(err);
-  if (status === 500) {
+  if (status >= 500) {
     return "Une erreur interne est survenue";
   }
   return err?.message || "Erreur serveur";
@@ -4424,8 +4449,9 @@ function apiErrorMessage(err: any) {
 // ─── GET /api/health — healthcheck léger (exempté du rate limiter) ────────────
 app.get("/api/health", async (req, res) => {
   let dbStatus = "HEALTHY";
+  const dbSchema = getActivePgSchema();
   try {
-    await prisma.$queryRaw`SELECT 1`;
+    await prisma.user.findFirst({ select: { id: true } });
   } catch (err) {
     dbStatus = "UNHEALTHY";
   }
@@ -4440,6 +4466,7 @@ app.get("/api/health", async (req, res) => {
     payload.uptime = Math.round(process.uptime());
     payload.memory = process.memoryUsage();
     payload.dbStatus = dbStatus;
+    payload.dbSchema = dbSchema;
   }
 
   res.status(dbStatus === "HEALTHY" ? 200 : 503).json(payload);
@@ -4456,6 +4483,16 @@ async function setupApp() {
   });
 
   logEnvironmentStatus();
+
+  const dbCheck = await verifyDatabaseConnection();
+  if (dbCheck.ok) {
+    logDb("INFO", "Database schema verified at startup", { schema: dbCheck.schema });
+  } else {
+    logDb("ERROR", "Database schema verification failed at startup", {
+      schema: dbCheck.schema,
+      error: dbCheck.error,
+    });
+  }
 
   try {
     await seedDatabase();
@@ -4502,11 +4539,15 @@ async function setupApp() {
       next(err);
       return;
     }
-    res.status(status).json({
-      error: apiErrorMessage(err),
-      code,
-      route: `${req.method} ${req.originalUrl}`,
-    });
+    res.status(status).json(
+      isProduction
+        ? { error: apiErrorMessage(err) }
+        : {
+            error: apiErrorMessage(err),
+            code,
+            route: `${req.method} ${req.originalUrl}`,
+          },
+    );
   });
 
   if (process.env.NODE_ENV !== "production") {

@@ -131,8 +131,9 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
     }
 
     setIsLoading(true);
+    const normalizedEmail = email.trim().toLowerCase();
     try {
-      const user = await api.login(email, password, activeSector === "student" ? "STUDENT" : "PROFESSOR");
+      const user = await api.login(normalizedEmail, password, activeSector === "student" ? "STUDENT" : "PROFESSOR");
       setSessionToken(user.token, user.refreshToken);
       setSuccessMsg("Connexion réussie ! Chargement de votre espace...");
       setTimeout(() => onLoginSuccess(user), 800);

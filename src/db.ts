@@ -121,6 +121,17 @@ export function getFixedDatabaseUrl(): string {
   return globalForPrisma.databaseUrl ?? buildFixedDatabaseUrl(connectionString).url;
 }
 
+export async function verifyDatabaseConnection(): Promise<{ ok: boolean; schema: string; error?: string }> {
+  const schema = getActivePgSchema();
+  try {
+    await prisma.user.findFirst({ select: { id: true } });
+    return { ok: true, schema };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { ok: false, schema, error: message };
+  }
+}
+
 export async function disconnectDatabase() {
   await prisma.$disconnect();
   if (globalForPrisma.pgPool) {
