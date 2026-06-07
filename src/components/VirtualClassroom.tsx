@@ -42,8 +42,7 @@ import {
   Video,
   VideoOff,
   VolumeX,
-  Wifi,
-  X
+  Wifi
 } from "lucide-react";
 import { Course } from "../types";
 import { LiveChatMessage } from "../livekit";
@@ -742,15 +741,6 @@ export default function VirtualClassroom({
           data-tv-zone="live-sidebar"
           className={`absolute lg:static right-0 top-0 bottom-0 w-[min(100vw,360px)] lg:w-[360px] max-w-full lg:min-w-[360px] shrink-0 bg-zinc-900 border-l border-white/5 flex flex-col transition-transform duration-300 ease-out z-40 box-border lg:min-h-[480px] shadow-2xl lg:shadow-none ${isSidebarOpen ? "translate-x-0 lg:flex" : "translate-x-full lg:hidden"}`}
         >
-          {/* Mobile Close Button */}
-          <button 
-            onClick={() => setIsSidebarOpen(false)}
-            className="absolute top-4 right-4 touch-target p-2 bg-zinc-800 rounded-lg lg:hidden z-50 flex items-center justify-center"
-            aria-label="Fermer le panneau"
-          >
-            <X className="w-5 h-5" />
-          </button>
-
           {/* Sidebar Tabs */}
           <div className="px-3 pt-4 pb-2 grid grid-cols-4 gap-1 shrink-0 border-b border-white/5 bg-zinc-900/50">
             {tabs.map((tab) => (
