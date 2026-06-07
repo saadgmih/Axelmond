@@ -326,6 +326,7 @@ export default function App() {
     navigateTo,
     currentView,
     teacherView,
+    handleToggleCourseLive,
   });
 
   onSessionExpiredRef.current = disconnectLiveSession;
@@ -494,7 +495,7 @@ export default function App() {
       <div className="flex-1 flex flex-col overflow-hidden relative">
         
         {/* Header bar */}
-        {!isStudentLive && (
+        {!isStudentLive && !isTeacherLiveRoom && (
           <Topbar
             currentView={currentView}
             searchQuery={searchQuery}

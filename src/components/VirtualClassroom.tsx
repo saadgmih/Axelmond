@@ -35,6 +35,7 @@ import {
   Shapes,
   Shield,
   Sigma,
+  Square,
   Timer,
   UserCheck,
   UserX,
@@ -96,7 +97,8 @@ export interface VirtualClassroomProps {
   onToggleCamera: () => void;
   onToggleScreenShare: () => void;
   onToggleFullscreen: () => void;
-  onLeave: () => void;
+  onLeave?: () => void;
+  onEndBroadcast?: () => void | Promise<void>;
   onSendMessage: (e: React.FormEvent) => void;
   onRaiseHand: () => void;
   onReaction: (reaction: string) => void;
@@ -165,6 +167,7 @@ export default function VirtualClassroom({
   onToggleScreenShare,
   onToggleFullscreen,
   onLeave,
+  onEndBroadcast,
   onSendMessage,
   onRaiseHand,
   onReaction,
@@ -247,6 +250,14 @@ export default function VirtualClassroom({
   useTvNavigation(controlsRef, true);
   useTvNavigation(sidebarRef, isSidebarOpen);
 
+  const exitLiveSession = () => {
+    if (onEndBroadcast) {
+      void onEndBroadcast();
+      return;
+    }
+    onLeave?.();
+  };
+
   useKeyboardShortcuts([
     { key: "f", handler: () => onToggleFullscreen() },
     { key: "m", handler: () => onToggleMic() },
@@ -257,7 +268,7 @@ export default function VirtualClassroom({
       key: "l",
       handler: () => {
         if (onBack) onBack();
-        else onLeave();
+        else exitLiveSession();
       },
     },
     { key: "r", when: () => Boolean(onReconnectLive), handler: () => onReconnectLive?.() },
@@ -723,11 +734,18 @@ export default function VirtualClassroom({
                   type="button"
                   data-tv-focusable
                   tabIndex={0}
-                  onClick={onLeave} 
-                  aria-label="Quitter le live (L)"
-                  className="kbd-nav-focus touch-target h-12 min-h-[48px] px-5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-bold transition-all shadow-md flex items-center justify-center"
+                  onClick={exitLiveSession} 
+                  aria-label={mode === "teacher" ? "Éteindre le signal live (L)" : "Quitter le live (L)"}
+                  className="kbd-nav-focus touch-target h-12 min-h-[48px] px-5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-bold transition-all shadow-md flex items-center justify-center gap-2"
                 >
-                  Quitter
+                  {mode === "teacher" ? (
+                    <>
+                      <Square className="h-3.5 w-3.5 fill-current" />
+                      Éteindre le signal
+                    </>
+                  ) : (
+                    "Quitter"
+                  )}
                 </button>
               </div>
 

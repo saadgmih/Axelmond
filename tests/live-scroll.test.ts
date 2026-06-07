@@ -10,6 +10,10 @@ assert.match(appSource, /lockMainScroll/);
 assert.match(appSource, /overflow-y-auto/);
 assert.doesNotMatch(appSource, /isImmersiveView \? "overflow-hidden min-h-0"/);
 assert.doesNotMatch(appSource, /<div className="h-full min-h-0">\s*\n\s*<StudentLiveView/);
+assert.match(appSource, /!isStudentLive && !isTeacherLiveRoom/);
+
+const liveControlSource = readFileSync("src/views/teacher/TeacherLiveControlView.tsx", "utf8");
+assert.match(liveControlSource, /if \(isRoomOpen && activeLiveCourse\)/);
 
 assert.doesNotMatch(workspaceSource, /immersive[\s\S]*h-full min-h-0/);
 

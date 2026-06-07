@@ -5,8 +5,30 @@ import { useAccessibilityPreferences } from "../hooks/useAccessibilityPreference
 export default function AccessibilityControls() {
   const { preferences, toggleHighContrast, toggleReduceMotion } = useAccessibilityPreferences();
   const [open, setOpen] = useState(false);
+  const [panelStyle, setPanelStyle] = useState<{ top: number; right: number }>({ top: 0, right: 16 });
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open || !triggerRef.current) return;
+
+    const updatePosition = () => {
+      const rect = triggerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      setPanelStyle({
+        top: rect.bottom + 8,
+        right: Math.max(16, window.innerWidth - rect.right),
+      });
+    };
+
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -42,7 +64,8 @@ export default function AccessibilityControls() {
           role="dialog"
           aria-modal="false"
           aria-labelledby="accessibility-controls-title"
-          className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-[min(18rem,calc(100vw-2rem))] rounded-2xl border border-slate-700 bg-slate-900 p-4 shadow-2xl shadow-black/40"
+          style={{ top: panelStyle.top, right: panelStyle.right }}
+          className="fixed z-[110] w-[min(18rem,calc(100vw-2rem))] rounded-2xl border border-slate-700 bg-slate-900 p-4 shadow-2xl shadow-black/40"
         >
           <div className="mb-3 flex items-start justify-between gap-3">
             <div>

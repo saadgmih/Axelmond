@@ -12,7 +12,7 @@ import type { Course, Invoice } from "../types";
 
 export type LiveKitClassroomBindings = Omit<
   VirtualClassroomProps,
-  "mode" | "course" | "currentUserRole" | "onBack"
+  "mode" | "course" | "currentUserRole" | "onBack" | "onLeave" | "onEndBroadcast"
 >;
 
 export interface UseLiveKitRoomOptions {
@@ -32,6 +32,7 @@ export interface UseLiveKitRoomOptions {
   navigateTo: (view: string, targetCourse?: Course | null) => void;
   currentView: string;
   teacherView: string;
+  handleToggleCourseLive?: (id: number) => Promise<Course | null>;
 }
 
 export function useLiveKitRoom({
@@ -51,6 +52,7 @@ export function useLiveKitRoom({
   navigateTo,
   currentView,
   teacherView,
+  handleToggleCourseLive,
 }: UseLiveKitRoomOptions) {
   const [liveRoom, setLiveRoom] = useState<Room | null>(null);
   const [liveParticipants, setLiveParticipants] = useState<LiveParticipantCard[]>([]);
@@ -419,6 +421,13 @@ export function useLiveKitRoom({
     }
   };
 
+  const endTeacherLiveBroadcast = async () => {
+    if (!activeLiveCourse || !handleToggleCourseLive) return;
+    const courseId = activeLiveCourse.id;
+    closeTeacherLiveRoom();
+    await handleToggleCourseLive(courseId);
+  };
+
   const leaveLiveRoom = () => {
     const course = activeLiveCourse;
     if (course) {
@@ -647,7 +656,6 @@ export function useLiveKitRoom({
     onToggleCamera: toggleLiveCamera,
     onToggleScreenShare: toggleLiveScreenShare,
     onToggleFullscreen: toggleLiveFullscreen,
-    onLeave: leaveLiveRoom,
     onSendMessage: sendLiveChatMessage,
     onRaiseHand: toggleLiveHand,
     onReaction: sendLiveReaction,
@@ -661,11 +669,13 @@ export function useLiveKitRoom({
     if (!activeLiveCourse) return null;
     return (
       <VirtualClassroom
+        {...classroomBindings}
         mode={mode}
         course={activeLiveCourse}
         currentUserRole={currentUser?.role || "STUDENT"}
         onBack={mode === "student" ? () => navigateTo("course", activeLiveCourse) : undefined}
-        {...classroomBindings}
+        onLeave={mode === "student" ? leaveLiveRoom : undefined}
+        onEndBroadcast={mode === "teacher" ? endTeacherLiveBroadcast : undefined}
       />
     );
   };
