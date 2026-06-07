@@ -437,7 +437,7 @@ export default function VirtualClassroom({
   const totalVotes = useMemo(() => Object.values(pollVotes).reduce<number>((sum, value) => sum + Number(value || 0), 0), [pollVotes]);
 
   return (
-    <div className="h-full min-h-0 w-full max-w-full bg-zinc-950 text-white font-sans flex flex-col overflow-hidden relative box-border">
+    <div className="w-full max-w-full bg-zinc-950 text-white font-sans flex flex-col relative box-border min-h-[560px] overflow-x-hidden">
       <span className="sr-only">Classe virtuelle sécurisée</span>
       <span className="sr-only">Tableau blanc collaboratif</span>
       <span className="sr-only">Rapport de présence</span>
@@ -508,7 +508,7 @@ export default function VirtualClassroom({
       </header>
 
       {/* Main Container */}
-      <div className="flex-1 flex w-full max-w-full overflow-hidden relative box-border min-h-0">
+      <div className="flex flex-1 flex-col lg:flex-row w-full max-w-full relative box-border min-h-[480px]">
         
         {isSidebarOpen && (
           <button
@@ -522,7 +522,7 @@ export default function VirtualClassroom({
         {/* Center Stage - Video & Control */}
         <main 
           ref={stageRef}
-          className="flex-1 flex flex-col min-w-0 w-full overflow-hidden relative bg-black box-border"
+          className="flex flex-1 flex flex-col min-w-0 w-full relative bg-black box-border min-h-[360px]"
         >
           {/* Barre de Statistiques Pédagogiques (Hybride Moodle/Blackboard) */}
           <div className="shrink-0 bg-zinc-900/95 border-b border-white/5 py-2 px-4 flex justify-between md:justify-center items-center gap-4 lg:gap-10 overflow-x-auto hide-scrollbar z-30">
@@ -549,8 +549,8 @@ export default function VirtualClassroom({
           </div>
 
           {/* Main Video Area */}
-          <div className="flex-1 p-0 lg:p-4 flex items-center justify-center relative min-w-0 min-h-0 bg-[#0a0a0a] overflow-hidden">
-            <div className="w-full h-full relative lg:rounded-2xl overflow-hidden bg-zinc-950 lg:border border-white/5 lg:shadow-2xl flex items-center justify-center box-border">
+          <div className="flex-1 min-h-[220px] sm:min-h-[280px] lg:min-h-[340px] p-0 lg:p-4 flex items-center justify-center relative min-w-0 bg-[#0a0a0a]">
+            <div className="w-full h-full min-h-[200px] max-h-[min(72dvh,780px)] relative lg:rounded-2xl overflow-hidden bg-zinc-950 lg:border border-white/5 lg:shadow-2xl flex items-center justify-center box-border">
               
               {videoParticipants.length > 0 ? (
                 <div className={`live-video-grid grid ${videoGridClass} gap-3 w-full h-full p-3`}>
@@ -740,7 +740,7 @@ export default function VirtualClassroom({
         <aside 
           ref={sidebarRef}
           data-tv-zone="live-sidebar"
-          className={`absolute lg:static right-0 top-0 bottom-0 w-[min(100vw,360px)] lg:w-[360px] max-w-full lg:min-w-[360px] shrink-0 bg-zinc-900 border-l border-white/5 flex flex-col transition-transform duration-300 ease-out z-40 box-border overflow-hidden shadow-2xl lg:shadow-none ${isSidebarOpen ? 'translate-x-0 lg:flex' : 'translate-x-full lg:hidden'}`}
+          className={`absolute lg:static right-0 top-0 bottom-0 w-[min(100vw,360px)] lg:w-[360px] max-w-full lg:min-w-[360px] shrink-0 bg-zinc-900 border-l border-white/5 flex flex-col transition-transform duration-300 ease-out z-40 box-border lg:min-h-[480px] shadow-2xl lg:shadow-none ${isSidebarOpen ? "translate-x-0 lg:flex" : "translate-x-full lg:hidden"}`}
         >
           {/* Mobile Close Button */}
           <button 

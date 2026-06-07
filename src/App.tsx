@@ -332,10 +332,9 @@ export default function App() {
 
   const isStudentLive = role === "student" && currentView === "live" && !!activeLiveCourse;
   const isTeacherLiveRoom = role === "teacher" && teacherView === "live-control" && !!activeLiveCourse;
-  const isImmersiveView =
-    currentView === "course" ||
-    isStudentLive ||
-    isTeacherLiveRoom;
+  const isLiveSessionView = isStudentLive || isTeacherLiveRoom;
+  const isImmersiveView = currentView === "course" || isLiveSessionView;
+  const lockMainScroll = currentView === "course";
   const hideGlobalFooter = isImmersiveView;
 
   useKeyboardShortcuts(
@@ -514,7 +513,7 @@ export default function App() {
         <main
           id="main-content"
           tabIndex={-1}
-          className={`flex-1 relative bg-slate-50 outline-none ${isImmersiveView ? "overflow-hidden min-h-0" : "overflow-y-auto"}`}
+          className={`flex-1 relative bg-slate-50 outline-none min-h-0 ${lockMainScroll ? "overflow-hidden" : "overflow-y-auto"}`}
         >
 
 {INSTITUTIONAL_VIEWS.has(currentView) ? (
@@ -608,14 +607,12 @@ export default function App() {
             />
           )}
           {currentView === "live" && activeLiveCourse && (
-            <div className="h-full min-h-0">
               <StudentLiveView
                 course={activeLiveCourse}
                 currentUserRole={currentUser?.role || "STUDENT"}
                 onBack={() => navigateTo("course", activeLiveCourse)}
                 {...classroomBindings}
               />
-            </div>
           )}
 
             </>
