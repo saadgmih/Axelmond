@@ -22,7 +22,7 @@ import {
 } from "./src/paypal-server";
 import { Course, CourseModule, DEFAULT_MODULE_CLASSIFICATION, DEFAULT_STUDENT_LABEL } from "./src/types";
 import { UserRole, canAccessAcademicProfile, canAccessApiRoute, canLoginToRequestedRole, normalizeRole } from "./src/rbac";
-import { signAuthToken, verifyAuthToken, createRefreshToken, rotateRefreshToken } from "./src/auth-token";
+import { signAuthToken, verifyAuthToken, createRefreshToken, rotateRefreshToken, findValidRefreshToken, revokeRefreshToken, revokeAllUserRefreshTokens } from "./src/auth-token";
 import { DEFAULT_LIVE_SUBJECT, buildLiveKitRoomName, getLiveKitConfig, getLiveKitParticipantIdentity } from "./src/livekit";
 import { generateProfessorInviteCode, normalizeProfessorInviteCode, parseProfessorInviteCodes } from "./src/invitations";
 import {
@@ -49,6 +49,13 @@ import { decodeStoredText, decodeStoredValue } from "./src/text";
 import { shouldSkipStartupSeed } from "./src/startup-seed";
 import { PLATFORM_CURRENCY_CODE } from "./src/utils/morocco-locale";
 import { patchExpressAsyncRoutes } from "./src/express-async";
+import {
+  JSON_BODY_LIMIT,
+  REFRESH_RATE_LIMIT_MAX,
+  REFRESH_RATE_LIMIT_WINDOW_MS,
+  CHAT_TUTOR_MAX_HISTORY_MESSAGES,
+  CHAT_TUTOR_MAX_PROMPT_CHARS,
+} from "./src/security-hardening";
 
 dotenv.config();
 
@@ -145,9 +152,15 @@ app.use(
       },
     },
     crossOriginEmbedderPolicy: false,
-    hsts: isProduction ? { maxAge: 31536000, includeSubDomains: true } : false,
+    hsts: isProduction ? { maxAge: 31536000, includeSubDomains: true, preload: true } : false,
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
   })
 );
+
+app.use((_req, res, next) => {
+  res.setHeader("Permissions-Policy", "camera=(self), microphone=(self), geolocation=(), payment=(self)");
+  next();
+});
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
@@ -178,7 +191,7 @@ app.use(
   }),
 );
 
-app.use(express.json());
+app.use(express.json({ limit: JSON_BODY_LIMIT }));
 
 // ─── Compression gzip ────────────────────────────────────────────────────────
 app.use(compression());
@@ -256,9 +269,19 @@ const chatTutorRateLimiter = rateLimit({
   message: { error: "Trop de questions à l'assistant. Veuillez patienter 15 minutes.", code: "CHAT_TUTOR_RATE_LIMIT_EXCEEDED" },
 });
 
+const refreshRateLimiter = rateLimit({
+  windowMs: REFRESH_RATE_LIMIT_WINDOW_MS,
+  max: REFRESH_RATE_LIMIT_MAX,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => ipKeyGenerator(req.ip || ""),
+  message: { error: "Trop de tentatives de renouvellement de session. Réessayez plus tard.", code: "REFRESH_RATE_LIMIT_EXCEEDED" },
+});
+
 app.use("/api", globalRateLimiter);
 app.use("/api/auth/login", authRateLimiter);
 app.use("/api/auth/register", authRateLimiter);
+app.use("/api/auth/refresh", refreshRateLimiter);
 app.use("/api/auth/resend-verification-code", emailVerificationRateLimiter);
 app.use("/api/auth/verify-email", emailVerificationRateLimiter);
 app.use("/api/auth/forgot-password", emailVerificationRateLimiter);
@@ -1410,7 +1433,17 @@ const forgotPasswordSchema = z.object({
 const resetPasswordSchema = z.object({
   email: z.string().email("Adresse email invalide").trim().toLowerCase(),
   code: z.string().length(6, "Le code doit contenir 6 chiffres").regex(/^\d+$/, "Le code doit être numérique"),
-  newPassword: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères"),
+  newPassword: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères"),
+});
+
+const chatTutorSchema = z.object({
+  prompt: z.string().min(1, "Question requise").max(CHAT_TUTOR_MAX_PROMPT_CHARS).trim(),
+  courseContext: z.string().max(200).trim().optional(),
+  moduleContext: z.string().max(200).trim().optional(),
+  chatHistory: z.array(z.object({
+    role: z.enum(["user", "model", "assistant"]),
+    text: z.string().max(CHAT_TUTOR_MAX_PROMPT_CHARS),
+  })).max(CHAT_TUTOR_MAX_HISTORY_MESSAGES).optional(),
 });
 
 const PASSWORD_RESET_GENERIC_MESSAGE = "Si un compte Axelmond Research Labs existe pour cette adresse, un code de réinitialisation a été envoyé.";
@@ -1742,9 +1775,19 @@ app.post("/api/courses", requireAuth, requireRbac, validateBody(courseSchema), a
 app.get("/api/courses/:id", async (req, res) => {
   const authUser = await getOptionalAuthUser(req);
   const course = await prisma.course.findUnique({ where: { id: parseInt(req.params.id) }, include: courseResponseInclude });
-  if (!course || (!course.published && (!authUser || authUser.role === "STUDENT"))) {
+  if (!course) {
     res.status(404).json({ error: "Course not found" });
     return;
+  }
+  if (!course.published) {
+    if (!authUser || authUser.role === "STUDENT") {
+      res.status(404).json({ error: "Course not found" });
+      return;
+    }
+    if (!(await verifyCourseAccess(authUser, course.id))) {
+      res.status(403).json({ error: "Accès refusé pour consulter ce module" });
+      return;
+    }
   }
   res.json(toCourse(course));
 });
@@ -3110,17 +3153,27 @@ app.post("/api/auth/login", validateBody(loginSchema), async (req, res) => {
 // POST /api/auth/refresh
 app.post("/api/auth/refresh", async (req, res) => {
   const { refreshToken } = req.body;
-  if (!refreshToken || typeof refreshToken !== "string") {
+  if (!refreshToken || typeof refreshToken !== "string" || refreshToken.length > 128) {
     res.status(400).json({ error: "Refresh token requis" });
     return;
   }
 
-  const storedToken = await prisma.refreshToken.findUnique({
-    where: { token: refreshToken },
-    include: { user: { include: { enrollments: true } } },
-  });
+  const storedToken = await findValidRefreshToken(refreshToken);
 
-  if (!storedToken || storedToken.revokedAt || storedToken.expiresAt < new Date()) {
+  if (!storedToken) {
+    logSecurity("WARN", "Invalid refresh token attempt", { ip: req.ip });
+    res.status(401).json({ error: "Refresh token invalide ou expiré" });
+    return;
+  }
+
+  if (storedToken.revokedAt) {
+    await revokeAllUserRefreshTokens(storedToken.userId);
+    logSecurity("ERROR", "Refresh token reuse detected — all sessions revoked", { userId: storedToken.userId, ip: req.ip });
+    res.status(401).json({ error: "Session compromise détectée. Reconnectez-vous." });
+    return;
+  }
+
+  if (storedToken.expiresAt < new Date()) {
     res.status(401).json({ error: "Refresh token invalide ou expiré" });
     return;
   }
@@ -3143,11 +3196,8 @@ app.post("/api/auth/refresh", async (req, res) => {
 // POST /api/auth/logout
 app.post("/api/auth/logout", async (req, res) => {
   const { refreshToken } = req.body;
-  if (refreshToken) {
-    await prisma.refreshToken.updateMany({
-      where: { token: String(refreshToken) },
-      data: { revokedAt: new Date() },
-    });
+  if (refreshToken && typeof refreshToken === "string") {
+    await revokeRefreshToken(refreshToken);
   }
   res.json({ ok: true });
 });
@@ -3655,13 +3705,9 @@ app.get("/api/livekit/messages/:courseId", requireAuth, async (req, res) => {
   })));
 });
 
-app.post("/api/livekit/messages", requireAuth, async (req, res) => {
+app.post("/api/livekit/messages", requireAuth, validateBody(liveMessageSchema), async (req, res) => {
   const { courseId, messageId, text } = req.body;
   const authUser = (req as any).authUser as AppUser;
-  if (!text || typeof text !== "string") {
-    res.status(400).json({ error: "text required" });
-    return;
-  }
 
   const access = await assertLiveAccess(authUser, Number(courseId));
   if (!access.ok) {
@@ -4352,9 +4398,8 @@ if (apiKey) {
   console.log("Assistant IA: service externe non configuré, réponses pédagogiques locales activées.");
 }
 
-app.post("/api/chat-tutor", requireAuth, async (req, res) => {
+app.post("/api/chat-tutor", requireAuth, validateBody(chatTutorSchema), async (req, res) => {
   const { prompt, courseContext, moduleContext, chatHistory } = req.body;
-  if (!prompt || typeof prompt !== "string") { res.status(400).json({ error: "Missing parameter 'prompt'" }); return; }
 
   const courseName = courseContext || "Informatique Générale";
   const moduleName = moduleContext || "Sujet Libre";

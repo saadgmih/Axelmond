@@ -56,4 +56,9 @@ assert.match(serverSource, /scriptSrc:\s*isProduction/);
 assert.match(serverSource, /app\.use\("\/api\/auth\/verify-email",\s*emailVerificationRateLimiter\)/);
 assert.match(serverSource, /app\.use\("\/api\/auth\/resend-verification-code",\s*emailVerificationRateLimiter\)/);
 
+// 8. Durcissement anti-intrusion
+assert.equal(canAccessApiRoute("STUDENT", "DELETE", "/api/admin/secret-backdoor"), false);
+assert.match(serverSource, /app\.use\("\/api\/auth\/refresh",\s*refreshRateLimiter\)/);
+assert.match(serverSource, /verifyCourseAccess\(authUser,\s*course\.id\)/);
+
 console.log("Security automated tests passed");

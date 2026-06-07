@@ -174,5 +174,5 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
     return teacherSpaceRoles.includes(normalized);
   }
 
-  return true;
+  return false;
 }

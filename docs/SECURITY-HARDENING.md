@@ -1,0 +1,60 @@
+# Sécurité Axelmond Research Labs — durcissement anti-intrusion
+
+## Mesures serveur actives
+
+| Couche | Protection |
+|--------|------------|
+| **Authentification** | JWT 15 min, refresh 7 jours, rotation à chaque refresh, bcrypt cost 10 |
+| **Refresh tokens** | Stockés **hashés SHA-256** en base (jamais en clair) |
+| **Brute force** | Lockout compte + rate limit login/register (20/min par email) |
+| **Refresh abuse** | Rate limit 30/15 min par IP sur `/api/auth/refresh` |
+| **RBAC** | Refus par défaut sur routes `requireRbac` (whitelist explicite) |
+| **Ownership** | Vérification `createdById` sur modules, chapitres, contenus, live |
+| **Headers** | Helmet, CSP, HSTS (prod), Permissions-Policy, Referrer-Policy |
+| **CORS** | Allowlist `APP_URL` + `ALLOWED_ORIGINS` uniquement |
+| **Rate limits** | Global, auth, email, upload, LiveKit, chat IA |
+| **Validation** | Zod + sanitization HTML sur entrées sensibles |
+| **Uploads** | MIME, extensions dangereuses, suppression immédiate si rejet |
+| **LiveKit** | Token 15 min, enrollment/ownership, modération staff only |
+| **Secrets prod** | `AUTH_TOKEN_SECRET` obligatoire, pas de secret dev en prod |
+
+## Variables d'environnement obligatoires (production)
+
+```env
+NODE_ENV=production
+AUTH_TOKEN_SECRET=<64+ caractères aléatoires>
+DATABASE_URL=postgresql://...?sslmode=require
+APP_URL=https://votre-domaine.com
+ALLOWED_ORIGINS=https://votre-domaine.com
+LIVEKIT_API_KEY=...
+LIVEKIT_API_SECRET=...
+UPLOADTHING_TOKEN=...
+UPLOADTHING_IS_DEV=false
+```
+
+## Déploiement Hostinger / PM2
+
+```bash
+git pull origin main
+npm install
+npm run build
+pm2 reload axelmond-research-labs
+```
+
+Vérifier HTTPS actif, firewall (ports 80/443 seulement), PostgreSQL non exposé publiquement.
+
+## Recommandations complémentaires (ops)
+
+1. **WAF / Cloudflare** devant le domaine (DDoS, bot fight)
+2. **Fail2ban** sur SSH et logs nginx
+3. **Sauvegardes DB** chiffrées quotidiennes
+4. **Rotation secrets** trimestrielle (`AUTH_TOKEN_SECRET`, LiveKit, DB)
+5. **Monitoring** : alertes sur `logSecurity` WARN/CRITICAL
+6. **Scan CI** : `node scan-secrets.js` avant chaque release
+
+## Limitation connue (tokens client)
+
+Les tokens restent en `localStorage` côté navigateur. En cas de XSS, un attaquant pourrait voler la session.
+Mitigation : CSP stricte, pas de `dangerouslySetInnerHTML`, audits réguliers du front.
+
+Migration future recommandée : refresh en cookie **HttpOnly** + **SameSite=Strict** + CSRF token.

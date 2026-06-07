@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import jwt from "jsonwebtoken";
 import { UserRole, normalizeRole } from "./rbac";
 import { prisma } from "./db";
+import { hashRefreshToken } from "./security-hardening";
 
 const DEFAULT_AUTH_TOKEN_SECRET = "axelmond-dev-secret";
 
@@ -42,17 +43,38 @@ export function verifyAuthToken(token: string | undefined, secret = getAuthToken
 export async function createRefreshToken(userId: string) {
   const token = crypto.randomBytes(40).toString("hex");
   const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
+  expiresAt.setDate(expiresAt.getDate() + 7);
 
   await prisma.refreshToken.create({
     data: {
       userId,
-      token,
+      token: hashRefreshToken(token),
       expiresAt,
     },
   });
 
   return token;
+}
+
+export async function findValidRefreshToken(rawToken: string) {
+  return prisma.refreshToken.findUnique({
+    where: { token: hashRefreshToken(rawToken) },
+    include: { user: { include: { enrollments: true } } },
+  });
+}
+
+export async function revokeRefreshToken(rawToken: string) {
+  return prisma.refreshToken.updateMany({
+    where: { token: hashRefreshToken(rawToken) },
+    data: { revokedAt: new Date() },
+  });
+}
+
+export async function revokeAllUserRefreshTokens(userId: string) {
+  return prisma.refreshToken.updateMany({
+    where: { userId, revokedAt: null },
+    data: { revokedAt: new Date() },
+  });
 }
 
 export async function rotateRefreshToken(id: string, userId: string) {
@@ -69,7 +91,7 @@ export async function rotateRefreshToken(id: string, userId: string) {
     await tx.refreshToken.create({
       data: {
         userId,
-        token,
+        token: hashRefreshToken(token),
         expiresAt,
       },
     });
