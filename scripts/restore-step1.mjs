@@ -1,5 +1,5 @@
 import fs from "fs";
-const APP = "C:/Users/saadg/Desktop/unicode/src/App.tsx";
+const APP = "C:/Users/saadg/Desktop/AxelmondResearchLab/src/App.tsx";
 let text = fs.readFileSync(APP, "utf8");
 console.log("read", text.length);
 if (!text.includes("useNavigate")) {

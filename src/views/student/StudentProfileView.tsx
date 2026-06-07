@@ -1,5 +1,18 @@
+import { useMemo } from "react";
 import type { FormEvent } from "react";
-import { Award, Camera, CreditCard, GraduationCap } from "lucide-react";
+import {
+  Award,
+  BookOpen,
+  Camera,
+  CheckCircle2,
+  CreditCard,
+  GraduationCap,
+  Mail,
+  ShieldCheck,
+  Sparkles,
+  Trash2,
+  Upload,
+} from "lucide-react";
 import type { AppUser } from "../../components/AuthScreen";
 import type { Course, Invoice } from "../../types";
 
@@ -14,6 +27,13 @@ interface StudentProfileViewProps {
   setAvatarFile: (file: File | null) => void;
 }
 
+function getInitials(name: string) {
+  if (!name) return "AR";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+}
+
 export default function StudentProfileView({
   currentUser,
   enrolledCourses,
@@ -24,188 +44,374 @@ export default function StudentProfileView({
   handleDeleteAvatar,
   setAvatarFile,
 }: StudentProfileViewProps) {
+  const enrolledList = useMemo(
+    () => courses.filter((course) => enrolledCourses.includes(course.id)),
+    [courses, enrolledCourses],
+  );
+
+  const stats = useMemo(() => {
+    const totalCredits = enrolledList.reduce((sum, course) => sum + course.credits, 0);
+    const completedQuizzes = enrolledList.reduce(
+      (sum, course) => sum + course.modules.filter((m) => m.type === "quiz" && m.completed).length,
+      0,
+    );
+    const validatedModules = enrolledList.reduce(
+      (sum, course) => sum + course.modules.filter((m) => m.completed).length,
+      0,
+    );
+    const avgProgress =
+      enrolledList.length > 0
+        ? Math.round(enrolledList.reduce((sum, c) => sum + c.progress, 0) / enrolledList.length)
+        : 0;
+
+    return {
+      totalCredits,
+      completedQuizzes,
+      validatedModules,
+      avgProgress,
+      enrolledCount: enrolledList.length,
+    };
+  }, [enrolledList]);
+
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200 flex flex-col md:flex-row items-center md:items-end md:justify-between p-6 md:p-8 gap-6">
-        <div className="flex flex-col md:flex-row items-center gap-5 text-center md:text-left">
-          <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center font-bold font-sans text-3xl text-white shadow-md border-4 border-slate-100 overflow-hidden">
-            {currentUser?.avatarUrl ? (
-              <img src={currentUser.avatarUrl} alt="Photo de profil" className="w-full h-full object-cover" />
-            ) : (
-              currentUser ? currentUser.fullName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) : "AR"
-            )}
-          </div>
-          <div className="space-y-1">
-            <h1 className="text-2xl font-black text-slate-900 leading-tight">
-              {currentUser ? currentUser.fullName : "Axelmond Research Labs"}
-            </h1>
-            <p className="text-sm font-semibold text-slate-500 flex items-center justify-center md:justify-start gap-1">
-              <GraduationCap className="w-4 h-4 text-indigo-500" /> {currentUser ? currentUser.levelOrTitle : "Licence 3 Informatique"} d'Axelmond Research Labs
-            </p>
-            <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] uppercase font-bold px-2.5 py-0.5 rounded inline-block">
-              Compte Actif
-            </span>
-          </div>
-        </div>
+    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300">
+      {/* Hero */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-950 via-indigo-900 to-slate-900 text-white shadow-xl border border-indigo-950/50">
+        <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-indigo-500/10 blur-3xl" />
+        <div className="absolute -left-10 bottom-0 h-40 w-40 rounded-full bg-purple-500/10 blur-2xl" />
 
-        <div className="flex flex-col items-center md:items-end gap-1 font-mono text-center md:text-right bg-slate-50 border border-slate-200 p-4 rounded-2xl">
-          <span className="text-[10px] text-slate-500 uppercase font-bold leading-none">Identifiant Étudiant</span>
-          <span className="text-sm font-bold text-slate-800 mt-1">{currentUser ? `ID-${currentUser.id}` : "—"}</span>
-          <span className="text-[10px] text-indigo-600 mt-0.5 font-bold">{currentUser?.email || ""}</span>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 md:p-8 space-y-4 shadow-sm">
-        <div className="flex justify-between items-center pb-2 border-b border-slate-100">
-          <div>
-            <h3 className="font-extrabold text-base text-slate-800">Photo de profil</h3>
-            <p className="text-xs text-slate-500 mt-0.5">Téléversez une image qui sera affichée dans la navigation et votre espace étudiant.</p>
-          </div>
-          <Camera className="w-5 h-5 text-indigo-600" />
-        </div>
-        <form onSubmit={handleUploadAvatar} className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-3 items-center">
-          <input type="file" accept="image/*" onChange={(e) => setAvatarFile(e.target.files?.[0] || null)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-indigo-600 file:px-3 file:py-2 file:text-xs file:font-bold file:text-white" />
-          <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-3 rounded-xl text-xs">
-            Changer la photo
-          </button>
-          <button type="button" onClick={handleDeleteAvatar} className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-5 py-3 rounded-xl text-xs">
-            Supprimer
-          </button>
-        </form>
-        {avatarStatusMsg && <p className="text-xs font-semibold text-slate-500">{avatarStatusMsg}</p>}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        <div className="lg:col-span-8 space-y-6">
-          <div className="bg-white rounded-3xl border border-slate-200 p-6 md:p-8 space-y-6 shadow-sm">
-            <h3 className="font-extrabold text-base text-slate-800 pb-3 border-b border-slate-100">
-              Rapport d'activité & Progression Académique
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              <div className="bg-slate-50 p-4 border border-slate-100 rounded-2xl space-y-1">
-                <span className="text-[10px] text-slate-400 uppercase font-extrabold block">Crédits accumulés</span>
-                <p className="text-2xl font-black text-slate-800">
-                  {enrolledCourses.reduce((sum, id) => {
-                    const matched = courses.find((c) => c.id === id);
-                    return sum + (matched ? matched.credits : 0);
-                  }, 0)}
-                  <span className="text-xs text-slate-400 font-medium"> / 30 ECTS</span>
-                </p>
+        <div className="relative z-10 p-6 md:p-8">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-end">
+              <div className="relative shrink-0">
+                <div className="h-28 w-28 overflow-hidden rounded-2xl border-4 border-white/20 bg-gradient-to-tr from-indigo-500 to-purple-600 shadow-2xl ring-4 ring-indigo-500/20">
+                  {currentUser?.avatarUrl ? (
+                    <img
+                      src={currentUser.avatarUrl}
+                      alt="Photo de profil"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-3xl font-black">
+                      {currentUser ? getInitials(currentUser.fullName) : "AR"}
+                    </div>
+                  )}
+                </div>
+                <span className="absolute -bottom-2 -right-2 flex h-8 w-8 items-center justify-center rounded-xl border border-emerald-400/30 bg-emerald-500 shadow-lg">
+                  <CheckCircle2 className="h-4 w-4 text-white" />
+                </span>
               </div>
 
-              <div className="bg-slate-50 p-4 border border-slate-100 rounded-2xl space-y-1">
-                <span className="text-[10px] text-slate-400 uppercase font-extrabold block">Modules Débloqués</span>
-                <p className="text-2xl font-black text-slate-800">
-                  {enrolledCourses.length}
-                  <span className="text-xs text-slate-400 font-medium"> sur 4</span>
+              <div className="space-y-2 text-center sm:text-left">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-400/30 bg-indigo-500/20 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-indigo-200">
+                  <GraduationCap className="h-3 w-3" />
+                  Profil Étudiant
+                </span>
+                <h1 className="text-2xl font-black tracking-tight md:text-3xl">
+                  {currentUser?.fullName || "Étudiant Axelmond"}
+                </h1>
+                <p className="text-sm font-medium text-indigo-200/90">
+                  {currentUser?.levelOrTitle || "Licence 3 Informatique"} · Axelmond Research Labs
                 </p>
-              </div>
-
-              <div className="bg-slate-50 p-4 border border-slate-100 rounded-2xl space-y-1">
-                <span className="text-[10px] text-slate-400 uppercase font-extrabold block">Quiz complétés</span>
-                <p className="text-2xl font-black text-indigo-700">
-                  {courses.filter((c) => enrolledCourses.includes(c.id)).reduce((sum, c) => sum + c.modules.filter((m) => m.type === "quiz" && m.completed).length, 0)}
-                </p>
+                <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+                  <span className="inline-flex items-center gap-1 rounded-lg border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-300">
+                    <ShieldCheck className="h-3 w-3" />
+                    Compte actif
+                  </span>
+                  {currentUser?.emailVerified && (
+                    <span className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-indigo-100">
+                      <Mail className="h-3 w-3" />
+                      Email vérifié
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
-            <div className="space-y-4 pt-2">
-              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-widest">Modules suivis</h4>
-              {courses.filter((course) => enrolledCourses.includes(course.id)).map((course) => (
-                <div key={course.id} className="space-y-1">
-                  <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-slate-600">{course.title}</span>
-                    <span className="text-slate-800">{course.progress}%</span>
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm lg:min-w-[220px]">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-300/80">
+                Identifiant
+              </p>
+              <p className="mt-1 font-mono text-sm font-bold text-white">
+                {currentUser ? `ID-${currentUser.id.slice(0, 8).toUpperCase()}` : "—"}
+              </p>
+              <p className="mt-2 truncate text-xs font-medium text-indigo-200/80">{currentUser?.email}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {[
+          {
+            label: "Crédits ECTS",
+            value: stats.totalCredits,
+            suffix: "/ 30",
+            icon: Sparkles,
+            accent: "from-indigo-500 to-indigo-600",
+          },
+          {
+            label: "Modules inscrits",
+            value: stats.enrolledCount,
+            suffix: " actifs",
+            icon: BookOpen,
+            accent: "from-violet-500 to-purple-600",
+          },
+          {
+            label: "Progression moy.",
+            value: stats.avgProgress,
+            suffix: "%",
+            icon: Award,
+            accent: "from-emerald-500 to-teal-600",
+          },
+          {
+            label: "Quiz complétés",
+            value: stats.completedQuizzes,
+            suffix: "",
+            icon: CheckCircle2,
+            accent: "from-amber-500 to-orange-600",
+          },
+        ].map((item) => (
+          <div
+            key={item.label}
+            className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+          >
+            <div className={`absolute -right-4 -top-4 h-20 w-20 rounded-full bg-gradient-to-br ${item.accent} opacity-10 transition-opacity group-hover:opacity-20`} />
+            <div className="relative flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{item.label}</p>
+                <p className="mt-2 text-2xl font-black text-slate-900">
+                  {item.value}
+                  <span className="text-sm font-semibold text-slate-400">{item.suffix}</span>
+                </p>
+              </div>
+              <div className={`rounded-xl bg-gradient-to-br ${item.accent} p-2.5 text-white shadow-sm`}>
+                <item.icon className="h-4 w-4" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start">
+        <div className="space-y-6 lg:col-span-8">
+          {/* Progression */}
+          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5 md:px-8">
+              <div>
+                <h2 className="text-lg font-black text-slate-900">Progression académique</h2>
+                <p className="mt-0.5 text-xs text-slate-500">Suivi de vos modules inscrits</p>
+              </div>
+              <div className="rounded-xl bg-indigo-50 p-2.5 text-indigo-600">
+                <BookOpen className="h-5 w-5" />
+              </div>
+            </div>
+
+            <div className="space-y-4 p-6 md:p-8">
+              {enrolledList.length > 0 ? (
+                enrolledList.map((course) => (
+                  <div key={course.id} className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4">
+                    <div className="mb-2 flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-slate-800">{course.title}</p>
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                          {course.credits} ECTS · {course.level}
+                        </p>
+                      </div>
+                      <span className="shrink-0 rounded-lg bg-white px-2.5 py-1 text-xs font-black text-indigo-700 shadow-sm">
+                        {course.progress}%
+                      </span>
+                    </div>
+                    <div className="h-2.5 overflow-hidden rounded-full bg-slate-200">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500"
+                        style={{ width: `${course.progress}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="w-full bg-slate-100 rounded-full h-2">
-                    <div className="bg-indigo-500 h-full rounded-full" style={{ width: `${course.progress}%` }}></div>
+                ))
+              ) : (
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-10 text-center">
+                  <BookOpen className="mx-auto h-10 w-10 text-slate-300" />
+                  <p className="mt-3 text-sm font-bold text-slate-600">Aucun module inscrit</p>
+                  <p className="mt-1 text-xs text-slate-400">
+                    Parcourez le catalogue pour débloquer vos premiers modules.
+                  </p>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Invoices */}
+          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5 md:px-8">
+              <div>
+                <h2 className="text-lg font-black text-slate-900">Historique des paiements</h2>
+                <p className="mt-0.5 text-xs text-slate-500">Reçus et transactions de vos inscriptions</p>
+              </div>
+              <div className="rounded-xl bg-indigo-50 p-2.5 text-indigo-600">
+                <CreditCard className="h-5 w-5" />
+              </div>
+            </div>
+
+            {invoices.length > 0 ? (
+              <>
+                <div className="hidden overflow-x-auto md:block">
+                  <table className="w-full border-collapse text-left text-xs text-slate-600">
+                    <thead>
+                      <tr className="border-b border-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                        <th className="px-6 py-4">Référence</th>
+                        <th className="px-4 py-4">Date</th>
+                        <th className="px-4 py-4">Module</th>
+                        <th className="px-4 py-4 text-right">Montant</th>
+                        <th className="px-6 py-4 text-center">État</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {invoices.map((inv) => (
+                        <tr key={inv.id} className="border-b border-slate-50 transition-colors last:border-none hover:bg-slate-50/80">
+                          <td className="px-6 py-4 font-mono font-semibold text-slate-800">{inv.id}</td>
+                          <td className="px-4 py-4">{inv.date}</td>
+                          <td className="px-4 py-4 font-semibold text-slate-900">{inv.courseTitle}</td>
+                          <td className="px-4 py-4 text-right font-mono font-bold text-indigo-700">
+                            {inv.amount.toFixed(2)}€
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            <span className="rounded-lg border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-emerald-700">
+                              {inv.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="space-y-3 p-4 md:hidden">
+                  {invoices.map((inv) => (
+                    <div key={inv.id} className="rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-bold text-slate-900">{inv.courseTitle}</p>
+                          <p className="mt-0.5 font-mono text-[10px] text-slate-400">{inv.id}</p>
+                        </div>
+                        <span className="rounded-lg border border-emerald-100 bg-emerald-50 px-2 py-0.5 text-[9px] font-bold uppercase text-emerald-700">
+                          {inv.status}
+                        </span>
+                      </div>
+                      <div className="mt-3 flex items-center justify-between text-xs">
+                        <span className="text-slate-500">{inv.date}</span>
+                        <span className="font-mono font-black text-indigo-700">{inv.amount.toFixed(2)}€</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="px-6 py-12 text-center md:px-8">
+                <CreditCard className="mx-auto h-10 w-10 text-slate-300" />
+                <p className="mt-3 text-sm font-bold text-slate-600">Aucun paiement enregistré</p>
+                <p className="mt-1 text-xs text-slate-400">Vos reçus apparaîtront ici après inscription.</p>
+              </div>
+            )}
+          </section>
+        </div>
+
+        {/* Sidebar */}
+        <aside className="space-y-6 lg:col-span-4">
+          {/* Avatar */}
+          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <div className="border-b border-slate-100 px-6 py-5">
+              <div className="flex items-center gap-3">
+                <div className="rounded-xl bg-indigo-50 p-2 text-indigo-600">
+                  <Camera className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900">Photo de profil</h3>
+                  <p className="text-[11px] text-slate-500">Visible dans la navigation</p>
+                </div>
+              </div>
+            </div>
+
+            <form onSubmit={handleUploadAvatar} className="space-y-3 p-6">
+              <label className="flex cursor-pointer flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/80 px-4 py-6 transition-colors hover:border-indigo-300 hover:bg-indigo-50/30">
+                <Upload className="h-6 w-6 text-indigo-400" />
+                <span className="text-center text-xs font-semibold text-slate-600">
+                  Cliquez pour choisir une image
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
+                  className="sr-only"
+                />
+              </label>
+              <button
+                type="submit"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 text-xs font-bold text-white transition-colors hover:bg-indigo-700"
+              >
+                <Upload className="h-3.5 w-3.5" />
+                Mettre à jour
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteAvatar}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 py-3 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-100"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Supprimer
+              </button>
+              {avatarStatusMsg && (
+                <p className="rounded-xl bg-slate-50 px-3 py-2 text-center text-[11px] font-semibold text-slate-500">
+                  {avatarStatusMsg}
+                </p>
+              )}
+            </form>
+          </section>
+
+          {/* Academic status */}
+          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <div className="border-b border-slate-100 px-6 py-5">
+              <h3 className="flex items-center gap-2 text-sm font-black text-slate-900">
+                <Award className="h-4 w-4 text-amber-500" />
+                Statut académique
+              </h3>
+            </div>
+            <div className="space-y-3 p-6">
+              {[
+                {
+                  value: stats.validatedModules,
+                  title: "Modules validés",
+                  desc: "Leçons marquées comme terminées",
+                  color: "bg-amber-50 text-amber-700 border-amber-100",
+                },
+                {
+                  value: stats.completedQuizzes,
+                  title: "Quiz complétés",
+                  desc: "Évaluations réussies ou soumises",
+                  color: "bg-indigo-50 text-indigo-700 border-indigo-100",
+                },
+                {
+                  value: stats.enrolledCount,
+                  title: "Modules actifs",
+                  desc: "Inscriptions en cours sur votre compte",
+                  color: "bg-emerald-50 text-emerald-700 border-emerald-100",
+                },
+              ].map((item) => (
+                <div key={item.title} className="flex items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50/50 p-3.5">
+                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border text-sm font-black ${item.color}`}>
+                    {item.value}
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-800">{item.title}</h4>
+                    <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500">{item.desc}</p>
                   </div>
                 </div>
               ))}
-              {courses.filter((course) => enrolledCourses.includes(course.id)).length === 0 && (
-                <p className="text-xs text-slate-500">Aucun module inscrit pour le moment.</p>
-              )}
             </div>
-          </div>
-
-          <div className="bg-white rounded-3xl border border-slate-200 p-6 md:p-8 space-y-4 shadow-sm">
-            <div className="flex justify-between items-center pb-2 border-b border-slate-100">
-              <div>
-                <h3 className="font-extrabold text-base text-slate-800">Historique des paiements & Reçus</h3>
-                <p className="text-xs text-slate-500 mt-0.5">Retrouvez ici vos reçus de paiement.</p>
-              </div>
-              <CreditCard className="w-5 h-5 text-indigo-600" />
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-600 border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-100 text-[10px] text-slate-400 uppercase font-black tracking-wider">
-                    <th className="py-3 px-4">Référence</th>
-                    <th className="py-3 px-4">Date de transaction</th>
-                    <th className="py-3 px-4">Services / Modules débloqués</th>
-                    <th className="py-3 px-4 text-right">Montant</th>
-                    <th className="py-3 px-4 text-center">État</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {invoices.map((inv) => (
-                    <tr key={inv.id} className="border-b border-slate-50 last:border-none font-sans hover:bg-slate-50/50">
-                      <td className="py-3 px-4 font-mono font-semibold text-slate-800">{inv.id}</td>
-                      <td className="py-3 px-4">{inv.date}</td>
-                      <td className="py-3 px-4 font-semibold text-slate-900">{inv.courseTitle}</td>
-                      <td className="py-3 px-4 text-right font-bold text-indigo-700 font-mono">{inv.amount.toFixed(2)}€</td>
-                      <td className="py-3 px-4 text-center">
-                        <span className="bg-emerald-50 border border-emerald-100 text-emerald-700 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md">
-                          {inv.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <div className="lg:col-span-4 bg-white border border-slate-200 rounded-3xl p-6 space-y-4 shadow-sm">
-          <h3 className="font-extrabold text-base text-slate-800 pb-2 border-b border-slate-100 flex items-center gap-1.5">
-            <Award className="w-5 h-5 text-yellow-500" /> Statut académique
-          </h3>
-
-          <div className="space-y-4 pt-1">
-            <div className="flex gap-3.5 items-start">
-              <div className="w-12 h-12 bg-yellow-100 border border-yellow-200 text-yellow-700 rounded-2xl flex items-center justify-center flex-shrink-0 font-bold shadow-sm">
-                {courses.filter((c) => enrolledCourses.includes(c.id)).reduce((sum, course) => sum + course.modules.filter((module) => module.completed).length, 0)}
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-slate-800 leading-tight">Modules validés</h4>
-                <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">Nombre réel de modules marqués comme terminés dans vos modules inscrits.</p>
-              </div>
-            </div>
-
-            <div className="flex gap-3.5 items-start">
-              <div className="w-12 h-12 bg-indigo-50 border border-indigo-100 text-indigo-700 rounded-2xl flex items-center justify-center flex-shrink-0 font-bold shadow-sm">
-                {courses.filter((c) => enrolledCourses.includes(c.id)).reduce((sum, course) => sum + course.modules.filter((module) => module.type === "quiz" && module.completed).length, 0)}
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-slate-800 leading-tight">Quiz complétés</h4>
-                <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">Évaluations terminées dans vos modules actuellement inscrits.</p>
-              </div>
-            </div>
-
-            <div className="flex gap-3.5 items-start">
-              <div className="w-12 h-12 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center flex-shrink-0 font-bold shadow-sm">
-                {courses.filter((c) => enrolledCourses.includes(c.id)).length}
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-slate-800 leading-tight">Modules inscrits</h4>
-                <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">Modules actifs rattachés à votre compte étudiant.</p>
-              </div>
-            </div>
-          </div>
-        </div>
+          </section>
+        </aside>
       </div>
     </div>
   );

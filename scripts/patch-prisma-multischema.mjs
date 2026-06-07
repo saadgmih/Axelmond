@@ -1,12 +1,13 @@
 import fs from "fs";
 
+const SCHEMA = "AxelmondResearchLab";
 const schemaPath = "prisma/schema.prisma";
 let schema = fs.readFileSync(schemaPath, "utf8");
 
-if (!schema.includes('schemas  = ["unicode"]')) {
+if (!schema.includes(`schemas  = ["${SCHEMA}"]`)) {
   schema = schema.replace(
     /datasource db \{\n  provider = "postgresql"\n  url      = env\("DATABASE_URL"\)\n\}/,
-    'datasource db {\n  provider = "postgresql"\n  url      = env("DATABASE_URL")\n  schemas  = ["unicode"]\n}',
+    `datasource db {\n  provider = "postgresql"\n  url      = env("DATABASE_URL")\n  schemas  = ["${SCHEMA}"]\n}`,
   );
 }
 
@@ -21,12 +22,12 @@ for (const line of lines) {
     inBlock = true;
     blockHasSchema = false;
   }
-  if (inBlock && trimmed === '@@schema("unicode")') {
+  if (inBlock && trimmed === `@@schema("${SCHEMA}")`) {
     blockHasSchema = true;
   }
   if (inBlock && trimmed === "}" && !line.startsWith("  ")) {
     if (!blockHasSchema) {
-      out.push('  @@schema("unicode")');
+      out.push(`  @@schema("${SCHEMA}")`);
     }
     inBlock = false;
   }
@@ -34,4 +35,4 @@ for (const line of lines) {
 }
 
 fs.writeFileSync(schemaPath, out.join("\n"));
-console.log("prisma/schema.prisma patched with @@schema(\"unicode\")");
+console.log(`prisma/schema.prisma patched with @@schema("${SCHEMA}")`);

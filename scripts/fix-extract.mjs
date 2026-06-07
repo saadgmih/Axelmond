@@ -1,5 +1,5 @@
 import fs from "fs";
-const path = "C:/Users/saadg/Desktop/unicode/scripts/extract-curriculum-view.mjs";
+const path = "C:/Users/saadg/Desktop/AxelmondResearchLab/scripts/extract-curriculum-view.mjs";
 let s = fs.readFileSync(path, "utf8");
 s = s.replace(
   `const statePairs = [...appBefore.matchAll(/const \\[(\\w+), (set\\w+)\\]/g)]

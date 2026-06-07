@@ -9,7 +9,7 @@ const paymentSource = fs.readFileSync("src/components/PaymentModal.tsx", "utf8")
 const schema = fs.readFileSync("prisma/schema.prisma", "utf8");
 
 assert.doesNotMatch(topbarSource, /setTheme|theme:\s*"light"|Passer en mode clair|Passer en mode sombre|Sun|Moon/);
-assert.doesNotMatch(appSource + tutorSource + paymentSource, /UniCode|Sandbox|Test SMTP|e-mail de test|👋|🖥️|🔴|⚪|Pr\. Martin Dubois|Alexandre Dubois|Marie Curie|Alan Turing|Grace Hopper/);
+assert.doesNotMatch(appSource + tutorSource + paymentSource, /UniCode|unicode|Sandbox|Test SMTP|e-mail de test|👋|🖥️|🔴|⚪|Pr\. Martin Dubois|Alexandre Dubois|Marie Curie|Alan Turing|Grace Hopper/);
 assert.match(appSource, /document\.documentElement\.classList\.add\("dark"\)/);
 assert.match(appSource, /Politique de confidentialité/);
 assert.match(appSource, /Conditions d'utilisation/);

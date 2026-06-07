@@ -11,15 +11,15 @@ assert.match(serverSource, /shouldSkipStartupSeed\(\)/);
 assert.match(serverSource, /Startup seed failed — server continuing/);
 assert.match(serverSource, /Startup seed skipped/);
 assert.match(dbSource, /PrismaPg/);
-assert.match(dbSource, /search_path=\$\{schema\}|options: `-c search_path=\$\{schema\}`/);
+assert.match(dbSource, /quotePgIdentifier\(schema\)/);
 assert.match(dbSource, /PostgreSQL active schema/);
 assert.match(dbSource, /Prisma datasource schema forced/);
 assert.match(dbSource, /process\.env\.DATABASE_URL = fixed\.url/);
 assert.match(dbSource, /connectionString:\s*fixedDatabaseUrl/);
 
 const generatedSchema = fs.readFileSync("node_modules/.prisma/client/schema.prisma", "utf8");
-assert.match(generatedSchema, /schemas\s*=\s*\["unicode"\]/);
-assert.match(generatedSchema, /model Course[\s\S]*@@schema\("unicode"\)/);
+assert.match(generatedSchema, /schemas\s*=\s*\["AxelmondResearchLab"\]/);
+assert.match(generatedSchema, /model Course[\s\S]*@@schema\("AxelmondResearchLab"\)/);
 assert.match(schemaSource, /engineType = "client"/);
 assert.match(packageJsonSource, /"postinstall": "prisma generate"/);
 assert.match(packageJsonSource, /"build": "prisma generate && vite build/);

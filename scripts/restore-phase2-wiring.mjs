@@ -1,7 +1,7 @@
 ﻿import fs from "fs";
 import path from "path";
 
-const root = path.resolve("C:/Users/saadg/Desktop/unicode");
+const root = path.resolve("C:/Users/saadg/Desktop/AxelmondResearchLab");
 const APP = path.join(root, "src/App.tsx");
 const OUT_CURR = path.join(root, "src/views/teacher/TeacherCurriculumView.tsx");
 

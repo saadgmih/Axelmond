@@ -1,6 +1,6 @@
 import fs from "fs";
-const APP = "C:/Users/saadg/Desktop/unicode/src/App.tsx";
-const OUT_CURR = "C:/Users/saadg/Desktop/unicode/src/views/teacher/TeacherCurriculumView.tsx";
+const APP = "C:/Users/saadg/Desktop/AxelmondResearchLab/src/App.tsx";
+const OUT_CURR = "C:/Users/saadg/Desktop/AxelmondResearchLab/src/views/teacher/TeacherCurriculumView.tsx";
 
 function findLine(lines, pred, label) {
   const i = lines.findIndex(pred);

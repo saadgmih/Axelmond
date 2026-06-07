@@ -1,5 +1,5 @@
 import fs from "fs";
-const APP = "C:/Users/saadg/Desktop/unicode/src/App.tsx";
+const APP = "C:/Users/saadg/Desktop/AxelmondResearchLab/src/App.tsx";
 let t = fs.readFileSync(APP, "utf8");
 if (!t.includes("const navigate = useNavigate()")) {
   t = t.replace(
@@ -40,7 +40,7 @@ t = t.replace(/\n                  handleSetUploadSectionId=\{handleSetUploadSec
 fs.writeFileSync(APP, t);
 
 // fix TeacherCurriculumView types
-const CURR = "C:/Users/saadg/Desktop/unicode/src/views/teacher/TeacherCurriculumView.tsx";
+const CURR = "C:/Users/saadg/Desktop/AxelmondResearchLab/src/views/teacher/TeacherCurriculumView.tsx";
 let c = fs.readFileSync(CURR, "utf8");
 if (!c.includes("Dispatch")) {
   c = c.replace(

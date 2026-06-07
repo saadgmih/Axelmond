@@ -6,7 +6,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  schemas  = ["unicode"]
+  schemas  = ["AxelmondResearchLab"]
 }
 
 enum UserRole {
@@ -14,7 +14,7 @@ enum UserRole {
   PROFESSOR
   RESEARCHER
   ADMIN
-  @@schema("unicode")
+  @@schema("AxelmondResearchLab")
 }
 
 enum LessonContentType {
@@ -22,7 +22,7 @@ enum LessonContentType {
   PDF
   IMAGE
   TEXT
-  @@schema("unicode")
+  @@schema("AxelmondResearchLab")
 }
 
 enum AttachmentType {
@@ -30,7 +30,7 @@ enum AttachmentType {
   PDF
   IMAGE
   FILE
-  @@schema("unicode")
+  @@schema("AxelmondResearchLab")
 }
 
 model User {
@@ -68,7 +68,7 @@ model User {
   liveActionLogs         LiveActionLog[]         @relation("LiveActionActor")
 
   @@index([role])
-  @@schema("unicode")
+  @@schema("AxelmondResearchLab")
 }
 
 model AcademicProfile {
@@ -86,7 +86,7 @@ model AcademicProfile {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  @@schema("unicode")
+  @@schema("AxelmondResearchLab")
 }
 
 model EmailVerificationCode {
@@ -100,7 +100,7 @@ model EmailVerificationCode {
   user      User      @relation(fields: [userId], references: [id])
 
   @@index([userId, createdAt])
-  @@schema("unicode")
+  @@schema("AxelmondResearchLab")
 }
 
 model EmailDeliveryLog {
@@ -119,7 +119,7 @@ model EmailDeliveryLog {
   user            User?    @relation(fields: [userId], references: [id])
 
   @@index([userId, createdAt])
-  @@schema("unicode")
+  @@schema("AxelmondResearchLab")
 }
 
 model ProfessorInviteCode {
@@ -131,7 +131,7 @@ model ProfessorInviteCode {
   createdById String?
   usedBy      User?     @relation("UsedInviteCodes", fields: [usedById], references: [id])
   createdBy   User?     @relation("CreatedInviteCodes", fields: [createdById], references: [id])
-  @@schema("unicode")
+  @@schema("AxelmondResearchLab")
 }
 
 model FacultyDomain {
@@ -145,7 +145,7 @@ model FacultyDomain {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   disciplines Discipline[]
-  @@schema("unicode")
+  @@schema("AxelmondResearchLab")
 }
 
 model Discipline {
@@ -160,7 +160,7 @@ model Discipline {
   courses   Course[]
 
   @@index([domainId, order])
-  @@schema("unicode")
+  @@schema("AxelmondResearchLab")
 }
 
 model Course {
@@ -197,7 +197,7 @@ model Course {
 
   @@index([disciplineId])
   @@index([createdById])
-  @@schema("unicode")
+  @@schema("AxelmondResearchLab")
 }
 
 model Chapter {
@@ -216,7 +216,7 @@ model Chapter {
 
   @@index([courseId])
   @@index([createdById])
-  @@schema("unicode")
+  @@schema("AxelmondResearchLab")
 }
 
 model ContentSection {
@@ -243,7 +243,7 @@ model ContentSection {
   @@index([chapterId])
   @@index([parentId])
   @@index([createdById])
-  @@schema("unicode")
+  @@schema("AxelmondResearchLab")
 }
 
 model LessonContent {
@@ -265,7 +265,7 @@ model LessonContent {
   @@index([courseId])
   @@index([sectionId])
   @@index([createdById])
-  @@schema("unicode")
+  @@schema("AxelmondResearchLab")
 }
 
 model Attachment {
@@ -287,7 +287,7 @@ model Attachment {
   @@index([courseId])
   @@index([contentId])
   @@index([createdById])
-  @@schema("unicode")
+  @@schema("AxelmondResearchLab")
 }
 
 model Enrollment {
@@ -301,7 +301,7 @@ model Enrollment {
   course    Course    @relation(fields: [courseId], references: [id])
 
   @@unique([userId, courseId])
-  @@schema("unicode")
+  @@schema("AxelmondResearchLab")
 }
 
 model Quiz {
@@ -321,7 +321,7 @@ model Quiz {
   @@index([courseId])
   @@index([courseId, moduleId])
   @@index([sectionId])
-  @@schema("unicode")
+  @@schema("AxelmondResearchLab")
 }
 
 model QuizQuestion {
@@ -336,7 +336,7 @@ model QuizQuestion {
   answers     QuizAnswer[]
 
   @@index([quizId, order])
-  @@schema("unicode")
+  @@schema("AxelmondResearchLab")
 }
 
 model QuizAttempt {
@@ -356,7 +356,7 @@ model QuizAttempt {
 
   @@index([courseId, userId, createdAt])
   @@index([quizId, userId, createdAt])
-  @@schema("unicode")
+  @@schema("AxelmondResearchLab")
 }
 
 model QuizAnswer {
@@ -369,7 +369,7 @@ model QuizAnswer {
   question       QuizQuestion? @relation(fields: [questionId], references: [id], onDelete: SetNull)
 
   @@index([attemptId])
-  @@schema("unicode")
+  @@schema("AxelmondResearchLab")
 }
 
 model LiveSession {
@@ -389,7 +389,7 @@ model LiveSession {
 
   @@index([courseId])
   @@index([professorId])
-  @@schema("unicode")
+  @@schema("AxelmondResearchLab")
 }
 
 model LiveMessage {
@@ -406,7 +406,7 @@ model LiveMessage {
   @@index([roomName])
   @@index([sessionId])
   @@index([userId])
-  @@schema("unicode")
+  @@schema("AxelmondResearchLab")
 }
 
 model LiveAttendance {
@@ -430,7 +430,7 @@ model LiveAttendance {
   @@index([roomName])
   @@index([userId])
   @@index([joinedAt])
-  @@schema("unicode")
+  @@schema("AxelmondResearchLab")
 }
 
 model LiveActionLog {
@@ -451,7 +451,7 @@ model LiveActionLog {
   @@index([roomName])
   @@index([actorId])
   @@index([createdAt])
-  @@schema("unicode")
+  @@schema("AxelmondResearchLab")
 }
 
 model RefreshToken {
@@ -464,7 +464,7 @@ model RefreshToken {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@schema("unicode")
+  @@schema("AxelmondResearchLab")
 }
 
 model AuditLog {
@@ -481,5 +481,5 @@ model AuditLog {
 
   @@index([userId])
   @@index([createdAt])
-  @@schema("unicode")
+  @@schema("AxelmondResearchLab")
 }

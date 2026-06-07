@@ -12,7 +12,24 @@ const globalForPrisma = globalThis as unknown as {
   databaseUrl?: string;
 };
 
+export const DEFAULT_PG_SCHEMA = "AxelmondResearchLab";
+
+/** Legacy Neon schema name — mapped automatically for older DATABASE_URL values. */
+export const LEGACY_PG_SCHEMA = "unicode";
+
+const LEGACY_SCHEMA_ALIASES: Record<string, string> = {
+  [LEGACY_PG_SCHEMA]: DEFAULT_PG_SCHEMA,
+};
+
 const SCHEMA_NAME_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
+function normalizeSchemaName(schema: string): string {
+  return LEGACY_SCHEMA_ALIASES[schema] ?? schema;
+}
+
+function quotePgIdentifier(name: string): string {
+  return `"${name.replace(/"/g, '""')}"`;
+}
 
 export function resolvePgSchema(connectionString: string): string {
   try {
@@ -20,17 +37,18 @@ export function resolvePgSchema(connectionString: string): string {
     const url = new URL(normalized);
     const schema = url.searchParams.get("schema")?.trim();
     if (schema && SCHEMA_NAME_PATTERN.test(schema)) {
-      return schema;
+      return normalizeSchemaName(schema);
     }
   } catch {
     // Fall back to project default below.
   }
-  return "unicode";
+  return DEFAULT_PG_SCHEMA;
 }
 
 export function buildFixedDatabaseUrl(connectionString: string): { url: string; schema: string } {
   const normalized = connectionString.replace(/^postgresql:/i, "http:").replace(/^postgres:/i, "http:");
   const url = new URL(normalized);
+  const rawSchema = url.searchParams.get("schema")?.trim() || "";
   const schema = resolvePgSchema(connectionString);
 
   if (!url.searchParams.get("sslmode")) {
@@ -40,6 +58,10 @@ export function buildFixedDatabaseUrl(connectionString: string): { url: string; 
 
   const protocol = connectionString.startsWith("postgres://") ? "postgres:" : "postgresql:";
   const fixedUrl = `${protocol}${url.toString().slice("http:".length)}`;
+
+  if (rawSchema && rawSchema !== schema) {
+    console.info(`[db] Legacy schema alias applied: ${rawSchema} -> ${schema}`);
+  }
 
   return { url: fixedUrl, schema };
 }
@@ -65,7 +87,7 @@ function createPgPool(fixedDatabaseUrl: string, schema: string): Pool {
     max: Number(process.env.DATABASE_POOL_MAX) || 5,
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 10_000,
-    options: `-c search_path=${schema}`,
+    options: `-c search_path=${quotePgIdentifier(schema)}`,
   });
 
   console.info(`[db] PostgreSQL active schema: ${schema} (search_path=${schema})`);

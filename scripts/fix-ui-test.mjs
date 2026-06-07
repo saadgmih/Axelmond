@@ -1,5 +1,5 @@
 import fs from "fs";
-const f = "C:/Users/saadg/Desktop/unicode/tests/ui-production-cleanup.test.ts";
+const f = "C:/Users/saadg/Desktop/AxelmondResearchLab/tests/ui-production-cleanup.test.ts";
 let t = fs.readFileSync(f, "utf8");
 if (!t.includes("curriculumSource")) {
   t = t.replace(
