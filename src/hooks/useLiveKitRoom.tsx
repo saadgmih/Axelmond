@@ -67,6 +67,7 @@ export function useLiveKitRoom({
     Record<string, { handRaised?: boolean; reaction?: string; updatedAt: number }>
   >({});
   const [liveAttendanceReport, setLiveAttendanceReport] = useState<any | null>(null);
+  const [liveReconnectNonce, setLiveReconnectNonce] = useState(0);
   const primaryLiveVideoRef = useRef<HTMLVideoElement | null>(null);
   const liveVideoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   const liveAudioContainerRef = useRef<HTMLDivElement | null>(null);
@@ -310,7 +311,7 @@ export function useLiveKitRoom({
       setIsScreenShareEnabled(false);
       setActiveSpeakerIdentity("");
     };
-  }, [activeLiveCourse?.id, currentUser?.id]);
+  }, [activeLiveCourse?.id, currentUser?.id, liveReconnectNonce]);
 
   useEffect(() => {
     const syncFullscreen = () => setIsLiveFullscreen(Boolean(document.fullscreenElement));
@@ -583,6 +584,15 @@ export function useLiveKitRoom({
     }
   };
 
+  const reconnectLiveSession = () => {
+    if (!activeLiveCourse) return;
+    setLiveStatusMsg("Reconnexion à la salle LiveKit...");
+    liveRoom?.disconnect();
+    setLiveRoom(null);
+    setLiveParticipants([]);
+    setLiveReconnectNonce((value) => value + 1);
+  };
+
   const classroomBindings: LiveKitClassroomBindings = {
     liveRoom,
     participants: liveParticipants,
@@ -611,6 +621,7 @@ export function useLiveKitRoom({
     onRecordToggle: toggleLiveRecording,
     onModerateParticipant: handleLiveModeration,
     onLiveEvent: publishLiveAction,
+    onReconnectLive: reconnectLiveSession,
   };
 
   const renderLiveRoomInterface = (mode: "student" | "teacher"): ReactNode => {

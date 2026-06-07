@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { 
   X, 
   LayoutDashboard, 
@@ -19,6 +19,7 @@ import { Course, DEFAULT_STUDENT_LABEL } from "../types";
 import { AppUser } from "./AuthScreen";
 import { getRoleLabel } from "../rbac";
 import LogoSymbol from "./LogoSymbol";
+import { useTvNavigation } from "../hooks/useTvNavigation";
 
 interface SidebarProps {
   currentView: string;
@@ -47,6 +48,8 @@ export default function Sidebar({
   currentUser,
   onLogout,
 }: SidebarProps) {
+  const navRef = useRef<HTMLElement>(null);
+  useTvNavigation(navRef, true);
   
   const getInitials = (name: string) => {
     if (!name) return "UN";
@@ -102,13 +105,16 @@ export default function Sidebar({
       </div>
 
       {/* Dynamic Navigation tabs depending on the active user role */}
-      <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
+      <nav ref={navRef} data-tv-zone="sidebar-nav" className="flex-1 p-4 space-y-1.5 overflow-y-auto">
         {role === "student" ? (
           <>
             <button
               id="nav-dashboard"
+              type="button"
+              data-tv-focusable
+              tabIndex={0}
               onClick={() => navigateTo("dashboard")}
-              className={`flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
+              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 currentView === "dashboard"
                   ? "bg-indigo-600 text-white shadow-md shadow-indigo-950/40"
                   : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
@@ -120,8 +126,11 @@ export default function Sidebar({
 
             <button
               id="nav-catalog"
+              type="button"
+              data-tv-focusable
+              tabIndex={0}
               onClick={() => navigateTo("catalog")}
-              className={`flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
+              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 currentView === "catalog"
                   ? "bg-indigo-600 text-white shadow-md shadow-indigo-950/40"
                   : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
@@ -133,8 +142,11 @@ export default function Sidebar({
 
             <button
               id="nav-profile"
+              type="button"
+              data-tv-focusable
+              tabIndex={0}
               onClick={() => navigateTo("profile")}
-              className={`flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
+              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 currentView === "profile"
                   ? "bg-indigo-600 text-white shadow-md shadow-indigo-950/40"
                   : "text-slate-400 hover:bg-slate-800/60 hover:text-white"

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 
 import {
   Activity,
@@ -24,6 +24,7 @@ import type { AppUser } from "../../components/AuthScreen";
 
 import type { Course, CourseModule } from "../../types";
 import { formatCredits, formatMad } from "../../utils/morocco-locale";
+import { useTvNavigation } from "../../hooks/useTvNavigation";
 
 type NavigateTo = (view: string, targetCourse?: Course | null) => void;
 
@@ -109,6 +110,9 @@ export default function StudentDashboardView({
 
   getCourseIcon,
 }: StudentDashboardViewProps) {
+  const dashboardGridRef = useRef<HTMLDivElement>(null);
+  useTvNavigation(dashboardGridRef, true);
+
   const enrolledList = useMemo(
     () => courses.filter((course) => enrolledCourses.includes(course.id)),
 
@@ -333,15 +337,21 @@ export default function StudentDashboardView({
 
           <div className="pt-2 flex flex-wrap gap-3">
             <button
+              type="button"
+              data-tv-focusable
+              tabIndex={0}
               onClick={() => navigateTo("catalog")}
-              className="bg-white text-indigo-900 hover:bg-slate-100 px-5 py-2.5 min-h-[44px] rounded-xl font-bold text-xs transition-colors shadow-sm"
+              className="kbd-nav-focus touch-target bg-white text-indigo-900 hover:bg-slate-100 px-5 py-2.5 min-h-[44px] rounded-xl font-bold text-xs transition-colors shadow-sm"
             >
               Parcourir le catalogue
             </button>
 
             <button
+              type="button"
+              data-tv-focusable
+              tabIndex={0}
               onClick={() => navigateTo("profile")}
-              className="bg-indigo-600/50 hover:bg-indigo-600/70 text-white border border-indigo-500/30 px-5 py-2.5 min-h-[44px] rounded-xl font-bold text-xs transition-colors"
+              className="kbd-nav-focus touch-target bg-indigo-600/50 hover:bg-indigo-600/70 text-white border border-indigo-500/30 px-5 py-2.5 min-h-[44px] rounded-xl font-bold text-xs transition-colors"
             >
               Consulter mes notes académiques
             </button>
@@ -349,6 +359,7 @@ export default function StudentDashboardView({
         </div>
       </div>
 
+      <div ref={dashboardGridRef} data-tv-zone="student-dashboard" className="space-y-6 md:space-y-8">
       <section className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/40 p-5 sm:p-6 md:p-8 shadow-xl space-y-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-2 min-w-0">
@@ -532,8 +543,12 @@ export default function StudentDashboardView({
                     </div>
 
                     <button
+                      type="button"
+                      data-tv-focusable
+                      tabIndex={0}
                       onClick={() => navigateTo("course", course)}
-                      className="self-start sm:self-center inline-flex items-center gap-1.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-200 text-xs font-bold px-4 py-2.5 min-h-[44px] transition-colors"
+                      className="kbd-nav-focus touch-target self-start sm:self-center inline-flex items-center gap-1.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-200 text-xs font-bold px-4 py-2.5 min-h-[44px] transition-colors"
+                      aria-label={`Continuer le module ${course.title}`}
                     >
                       Continuer
                       <ChevronRight className="w-4 h-4" />
@@ -709,6 +724,7 @@ export default function StudentDashboardView({
             })}
           </div>
         )}
+      </div>
       </div>
     </div>
   );

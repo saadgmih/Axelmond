@@ -57,12 +57,16 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
 
   useEffect(() => {
     if (!course) return;
+    const focusTimer = window.setTimeout(() => {
+      document.getElementById("close-payment-modal")?.focus();
+    }, 0);
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape" && step === "form" && !isProcessing) onClose();
     };
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKeyDown);
     return () => {
+      window.clearTimeout(focusTimer);
       document.body.style.overflow = "";
       window.removeEventListener("keydown", onKeyDown);
     };
@@ -129,8 +133,8 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                     id="close-payment-modal"
                     type="button"
                     onClick={onClose}
-                    className="group -mr-1 flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-slate-400 transition-all hover:bg-white/10 hover:text-white"
-                    aria-label="Fermer"
+                    className="kbd-nav-focus group -mr-1 flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-slate-400 transition-all hover:bg-white/10 hover:text-white"
+                    aria-label="Fermer la fenêtre de paiement (Esc)"
                   >
                     <X className="h-4 w-4 transition-transform group-hover:scale-110" />
                   </button>

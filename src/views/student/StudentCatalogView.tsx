@@ -5,9 +5,11 @@ import {
   Clock,
   Lock,
 } from "lucide-react";
+import { useRef } from "react";
 import type { ReactNode } from "react";
 import type { Course, Discipline, FacultyDomain } from "../../types";
 import { formatCredits, formatMad } from "../../utils/morocco-locale";
+import { useTvNavigation } from "../../hooks/useTvNavigation";
 
 type NavigateTo = (view: string, targetCourse?: Course | null) => void;
 type CourseIconRenderer = (iconName: string, colorClass?: string) => ReactNode;
@@ -42,6 +44,9 @@ export default function StudentCatalogView({
   setSelectedDisciplineId,
   setSearchQuery,
 }: StudentCatalogViewProps) {
+  const catalogGridRef = useRef<HTMLDivElement>(null);
+  useTvNavigation(catalogGridRef, true);
+
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 animate-in fade-in duration-200">
       <div className="space-y-2">
@@ -59,12 +64,15 @@ export default function StudentCatalogView({
       {(selectedDomain || selectedDiscipline) && (
         <div className="flex flex-wrap gap-2 pt-2">
           <button
+            type="button"
+            data-tv-focusable
+            tabIndex={0}
             onClick={() => {
               setSelectedDomainId(null);
               setSelectedDisciplineId(null);
               setSearchQuery("");
             }}
-            className="px-4 py-1.5 rounded-full text-xs font-bold transition-all border bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+            className="kbd-nav-focus touch-target px-4 py-1.5 rounded-full text-xs font-bold transition-all border bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
           >
             Domaines
           </button>
@@ -91,17 +99,21 @@ export default function StudentCatalogView({
         </div>
       )}
 
+      <div ref={catalogGridRef} data-tv-zone="catalog" className="space-y-6">
       {!selectedDomain && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 pt-3">
           {domains.map((domain) => (
             <button
               key={domain.id}
+              type="button"
+              data-tv-focusable
+              tabIndex={0}
               onClick={() => {
                 setSelectedDomainId(domain.id);
                 setSelectedDisciplineId(null);
                 setSearchQuery("");
               }}
-              className="text-left bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all overflow-hidden group"
+              className="kbd-nav-focus touch-target text-left bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all overflow-hidden group"
             >
               <div className={`h-2 bg-gradient-to-r ${domain.color}`}></div>
               <div className="p-6 space-y-4">
@@ -136,11 +148,14 @@ export default function StudentCatalogView({
           {selectedDomain.disciplines.map((discipline) => (
             <button
               key={discipline.id}
+              type="button"
+              data-tv-focusable
+              tabIndex={0}
               onClick={() => {
                 setSelectedDisciplineId(discipline.id);
                 setSearchQuery("");
               }}
-              className="text-left bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all group"
+              className="kbd-nav-focus touch-target text-left bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all group"
             >
               <div className="flex items-center justify-between gap-3">
                 <div>
@@ -231,8 +246,12 @@ export default function StudentCatalogView({
                         </span>
                       </div>
                       <button
+                        type="button"
+                        data-tv-focusable
+                        tabIndex={0}
                         onClick={() => setCourseToPurchase(course)}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md shadow-indigo-100 flex items-center gap-1.5 cursor-pointer"
+                        className="kbd-nav-focus touch-target bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md shadow-indigo-100 flex items-center gap-1.5 cursor-pointer"
+                        aria-label={`S'abonner au module ${course.title}`}
                       >
                         <Lock className="w-3.5 h-3.5" /> S'abonner
                       </button>
@@ -244,8 +263,12 @@ export default function StudentCatalogView({
                         <span className="text-xs font-bold leading-none">Abonnement Actif</span>
                       </div>
                       <button
+                        type="button"
+                        data-tv-focusable
+                        tabIndex={0}
                         onClick={() => navigateTo("course", course)}
-                        className="border border-indigo-200 text-indigo-700 hover:bg-indigo-50 bg-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all cursor-pointer"
+                        className="kbd-nav-focus touch-target border border-indigo-200 text-indigo-700 hover:bg-indigo-50 bg-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all cursor-pointer"
+                        aria-label={`Accéder au module ${course.title}`}
                       >
                         Accéder au module
                       </button>
@@ -257,6 +280,7 @@ export default function StudentCatalogView({
           })}
         </div>
       )}
+      </div>
     </div>
   );
 }

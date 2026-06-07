@@ -242,3 +242,31 @@ body {
 .dark .bg-slate-950\/20 {
   background-color: rgba(2, 6, 23, 0.6) !important;
 }
+
+/* Keyboard / Smart TV focus — always visible, never removed */
+:where(button, a, input, select, textarea, [tabindex]:not([tabindex='-1'])):focus-visible,
+.kbd-nav-focus:focus-visible,
+[data-tv-focusable]:focus-visible {
+  outline: 3px solid #818cf8;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.35);
+}
+
+[data-tv-focusable].tv-focus-active,
+[data-tv-focusable]:focus-visible {
+  transform: translateZ(0);
+}
+
+.dark :where(button, a, input, select, textarea, [tabindex]:not([tabindex='-1'])):focus-visible,
+.dark .kbd-nav-focus:focus-visible,
+.dark [data-tv-focusable]:focus-visible {
+  outline-color: #a5b4fc;
+  box-shadow: 0 0 0 6px rgba(129, 140, 248, 0.35);
+}
+
+@media (pointer: coarse) {
+  [data-tv-focusable] {
+    min-height: var(--touch-target-min);
+    min-width: var(--touch-target-min);
+  }
+}

@@ -46,6 +46,8 @@ import { useAcademicProfile } from "./hooks/useAcademicProfile";
 import { useTeacherDashboard } from "./hooks/useTeacherDashboard";
 import { useStudentCourseSession } from "./hooks/useStudentCourseSession";
 import { isStudentRole } from "./rbac";
+import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
+import KeyboardShortcutsHelp from "./components/KeyboardShortcutsHelp";
 
 export default function App() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -117,6 +119,8 @@ export default function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [courseToPurchase, setCourseToPurchase] = useState<Course | null>(null);
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
+  const catalogSearchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!isMobileMenuOpen) return;
@@ -333,6 +337,51 @@ export default function App() {
     isTeacherLiveRoom;
   const hideGlobalFooter = isImmersiveView;
 
+  useKeyboardShortcuts(
+    [
+      {
+        key: "Escape",
+        handler: () => {
+          if (showKeyboardHelp) {
+            setShowKeyboardHelp(false);
+            return;
+          }
+          if (courseToPurchase) {
+            setCourseToPurchase(null);
+            return;
+          }
+          if (isMobileMenuOpen) {
+            setIsMobileMenuOpen(false);
+            return;
+          }
+          if (document.fullscreenElement) {
+            document.exitFullscreen().catch(() => undefined);
+          }
+        },
+      },
+      {
+        key: "/",
+        when: () => role === "student" && currentView === "catalog" && !isStudentLive,
+        handler: () => {
+          catalogSearchRef.current?.focus();
+        },
+      },
+      {
+        key: "?",
+        when: () => !isStudentLive && !isTeacherLiveRoom,
+        handler: () => setShowKeyboardHelp(true),
+      },
+      {
+        key: "/",
+        shift: true,
+        when: () => !isStudentLive && !isTeacherLiveRoom,
+        handler: () => setShowKeyboardHelp(true),
+      },
+    ],
+    Boolean(currentUser),
+    [showKeyboardHelp, courseToPurchase, isMobileMenuOpen, currentView, role, isStudentLive, isTeacherLiveRoom, currentUser],
+  );
+
   const handleLogout = () => {
     logoutAuth();
     disconnectLiveSession();
@@ -455,6 +504,7 @@ export default function App() {
             role={role}
             currentUser={currentUser}
             onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            catalogSearchRef={catalogSearchRef}
           />
         )}
 
@@ -654,6 +704,8 @@ export default function App() {
         onClose={() => setCourseToPurchase(null)}
         onSuccess={handlePaymentSuccess}
       />
+
+      <KeyboardShortcutsHelp open={showKeyboardHelp} onClose={() => setShowKeyboardHelp(false)} />
 
     </div>
   );

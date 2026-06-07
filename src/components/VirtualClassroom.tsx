@@ -48,6 +48,8 @@ import {
 import { Course } from "../types";
 import { LiveChatMessage } from "../livekit";
 import AITutorChat from "./AITutorChat";
+import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
+import { useTvNavigation } from "../hooks/useTvNavigation";
 
 export interface LiveParticipantCard {
   identity: string;
@@ -102,6 +104,7 @@ export interface VirtualClassroomProps {
   onRecordToggle: () => void;
   onModerateParticipant: (action: string, participant: LiveParticipantCard) => void;
   onLiveEvent: (action: string, details?: Record<string, unknown>) => void;
+  onReconnectLive?: () => void;
 }
 
 const tabs = [
@@ -169,11 +172,16 @@ export default function VirtualClassroom({
   onRecordToggle,
   onModerateParticipant,
   onLiveEvent,
+  onReconnectLive,
 }: VirtualClassroomProps) {
   const [activeTab, setActiveTab] = useState("participants");
   const [isSidebarOpen, setIsSidebarOpen] = useState(() =>
     typeof window !== "undefined" ? window.matchMedia("(min-width: 1024px)").matches : false
   );
+  const [stageVolume, setStageVolume] = useState(1);
+  const [isStageVideoPaused, setIsStageVideoPaused] = useState(false);
+  const controlsRef = useRef<HTMLDivElement | null>(null);
+  const sidebarRef = useRef<HTMLElement | null>(null);
   const [participantQuery, setParticipantQuery] = useState("");
   const [messageMode, setMessageMode] = useState<"public" | "question" | "private">("public");
   const [privateTarget, setPrivateTarget] = useState("");
@@ -202,6 +210,83 @@ export default function VirtualClassroom({
     media.addEventListener("change", syncSidebar);
     return () => media.removeEventListener("change", syncSidebar);
   }, []);
+
+  useEffect(() => {
+    if (primaryVideoRef.current) {
+      primaryVideoRef.current.volume = stageVolume;
+      if (isStageVideoPaused) primaryVideoRef.current.pause();
+      else primaryVideoRef.current.play().catch(() => undefined);
+    }
+    Object.values(videoRefs.current).forEach((video) => {
+      if (!(video instanceof HTMLVideoElement)) return;
+      video.volume = stageVolume;
+      if (isStageVideoPaused) video.pause();
+      else video.play().catch(() => undefined);
+    });
+  }, [stageVolume, isStageVideoPaused, primaryVideoRef, videoRefs, participants.length]);
+
+  const openPanelTab = (tabId: string) => {
+    setIsSidebarOpen(true);
+    setActiveTab(tabId);
+  };
+
+  const togglePanelTab = (tabId: string) => {
+    if (isSidebarOpen && activeTab === tabId) {
+      setIsSidebarOpen(false);
+      return;
+    }
+    openPanelTab(tabId);
+  };
+
+  const cyclePanelTab = (delta: number) => {
+    const ids = tabs.map((tab) => tab.id);
+    const currentIndex = Math.max(0, ids.indexOf(activeTab));
+    const nextId = ids[(currentIndex + delta + ids.length) % ids.length];
+    openPanelTab(nextId);
+  };
+
+  useTvNavigation(controlsRef, true);
+  useTvNavigation(sidebarRef, isSidebarOpen);
+
+  useKeyboardShortcuts([
+    { key: "f", handler: () => onToggleFullscreen() },
+    { key: "m", handler: () => onToggleMic() },
+    { key: " ", handler: () => setIsStageVideoPaused((value) => !value) },
+    { key: "c", handler: () => togglePanelTab("chat") },
+    { key: "p", handler: () => togglePanelTab("participants") },
+    {
+      key: "l",
+      handler: () => {
+        if (onBack) onBack();
+        else onLeave();
+      },
+    },
+    { key: "r", when: () => Boolean(onReconnectLive), handler: () => onReconnectLive?.() },
+    {
+      key: "ArrowUp",
+      handler: () => setStageVolume((value) => Math.min(1, Number((value + 0.1).toFixed(2)))),
+    },
+    {
+      key: "ArrowDown",
+      handler: () => setStageVolume((value) => Math.max(0, Number((value - 0.1).toFixed(2)))),
+    },
+    { key: "ArrowLeft", handler: () => cyclePanelTab(-1) },
+    { key: "ArrowRight", handler: () => cyclePanelTab(1) },
+    {
+      key: "Escape",
+      handler: () => {
+        if (isSidebarOpen && typeof window !== "undefined" && !window.matchMedia("(min-width: 1024px)").matches) {
+          setIsSidebarOpen(false);
+          return;
+        }
+        if (isFullscreen) {
+          onToggleFullscreen();
+          return;
+        }
+        if (onBack) onBack();
+      },
+    },
+  ]);
 
   useEffect(() => {
     if (activeTab !== "whiteboard") return;
@@ -540,21 +625,35 @@ export default function VirtualClassroom({
           </div>
 
           {/* Bottom Control Bar Fixed (Non-overlay) */}
-          <div className="shrink-0 min-h-[80px] w-full max-w-full bg-zinc-900 border-t border-white/5 flex items-center justify-start md:justify-center z-30 px-2 sm:px-4 box-border overflow-x-auto hide-scrollbar py-2">
+          <div
+            ref={controlsRef}
+            data-tv-zone="live-controls"
+            className="shrink-0 min-h-[80px] w-full max-w-full bg-zinc-900 border-t border-white/5 flex items-center justify-start md:justify-center z-30 px-2 sm:px-4 box-border overflow-x-auto hide-scrollbar py-2"
+          >
             <div className="flex items-center gap-1.5 sm:gap-2 md:gap-4 shrink-0">
               
               {/* Audio / Video Group */}
               <div className="flex items-center gap-2 mr-2 md:mr-4 pr-2 md:pr-4 border-r border-white/10">
                 <button 
+                  type="button"
+                  data-tv-focusable
+                  tabIndex={0}
                   onClick={onToggleMic} 
-                  className={`flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${isMicEnabled ? "hover:bg-zinc-800 text-zinc-200" : "bg-red-600/20 border border-red-500/40 text-red-300 hover:bg-red-600/30"}`}
+                  aria-label={isMicEnabled ? "Couper le micro (M)" : "Activer le micro (M)"}
+                  aria-pressed={isMicEnabled}
+                  className={`kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${isMicEnabled ? "hover:bg-zinc-800 text-zinc-200" : "bg-red-600/20 border border-red-500/40 text-red-300 hover:bg-red-600/30"}`}
                 >
                   {isMicEnabled ? <Mic className="w-5 h-5 mb-1.5" /> : <MicOff className="w-5 h-5 mb-1.5" />}
                   <span className="text-[10px] font-bold">{isMicEnabled ? "Désactiver" : "Activer"}</span>
                 </button>
                 <button 
+                  type="button"
+                  data-tv-focusable
+                  tabIndex={0}
                   onClick={onToggleCamera} 
-                  className={`flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${isCameraEnabled ? "hover:bg-zinc-800 text-zinc-200" : "bg-red-600/20 border border-red-500/40 text-red-300 hover:bg-red-600/30"}`}
+                  aria-label={isCameraEnabled ? "Couper la caméra" : "Activer la caméra"}
+                  aria-pressed={isCameraEnabled}
+                  className={`kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${isCameraEnabled ? "hover:bg-zinc-800 text-zinc-200" : "bg-red-600/20 border border-red-500/40 text-red-300 hover:bg-red-600/30"}`}
                 >
                   {isCameraEnabled ? <Video className="w-5 h-5 mb-1.5" /> : <VideoOff className="w-5 h-5 mb-1.5" />}
                   <span className="text-[10px] font-bold">{isCameraEnabled ? "Caméra" : "Caméra"}</span>
@@ -564,24 +663,37 @@ export default function VirtualClassroom({
               {/* Interaction Group */}
               <div className="flex items-center gap-2">
                 <button 
+                  type="button"
+                  data-tv-focusable
+                  tabIndex={0}
                   onClick={onToggleScreenShare} 
-                  className={`flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${isScreenShareEnabled ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400" : "hover:bg-zinc-800 text-zinc-300"}`}
+                  aria-label={isScreenShareEnabled ? "Arrêter le partage d'écran" : "Partager l'écran"}
+                  aria-pressed={isScreenShareEnabled}
+                  className={`kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${isScreenShareEnabled ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400" : "hover:bg-zinc-800 text-zinc-300"}`}
                 >
                   {isScreenShareEnabled ? <ScreenShareOff className="w-5 h-5 mb-1.5" /> : <ScreenShare className="w-5 h-5 mb-1.5" />}
                   <span className="text-[10px] font-bold">Partager</span>
                 </button>
                 
                 <button 
+                  type="button"
+                  data-tv-focusable
+                  tabIndex={0}
                   onClick={onRaiseHand} 
-                  className="flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl hover:bg-zinc-800 text-zinc-300 transition-all group"
+                  aria-label="Lever la main"
+                  className="kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl hover:bg-zinc-800 text-zinc-300 transition-all group"
                 >
                   <Hand className="w-5 h-5 mb-1.5 group-hover:text-amber-400 transition-colors" />
                   <span className="text-[10px] font-bold">Main</span>
                 </button>
 
                 <button 
+                  type="button"
+                  data-tv-focusable
+                  tabIndex={0}
                   onClick={onToggleFullscreen} 
-                  className="flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl hover:bg-zinc-800 text-zinc-300 transition-all hidden sm:flex"
+                  aria-label={isFullscreen ? "Quitter le plein écran (F)" : "Plein écran (F)"}
+                  className="kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl hover:bg-zinc-800 text-zinc-300 transition-all hidden sm:flex"
                 >
                   <Fullscreen className="w-5 h-5 mb-1.5" />
                   <span className="text-[10px] font-bold">Plein écran</span>
@@ -592,8 +704,13 @@ export default function VirtualClassroom({
               {canModerate && (
                 <div className="flex items-center gap-2 ml-2 md:ml-4 pl-2 md:pl-4 border-l border-white/10">
                   <button 
+                    type="button"
+                    data-tv-focusable
+                    tabIndex={0}
                     onClick={onRecordToggle} 
-                    className={`flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${isRecording ? "bg-red-500/10 border border-red-500/20 text-red-400" : "hover:bg-zinc-800 text-zinc-300"}`}
+                    aria-label={isRecording ? "Arrêter l'enregistrement" : "Démarrer l'enregistrement"}
+                    aria-pressed={isRecording}
+                    className={`kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${isRecording ? "bg-red-500/10 border border-red-500/20 text-red-400" : "hover:bg-zinc-800 text-zinc-300"}`}
                   >
                     {isRecording ? <CircleStop className="w-5 h-5 mb-1.5" /> : <CircleDot className="w-5 h-5 mb-1.5" />}
                     <span className="text-[10px] font-bold">Rec</span>
@@ -604,8 +721,12 @@ export default function VirtualClassroom({
               {/* Leave Button */}
               <div className="ml-2 md:ml-4 pl-2 md:pl-4 border-l border-white/10">
                 <button 
+                  type="button"
+                  data-tv-focusable
+                  tabIndex={0}
                   onClick={onLeave} 
-                  className="h-12 px-5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-bold transition-all shadow-md flex items-center justify-center"
+                  aria-label="Quitter le live (L)"
+                  className="kbd-nav-focus touch-target h-12 min-h-[48px] px-5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-bold transition-all shadow-md flex items-center justify-center"
                 >
                   Quitter
                 </button>
@@ -617,6 +738,8 @@ export default function VirtualClassroom({
 
         {/* Right Sidebar - Onglets Académiques */}
         <aside 
+          ref={sidebarRef}
+          data-tv-zone="live-sidebar"
           className={`absolute lg:static right-0 top-0 bottom-0 w-[min(100vw,360px)] lg:w-[360px] max-w-full lg:min-w-[360px] shrink-0 bg-zinc-900 border-l border-white/5 flex flex-col transition-transform duration-300 ease-out z-40 box-border overflow-hidden shadow-2xl lg:shadow-none ${isSidebarOpen ? 'translate-x-0 lg:flex' : 'translate-x-full lg:hidden'}`}
         >
           {/* Mobile Close Button */}
@@ -633,8 +756,13 @@ export default function VirtualClassroom({
             {tabs.map((tab) => (
               <button
                 key={tab.id}
+                type="button"
+                data-tv-focusable
+                tabIndex={0}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex flex-col items-center justify-center py-2 rounded-lg transition-all ${
+                aria-label={`Onglet ${tab.label}`}
+                aria-selected={activeTab === tab.id}
+                className={`kbd-nav-focus flex flex-col items-center justify-center py-2 rounded-lg transition-all min-h-[52px] ${
                   activeTab === tab.id 
                     ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shadow-inner" 
                     : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50"

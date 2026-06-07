@@ -1,4 +1,4 @@
-import React from "react";
+import React, { type RefObject } from "react";
 import { Search, Sparkles, Menu } from "lucide-react";
 import { Course } from "../types";
 import { AppUser } from "./AuthScreen";
@@ -14,6 +14,7 @@ interface TopbarProps {
   role?: "student" | "teacher";
   currentUser: AppUser | null;
   onToggleMobileMenu?: () => void;
+  catalogSearchRef?: RefObject<HTMLInputElement | null>;
 }
 
 export default function Topbar({
@@ -26,6 +27,7 @@ export default function Topbar({
   role = "student",
   currentUser,
   onToggleMobileMenu,
+  catalogSearchRef,
 }: TopbarProps) {
   const activeCredits = enrolledCourses.reduce((sum, id) => {
     const found = courses.find((c) => c.id === id);
@@ -48,7 +50,7 @@ export default function Topbar({
         {onToggleMobileMenu && (
           <button
             onClick={onToggleMobileMenu}
-            className="md:hidden touch-target p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-pointer flex-shrink-0 animate-in fade-in flex items-center justify-center"
+            className="md:hidden touch-target kbd-nav-focus p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-pointer flex-shrink-0 animate-in fade-in flex items-center justify-center"
             title="Menu"
             aria-label="Ouvrir le menu"
           >
@@ -74,11 +76,14 @@ export default function Topbar({
           <div className="relative w-full max-w-md">
             <Search className="w-5 h-5 absolute left-3 w-4 h-4 text-slate-400 dark:text-slate-500 top-1/2 -translate-y-1/2" />
             <input
-              type="text"
+              ref={catalogSearchRef}
+              id="catalog-search"
+              type="search"
               placeholder="Rechercher par matière, programmation, bases de données..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 min-h-[44px] border border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-slate-50 dark:bg-slate-950 dark:text-white focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-500 focus:border-indigo-500"
+              aria-label="Rechercher dans le catalogue"
+              className="kbd-nav-focus w-full pl-9 pr-4 py-2.5 min-h-[44px] border border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-slate-50 dark:bg-slate-950 dark:text-white focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
         ) : (
