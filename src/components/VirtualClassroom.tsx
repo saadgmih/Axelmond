@@ -11,7 +11,6 @@ import {
   CircleDot,
   CircleStop,
   ClipboardList,
-  Crown,
   Download,
   FileText,
   FileUp,
@@ -35,7 +34,6 @@ import {
   Shapes,
   Shield,
   Sigma,
-  Square,
   Timer,
   UserCheck,
   UserX,
@@ -98,7 +96,6 @@ export interface VirtualClassroomProps {
   onToggleScreenShare: () => void;
   onToggleFullscreen: () => void;
   onLeave?: () => void;
-  onEndBroadcast?: () => void | Promise<void>;
   onSendMessage: (e: React.FormEvent) => void;
   onRaiseHand: () => void;
   onReaction: (reaction: string) => void;
@@ -167,7 +164,6 @@ export default function VirtualClassroom({
   onToggleScreenShare,
   onToggleFullscreen,
   onLeave,
-  onEndBroadcast,
   onSendMessage,
   onRaiseHand,
   onReaction,
@@ -251,10 +247,6 @@ export default function VirtualClassroom({
   useTvNavigation(sidebarRef, isSidebarOpen);
 
   const exitLiveSession = () => {
-    if (onEndBroadcast) {
-      void onEndBroadcast();
-      return;
-    }
     onLeave?.();
   };
 
@@ -558,10 +550,112 @@ export default function VirtualClassroom({
             </div>
           </div>
 
+          {/* Control Bar — au-dessus de la vidéo */}
+          <div
+            ref={controlsRef}
+            data-tv-zone="live-controls"
+            className="shrink-0 min-h-[80px] w-full max-w-full bg-zinc-900 border-b border-white/5 flex items-center justify-start md:justify-center z-30 px-2 sm:px-4 box-border overflow-x-auto hide-scrollbar py-2"
+          >
+            <div className="flex items-center gap-1.5 sm:gap-2 md:gap-4 shrink-0">
+              <div className="flex items-center gap-2 mr-2 md:mr-4 pr-2 md:pr-4 border-r border-white/10">
+                <button
+                  type="button"
+                  data-tv-focusable
+                  tabIndex={0}
+                  onClick={onToggleMic}
+                  aria-label={isMicEnabled ? "Couper le micro (M)" : "Activer le micro (M)"}
+                  aria-pressed={isMicEnabled}
+                  className={`kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${isMicEnabled ? "hover:bg-zinc-800 text-zinc-200" : "bg-red-600/20 border border-red-500/40 text-red-300 hover:bg-red-600/30"}`}
+                >
+                  {isMicEnabled ? <Mic className="w-5 h-5 mb-1.5" /> : <MicOff className="w-5 h-5 mb-1.5" />}
+                  <span className="text-[10px] font-bold">{isMicEnabled ? "Désactiver" : "Activer"}</span>
+                </button>
+                <button
+                  type="button"
+                  data-tv-focusable
+                  tabIndex={0}
+                  onClick={onToggleCamera}
+                  aria-label={isCameraEnabled ? "Couper la caméra" : "Activer la caméra"}
+                  aria-pressed={isCameraEnabled}
+                  className={`kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${isCameraEnabled ? "hover:bg-zinc-800 text-zinc-200" : "bg-red-600/20 border border-red-500/40 text-red-300 hover:bg-red-600/30"}`}
+                >
+                  {isCameraEnabled ? <Video className="w-5 h-5 mb-1.5" /> : <VideoOff className="w-5 h-5 mb-1.5" />}
+                  <span className="text-[10px] font-bold">Caméra</span>
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  data-tv-focusable
+                  tabIndex={0}
+                  onClick={onToggleScreenShare}
+                  aria-label={isScreenShareEnabled ? "Arrêter le partage d'écran" : "Partager l'écran"}
+                  aria-pressed={isScreenShareEnabled}
+                  className={`kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${isScreenShareEnabled ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400" : "hover:bg-zinc-800 text-zinc-300"}`}
+                >
+                  {isScreenShareEnabled ? <ScreenShareOff className="w-5 h-5 mb-1.5" /> : <ScreenShare className="w-5 h-5 mb-1.5" />}
+                  <span className="text-[10px] font-bold">Partager</span>
+                </button>
+                <button
+                  type="button"
+                  data-tv-focusable
+                  tabIndex={0}
+                  onClick={onRaiseHand}
+                  aria-label="Lever la main"
+                  className="kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl hover:bg-zinc-800 text-zinc-300 transition-all group"
+                >
+                  <Hand className="w-5 h-5 mb-1.5 group-hover:text-amber-400 transition-colors" />
+                  <span className="text-[10px] font-bold">Main</span>
+                </button>
+                <button
+                  type="button"
+                  data-tv-focusable
+                  tabIndex={0}
+                  onClick={onToggleFullscreen}
+                  aria-label={isFullscreen ? "Quitter le plein écran (F)" : "Plein écran (F)"}
+                  className="kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl hover:bg-zinc-800 text-zinc-300 transition-all hidden sm:flex"
+                >
+                  <Fullscreen className="w-5 h-5 mb-1.5" />
+                  <span className="text-[10px] font-bold">Plein écran</span>
+                </button>
+              </div>
+
+              {canModerate && (
+                <div className="flex items-center gap-2 ml-2 md:ml-4 pl-2 md:pl-4 border-l border-white/10">
+                  <button
+                    type="button"
+                    data-tv-focusable
+                    tabIndex={0}
+                    onClick={onRecordToggle}
+                    aria-label={isRecording ? "Arrêter l'enregistrement" : "Démarrer l'enregistrement"}
+                    aria-pressed={isRecording}
+                    className={`kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${isRecording ? "bg-red-500/10 border border-red-500/20 text-red-400" : "hover:bg-zinc-800 text-zinc-300"}`}
+                  >
+                    {isRecording ? <CircleStop className="w-5 h-5 mb-1.5" /> : <CircleDot className="w-5 h-5 mb-1.5" />}
+                    <span className="text-[10px] font-bold">Rec</span>
+                  </button>
+                </div>
+              )}
+
+              <div className="ml-2 md:ml-4 pl-2 md:pl-4 border-l border-white/10">
+                <button
+                  type="button"
+                  data-tv-focusable
+                  tabIndex={0}
+                  onClick={exitLiveSession}
+                  aria-label="Quitter la salle live (L)"
+                  className="kbd-nav-focus touch-target h-12 min-h-[48px] px-5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-bold transition-all shadow-md flex items-center justify-center"
+                >
+                  Quitter
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* Main Video Area */}
           <div className="flex-1 min-h-[220px] sm:min-h-[280px] lg:min-h-[340px] p-0 lg:p-4 flex items-center justify-center relative min-w-0 bg-[#0a0a0a]">
             <div className="w-full h-full min-h-[200px] max-h-[min(72dvh,780px)] relative lg:rounded-2xl overflow-hidden bg-zinc-950 lg:border border-white/5 lg:shadow-2xl flex items-center justify-center box-border">
-              
               {videoParticipants.length > 0 ? (
                 <div className={`live-video-grid grid ${videoGridClass} gap-3 w-full h-full p-3`}>
                   {videoParticipants.map((participant) => {
@@ -580,16 +674,16 @@ export default function VirtualClassroom({
                           muted={participant.isLocal}
                           className="absolute inset-0 w-full h-full object-contain bg-black"
                         />
-                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-3 pt-10">
-                          <div className="flex items-center justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="text-xs font-black text-white truncate">{participant.name}</p>
-                              <p className="text-[10px] text-zinc-300 truncate">{roleLabel(participant.role)}</p>
+                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent px-2 pb-2 pt-8 sm:p-3 sm:pt-10">
+                          <div className="flex items-end justify-between gap-2 min-w-0">
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[10px] sm:text-xs font-black text-white truncate">{participant.name}</p>
+                              <p className="text-[9px] sm:text-[10px] text-zinc-300 truncate">{roleLabel(participant.role)}</p>
                             </div>
-                            <div className="flex items-center gap-1.5 shrink-0">
-                              {participant.hasAudio ? <Mic className="w-3.5 h-3.5 text-emerald-400" /> : <MicOff className="w-3.5 h-3.5 text-red-400" />}
-                              {participant.handRaised && <Hand className="w-3.5 h-3.5 text-amber-400" />}
-                              {isActive && <Wifi className="w-3.5 h-3.5 text-indigo-300" />}
+                            <div className="flex items-center gap-1 shrink-0 pb-0.5">
+                              {participant.hasAudio ? <Mic className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-400" /> : <MicOff className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-red-400" />}
+                              {participant.handRaised && <Hand className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400" />}
+                              {isActive && <Wifi className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-indigo-300" />}
                             </div>
                           </div>
                         </div>
@@ -603,152 +697,24 @@ export default function VirtualClassroom({
                   })}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center space-y-6 animate-in fade-in duration-500">
-                  <div className="relative">
-                    <div className="w-32 h-32 rounded-full bg-zinc-800 flex items-center justify-center text-4xl font-black text-zinc-300 z-10 relative border border-zinc-700 shadow-xl">
+                <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-6 animate-in fade-in duration-500 px-4 py-6 w-full max-w-full">
+                  <div className="relative shrink-0">
+                    <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-zinc-800 flex items-center justify-center text-2xl sm:text-4xl font-black text-zinc-300 z-10 relative border border-zinc-700 shadow-xl">
                       {activeSpeaker?.initials || "AR"}
                     </div>
                     {activeSpeaker?.isSpeaking && (
                       <div className="absolute inset-0 rounded-full bg-indigo-500/20 animate-ping z-0 scale-150"></div>
                     )}
                   </div>
-                  <div className="text-center space-y-2">
-                    <h2 className="text-xl font-bold text-white">{activeSpeaker?.name || course.instructor}</h2>
-                    <div className="flex items-center justify-center gap-2 text-zinc-400 text-sm">
-                      {activeSpeaker?.hasAudio ? <Mic className="w-4 h-4 text-emerald-400"/> : <MicOff className="w-4 h-4 text-red-400"/>}
-                      <span>{roleLabel(activeSpeaker?.role)}</span>
+                  <div className="text-center space-y-1 sm:space-y-2 w-full max-w-[min(100%,18rem)]">
+                    <h2 className="text-base sm:text-xl font-bold text-white truncate">{activeSpeaker?.name || course.instructor}</h2>
+                    <div className="flex items-center justify-center gap-2 text-zinc-400 text-xs sm:text-sm">
+                      {activeSpeaker?.hasAudio ? <Mic className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400"/> : <MicOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-400"/>}
+                      <span className="truncate">{roleLabel(activeSpeaker?.role)}</span>
                     </div>
                   </div>
                 </div>
               )}
-
-              {/* Speaker Label Overlay */}
-              {videoParticipants.length === 0 && (
-              <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2">
-                <div className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-bold text-white flex items-center gap-2 border border-white/10 shadow-lg">
-                  <Crown className="w-3.5 h-3.5 text-amber-400" />
-                  {activeSpeaker?.name || course.instructor}
-                </div>
-              </div>
-              )}
-            </div>
-          </div>
-
-          {/* Bottom Control Bar Fixed (Non-overlay) */}
-          <div
-            ref={controlsRef}
-            data-tv-zone="live-controls"
-            className="shrink-0 min-h-[80px] w-full max-w-full bg-zinc-900 border-t border-white/5 flex items-center justify-start md:justify-center z-30 px-2 sm:px-4 box-border overflow-x-auto hide-scrollbar py-2"
-          >
-            <div className="flex items-center gap-1.5 sm:gap-2 md:gap-4 shrink-0">
-              
-              {/* Audio / Video Group */}
-              <div className="flex items-center gap-2 mr-2 md:mr-4 pr-2 md:pr-4 border-r border-white/10">
-                <button 
-                  type="button"
-                  data-tv-focusable
-                  tabIndex={0}
-                  onClick={onToggleMic} 
-                  aria-label={isMicEnabled ? "Couper le micro (M)" : "Activer le micro (M)"}
-                  aria-pressed={isMicEnabled}
-                  className={`kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${isMicEnabled ? "hover:bg-zinc-800 text-zinc-200" : "bg-red-600/20 border border-red-500/40 text-red-300 hover:bg-red-600/30"}`}
-                >
-                  {isMicEnabled ? <Mic className="w-5 h-5 mb-1.5" /> : <MicOff className="w-5 h-5 mb-1.5" />}
-                  <span className="text-[10px] font-bold">{isMicEnabled ? "Désactiver" : "Activer"}</span>
-                </button>
-                <button 
-                  type="button"
-                  data-tv-focusable
-                  tabIndex={0}
-                  onClick={onToggleCamera} 
-                  aria-label={isCameraEnabled ? "Couper la caméra" : "Activer la caméra"}
-                  aria-pressed={isCameraEnabled}
-                  className={`kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${isCameraEnabled ? "hover:bg-zinc-800 text-zinc-200" : "bg-red-600/20 border border-red-500/40 text-red-300 hover:bg-red-600/30"}`}
-                >
-                  {isCameraEnabled ? <Video className="w-5 h-5 mb-1.5" /> : <VideoOff className="w-5 h-5 mb-1.5" />}
-                  <span className="text-[10px] font-bold">{isCameraEnabled ? "Caméra" : "Caméra"}</span>
-                </button>
-              </div>
-
-              {/* Interaction Group */}
-              <div className="flex items-center gap-2">
-                <button 
-                  type="button"
-                  data-tv-focusable
-                  tabIndex={0}
-                  onClick={onToggleScreenShare} 
-                  aria-label={isScreenShareEnabled ? "Arrêter le partage d'écran" : "Partager l'écran"}
-                  aria-pressed={isScreenShareEnabled}
-                  className={`kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${isScreenShareEnabled ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400" : "hover:bg-zinc-800 text-zinc-300"}`}
-                >
-                  {isScreenShareEnabled ? <ScreenShareOff className="w-5 h-5 mb-1.5" /> : <ScreenShare className="w-5 h-5 mb-1.5" />}
-                  <span className="text-[10px] font-bold">Partager</span>
-                </button>
-                
-                <button 
-                  type="button"
-                  data-tv-focusable
-                  tabIndex={0}
-                  onClick={onRaiseHand} 
-                  aria-label="Lever la main"
-                  className="kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl hover:bg-zinc-800 text-zinc-300 transition-all group"
-                >
-                  <Hand className="w-5 h-5 mb-1.5 group-hover:text-amber-400 transition-colors" />
-                  <span className="text-[10px] font-bold">Main</span>
-                </button>
-
-                <button 
-                  type="button"
-                  data-tv-focusable
-                  tabIndex={0}
-                  onClick={onToggleFullscreen} 
-                  aria-label={isFullscreen ? "Quitter le plein écran (F)" : "Plein écran (F)"}
-                  className="kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl hover:bg-zinc-800 text-zinc-300 transition-all hidden sm:flex"
-                >
-                  <Fullscreen className="w-5 h-5 mb-1.5" />
-                  <span className="text-[10px] font-bold">Plein écran</span>
-                </button>
-              </div>
-
-              {/* Host Controls */}
-              {canModerate && (
-                <div className="flex items-center gap-2 ml-2 md:ml-4 pl-2 md:pl-4 border-l border-white/10">
-                  <button 
-                    type="button"
-                    data-tv-focusable
-                    tabIndex={0}
-                    onClick={onRecordToggle} 
-                    aria-label={isRecording ? "Arrêter l'enregistrement" : "Démarrer l'enregistrement"}
-                    aria-pressed={isRecording}
-                    className={`kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${isRecording ? "bg-red-500/10 border border-red-500/20 text-red-400" : "hover:bg-zinc-800 text-zinc-300"}`}
-                  >
-                    {isRecording ? <CircleStop className="w-5 h-5 mb-1.5" /> : <CircleDot className="w-5 h-5 mb-1.5" />}
-                    <span className="text-[10px] font-bold">Rec</span>
-                  </button>
-                </div>
-              )}
-
-              {/* Leave Button */}
-              <div className="ml-2 md:ml-4 pl-2 md:pl-4 border-l border-white/10">
-                <button 
-                  type="button"
-                  data-tv-focusable
-                  tabIndex={0}
-                  onClick={exitLiveSession} 
-                  aria-label={mode === "teacher" ? "Éteindre le signal live (L)" : "Quitter le live (L)"}
-                  className="kbd-nav-focus touch-target h-12 min-h-[48px] px-5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-bold transition-all shadow-md flex items-center justify-center gap-2"
-                >
-                  {mode === "teacher" ? (
-                    <>
-                      <Square className="h-3.5 w-3.5 fill-current" />
-                      Éteindre le signal
-                    </>
-                  ) : (
-                    "Quitter"
-                  )}
-                </button>
-              </div>
-
             </div>
           </div>
         </main>

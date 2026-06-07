@@ -10,17 +10,20 @@ assert.match(appSource, /lockMainScroll/);
 assert.match(appSource, /overflow-y-auto/);
 assert.doesNotMatch(appSource, /isImmersiveView \? "overflow-hidden min-h-0"/);
 assert.doesNotMatch(appSource, /<div className="h-full min-h-0">\s*\n\s*<StudentLiveView/);
-assert.match(appSource, /!isStudentLive && !isTeacherLiveRoom/);
 
 const liveControlSource = readFileSync("src/views/teacher/TeacherLiveControlView.tsx", "utf8");
-assert.match(liveControlSource, /if \(isRoomOpen && activeLiveCourse\)/);
+assert.match(liveControlSource, /roomShell/);
+assert.match(liveControlSource, /Éteindre le live/);
 
 assert.doesNotMatch(workspaceSource, /immersive[\s\S]*h-full min-h-0/);
 
 assert.doesNotMatch(liveThemeSource, /100dvh,960px/);
 assert.doesNotMatch(liveThemeSource, /roomShell:[\s\S]*overflow-hidden/);
 
-assert.match(classroomSource, /min-h-\[560px\]/);
+assert.doesNotMatch(liveControlSource, /Entrer dans la salle/);
+assert.doesNotMatch(liveControlSource, /Éteindre le signal/);
+assert.match(classroomSource, /Control Bar — au-dessus de la vidéo/);
+assert.match(classroomSource, /Quitter/);
 assert.doesNotMatch(classroomSource, /h-full min-h-0 w-full max-w-full bg-zinc-950/);
 
 console.log("Live scroll accessibility rules passed");

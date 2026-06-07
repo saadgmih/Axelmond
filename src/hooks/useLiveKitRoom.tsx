@@ -12,7 +12,7 @@ import type { Course, Invoice } from "../types";
 
 export type LiveKitClassroomBindings = Omit<
   VirtualClassroomProps,
-  "mode" | "course" | "currentUserRole" | "onBack" | "onLeave" | "onEndBroadcast"
+  "mode" | "course" | "currentUserRole" | "onBack" | "onLeave"
 >;
 
 export interface UseLiveKitRoomOptions {
@@ -109,7 +109,7 @@ export function useLiveKitRoom({
     const localSignal = liveSignals[room.localParticipant.identity] || {};
     nextParticipants.push({
       identity: room.localParticipant.identity,
-      name: `Vous (${localName.split(" ")[0] || localName})`,
+      name: "Vous",
       initials: getInitials(localName),
       role: currentUser?.role || "STUDENT",
       isLocal: true,
@@ -421,13 +421,6 @@ export function useLiveKitRoom({
     }
   };
 
-  const endTeacherLiveBroadcast = async () => {
-    if (!activeLiveCourse || !handleToggleCourseLive) return;
-    const courseId = activeLiveCourse.id;
-    closeTeacherLiveRoom();
-    await handleToggleCourseLive(courseId);
-  };
-
   const leaveLiveRoom = () => {
     const course = activeLiveCourse;
     if (course) {
@@ -674,8 +667,7 @@ export function useLiveKitRoom({
         course={activeLiveCourse}
         currentUserRole={currentUser?.role || "STUDENT"}
         onBack={mode === "student" ? () => navigateTo("course", activeLiveCourse) : undefined}
-        onLeave={mode === "student" ? leaveLiveRoom : undefined}
-        onEndBroadcast={mode === "teacher" ? endTeacherLiveBroadcast : undefined}
+        onLeave={leaveLiveRoom}
       />
     );
   };

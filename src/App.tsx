@@ -336,7 +336,7 @@ export default function App() {
   const isLiveSessionView = isStudentLive || isTeacherLiveRoom;
   const isImmersiveView = currentView === "course" || isLiveSessionView;
   const lockMainScroll = currentView === "course";
-  const hideGlobalFooter = isImmersiveView;
+  const hideGlobalFooter = currentView === "course" || isStudentLive;
 
   useKeyboardShortcuts(
     [
@@ -495,7 +495,7 @@ export default function App() {
       <div className="flex-1 flex flex-col overflow-hidden relative">
         
         {/* Header bar */}
-        {!isStudentLive && !isTeacherLiveRoom && (
+        {!isStudentLive && (
           <Topbar
             currentView={currentView}
             searchQuery={searchQuery}

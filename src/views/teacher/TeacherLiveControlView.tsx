@@ -52,14 +52,6 @@ export default function TeacherLiveControlView({
   const isLive = Boolean(selectedCourse?.isLiveNow);
   const isRoomOpen = activeLiveCourse?.id === liveCourseId;
 
-  if (isRoomOpen && activeLiveCourse) {
-    return (
-      <div className="w-full animate-in fade-in duration-200">
-        {renderTeacherLiveRoom()}
-      </div>
-    );
-  }
-
   return (
     <div className={liveControlUi.page}>
       <div className={liveControlUi.shell}>
@@ -186,7 +178,7 @@ export default function TeacherLiveControlView({
                 ) : isRoomOpen ? (
                   <>
                     <Square className="h-3.5 w-3.5 fill-current" />
-                    Éteindre le signal
+                    Éteindre le live
                   </>
                 ) : (
                   <>
@@ -199,6 +191,10 @@ export default function TeacherLiveControlView({
           </section>
         </div>
       </div>
+
+      {isRoomOpen && activeLiveCourse && (
+        <div className={liveControlUi.roomShell}>{renderTeacherLiveRoom()}</div>
+      )}
     </div>
   );
 }

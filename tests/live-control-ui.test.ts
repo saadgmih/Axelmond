@@ -8,9 +8,8 @@ assert.match(liveControlSource, /Console de visioconférence Axelmond Research L
 assert.match(liveControlSource, /Module académique en direct/i);
 assert.match(liveControlSource, /Sujet de révision actif/i);
 assert.match(liveControlSource, /État de la diffusion en direct/i);
-assert.match(liveControlSource, /Éteindre le signal/);
 assert.match(liveControlSource, /toggleTeacherLiveSession/);
-assert.doesNotMatch(liveControlSource, /Entrer dans la salle/);
+assert.match(liveControlSource, /Éteindre le live/);
 assert.match(liveControlSource, /handleUpdateCourseLiveSubject/);
 assert.match(liveControlSource, /handleToggleCourseLive/);
 assert.match(liveControlSource, /liveControlUi/);
