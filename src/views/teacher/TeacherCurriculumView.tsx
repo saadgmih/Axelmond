@@ -24,6 +24,13 @@ import {
 import type { Dispatch, SetStateAction } from "react";
 import type { Course, ContentSection, FacultyDomain, LessonContent } from "../../types";
 import { formatCredits, formatMad } from "../../utils/morocco-locale";
+import {
+  CURRICULUM_STEPS,
+  curriculumUi,
+  getStepTheme,
+  publishedBadge,
+  publishedLabel,
+} from "./curriculum-theme";
 
 export interface TeacherCurriculumViewProps {
   domains: FacultyDomain[];
@@ -238,202 +245,219 @@ export default function TeacherCurriculumView({
   handleToggleContentPublished,
   handleDeleteLessonContent
 }: TeacherCurriculumViewProps) {
+  const stepTheme = getStepTheme(activeCurriculumStep);
+  const inputFocus = `${curriculumUi.input} ${stepTheme.focus}`;
+
   return (
-                <div className="space-y-6 animate-in duration-200">
-                  {/* Glassmorphic main header */}
-                  <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-5">
-                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
-                      <div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-pink-700 bg-pink-50 border border-pink-100 px-3 py-1 rounded-full">
-                          Gestion des Contenus
-                        </span>
-                        <h2 className="text-2xl font-black text-slate-800 mt-3">Gestion du programme pédagogique</h2>
-                        <p className="text-xs text-slate-450 mt-1 max-w-2xl">
-                          Créez et organisez vos modules, chapitres, sections, supports de cours et quiz de validation dans une interface guidée par étapes.
-                        </p>
+                <div className={curriculumUi.page}>
+                  {/* Hero + stepper */}
+                  <div className={curriculumUi.hero}>
+                    <div className={curriculumUi.heroGlow} />
+                    <div className="relative space-y-6">
+                      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                        <div className="space-y-3 max-w-2xl">
+                          <span className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-indigo-700">
+                            <Sparkles className="h-3.5 w-3.5" />
+                            Studio pédagogique
+                          </span>
+                          <h2 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900">
+                            Gestion du programme pédagogique
+                          </h2>
+                          <p className="text-sm text-slate-600 leading-relaxed">
+                            Parcourez les 5 étapes pour construire votre module : catalogue, chapitres, arborescence, médias et évaluations.
+                            Chaque étape a sa couleur pour repérer rapidement où vous travaillez.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => showCurriculumSuccess("Pour voir comme étudiant : connectez-vous avec un compte étudiant et ouvrez le catalogue puis le module publié.")}
+                          className="inline-flex shrink-0 items-center gap-2 self-start rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+                        >
+                          <Eye className="h-4 w-4 text-indigo-600" />
+                          Voir comme étudiant
+                        </button>
                       </div>
-                      <button
-                        onClick={() => showCurriculumSuccess("Pour voir comme étudiant : connectez-vous avec un compte étudiant et ouvrez le catalogue puis le module publié.")}
-                        className="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-3 rounded-xl text-xs transition-colors shadow-sm self-start"
-                      >
-                        Voir comme étudiant
-                      </button>
-                    </div>
 
-                    {(curriculumSuccessMsg || curriculumErrorMsg) && (
-                      <div className={`p-4 border text-xs font-semibold rounded-xl animate-in fade-in duration-205 ${
-                        curriculumErrorMsg
-                          ? "bg-red-50 border-red-100 text-red-800"
-                          : "bg-emerald-50 border-emerald-100 text-emerald-800"
-                      }`}>
-                        {curriculumErrorMsg || curriculumSuccessMsg}
-                      </div>
-                    )}
+                      {(curriculumSuccessMsg || curriculumErrorMsg) && (
+                        <div className={`rounded-2xl border px-4 py-3 text-xs font-semibold animate-in fade-in duration-200 ${
+                          curriculumErrorMsg
+                            ? "border-red-200 bg-red-50 text-red-800"
+                            : "border-emerald-200 bg-emerald-50 text-emerald-800"
+                        }`}>
+                          {curriculumErrorMsg || curriculumSuccessMsg}
+                        </div>
+                      )}
 
-                    {/* Stepper Wizard Indicator */}
-                    <div className="border-t border-slate-100 pt-5">
-                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-2">
-                        {[
-                          { step: 1, label: "Modules", desc: "Création & Configuration", icon: <BookOpen className="w-4 h-4" /> },
-                          { step: 2, label: "Chapitres", desc: "Syllabus principal", icon: <Layers className="w-4 h-4" /> },
-                          { step: 3, label: "Structure", desc: "Parties & Arborescence", icon: <FolderTree className="w-4 h-4" /> },
-                          { step: 4, label: "Médias", desc: "Vidéos, PDFs & Images", icon: <Video className="w-4 h-4" /> },
-                          { step: 5, label: "Quiz", desc: "QCM de validation", icon: <HelpCircle className="w-4 h-4" /> },
-                        ].map((s) => {
-                          const isActive = activeCurriculumStep === s.step;
-                          const isCompleted = activeCurriculumStep > s.step;
-                          return (
-                            <button
-                              key={s.step}
-                              type="button"
-                              onClick={() => {
-                                if (managedCourses.length > 0 || s.step === 1) {
-                                  setActiveCurriculumStep(s.step);
-                                } else {
-                                  showCurriculumError("Veuillez d'abord créer un module à l'étape 1.");
-                                }
-                              }}
-                              className={`flex items-center gap-3 text-left p-3 rounded-2xl transition-all duration-200 border w-full md:w-auto md:flex-1 ${
-                                isActive
-                                  ? "border-pink-200 bg-pink-50/40 text-pink-700 shadow-sm"
-                                  : isCompleted
-                                  ? "border-emerald-150 bg-emerald-50/20 text-emerald-850"
-                                  : "border-slate-100 bg-slate-50/30 text-slate-400 hover:bg-slate-50"
-                              }`}
-                            >
-                              <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
-                                isActive
-                                  ? "bg-pink-600 text-white"
-                                  : isCompleted
-                                  ? "bg-emerald-600 text-white"
-                                  : "bg-slate-200 text-slate-550"
-                              }`}>
-                                {isCompleted ? <Check className="w-4 h-4" /> : s.icon}
-                              </div>
-                              <div>
-                                <p className="text-[10px] font-black uppercase tracking-wider leading-none">Étape {s.step}</p>
-                                <p className="text-xs font-black mt-1 leading-none">{s.label}</p>
-                                <p className="text-[9px] text-slate-400 mt-0.5 leading-none">{s.desc}</p>
-                              </div>
-                            </button>
-                          );
-                        })}
+                      <div className="border-t border-slate-200/80 pt-5">
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                            Progression · étape {activeCurriculumStep} / {CURRICULUM_STEPS.length}
+                          </p>
+                          <div className="hidden h-1.5 flex-1 max-w-xs overflow-hidden rounded-full bg-slate-200 md:block">
+                            <div
+                              className="h-full rounded-full bg-gradient-to-r from-indigo-500 via-violet-500 to-emerald-500 transition-all duration-500"
+                              style={{ width: `${(activeCurriculumStep / CURRICULUM_STEPS.length) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-5">
+                          {CURRICULUM_STEPS.map((s) => {
+                            const Icon = s.icon;
+                            const isActive = activeCurriculumStep === s.step;
+                            const isCompleted = activeCurriculumStep > s.step;
+                            return (
+                              <button
+                                key={s.step}
+                                type="button"
+                                onClick={() => {
+                                  if (managedCourses.length > 0 || s.step === 1) {
+                                    setActiveCurriculumStep(s.step);
+                                  } else {
+                                    showCurriculumError("Veuillez d'abord créer un module à l'étape 1.");
+                                  }
+                                }}
+                                className={`flex items-center gap-3 rounded-2xl border p-3 text-left transition-all duration-200 ${
+                                  isActive
+                                    ? s.active
+                                    : isCompleted
+                                    ? s.completed
+                                    : "border-slate-200 bg-white/70 text-slate-500 hover:border-slate-300 hover:bg-white"
+                                }`}
+                              >
+                                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-bold ${
+                                  isActive
+                                    ? s.badgeActive
+                                    : isCompleted
+                                    ? s.badgeCompleted
+                                    : "bg-slate-100 text-slate-500"
+                                }`}>
+                                  {isCompleted ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Étape {s.step}</p>
+                                  <p className="truncate text-sm font-black text-slate-900">{s.label}</p>
+                                  <p className="truncate text-[10px] text-slate-500">{s.desc}</p>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Active Context Banner */}
                   {managedCourses.length > 0 && activeCurriculumStep > 1 && (
-                    <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 md:px-6 md:py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-white shadow-sm animate-in fade-in duration-200">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-pink-650/20 border border-pink-500/20 flex items-center justify-center shrink-0">
-                          <BookOpen className="w-5 h-5 text-pink-500" />
+                    <div className={`${curriculumUi.contextBanner} animate-in fade-in duration-200`}>
+                      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border ${getStepTheme(1).chip}`}>
+                            <BookOpen className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Module en cours d&apos;édition</p>
+                            <h3 className="mt-1 text-base font-black leading-tight text-white">
+                              {managedCourse ? managedCourse.title : "Aucun module sélectionné"}
+                            </h3>
+                            {managedCourse && (
+                              <p className="mt-1 text-[11px] text-slate-400">
+                                ID {managedCourse.id} · {managedCourse.discipline?.name || managedCourse.category} · {formatCredits(managedCourse.credits)} · {managedCourse.duration}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-none">Module en cours d'édition</p>
-                          <h3 className="text-sm font-black mt-1.5 leading-tight text-white">
-                            {managedCourse ? managedCourse.title : "Aucun module sélectionné"}
-                          </h3>
-                          {managedCourse && (
-                            <p className="text-[10px] text-slate-455 mt-1 leading-none">
-                              ID: {managedCourse.id} • {managedCourse.discipline?.name || managedCourse.category} • {formatCredits(managedCourse.credits)} • {managedCourse.duration}
-                            </p>
-                          )}
+                        <div className="flex flex-wrap gap-2">
+                          <select
+                            value={newSectionCourseId}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value);
+                              handleSelectManagedCourse(val);
+                              loadTeacherQuizzes(val);
+                            }}
+                            className="min-w-[180px] rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          >
+                            {managedCourses.map((c) => (
+                              <option key={c.id} value={c.id} className="text-slate-900">
+                                {c.title}
+                              </option>
+                            ))}
+                          </select>
+                          <button
+                            type="button"
+                            onClick={() => setActiveCurriculumStep(1)}
+                            className={`rounded-xl px-4 py-2.5 text-xs font-black transition-colors ${getStepTheme(1).button}`}
+                          >
+                            Changer de module
+                          </button>
                         </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <select
-                          value={newSectionCourseId}
-                          onChange={(e) => {
-                            const val = parseInt(e.target.value);
-                            handleSelectManagedCourse(val);
-                            loadTeacherQuizzes(val);
-                          }}
-                          className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-pink-500 min-w-[150px]"
-                        >
-                          {managedCourses.map((c) => (
-                            <option key={c.id} value={c.id} className="text-slate-800">
-                              {c.title}
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          onClick={() => setActiveCurriculumStep(1)}
-                          className="bg-pink-600 hover:bg-pink-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs transition-colors shrink-0"
-                        >
-                          Changer
-                        </button>
                       </div>
                     </div>
                   )}
 
-                  {/* Empty state overlay for steps 2-5 */}
                   {managedCourses.length === 0 && activeCurriculumStep > 1 && (
-                    <div className="bg-pink-50/40 border border-pink-100 rounded-3xl p-8 text-center max-w-xl mx-auto space-y-4 animate-in fade-in duration-200">
-                      <div className="w-16 h-16 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center mx-auto shadow-inner">
-                        <Sparkles className="w-8 h-8 animate-pulse" />
+                    <div className={`${curriculumUi.empty} max-w-xl mx-auto space-y-4 animate-in fade-in duration-200`}>
+                      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-indigo-200 bg-indigo-50 text-indigo-600">
+                        <Sparkles className="h-8 w-8" />
                       </div>
-                      <h3 className="text-lg font-black text-slate-800">Commencez votre parcours</h3>
-                      <p className="text-xs text-slate-555 leading-relaxed">
-                        Vous n'avez pas encore créé de module pédagogique. Veuillez créer votre premier module à l'étape 1 avant de pouvoir définir des chapitres, télécharger des médias ou créer des quiz.
+                      <h3 className="text-lg font-black text-slate-900">Commencez par un module</h3>
+                      <p className="text-sm text-slate-500 leading-relaxed">
+                        Créez votre premier module à l&apos;étape <strong className="text-indigo-700">Modules</strong> avant d&apos;ajouter chapitres, médias ou quiz.
                       </p>
                       <button
+                        type="button"
                         onClick={() => setActiveCurriculumStep(1)}
-                        className="bg-pink-600 hover:bg-pink-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition-colors"
+                        className={`mx-auto inline-flex rounded-xl px-5 py-2.5 text-xs font-black transition-colors ${getStepTheme(1).button}`}
                       >
-                        Retourner à l'étape 1
+                        Aller à l&apos;étape Modules
                       </button>
                     </div>
                   )}
 
-                  {/* STEP 1: MODULES VIEW */}
                   {activeCurriculumStep === 1 && (
                     <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                      {/* Left: Create Module form */}
-                      <div className="xl:col-span-5 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-5 self-start">
+                      <div className={`xl:col-span-5 ${curriculumUi.panel} ${getStepTheme(1).panel} space-y-5 self-start`}>
                         <div>
-                          <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
-                            <FilePlus className="w-5 h-5 text-pink-600" />
+                          <h3 className={curriculumUi.panelTitle}>
+                            <FilePlus className="h-5 w-5 text-indigo-600" />
                             Créer un module
                           </h3>
-                          <p className="text-xs text-slate-400 mt-1 font-medium">Configurez un nouveau module pédagogique dans votre catalogue.</p>
+                          <p className={curriculumUi.panelSubtitle}>Configurez un nouveau module dans votre catalogue académique.</p>
                         </div>
 
-                        <form onSubmit={handleCreateCourse} className="space-y-4 pt-3 border-t border-slate-100">
-                          <label className="block space-y-1">
-                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Titre du module</span>
+                        <form onSubmit={handleCreateCourse} className="space-y-4 border-t border-slate-100 pt-4">
+                          <label className="block space-y-1.5">
+                            <span className={curriculumUi.label}>Titre du module</span>
                             <div className="relative">
-                              <BookOpen className="w-4 h-4 text-slate-455 absolute left-3 top-3.5" />
+                              <BookOpen className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
                               <input
                                 type="text"
                                 required
                                 placeholder="ex: Programmation Python avancée"
                                 value={newCourseTitle}
                                 onChange={(e) => setNewCourseTitle(e.target.value)}
-                                className="w-full bg-slate-50/50 border border-slate-200 rounded-xl pl-9 pr-4 py-3 text-xs focus:bg-white focus:outline-none focus:ring-4 focus:ring-pink-500/10 focus:border-pink-500 transition-all font-semibold text-slate-800"
+                                className={`${curriculumUi.inputIcon} ${getStepTheme(1).focus}`}
                               />
                             </div>
                           </label>
 
-                          <label className="block space-y-1">
-                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Description pédagogique</span>
+                          <label className="block space-y-1.5">
+                            <span className={curriculumUi.label}>Description pédagogique</span>
                             <textarea
                               rows={3}
                               required
                               placeholder="Objectifs, compétences visées et compétences acquises..."
                               value={newCourseDescription}
                               onChange={(e) => setNewCourseDescription(e.target.value)}
-                              className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:bg-white focus:outline-none focus:ring-4 focus:ring-pink-500/10 focus:border-pink-500 transition-all text-slate-650 font-medium"
+                              className={`${inputFocus} resize-none`}
                             />
                           </label>
 
                           <div className="grid grid-cols-2 gap-3">
-                            <label className="block space-y-1">
-                              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Discipline</span>
+                            <label className="block space-y-1.5">
+                              <span className={curriculumUi.label}>Discipline</span>
                               <select
                                 value={newCourseDisciplineId}
                                 onChange={(e) => setNewCourseDisciplineId(parseInt(e.target.value))}
-                                className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3 py-3 text-xs focus:bg-white focus:outline-none focus:ring-4 focus:ring-pink-500/10 focus:border-pink-500 transition-all font-semibold text-slate-700"
+                                className={`${inputFocus} text-slate-700`}
                               >
                                 {domains.map((domain) => (
                                   <optgroup key={domain.id} label={domain.name} className="text-slate-800 font-bold">
@@ -447,101 +471,100 @@ export default function TeacherCurriculumView({
                               </select>
                             </label>
 
-                            <label className="block space-y-1">
-                              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Crédits</span>
+                            <label className="block space-y-1.5">
+                              <span className={curriculumUi.label}>Crédits</span>
                               <input
                                 type="number"
                                 min="0"
                                 placeholder="ex: 3"
                                 value={newCourseCredits}
                                 onChange={(e) => setNewCourseCredits(parseInt(e.target.value) || 0)}
-                                className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:bg-white focus:outline-none focus:ring-4 focus:ring-pink-500/10 focus:border-pink-500 transition-all font-semibold"
+                                className={inputFocus}
                               />
                             </label>
                           </div>
 
                           <div className="grid grid-cols-2 gap-3">
-                            <label className="block space-y-1">
-                              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Durée estimée</span>
+                            <label className="block space-y-1.5">
+                              <span className={curriculumUi.label}>Durée estimée</span>
                               <div className="relative">
-                                <Clock className="w-4 h-4 text-slate-455 absolute left-3 top-3.5" />
+                                <Clock className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
                                 <input
                                   placeholder="ex: 20 heures"
                                   value={newCourseDuration}
                                   onChange={(e) => setNewCourseDuration(e.target.value)}
-                                  className="w-full bg-slate-50/50 border border-slate-200 rounded-xl pl-9 pr-4 py-3 text-xs focus:bg-white focus:outline-none focus:ring-4 focus:ring-pink-500/10 focus:border-pink-500 transition-all font-semibold"
+                                  className={`${curriculumUi.inputIcon} ${getStepTheme(1).focus}`}
                                 />
                               </div>
                             </label>
 
-                            <label className="block space-y-1">
-                              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Tarif (DH)</span>
+                            <label className="block space-y-1.5">
+                              <span className={curriculumUi.label}>Tarif (DH)</span>
                               <div className="relative">
-                                <span className="text-slate-400 font-bold text-xs absolute left-3 top-3">DH</span>
+                                <span className="absolute left-3 top-3 text-xs font-bold text-slate-400">DH</span>
                                 <input
                                   type="number"
                                   min="0"
                                   step="0.5"
-                                  placeholder="ex: 0 ou 19.99"
+                                  placeholder="ex: 0 ou 160"
                                   value={newCoursePrice}
                                   onChange={(e) => setNewCoursePrice(parseFloat(e.target.value) || 0)}
-                                  className="w-full bg-slate-50/50 border border-slate-200 rounded-xl pl-7 pr-4 py-3 text-xs focus:bg-white focus:outline-none focus:ring-4 focus:ring-pink-500/10 focus:border-pink-500 transition-all font-semibold"
+                                  className={`${curriculumUi.inputIcon} pl-8 ${getStepTheme(1).focus}`}
                                 />
                               </div>
                             </label>
                           </div>
 
-                          <label className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-black text-slate-700 select-none cursor-pointer hover:bg-slate-100 transition-colors">
+                          <label className={curriculumUi.checkbox}>
                             <input
                               type="checkbox"
                               checked={newCoursePublished}
                               onChange={(e) => setNewCoursePublished(e.target.checked)}
-                              className="w-4 h-4 accent-pink-600 rounded cursor-pointer"
+                              className="h-4 w-4 cursor-pointer rounded accent-indigo-600"
                             />
                             Publier immédiatement le module
                           </label>
 
                           <button
                             type="submit"
-                            className="w-full bg-pink-600 hover:bg-pink-700 text-white font-black py-3 rounded-xl text-xs transition-all shadow-sm hover:shadow-md active:scale-[0.98]"
+                            className={`w-full rounded-xl py-3 text-xs font-black shadow-sm transition-all active:scale-[0.98] ${getStepTheme(1).button}`}
                           >
                             Créer et enregistrer le module
                           </button>
                         </form>
                       </div>
 
-                      {/* Right: Modules List */}
                       <div className="xl:col-span-7 space-y-4">
                         <div className="flex items-center justify-between">
-                          <h3 className="text-xs font-black text-slate-700 uppercase tracking-wider">
+                          <h3 className={curriculumUi.sectionTitle}>
                             Vos modules ({managedCourses.length})
                           </h3>
-                          <span className="text-[10px] font-black uppercase text-slate-400 bg-slate-100 border border-slate-200 px-3 py-1 rounded-full">
+                          <span className={curriculumUi.countBadge}>
                             {managedCourses.length} module{managedCourses.length !== 1 ? "s" : ""}
                           </span>
                         </div>
 
-                        <div className="space-y-4 max-h-[650px] overflow-y-auto pr-1">
+                        <div className="max-h-[650px] space-y-4 overflow-y-auto pr-1">
                           {managedCourses.length === 0 && (
-                            <div className="text-center p-8 bg-slate-50 border border-slate-150 rounded-2xl">
-                              <BookOpen className="w-8 h-8 text-slate-350 mx-auto mb-2" />
-                              <p className="text-xs text-slate-400 font-semibold">Aucun module lié à ce profil académique. Créez un module à gauche.</p>
+                            <div className={curriculumUi.empty}>
+                              <BookOpen className="mx-auto mb-2 h-8 w-8 text-slate-300" />
+                              <p className="text-xs font-semibold text-slate-500">Aucun module lié à ce profil. Créez un module à gauche.</p>
                             </div>
                           )}
                           {managedCourses.map((course) => (
                             <div
                               key={course.id}
-                              className={`border rounded-3xl p-5 md:p-6 transition-all duration-300 ${
+                              className={`rounded-3xl border p-5 transition-all duration-300 md:p-6 ${
                                 newSectionCourseId === course.id
-                                  ? "border-pink-250 bg-gradient-to-br from-pink-50/10 to-white shadow-md shadow-pink-500/5 scale-[1.01]"
-                                  : "border-slate-200 bg-white hover:border-slate-300 shadow-sm"
+                                  ? "border-indigo-300 bg-gradient-to-br from-indigo-50/60 to-white shadow-md shadow-indigo-100"
+                                  : "border-slate-200 bg-white shadow-sm hover:border-slate-300"
                               }`}
                             >
                               {editingCourse?.id === course.id ? (
                                 <form onSubmit={handleSaveEditCourse} className="space-y-4">
-                                  <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                                    <p className="text-[10px] font-black uppercase tracking-wider text-pink-650">Modifier le module #{course.id}</p>
-                                    <span className="text-[9px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-black">ID {course.id}</span>
+                                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                                    <p className="text-[10px] font-black uppercase tracking-wider text-indigo-700">Modifier le module #{course.id}</p>
+                                    <span className="rounded bg-slate-100 px-2 py-0.5 text-[9px] font-black text-slate-500">ID {course.id}</span>
                                   </div>
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <label className="md:col-span-2 space-y-1 block">
@@ -551,7 +574,7 @@ export default function TeacherCurriculumView({
                                         placeholder="Titre du module"
                                         value={editCourseForm.title}
                                         onChange={(e) => setEditCourseForm((prev) => ({ ...prev, title: e.target.value }))}
-                                        className="w-full bg-slate-55 border border-slate-250 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-pink-500 font-semibold text-slate-800"
+                                        className={`${curriculumUi.input} ${getStepTheme(1).focus}`}
                                       />
                                     </label>
                                     <label className="md:col-span-2 space-y-1 block">
@@ -561,7 +584,7 @@ export default function TeacherCurriculumView({
                                         placeholder="Description"
                                         value={editCourseForm.description}
                                         onChange={(e) => setEditCourseForm((prev) => ({ ...prev, description: e.target.value }))}
-                                        className="w-full bg-slate-55 border border-slate-250 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-pink-500 text-slate-605 font-medium"
+                                        className={`${curriculumUi.input} ${getStepTheme(1).focus} resize-none`}
                                       />
                                     </label>
                                     <label className="space-y-1 block">
@@ -570,7 +593,7 @@ export default function TeacherCurriculumView({
                                         placeholder="Niveau"
                                         value={editCourseForm.level}
                                         onChange={(e) => setEditCourseForm((prev) => ({ ...prev, level: e.target.value }))}
-                                        className="w-full bg-slate-55 border border-slate-250 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-pink-500 font-semibold"
+                                        className={`${curriculumUi.input} ${getStepTheme(1).focus}`}
                                       />
                                     </label>
                                     <label className="space-y-1 block">
@@ -579,7 +602,7 @@ export default function TeacherCurriculumView({
                                         placeholder="Durée"
                                         value={editCourseForm.duration}
                                         onChange={(e) => setEditCourseForm((prev) => ({ ...prev, duration: e.target.value }))}
-                                        className="w-full bg-slate-55 border border-slate-250 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-pink-500 font-semibold"
+                                        className={`${curriculumUi.input} ${getStepTheme(1).focus}`}
                                       />
                                     </label>
                                     <label className="space-y-1 block">
@@ -589,7 +612,7 @@ export default function TeacherCurriculumView({
                                         placeholder="Crédits"
                                         value={editCourseForm.credits}
                                         onChange={(e) => setEditCourseForm((prev) => ({ ...prev, credits: parseInt(e.target.value) || 0 }))}
-                                        className="w-full bg-slate-55 border border-slate-250 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-pink-500 font-semibold"
+                                        className={`${curriculumUi.input} ${getStepTheme(1).focus}`}
                                       />
                                     </label>
                                     <label className="space-y-1 block">
@@ -599,7 +622,7 @@ export default function TeacherCurriculumView({
                                         placeholder="Prix"
                                         value={editCourseForm.price}
                                         onChange={(e) => setEditCourseForm((prev) => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
-                                        className="w-full bg-slate-55 border border-slate-250 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-pink-500 font-semibold"
+                                        className={`${curriculumUi.input} ${getStepTheme(1).focus}`}
                                       />
                                     </label>
                                     <label className="md:col-span-2 space-y-1 block">
@@ -607,7 +630,7 @@ export default function TeacherCurriculumView({
                                       <select
                                         value={editCourseForm.disciplineId}
                                         onChange={(e) => setEditCourseForm((prev) => ({ ...prev, disciplineId: parseInt(e.target.value) }))}
-                                        className="w-full bg-slate-55 border border-slate-250 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-pink-500 font-semibold text-slate-700"
+                                        className={`${curriculumUi.input} ${getStepTheme(1).focus} text-slate-700`}
                                       >
                                         {allDisciplines.map((d) => (
                                           <option key={d.id} value={d.id}>{d.name}</option>
@@ -616,8 +639,8 @@ export default function TeacherCurriculumView({
                                     </label>
                                   </div>
                                   <div className="flex gap-2 pt-1">
-                                    <button type="submit" className="flex-1 bg-pink-600 hover:bg-pink-700 text-white font-black py-2.5 rounded-xl text-xs transition-colors shadow-sm flex items-center justify-center gap-1.5"><Save className="w-4 h-4" /> Enregistrer</button>
-                                    <button type="button" onClick={() => setEditingCourse(null)} className="px-4 bg-slate-100 hover:bg-slate-200 text-slate-750 font-bold py-2.5 rounded-xl text-xs transition-colors">Annuler</button>
+                                    <button type="submit" className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-black transition-colors ${getStepTheme(1).button}`}><Save className="h-4 w-4" /> Enregistrer</button>
+                                    <button type="button" onClick={() => setEditingCourse(null)} className={curriculumUi.ghostBtn}>Annuler</button>
                                   </div>
                                 </form>
                               ) : (
@@ -625,26 +648,22 @@ export default function TeacherCurriculumView({
                                   <div className="flex items-start justify-between gap-4">
                                     <div className="space-y-1">
                                       <div className="flex flex-wrap items-center gap-2">
-                                        <span className="text-[9px] font-black uppercase text-pink-650 bg-pink-50 border border-pink-100 px-2.5 py-0.5 rounded">
+                                        <span className={`rounded border px-2.5 py-0.5 text-[9px] font-black uppercase ${getStepTheme(1).chip}`}>
                                           {course.discipline?.name || course.category}
                                         </span>
                                         <span className="text-[9px] font-bold text-slate-400">ID {course.id}</span>
                                       </div>
                                       <h4 className="text-base font-black text-slate-800 leading-snug">{course.title}</h4>
-                                      <p className="text-xs text-slate-550 leading-relaxed line-clamp-2 mt-1">{course.description}</p>
+                                      <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-600">{course.description}</p>
                                     </div>
 
-                                    <span className={`text-[10px] font-black px-2.5 py-1 rounded-full shrink-0 flex items-center gap-1 border ${
-                                      course.published
-                                        ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-                                        : "bg-slate-100 text-slate-500 border-slate-200"
-                                    }`}>
-                                      <span className={`w-1.5 h-1.5 rounded-full ${course.published ? "bg-emerald-500" : "bg-slate-400"}`}></span>
-                                      {course.published ? "Publié" : "Brouillon"}
+                                    <span className={publishedBadge(course.published)}>
+                                      <span className={`h-1.5 w-1.5 rounded-full ${course.published ? "bg-emerald-500" : "bg-amber-500"}`} />
+                                      {publishedLabel(course.published)}
                                     </span>
                                   </div>
 
-                                  <div className="flex flex-wrap gap-2 text-[10px] font-black text-slate-550 pt-1">
+                                  <div className="flex flex-wrap gap-2 pt-1 text-[10px] font-black text-slate-600">
                                     <span className="bg-slate-50 border border-slate-100 px-2.5 py-1.5 rounded-lg flex items-center gap-1">
                                       <Award className="w-3.5 h-3.5 text-slate-400" />
                                       {formatCredits(course.credits)}
@@ -667,18 +686,14 @@ export default function TeacherCurriculumView({
                                     <div className="flex gap-2">
                                       <button
                                         onClick={() => handleUpdateCourseDetails(course)}
-                                        className="p-2.5 text-xs font-bold rounded-xl bg-slate-50 border border-slate-200 text-slate-705 hover:bg-slate-100 hover:border-slate-300 transition-colors flex items-center justify-center gap-1"
+                                        className={curriculumUi.ghostBtn}
                                       >
-                                        <Edit3 className="w-3.5 h-3.5" />
+                                        <Edit3 className="h-3.5 w-3.5" />
                                         <span className="hidden sm:inline">Modifier</span>
                                       </button>
                                       <button
                                         onClick={() => handleToggleCoursePublished(course)}
-                                        className={`p-2.5 text-xs font-bold rounded-xl border transition-colors flex items-center justify-center gap-1 ${
-                                          course.published
-                                            ? "bg-slate-55 border-slate-200 text-slate-550 hover:bg-slate-100"
-                                            : "bg-indigo-50 border-indigo-100 text-indigo-700 hover:bg-indigo-100"
-                                        }`}
+                                        className={`${curriculumUi.ghostBtn} ${course.published ? "" : "border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"}`}
                                       >
                                         {course.published ? (
                                           <>
@@ -694,7 +709,7 @@ export default function TeacherCurriculumView({
                                       </button>
                                       <button
                                         onClick={() => handleDeleteCourse(course)}
-                                        className="p-2.5 text-xs font-bold rounded-xl bg-red-50 border border-red-100 text-red-700 hover:bg-red-100 transition-colors flex items-center justify-center gap-1"
+                                        className={curriculumUi.dangerBtn}
                                       >
                                         <Trash2 className="w-3.5 h-3.5" />
                                         <span className="hidden sm:inline">Supprimer</span>
@@ -703,7 +718,7 @@ export default function TeacherCurriculumView({
 
                                     <button
                                       onClick={() => handleSelectManagedCourse(course.id).then(() => setActiveCurriculumStep(2))}
-                                      className="px-4 py-2.5 text-xs font-black rounded-xl bg-pink-600 text-white hover:bg-pink-700 transition-colors flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98]"
+                                      className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-black shadow-sm transition-all active:scale-[0.98] ${getStepTheme(2).button}`}
                                     >
                                       Gérer le programme
                                       <ChevronRight className="w-4 h-4" />
@@ -718,17 +733,15 @@ export default function TeacherCurriculumView({
                     </div>
                   )}
 
-                  {/* STEP 2: CHAPTERS VIEW */}
                   {activeCurriculumStep === 2 && (
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                      {/* Left Panel: Add Chapter Form */}
-                      <div className="lg:col-span-5 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-5 self-start">
+                      <div className={`lg:col-span-5 ${curriculumUi.panel} ${getStepTheme(2).panel} space-y-5 self-start`}>
                         <div>
-                          <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
-                            <Plus className="w-5 h-5 text-pink-600" />
+                          <h3 className={curriculumUi.panelTitle}>
+                            <Plus className="h-5 w-5 text-violet-600" />
                             Ajouter un chapitre
                           </h3>
-                          <p className="text-xs text-slate-400 mt-1 font-medium">Créez un chapitre de premier niveau pour structurer ce module.</p>
+                          <p className={curriculumUi.panelSubtitle}>Créez un chapitre de premier niveau pour structurer ce module.</p>
                         </div>
 
                         <form onSubmit={handleCreateSection} className="space-y-4 pt-3 border-t border-slate-100">
@@ -744,23 +757,23 @@ export default function TeacherCurriculumView({
                                 setNewSectionParentId("");
                                 setNewSectionTitle(e.target.value);
                               }}
-                              className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:bg-white focus:outline-none focus:ring-4 focus:ring-pink-500/10 focus:border-pink-500 transition-all font-semibold"
+                              className={inputFocus}
                             />
                           </label>
 
-                          <label className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold text-slate-600 cursor-pointer select-none">
+                          <label className={curriculumUi.checkbox}>
                             <input
                               type="checkbox"
                               checked={newSectionPublished}
                               onChange={(e) => setNewSectionPublished(e.target.checked)}
-                              className="accent-pink-600 w-4 h-4 cursor-pointer"
+                              className={`h-4 w-4 cursor-pointer accent-indigo-600`}
                             />
                             Publier immédiatement le chapitre
                           </label>
 
                           <button
                             type="submit"
-                            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-3 rounded-xl text-xs transition-colors shadow-sm active:scale-[0.98]"
+                            className={`w-full rounded-xl py-3 text-xs font-black shadow-sm transition-colors active:scale-[0.98] ${getStepTheme(2).button}`}
                           >
                             Créer le chapitre
                           </button>
@@ -770,17 +783,17 @@ export default function TeacherCurriculumView({
                       {/* Right Panel: Chapters List */}
                       <div className="lg:col-span-7 space-y-4">
                         <div className="flex items-center justify-between">
-                          <h3 className="text-xs font-black text-slate-700 uppercase tracking-wider">
+                          <h3 className={curriculumUi.sectionTitle}>
                             Chapitres du module ({chapterSections.length})
                           </h3>
-                          <span className="text-[10px] font-black uppercase text-slate-400 bg-slate-100 border border-slate-200 px-3 py-1 rounded-full">
+                          <span className={curriculumUi.countBadge}>
                             {chapterSections.length} chapitre{chapterSections.length !== 1 ? "s" : ""}
                           </span>
                         </div>
 
                         <div className="space-y-3 max-h-[550px] overflow-y-auto pr-1">
                           {chapterSections.length === 0 ? (
-                            <div className="text-center p-8 bg-slate-50 border border-slate-150 rounded-2xl">
+                            <div className={curriculumUi.empty}>
                               <Layers className="w-8 h-8 text-slate-300 mx-auto mb-2" />
                               <p className="text-xs text-slate-400 font-semibold">Aucun chapitre créé. Utilisez le formulaire à gauche pour commencer.</p>
                             </div>
@@ -788,10 +801,10 @@ export default function TeacherCurriculumView({
                             chapterSections.map((section) => (
                               <div
                                 key={section.id}
-                                className={`border rounded-2xl p-4 md:p-5 transition-all ${
+                                className={`rounded-2xl border p-4 transition-all md:p-5 ${
                                   uploadSectionId === section.id
-                                    ? "border-pink-200 bg-pink-50/10 shadow-sm"
-                                    : "border-slate-150 bg-white hover:border-slate-350"
+                                    ? "border-violet-300 bg-violet-50/40 shadow-sm"
+                                    : "border-slate-200 bg-white hover:border-violet-200"
                                 }`}
                               >
                                 <div className="flex items-start justify-between gap-4">
@@ -801,10 +814,8 @@ export default function TeacherCurriculumView({
                                     </span>
                                     <h4 className="text-sm font-black text-slate-800">{section.title}</h4>
                                   </div>
-                                  <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${
-                                    section.published ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-slate-100 text-slate-500 border-slate-200"
-                                  }`}>
-                                    {section.published ? "Publié" : "Brouillon"}
+                                  <span className={publishedBadge(section.published)}>
+                                    {publishedLabel(section.published)}
                                   </span>
                                 </div>
 
@@ -812,21 +823,19 @@ export default function TeacherCurriculumView({
                                   <div className="flex flex-wrap gap-2">
                                     <button
                                       onClick={() => handleUpdateSectionTitle(section)}
-                                      className="px-3 py-2 text-[10px] font-bold rounded-lg bg-slate-50 border border-slate-200 text-slate-755 hover:bg-slate-100"
+                                      className={curriculumUi.ghostBtn}
                                     >
                                       Renommer
                                     </button>
                                     <button
                                       onClick={() => handleToggleSectionPublished(section)}
-                                      className={`px-3 py-2 text-[10px] font-bold rounded-lg border ${
-                                        section.published ? "bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100" : "bg-indigo-50 border-indigo-150 text-indigo-700 hover:bg-indigo-100"
-                                      }`}
+                                      className={`${curriculumUi.ghostBtn} ${section.published ? "" : "border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100"}`}
                                     >
                                       {section.published ? "Dépublier" : "Publier"}
                                     </button>
                                     <button
                                       onClick={() => handleDeleteSection(section)}
-                                      className="px-3 py-2 text-[10px] font-bold rounded-lg bg-red-50 border border-red-100 text-red-700 hover:bg-red-100"
+                                      className={curriculumUi.dangerBtn}
                                     >
                                       Supprimer
                                     </button>
@@ -838,7 +847,7 @@ export default function TeacherCurriculumView({
                                         handleAddChildSection(section);
                                         setActiveCurriculumStep(3);
                                       }}
-                                      className="px-3 py-2 text-[10px] font-black rounded-lg bg-pink-50 border border-pink-100 text-pink-700 hover:bg-pink-100/85 flex items-center gap-1"
+                                      className={`inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-[10px] font-black transition-colors ${getStepTheme(3).chip} hover:bg-sky-100`}
                                     >
                                       <Plus className="w-3 h-3" />
                                       Ajouter partie
@@ -848,7 +857,7 @@ export default function TeacherCurriculumView({
                                         handleSetUploadSectionId(section.id);
                                         setActiveCurriculumStep(4);
                                       }}
-                                      className="px-3 py-2 text-[10px] font-black rounded-lg bg-slate-900 text-white hover:bg-slate-800 flex items-center gap-1"
+                                      className={`inline-flex items-center gap-1 rounded-lg px-3 py-2 text-[10px] font-black text-white transition-colors ${getStepTheme(4).button}`}
                                     >
                                       <Video className="w-3 h-3" />
                                       Médias
@@ -863,22 +872,20 @@ export default function TeacherCurriculumView({
                     </div>
                   )}
 
-                  {/* STEP 3: STRUCTURE & PARTIES VIEW */}
                   {activeCurriculumStep === 3 && (
                     <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                      {/* Left Panel: Cascading section editor */}
-                      <div className="xl:col-span-5 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-5 self-start">
+                      <div className={`xl:col-span-5 ${curriculumUi.panel} ${getStepTheme(3).panel} space-y-5 self-start`}>
                         <div>
-                          <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
-                            <FolderTree className="w-5 h-5 text-pink-600" />
+                          <h3 className={curriculumUi.panelTitle}>
+                            <FolderTree className="h-5 w-5 text-sky-600" />
                             Ajouter une section
                           </h3>
-                          <p className="text-xs text-slate-400 mt-1 font-medium">Créez des parties et sous-parties structurées pour organiser votre cours.</p>
+                          <p className={curriculumUi.panelSubtitle}>Créez des parties et sous-parties pour organiser votre cours.</p>
                         </div>
 
                         <form onSubmit={handleCreateSection} className="space-y-4 pt-3 border-t border-slate-100">
                           <label className="block space-y-1">
-                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-405">1. Chapitre parent</span>
+                            <span className={curriculumUi.label}>1. Chapitre parent</span>
                             <select
                               value={selectedChapterId}
                               onChange={(e) => {
@@ -888,7 +895,7 @@ export default function TeacherCurriculumView({
                                 setNewSectionParentId(val);
                                 setNewSectionMode(val ? "part" : "chapter");
                               }}
-                              className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3 py-3 text-xs focus:bg-white focus:outline-none focus:ring-4 focus:ring-pink-500/10 focus:border-pink-500 transition-all font-semibold"
+                              className={inputFocus}
                             >
                               <option value="">-- Choisir un chapitre (requis) --</option>
                               {chapterSections.map((section) => (
@@ -898,7 +905,7 @@ export default function TeacherCurriculumView({
                           </label>
 
                           <label className="block space-y-1">
-                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-455">2. Partie parent (optionnelle)</span>
+                            <span className={curriculumUi.label}>2. Partie parent (optionnelle)</span>
                             <select
                               value={selectedPartieId}
                               onChange={(e) => {
@@ -908,7 +915,7 @@ export default function TeacherCurriculumView({
                                 setNewSectionMode(val ? "subpart" : "part");
                               }}
                               disabled={!selectedChapterId}
-                              className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3 py-3 text-xs focus:bg-white focus:outline-none focus:ring-4 focus:ring-pink-500/10 focus:border-pink-500 transition-all font-semibold disabled:bg-slate-100 disabled:text-slate-400"
+                              className={`w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-3 text-xs font-semibold transition-all focus:bg-white focus:outline-none focus:ring-4 disabled:bg-slate-100 disabled:text-slate-400 ${stepTheme.focus}`}
                             >
                               <option value="">-- Sous-section de chapitre (crée une Partie) --</option>
                               {managedSections.filter((section) => section.parentId === selectedChapterId).map((section) => (
@@ -918,23 +925,23 @@ export default function TeacherCurriculumView({
                           </label>
 
                           <label className="block space-y-1">
-                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-455">Titre de la nouvelle section</span>
+                            <span className={curriculumUi.label}>Titre de la nouvelle section</span>
                             <input
                               type="text"
                               required
                               placeholder={selectedPartieId ? "ex: Sous-partie B : Modèles avancés" : "ex: Partie 1 : Les bases théoriques"}
                               value={newSectionTitle}
                               onChange={(e) => setNewSectionTitle(e.target.value)}
-                              className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:bg-white focus:outline-none focus:ring-4 focus:ring-pink-500/10 focus:border-pink-500 transition-all font-semibold"
+                              className={inputFocus}
                             />
                           </label>
 
-                          <label className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold text-slate-655 cursor-pointer select-none">
+                          <label className={curriculumUi.checkbox}>
                             <input
                               type="checkbox"
                               checked={newSectionPublished}
                               onChange={(e) => setNewSectionPublished(e.target.checked)}
-                              className="accent-pink-600 w-4 h-4 cursor-pointer"
+                              className={`h-4 w-4 cursor-pointer accent-indigo-600`}
                             />
                             Publier immédiatement après création
                           </label>
@@ -942,7 +949,7 @@ export default function TeacherCurriculumView({
                           <button
                             type="submit"
                             disabled={!selectedChapterId}
-                            className="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-350 text-white font-black py-3 rounded-xl text-xs transition-colors shadow-sm active:scale-[0.98] disabled:scale-100"
+                            className={`w-full rounded-xl py-3 text-xs font-black shadow-sm transition-colors active:scale-[0.98] disabled:scale-100 disabled:opacity-50 ${getStepTheme(3).button}`}
                           >
                             {selectedPartieId ? "Créer la sous-partie" : "Créer la partie"}
                           </button>
@@ -952,18 +959,18 @@ export default function TeacherCurriculumView({
                       {/* Right Panel: Outline Hierarchy Tree View */}
                       <div className="xl:col-span-7 space-y-4">
                         <div className="flex items-center justify-between">
-                          <h3 className="text-xs font-black text-slate-700 uppercase tracking-wider">
-                            Structure & Arborescence du module
+                          <h3 className={curriculumUi.sectionTitle}>
+                            Structure & arborescence du module
                           </h3>
-                          <span className="text-[10px] font-black uppercase text-slate-400 bg-slate-100 border border-slate-200 px-3 py-1 rounded-full">
+                          <span className={curriculumUi.countBadge}>
                             {managedSections.length} section{managedSections.length !== 1 ? "s" : ""}
                           </span>
                         </div>
 
-                        <div className="bg-slate-50/80 border border-slate-200 rounded-3xl p-4 md:p-6 space-y-3">
+                        <div className="rounded-3xl border border-sky-100 bg-gradient-to-br from-sky-50/50 to-white p-4 md:p-6 space-y-3">
                           {managedSections.length === 0 ? (
                             <div className="text-center py-8">
-                              <FolderTree className="w-8 h-8 text-slate-350 mx-auto mb-2" />
+                              <FolderTree className="mx-auto mb-2 h-8 w-8 text-sky-300" />
                               <p className="text-xs text-slate-400 font-semibold">Le syllabus est vide. Créez un chapitre à l'étape 2.</p>
                             </div>
                           ) : (
@@ -977,14 +984,14 @@ export default function TeacherCurriculumView({
                                 return (
                                   <div
                                     key={section.id}
-                                    className={`flex flex-col md:flex-row md:items-center justify-between gap-3 border rounded-2xl p-3 transition-colors ${
+                                    className={`flex flex-col justify-between gap-3 rounded-2xl border p-3 transition-colors md:flex-row md:items-center ${
                                       uploadSectionId === section.id
-                                        ? "border-pink-300 bg-pink-50/30 shadow-sm"
+                                        ? "border-sky-400 bg-sky-50/60 shadow-sm"
                                         : isChapter
-                                        ? "border-slate-255 bg-slate-200/40"
+                                        ? "border-slate-300 bg-slate-100/80"
                                         : isPart
-                                        ? "border-slate-200 bg-white shadow-sm"
-                                        : "border-slate-150 bg-slate-50/40"
+                                        ? "border-violet-200 bg-white shadow-sm"
+                                        : "border-sky-100 bg-sky-50/30"
                                     }`}
                                     style={{ marginLeft: `${Math.min(indent, 80)}px` }}
                                   >
@@ -998,14 +1005,14 @@ export default function TeacherCurriculumView({
                                         className="text-left flex-1 min-w-0"
                                       >
                                         <div className="flex flex-wrap items-center gap-1.5">
-                                          <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded leading-none shrink-0 ${
-                                            isChapter ? "bg-slate-800 text-white" : isPart ? "bg-indigo-50 text-indigo-700 border border-indigo-100" : "bg-pink-50 text-pink-705 border border-pink-100"
+                                          <span className={`shrink-0 rounded px-2 py-0.5 text-[8px] font-black uppercase leading-none ${
+                                            isChapter ? curriculumUi.levelChapter : isPart ? curriculumUi.levelPart : curriculumUi.levelSubpart
                                           }`}>
                                             {isChapter ? "Chapitre" : isPart ? "Partie" : "Sous-partie"}
                                           </span>
                                           <span className="text-[9px] text-slate-400 font-bold shrink-0">ID {section.id}</span>
                                         </div>
-                                        <p className={`text-xs mt-1.5 text-slate-850 truncate ${isChapter ? "font-black" : "font-bold"}`}>
+                                        <p className={`mt-1.5 truncate text-xs text-slate-800 ${isChapter ? "font-black" : "font-bold"}`}>
                                           {section.title}
                                         </p>
                                       </button>
@@ -1016,7 +1023,7 @@ export default function TeacherCurriculumView({
                                         <button
                                           type="button"
                                           onClick={() => handleAddChildSection(section)}
-                                          className="p-2 text-[10px] font-bold rounded-xl bg-pink-50 border border-pink-100 text-pink-700 hover:bg-pink-100"
+                                          className={`rounded-xl border p-2 text-[10px] font-bold transition-colors ${getStepTheme(3).chip} hover:bg-sky-100`}
                                           title="Ajouter sous-partie"
                                         >
                                           <Plus className="w-3.5 h-3.5" />
@@ -1028,7 +1035,7 @@ export default function TeacherCurriculumView({
                                           handleSetUploadSectionId(section.id);
                                           setActiveCurriculumStep(4);
                                         }}
-                                        className="p-2 text-[10px] font-bold rounded-xl bg-slate-105 border border-slate-200 text-slate-700 hover:bg-slate-150 flex items-center gap-1"
+                                        className={`rounded-xl border p-2 text-[10px] font-bold transition-colors ${getStepTheme(4).chip} hover:bg-amber-100`}
                                         title="Médias"
                                       >
                                         <Video className="w-3.5 h-3.5 text-slate-400" />
@@ -1036,23 +1043,21 @@ export default function TeacherCurriculumView({
                                       <button
                                         type="button"
                                         onClick={() => handleUpdateSectionTitle(section)}
-                                        className="px-2.5 py-2 text-[10px] font-bold rounded-xl bg-slate-55 border border-slate-200 text-slate-700 hover:bg-slate-150"
+                                        className={curriculumUi.ghostBtn}
                                       >
                                         Renommer
                                       </button>
                                       <button
                                         type="button"
                                         onClick={() => handleToggleSectionPublished(section)}
-                                        className={`px-2.5 py-2 text-[10px] font-bold rounded-xl border ${
-                                          section.published ? "bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100" : "bg-indigo-50 border-indigo-150 text-indigo-700 hover:bg-indigo-100"
-                                        }`}
+                                        className={`${curriculumUi.ghostBtn} ${section.published ? "" : "border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100"}`}
                                       >
                                         {section.published ? "Masquer" : "Publier"}
                                       </button>
                                       <button
                                         type="button"
                                         onClick={() => handleDeleteSection(section)}
-                                        className="p-2 text-[10px] font-bold rounded-xl bg-red-50 border border-red-100 text-red-755 hover:bg-red-100"
+                                        className={`${curriculumUi.dangerBtn} p-2`}
                                       >
                                         <Trash2 className="w-3.5 h-3.5" />
                                       </button>
@@ -1067,27 +1072,25 @@ export default function TeacherCurriculumView({
                     </div>
                   )}
 
-                  {/* STEP 4: MULTIMEDIA & MEDIA UPLOAD */}
                   {activeCurriculumStep === 4 && (
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                      {/* Left Panel: Media Uploader */}
-                      <div className="lg:col-span-5 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-5 self-start">
+                      <div className={`lg:col-span-5 ${curriculumUi.panel} ${getStepTheme(4).panel} space-y-5 self-start`}>
                         <div>
-                          <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
-                            <FileText className="w-5 h-5 text-pink-600" />
+                          <h3 className={curriculumUi.panelTitle}>
+                            <FileText className="h-5 w-5 text-amber-600" />
                             Ajouter des médias
                           </h3>
-                          <p className="text-xs text-slate-400 mt-1 font-medium">Uploadez des fichiers vidéo, PDF ou images dans la section cible.</p>
+                          <p className={curriculumUi.panelSubtitle}>Uploadez vidéos, PDF ou images dans la section cible.</p>
                         </div>
 
                         <form onSubmit={handleUploadLessonAsset} className="space-y-4 pt-3 border-t border-slate-100">
                           {/* Destination Section Selector */}
                           <div className="space-y-1">
-                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Section cible</span>
+                            <span className={curriculumUi.label}>Section cible</span>
                             <select
                               value={uploadSectionId}
                               onChange={(e) => handleSetUploadSectionId(e.target.value)}
-                              className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3 py-3 text-xs focus:bg-white focus:outline-none focus:ring-4 focus:ring-pink-500/10 focus:border-pink-500 transition-all font-semibold text-slate-700"
+                              className={`${inputFocus} text-slate-700`}
                             >
                               <option value="">-- Directement dans le module (racine) --</option>
                               {managedSections.map((section) => (
@@ -1099,7 +1102,7 @@ export default function TeacherCurriculumView({
                           </div>
 
                           {/* Cascading selectors */}
-                          <div className="grid grid-cols-2 gap-3 bg-slate-50/60 p-3 rounded-2xl border border-slate-200">
+                          <div className="grid grid-cols-2 gap-3 rounded-2xl border border-amber-100 bg-amber-50/40 p-3">
                             <label className="block space-y-1">
                               <span className="text-[9px] font-black text-slate-400 uppercase">Chapitre</span>
                               <select
@@ -1111,7 +1114,7 @@ export default function TeacherCurriculumView({
                                   setUploadSubpartId("");
                                   setUploadSectionId(value);
                                 }}
-                                className="w-full bg-white border border-slate-250 rounded-xl px-2 py-2 text-[11px] focus:outline-none"
+                                className="w-full rounded-xl border border-slate-200 bg-white px-2 py-2 text-[11px] focus:outline-none focus:ring-2 focus:ring-amber-400/30"
                               >
                                 <option value="">Module uniquement</option>
                                 {chapterSections.map((section) => (
@@ -1131,7 +1134,7 @@ export default function TeacherCurriculumView({
                                   setUploadSectionId(value || uploadChapterId);
                                 }}
                                 disabled={!uploadChapterId}
-                                className="w-full bg-white border border-slate-250 rounded-xl px-2 py-2 text-[11px] focus:outline-none disabled:bg-slate-100"
+                                className="w-full rounded-xl border border-slate-200 bg-white px-2 py-2 text-[11px] focus:outline-none focus:ring-2 focus:ring-amber-400/30 disabled:bg-slate-100"
                               >
                                 <option value="">Partie facultative</option>
                                 {uploadPartOptions.map((section) => (
@@ -1147,7 +1150,7 @@ export default function TeacherCurriculumView({
                               <select
                                 value={uploadType}
                                 onChange={(e) => setUploadType(e.target.value as any)}
-                                className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3 py-3 text-xs focus:bg-white focus:outline-none font-semibold text-slate-700"
+                                className={`w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-3 text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:ring-4 ${stepTheme.focus}`}
                               >
                                 <option value="VIDEO">Vidéo (.mp4, WebM)</option>
                                 <option value="PDF">Document PDF</option>
@@ -1163,7 +1166,7 @@ export default function TeacherCurriculumView({
                                 placeholder="ex: Tutoriel de programmation"
                                 value={uploadTitle}
                                 onChange={(e) => setUploadTitle(e.target.value)}
-                                className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:bg-white focus:outline-none focus:ring-4 focus:ring-pink-500/10 focus:border-pink-500 transition-all font-semibold"
+                                className={inputFocus}
                               />
                             </label>
                           </div>
@@ -1171,11 +1174,11 @@ export default function TeacherCurriculumView({
                           {/* Styled File Input Container */}
                           <label className="block space-y-1 cursor-pointer">
                             <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Fichier média</span>
-                            <div className="border-2 border-dashed border-slate-250 rounded-2xl p-4 text-center bg-slate-55 hover:bg-slate-100 transition-colors flex flex-col items-center justify-center gap-2 group">
-                              <Download className="w-8 h-8 text-slate-400 group-hover:text-pink-600 transition-colors" />
-                              <div className="text-xs text-slate-550">
+                            <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-amber-200 bg-amber-50/30 p-4 text-center transition-colors hover:bg-amber-50/60 group">
+                              <Download className="h-8 w-8 text-amber-500 transition-colors group-hover:text-amber-700" />
+                              <div className="text-xs text-slate-600">
                                 {uploadFile ? (
-                                  <p className="text-pink-600 font-bold font-mono text-[11px] truncate max-w-[280px]">
+                                  <p className="max-w-[280px] truncate font-mono text-[11px] font-bold text-amber-700">
                                     {uploadFile.name} ({(uploadFile.size / (1024 * 1024)).toFixed(2)} Mo)
                                   </p>
                                 ) : (
@@ -1195,26 +1198,26 @@ export default function TeacherCurriculumView({
                             </div>
                           </label>
 
-                          <label className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold text-slate-655 cursor-pointer select-none">
+                          <label className={curriculumUi.checkbox}>
                             <input
                               type="checkbox"
                               checked={uploadPublished}
                               onChange={(e) => setUploadPublished(e.target.checked)}
-                              className="accent-pink-600 w-4 h-4 cursor-pointer"
+                              className={`h-4 w-4 cursor-pointer accent-indigo-600`}
                             />
                             Publier le média après l'upload
                           </label>
 
                           <button
                             type="submit"
-                            className="w-full bg-pink-600 hover:bg-pink-700 text-white font-black py-3 rounded-xl text-xs transition-colors shadow-sm active:scale-[0.98]"
+                            className={`w-full rounded-xl py-3 text-xs font-black shadow-sm transition-colors active:scale-[0.98] ${stepTheme.button}`}
                           >
                             Lancer le téléversement (Upload)
                           </button>
 
                           {uploadStatusMsg && (
-                            <div className="p-3 bg-slate-105 border border-slate-200 text-xs font-bold text-slate-600 rounded-xl text-center flex items-center justify-center gap-2 animate-pulse">
-                              <span className="w-2.5 h-2.5 rounded-full bg-pink-600 animate-ping shrink-0"></span>
+                            <div className="flex items-center justify-center gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-center text-xs font-bold text-amber-800 animate-pulse">
+                              <span className="h-2.5 w-2.5 shrink-0 animate-ping rounded-full bg-amber-600" />
                               {uploadStatusMsg}
                             </div>
                           )}
@@ -1224,19 +1227,19 @@ export default function TeacherCurriculumView({
                       {/* Right Panel: Section Contents List */}
                       <div className="lg:col-span-7 space-y-4">
                         <div className="flex items-center justify-between">
-                          <h3 className="text-xs font-black text-slate-700 uppercase tracking-wider">
+                          <h3 className={curriculumUi.sectionTitle}>
                             Médias attachés à la section
                           </h3>
-                          <span className="text-[10px] font-black uppercase text-slate-400 bg-slate-100 border border-slate-200 px-3 py-1 rounded-full">
+                          <span className={curriculumUi.countBadge}>
                             {selectedManagedContents.length} média{selectedManagedContents.length !== 1 ? "s" : ""}
                           </span>
                         </div>
 
                         <div className="space-y-4 max-h-[600px] overflow-y-auto pr-1">
                           {selectedManagedContents.length === 0 ? (
-                            <div className="text-center p-8 bg-slate-50 border border-slate-150 rounded-2xl">
-                              <FileText className="w-8 h-8 text-slate-350 mx-auto mb-2" />
-                              <p className="text-xs text-slate-450 font-semibold">
+                            <div className={curriculumUi.empty}>
+                              <FileText className="mx-auto mb-2 h-8 w-8 text-amber-300" />
+                              <p className="text-xs font-semibold text-slate-500">
                                 {uploadSectionId ? "Aucun média attaché à cette section." : "Aucun média attaché directement à la racine du module."}
                               </p>
                             </div>
@@ -1248,8 +1251,8 @@ export default function TeacherCurriculumView({
                                   <div className="flex items-start justify-between gap-4">
                                     <div className="space-y-1">
                                       <div className="flex flex-wrap items-center gap-2">
-                                        <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${
-                                          content.type === "VIDEO" ? "bg-red-55 text-red-700 border border-red-100" : content.type === "PDF" ? "bg-amber-50 text-amber-700 border border-amber-100" : "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                                        <span className={`rounded px-2 py-0.5 text-[8px] font-black uppercase ${
+                                          content.type === "VIDEO" ? curriculumUi.mediaVideo : content.type === "PDF" ? curriculumUi.mediaPdf : curriculumUi.mediaImage
                                         }`}>
                                           {content.type}
                                         </span>
@@ -1257,20 +1260,18 @@ export default function TeacherCurriculumView({
                                       </div>
                                       <h4 className="text-sm font-black text-slate-800 leading-snug">{content.title}</h4>
                                       {attachment?.fileName && (
-                                        <p className="text-[11px] text-slate-405 font-mono truncate max-w-md">{attachment.fileName}</p>
+                                        <p className="max-w-md truncate font-mono text-[11px] text-slate-500">{attachment.fileName}</p>
                                       )}
                                     </div>
 
-                                    <span className={`text-[9px] font-black px-2.5 py-0.5 rounded-full border ${
-                                      content.published ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-slate-100 text-slate-500 border-slate-200"
-                                    }`}>
-                                      {content.published ? "Publié" : "Brouillon"}
+                                    <span className={publishedBadge(content.published)}>
+                                      {publishedLabel(content.published)}
                                     </span>
                                   </div>
 
                                   {/* Preview */}
                                   {attachment?.url && (
-                                    <div className="border border-slate-150 bg-slate-50 rounded-2xl overflow-hidden p-2">
+                                    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-2">
                                       {content.type === "IMAGE" && (
                                         <img src={attachment.url} alt={content.title} className="w-full max-h-48 object-contain rounded-xl bg-white" />
                                       )}
@@ -1279,7 +1280,7 @@ export default function TeacherCurriculumView({
                                       )}
                                       {content.type === "PDF" && (
                                         <div className="py-6 flex flex-col items-center justify-center gap-2">
-                                          <FileText className="w-12 h-12 text-red-650" />
+                                          <FileText className="h-12 w-12 text-red-500" />
                                           <p className="text-[11px] font-bold text-slate-600">Document PDF attaché</p>
                                         </div>
                                       )}
@@ -1292,16 +1293,14 @@ export default function TeacherCurriculumView({
                                         href={attachment.url}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="px-3.5 py-2 text-[10px] font-black rounded-xl bg-slate-100 border border-slate-200 text-slate-705 hover:bg-slate-200"
+                                        className={curriculumUi.ghostBtn}
                                       >
                                         Ouvrir le fichier
                                       </a>
                                     )}
                                     <button
                                       onClick={() => handleToggleContentPublished(content)}
-                                      className={`px-3.5 py-2 text-[10px] font-black rounded-xl border ${
-                                        content.published ? "bg-slate-50 border-slate-200 text-slate-550" : "bg-indigo-50 border-indigo-150 text-indigo-700 hover:bg-indigo-100"
-                                      }`}
+                                      className={`${curriculumUi.ghostBtn} ${content.published ? "" : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"}`}
                                     >
                                       {content.published ? "Dépublier" : "Publier"}
                                     </button>
@@ -1321,14 +1320,12 @@ export default function TeacherCurriculumView({
                     </div>
                   )}
 
-                  {/* STEP 5: QUIZZES & QUESTION BANK BUILDER */}
                   {activeCurriculumStep === 5 && (
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                      {/* Left Column: Create Quiz & Quiz List */}
                       <div className="lg:col-span-5 space-y-6">
-                        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-5">
-                          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                            <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">
+                        <div className={`${curriculumUi.panel} ${getStepTheme(5).panel} space-y-5`}>
+                          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                            <h3 className="text-sm font-black uppercase tracking-wider text-slate-900">
                               {selectedQuizId ? "Quiz sélectionné" : "Créer un quiz"}
                             </h3>
                             {selectedQuizId && (
@@ -1341,7 +1338,7 @@ export default function TeacherCurriculumView({
                                   setQuizPartId("");
                                   setQuizSubpartId("");
                                 }}
-                                className="text-[10px] text-pink-655 hover:text-pink-700 font-black uppercase flex items-center gap-1 bg-pink-50 border border-pink-100 px-2.5 py-1.5 rounded-xl transition-colors"
+                                className={`inline-flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-[10px] font-black uppercase transition-colors ${getStepTheme(5).chip} hover:bg-emerald-100`}
                               >
                                 Nouveau quiz
                               </button>
@@ -1393,7 +1390,7 @@ export default function TeacherCurriculumView({
                                     }
                                   }
                                 }}
-                                className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3 py-3 text-xs focus:bg-white focus:outline-none focus:ring-4 focus:ring-pink-500/10 focus:border-pink-500 transition-all font-semibold text-slate-700"
+                                className={`${inputFocus} text-slate-700`}
                               >
                                 <option value="">-- Directement dans le module (racine) --</option>
                                 {managedSections.map((section) => (
@@ -1411,13 +1408,13 @@ export default function TeacherCurriculumView({
                                 placeholder="ex: QCM 1 - Bases algorithmiques"
                                 value={newQuizTitle}
                                 onChange={(e) => setNewQuizTitle(e.target.value)}
-                                className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:bg-white focus:outline-none focus:ring-4 focus:ring-pink-500/10 focus:border-pink-500 transition-all font-semibold"
+                                className={inputFocus}
                               />
                             </div>
 
                             <button
                               type="submit"
-                              className="w-full bg-pink-600 hover:bg-pink-700 text-white font-black py-3 rounded-xl text-xs transition-colors shadow-sm active:scale-[0.98]"
+                              className={`w-full rounded-xl py-3 text-xs font-black shadow-sm transition-colors active:scale-[0.98] ${stepTheme.button}`}
                             >
                               Créer et lier ce Quiz
                             </button>
@@ -1427,13 +1424,13 @@ export default function TeacherCurriculumView({
                         {/* Quiz List */}
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
-                            <h3 className="text-xs font-black text-slate-700 uppercase tracking-wider">
+                            <h3 className={curriculumUi.sectionTitle}>
                               Quiz du module ({teacherQuizzes.length})
                             </h3>
                             <button
                               type="button"
                               onClick={() => loadTeacherQuizzes(quizCourseId)}
-                              className="text-[10px] text-pink-655 hover:underline font-bold"
+                              className="text-[10px] font-bold text-emerald-700 hover:underline"
                             >
                               Actualiser la liste
                             </button>
@@ -1441,7 +1438,7 @@ export default function TeacherCurriculumView({
 
                           <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
                             {teacherQuizzes.length === 0 ? (
-                              <div className="text-center p-6 bg-slate-55 border border-slate-200 rounded-2xl">
+                              <div className={`${curriculumUi.empty} p-6`}>
                                 <p className="text-xs text-slate-400 font-semibold">Aucun quiz créé. Utilisez le formulaire ci-dessus.</p>
                               </div>
                             ) : (
@@ -1449,15 +1446,15 @@ export default function TeacherCurriculumView({
                                 <div
                                   key={quiz.id}
                                   onClick={() => setSelectedQuizId(quiz.id)}
-                                  className={`border rounded-2xl p-4 cursor-pointer transition-all ${
+                                  className={`cursor-pointer rounded-2xl border p-4 transition-all ${
                                     selectedQuizId === quiz.id
-                                      ? "border-pink-250 bg-pink-50/20 shadow-sm"
-                                      : "border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-355"
+                                      ? "border-emerald-300 bg-emerald-50/50 shadow-sm"
+                                      : "border-slate-200 bg-white hover:border-emerald-200 hover:bg-emerald-50/20"
                                   }`}
                                 >
                                   <div className="flex items-start justify-between gap-3">
                                     <div>
-                                      <span className="text-[8px] font-black uppercase text-pink-655 bg-pink-50 border border-pink-100 px-1.5 py-0.5 rounded">
+                                      <span className={`rounded border px-1.5 py-0.5 text-[8px] font-black uppercase ${getStepTheme(5).chip}`}>
                                         {quiz.questions?.length || 0} question(s)
                                       </span>
                                       <h4 className="text-xs font-black text-slate-800 mt-2">{quiz.title}</h4>
@@ -1476,13 +1473,13 @@ export default function TeacherCurriculumView({
                         {selectedQuizId ? (
                           <>
                             {/* Question Form */}
-                            <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-5">
+                            <div className={`${curriculumUi.panel} ${getStepTheme(5).panel} space-y-5`}>
                               <div>
-                                <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">
+                                <h3 className="text-sm font-black uppercase tracking-wider text-slate-900">
                                   Ajouter une question
                                 </h3>
-                                <p className="text-xs text-slate-450 mt-1 font-medium">
-                                  Quiz : <span className="font-bold text-pink-600">{teacherQuizzes.find(q => q.id === selectedQuizId)?.title}</span>
+                                <p className="mt-1 text-xs font-medium text-slate-500">
+                                  Quiz : <span className="font-bold text-emerald-700">{teacherQuizzes.find(q => q.id === selectedQuizId)?.title}</span>
                                 </p>
                               </div>
 
@@ -1495,7 +1492,7 @@ export default function TeacherCurriculumView({
                                     placeholder="Saisissez la question..."
                                     value={newQuestionText}
                                     onChange={(e) => setNewQuestionText(e.target.value)}
-                                    className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:bg-white focus:outline-none focus:ring-4 focus:ring-pink-500/10 focus:border-pink-500 transition-all font-semibold"
+                                    className={inputFocus}
                                   />
                                 </label>
 
@@ -1504,7 +1501,7 @@ export default function TeacherCurriculumView({
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                                     {newQuestionOptions.map((opt, idx) => (
                                       <div key={idx} className="relative flex items-center">
-                                        <span className="text-[10px] font-black text-pink-600 bg-pink-50 border border-pink-100 w-6 h-6 rounded-lg flex items-center justify-center absolute left-2 select-none">
+                                        <span className="absolute left-2 flex h-6 w-6 select-none items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 text-[10px] font-black text-emerald-700">
                                           {String.fromCharCode(65 + idx)}
                                         </span>
                                         <input
@@ -1516,7 +1513,7 @@ export default function TeacherCurriculumView({
                                             next[idx] = e.target.value;
                                             setNewQuestionOptions(next);
                                           }}
-                                          className="w-full bg-slate-50/50 border border-slate-200 rounded-xl pl-10 pr-3 py-2.5 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all font-semibold"
+                                          className={`w-full rounded-xl border border-slate-200 bg-slate-50/80 pl-10 pr-3 py-2.5 text-xs font-semibold transition-all focus:bg-white focus:outline-none focus:ring-2 ${stepTheme.focus}`}
                                         />
                                       </div>
                                     ))}
@@ -1530,7 +1527,7 @@ export default function TeacherCurriculumView({
                                       value={newQuestionAnswer}
                                       onChange={(e) => setNewQuestionAnswer(e.target.value)}
                                       required
-                                      className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3 py-3 text-xs focus:bg-white focus:outline-none focus:ring-4 focus:ring-pink-500/10 focus:border-pink-500 transition-all font-semibold text-slate-700"
+                                      className={`${inputFocus} text-slate-700`}
                                     >
                                       <option value="">-- Choisir la bonne option --</option>
                                       {newQuestionOptions.filter(o => o.trim()).map((o, idx) => (
@@ -1546,14 +1543,14 @@ export default function TeacherCurriculumView({
                                       placeholder="Explication affichée après réponse..."
                                       value={newQuestionExplanation}
                                       onChange={(e) => setNewQuestionExplanation(e.target.value)}
-                                      className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:bg-white focus:outline-none focus:ring-4 focus:ring-pink-500/10 focus:border-pink-500 transition-all font-semibold"
+                                      className={inputFocus}
                                     />
                                   </label>
                                 </div>
 
                                 <button
                                   type="submit"
-                                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-3 rounded-xl text-xs transition-colors shadow-sm active:scale-[0.98]"
+                                  className={`w-full rounded-xl py-3 text-xs font-black shadow-sm transition-colors active:scale-[0.98] ${getStepTheme(5).button}`}
                                 >
                                   Ajouter cette question au Quiz
                                 </button>
@@ -1562,7 +1559,7 @@ export default function TeacherCurriculumView({
 
                             {/* Current Question List */}
                             <div className="space-y-4">
-                              <h3 className="text-xs font-black text-slate-700 uppercase tracking-wider">
+                              <h3 className={curriculumUi.sectionTitle}>
                                 Questions du Quiz ({ (teacherQuizzes.find(q => q.id === selectedQuizId)?.questions || []).length })
                               </h3>
 
@@ -1570,12 +1567,12 @@ export default function TeacherCurriculumView({
                                 {(teacherQuizzes.find(q => q.id === selectedQuizId)?.questions || []).map((q: any, idx: number) => (
                                   <div key={q.id} className="border border-slate-200 bg-white rounded-2xl p-4 space-y-3 relative shadow-sm">
                                     <div className="flex items-start justify-between gap-4">
-                                      <p className="text-xs font-black text-slate-850 flex-1">
+                                      <p className="flex-1 text-xs font-black text-slate-800">
                                         {idx + 1}. {q.question}
                                       </p>
                                       <button
                                         onClick={() => handleDeleteQuestion(q.id)}
-                                        className="p-1 text-slate-450 hover:text-red-750 hover:bg-red-50 rounded transition-colors shrink-0"
+                                        className="shrink-0 rounded p-1 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600"
                                         title="Supprimer la question"
                                       >
                                         <X className="w-4 h-4" />
@@ -1587,10 +1584,10 @@ export default function TeacherCurriculumView({
                                         const isCorrect = opt === q.answer;
                                         return (
                                           <div key={optIdx} className={`p-2 rounded-xl flex items-center gap-1.5 border ${
-                                            isCorrect ? "bg-emerald-50 border-emerald-100 text-emerald-800" : "bg-slate-50 border-slate-150 text-slate-500"
+                                            isCorrect ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-slate-200 bg-slate-50 text-slate-500"
                                           }`}>
                                             <span className={`w-4 h-4 rounded text-[9px] font-black flex items-center justify-center shrink-0 ${
-                                              isCorrect ? "bg-emerald-600 text-white" : "bg-slate-200 text-slate-550"
+                                              isCorrect ? "bg-emerald-600 text-white" : "bg-slate-200 text-slate-500"
                                             }`}>
                                               {String.fromCharCode(65 + optIdx)}
                                             </span>
@@ -1600,7 +1597,7 @@ export default function TeacherCurriculumView({
                                       })}
                                     </div>
 
-                                    <div className="bg-slate-50 rounded-xl p-3 border border-slate-150 text-[10px] text-slate-550 font-medium">
+                                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-[10px] font-medium text-slate-600">
                                       <span className="font-black text-slate-700 uppercase text-[9px] block mb-1">Explication :</span>
                                       {q.explanation}
                                     </div>
@@ -1608,7 +1605,7 @@ export default function TeacherCurriculumView({
                                 ))}
 
                                 {(teacherQuizzes.find(q => q.id === selectedQuizId)?.questions?.length === 0) && (
-                                  <div className="text-center p-6 bg-slate-50 border border-slate-150 rounded-2xl">
+                                  <div className={`${curriculumUi.empty} p-6`}>
                                     <p className="text-xs text-slate-400 font-semibold">Aucune question dans ce quiz. Ajoutez-en avec le formulaire.</p>
                                   </div>
                                 )}
@@ -1616,8 +1613,8 @@ export default function TeacherCurriculumView({
                             </div>
                           </>
                         ) : (
-                          <div className="text-center p-8 bg-white border border-slate-200 rounded-3xl shadow-sm h-full flex flex-col items-center justify-center gap-2 py-16">
-                            <HelpCircle className="w-10 h-10 text-slate-350" />
+                          <div className={`${curriculumUi.panel} flex h-full flex-col items-center justify-center gap-2 py-16 text-center`}>
+                            <HelpCircle className="h-10 w-10 text-emerald-300" />
                             <h4 className="text-sm font-black text-slate-700">Aucun quiz sélectionné</h4>
                             <p className="text-xs text-slate-400 font-medium max-w-xs leading-relaxed">
                               Sélectionnez un quiz existant dans la colonne de gauche ou créez-en un nouveau pour commencer à y insérer des questions.
