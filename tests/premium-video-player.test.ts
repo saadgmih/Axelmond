@@ -9,6 +9,9 @@ const hookSource = readFileSync("src/hooks/useCourseVideoPlayer.ts", "utf-8");
 assert.match(appSource, /StudentCourseView/);
 assert.match(studentCourseViewSource, /selectedLessonContent\.type === "VIDEO"/);
 assert.match(studentCourseViewSource, /PremiumVideoPlayer/);
+assert.match(studentCourseViewSource, /selectedModule\.attachmentUrl/);
+assert.match(studentCourseViewSource, /Vidéo à venir/);
+assert.doesNotMatch(studentCourseViewSource, /isVideoPlaying/);
 
 assert.match(playerSource, /export default function PremiumVideoPlayer/);
 assert.match(playerSource, /useCourseVideoPlayer/);

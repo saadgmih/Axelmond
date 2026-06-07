@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { api } from "../api";
 import type { AppUser } from "../components/AuthScreen";
 import type { Course, CourseModule, Invoice } from "../types";
@@ -44,29 +44,6 @@ export function useStudentCourseSession({
   const [quizScore, setQuizScore] = useState<number | null>(null);
   const [quizSubmitError, setQuizSubmitError] = useState("");
   const [showAITutor, setShowAITutor] = useState(false);
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-  const [videoProgress, setVideoProgress] = useState(30);
-  const [videoSpeed, setVideoSpeed] = useState("1.0x");
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  useEffect(() => {
-    if (isVideoPlaying) {
-      intervalRef.current = setInterval(() => {
-        setVideoProgress((prev) => {
-          if (prev >= 100) {
-            setIsVideoPlaying(false);
-            return 100;
-          }
-          return prev + 1;
-        });
-      }, 1000);
-    } else if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [isVideoPlaying]);
 
   useEffect(() => {
     if (selectedModule && selectedModule.type === "quiz") {
@@ -112,8 +89,6 @@ export function useStudentCourseSession({
     setInvoices(syncedUser.invoices || []);
     setSelectedCourse(course);
     setSelectedModule(course.modules?.[0] || null);
-    setIsVideoPlaying(false);
-    setVideoProgress(15);
     setQuizAnswers({});
     setQuizSubmitted(false);
     setQuizScore(null);
@@ -209,12 +184,6 @@ export function useStudentCourseSession({
     setQuizSubmitError,
     showAITutor,
     setShowAITutor,
-    isVideoPlaying,
-    setIsVideoPlaying,
-    videoProgress,
-    setVideoProgress,
-    videoSpeed,
-    setVideoSpeed,
     markModuleCompleted,
     handleQuizAnswerSelect,
     handleQuizSubmit,

@@ -34,9 +34,6 @@ interface StudentCourseViewProps {
   flattenSections: (sections: ContentSection[], depth?: number) => FlatSection[];
   selectedLessonContent: LessonContent | null;
   showAITutor: boolean;
-  isVideoPlaying: boolean;
-  videoProgress: number;
-  videoSpeed: string;
   quizQuestions: QuizQuestion[] | null;
   quizAnswers: Record<string, string>;
   quizSubmitted: boolean;
@@ -46,9 +43,6 @@ interface StudentCourseViewProps {
   onModuleSelect: (mod: CourseModule) => void;
   setSelectedLessonContent: (content: LessonContent | null) => void;
   setShowAITutor: Dispatch<SetStateAction<boolean>>;
-  setIsVideoPlaying: (playing: boolean) => void;
-  setVideoProgress: Dispatch<SetStateAction<number>>;
-  setVideoSpeed: Dispatch<SetStateAction<string>>;
   markModuleCompleted: (modId: number) => void | Promise<void>;
   handleQuizAnswerSelect: (index: number, optionValue: string) => void;
   handleQuizSubmit: () => void | Promise<void>;
@@ -62,9 +56,6 @@ export default function StudentCourseView({
   flattenSections,
   selectedLessonContent,
   showAITutor,
-  isVideoPlaying,
-  videoProgress,
-  videoSpeed,
   quizQuestions,
   quizAnswers,
   quizSubmitted,
@@ -74,9 +65,6 @@ export default function StudentCourseView({
   onModuleSelect,
   setSelectedLessonContent,
   setShowAITutor,
-  setIsVideoPlaying,
-  setVideoProgress,
-  setVideoSpeed,
   markModuleCompleted,
   handleQuizAnswerSelect,
   handleQuizSubmit,
@@ -326,59 +314,25 @@ export default function StudentCourseView({
                     {/* CASE A: VIDEO CONTENT */}
                     {!selectedLessonContent && selectedModule.type === "video" && (
                       <div className="space-y-5">
-                        
-                        {/* Simulation Video Box */}
-                        <div className="relative w-full aspect-video bg-slate-950 rounded-2xl overflow-hidden shadow-md border border-slate-800 flex flex-col items-center justify-center">
-                          <div className="absolute inset-0 bg-cover bg-center opacity-40 filter blur-[1px] select-none" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=1000')" }}></div>
-                          
-                          {/* Inner playback icons */}
-                          <div className="relative z-15 flex flex-col items-center space-y-3">
-                            {isVideoPlaying ? (
-                              <div className="w-20 h-20 bg-indigo-600 text-white rounded-full flex items-center justify-center animate-pulse cursor-pointer border-4 border-indigo-400" onClick={() => setIsVideoPlaying(false)}>
-                                <span className="text-sm font-bold tracking-tight">Pause</span>
-                              </div>
-                            ) : (
-                              <button
-                                onClick={() => {
-                                  if (videoProgress >= 100) setVideoProgress(0);
-                                  setIsVideoPlaying(true);
-                                }}
-                                className="w-20 h-20 bg-white/95 text-indigo-900 rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-slate-100 hover:scale-105 transition-all"
-                              >
-                                <PlayCircle className="w-10 h-10 ml-1 fill-indigo-600 text-indigo-600" />
-                              </button>
-                            )}
-                            <p className="text-white text-xs font-bold font-mono tracking-wide bg-slate-900/80 px-3 py-1.5 rounded-lg border border-slate-700/50">
-                              {selectedCourse.instructor} • {selectedModule.duration}
-                            </p>
-                          </div>
-
-                          {/* Control panel bar */}
-                          <div className="absolute bottom-0 left-0 right-0 bg-slate-950/90 border-t border-slate-800 p-4 flex items-center justify-between gap-4 z-20 text-xs text-white">
-                            <span className="font-mono">
-                              {Math.floor((videoProgress / 100) * 45)}:00 / 45:00
-                            </span>
-
-                            {/* Range slider */}
-                            <div className="flex-1">
-                              <input
-                                type="range"
-                                min="0"
-                                max="100"
-                                value={videoProgress}
-                                onChange={(e) => setVideoProgress(Number(e.target.value))}
-                                className="w-full accent-indigo-500"
-                              />
+                        {selectedModule.attachmentUrl ? (
+                          <PremiumVideoPlayer
+                            src={selectedModule.attachmentUrl}
+                            title={selectedModule.title}
+                            instructor={selectedCourse.instructor}
+                            activeSector="student"
+                          />
+                        ) : (
+                          <div className="relative w-full aspect-video bg-slate-950 rounded-2xl overflow-hidden shadow-md border border-slate-800 flex flex-col items-center justify-center gap-3 px-6 text-center">
+                            <Video className="w-12 h-12 text-indigo-400" />
+                            <div className="space-y-1">
+                              <h3 className="text-sm font-black text-white">Vidéo à venir</h3>
+                              <p className="text-xs text-slate-400">Contenu en préparation pour ce chapitre.</p>
+                              <p className="text-[11px] text-slate-500 font-mono">
+                                {selectedCourse.instructor} • {selectedModule.duration}
+                              </p>
                             </div>
-
-                            <button
-                              onClick={() => setVideoSpeed((prev) => prev === "1.0x" ? "1.5x" : prev === "1.5x" ? "2.0x" : "1.0x")}
-                              className="px-2 py-1 bg-slate-800 rounded font-bold font-mono text-[10px]"
-                            >
-                              Vitesse: {videoSpeed}
-                            </button>
                           </div>
-                        </div>
+                        )}
 
                         {/* Complete chapter option */}
                         <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">

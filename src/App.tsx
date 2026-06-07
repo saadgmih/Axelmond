@@ -210,8 +210,6 @@ export default function App() {
   });
 
   const {
-    setIsVideoPlaying,
-    setVideoProgress,
     setQuizAnswers,
     setQuizSubmitted,
     setQuizScore,
@@ -250,8 +248,6 @@ export default function App() {
     setActiveLiveCourse,
     setCourseToPurchase,
     setIsMobileMenuOpen,
-    setIsVideoPlaying,
-    setVideoProgress,
     setQuizAnswers,
     setQuizSubmitted,
     setQuizScore,

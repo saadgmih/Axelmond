@@ -17,8 +17,6 @@ export interface UsePlatformNavigationOptions {
   setActiveLiveCourse: Dispatch<SetStateAction<Course | null>>;
   setCourseToPurchase: Dispatch<SetStateAction<Course | null>>;
   setIsMobileMenuOpen: Dispatch<SetStateAction<boolean>>;
-  setIsVideoPlaying: Dispatch<SetStateAction<boolean>>;
-  setVideoProgress: Dispatch<SetStateAction<number>>;
   setQuizAnswers: Dispatch<SetStateAction<Record<string, string>>>;
   setQuizSubmitted: Dispatch<SetStateAction<boolean>>;
   setQuizScore: Dispatch<SetStateAction<number | null>>;
@@ -37,8 +35,6 @@ export function usePlatformNavigation({
   setActiveLiveCourse,
   setCourseToPurchase,
   setIsMobileMenuOpen,
-  setIsVideoPlaying,
-  setVideoProgress,
   setQuizAnswers,
   setQuizSubmitted,
   setQuizScore,
@@ -109,8 +105,6 @@ export function usePlatformNavigation({
       } else {
         setSelectedModule(null);
       }
-      setIsVideoPlaying(false);
-      setVideoProgress(15);
       setQuizAnswers({});
       setQuizSubmitted(false);
       setQuizScore(null);
@@ -142,8 +136,6 @@ export function usePlatformNavigation({
     setCourseToPurchase,
     setSelectedCourse,
     setSelectedModule,
-    setIsVideoPlaying,
-    setVideoProgress,
     setQuizAnswers,
     setQuizSubmitted,
     setQuizScore,
