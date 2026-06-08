@@ -68,6 +68,7 @@ import {
 import { clearAuthCookies, readRefreshTokenFromRequest, setAuthCookies } from "./src/auth-cookies";
 import { csrfProtection } from "./src/auth-csrf";
 import { emailRateLimitKey } from "./src/email-rate-limit";
+import { liveKitRateLimitKey } from "./src/livekit-rate-limit";
 
 dotenv.config();
 
@@ -336,6 +337,18 @@ const liveKitRateLimiter = rateLimit({
   message: { error: "Trop de demandes de connexions live. Veuillez patienter 15 minutes.", code: "LIVEKIT_RATE_LIMIT_EXCEEDED" },
 });
 
+// Rate limiter pour la modération LiveKit (actions RoomServiceClient)
+const liveKitModerationRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: isSecurityRuntimeTest
+    ? Number(process.env.LIVEKIT_MODERATION_RATE_LIMIT_MAX) || 9999
+    : Number(process.env.LIVEKIT_MODERATION_RATE_LIMIT_MAX) || 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: liveKitRateLimitKey,
+  message: { error: "Trop d'actions de modération live. Veuillez patienter 15 minutes.", code: "LIVEKIT_MODERATION_RATE_LIMIT_EXCEEDED" },
+});
+
 // Rate limiter pour l'envoi d'e-mails de diagnostic par l'admin
 const emailDiagnosticRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -374,6 +387,7 @@ app.use("/api/auth/reset-password", passwordResetConfirmRateLimiter);
 app.use("/api/uploadthing", uploadRateLimiter);
 app.use("/api/me/avatar", uploadRateLimiter);
 app.use("/api/livekit/token", liveKitRateLimiter);
+app.use("/api/livekit/moderation", liveKitModerationRateLimiter);
 app.use("/api/chat-tutor", chatTutorRateLimiter);
 app.use("/api/test-email", emailDiagnosticRateLimiter);
 

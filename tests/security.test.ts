@@ -35,6 +35,9 @@ assert.match(serverSource, /ttl:\s*"15m"/);
 assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/livekit/moderation"), false);
 assert.equal(canAccessApiRoute("PROFESSOR", "POST", "/api/livekit/moderation"), true);
 assert.match(serverSource, /app\.post\("\/api\/livekit\/moderation",\s*requireAuth,\s*requireRbac/);
+assert.match(serverSource, /const liveKitModerationRateLimiter = rateLimit\(\{[\s\S]*?max:[\s\S]*?keyGenerator:\s*liveKitRateLimitKey/);
+assert.match(serverSource, /app\.use\("\/api\/livekit\/moderation",\s*liveKitModerationRateLimiter\)/);
+assert.doesNotMatch(serverSource, /app\.use\("\/api\/livekit\/messages",\s*liveKitModerationRateLimiter\)/);
 assert.match(serverSource, /roomService\.removeParticipant/);
 assert.match(serverSource, /roomService\.mutePublishedTrack/);
 
