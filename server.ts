@@ -59,6 +59,18 @@ import { shouldSkipStartupSeed } from "./src/startup-seed";
 import { patchExpressAsyncRoutes } from "./src/express-async";
 import { isBlockedProductionSourcePath } from "./src/static-source-guard";
 import {
+  canAccessProfessorScheduleSession,
+  serializeScheduleSession,
+  sortScheduleSessions,
+  validateSchedulePayload,
+} from "./src/schedule";
+import {
+  canAccessStudentStudySession,
+  serializeStudentStudySession,
+  sortStudentStudySessions,
+  validateStudentStudyPayload,
+} from "./src/student-study-schedule";
+import {
   JSON_BODY_LIMIT,
   REFRESH_RATE_LIMIT_MAX,
   REFRESH_RATE_LIMIT_WINDOW_MS,
@@ -1556,6 +1568,28 @@ const resetPasswordSchema = z.object({
   email: z.string().email("Adresse email invalide").trim().toLowerCase(),
   code: z.string().length(6, "Le code doit contenir 6 chiffres").regex(/^\d+$/, "Le code doit être numérique"),
   newPassword: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères"),
+});
+
+const scheduleSessionSchema = z.object({
+  dayOfWeek: z.number().int().min(0).max(6),
+  title: z.string().min(1, "Le titre est obligatoire").max(120).trim(),
+  moduleName: z.string().min(1, "Le module est obligatoire").max(120).trim(),
+  startTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Heure de début invalide (HH:mm)"),
+  endTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Heure de fin invalide (HH:mm)"),
+  sessionType: z.enum(["COURS", "TD", "TP", "LIVE", "EXAMEN"]).default("COURS"),
+  roomOrLink: z.string().max(200).trim().optional().nullable(),
+  description: z.string().max(500).trim().optional().nullable(),
+});
+
+const studentStudyScheduleSchema = z.object({
+  dayOfWeek: z.number().int().min(0).max(6),
+  title: z.string().min(1, "Le titre est obligatoire").max(120).trim(),
+  moduleName: z.string().min(1, "Le module est obligatoire").max(120).trim(),
+  startTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Heure de début invalide (HH:mm)"),
+  endTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Heure de fin invalide (HH:mm)"),
+  sessionType: z.enum(["REVISION", "COURS", "TD", "TP", "LIVE", "DEVOIR", "EXAMEN"]).default("REVISION"),
+  roomOrLink: z.string().max(200).trim().optional().nullable(),
+  description: z.string().max(500).trim().optional().nullable(),
 });
 
 const chatTutorSchema = z.object({
@@ -3654,6 +3688,282 @@ app.put("/api/me/profile", requireAuth, requireRbac, async (req, res) => {
   const payload = await getAcademicProfileResponse(authUser);
   logSecurity("INFO", "Academic profile updated", { userId: authUser.id, role: authUser.role });
   res.json({ ...payload, message: "Profil académique mis à jour" });
+});
+
+async function listProfessorScheduleSessions(professorId: string) {
+  const sessions = await prisma.professorScheduleSession.findMany({
+    where: { professorId },
+    orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
+  });
+  return sortScheduleSessions(sessions).map(serializeScheduleSession);
+}
+
+async function getOwnedProfessorScheduleSession(sessionId: string, authUserId: string) {
+  const session = await prisma.professorScheduleSession.findUnique({ where: { id: sessionId } });
+  if (!session || !canAccessProfessorScheduleSession(session.professorId, authUserId)) return null;
+  return session;
+}
+
+// GET /api/me/schedule
+app.get("/api/me/schedule", requireAuth, requireRbac, async (req, res) => {
+  const authUser = (req as any).authUser as AppUser;
+  if (!canAccessAcademicProfile(authUser.role)) {
+    res.status(403).json({ error: "Emploi du temps réservé aux professeurs et chercheurs" });
+    return;
+  }
+  const sessions = await listProfessorScheduleSessions(authUser.id);
+  res.json(sessions);
+});
+
+// POST /api/me/schedule
+app.post("/api/me/schedule", requireAuth, requireRbac, validateBody(scheduleSessionSchema), async (req, res) => {
+  const authUser = (req as any).authUser as AppUser;
+  if (!canAccessAcademicProfile(authUser.role)) {
+    res.status(403).json({ error: "Emploi du temps réservé aux professeurs et chercheurs" });
+    return;
+  }
+
+  const payload = {
+    dayOfWeek: req.body.dayOfWeek,
+    title: req.body.title,
+    moduleName: req.body.moduleName,
+    startTime: req.body.startTime,
+    endTime: req.body.endTime,
+    sessionType: req.body.sessionType,
+    roomOrLink: req.body.roomOrLink || undefined,
+    description: req.body.description || undefined,
+  };
+
+  const existing = await prisma.professorScheduleSession.findMany({ where: { professorId: authUser.id } });
+  const validationError = validateSchedulePayload(payload, existing);
+  if (validationError) {
+    res.status(400).json({ error: validationError, code: "SCHEDULE_VALIDATION_FAILED" });
+    return;
+  }
+
+  const created = await prisma.professorScheduleSession.create({
+    data: {
+      professorId: authUser.id,
+      dayOfWeek: payload.dayOfWeek,
+      title: payload.title,
+      moduleName: payload.moduleName,
+      startTime: payload.startTime,
+      endTime: payload.endTime,
+      sessionType: payload.sessionType,
+      roomOrLink: payload.roomOrLink || null,
+      description: payload.description || null,
+    },
+  });
+
+  await logAudit(authUser.id, authUser.email, "CREATE_SCHEDULE_SESSION", "ProfessorScheduleSession", created.id, { dayOfWeek: created.dayOfWeek }, req.ip);
+  res.status(201).json(serializeScheduleSession(created));
+});
+
+// PUT /api/me/schedule/:id
+app.put("/api/me/schedule/:id", requireAuth, requireRbac, validateBody(scheduleSessionSchema), async (req, res) => {
+  const authUser = (req as any).authUser as AppUser;
+  if (!canAccessAcademicProfile(authUser.role)) {
+    res.status(403).json({ error: "Emploi du temps réservé aux professeurs et chercheurs" });
+    return;
+  }
+
+  const owned = await getOwnedProfessorScheduleSession(req.params.id, authUser.id);
+  if (!owned) {
+    res.status(403).json({ error: "Accès refusé pour modifier cette séance" });
+    return;
+  }
+
+  const payload = {
+    dayOfWeek: req.body.dayOfWeek,
+    title: req.body.title,
+    moduleName: req.body.moduleName,
+    startTime: req.body.startTime,
+    endTime: req.body.endTime,
+    sessionType: req.body.sessionType,
+    roomOrLink: req.body.roomOrLink || undefined,
+    description: req.body.description || undefined,
+  };
+
+  const existing = await prisma.professorScheduleSession.findMany({ where: { professorId: authUser.id } });
+  const validationError = validateSchedulePayload(payload, existing, { excludeId: owned.id });
+  if (validationError) {
+    res.status(400).json({ error: validationError, code: "SCHEDULE_VALIDATION_FAILED" });
+    return;
+  }
+
+  const updated = await prisma.professorScheduleSession.update({
+    where: { id: owned.id },
+    data: {
+      dayOfWeek: payload.dayOfWeek,
+      title: payload.title,
+      moduleName: payload.moduleName,
+      startTime: payload.startTime,
+      endTime: payload.endTime,
+      sessionType: payload.sessionType,
+      roomOrLink: payload.roomOrLink || null,
+      description: payload.description || null,
+    },
+  });
+
+  await logAudit(authUser.id, authUser.email, "UPDATE_SCHEDULE_SESSION", "ProfessorScheduleSession", updated.id, { dayOfWeek: updated.dayOfWeek }, req.ip);
+  res.json(serializeScheduleSession(updated));
+});
+
+// DELETE /api/me/schedule/:id
+app.delete("/api/me/schedule/:id", requireAuth, requireRbac, async (req, res) => {
+  const authUser = (req as any).authUser as AppUser;
+  if (!canAccessAcademicProfile(authUser.role)) {
+    res.status(403).json({ error: "Emploi du temps réservé aux professeurs et chercheurs" });
+    return;
+  }
+
+  const owned = await getOwnedProfessorScheduleSession(req.params.id, authUser.id);
+  if (!owned) {
+    res.status(403).json({ error: "Accès refusé pour supprimer cette séance" });
+    return;
+  }
+
+  await prisma.professorScheduleSession.delete({ where: { id: owned.id } });
+  await logAudit(authUser.id, authUser.email, "DELETE_SCHEDULE_SESSION", "ProfessorScheduleSession", owned.id, {}, req.ip);
+  res.json({ ok: true });
+});
+
+async function listStudentStudyScheduleSessions(studentId: string) {
+  const sessions = await prisma.studentStudyScheduleSession.findMany({
+    where: { studentId },
+    orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
+  });
+  return sortStudentStudySessions(sessions).map(serializeStudentStudySession);
+}
+
+async function getOwnedStudentStudyScheduleSession(sessionId: string, authUserId: string) {
+  const session = await prisma.studentStudyScheduleSession.findUnique({ where: { id: sessionId } });
+  if (!session || !canAccessStudentStudySession(session.studentId, authUserId)) return null;
+  return session;
+}
+
+// GET /api/me/study-schedule
+app.get("/api/me/study-schedule", requireAuth, requireRbac, async (req, res) => {
+  const authUser = (req as any).authUser as AppUser;
+  if (authUser.role !== "STUDENT") {
+    res.status(403).json({ error: "Emploi du temps d'étude réservé aux étudiants" });
+    return;
+  }
+  const sessions = await listStudentStudyScheduleSessions(authUser.id);
+  res.json(sessions);
+});
+
+// POST /api/me/study-schedule
+app.post("/api/me/study-schedule", requireAuth, requireRbac, validateBody(studentStudyScheduleSchema), async (req, res) => {
+  const authUser = (req as any).authUser as AppUser;
+  if (authUser.role !== "STUDENT") {
+    res.status(403).json({ error: "Emploi du temps d'étude réservé aux étudiants" });
+    return;
+  }
+
+  const payload = {
+    dayOfWeek: req.body.dayOfWeek,
+    title: req.body.title,
+    moduleName: req.body.moduleName,
+    startTime: req.body.startTime,
+    endTime: req.body.endTime,
+    sessionType: req.body.sessionType,
+    roomOrLink: req.body.roomOrLink || undefined,
+    description: req.body.description || undefined,
+  };
+
+  const existing = await prisma.studentStudyScheduleSession.findMany({ where: { studentId: authUser.id } });
+  const validationError = validateStudentStudyPayload(payload, existing);
+  if (validationError) {
+    res.status(400).json({ error: validationError, code: "STUDY_SCHEDULE_VALIDATION_FAILED" });
+    return;
+  }
+
+  const created = await prisma.studentStudyScheduleSession.create({
+    data: {
+      studentId: authUser.id,
+      dayOfWeek: payload.dayOfWeek,
+      title: payload.title,
+      moduleName: payload.moduleName,
+      startTime: payload.startTime,
+      endTime: payload.endTime,
+      sessionType: payload.sessionType,
+      roomOrLink: payload.roomOrLink || null,
+      description: payload.description || null,
+    },
+  });
+
+  await logAudit(authUser.id, authUser.email, "CREATE_STUDY_SCHEDULE_SESSION", "StudentStudyScheduleSession", created.id, { dayOfWeek: created.dayOfWeek }, req.ip);
+  res.status(201).json(serializeStudentStudySession(created));
+});
+
+// PUT /api/me/study-schedule/:id
+app.put("/api/me/study-schedule/:id", requireAuth, requireRbac, validateBody(studentStudyScheduleSchema), async (req, res) => {
+  const authUser = (req as any).authUser as AppUser;
+  if (authUser.role !== "STUDENT") {
+    res.status(403).json({ error: "Emploi du temps d'étude réservé aux étudiants" });
+    return;
+  }
+
+  const owned = await getOwnedStudentStudyScheduleSession(req.params.id, authUser.id);
+  if (!owned) {
+    res.status(403).json({ error: "Accès refusé pour modifier cette séance" });
+    return;
+  }
+
+  const payload = {
+    dayOfWeek: req.body.dayOfWeek,
+    title: req.body.title,
+    moduleName: req.body.moduleName,
+    startTime: req.body.startTime,
+    endTime: req.body.endTime,
+    sessionType: req.body.sessionType,
+    roomOrLink: req.body.roomOrLink || undefined,
+    description: req.body.description || undefined,
+  };
+
+  const existing = await prisma.studentStudyScheduleSession.findMany({ where: { studentId: authUser.id } });
+  const validationError = validateStudentStudyPayload(payload, existing, { excludeId: owned.id });
+  if (validationError) {
+    res.status(400).json({ error: validationError, code: "STUDY_SCHEDULE_VALIDATION_FAILED" });
+    return;
+  }
+
+  const updated = await prisma.studentStudyScheduleSession.update({
+    where: { id: owned.id },
+    data: {
+      dayOfWeek: payload.dayOfWeek,
+      title: payload.title,
+      moduleName: payload.moduleName,
+      startTime: payload.startTime,
+      endTime: payload.endTime,
+      sessionType: payload.sessionType,
+      roomOrLink: payload.roomOrLink || null,
+      description: payload.description || null,
+    },
+  });
+
+  await logAudit(authUser.id, authUser.email, "UPDATE_STUDY_SCHEDULE_SESSION", "StudentStudyScheduleSession", updated.id, { dayOfWeek: updated.dayOfWeek }, req.ip);
+  res.json(serializeStudentStudySession(updated));
+});
+
+// DELETE /api/me/study-schedule/:id
+app.delete("/api/me/study-schedule/:id", requireAuth, requireRbac, async (req, res) => {
+  const authUser = (req as any).authUser as AppUser;
+  if (authUser.role !== "STUDENT") {
+    res.status(403).json({ error: "Emploi du temps d'étude réservé aux étudiants" });
+    return;
+  }
+
+  const owned = await getOwnedStudentStudyScheduleSession(req.params.id, authUser.id);
+  if (!owned) {
+    res.status(403).json({ error: "Accès refusé pour supprimer cette séance" });
+    return;
+  }
+
+  await prisma.studentStudyScheduleSession.delete({ where: { id: owned.id } });
+  await logAudit(authUser.id, authUser.email, "DELETE_STUDY_SCHEDULE_SESSION", "StudentStudyScheduleSession", owned.id, {}, req.ip);
+  res.json({ ok: true });
 });
 
 async function persistUserAvatarUrl(authUser: AppUser, avatarUrl: string) {

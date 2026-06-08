@@ -8,6 +8,7 @@ import {
   ShieldAlert,
   Sliders,
   Video,
+  CalendarDays,
   Database,
   Users,
   Briefcase,
@@ -155,6 +156,22 @@ export default function Sidebar({
               <User className="w-5 h-5" />
               Mon Profil Étudiant
             </button>
+
+            <button
+              id="nav-study-schedule"
+              type="button"
+              data-tv-focusable
+              tabIndex={0}
+              onClick={() => navigateTo("study-schedule")}
+              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
+                currentView === "study-schedule"
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-950/40"
+                  : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
+              }`}
+            >
+              <CalendarDays className="w-5 h-5 text-amber-300" />
+              Mon Emploi du Temps d&apos;Étude
+            </button>
           </>
         ) : (
           <>
@@ -204,6 +221,22 @@ export default function Sidebar({
             >
               <Sliders className="w-5 h-5 text-purple-400" />
               Gestion des Contenus
+            </button>
+
+            <button
+              type="button"
+              data-tv-focusable
+              tabIndex={0}
+              aria-current={teacherView === "schedule" ? "page" : undefined}
+              onClick={() => setTeacherView("schedule")}
+              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
+                teacherView === "schedule"
+                  ? "bg-pink-600 text-white shadow-md shadow-pink-950/40"
+                  : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
+              }`}
+            >
+              <CalendarDays className="w-5 h-5 text-amber-400" />
+              Emploi du Temps
             </button>
 
             <button

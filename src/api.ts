@@ -302,6 +302,50 @@ export const api = {
     request<any>("POST", "/api/contact", data),
   createSupportTicket: (data: { subject: string; category: string; description: string; screenshotUrl?: string | null }) =>
     request<any>("POST", "/api/support/tickets", data),
+  getSchedule: () => request<any[]>("GET", "/api/me/schedule"),
+  createScheduleSession: (data: {
+    dayOfWeek: number;
+    title: string;
+    moduleName: string;
+    startTime: string;
+    endTime: string;
+    sessionType: string;
+    roomOrLink?: string;
+    description?: string;
+  }) => request<any>("POST", "/api/me/schedule", data),
+  updateScheduleSession: (id: string, data: {
+    dayOfWeek: number;
+    title: string;
+    moduleName: string;
+    startTime: string;
+    endTime: string;
+    sessionType: string;
+    roomOrLink?: string;
+    description?: string;
+  }) => request<any>("PUT", `/api/me/schedule/${id}`, data),
+  deleteScheduleSession: (id: string) => request<any>("DELETE", `/api/me/schedule/${id}`),
+  getStudySchedule: () => request<any[]>("GET", "/api/me/study-schedule"),
+  createStudyScheduleSession: (data: {
+    dayOfWeek: number;
+    title: string;
+    moduleName: string;
+    startTime: string;
+    endTime: string;
+    sessionType: string;
+    roomOrLink?: string;
+    description?: string;
+  }) => request<any>("POST", "/api/me/study-schedule", data),
+  updateStudyScheduleSession: (id: string, data: {
+    dayOfWeek: number;
+    title: string;
+    moduleName: string;
+    startTime: string;
+    endTime: string;
+    sessionType: string;
+    roomOrLink?: string;
+    description?: string;
+  }) => request<any>("PUT", `/api/me/study-schedule/${id}`, data),
+  deleteStudyScheduleSession: (id: string) => request<any>("DELETE", `/api/me/study-schedule/${id}`),
 };
 
 export function setSessionToken(token: string | undefined, csrfToken?: string) {

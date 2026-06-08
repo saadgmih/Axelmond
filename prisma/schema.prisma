@@ -66,6 +66,8 @@ model User {
   auditLogs              AuditLog[]
   liveAttendances        LiveAttendance[]
   liveActionLogs         LiveActionLog[]         @relation("LiveActionActor")
+  scheduleSessions       ProfessorScheduleSession[]
+  studyScheduleSessions  StudentStudyScheduleSession[]
 
   @@index([role])
   @@schema("AxelmondResearchLab")
@@ -464,6 +466,64 @@ model RefreshToken {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@schema("AxelmondResearchLab")
+}
+
+enum ScheduleSessionType {
+  COURS
+  TD
+  TP
+  LIVE
+  EXAMEN
+  @@schema("AxelmondResearchLab")
+}
+
+model ProfessorScheduleSession {
+  id          String               @id @default(cuid())
+  professorId String
+  dayOfWeek   Int
+  title       String
+  moduleName  String
+  startTime   String
+  endTime     String
+  sessionType ScheduleSessionType  @default(COURS)
+  roomOrLink  String?
+  description String?
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  professor   User                 @relation(fields: [professorId], references: [id], onDelete: Cascade)
+
+  @@index([professorId, dayOfWeek])
+  @@schema("AxelmondResearchLab")
+}
+
+enum StudentStudySessionType {
+  REVISION
+  COURS
+  TD
+  TP
+  LIVE
+  DEVOIR
+  EXAMEN
+  @@schema("AxelmondResearchLab")
+}
+
+model StudentStudyScheduleSession {
+  id          String                  @id @default(cuid())
+  studentId   String
+  dayOfWeek   Int
+  title       String
+  moduleName  String
+  startTime   String
+  endTime     String
+  sessionType StudentStudySessionType @default(REVISION)
+  roomOrLink  String?
+  description String?
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+  student     User                    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, dayOfWeek])
   @@schema("AxelmondResearchLab")
 }
 

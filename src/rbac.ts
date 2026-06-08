@@ -140,6 +140,26 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
     return teacherSpaceRoles.includes(normalized);
   }
 
+  if (verb === "GET" && cleanPath === "/api/me/schedule") {
+    return teacherSpaceRoles.includes(normalized);
+  }
+  if (verb === "POST" && cleanPath === "/api/me/schedule") {
+    return teacherSpaceRoles.includes(normalized);
+  }
+  if ((verb === "PUT" || verb === "DELETE") && /^\/api\/me\/schedule\/[^/]+$/.test(cleanPath)) {
+    return teacherSpaceRoles.includes(normalized);
+  }
+
+  if (verb === "GET" && cleanPath === "/api/me/study-schedule") {
+    return normalized === "STUDENT";
+  }
+  if (verb === "POST" && cleanPath === "/api/me/study-schedule") {
+    return normalized === "STUDENT";
+  }
+  if ((verb === "PUT" || verb === "DELETE") && /^\/api\/me\/study-schedule\/[^/]+$/.test(cleanPath)) {
+    return normalized === "STUDENT";
+  }
+
   if (verb === "GET" && cleanPath === "/api/admin/academic-profiles") {
     return normalized === "ADMIN";
   }

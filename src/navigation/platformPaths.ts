@@ -10,9 +10,9 @@ export const INSTITUTIONAL_VIEWS = new Set([
   "legal",
 ]);
 
-export const STUDENT_VIEWS = new Set(["dashboard", "catalog", "course", "profile", "live"]);
+export const STUDENT_VIEWS = new Set(["dashboard", "catalog", "course", "profile", "live", "study-schedule"]);
 
-export const TEACHER_VIEWS = new Set(["dashboard", "curriculum", "live-control", "academic-profile"]);
+export const TEACHER_VIEWS = new Set(["dashboard", "curriculum", "live-control", "academic-profile", "schedule"]);
 
 export function buildPlatformPath(role: "student" | "teacher", view: string, teacherView?: string) {
   if (role === "teacher") {

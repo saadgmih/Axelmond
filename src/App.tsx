@@ -32,10 +32,12 @@ import TeacherDashboardView from "./views/teacher/TeacherDashboardView";
 import TeacherAcademicProfileView from "./views/teacher/TeacherAcademicProfileView";
 import TeacherCurriculumView from "./views/teacher/TeacherCurriculumView";
 import TeacherLiveControlView from "./views/teacher/TeacherLiveControlView";
+import TeacherScheduleView from "./views/teacher/TeacherScheduleView";
 import StudentDashboardView from "./views/student/StudentDashboardView";
 import StudentCatalogView from "./views/student/StudentCatalogView";
 import StudentCourseView from "./views/student/StudentCourseView";
 import StudentProfileView from "./views/student/StudentProfileView";
+import StudentStudyScheduleView from "./views/student/StudentStudyScheduleView";
 import StudentLiveView from "./views/student/StudentLiveView";
 import { useLiveKitRoom } from "./hooks/useLiveKitRoom";
 import { useCourseContent } from "./hooks/useCourseContent";
@@ -539,6 +541,10 @@ export default function App() {
                 <TeacherCurriculumView domains={domains} {...curriculumBindings} />
               )}
 
+              {teacherView === "schedule" && (
+                <TeacherScheduleView role={role} teacherView={teacherView} />
+              )}
+
               {/* 3. VIEW: SEMINAR LIVE CONTROL */}
               {teacherView === "live-control" && (
                 <TeacherLiveControlView
@@ -605,6 +611,9 @@ export default function App() {
               handleUploadAvatarFile={handleUploadAvatarFile}
               handleDeleteAvatar={handleDeleteAvatar}
             />
+          )}
+          {currentView === "study-schedule" && (
+            <StudentStudyScheduleView role={role} currentView={currentView} />
           )}
           {currentView === "live" && activeLiveCourse && (
               <StudentLiveView
