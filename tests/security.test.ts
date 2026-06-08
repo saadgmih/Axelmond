@@ -57,11 +57,18 @@ assert.match(serverSource, /if\s*\(!isProduction\)/);
 assert.match(serverSource, /scriptSrc:\s*isProduction/);
 
 // 7. Vérification d'e-mail avec rate limiters et protection
-assert.match(serverSource, /keyGenerator:\s*emailRateLimitKey/);
-assert.match(serverSource, /app\.use\("\/api\/auth\/verify-email",\s*emailVerificationRateLimiter\)/);
-assert.match(serverSource, /app\.use\("\/api\/auth\/resend-verification-code",\s*emailVerificationRateLimiter\)/);
-assert.match(serverSource, /app\.use\("\/api\/auth\/forgot-password",\s*emailVerificationRateLimiter\)/);
-assert.match(serverSource, /app\.use\("\/api\/auth\/reset-password",\s*emailVerificationRateLimiter\)/);
+assert.doesNotMatch(serverSource, /emailVerificationRateLimiter/);
+assert.match(serverSource, /const emailVerificationSendRateLimiter = rateLimit\(\{[\s\S]*?max: 5,[\s\S]*?keyGenerator: emailRateLimitKey/);
+assert.match(serverSource, /const emailVerificationCheckRateLimiter = rateLimit\(\{[\s\S]*?max: 10,[\s\S]*?keyGenerator: emailRateLimitKey/);
+assert.match(serverSource, /const passwordResetRequestRateLimiter = rateLimit\(\{[\s\S]*?max: 5,[\s\S]*?keyGenerator: emailRateLimitKey/);
+assert.match(serverSource, /const passwordResetConfirmRateLimiter = rateLimit\(\{[\s\S]*?max: 10,[\s\S]*?keyGenerator: emailRateLimitKey/);
+assert.equal((serverSource.match(/keyGenerator:\s*emailRateLimitKey/g) ?? []).length, 4);
+assert.match(serverSource, /app\.use\("\/api\/auth\/resend-verification-code",\s*emailVerificationSendRateLimiter\)/);
+assert.match(serverSource, /app\.use\("\/api\/auth\/verify-email",\s*emailVerificationCheckRateLimiter\)/);
+assert.match(serverSource, /app\.use\("\/api\/auth\/forgot-password",\s*passwordResetRequestRateLimiter\)/);
+assert.match(serverSource, /app\.use\("\/api\/auth\/reset-password",\s*passwordResetConfirmRateLimiter\)/);
+assert.doesNotMatch(serverSource, /app\.use\("\/api\/auth\/login",\s*emailVerification/);
+assert.doesNotMatch(serverSource, /app\.use\("\/api\/auth\/login",\s*passwordReset/);
 
 // 8. Durcissement anti-intrusion
 assert.equal(canAccessApiRoute("STUDENT", "DELETE", "/api/admin/secret-backdoor"), false);

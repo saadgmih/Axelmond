@@ -281,10 +281,37 @@ const authRateLimiter = rateLimit({
   message: { error: "Trop de tentatives d'authentification (20 maximum). Veuillez patienter 1 minute.", code: "AUTH_RATE_LIMIT_EXCEEDED" },
 });
 
-// Rate limiter pour l'envoi / vérification d'emails
-const emailVerificationRateLimiter = rateLimit({
+// Rate limiters pour l'envoi / vérification d'e-mails et réinitialisation de mot de passe
+const emailVerificationSendRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: emailRateLimitKey,
+  message: { error: "Trop de demandes de vérification. Veuillez patienter 15 minutes.", code: "EMAIL_RATE_LIMIT_EXCEEDED" },
+});
+
+const emailVerificationCheckRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: emailRateLimitKey,
+  message: { error: "Trop de demandes de vérification. Veuillez patienter 15 minutes.", code: "EMAIL_RATE_LIMIT_EXCEEDED" },
+});
+
+const passwordResetRequestRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: emailRateLimitKey,
+  message: { error: "Trop de demandes de vérification. Veuillez patienter 15 minutes.", code: "EMAIL_RATE_LIMIT_EXCEEDED" },
+});
+
+const passwordResetConfirmRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: emailRateLimitKey,
@@ -340,10 +367,10 @@ app.use("/api", globalRateLimiter);
 app.use("/api/auth/login", authRateLimiter);
 app.use("/api/auth/register", authRateLimiter);
 app.use("/api/auth/refresh", refreshRateLimiter);
-app.use("/api/auth/resend-verification-code", emailVerificationRateLimiter);
-app.use("/api/auth/verify-email", emailVerificationRateLimiter);
-app.use("/api/auth/forgot-password", emailVerificationRateLimiter);
-app.use("/api/auth/reset-password", emailVerificationRateLimiter);
+app.use("/api/auth/resend-verification-code", emailVerificationSendRateLimiter);
+app.use("/api/auth/verify-email", emailVerificationCheckRateLimiter);
+app.use("/api/auth/forgot-password", passwordResetRequestRateLimiter);
+app.use("/api/auth/reset-password", passwordResetConfirmRateLimiter);
 app.use("/api/uploadthing", uploadRateLimiter);
 app.use("/api/me/avatar", uploadRateLimiter);
 app.use("/api/livekit/token", liveKitRateLimiter);
