@@ -130,22 +130,6 @@ export default function Sidebar({
             </button>
 
             <button
-              id="nav-catalog"
-              type="button"
-              data-tv-focusable
-              tabIndex={0}
-              onClick={() => navigateTo("catalog")}
-              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
-                currentView === "catalog"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-950/40"
-                  : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
-              }`}
-            >
-              <BookOpen className="w-5 h-5" />
-              Catalogue des Modules
-            </button>
-
-            <button
               id="nav-profile"
               type="button"
               data-tv-focusable
@@ -159,6 +143,22 @@ export default function Sidebar({
             >
               <User className="w-5 h-5" />
               Mon Profil Étudiant
+            </button>
+
+            <button
+              id="nav-catalog"
+              type="button"
+              data-tv-focusable
+              tabIndex={0}
+              onClick={() => navigateTo("catalog")}
+              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
+                currentView === "catalog"
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-950/40"
+                  : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
+              }`}
+            >
+              <BookOpen className="w-5 h-5" />
+              Catalogue des Modules
             </button>
 
             <button
