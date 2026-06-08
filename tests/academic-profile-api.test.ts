@@ -11,6 +11,9 @@ assert.match(serverSource, /ensureAcademicProfileForUser\(tx,\s*\{\s*id:\s*creat
 assert.match(serverSource, /app\.get\("\/api\/me\/profile",\s*requireAuth,\s*requireRbac/);
 assert.match(serverSource, /app\.put\("\/api\/me\/profile",\s*requireAuth,\s*requireRbac/);
 assert.match(serverSource, /app\.post\("\/api\/me\/avatar",\s*requireAuth,\s*requireRbac/);
+assert.match(serverSource, /AVATAR_URL_INVALID/);
+assert.match(serverSource, /persistUserAvatarUrl/);
+assert.match(serverSource, /isAvatarUrlFieldInvalid/);
 assert.match(serverSource, /app\.get\("\/api\/admin\/academic-profiles",\s*requireAuth,\s*requireAdmin/);
 assert.match(serverSource, /"role"\s+in\s+req\.body\s+\|\|\s+"userId"\s+in\s+req\.body/);
 assert.match(appSource, /teacherView === "academic-profile"/);

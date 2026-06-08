@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import {
+  isAvatarUrlFieldInvalid,
   sanitizeAcademicLinks,
   sanitizeAcademicProfileInput,
+  sanitizeAvatarUrl,
   sanitizeDomainList,
 } from "../src/academic-profile.ts";
 
@@ -42,7 +44,16 @@ assert.equal(profile.title, "Professeur");
 assert.equal(profile.department, "Informatique");
 assert.deepEqual(profile.teachingDomains, ["Programmation", "Machine Learning"]);
 assert.deepEqual(profile.researchDomains, ["IA générative", "Sécurité"]);
+assert.equal(profile.avatarUrl, null);
 assert.equal("role" in profile, false);
 assert.equal("userId" in profile, false);
+
+assert.equal(sanitizeAvatarUrl("https://utfs.io/f/avatar.jpg"), "https://utfs.io/f/avatar.jpg");
+assert.equal(sanitizeAvatarUrl("https://evil.com/avatar.jpg"), null);
+assert.equal(isAvatarUrlFieldInvalid("https://evil.com/avatar.jpg"), true);
+assert.equal(isAvatarUrlFieldInvalid(""), false);
+
+const profileWithoutAvatar = sanitizeAcademicProfileInput({ title: "Professeur" });
+assert.equal(profileWithoutAvatar.avatarUrl, undefined);
 
 console.log("Academic profile rules passed");

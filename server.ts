@@ -49,7 +49,7 @@ import { prisma, getActivePgSchema, verifyDatabaseConnection } from "./src/db";
 import { uploadRouter, deleteCloudFiles } from "./src/uploadthing";
 import { ACADEMIC_DOMAINS, DEFAULT_DISCIPLINE_ID, getDisciplineIdForCourse } from "./src/academic-taxonomy";
 import { buildCourseGradeRows } from "./src/grades";
-import { sanitizeAcademicProfileInput, sanitizeAvatarUrl } from "./src/academic-profile";
+import { sanitizeAcademicProfileInput, sanitizeAvatarUrl, isAvatarUrlFieldInvalid } from "./src/academic-profile";
 import { assertCourseLearningAccess } from "./src/course-access";
 import { cacheGet, cacheSet, cacheDel, startCachePruner } from "./src/cache";
 import { startPerformanceMonitor, requestTimingMiddleware } from "./src/performance";
@@ -3568,52 +3568,52 @@ app.put("/api/me/profile", requireAuth, requireRbac, async (req, res) => {
     return;
   }
 
+  const rawBody = req.body && typeof req.body === "object" ? req.body as Record<string, unknown> : {};
   const input = sanitizeAcademicProfileInput(req.body);
   if ("role" in req.body || "userId" in req.body) {
     logSecurity("WARN", "Academic profile immutable fields ignored", { userId: authUser.id, fields: Object.keys(req.body).filter((field) => field === "role" || field === "userId") });
   }
 
+  if ("avatarUrl" in rawBody && isAvatarUrlFieldInvalid(rawBody.avatarUrl)) {
+    res.status(400).json({ error: "URL de photo de profil non autorisée", code: "AVATAR_URL_INVALID" });
+    return;
+  }
+
+  const profileData = {
+    title: input.title,
+    department: input.department,
+    lab: input.lab,
+    speciality: input.speciality,
+    teachingDomains: input.teachingDomains as unknown as Prisma.InputJsonValue,
+    researchDomains: input.researchDomains as unknown as Prisma.InputJsonValue,
+    bio: input.bio,
+    links: input.links as Prisma.InputJsonObject,
+    ...("avatarUrl" in rawBody ? { avatarUrl: input.avatarUrl ?? null } : {}),
+  };
+
   await prisma.academicProfile.upsert({
     where: { userId: authUser.id },
-    update: {
-      title: input.title,
-      department: input.department,
-      lab: input.lab,
-      speciality: input.speciality,
-      teachingDomains: input.teachingDomains as unknown as Prisma.InputJsonValue,
-      researchDomains: input.researchDomains as unknown as Prisma.InputJsonValue,
-      bio: input.bio,
-      avatarUrl: input.avatarUrl,
-      links: input.links as Prisma.InputJsonObject,
-    },
+    update: profileData,
     create: {
       userId: authUser.id,
       title: input.title || authUser.levelOrTitle,
-      department: input.department,
-      lab: input.lab,
-      speciality: input.speciality,
-      teachingDomains: input.teachingDomains as unknown as Prisma.InputJsonValue,
-      researchDomains: input.researchDomains as unknown as Prisma.InputJsonValue,
-      bio: input.bio,
-      avatarUrl: input.avatarUrl,
-      links: input.links as Prisma.InputJsonObject,
+      ...profileData,
     },
   });
+
+  if ("avatarUrl" in rawBody) {
+    await prisma.user.update({
+      where: { id: authUser.id },
+      data: { avatarUrl: input.avatarUrl ?? null },
+    });
+  }
 
   const payload = await getAcademicProfileResponse(authUser);
   logSecurity("INFO", "Academic profile updated", { userId: authUser.id, role: authUser.role });
   res.json({ ...payload, message: "Profil académique mis à jour" });
 });
 
-// POST /api/me/avatar
-app.post("/api/me/avatar", requireAuth, requireRbac, async (req, res) => {
-  const authUser = (req as any).authUser as AppUser;
-  const avatarUrl = sanitizeAvatarUrl(req.body?.avatarUrl);
-  if (!avatarUrl) {
-    res.status(400).json({ error: "avatarUrl requis" });
-    return;
-  }
-
+async function persistUserAvatarUrl(authUser: AppUser, avatarUrl: string) {
   await prisma.user.update({
     where: { id: authUser.id },
     data: { avatarUrl },
@@ -3632,6 +3632,25 @@ app.post("/api/me/avatar", requireAuth, requireRbac, async (req, res) => {
         links: {},
       },
     });
+  }
+}
+
+// POST /api/me/avatar
+app.post("/api/me/avatar", requireAuth, requireRbac, async (req, res) => {
+  const authUser = (req as any).authUser as AppUser;
+  const avatarUrl = sanitizeAvatarUrl(req.body?.avatarUrl);
+  if (!avatarUrl) {
+    if (isAvatarUrlFieldInvalid(req.body?.avatarUrl)) {
+      res.status(400).json({ error: "URL de photo de profil non autorisée", code: "AVATAR_URL_INVALID" });
+      return;
+    }
+    res.status(400).json({ error: "avatarUrl requis" });
+    return;
+  }
+
+  await persistUserAvatarUrl(authUser, avatarUrl);
+
+  if (canAccessAcademicProfile(authUser.role)) {
     const payload = await getAcademicProfileResponse(authUser);
     logSecurity("INFO", "Academic avatar updated", { userId: authUser.id, role: authUser.role });
     if (!payload) {

@@ -1,4 +1,7 @@
 import { isTeacherSpaceRole } from "./rbac";
+import { sanitizeAvatarUrl as sanitizeAvatarUrlStrict } from "./avatar-security";
+
+export { sanitizeAvatarUrlStrict as sanitizeAvatarUrl };
 
 export interface AcademicLinks {
   linkedIn?: string;
@@ -52,6 +55,13 @@ export function sanitizeAcademicLinks(value: unknown): AcademicLinks {
   return links;
 }
 
+export function isAvatarUrlFieldInvalid(value: unknown): boolean {
+  if (typeof value !== "string") return false;
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  return sanitizeAvatarUrlStrict(value) === null;
+}
+
 export function sanitizeAcademicProfileInput(value: unknown): AcademicProfileInput {
   const source = value && typeof value === "object" ? value as Record<string, unknown> : {};
   return {
@@ -62,11 +72,7 @@ export function sanitizeAcademicProfileInput(value: unknown): AcademicProfileInp
     teachingDomains: sanitizeDomainList(source.teachingDomains),
     researchDomains: sanitizeDomainList(source.researchDomains),
     bio: cleanText(source.bio, 1200),
-    avatarUrl: cleanText(source.avatarUrl, 500),
+    avatarUrl: source.avatarUrl !== undefined ? sanitizeAvatarUrlStrict(source.avatarUrl) : undefined,
     links: sanitizeAcademicLinks(source.links),
   };
-}
-
-export function sanitizeAvatarUrl(value: unknown) {
-  return cleanText(value, 500);
 }
