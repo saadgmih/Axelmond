@@ -67,6 +67,7 @@ import {
 } from "./src/security-hardening";
 import { clearAuthCookies, readRefreshTokenFromRequest, setAuthCookies } from "./src/auth-cookies";
 import { csrfProtection } from "./src/auth-csrf";
+import { emailRateLimitKey } from "./src/email-rate-limit";
 
 dotenv.config();
 
@@ -286,6 +287,7 @@ const emailVerificationRateLimiter = rateLimit({
   max: 5,
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: emailRateLimitKey,
   message: { error: "Trop de demandes de vérification. Veuillez patienter 15 minutes.", code: "EMAIL_RATE_LIMIT_EXCEEDED" },
 });
 

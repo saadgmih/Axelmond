@@ -57,8 +57,11 @@ assert.match(serverSource, /if\s*\(!isProduction\)/);
 assert.match(serverSource, /scriptSrc:\s*isProduction/);
 
 // 7. Vérification d'e-mail avec rate limiters et protection
+assert.match(serverSource, /keyGenerator:\s*emailRateLimitKey/);
 assert.match(serverSource, /app\.use\("\/api\/auth\/verify-email",\s*emailVerificationRateLimiter\)/);
 assert.match(serverSource, /app\.use\("\/api\/auth\/resend-verification-code",\s*emailVerificationRateLimiter\)/);
+assert.match(serverSource, /app\.use\("\/api\/auth\/forgot-password",\s*emailVerificationRateLimiter\)/);
+assert.match(serverSource, /app\.use\("\/api\/auth\/reset-password",\s*emailVerificationRateLimiter\)/);
 
 // 8. Durcissement anti-intrusion
 assert.equal(canAccessApiRoute("STUDENT", "DELETE", "/api/admin/secret-backdoor"), false);
