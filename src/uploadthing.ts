@@ -4,6 +4,7 @@ import { z } from "zod";
 import { prisma } from "./db";
 import { verifyAuthToken } from "./auth-token";
 import { canManageContent, isTeacherSpaceRole, normalizeRole } from "./rbac";
+import { isAllowedAvatarMime, isAllowedAvatarUrl } from "./avatar-security";
 import { alertSuspectUpload } from "./security-logger";
 
 const f = createUploadthing();
@@ -94,7 +95,7 @@ async function getAuthenticatedUploadUser(req: any) {
 export const uploadRouter = {
   avatarImage: f(
     {
-      image: { maxFileSize: "8MB", maxFileCount: 1 },
+      image: { maxFileSize: "2MB", maxFileCount: 1 },
     },
     { awaitServerData: true },
   )
@@ -104,7 +105,7 @@ export const uploadRouter = {
     })
     .onUploadComplete(async ({ metadata, file }) => {
       const fileUrl = getFileUrl(file);
-      if (isDangerousFile(file.name) || !file.type?.startsWith("image/")) {
+      if (isDangerousFile(file.name) || !isAllowedAvatarMime(file.type || null)) {
         alertSuspectUpload(metadata.userId, file.name, file.type || "unknown");
         await utapi.deleteFiles(file.key);
         throw new UploadThingError("Image de profil suspecte ou invalide refusée.");
@@ -112,6 +113,11 @@ export const uploadRouter = {
       if (!fileUrl) {
         await utapi.deleteFiles(file.key);
         throw new UploadThingError("URL UploadThing introuvable pour la photo de profil.");
+      }
+      if (!isAllowedAvatarUrl(fileUrl)) {
+        alertSuspectUpload(metadata.userId, file.name, file.type || "unknown");
+        await utapi.deleteFiles(file.key);
+        throw new UploadThingError("URL de photo de profil non autorisée.");
       }
 
       await prisma.user.update({
