@@ -190,19 +190,6 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(
-  "/api/uploadthing",
-  createRouteHandler({
-    router: uploadRouter,
-    config: {
-      token: process.env.UPLOADTHING_TOKEN,
-      callbackUrl: uploadThingCallbackUrl,
-      isDev: isUploadThingDevMode,
-      logLevel: process.env.LOG_LEVEL === "debug" ? "Debug" : "Info",
-    },
-  }),
-);
-
 app.use(cookieParser());
 
 app.post(
@@ -360,6 +347,19 @@ app.use("/api/me/avatar", uploadRateLimiter);
 app.use("/api/livekit/token", liveKitRateLimiter);
 app.use("/api/chat-tutor", chatTutorRateLimiter);
 app.use("/api/test-email", emailDiagnosticRateLimiter);
+
+app.use(
+  "/api/uploadthing",
+  createRouteHandler({
+    router: uploadRouter,
+    config: {
+      token: process.env.UPLOADTHING_TOKEN,
+      callbackUrl: uploadThingCallbackUrl,
+      isDev: isUploadThingDevMode,
+      logLevel: process.env.LOG_LEVEL === "debug" ? "Debug" : "Info",
+    },
+  }),
+);
 
 // ─── Monitoring de performance ────────────────────────────────────────────────
 app.use("/api", requestTimingMiddleware);

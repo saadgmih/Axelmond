@@ -17,6 +17,16 @@ assert.match(clientSource, /getUploadErrorMessage/);
 assert.match(serverSource, /isDev:\s*isUploadThingDevMode/);
 assert.match(serverSource, /logLevel:\s*process\.env\.LOG_LEVEL === "debug" \? "Debug" : "Info"/);
 
+const uploadRateLimitIndex = serverSource.indexOf('app.use("/api/uploadthing", uploadRateLimiter)');
+const uploadHandlerIndex = serverSource.indexOf('createRouteHandler({');
+const globalRateLimitIndex = serverSource.indexOf('app.use("/api", globalRateLimiter)');
+assert.ok(uploadRateLimitIndex > 0, "uploadRateLimiter must be registered");
+assert.ok(uploadHandlerIndex > uploadRateLimitIndex, "UploadThing handler must mount after uploadRateLimiter");
+assert.ok(uploadHandlerIndex > globalRateLimitIndex, "UploadThing handler must mount after globalRateLimiter");
+assert.ok(!serverSource.slice(0, globalRateLimitIndex).includes("createRouteHandler({"), "UploadThing handler must not mount before rate limiters");
+
+assert.match(serverSource, /app\.use\("\/api\/me\/avatar",\s*uploadRateLimiter\)/);
+
 assert.match(uploadthingSource, /getFileUrl\(file\)/);
 assert.match(uploadthingSource, /file\.ufsUrl \|\| file\.url \|\| file\.appUrl/);
 assert.match(uploadthingSource, /prisma\.course\.findFirst/);

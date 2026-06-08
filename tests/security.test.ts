@@ -24,6 +24,10 @@ assert.match(serverSource, /createdById:\s*authUser\.id/);
 assert.match(uploadthingSource, /isDangerousFile/);
 assert.match(uploadthingSource, /isValidMimeType/);
 assert.match(uploadthingSource, /utapi\.deleteFiles\(file\.key\)/);
+assert.match(serverSource, /app\.use\("\/api\/uploadthing",\s*uploadRateLimiter\)/);
+const uploadRateLimitIndex = serverSource.indexOf('app.use("/api/uploadthing", uploadRateLimiter)');
+const uploadHandlerIndex = serverSource.indexOf("createRouteHandler({");
+assert.ok(uploadHandlerIndex > uploadRateLimitIndex, "UploadThing handler must mount after uploadRateLimiter");
 
 // 5. Jeton LiveKit interdit sans inscription, modération réservée au staff
 assert.match(serverSource, /if\s*\(authUser\.role\s*===\s*"STUDENT"\s*&&\s*!authUser\.enrolledCourses\.includes\(course\.id\)\)/);
