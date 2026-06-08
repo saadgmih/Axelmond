@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import {
+  allocateSecurityRuntimePort,
   authedFetch,
   isSecurityRuntimeDatabaseAvailable,
   loginViaHttp,
@@ -16,7 +17,6 @@ import { prisma } from "../src/db.ts";
 
 const AVATAR_PATH = "/api/me/avatar";
 const PROFILE_PATH = "/api/me/profile";
-const RUNTIME_PORT = 31996;
 const VALID_AVATAR_URL = "https://utfs.io/f/security-runtime-avatar.jpg";
 
 async function postAvatar(baseUrl: string, body: unknown, session?: Awaited<ReturnType<typeof loginViaHttp>>) {
@@ -45,7 +45,8 @@ let handle: ReturnType<typeof startSecurityRuntimeServer> | undefined;
 
 try {
   const fixture = await seedChatTutorRuntimeFixtures();
-  handle = startSecurityRuntimeServer(RUNTIME_PORT);
+  const runtimePort = await allocateSecurityRuntimePort();
+  handle = startSecurityRuntimeServer(runtimePort);
   await waitForSecurityRuntimeHealth(handle.baseUrl, { process: handle.process });
 
   const studentSession = await loginViaHttp(handle.baseUrl, {

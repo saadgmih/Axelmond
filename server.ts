@@ -305,7 +305,7 @@ const emailVerificationRateLimiter = rateLimit({
 // Rate limiter pour le téléversement de fichiers
 const uploadRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: isSecurityRuntimeTest ? Number(process.env.UPLOAD_RATE_LIMIT_MAX) || 9999 : 5,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "Trop d'envois de fichiers. Veuillez patienter 15 minutes.", code: "UPLOAD_RATE_LIMIT_EXCEEDED" },

@@ -1,9 +1,13 @@
-import { spawn, type ChildProcess } from "node:child_process";
+import { spawn, execFile, type ChildProcess } from "node:child_process";
+import { createServer } from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
 import dotenv from "dotenv";
 
 dotenv.config();
+
+const execFileAsync = promisify(execFile);
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -29,6 +33,21 @@ export function isSecurityRuntimeDatabaseAvailable() {
   return Boolean(process.env.DATABASE_URL?.trim());
 }
 
+export async function allocateSecurityRuntimePort(): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const probe = createServer();
+    probe.once("error", reject);
+    probe.listen(0, "127.0.0.1", () => {
+      const address = probe.address();
+      const port = typeof address === "object" && address ? address.port : 0;
+      probe.close((err) => {
+        if (err) reject(err);
+        else resolve(port);
+      });
+    });
+  });
+}
+
 export function buildSecurityRuntimeServerEnv(port = DEFAULT_SECURITY_RUNTIME_PORT): NodeJS.ProcessEnv {
   return {
     ...process.env,
@@ -38,6 +57,7 @@ export function buildSecurityRuntimeServerEnv(port = DEFAULT_SECURITY_RUNTIME_PO
     NODE_ENV: process.env.NODE_ENV || "development",
     RATE_LIMIT_MAX_REQUESTS: process.env.RATE_LIMIT_MAX_REQUESTS || "999999",
     CHAT_TUTOR_RATE_LIMIT_MAX: process.env.CHAT_TUTOR_RATE_LIMIT_MAX || "9999",
+    UPLOAD_RATE_LIMIT_MAX: process.env.UPLOAD_RATE_LIMIT_MAX || "9999",
     AUTH_MAX_ATTEMPTS: process.env.AUTH_MAX_ATTEMPTS || "999",
     AUTH_TOKEN_SECRET: process.env.AUTH_TOKEN_SECRET || "security-runtime-test-secret",
   };
@@ -86,18 +106,48 @@ export async function waitForSecurityRuntimeHealth(
   throw new Error(`Timed out waiting for ${baseUrl}/api/health: ${String(lastError)}`);
 }
 
+async function killProcessTree(pid: number): Promise<void> {
+  if (process.platform === "win32") {
+    try {
+      await execFileAsync("taskkill", ["/PID", String(pid), "/T", "/F"], { windowsHide: true });
+    } catch {
+      // Process may already be gone.
+    }
+    return;
+  }
+
+  try {
+    process.kill(-pid, "SIGTERM");
+  } catch {
+    try {
+      process.kill(pid, "SIGTERM");
+    } catch {
+      // Process may already be gone.
+    }
+  }
+}
+
 export async function stopSecurityRuntimeServer(handle: SecurityRuntimeServerHandle): Promise<void> {
   const { process: child } = handle;
   if (child.exitCode !== null || child.signalCode !== null) {
     return;
   }
 
-  child.kill();
+  if (child.pid) {
+    await killProcessTree(child.pid);
+  } else {
+    child.kill();
+  }
 
   await new Promise<void>((resolve) => {
-    const forceKillTimer = setTimeout(() => {
-      if (child.exitCode === null && child.signalCode === null) {
-        child.kill("SIGKILL");
+    if (child.exitCode !== null || child.signalCode !== null) {
+      resolve();
+      return;
+    }
+
+    const forceKillTimer = setTimeout(async () => {
+      if (child.pid) {
+        await killProcessTree(child.pid);
       }
       resolve();
     }, 5_000);
