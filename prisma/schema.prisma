@@ -68,6 +68,11 @@ model User {
   liveActionLogs         LiveActionLog[]         @relation("LiveActionActor")
   scheduleSessions       ProfessorScheduleSession[]
   studyScheduleSessions  StudentStudyScheduleSession[]
+  conversationParticipants ConversationParticipant[]
+  sentMessages           Message[]               @relation("SentMessages")
+  messageReads           MessageRead[]
+  notifications          Notification[]
+  pushSubscriptions      PushSubscription[]
 
   @@index([role])
   @@schema("AxelmondResearchLab")
@@ -524,6 +529,111 @@ model StudentStudyScheduleSession {
   student     User                    @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@index([studentId, dayOfWeek])
+  @@schema("AxelmondResearchLab")
+}
+
+enum MessageAttachmentKind {
+  IMAGE
+  VIDEO
+  AUDIO
+  DOCUMENT
+  @@schema("AxelmondResearchLab")
+}
+
+model Conversation {
+  id           String                    @id @default(cuid())
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@schema("AxelmondResearchLab")
+}
+
+model ConversationParticipant {
+  id             String       @id @default(cuid())
+  conversationId String
+  userId         String
+  lastReadAt     DateTime?
+  typingUntil    DateTime?
+  joinedAt       DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+  @@schema("AxelmondResearchLab")
+}
+
+model Message {
+  id             String              @id @default(cuid())
+  conversationId String
+  senderId       String
+  body           String              @default("")
+  createdAt      DateTime            @default(now())
+  conversation   Conversation        @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User                @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  attachments    MessageAttachment[]
+  reads          MessageRead[]
+
+  @@index([conversationId, createdAt])
+  @@schema("AxelmondResearchLab")
+}
+
+model MessageAttachment {
+  id         String                @id @default(cuid())
+  messageId  String
+  kind       MessageAttachmentKind
+  fileName   String
+  mimeType   String
+  sizeBytes  Int
+  url        String
+  storageKey String?
+  message    Message               @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+  @@schema("AxelmondResearchLab")
+}
+
+model MessageRead {
+  id        String   @id @default(cuid())
+  messageId String
+  userId    String
+  readAt    DateTime @default(now())
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([userId])
+  @@schema("AxelmondResearchLab")
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  body      String
+  actionUrl String?
+  metadata  Json      @default("{}")
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+  @@schema("AxelmondResearchLab")
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, endpoint])
   @@schema("AxelmondResearchLab")
 }
 

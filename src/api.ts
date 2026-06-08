@@ -346,6 +346,24 @@ export const api = {
     description?: string;
   }) => request<any>("PUT", `/api/me/study-schedule/${id}`, data),
   deleteStudyScheduleSession: (id: string) => request<any>("DELETE", `/api/me/study-schedule/${id}`),
+  searchMessagingUsers: (query: string) =>
+    request<any[]>("GET", `/api/messaging/users/search?q=${encodeURIComponent(query)}`),
+  getConversations: () => request<any[]>("GET", "/api/conversations"),
+  createConversation: (participantUserId: string) =>
+    request<any>("POST", "/api/conversations", { participantUserId }),
+  getConversationMessages: (conversationId: string) =>
+    request<any[]>("GET", `/api/conversations/${conversationId}/messages`),
+  sendConversationMessage: (conversationId: string, data: { body?: string; attachment?: unknown }) =>
+    request<any>("POST", `/api/conversations/${conversationId}/messages`, data),
+  markConversationRead: (conversationId: string) =>
+    request<any>("POST", `/api/conversations/${conversationId}/read`),
+  getNotifications: () => request<any[]>("GET", "/api/notifications"),
+  getNotificationUnreadCount: () => request<{ count: number }>("GET", "/api/notifications/unread-count"),
+  getVapidPublicKey: () => request<{ publicKey: string }>("GET", "/api/notifications/vapid-public-key"),
+  markNotificationRead: (id: string) => request<any>("PATCH", `/api/notifications/${id}/read`),
+  markAllNotificationsRead: () => request<any>("POST", "/api/notifications/read-all"),
+  subscribePushNotifications: (data: { endpoint: string; keys: { p256dh: string; auth: string } }) =>
+    request<any>("POST", "/api/notifications/push-subscribe", data),
 };
 
 export function setSessionToken(token: string | undefined, csrfToken?: string) {

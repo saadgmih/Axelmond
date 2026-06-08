@@ -1,5 +1,5 @@
 import React, { type RefObject } from "react";
-import { Search, Sparkles, Menu, Mic } from "lucide-react";
+import { Search, Sparkles, Menu, Mic, Bell } from "lucide-react";
 import { Course } from "../types";
 import { AppUser } from "./AuthScreen";
 import LogoSymbol from "./LogoSymbol";
@@ -17,6 +17,9 @@ interface TopbarProps {
   currentUser: AppUser | null;
   onToggleMobileMenu?: () => void;
   catalogSearchRef?: RefObject<HTMLInputElement | null>;
+  notificationUnreadCount?: number;
+  onOpenNotifications?: () => void;
+  activeView?: string;
 }
 
 export default function Topbar({
@@ -30,6 +33,9 @@ export default function Topbar({
   currentUser,
   onToggleMobileMenu,
   catalogSearchRef,
+  notificationUnreadCount = 0,
+  onOpenNotifications,
+  activeView,
 }: TopbarProps) {
   const activeCredits = enrolledCourses.reduce((sum, id) => {
     const found = courses.find((c) => c.id === id);
@@ -148,6 +154,22 @@ export default function Topbar({
       {/* Credits & Quick Info */}
       <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
         <AccessibilityControls />
+        {onOpenNotifications && (
+          <button
+            type="button"
+            onClick={onOpenNotifications}
+            aria-label="Ouvrir les notifications"
+            aria-current={activeView === "notifications" ? "page" : undefined}
+            className="relative touch-target kbd-nav-focus rounded-xl border border-slate-200 dark:border-slate-800 p-2.5 text-slate-500 hover:text-indigo-500 dark:text-slate-400 dark:hover:text-indigo-300"
+          >
+            <Bell className="h-5 w-5" />
+            {notificationUnreadCount > 0 && (
+              <span className="absolute -right-1 -top-1 min-w-[18px] rounded-full bg-red-500 px-1 text-[10px] font-black leading-[18px] text-white">
+                {notificationUnreadCount > 99 ? "99+" : notificationUnreadCount}
+              </span>
+            )}
+          </button>
+        )}
         <div className="hidden sm:flex flex-col items-end text-right">
           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
             Utilisateur Actuel

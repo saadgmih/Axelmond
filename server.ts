@@ -1,4 +1,5 @@
 import express from "express";
+import { createServer } from "node:http";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
@@ -70,6 +71,9 @@ import {
   sortStudentStudySessions,
   validateStudentStudyPayload,
 } from "./src/student-study-schedule";
+import { registerMessagingRoutes } from "./src/messaging-routes";
+import { initMessagingSocket } from "./src/messaging-socket";
+import { notifyEnrolledStudentsForCourse } from "./src/notifications";
 import {
   JSON_BODY_LIMIT,
   REFRESH_RATE_LIMIT_MAX,
@@ -158,6 +162,8 @@ function buildCspConnectSrc(): string[] {
       connectSrc.push(origin.replace(/^https:/, "wss:"));
     }
   }
+
+  connectSrc.push("ws:", "wss:");
 
   return connectSrc;
 }
@@ -2037,6 +2043,15 @@ app.post("/api/courses/:courseId/chapters", requireAuth, requireRbac, validateBo
   });
 
   logDb("INFO", "Chapter created", { courseId, chapterId: result.chapter.id, sectionId: result.section.id, userId: authUser.id });
+  if (result.chapter.published) {
+    await notifyEnrolledStudentsForCourse(courseId, {
+      type: "NEW_CHAPTER",
+      title: "Nouveau chapitre publié",
+      body: `${result.chapter.title} est disponible dans ${course.title}`,
+      actionUrl: "/student/course",
+      metadata: { courseId, chapterId: result.chapter.id },
+    }).catch(() => undefined);
+  }
   res.status(201).json(result);
 });
 
@@ -2130,6 +2145,16 @@ app.patch("/api/chapters/:id", requireAuth, requireRbac, validateBody(chapterPat
   });
   if (!result) { res.status(404).json({ error: "Chapter not found" }); return; }
   logDb("INFO", "Chapter publication updated", { chapterId: result.id, published });
+  if (published) {
+    const course = await prisma.course.findUnique({ where: { id: result.courseId }, select: { title: true } });
+    await notifyEnrolledStudentsForCourse(result.courseId, {
+      type: "NEW_CHAPTER",
+      title: "Nouveau chapitre publié",
+      body: `${result.title} est disponible${course ? ` dans ${course.title}` : ""}`,
+      actionUrl: "/student/course",
+      metadata: { courseId: result.courseId, chapterId: result.id },
+    }).catch(() => undefined);
+  }
   res.json(result);
 });
 
@@ -2476,6 +2501,15 @@ app.post("/api/courses/:courseId/quizzes", requireAuth, requireRbac, validateBod
     },
   });
   logDb("INFO", "Quiz created", { quizId: quiz.id, courseId, moduleId: quiz.moduleId, sectionId: quiz.sectionId, userId: authUser.id });
+  if (quiz.published) {
+    await notifyEnrolledStudentsForCourse(courseId, {
+      type: "NEW_QUIZ",
+      title: "Nouveau quiz disponible",
+      body: `${quiz.title} a été publié dans ${course.title}`,
+      actionUrl: "/student/course",
+      metadata: { courseId, quizId: quiz.id },
+    }).catch(() => undefined);
+  }
   res.status(201).json(quiz);
 });
 
@@ -2486,6 +2520,8 @@ app.patch("/api/quizzes/:quizId", requireAuth, requireRbac, validateBody(quizPat
     res.status(403).json({ error: "Accès refusé pour modifier ce quiz" });
     return;
   }
+  const existingQuiz = await prisma.quiz.findUnique({ where: { id: req.params.quizId } });
+  if (!existingQuiz) { res.status(404).json({ error: "Quiz not found" }); return; }
   const quiz = await prisma.quiz.update({
     where: { id: req.params.quizId },
     data: req.body,
@@ -2496,6 +2532,16 @@ app.patch("/api/quizzes/:quizId", requireAuth, requireRbac, validateBody(quizPat
   }).catch(() => null);
   if (!quiz) { res.status(404).json({ error: "Quiz not found" }); return; }
   logDb("INFO", "Quiz updated", { quizId: quiz.id, published: quiz.published, userId: authUser.id });
+  if (quiz.published && !existingQuiz.published) {
+    const course = await prisma.course.findUnique({ where: { id: quiz.courseId }, select: { title: true } });
+    await notifyEnrolledStudentsForCourse(quiz.courseId, {
+      type: "NEW_QUIZ",
+      title: "Nouveau quiz disponible",
+      body: `${quiz.title} a été publié${course ? ` dans ${course.title}` : ""}`,
+      actionUrl: "/student/course",
+      metadata: { courseId: quiz.courseId, quizId: quiz.id },
+    }).catch(() => undefined);
+  }
   res.json(quiz);
 });
 
@@ -2769,6 +2815,15 @@ app.patch("/api/courses/:courseId", requireAuth, requireRbac, validateBody(cours
   await logAudit(authUser.id, authUser.email, "PATCH_COURSE", "Course", String(course.id), req.body, req.ip);
   await cacheDel("api:domains:public");
   await cacheDel(`api:courses:public:d=0:dis=0`);
+  if (updatedCourse?.isLiveNow && !course.isLiveNow) {
+    await notifyEnrolledStudentsForCourse(course.id, {
+      type: "LIVE_STARTED",
+      title: "Séance live en cours",
+      body: `${updatedCourse.liveSubject || updatedCourse.title} est en direct`,
+      actionUrl: "/student/live",
+      metadata: { courseId: course.id },
+    }).catch(() => undefined);
+  }
   res.json(toCourse(updatedCourse));
 });
 
@@ -2917,6 +2972,17 @@ app.post("/api/content-sections/:sectionId/contents", requireAuth, requireRbac, 
   });
 
   logDb("INFO", "Text lesson content created", { contentId: content.id, sectionId: section.id, userId: authUser.id });
+  const isHomework = /devoir|homework|assignment/i.test(`${title} ${section.title}`);
+  if (content.published && isHomework) {
+    const course = await prisma.course.findUnique({ where: { id: section.courseId }, select: { title: true } });
+    await notifyEnrolledStudentsForCourse(section.courseId, {
+      type: "NEW_HOMEWORK",
+      title: "Nouveau devoir publié",
+      body: `${content.title}${course ? ` — ${course.title}` : ""}`,
+      actionUrl: "/student/course",
+      metadata: { courseId: section.courseId, contentId: content.id },
+    }).catch(() => undefined);
+  }
   res.status(201).json(toLessonContent(content));
 });
 
@@ -5001,6 +5067,8 @@ app.get("/api/health", async (req, res) => {
   res.status(dbStatus === "HEALTHY" ? 200 : 503).json(payload);
 });
 
+registerMessagingRoutes(app, { requireAuth, requireRbac, validateBody });
+
 async function setupApp() {
   // ─── Gestion globale des erreurs non capturées ────────────────────────────
   process.on("uncaughtException", (err) => {
@@ -5128,7 +5196,9 @@ async function setupApp() {
     console.log("Serving static files in production mode.");
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
+  const httpServer = createServer(app);
+  initMessagingSocket(httpServer, allowedOrigins, normalizeOriginUrl);
+  httpServer.listen(PORT, "0.0.0.0", () => {
     console.log(`Axelmond Research Labs server running at http://localhost:${PORT}`);
   });
 }

@@ -33,6 +33,12 @@ import TeacherAcademicProfileView from "./views/teacher/TeacherAcademicProfileVi
 import TeacherCurriculumView from "./views/teacher/TeacherCurriculumView";
 import TeacherLiveControlView from "./views/teacher/TeacherLiveControlView";
 import TeacherScheduleView from "./views/teacher/TeacherScheduleView";
+import MessagesView from "./views/shared/MessagesView";
+import NotificationsView from "./views/shared/NotificationsView";
+import { useNotifications } from "./hooks/useNotifications";
+import { usePushNotifications } from "./hooks/usePushNotifications";
+import { useMessagingSocket } from "./hooks/useMessagingSocket";
+import type { AppNotification } from "./types/messaging";
 import StudentDashboardView from "./views/student/StudentDashboardView";
 import StudentCatalogView from "./views/student/StudentCatalogView";
 import StudentCourseView from "./views/student/StudentCourseView";
@@ -255,6 +261,48 @@ export default function App() {
     setQuizScore,
     setQuizSubmitError,
   });
+
+  const {
+    notifications,
+    unreadCount: notificationUnreadCount,
+    loading: notificationsLoading,
+    error: notificationsError,
+    loadNotifications,
+    markRead: markNotificationRead,
+    markAllRead: markAllNotificationsRead,
+    pushNotification,
+  } = useNotifications(!!currentUser);
+
+  const { status: pushStatus, subscribe: subscribePushNotifications } = usePushNotifications(!!currentUser);
+
+  useMessagingSocket(!!currentUser, {
+    onNotification: (payload) => {
+      if (payload && typeof payload === "object") {
+        pushNotification(payload as AppNotification);
+      }
+    },
+  });
+
+  const openNotificationsView = () => {
+    if (role === "teacher") handleTeacherViewChange("notifications");
+    else navigateTo("notifications");
+  };
+
+  const handleNotificationNavigate = (actionUrl: string) => {
+    if (actionUrl.includes("messages")) {
+      if (role === "teacher") handleTeacherViewChange("messages");
+      else navigateTo("messages");
+      return;
+    }
+    if (actionUrl.includes("live")) {
+      const liveCourse = courses.find((course) => course.isLiveNow) || null;
+      if (liveCourse) navigateTo("live", liveCourse);
+      return;
+    }
+    if (actionUrl.includes("course")) {
+      navigateTo("catalog");
+    }
+  };
 
   const academicProfileBindings = useAcademicProfile({
     role,
@@ -487,6 +535,7 @@ export default function App() {
         setTeacherView={handleTeacherViewChange}
         currentUser={currentUser}
         onLogout={handleLogout}
+        notificationUnreadCount={notificationUnreadCount}
       />
 
       {/* Main Container */}
@@ -505,6 +554,9 @@ export default function App() {
             currentUser={currentUser}
             onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             catalogSearchRef={catalogSearchRef}
+            notificationUnreadCount={notificationUnreadCount}
+            onOpenNotifications={openNotificationsView}
+            activeView={role === "teacher" ? teacherView : currentView}
           />
         )}
 
@@ -543,6 +595,28 @@ export default function App() {
 
               {teacherView === "schedule" && (
                 <TeacherScheduleView role={role} teacherView={teacherView} />
+              )}
+
+              {teacherView === "messages" && currentUser && (
+                <div className="p-4 md:p-8">
+                  <MessagesView currentUserId={currentUser.id} role="teacher" />
+                </div>
+              )}
+
+              {teacherView === "notifications" && (
+                <div className="p-4 md:p-8">
+                  <NotificationsView
+                    notifications={notifications}
+                    loading={notificationsLoading}
+                    error={notificationsError}
+                    onReload={loadNotifications}
+                    onMarkRead={markNotificationRead}
+                    onMarkAllRead={markAllNotificationsRead}
+                    onNavigate={handleNotificationNavigate}
+                    pushStatus={pushStatus}
+                    onEnablePush={subscribePushNotifications}
+                  />
+                </div>
               )}
 
               {/* 3. VIEW: SEMINAR LIVE CONTROL */}
@@ -614,6 +688,26 @@ export default function App() {
           )}
           {currentView === "study-schedule" && (
             <StudentStudyScheduleView role={role} currentView={currentView} />
+          )}
+          {currentView === "messages" && currentUser && (
+            <div className="p-4 md:p-8">
+              <MessagesView currentUserId={currentUser.id} role="student" />
+            </div>
+          )}
+          {currentView === "notifications" && (
+            <div className="p-4 md:p-8">
+              <NotificationsView
+                notifications={notifications}
+                loading={notificationsLoading}
+                error={notificationsError}
+                onReload={loadNotifications}
+                onMarkRead={markNotificationRead}
+                onMarkAllRead={markAllNotificationsRead}
+                onNavigate={handleNotificationNavigate}
+                pushStatus={pushStatus}
+                onEnablePush={subscribePushNotifications}
+              />
+            </div>
           )}
           {currentView === "live" && activeLiveCourse && (
               <StudentLiveView

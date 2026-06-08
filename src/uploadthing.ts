@@ -6,6 +6,7 @@ import { verifyAuthToken } from "./auth-token";
 import { canManageContent, isTeacherSpaceRole, normalizeRole } from "./rbac";
 import { isAllowedAvatarMime, isAllowedAvatarUrl } from "./avatar-security";
 import { alertSuspectUpload } from "./security-logger";
+import { isConversationParticipant, validateMessageAttachmentInput, type MessageAttachmentInput } from "./messaging";
 
 const f = createUploadthing();
 export const utapi = new UTApi();
@@ -58,6 +59,19 @@ function toAttachmentType(contentType: "VIDEO" | "PDF" | "IMAGE") {
 
 function getFileUrl(file: { ufsUrl?: string; url?: string; appUrl?: string }) {
   return file.ufsUrl || file.url || file.appUrl || "";
+}
+
+function detectMessageAttachmentKind(mimeType: string | null): MessageAttachmentInput["kind"] | null {
+  const mime = String(mimeType || "").toLowerCase();
+  if (mime.startsWith("image/")) return "IMAGE";
+  if (mime.startsWith("video/")) return "VIDEO";
+  if (mime.startsWith("audio/")) return "AUDIO";
+  if (
+    mime === "application/pdf"
+    || mime === "application/msword"
+    || mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  ) return "DOCUMENT";
+  return null;
 }
 
 async function getUploadUser(req: any) {
@@ -253,6 +267,55 @@ export const uploadRouter = {
         contentId: content.id,
         attachmentId: content.attachments[0]?.id,
         url: fileUrl,
+      };
+    }),
+
+  messageAttachment: f(
+    {
+      image: { maxFileSize: "8MB", maxFileCount: 1 },
+      video: { maxFileSize: "64MB", maxFileCount: 1 },
+      audio: { maxFileSize: "16MB", maxFileCount: 1 },
+      pdf: { maxFileSize: "16MB", maxFileCount: 1 },
+      blob: { maxFileSize: "16MB", maxFileCount: 1 },
+    },
+    { awaitServerData: true },
+  )
+    .input(z.object({ conversationId: z.string().min(1) }))
+    .middleware(async ({ req, input }) => {
+      const user = await getAuthenticatedUploadUser(req);
+      const allowed = await isConversationParticipant(input.conversationId, user.id);
+      if (!allowed) throw new UploadThingError("Conversation introuvable ou accès refusé");
+      return { userId: user.id, conversationId: input.conversationId };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      const fileUrl = getFileUrl(file);
+      const kind = detectMessageAttachmentKind(file.type || null);
+      if (isDangerousFile(file.name) || !kind) {
+        alertSuspectUpload(metadata.userId, file.name, file.type || "unknown");
+        await utapi.deleteFiles(file.key);
+        throw new UploadThingError("Type de fichier non autorisé pour la messagerie.");
+      }
+      const attachment: MessageAttachmentInput = {
+        kind,
+        fileName: file.name,
+        mimeType: file.type || "application/octet-stream",
+        sizeBytes: file.size,
+        url: fileUrl,
+        storageKey: file.key,
+      };
+      const validationError = validateMessageAttachmentInput(attachment);
+      if (validationError || !fileUrl) {
+        if (file.key) await utapi.deleteFiles(file.key);
+        throw new UploadThingError(validationError || "URL UploadThing introuvable.");
+      }
+      console.log(`[${new Date().toISOString()}] [INFO] [uploadthing] Message attachment uploaded ${JSON.stringify({ userId: metadata.userId, conversationId: metadata.conversationId, fileKey: file.key, kind })}`);
+      return {
+        kind,
+        fileName: file.name,
+        mimeType: file.type || "",
+        sizeBytes: file.size,
+        url: fileUrl,
+        storageKey: file.key,
       };
     }),
 } satisfies FileRouter;

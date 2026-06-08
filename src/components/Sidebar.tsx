@@ -14,7 +14,9 @@ import {
   Briefcase,
   PlayCircle,
   Award,
-  LogOut
+  LogOut,
+  MessageSquare,
+  Bell,
 } from "lucide-react";
 import { Course, DEFAULT_STUDENT_LABEL } from "../types";
 import { AppUser } from "./AuthScreen";
@@ -34,6 +36,7 @@ interface SidebarProps {
   setTeacherView: (view: string) => void;
   currentUser: AppUser | null;
   onLogout: () => void;
+  notificationUnreadCount?: number;
 }
 
 export default function Sidebar({
@@ -48,6 +51,7 @@ export default function Sidebar({
   setTeacherView,
   currentUser,
   onLogout,
+  notificationUnreadCount = 0,
 }: SidebarProps) {
   const navRef = useRef<HTMLElement>(null);
   useTvNavigation(navRef, true);
@@ -172,6 +176,43 @@ export default function Sidebar({
               <CalendarDays className="w-5 h-5 text-amber-300" />
               Mon Emploi du Temps d&apos;Étude
             </button>
+
+            <button
+              id="nav-messages"
+              type="button"
+              data-tv-focusable
+              tabIndex={0}
+              onClick={() => navigateTo("messages")}
+              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
+                currentView === "messages"
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-950/40"
+                  : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
+              }`}
+            >
+              <MessageSquare className="w-5 h-5 text-emerald-300" />
+              Messagerie
+            </button>
+
+            <button
+              id="nav-notifications"
+              type="button"
+              data-tv-focusable
+              tabIndex={0}
+              onClick={() => navigateTo("notifications")}
+              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
+                currentView === "notifications"
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-950/40"
+                  : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
+              }`}
+            >
+              <Bell className="w-5 h-5 text-rose-300" />
+              <span className="flex-1 text-left">Notifications</span>
+              {notificationUnreadCount > 0 && (
+                <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-black text-white">
+                  {notificationUnreadCount > 99 ? "99+" : notificationUnreadCount}
+                </span>
+              )}
+            </button>
           </>
         ) : (
           <>
@@ -253,6 +294,43 @@ export default function Sidebar({
             >
               <Video className="w-5 h-5 text-red-400" />
               Contrôleur de Modules Live
+            </button>
+
+            <button
+              type="button"
+              data-tv-focusable
+              tabIndex={0}
+              aria-current={teacherView === "messages" ? "page" : undefined}
+              onClick={() => setTeacherView("messages")}
+              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
+                teacherView === "messages"
+                  ? "bg-pink-600 text-white shadow-md shadow-pink-950/40"
+                  : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
+              }`}
+            >
+              <MessageSquare className="w-5 h-5 text-emerald-400" />
+              Messagerie
+            </button>
+
+            <button
+              type="button"
+              data-tv-focusable
+              tabIndex={0}
+              aria-current={teacherView === "notifications" ? "page" : undefined}
+              onClick={() => setTeacherView("notifications")}
+              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
+                teacherView === "notifications"
+                  ? "bg-pink-600 text-white shadow-md shadow-pink-950/40"
+                  : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
+              }`}
+            >
+              <Bell className="w-5 h-5 text-rose-400" />
+              <span className="flex-1 text-left">Notifications</span>
+              {notificationUnreadCount > 0 && (
+                <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-black text-white">
+                  {notificationUnreadCount > 99 ? "99+" : notificationUnreadCount}
+                </span>
+              )}
             </button>
           </>
         )}

@@ -160,6 +160,19 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
     return normalized === "STUDENT";
   }
 
+  if (verb === "GET" && (cleanPath === "/api/conversations" || cleanPath === "/api/messaging/users/search" || cleanPath === "/api/notifications" || cleanPath === "/api/notifications/unread-count" || cleanPath === "/api/notifications/vapid-public-key")) {
+    return true;
+  }
+  if (verb === "POST" && (cleanPath === "/api/conversations" || cleanPath === "/api/notifications/read-all" || cleanPath === "/api/notifications/push-subscribe")) {
+    return true;
+  }
+  if (verb === "PATCH" && /^\/api\/notifications\/[^/]+\/read$/.test(cleanPath)) {
+    return true;
+  }
+  if ((verb === "GET" || verb === "POST") && /^\/api\/conversations\/[^/]+\/(messages|read)$/.test(cleanPath)) {
+    return true;
+  }
+
   if (verb === "GET" && cleanPath === "/api/admin/academic-profiles") {
     return normalized === "ADMIN";
   }
