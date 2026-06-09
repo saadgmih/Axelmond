@@ -85,6 +85,7 @@ import { clearAuthCookies, readRefreshTokenFromRequest, setAuthCookies } from ".
 import { csrfProtection } from "./src/auth-csrf";
 import { emailRateLimitKey } from "./src/email-rate-limit";
 import { liveKitRateLimitKey } from "./src/livekit-rate-limit";
+import { adminRateLimitKey } from "./src/admin-rate-limit";
 
 dotenv.config();
 
@@ -367,14 +368,47 @@ const liveKitModerationRateLimiter = rateLimit({
   message: { error: "Trop d'actions de modération live. Veuillez patienter 15 minutes.", code: "LIVEKIT_MODERATION_RATE_LIMIT_EXCEEDED" },
 });
 
-// Rate limiter pour l'envoi d'e-mails de diagnostic par l'admin
-const emailDiagnosticRateLimiter = rateLimit({
+// Rate limiters pour les routes admin
+const adminReadRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: 300,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: "Trop de diagnostics email. Veuillez patienter 15 minutes.", code: "DIAGNOSTIC_RATE_LIMIT_EXCEEDED" },
+  keyGenerator: adminRateLimitKey,
+  message: { error: "Trop de lectures admin. Veuillez patienter 15 minutes.", code: "ADMIN_READ_RATE_LIMIT_EXCEEDED" },
 });
+
+const adminMutationRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: adminRateLimitKey,
+  message: { error: "Trop d'actions admin. Veuillez patienter 15 minutes.", code: "ADMIN_MUTATION_RATE_LIMIT_EXCEEDED" },
+});
+
+const adminDiagnosticRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: adminRateLimitKey,
+  message: { error: "Trop de diagnostics email. Veuillez patienter 15 minutes.", code: "ADMIN_DIAGNOSTIC_RATE_LIMIT_EXCEEDED" },
+});
+
+const ADMIN_MUTATION_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
+const adminRouteRateLimiter: express.RequestHandler = (req, res, next) => {
+  if (req.method === "GET") {
+    adminReadRateLimiter(req, res, next);
+    return;
+  }
+  if (ADMIN_MUTATION_METHODS.has(req.method)) {
+    adminMutationRateLimiter(req, res, next);
+    return;
+  }
+  next();
+};
 
 // Rate limiter pour l'assistant IA tuteur
 const chatTutorRateLimiter = rateLimit({
@@ -406,8 +440,9 @@ app.use("/api/uploadthing", uploadRateLimiter);
 app.use("/api/me/avatar", uploadRateLimiter);
 app.use("/api/livekit/token", liveKitRateLimiter);
 app.use("/api/livekit/moderation", liveKitModerationRateLimiter);
+app.use("/api/admin", adminRouteRateLimiter);
 app.use("/api/chat-tutor", chatTutorRateLimiter);
-app.use("/api/test-email", emailDiagnosticRateLimiter);
+app.use("/api/test-email", adminDiagnosticRateLimiter);
 
 app.use(
   "/api/uploadthing",

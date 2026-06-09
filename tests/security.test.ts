@@ -85,4 +85,15 @@ assert.match(serverSource, /setAuthCookies/);
 assert.match(serverSource, /clearAuthCookies/);
 assert.match(serverSource, /X-CSRF-Token/);
 
+// 10. Rate limiters admin
+assert.doesNotMatch(serverSource, /emailDiagnosticRateLimiter/);
+assert.match(serverSource, /const adminReadRateLimiter = rateLimit\(\{[\s\S]*?max: 300,[\s\S]*?keyGenerator:\s*adminRateLimitKey/);
+assert.match(serverSource, /const adminMutationRateLimiter = rateLimit\(\{[\s\S]*?max: 60,[\s\S]*?keyGenerator:\s*adminRateLimitKey/);
+assert.match(serverSource, /const adminDiagnosticRateLimiter = rateLimit\(\{[\s\S]*?max: 10,[\s\S]*?keyGenerator:\s*adminRateLimitKey/);
+assert.equal((serverSource.match(/keyGenerator:\s*adminRateLimitKey/g) ?? []).length, 3);
+assert.match(serverSource, /app\.use\("\/api\/admin",\s*adminRouteRateLimiter\)/);
+assert.match(serverSource, /app\.use\("\/api\/test-email",\s*adminDiagnosticRateLimiter\)/);
+assert.match(serverSource, /if\s*\(req\.method === "GET"\)[\s\S]*?adminReadRateLimiter/);
+assert.match(serverSource, /ADMIN_MUTATION_METHODS[\s\S]*?adminMutationRateLimiter/);
+
 console.log("Security automated tests passed");
