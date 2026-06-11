@@ -4,6 +4,7 @@ import TeacherDashboardScreen from "../screens/TeacherDashboardScreen";
 import CourseCatalogScreen from "../screens/CourseCatalogScreen";
 import TeacherProfileScreen from "../screens/TeacherProfileScreen";
 import CourseDetailsScreen from "../screens/CourseDetailsScreen";
+import LiveClassroomScreen from "../screens/LiveClassroomScreen";
 import { createTabScreenOptions, stackScreenOptions } from "./tabBar";
 import type { TeacherStackParamList, TeacherTabParamList } from "./types";
 
@@ -32,6 +33,7 @@ export default function TeacherNavigator() {
     <Stack.Navigator id="TeacherStack" screenOptions={stackScreenOptions}>
       <Stack.Screen name="TeacherTabs" component={TeacherTabs} options={{ headerShown: false }} />
       <Stack.Screen name="CourseDetails" component={CourseDetailsScreen} options={{ title: "Détails du cours" }} />
+      <Stack.Screen name="LiveClassroom" component={LiveClassroomScreen} options={{ title: "Cours en direct", headerBackTitle: "Retour" }} />
     </Stack.Navigator>
   );
 }

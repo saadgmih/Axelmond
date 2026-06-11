@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import Button from "../components/Button";
 import ScreenContainer from "../components/ScreenContainer";
 import SectionHeader from "../components/SectionHeader";
 import StatCard from "../components/StatCard";
@@ -8,10 +10,14 @@ import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "../hooks/useTheme";
 import { useCourse } from "../hooks/useCourses";
 import type { StudentStackParamList } from "../navigation/types";
+import type { TeacherStackParamList } from "../navigation/types";
 
-type Props = NativeStackScreenProps<StudentStackParamList, "CourseDetails">;
+type Props =
+  | NativeStackScreenProps<StudentStackParamList, "CourseDetails">
+  | NativeStackScreenProps<TeacherStackParamList, "CourseDetails">;
 
 export default function CourseDetailsScreen({ route }: Props) {
+  const navigation = useNavigation<any>();
   const { user } = useAuth();
   const { theme } = useTheme();
   const { courseId } = route.params;
@@ -49,6 +55,16 @@ export default function CourseDetailsScreen({ route }: Props) {
                 Ce module est visible dans le catalogue. L'inscription complète se fait via la plateforme web Axelmond.
               </Text>
             </View>
+          ) : null}
+
+          {course.isLiveNow ? (
+            <Button
+              label="Rejoindre le live"
+              onPress={() =>
+                navigation.navigate("LiveClassroom", { courseId: course.id, courseTitle: course.title })
+              }
+              style={{ marginBottom: 16 }}
+            />
           ) : null}
 
           <SectionHeader title={`Contenu (${course.modules.length})`} subtitle={`${completedModules} module(s) terminé(s)`} />
