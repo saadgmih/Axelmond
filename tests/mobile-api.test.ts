@@ -49,6 +49,10 @@ assert.match(mobileRoutesSource, /\/api\/mobile\/routes/);
 
 assert.ok(MOBILE_API_ROUTE_CATALOG.auth.login.includes("/api/auth/login"));
 assert.ok(MOBILE_API_ROUTE_CATALOG.student.liveToken.includes("/api/livekit/token"));
+assert.ok(MOBILE_API_ROUTE_CATALOG.live.token.includes("/api/livekit/token"));
+assert.ok(MOBILE_API_ROUTE_CATALOG.live.messagesSend.includes("/api/livekit/messages"));
+assert.ok(MOBILE_API_ROUTE_CATALOG.live.moderation.includes("/api/livekit/moderation"));
+assert.ok(MOBILE_API_ROUTE_CATALOG.teacher.toggleLive.includes("isLiveNow"));
 assert.ok(MOBILE_API_ROUTE_CATALOG.public.courses.includes("/api/courses"));
 
 function createMockRes() {

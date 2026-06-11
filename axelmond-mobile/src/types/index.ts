@@ -79,6 +79,39 @@ export interface LiveMessage {
   isMe: boolean;
 }
 
+export type LiveEventAction =
+  | "RAISE_HAND"
+  | "LOWER_HAND"
+  | "REACTION"
+  | "QUESTION"
+  | "RESOURCE_SHARE"
+  | "WHITEBOARD_UPDATE"
+  | "RECORDING_REQUESTED"
+  | "RECORDING_STOPPED";
+
+export type LiveModerationAction =
+  | "MUTE_AUDIO"
+  | "MUTE_VIDEO"
+  | "REMOVE_PARTICIPANT"
+  | "GRANT_SPEECH"
+  | "REVOKE_SPEECH";
+
+export interface LiveAttendanceRecord {
+  userId: string;
+  fullName: string;
+  role: UserRole;
+  joinedAt: string;
+  leftAt: string | null;
+  durationSeconds: number | null;
+}
+
+export interface LiveAttendanceReport {
+  roomName: string;
+  attendances: LiveAttendanceRecord[];
+  actions: Array<Record<string, unknown>>;
+  summary: Record<string, unknown>;
+}
+
 export interface AcademicProfile {
   title?: string;
   department?: string;

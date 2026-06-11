@@ -23,6 +23,20 @@ const AUTH_PATHS_WITHOUT_REFRESH = new Set([
 
 let refreshPromise: Promise<string | null> | null = null;
 
+type SessionInvalidationListener = () => void;
+const sessionInvalidationListeners = new Set<SessionInvalidationListener>();
+
+export function onSessionInvalidated(listener: SessionInvalidationListener): () => void {
+  sessionInvalidationListeners.add(listener);
+  return () => {
+    sessionInvalidationListeners.delete(listener);
+  };
+}
+
+function notifySessionInvalidated(): void {
+  sessionInvalidationListeners.forEach((listener) => listener());
+}
+
 function buildApiError(
   method: string,
   path: string,
@@ -72,6 +86,7 @@ async function performSessionRefresh(): Promise<string | null> {
     return payload.token as string;
   } catch {
     await clearAuthSession();
+    notifySessionInvalidated();
     return null;
   }
 }
@@ -88,7 +103,11 @@ export async function getFreshAccessToken(): Promise<string | null> {
 }
 
 export async function apiRequest<T>(method: string, path: string, body?: unknown, auth = true): Promise<T> {
-  let token = auth ? await getAccessToken() : null;
+  let token = auth ? await getFreshAccessToken() : null;
+  if (auth && !token) {
+    throw buildApiError(method, path, 401, { error: "Session expirée", code: "SESSION_EXPIRED" }, "Session expirée");
+  }
+
   const url = `${API_BASE_URL}${path}`;
   let res = await fetch(url, await buildRequestOptions(method, body, token));
 
@@ -96,6 +115,8 @@ export async function apiRequest<T>(method: string, path: string, body?: unknown
     token = await performSessionRefresh();
     if (token) {
       res = await fetch(url, await buildRequestOptions(method, body, token));
+    } else {
+      throw buildApiError(method, path, 401, { error: "Session expirée", code: "SESSION_EXPIRED" }, "Session expirée");
     }
   }
 

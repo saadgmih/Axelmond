@@ -1,11 +1,9 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { AppUser, UserRole } from "../types";
 import { api } from "../services/api";
+import { getFreshAccessToken, onSessionInvalidated } from "../services/api/client";
 import {
-  clearAuthSession,
-  getAccessToken,
   getStoredUser,
-  isAccessTokenFresh,
   saveAuthSession,
   updateStoredUser,
 } from "../services/authStorage";
@@ -37,24 +35,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       try {
         const storedUser = await getStoredUser();
-        const token = await getAccessToken();
-        if (storedUser && token && isAccessTokenFresh(token)) {
-          setUser(storedUser);
-          try {
-            const freshUser = await api.me();
-            setUser(freshUser);
-            await updateStoredUser(freshUser);
-          } catch {
-            // Keep cached user if refresh path will recover later.
-          }
-        } else if (storedUser && token) {
-          setUser(storedUser);
+        if (!storedUser) return;
+
+        const freshToken = await getFreshAccessToken();
+        if (!freshToken) {
+          setUser(null);
+          return;
+        }
+
+        setUser(storedUser);
+        try {
+          const freshUser = await api.me();
+          setUser(freshUser);
+          await updateStoredUser(freshUser);
+        } catch {
+          // Transient network errors: keep restored session until the next API call fails.
         }
       } finally {
         setLoading(false);
       }
     })();
   }, []);
+
+  useEffect(() => onSessionInvalidated(() => setUser(null)), []);
 
   const login = useCallback(async (email: string, password: string, role: UserRole) => {
     const session = await api.login(email.trim(), password, role);

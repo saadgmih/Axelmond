@@ -14,7 +14,12 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.axelmond.researchlabs"
+      "bundleIdentifier": "com.axelmond.researchlabs",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Axelmond utilise la caméra pour participer aux cours en direct.",
+        "NSMicrophoneUsageDescription": "Axelmond utilise le microphone pour participer aux cours en direct.",
+        "UIBackgroundModes": ["audio"]
+      }
     },
     "android": {
       "package": "com.axelmond.researchlabs",
@@ -24,13 +29,35 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.BLUETOOTH_CONNECT"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-dev-client",
+      [
+        "@livekit/react-native-expo-plugin",
+        {
+          "android": {
+            "audioType": "communication"
+          }
+        }
+      ],
+      [
+        "@config-plugins/react-native-webrtc",
+        {
+          "cameraPermission": "Axelmond utilise la caméra pour participer aux cours en direct.",
+          "microphonePermission": "Axelmond utilise le microphone pour participer aux cours en direct."
+        }
+      ]
     ]
   }
 }
