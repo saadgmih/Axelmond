@@ -1,17 +1,24 @@
 import {
+  AlertTriangle,
+  BarChart3,
+  CalendarDays,
   CheckCircle2,
   Clock3,
   ExternalLink,
+  Flame,
   Headphones,
   Pencil,
   Plus,
+  RotateCcw,
   Target,
+  TrendingUp,
   Trash2,
   X,
 } from "lucide-react";
+import type { ReactNode } from "react";
 import type { UseStudentObjectivesOptions } from "../../hooks/useStudentObjectives";
 import { type StudentObjectiveView, useStudentObjectives } from "../../hooks/useStudentObjectives";
-import { FOCUS_CONTENT_TYPES, STUDENT_OBJECTIVE_TYPES } from "../../student-objectives";
+import { FOCUS_CONTENT_TYPES, STUDENT_OBJECTIVE_RECURRENCES, STUDENT_OBJECTIVE_TYPES } from "../../student-objectives";
 import { scheduleUi } from "../teacher/schedule-theme";
 
 type StudentObjectivesViewProps = UseStudentObjectivesOptions;
@@ -21,6 +28,36 @@ function formatDateTime(value: string) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+function formatMonthLabel(value: string) {
+  if (!value) return "Mois courant";
+  return new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric" }).format(new Date(`${value}-01T00:00:00`));
+}
+
+function ProductivityStatCard({
+  label,
+  value,
+  detail,
+  icon,
+}: {
+  label: string;
+  value: string | number;
+  detail: string;
+  icon: ReactNode;
+}) {
+  return (
+    <article className="rounded-2xl border border-white/[0.08] bg-[#0f172a]/80 p-4 shadow-xl shadow-black/20">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">{label}</p>
+          <p className="mt-2 text-2xl font-black text-white">{value}</p>
+          <p className="mt-1 text-[11px] font-semibold text-slate-400">{detail}</p>
+        </div>
+        <div className="rounded-xl border border-cyan-400/10 bg-cyan-500/10 p-2 text-cyan-200">{icon}</div>
+      </div>
+    </article>
+  );
 }
 
 function ObjectiveCard({
@@ -57,6 +94,13 @@ function ObjectiveCard({
 
       {objective.description && (
         <p className={`${scheduleUi.sessionMeta} line-clamp-3`}>{objective.description}</p>
+      )}
+
+      {objective.recurrence && objective.recurrence !== "NONE" && (
+        <p className="inline-flex w-fit items-center gap-1 rounded-full border border-violet-400/20 bg-violet-500/10 px-2 py-1 text-[10px] font-black uppercase tracking-widest text-violet-200">
+          <RotateCcw className="h-3 w-3" />
+          {objective.recurrenceLabel}
+        </p>
       )}
 
       <div className="grid grid-cols-1 gap-2 text-[11px] font-semibold text-slate-400 sm:grid-cols-2">
@@ -128,6 +172,12 @@ export default function StudentObjectivesView(props: StudentObjectivesViewProps)
     form,
     setForm,
     isSaving,
+    weeklyProgress,
+    stats,
+    calendarDays,
+    streak,
+    dueSoonObjectives,
+    overdueObjectives,
     openCreateForm,
     openEditForm,
     closeForm,
@@ -161,6 +211,64 @@ export default function StudentObjectivesView(props: StudentObjectivesViewProps)
       {statusMsg && <div className={scheduleUi.alertSuccess}>{statusMsg}</div>}
       {errorMsg && <div className={scheduleUi.alertError}>{errorMsg}</div>}
 
+      <section className="rounded-2xl border border-white/[0.08] bg-[#020617] p-4 sm:p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-cyan-300">Progression hebdomadaire</p>
+            <h2 className="mt-1 text-xl font-black text-white">{weeklyProgress.percent}% des objectifs terminés cette semaine</h2>
+            <p className="mt-1 text-xs font-semibold text-slate-400">
+              {weeklyProgress.completed} terminé(s) sur {weeklyProgress.created} créé(s) cette semaine.
+            </p>
+          </div>
+          <div className="min-w-0 flex-1 lg:max-w-md">
+            <div className="h-3 overflow-hidden rounded-full bg-slate-800">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-indigo-500 transition-all duration-500"
+                style={{ width: `${weeklyProgress.percent}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <ProductivityStatCard label="Créés" value={stats.totalCreated} detail="Objectifs au total" icon={<Target className="h-5 w-5" />} />
+        <ProductivityStatCard label="Terminés" value={stats.totalCompleted} detail="Objectifs validés" icon={<CheckCircle2 className="h-5 w-5" />} />
+        <ProductivityStatCard label="En retard" value={stats.overdue} detail="À rattraper maintenant" icon={<AlertTriangle className="h-5 w-5" />} />
+        <ProductivityStatCard label="Réussite" value={`${stats.successRate}%`} detail={`Streak ${streak.days} jour(s)`} icon={<Flame className="h-5 w-5" />} />
+      </section>
+
+      {(dueSoonObjectives.length > 0 || overdueObjectives.length > 0) && (
+        <section className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+          {overdueObjectives.length > 0 && (
+            <div className="rounded-2xl border border-red-500/20 bg-red-950/20 p-4">
+              <h2 className="inline-flex items-center gap-2 text-sm font-black text-red-200">
+                <AlertTriangle className="h-4 w-4" />
+                Objectifs en retard
+              </h2>
+              <div className="mt-3 space-y-2">
+                {overdueObjectives.slice(0, 3).map((objective) => (
+                  <p key={objective.id} className="text-xs font-semibold text-red-100/90">{objective.title} · {formatDateTime(objective.endAt)}</p>
+                ))}
+              </div>
+            </div>
+          )}
+          {dueSoonObjectives.length > 0 && (
+            <div className="rounded-2xl border border-amber-400/20 bg-amber-950/20 p-4">
+              <h2 className="inline-flex items-center gap-2 text-sm font-black text-amber-200">
+                <Clock3 className="h-4 w-4" />
+                Proches de la date limite
+              </h2>
+              <div className="mt-3 space-y-2">
+                {dueSoonObjectives.slice(0, 3).map((objective) => (
+                  <p key={objective.id} className="text-xs font-semibold text-amber-100/90">{objective.title} · {formatDateTime(objective.endAt)}</p>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
       <section className="rounded-2xl border border-cyan-400/10 bg-[#0f172a]/70 p-4 sm:p-5">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -170,6 +278,47 @@ export default function StudentObjectivesView(props: StudentObjectivesViewProps)
             </p>
           </div>
           <Headphones className="hidden h-8 w-8 text-cyan-300 sm:block" />
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-white/[0.08] bg-[#0f172a]/70 p-4 sm:p-5">
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="inline-flex items-center gap-2 text-base font-black text-white">
+              <CalendarDays className="h-4 w-4 text-cyan-300" />
+              Calendrier des objectifs
+            </h2>
+            <p className="mt-1 text-xs font-semibold text-slate-500">{formatMonthLabel(calendarDays[0]?.date?.slice(0, 7) || "")}</p>
+          </div>
+          <p className="inline-flex items-center gap-1 text-xs font-bold text-slate-400">
+            <TrendingUp className="h-3.5 w-3.5 text-emerald-300" />
+            Série productive : {streak.days} jour(s)
+          </p>
+        </div>
+        <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+          {calendarDays.map((day) => (
+            <div
+              key={day.date}
+              className={`min-h-[56px] rounded-xl border p-2 text-[10px] ${
+                day.overdueCount > 0
+                  ? "border-red-500/20 bg-red-950/20 text-red-100"
+                  : day.dueSoonCount > 0
+                    ? "border-amber-400/20 bg-amber-950/20 text-amber-100"
+                    : day.objectiveCount > 0
+                      ? "border-cyan-400/20 bg-cyan-950/20 text-cyan-100"
+                      : "border-white/[0.06] bg-[#020617]/60 text-slate-500"
+              }`}
+              title={`${day.objectiveCount} objectif(s)`}
+            >
+              <span className="font-black">{day.dayOfMonth}</span>
+              {day.objectiveCount > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  <span className="rounded-full bg-white/10 px-1.5 py-0.5 font-bold">{day.objectiveCount}</span>
+                  {day.completedCount > 0 && <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.5 font-bold">{day.completedCount} OK</span>}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </section>
 
@@ -309,6 +458,19 @@ export default function StudentObjectivesView(props: StudentObjectivesViewProps)
                   </select>
                 </label>
               </div>
+
+              <label className="space-y-2">
+                <span className={scheduleUi.label}>Récurrence</span>
+                <select
+                  className={scheduleUi.input}
+                  value={form.recurrence}
+                  onChange={(e) => setForm((current) => ({ ...current, recurrence: e.target.value as typeof form.recurrence }))}
+                >
+                  {STUDENT_OBJECTIVE_RECURRENCES.map((recurrence) => (
+                    <option key={recurrence.value} value={recurrence.value}>{recurrence.label}</option>
+                  ))}
+                </select>
+              </label>
 
               <div className="rounded-2xl border border-cyan-400/10 bg-cyan-500/5 p-4">
                 <div className="mb-4">

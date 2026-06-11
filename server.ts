@@ -75,6 +75,8 @@ import {
   validateStudentStudyPayload,
 } from "./src/student-study-schedule";
 import {
+  buildNextRecurringObjectiveData,
+  buildStudentObjectiveSummary,
   canAccessStudentObjective,
   normalizeStudentObjectivePayload,
   serializeStudentObjective,
@@ -1673,6 +1675,7 @@ const studentObjectiveSchema = z.object({
   focusContentTitle: z.string().max(160).trim().optional().nullable(),
   focusContentUrl: z.string().max(500).trim().optional().nullable(),
   focusContentType: z.enum(["PODCAST", "VIDEO", "AUDIO_REMINDER", "EDUCATIONAL_RESOURCE", "OTHER"]).optional().nullable(),
+  recurrence: z.enum(["NONE", "DAILY", "WEEKLY", "MONTHLY"]).optional().nullable(),
 });
 
 const chatTutorSchema = z.object({
@@ -4136,6 +4139,18 @@ app.get("/api/me/objectives", requireAuth, requireRbac, async (req, res) => {
   res.json(objectives);
 });
 
+// GET /api/me/objectives/summary
+app.get("/api/me/objectives/summary", requireAuth, requireRbac, async (req, res) => {
+  const authUser = (req as any).authUser as AppUser;
+  if (authUser.role !== "STUDENT") {
+    res.status(403).json({ error: "Objectifs réservés aux étudiants" });
+    return;
+  }
+
+  const objectives = await prisma.studentObjective.findMany({ where: { studentId: authUser.id } });
+  res.json(buildStudentObjectiveSummary(objectives as any));
+});
+
 // POST /api/me/objectives
 app.post("/api/me/objectives", requireAuth, requireRbac, validateBody(studentObjectiveSchema), async (req, res) => {
   const authUser = (req as any).authUser as AppUser;
@@ -4163,6 +4178,7 @@ app.post("/api/me/objectives", requireAuth, requireRbac, validateBody(studentObj
       focusContentTitle: payload.focusContentTitle,
       focusContentUrl: payload.focusContentUrl,
       focusContentType: payload.focusContentType,
+      recurrence: payload.recurrence,
       completedAt: payload.status === "COMPLETED" ? new Date() : null,
     },
   });
@@ -4206,6 +4222,7 @@ app.put("/api/me/objectives/:id", requireAuth, requireRbac, validateBody(student
       focusContentTitle: payload.focusContentTitle,
       focusContentUrl: payload.focusContentUrl,
       focusContentType: payload.focusContentType,
+      recurrence: payload.recurrence,
       completedAt: statusChangedToCompleted ? new Date() : statusChangedToProgress ? null : owned.completedAt,
     },
   });
@@ -4235,9 +4252,16 @@ app.patch("/api/me/objectives/:id/complete", requireAuth, requireRbac, async (re
       completedAt: owned.completedAt || new Date(),
     },
   });
+  const nextRecurringData = buildNextRecurringObjectiveData(updated as any, updated.completedAt || new Date());
+  const nextObjective = nextRecurringData
+    ? await prisma.studentObjective.create({ data: nextRecurringData as any })
+    : null;
 
   await logAudit(authUser.id, authUser.email, "COMPLETE_STUDENT_OBJECTIVE", "StudentObjective", updated.id, {}, req.ip);
-  res.json(serializeStudentObjective(updated as any));
+  res.json({
+    objective: serializeStudentObjective(updated as any),
+    nextObjective: nextObjective ? serializeStudentObjective(nextObjective as any) : null,
+  });
 });
 
 // DELETE /api/me/objectives/:id

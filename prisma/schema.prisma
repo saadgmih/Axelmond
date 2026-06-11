@@ -557,6 +557,14 @@ enum FocusContentType {
   @@schema("AxelmondResearchLab")
 }
 
+enum StudentObjectiveRecurrence {
+  NONE
+  DAILY
+  WEEKLY
+  MONTHLY
+  @@schema("AxelmondResearchLab")
+}
+
 model StudentObjective {
   id                String                 @id @default(cuid())
   studentId         String
@@ -569,12 +577,17 @@ model StudentObjective {
   focusContentTitle String?
   focusContentUrl   String?
   focusContentType  FocusContentType?
+  recurrence        StudentObjectiveRecurrence @default(NONE)
+  recurrenceSourceId String?
+  recurrenceCreatedAt DateTime?
   completedAt       DateTime?
   createdAt         DateTime               @default(now())
   updatedAt         DateTime               @updatedAt
   student           User                   @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@index([studentId, status])
+  @@index([studentId, recurrence])
+  @@index([studentId, recurrenceSourceId])
   @@index([studentId, startAt])
   @@index([studentId, endAt])
   @@schema("AxelmondResearchLab")

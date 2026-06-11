@@ -3,6 +3,7 @@ import { api } from "../api";
 import {
   sortStudentObjectives,
   type FocusContentTypeValue,
+  type StudentObjectiveRecurrenceValue,
   type StudentObjectiveStatusValue,
   type StudentObjectiveTypeValue,
 } from "../student-objectives";
@@ -22,9 +23,35 @@ export interface StudentObjectiveView {
   focusContentUrl: string;
   focusContentType: FocusContentTypeValue | "";
   focusContentTypeLabel: string;
+  recurrence: StudentObjectiveRecurrenceValue;
+  recurrenceLabel: string;
+  recurrenceSourceId: string | null;
+  recurrenceCreatedAt: string | null;
   completedAt: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface StudentObjectivesSummary {
+  generatedAt: string;
+  weeklyProgress: { startAt: string; endAt: string; created: number; completed: number; percent: number };
+  stats: { totalCreated: number; totalCompleted: number; overdue: number; successRate: number };
+  streak: { days: number; completedDays: string[] };
+  dueSoonObjectives: StudentObjectiveView[];
+  overdueObjectives: StudentObjectiveView[];
+  calendar: {
+    month: string;
+    days: Array<{
+      date: string;
+      dayOfMonth: number;
+      objectiveCount: number;
+      completedCount: number;
+      overdueCount: number;
+      dueSoonCount: number;
+      objectives: StudentObjectiveView[];
+    }>;
+  };
+  objectives: StudentObjectiveView[];
 }
 
 export interface StudentObjectiveFormState {
@@ -37,6 +64,7 @@ export interface StudentObjectiveFormState {
   focusContentTitle: string;
   focusContentUrl: string;
   focusContentType: FocusContentTypeValue | "";
+  recurrence: StudentObjectiveRecurrenceValue;
 }
 
 export interface UseStudentObjectivesOptions {
@@ -62,8 +90,20 @@ function defaultObjectiveForm(): StudentObjectiveFormState {
     focusContentTitle: "",
     focusContentUrl: "",
     focusContentType: "",
+    recurrence: "NONE",
   };
 }
+
+const emptySummary: StudentObjectivesSummary = {
+  generatedAt: "",
+  weeklyProgress: { startAt: "", endAt: "", created: 0, completed: 0, percent: 0 },
+  stats: { totalCreated: 0, totalCompleted: 0, overdue: 0, successRate: 0 },
+  streak: { days: 0, completedDays: [] },
+  dueSoonObjectives: [],
+  overdueObjectives: [],
+  calendar: { month: "", days: [] },
+  objectives: [],
+};
 
 function toApiPayload(form: StudentObjectiveFormState) {
   return {
@@ -76,6 +116,7 @@ function toApiPayload(form: StudentObjectiveFormState) {
     focusContentTitle: form.focusContentTitle.trim() || undefined,
     focusContentUrl: form.focusContentUrl.trim() || undefined,
     focusContentType: form.focusContentType || undefined,
+    recurrence: form.recurrence || "NONE",
   };
 }
 
@@ -90,6 +131,7 @@ function toFormState(objective: StudentObjectiveView): StudentObjectiveFormState
     focusContentTitle: objective.focusContentTitle,
     focusContentUrl: objective.focusContentUrl,
     focusContentType: objective.focusContentType,
+    recurrence: objective.recurrence || "NONE",
   };
 }
 
@@ -102,16 +144,22 @@ export function useStudentObjectives({ role, currentView }: UseStudentObjectives
   const [editingObjectiveId, setEditingObjectiveId] = useState<string | null>(null);
   const [form, setForm] = useState<StudentObjectiveFormState>(() => defaultObjectiveForm());
   const [isSaving, setIsSaving] = useState(false);
+  const [summary, setSummary] = useState<StudentObjectivesSummary>(emptySummary);
 
   const loadObjectives = useCallback(async () => {
     setIsLoading(true);
     setErrorMsg("");
     try {
-      const data = await api.getStudentObjectives();
+      const [data, summaryData] = await Promise.all([
+        api.getStudentObjectives(),
+        api.getStudentObjectivesSummary(),
+      ]);
       setObjectives(sortStudentObjectives(Array.isArray(data) ? data : []));
+      setSummary(summaryData || emptySummary);
     } catch (err: any) {
       setErrorMsg(err.message || "Impossible de charger vos objectifs");
       setObjectives([]);
+      setSummary(emptySummary);
     } finally {
       setIsLoading(false);
     }
@@ -173,6 +221,7 @@ export function useStudentObjectives({ role, currentView }: UseStudentObjectives
       });
       setStatusMsg(editingObjectiveId ? "Objectif modifié avec succès" : "Objectif ajouté avec succès");
       closeForm();
+      loadObjectives().catch(() => undefined);
     } catch (err: any) {
       setErrorMsg(err.message || "Enregistrement impossible");
     } finally {
@@ -184,11 +233,15 @@ export function useStudentObjectives({ role, currentView }: UseStudentObjectives
     setStatusMsg("");
     setErrorMsg("");
     try {
-      const updated = await api.completeStudentObjective(objectiveId);
-      setObjectives((current) => sortStudentObjectives(current.map((objective) => (
-        objective.id === objectiveId ? updated : objective
-      ))));
+      const response = await api.completeStudentObjective(objectiveId);
+      const updated = response?.objective || response;
+      const nextObjective = response?.nextObjective;
+      setObjectives((current) => {
+        const replaced = current.map((objective) => (objective.id === objectiveId ? updated : objective));
+        return sortStudentObjectives(nextObjective ? [...replaced, nextObjective] : replaced);
+      });
       setStatusMsg("Objectif marqué comme terminé");
+      loadObjectives().catch(() => undefined);
     } catch (err: any) {
       setErrorMsg(err.message || "Impossible de terminer cet objectif");
     }
@@ -202,6 +255,7 @@ export function useStudentObjectives({ role, currentView }: UseStudentObjectives
       setObjectives((current) => current.filter((objective) => objective.id !== objectiveId));
       setStatusMsg("Objectif supprimé");
       if (editingObjectiveId === objectiveId) closeForm();
+      loadObjectives().catch(() => undefined);
     } catch (err: any) {
       setErrorMsg(err.message || "Suppression impossible");
     }
@@ -209,6 +263,13 @@ export function useStudentObjectives({ role, currentView }: UseStudentObjectives
 
   return {
     objectives,
+    summary,
+    weeklyProgress: summary.weeklyProgress,
+    stats: summary.stats,
+    calendarDays: summary.calendar.days,
+    streak: summary.streak,
+    dueSoonObjectives: summary.dueSoonObjectives,
+    overdueObjectives: summary.overdueObjectives,
     inProgressObjectives,
     completedObjectives,
     isLoading,

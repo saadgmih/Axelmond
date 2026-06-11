@@ -163,6 +163,9 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
   if (verb === "GET" && cleanPath === "/api/me/objectives") {
     return normalized === "STUDENT";
   }
+  if (verb === "GET" && cleanPath === "/api/me/objectives/summary") {
+    return normalized === "STUDENT";
+  }
   if (verb === "POST" && cleanPath === "/api/me/objectives") {
     return normalized === "STUDENT";
   }

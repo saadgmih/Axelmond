@@ -347,6 +347,7 @@ export const api = {
   }) => request<any>("PUT", `/api/me/study-schedule/${id}`, data),
   deleteStudyScheduleSession: (id: string) => request<any>("DELETE", `/api/me/study-schedule/${id}`),
   getStudentObjectives: () => request<any[]>("GET", "/api/me/objectives"),
+  getStudentObjectivesSummary: () => request<any>("GET", "/api/me/objectives/summary"),
   createStudentObjective: (data: {
     title: string;
     description?: string;
@@ -357,6 +358,7 @@ export const api = {
     focusContentTitle?: string;
     focusContentUrl?: string;
     focusContentType?: string;
+    recurrence?: string;
   }) => request<any>("POST", "/api/me/objectives", data),
   updateStudentObjective: (id: string, data: {
     title: string;
@@ -368,6 +370,7 @@ export const api = {
     focusContentTitle?: string;
     focusContentUrl?: string;
     focusContentType?: string;
+    recurrence?: string;
   }) => request<any>("PUT", `/api/me/objectives/${id}`, data),
   completeStudentObjective: (id: string) => request<any>("PATCH", `/api/me/objectives/${id}/complete`),
   deleteStudentObjective: (id: string) => request<any>("DELETE", `/api/me/objectives/${id}`),
