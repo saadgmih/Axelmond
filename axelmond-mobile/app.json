@@ -18,8 +18,11 @@
       "infoPlist": {
         "NSCameraUsageDescription": "Axelmond utilise la caméra pour participer aux cours en direct.",
         "NSMicrophoneUsageDescription": "Axelmond utilise le microphone pour participer aux cours en direct.",
-        "UIBackgroundModes": ["audio"]
-      }
+        "UIBackgroundModes": [
+          "audio"
+        ]
+      },
+      "bitcode": false
     },
     "android": {
       "package": "com.axelmond.researchlabs",
@@ -34,7 +37,12 @@
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS",
-        "android.permission.BLUETOOTH_CONNECT"
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.INTERNET",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.WAKE_LOCK",
+        "android.permission.BLUETOOTH"
       ]
     },
     "web": {
@@ -51,6 +59,7 @@
           "recordAudioAndroid": true
         }
       ],
+      [
         "@livekit/react-native-expo-plugin",
         {
           "android": {
@@ -65,6 +74,12 @@
           "microphonePermission": "Axelmond utilise le microphone pour participer aux cours en direct."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "19fe7b32-62c0-4ad5-9d05-9ba343f69317"
+      }
+    },
+    "owner": "gmihsaad"
   }
 }
