@@ -1,0 +1,36 @@
+import type { NavigatorScreenParams } from "@react-navigation/native";
+
+export type AuthStackParamList = {
+  Login: undefined;
+  Register: undefined;
+};
+
+export type StudentTabParamList = {
+  StudentDashboard: undefined;
+  CourseCatalog: undefined;
+  StudentProfile: undefined;
+};
+
+export type StudentStackParamList = {
+  StudentTabs: NavigatorScreenParams<StudentTabParamList>;
+  CourseDetails: { courseId: number };
+  LiveClassroom: { courseId: number; courseTitle?: string };
+};
+
+export type TeacherStackParamList = {
+  TeacherDashboard: undefined;
+  CourseDetails: { courseId: number };
+  LiveClassroom: { courseId: number; courseTitle?: string };
+};
+
+export type RootStackParamList = {
+  Auth: NavigatorScreenParams<AuthStackParamList>;
+  StudentApp: NavigatorScreenParams<StudentStackParamList>;
+  TeacherApp: NavigatorScreenParams<TeacherStackParamList>;
+};
+
+declare global {
+  namespace ReactNavigation {
+    interface RootParamList extends RootStackParamList {}
+  }
+}

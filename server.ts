@@ -95,6 +95,8 @@ import {
 } from "./src/security-hardening";
 import { clearAuthCookies, readRefreshTokenFromRequest, setAuthCookies } from "./src/auth-cookies";
 import { csrfProtection } from "./src/auth-csrf";
+import { isMobileClientRequest, withMobileRefreshToken } from "./src/auth-mobile";
+import { applyMobileApiCorsHeaders, registerMobileApiRoutes } from "./src/mobile-api-routes";
 import { emailRateLimitKey } from "./src/email-rate-limit";
 import { liveKitRateLimitKey } from "./src/livekit-rate-limit";
 import { adminRateLimitKey } from "./src/admin-rate-limit";
@@ -223,11 +225,13 @@ app.use((_req, res, next) => {
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  if (origin && allowedOrigins.has(normalizeOriginUrl(origin))) {
+  if (isMobileClientRequest(req) && req.path.startsWith("/api/")) {
+    applyMobileApiCorsHeaders(req, res);
+  } else if (origin && allowedOrigins.has(normalizeOriginUrl(origin))) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Vary", "Origin");
     res.setHeader("Access-Control-Allow-Credentials", "true");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-CSRF-Token");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-CSRF-Token, X-Axelmond-Client");
     res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
   }
   if (req.method === "OPTIONS") {
@@ -3466,7 +3470,7 @@ app.post("/api/auth/login", validateBody(loginSchema), async (req, res) => {
   const refreshToken = await createRefreshToken(user.id);
   const csrfToken = setAuthCookies(res, refreshToken);
   logSecurity("INFO", "User logged in", { userId: user.id, role: user.role });
-  res.json({ ...safeUser, token: signAuthToken(safeUser), csrfToken });
+  res.json(withMobileRefreshToken(req, { ...safeUser, token: signAuthToken(safeUser), csrfToken }, refreshToken));
 });
 
 // POST /api/auth/refresh
@@ -3510,7 +3514,7 @@ app.post("/api/auth/refresh", async (req, res) => {
   const token = signAuthToken(safeUser);
   const csrfToken = setAuthCookies(res, newRefreshToken);
   logSecurity("INFO", "Session token refreshed", { userId: safeUser.id, role: safeUser.role });
-  res.json({ token, csrfToken });
+  res.json(withMobileRefreshToken(req, { token, csrfToken }, newRefreshToken));
 });
 
 // POST /api/auth/logout
@@ -3539,7 +3543,7 @@ app.post("/api/auth/verify-email", validateBody(verifyEmailSchema), async (req, 
     const safeUser = toAppUser(user);
     const newRefreshToken = await createRefreshToken(safeUser.id);
     const csrfToken = setAuthCookies(res, newRefreshToken);
-    res.json({ ...safeUser, token: signAuthToken(safeUser), csrfToken, message: "E-mail déjà vérifié" });
+    res.json(withMobileRefreshToken(req, { ...safeUser, token: signAuthToken(safeUser), csrfToken, message: "E-mail déjà vérifié" }, newRefreshToken));
     return;
   }
 
@@ -3598,7 +3602,7 @@ app.post("/api/auth/verify-email", validateBody(verifyEmailSchema), async (req, 
   const newRefreshToken = await createRefreshToken(safeUser.id);
   const csrfToken = setAuthCookies(res, newRefreshToken);
   logEmail("INFO", "Email verified", { userId: safeUser.id, role: safeUser.role });
-  res.json({ ...safeUser, token: signAuthToken(safeUser), csrfToken, message: "E-mail vérifié avec succès" });
+  res.json(withMobileRefreshToken(req, { ...safeUser, token: signAuthToken(safeUser), csrfToken, message: "E-mail vérifié avec succès" }, newRefreshToken));
 });
 
 // POST /api/auth/resend-verification-code
@@ -5301,6 +5305,8 @@ app.get("/api/health", async (req, res) => {
 
   res.status(dbStatus === "HEALTHY" ? 200 : 503).json(payload);
 });
+
+registerMobileApiRoutes(app, { requireAuth });
 
 registerMessagingRoutes(app, { requireAuth, requireRbac, validateBody });
 

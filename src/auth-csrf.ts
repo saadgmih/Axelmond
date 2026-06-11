@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { CSRF_COOKIE_NAME } from "./auth-cookies";
+import { isMobileClientRequest } from "./auth-mobile";
 
 const UNSAFE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
@@ -29,8 +30,34 @@ function isCsrfExempt(req: Request): boolean {
   );
 }
 
+function isMobileCsrfExempt(req: Request): boolean {
+  if (!isMobileClientRequest(req)) return false;
+
+  const authHeader = req.headers.authorization;
+  if (typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
+    return true;
+  }
+
+  const refreshToken = req.body?.refreshToken;
+  if (
+    typeof refreshToken === "string"
+    && refreshToken.length > 0
+    && (req.path === "/api/auth/refresh" || req.path === "/api/auth/logout")
+  ) {
+    return true;
+  }
+
+  const headerToken = req.headers["x-csrf-token"];
+  return typeof headerToken === "string" && headerToken.length > 0;
+}
+
 export function csrfProtection(req: Request, res: Response, next: NextFunction): void {
   if (isCsrfExempt(req) || !req.path.startsWith("/api/")) {
+    next();
+    return;
+  }
+
+  if (isMobileCsrfExempt(req)) {
     next();
     return;
   }
