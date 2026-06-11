@@ -5,6 +5,13 @@
 :root {
   --app-content-max: 160rem;
   --touch-target-min: 44px;
+
+  /* Axelmond scrollbars — light */
+  --scroll-size: 7px;
+  --scroll-track: rgba(226, 232, 240, 0.45);
+  --scroll-thumb: rgba(99, 102, 241, 0.34);
+  --scroll-thumb-hover: rgba(99, 102, 241, 0.56);
+  --scroll-thumb-active: rgba(230, 0, 126, 0.5);
 }
 
 html {
@@ -36,30 +43,80 @@ body {
 
 .hide-scrollbar {
   -ms-overflow-style: none;
-  scrollbar-width: none;
+  scrollbar-width: none !important;
 }
 
 .hide-scrollbar::-webkit-scrollbar {
-  display: none;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* ─── Global Axelmond scrollbars (WebKit + Firefox) ─────────────────────── */
+:where(html, body, #root, *) {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+}
+
+:where(*)::-webkit-scrollbar {
+  width: var(--scroll-size);
+  height: var(--scroll-size);
+}
+
+:where(*)::-webkit-scrollbar-track {
+  background: var(--scroll-track);
+  border-radius: 9999px;
+}
+
+:where(*)::-webkit-scrollbar-thumb {
+  background-color: var(--scroll-thumb);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:where(*)::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scroll-thumb-hover);
+}
+
+:where(*)::-webkit-scrollbar-thumb:active {
+  background-color: var(--scroll-thumb-active);
+}
+
+:where(*)::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+  scrollbar-color: var(--scroll-thumb) var(--scroll-track);
 }
 
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: var(--scroll-size);
+  height: var(--scroll-size);
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--scroll-track);
+  border-radius: 9999px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.35);
+  background-color: var(--scroll-thumb);
   border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scroll-thumb-hover);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:active {
+  background-color: var(--scroll-thumb-active);
 }
 
 /* Smooth transitions for the dark interface */
@@ -72,6 +129,10 @@ body {
 /* Custom dark interface variables and overrides */
 .dark {
   color-scheme: dark;
+  --scroll-track: rgba(15, 23, 42, 0.55);
+  --scroll-thumb: rgba(129, 140, 248, 0.34);
+  --scroll-thumb-hover: rgba(167, 139, 250, 0.58);
+  --scroll-thumb-active: rgba(244, 114, 182, 0.55);
 }
 
 /* Card backgrounds: turn raw white to premium slate-900 */
@@ -363,6 +424,10 @@ body {
 /* High contrast mode (user toggle) */
 .a11y-high-contrast {
   color-scheme: dark;
+  --scroll-track: rgba(2, 6, 23, 0.85);
+  --scroll-thumb: rgba(253, 224, 71, 0.72);
+  --scroll-thumb-hover: rgba(253, 224, 71, 0.92);
+  --scroll-thumb-active: rgba(251, 191, 36, 1);
 }
 
 .a11y-high-contrast .text-slate-400,
@@ -408,4 +473,10 @@ body {
 .a11y-reduce-motion .voice-search-mic-active,
 .a11y-reduce-motion .voice-search-listening-label {
   animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(*)::-webkit-scrollbar-thumb {
+    transition: none !important;
+  }
 }

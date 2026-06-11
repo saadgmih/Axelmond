@@ -28,8 +28,7 @@ type PayPalConfig = {
   env: "sandbox" | "live";
 };
 
-const scrollAreaClass =
-  "overflow-y-auto overscroll-contain [scrollbar-width:thin] [scrollbar-color:rgba(148,163,184,0.35)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-600/50";
+const scrollAreaClass = "overflow-y-auto overscroll-contain";
 
 export default function PaymentModal({ course, onClose, onSuccess }: PaymentModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);

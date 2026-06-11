@@ -37,6 +37,10 @@ assert.match(cssSource, /\.a11y-high-contrast/);
 assert.match(cssSource, /prefers-reduced-motion/);
 assert.match(cssSource, /\.a11y-reduce-motion/);
 assert.match(cssSource, /focus-visible/);
+assert.match(cssSource, /--scroll-thumb/);
+assert.match(cssSource, /scrollbar-color:\s*var\(--scroll-thumb\)/);
+assert.match(cssSource, /::-webkit-scrollbar-thumb:hover/);
+assert.match(cssSource, /\.hide-scrollbar/);
 
 assert.match(packageSource, /accessibility\.test\.ts/);
 
