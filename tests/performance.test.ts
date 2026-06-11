@@ -6,6 +6,7 @@ import {
   cacheGet,
   cacheSet,
   cacheDel,
+  cacheDelByPrefix,
   cacheFlush,
   cacheSize,
   startCachePruner,
@@ -71,7 +72,29 @@ async function testCache() {
   const parsed = raw ? JSON.parse(raw) : null;
   assert(parsed !== null && parsed.courses.length === 3, "GET JSON sérialisé → objet correct");
 
-  // 7. Pruner démarre et s'arrête sans erreur
+  // 7. Suppression par préfixe pour invalider toutes les variantes filtrées
+  await cacheSet("api:courses:public:d=0:dis=0", "all", 60);
+  await cacheSet("api:courses:public:d=1:dis=0", "domain", 60);
+  await cacheSet("api:domains:public", "domains", 60);
+  const deletedByPrefix = await cacheDelByPrefix("api:courses:public:");
+  assert(deletedByPrefix === 2, "cacheDelByPrefix supprime toutes les clés de cours filtrées");
+  assert(await cacheGet("api:courses:public:d=0:dis=0") === null, "cacheDelByPrefix supprime la liste non filtrée");
+  assert(await cacheGet("api:courses:public:d=1:dis=0") === null, "cacheDelByPrefix supprime la liste filtrée");
+  assert(await cacheGet("api:domains:public") === "domains", "cacheDelByPrefix préserve les autres préfixes");
+
+  // 8. Éviction LRU bornée
+  await cacheFlush();
+  for (let i = 0; i < 1001; i++) {
+    await cacheSet(`lru:${i}`, String(i), 60);
+  }
+  assert(cacheSize() === 1000, "cache borné à 1000 entrées par défaut");
+  assert(await cacheGet("lru:0") === null, "LRU évince la plus ancienne entrée");
+  assert(await cacheGet("lru:1") === "1", "GET rafraîchit l'ordre LRU");
+  await cacheSet("lru:new", "new", 60);
+  assert(await cacheGet("lru:1") === "1", "entrée récemment lue conservée après éviction");
+  assert(await cacheGet("lru:2") === null, "entrée la moins récemment utilisée évincée");
+
+  // 9. Pruner démarre et s'arrête sans erreur
   startCachePruner();
   stopCachePruner();
   assert(true, "startCachePruner() / stopCachePruner() sans erreur");

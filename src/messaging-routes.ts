@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import { prisma } from "./db";
-import { normalizeRole } from "./rbac";
+import { isStudentRole, isTeacherSpaceRole, normalizeRole } from "./rbac";
 import {
   canUsersDirectMessage,
   findDirectConversationId,
@@ -9,6 +9,7 @@ import {
   MESSAGE_BODY_MAX,
   MESSAGE_SEARCH_MIN,
   serializeConversationSummary,
+  serializeConversationSummariesForViewer,
   serializeMessage,
   serializeMessagingUser,
   validateMessageAttachmentInput,
@@ -55,6 +56,84 @@ const pushSubscribeSchema = z.object({
   }),
 });
 
+async function filterAllowedMessagingCandidates(
+  authUser: AuthUser,
+  candidates: Array<{ id: string; fullName: string; email: string; role: string; avatarUrl: string | null }>,
+) {
+  const authRole = normalizeRole(authUser.role);
+  if (!authRole) return [];
+
+  const candidatesWithRole = candidates
+    .map((candidate) => ({ ...candidate, role: normalizeRole(candidate.role) }))
+    .filter((candidate): candidate is typeof candidate & { role: NonNullable<ReturnType<typeof normalizeRole>> } => Boolean(candidate.role));
+
+  const allowedUserIds = new Set<string>();
+  const teacherCandidates = candidatesWithRole.filter((candidate) => isTeacherSpaceRole(candidate.role));
+  const studentCandidates = candidatesWithRole.filter((candidate) => isStudentRole(candidate.role));
+
+  if (isTeacherSpaceRole(authRole)) {
+    for (const candidate of teacherCandidates) {
+      allowedUserIds.add(candidate.id);
+    }
+
+    if (studentCandidates.length > 0) {
+      const teacherCourses = await prisma.course.findMany({
+        where: { createdById: authUser.id },
+        select: { id: true },
+      });
+      const courseIds = teacherCourses.map((course) => course.id);
+      if (courseIds.length > 0) {
+        const enrollments = await prisma.enrollment.findMany({
+          where: {
+            userId: { in: studentCandidates.map((candidate) => candidate.id) },
+            courseId: { in: courseIds },
+          },
+          select: { userId: true },
+        });
+        for (const enrollment of enrollments) {
+          allowedUserIds.add(enrollment.userId);
+        }
+      }
+    }
+  } else if (isStudentRole(authRole)) {
+    const authEnrollments = await prisma.enrollment.findMany({
+      where: { userId: authUser.id },
+      select: { courseId: true },
+    });
+    const enrolledCourseIds = authEnrollments.map((entry) => entry.courseId);
+
+    if (enrolledCourseIds.length > 0 && studentCandidates.length > 0) {
+      const sharedEnrollments = await prisma.enrollment.findMany({
+        where: {
+          userId: { in: studentCandidates.map((candidate) => candidate.id) },
+          courseId: { in: enrolledCourseIds },
+        },
+        select: { userId: true },
+      });
+      for (const enrollment of sharedEnrollments) {
+        allowedUserIds.add(enrollment.userId);
+      }
+    }
+
+    if (enrolledCourseIds.length > 0 && teacherCandidates.length > 0) {
+      const teacherCourses = await prisma.course.findMany({
+        where: {
+          id: { in: enrolledCourseIds },
+          createdById: { in: teacherCandidates.map((candidate) => candidate.id) },
+        },
+        select: { createdById: true },
+      });
+      for (const course of teacherCourses) {
+        if (course.createdById) allowedUserIds.add(course.createdById);
+      }
+    }
+  }
+
+  return candidatesWithRole
+    .filter((candidate) => allowedUserIds.has(candidate.id))
+    .map((candidate) => serializeMessagingUser(candidate));
+}
+
 export function registerMessagingRoutes(
   app: Express,
   middleware: {
@@ -86,16 +165,7 @@ export function registerMessagingRoutes(
       select: { id: true, fullName: true, email: true, role: true, avatarUrl: true },
     });
 
-    const allowed = [];
-    for (const candidate of candidates) {
-      const role = normalizeRole(candidate.role);
-      if (!role) continue;
-      const ok = await canUsersDirectMessage(
-        { id: authUser.id, role: normalizeRole(authUser.role)! },
-        { id: candidate.id, role },
-      );
-      if (ok) allowed.push(serializeMessagingUser({ ...candidate, role }));
-    }
+    const allowed = await filterAllowedMessagingCandidates(authUser, candidates);
     res.json(allowed);
   });
 
@@ -106,11 +176,10 @@ export function registerMessagingRoutes(
       orderBy: { conversation: { updatedAt: "desc" } },
       select: { conversationId: true },
     });
-    const summaries = [];
-    for (const membership of memberships) {
-      const summary = await serializeConversationSummary(membership.conversationId, authUser.id);
-      if (summary) summaries.push(summary);
-    }
+    const summaries = await serializeConversationSummariesForViewer(
+      memberships.map((membership) => membership.conversationId),
+      authUser.id,
+    );
     res.json(summaries);
   });
 

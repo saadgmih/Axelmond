@@ -44,6 +44,7 @@ import StudentCatalogView from "./views/student/StudentCatalogView";
 import StudentCourseView from "./views/student/StudentCourseView";
 import StudentProfileView from "./views/student/StudentProfileView";
 import StudentStudyScheduleView from "./views/student/StudentStudyScheduleView";
+import StudentObjectivesView from "./views/student/StudentObjectivesView";
 import StudentLiveView from "./views/student/StudentLiveView";
 import { useLiveKitRoom } from "./hooks/useLiveKitRoom";
 import { useCourseContent } from "./hooks/useCourseContent";
@@ -688,6 +689,9 @@ export default function App() {
           )}
           {currentView === "study-schedule" && (
             <StudentStudyScheduleView role={role} currentView={currentView} />
+          )}
+          {currentView === "objectives" && (
+            <StudentObjectivesView role={role} currentView={currentView} />
           )}
           {currentView === "messages" && currentUser && (
             <div className="p-4 md:p-8">

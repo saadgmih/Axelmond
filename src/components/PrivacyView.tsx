@@ -587,16 +587,32 @@ export default function PrivacyView() {
             inView={s7Ref.inView} delay={50}
           >
             <p>
-              La plateforme Axelmond Research Labs utilise un stockage local minimal et strictement nécessaire
-              au fonctionnement du service. Aucun cookie de traçage ou de publicité n'est utilisé.
+              La plateforme Axelmond Research Labs utilise des cookies essentiels de sécurité et un stockage local
+              minimal pour les préférences et l'affichage. Aucun cookie de traçage ou de publicité n'est utilisé.
             </p>
             <div className="space-y-3">
               {[
                 {
-                  name: "axelmond_session_token",
+                  name: "refresh_token",
+                  type: "Cookie HttpOnly",
+                  purpose: "Jeton de renouvellement de session protégé contre la lecture JavaScript.",
+                  duration: "7 jours maximum ou jusqu'à déconnexion",
+                  necessary: true,
+                  color: "border-indigo-800/30 bg-indigo-950/20",
+                },
+                {
+                  name: "csrf_token",
+                  type: "Cookie lisible",
+                  purpose: "Protection des requêtes sensibles contre les attaques CSRF.",
+                  duration: "7 jours maximum ou jusqu'à déconnexion",
+                  necessary: true,
+                  color: "border-sky-800/30 bg-sky-950/20",
+                },
+                {
+                  name: "axelmond_session_user",
                   type: "localStorage",
-                  purpose: "Jeton d'authentification JWT permettant de maintenir votre session active entre les pages.",
-                  duration: "Jusqu'à déconnexion ou expiration du token (24h max)",
+                  purpose: "Données d'affichage non secrètes du profil connecté; les anciens jetons localStorage sont purgés.",
+                  duration: "Jusqu'à déconnexion",
                   necessary: true,
                   color: "border-indigo-800/30 bg-indigo-950/20",
                 },

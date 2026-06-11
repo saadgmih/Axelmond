@@ -15,6 +15,10 @@ interface CacheEntry {
 const store = new Map<string, CacheEntry>();
 
 const DEFAULT_TTL_SECONDS = Number(process.env.CACHE_TTL_SECONDS) || 60;
+const configuredMaxEntries = Number(process.env.CACHE_MAX_ENTRIES);
+const DEFAULT_MAX_ENTRIES = Number.isInteger(configuredMaxEntries) && configuredMaxEntries > 0
+  ? configuredMaxEntries
+  : 1000;
 
 function logCache(level: "INFO" | "WARN", message: string, data?: unknown) {
   console.log(`[${new Date().toISOString()}] [${level}] [cache] ${message}${data ? " " + JSON.stringify(data) : ""}`);
@@ -31,6 +35,14 @@ function pruneExpired() {
   }
   if (pruned > 0) {
     logCache("INFO", "Pruned expired cache entries", { pruned, remaining: store.size });
+  }
+}
+
+function evictLeastRecentlyUsed() {
+  while (store.size > DEFAULT_MAX_ENTRIES) {
+    const oldestKey = store.keys().next().value;
+    if (!oldestKey) return;
+    store.delete(oldestKey);
   }
 }
 
@@ -60,18 +72,33 @@ export async function cacheGet(key: string): Promise<string | null> {
     store.delete(key);
     return null;
   }
+  store.delete(key);
+  store.set(key, entry);
   return entry.value;
 }
 
 export async function cacheSet(key: string, value: string, ttlSeconds: number = DEFAULT_TTL_SECONDS): Promise<void> {
+  store.delete(key);
   store.set(key, {
     value,
     expiresAt: Date.now() + ttlSeconds * 1000,
   });
+  evictLeastRecentlyUsed();
 }
 
 export async function cacheDel(key: string): Promise<void> {
   store.delete(key);
+}
+
+export async function cacheDelByPrefix(prefix: string): Promise<number> {
+  let deleted = 0;
+  for (const key of store.keys()) {
+    if (key.startsWith(prefix)) {
+      store.delete(key);
+      deleted++;
+    }
+  }
+  return deleted;
 }
 
 export async function cacheFlush(): Promise<void> {

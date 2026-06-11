@@ -209,7 +209,9 @@ export default function CookiesView() {
   ];
 
   const retentionData = [
-    { name: "axelmond_session_token", type: "localStorage", duration: "24h max (expiration JWT)", category: "Essentiel" },
+    { name: "refresh_token", type: "Cookie HttpOnly", duration: "7 jours max ou jusqu'à déconnexion", category: "Essentiel" },
+    { name: "csrf_token", type: "Cookie lisible", duration: "7 jours max ou jusqu'à déconnexion", category: "Essentiel" },
+    { name: "axelmond_session_user", type: "localStorage", duration: "Jusqu'à déconnexion", category: "Essentiel" },
     { name: "user_preferences", type: "localStorage", duration: "Persistent (jusqu'à effacement manuel)", category: "Fonctionnel" },
     { name: "analytics_session", type: "sessionStorage", duration: "Durée de la session navigateur", category: "Analytique" },
     { name: "theme_preference", type: "localStorage", duration: "Persistent (jusqu'à modification)", category: "Fonctionnel" },
@@ -293,9 +295,9 @@ export default function CookiesView() {
           <div className="mt-8 bg-amber-950/20 border border-amber-800/30 rounded-2xl px-5 py-4 flex items-start gap-3">
             <Cookie className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
             <p className="text-[12px] text-slate-400 leading-relaxed">
-              <strong className="text-amber-300">Bon à savoir :</strong> La plateforme utilise uniquement
-              le <strong className="text-white">stockage local du navigateur</strong> (localStorage / sessionStorage),
-              et non des cookies tiers. Aucun pixel de tracking, aucune régie publicitaire, aucun réseau social
+              <strong className="text-amber-300">Bon à savoir :</strong> La plateforme utilise des cookies
+              <strong className="text-white"> strictement essentiels</strong> pour sécuriser la session,
+              ainsi que du stockage local pour les préférences. Aucun pixel de tracking, aucune régie publicitaire, aucun réseau social
               n'est connecté à vos données de navigation sur Axelmond Research Labs.
             </p>
           </div>
@@ -349,17 +351,16 @@ export default function CookiesView() {
                     lui permettant de vous reconnaître et d'adapter son comportement à vos préférences.
                   </p>
                   <p className="text-[13px] text-slate-300 leading-relaxed">
-                    Dans le contexte d'Axelmond Research Labs, nous utilisons principalement le{" "}
-                    <strong className="text-white">localStorage</strong> et le{" "}
-                    <strong className="text-white">sessionStorage</strong> du navigateur — des technologies
-                    similaires aux cookies mais strictement limitées à votre navigateur et votre appareil.
+                    Dans le contexte d'Axelmond Research Labs, nous utilisons des{" "}
+                    <strong className="text-white">cookies de sécurité</strong> pour la session et du{" "}
+                    <strong className="text-white">stockage local</strong> pour les préférences non secrètes.
                   </p>
                 </div>
                 <div className="space-y-3">
                   {[
-                    { label: "Stocké sur", value: "Votre navigateur (localStorage / sessionStorage)", icon: <Database className="w-3.5 h-3.5 text-slate-500" /> },
+                    { label: "Stocké sur", value: "Votre navigateur (cookies essentiels + stockage local)", icon: <Database className="w-3.5 h-3.5 text-slate-500" /> },
                     { label: "Accessible par", value: "Uniquement axelmond.com (domaine propriétaire)", icon: <Lock className="w-3.5 h-3.5 text-slate-500" /> },
-                    { label: "Contient", value: "Jeton de session, préférences UI, identifiant anonyme", icon: <Info className="w-3.5 h-3.5 text-slate-500" /> },
+                    { label: "Contient", value: "Cookie de session HttpOnly, jeton CSRF, préférences UI", icon: <Info className="w-3.5 h-3.5 text-slate-500" /> },
                     { label: "Ne contient pas", value: "Mot de passe, données bancaires, clés secrètes", icon: <XCircle className="w-3.5 h-3.5 text-red-500" /> },
                   ].map(({ label, value, icon }) => (
                     <div key={label} className="bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-3 flex items-start gap-3">
@@ -485,7 +486,7 @@ export default function CookiesView() {
                     {
                       icon: <XCircle className="w-5 h-5 text-red-400" />,
                       title: "Jamais de mot de passe",
-                      desc: "Aucun mot de passe, même chiffré, n'est jamais stocké dans un cookie ou dans le localStorage. L'authentification repose uniquement sur un JWT signé.",
+                      desc: "Aucun mot de passe, même chiffré, n'est jamais stocké dans un cookie ou dans le localStorage. Le refresh token est protégé par un cookie HttpOnly et le jeton d'accès reste en mémoire.",
                       border: "border-red-800/25 bg-red-950/10",
                     },
                     {

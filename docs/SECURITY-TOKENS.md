@@ -1,17 +1,20 @@
-# Session tokens — short-term production mitigation
+# Session tokens — production model
 
 ## Current model
 
-Access and refresh tokens are stored in **`localStorage`** (`axelmond_session_token`, `axelmond_refresh_token`) via `src/api.ts` and `useAppSession`.
+Access tokens are kept in memory only by `src/api.ts` and expire quickly. Refresh tokens are stored in an HttpOnly, Secure, SameSite cookie and are stored server-side only as hashes in the `RefreshToken` table.
+
+Legacy `localStorage` token keys (`axelmond_session_token`, `axelmond_refresh_token`) are actively purged by `src/api.ts` for migration safety.
 
 ## Risk
 
-Any XSS vulnerability in the SPA allows an attacker to read tokens and impersonate the user (including refresh rotation).
+Any XSS vulnerability can still act as the current user while the page is open, but it should not be able to read the refresh token directly. CSRF protection is required on unsafe API methods because cookies are sent automatically by the browser.
 
-## Mitigations in place (Phase 4A P0)
+## Mitigations in place
 
 1. **Helmet + CSP** (`server.ts`)
-   - Production: `'unsafe-eval'` removed from `script-src`.
+   - Production: `'unsafe-eval'` and script `'unsafe-inline'` removed from `script-src`.
+   - Per-request CSP nonce is available for controlled inline assets.
    - `connect-src` limited to `'self'`, LiveKit, UploadThing, and configured `APP_URL` / `ALLOWED_ORIGINS`.
    - HSTS enabled when `NODE_ENV=production` (requires HTTPS at the reverse proxy).
 
@@ -19,17 +22,13 @@ Any XSS vulnerability in the SPA allows an attacker to read tokens and impersona
 
 3. **React** renders user text without `dangerouslySetInnerHTML` in critical paths.
 
-## Not implemented yet (planned)
-
-- Refresh token in **HttpOnly, Secure, SameSite** cookie.
-- Access token in memory only (short TTL).
-- CSP nonces for inline scripts (remove `'unsafe-inline'`).
-
 ## Operational checklist before go-live
 
 - Set `NODE_ENV=production`.
 - Serve the app over **HTTPS** only.
 - Set strong `AUTH_TOKEN_SECRET`.
+- Set a distinct strong `EMAIL_VERIFICATION_SECRET`.
+- Use `PAYPAL_ENV=live` with live PayPal credentials and webhook ID.
 - Review third-party scripts and avoid injecting untrusted HTML.
 - Monitor `security-logger` for auth anomalies.
 

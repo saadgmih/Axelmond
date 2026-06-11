@@ -323,7 +323,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
                   <p className="font-bold text-slate-300">Adresse de l'Institut</p>
                   <p className="text-xs text-slate-400">Axelmond Research Labs</p>
                   <p className="text-xs text-slate-400">Casablanca, Maroc</p>
-                  <p className="text-[10px] text-amber-500/80 italic mt-1">TODO : adresse complète du siège social à compléter</p>
+                  <p className="text-[10px] text-slate-500 italic mt-1">Adresse complète communiquée sur demande administrative.</p>
                 </div>
               </div>
 

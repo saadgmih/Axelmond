@@ -160,6 +160,19 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
     return normalized === "STUDENT";
   }
 
+  if (verb === "GET" && cleanPath === "/api/me/objectives") {
+    return normalized === "STUDENT";
+  }
+  if (verb === "POST" && cleanPath === "/api/me/objectives") {
+    return normalized === "STUDENT";
+  }
+  if ((verb === "PUT" || verb === "DELETE") && /^\/api\/me\/objectives\/[^/]+$/.test(cleanPath)) {
+    return normalized === "STUDENT";
+  }
+  if (verb === "PATCH" && /^\/api\/me\/objectives\/[^/]+\/complete$/.test(cleanPath)) {
+    return normalized === "STUDENT";
+  }
+
   if (verb === "GET" && (cleanPath === "/api/conversations" || cleanPath === "/api/messaging/users/search" || cleanPath === "/api/notifications" || cleanPath === "/api/notifications/unread-count" || cleanPath === "/api/notifications/vapid-public-key")) {
     return true;
   }

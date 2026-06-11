@@ -1,5 +1,6 @@
 import express from "express";
 import { createServer } from "node:http";
+import crypto from "node:crypto";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
@@ -20,6 +21,7 @@ import {
   isPayPalConfigured,
   logPayPalError,
 } from "./src/paypal-server";
+import { registerPayPalConfigRoute } from "./src/paypal-routes";
 import { processPayPalCaptureEnrollment } from "./src/paypal-enrollment";
 import {
   extractPayPalWebhookHeaders,
@@ -52,13 +54,14 @@ import { ACADEMIC_DOMAINS, DEFAULT_DISCIPLINE_ID, getDisciplineIdForCourse } fro
 import { buildCourseGradeRows } from "./src/grades";
 import { sanitizeAcademicProfileInput, sanitizeAvatarUrl, isAvatarUrlFieldInvalid } from "./src/academic-profile";
 import { assertCourseLearningAccess } from "./src/course-access";
-import { cacheGet, cacheSet, cacheDel, startCachePruner } from "./src/cache";
+import { cacheGet, cacheSet, cacheDel, cacheDelByPrefix, startCachePruner } from "./src/cache";
 import { startPerformanceMonitor, requestTimingMiddleware } from "./src/performance";
-import { logSecurity, logAudit, alertFailedLogins, alertMassDeletions, alertSuspectUpload } from "./src/security-logger";
+import { logSecurity, logAudit, alertFailedLogins, alertSuspectUpload } from "./src/security-logger";
 import { decodeStoredText, decodeStoredValue } from "./src/text";
 import { shouldSkipStartupSeed } from "./src/startup-seed";
 import { patchExpressAsyncRoutes } from "./src/express-async";
 import { isBlockedProductionSourcePath } from "./src/static-source-guard";
+import { assertProductionConfiguration } from "./src/production-config";
 import {
   canAccessProfessorScheduleSession,
   serializeScheduleSession,
@@ -71,6 +74,13 @@ import {
   sortStudentStudySessions,
   validateStudentStudyPayload,
 } from "./src/student-study-schedule";
+import {
+  canAccessStudentObjective,
+  normalizeStudentObjectivePayload,
+  serializeStudentObjective,
+  sortStudentObjectives,
+  validateStudentObjectivePayload,
+} from "./src/student-objectives";
 import { registerMessagingRoutes } from "./src/messaging-routes";
 import { initMessagingSocket } from "./src/messaging-socket";
 import { notifyEnrolledStudentsForCourse } from "./src/notifications";
@@ -93,6 +103,7 @@ const app = express();
 patchExpressAsyncRoutes(app);
 const PORT = Number(process.env.PORT) || 3000;
 const isProduction = process.env.NODE_ENV === "production";
+assertProductionConfiguration(process.env);
 const isSecurityRuntimeTest = process.env.SECURITY_RUNTIME_TEST === "1";
 const AUTH_MAX_ATTEMPTS = Number(process.env.AUTH_MAX_ATTEMPTS) || 20;
 const AUTH_LOCKOUT_WINDOW_MS = Number(process.env.AUTH_LOCKOUT_WINDOW_MS) || 1 * 60 * 1000;
@@ -130,6 +141,8 @@ function buildAllowedOrigins(): Set<string> {
 }
 
 const allowedOrigins = buildAllowedOrigins();
+
+const cspNonce = (_req: express.Request, res: express.Response) => `'nonce-${res.locals.cspNonce}'`;
 
 function buildCspConnectSrc(): string[] {
   const connectSrc = [
@@ -169,19 +182,30 @@ function buildCspConnectSrc(): string[] {
   return connectSrc;
 }
 
+app.use((_req, res, next) => {
+  res.locals.cspNonce = crypto.randomBytes(16).toString("base64");
+  next();
+});
+
 app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
         scriptSrc: isProduction
-          ? ["'self'", "'unsafe-inline'", "https://www.paypal.com", "https://www.sandbox.paypal.com"]
+          ? ["'self'", cspNonce, "https://www.paypal.com", "https://www.sandbox.paypal.com"]
           : ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://www.paypal.com", "https://www.sandbox.paypal.com"],
+        scriptSrcAttr: ["'none'"],
         frameSrc: ["'self'", "https://www.paypal.com", "https://www.sandbox.paypal.com"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: isProduction ? ["'self'", cspNonce] : ["'self'", "'unsafe-inline'"],
+        styleSrcAttr: ["'unsafe-inline'"],
         imgSrc: ["'self'", "data:", "blob:", "https://uploadthing.com", "https://*.uploadthing.com", "https://ufs.sh", "https://*.ufs.sh", "https://utfs.io", "https://*.utfs.io"],
         mediaSrc: ["'self'", "https://uploadthing.com", "https://*.uploadthing.com", "https://ufs.sh", "https://*.ufs.sh", "https://utfs.io", "https://*.utfs.io"],
         connectSrc: buildCspConnectSrc(),
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        formAction: ["'self'"],
+        frameAncestors: ["'self'"],
       },
     },
     crossOriginEmbedderPolicy: false,
@@ -371,7 +395,9 @@ const liveKitModerationRateLimiter = rateLimit({
 // Rate limiters pour les routes admin
 const adminReadRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 300,
+  max: isSecurityRuntimeTest
+    ? Number(process.env.ADMIN_READ_RATE_LIMIT_MAX) || 9999
+    : Number(process.env.ADMIN_READ_RATE_LIMIT_MAX) || 300,
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: adminRateLimitKey,
@@ -380,7 +406,9 @@ const adminReadRateLimiter = rateLimit({
 
 const adminMutationRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 60,
+  max: isSecurityRuntimeTest
+    ? Number(process.env.ADMIN_MUTATION_RATE_LIMIT_MAX) || 9999
+    : Number(process.env.ADMIN_MUTATION_RATE_LIMIT_MAX) || 60,
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: adminRateLimitKey,
@@ -389,7 +417,9 @@ const adminMutationRateLimiter = rateLimit({
 
 const adminDiagnosticRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: isSecurityRuntimeTest
+    ? Number(process.env.ADMIN_DIAGNOSTIC_RATE_LIMIT_MAX) || 9999
+    : Number(process.env.ADMIN_DIAGNOSTIC_RATE_LIMIT_MAX) || 10,
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: adminRateLimitKey,
@@ -1633,6 +1663,18 @@ const studentStudyScheduleSchema = z.object({
   description: z.string().max(500).trim().optional().nullable(),
 });
 
+const studentObjectiveSchema = z.object({
+  title: z.string().min(1, "Le titre de l'objectif est obligatoire").max(160).trim(),
+  description: z.string().max(800).trim().optional().nullable(),
+  startAt: z.string().min(1, "Date de début obligatoire"),
+  endAt: z.string().min(1, "Date de fin obligatoire"),
+  status: z.enum(["IN_PROGRESS", "COMPLETED"]).optional(),
+  objectiveType: z.enum(["CHAPITRE", "TD", "RESUME", "REVISION", "AUTRE"]).optional().nullable(),
+  focusContentTitle: z.string().max(160).trim().optional().nullable(),
+  focusContentUrl: z.string().max(500).trim().optional().nullable(),
+  focusContentType: z.enum(["PODCAST", "VIDEO", "AUDIO_REMINDER", "EDUCATIONAL_RESOURCE", "OTHER"]).optional().nullable(),
+});
+
 const chatTutorSchema = z.object({
   courseId: z.number().int().positive(),
   moduleId: z.number().int().positive().optional(),
@@ -1883,6 +1925,11 @@ app.get("/api/domains", async (req, res) => {
   res.json(payload);
 });
 
+async function invalidatePublicCatalogCache(): Promise<void> {
+  await cacheDel("api:domains:public");
+  await cacheDelByPrefix("api:courses:public:");
+}
+
 // GET /api/courses
 app.get("/api/courses", async (req, res) => {
   const authUser = await getOptionalAuthUser(req);
@@ -1963,8 +2010,7 @@ app.post("/api/courses", requireAuth, requireRbac, validateBody(courseSchema), a
   await logAudit(authUser.id, authUser.email, "CREATE_COURSE", "Course", String(course.id), { title: course.title }, req.ip);
   logDb("INFO", "Course created", { courseId: course.id, userId: authUser.id, disciplineId: course.disciplineId, published: course.published });
   // Invalidation du cache public (le nouveau module doit apparaître immédiatement)
-  await cacheDel("api:domains:public");
-  await cacheDel(`api:courses:public:d=0:dis=0`);
+  await invalidatePublicCatalogCache();
   res.status(201).json(toCourse(course));
 });
 
@@ -2791,8 +2837,7 @@ app.put("/api/courses/:courseId", requireAuth, requireRbac, validateBody(courseS
 
   await logAudit(authUser.id, authUser.email, "UPDATE_COURSE", "Course", String(course.id), { title: updatedCourse.title }, req.ip);
   logDb("INFO", "Course updated", { courseId: course.id, fields: Object.keys(req.body) });
-  await cacheDel("api:domains:public");
-  await cacheDel(`api:courses:public:d=0:dis=0`);
+  await invalidatePublicCatalogCache();
   res.json(toCourse(updatedCourse));
 });
 
@@ -2848,8 +2893,7 @@ app.patch("/api/courses/:courseId", requireAuth, requireRbac, validateBody(cours
   });
 
   await logAudit(authUser.id, authUser.email, "PATCH_COURSE", "Course", String(course.id), req.body, req.ip);
-  await cacheDel("api:domains:public");
-  await cacheDel(`api:courses:public:d=0:dis=0`);
+  await invalidatePublicCatalogCache();
   if (updatedCourse?.isLiveNow && !course.isLiveNow) {
     await notifyEnrolledStudentsForCourse(course.id, {
       type: "LIVE_STARTED",
@@ -2903,8 +2947,7 @@ app.delete("/api/courses/:courseId", requireAuth, requireRbac, async (req, res) 
 
   await logAudit(authUser.id, authUser.email, "DELETE_COURSE", "Course", String(courseId), { title: course.title }, req.ip);
   logDb("INFO", "Course deleted", { courseId });
-  await cacheDel("api:domains:public");
-  await cacheDel(`api:courses:public:d=0:dis=0`);
+  await invalidatePublicCatalogCache();
   res.json({ ok: true, deletedId: courseId });
 });
 
@@ -4067,6 +4110,155 @@ app.delete("/api/me/study-schedule/:id", requireAuth, requireRbac, async (req, r
   res.json({ ok: true });
 });
 
+async function listStudentObjectives(studentId: string) {
+  const objectives = await prisma.studentObjective.findMany({
+    where: { studentId },
+    orderBy: [{ status: "asc" }, { endAt: "asc" }, { updatedAt: "desc" }],
+  });
+  return sortStudentObjectives(objectives as any).map((objective) => serializeStudentObjective(objective as any));
+}
+
+async function getOwnedStudentObjective(objectiveId: string, authUserId: string) {
+  const objective = await prisma.studentObjective.findUnique({ where: { id: objectiveId } });
+  if (!objective || !canAccessStudentObjective(objective.studentId, authUserId)) return null;
+  return objective;
+}
+
+// GET /api/me/objectives
+app.get("/api/me/objectives", requireAuth, requireRbac, async (req, res) => {
+  const authUser = (req as any).authUser as AppUser;
+  if (authUser.role !== "STUDENT") {
+    res.status(403).json({ error: "Objectifs réservés aux étudiants" });
+    return;
+  }
+
+  const objectives = await listStudentObjectives(authUser.id);
+  res.json(objectives);
+});
+
+// POST /api/me/objectives
+app.post("/api/me/objectives", requireAuth, requireRbac, validateBody(studentObjectiveSchema), async (req, res) => {
+  const authUser = (req as any).authUser as AppUser;
+  if (authUser.role !== "STUDENT") {
+    res.status(403).json({ error: "Objectifs réservés aux étudiants" });
+    return;
+  }
+
+  const validationError = validateStudentObjectivePayload(req.body);
+  if (validationError) {
+    res.status(400).json({ error: validationError, code: "STUDENT_OBJECTIVE_VALIDATION_FAILED" });
+    return;
+  }
+
+  const payload = normalizeStudentObjectivePayload(req.body);
+  const created = await prisma.studentObjective.create({
+    data: {
+      studentId: authUser.id,
+      title: payload.title,
+      description: payload.description,
+      startAt: payload.startAt,
+      endAt: payload.endAt,
+      status: payload.status,
+      objectiveType: payload.objectiveType,
+      focusContentTitle: payload.focusContentTitle,
+      focusContentUrl: payload.focusContentUrl,
+      focusContentType: payload.focusContentType,
+      completedAt: payload.status === "COMPLETED" ? new Date() : null,
+    },
+  });
+
+  await logAudit(authUser.id, authUser.email, "CREATE_STUDENT_OBJECTIVE", "StudentObjective", created.id, { status: created.status }, req.ip);
+  res.status(201).json(serializeStudentObjective(created as any));
+});
+
+// PUT /api/me/objectives/:id
+app.put("/api/me/objectives/:id", requireAuth, requireRbac, validateBody(studentObjectiveSchema), async (req, res) => {
+  const authUser = (req as any).authUser as AppUser;
+  if (authUser.role !== "STUDENT") {
+    res.status(403).json({ error: "Objectifs réservés aux étudiants" });
+    return;
+  }
+
+  const owned = await getOwnedStudentObjective(req.params.id, authUser.id);
+  if (!owned) {
+    res.status(403).json({ error: "Accès refusé pour modifier cet objectif" });
+    return;
+  }
+
+  const validationError = validateStudentObjectivePayload(req.body);
+  if (validationError) {
+    res.status(400).json({ error: validationError, code: "STUDENT_OBJECTIVE_VALIDATION_FAILED" });
+    return;
+  }
+
+  const payload = normalizeStudentObjectivePayload(req.body);
+  const statusChangedToCompleted = payload.status === "COMPLETED" && owned.status !== "COMPLETED";
+  const statusChangedToProgress = payload.status === "IN_PROGRESS";
+  const updated = await prisma.studentObjective.update({
+    where: { id: owned.id },
+    data: {
+      title: payload.title,
+      description: payload.description,
+      startAt: payload.startAt,
+      endAt: payload.endAt,
+      status: payload.status,
+      objectiveType: payload.objectiveType,
+      focusContentTitle: payload.focusContentTitle,
+      focusContentUrl: payload.focusContentUrl,
+      focusContentType: payload.focusContentType,
+      completedAt: statusChangedToCompleted ? new Date() : statusChangedToProgress ? null : owned.completedAt,
+    },
+  });
+
+  await logAudit(authUser.id, authUser.email, "UPDATE_STUDENT_OBJECTIVE", "StudentObjective", updated.id, { status: updated.status }, req.ip);
+  res.json(serializeStudentObjective(updated as any));
+});
+
+// PATCH /api/me/objectives/:id/complete
+app.patch("/api/me/objectives/:id/complete", requireAuth, requireRbac, async (req, res) => {
+  const authUser = (req as any).authUser as AppUser;
+  if (authUser.role !== "STUDENT") {
+    res.status(403).json({ error: "Objectifs réservés aux étudiants" });
+    return;
+  }
+
+  const owned = await getOwnedStudentObjective(req.params.id, authUser.id);
+  if (!owned) {
+    res.status(403).json({ error: "Accès refusé pour terminer cet objectif" });
+    return;
+  }
+
+  const updated = await prisma.studentObjective.update({
+    where: { id: owned.id },
+    data: {
+      status: "COMPLETED",
+      completedAt: owned.completedAt || new Date(),
+    },
+  });
+
+  await logAudit(authUser.id, authUser.email, "COMPLETE_STUDENT_OBJECTIVE", "StudentObjective", updated.id, {}, req.ip);
+  res.json(serializeStudentObjective(updated as any));
+});
+
+// DELETE /api/me/objectives/:id
+app.delete("/api/me/objectives/:id", requireAuth, requireRbac, async (req, res) => {
+  const authUser = (req as any).authUser as AppUser;
+  if (authUser.role !== "STUDENT") {
+    res.status(403).json({ error: "Objectifs réservés aux étudiants" });
+    return;
+  }
+
+  const owned = await getOwnedStudentObjective(req.params.id, authUser.id);
+  if (!owned) {
+    res.status(403).json({ error: "Accès refusé pour supprimer cet objectif" });
+    return;
+  }
+
+  await prisma.studentObjective.delete({ where: { id: owned.id } });
+  await logAudit(authUser.id, authUser.email, "DELETE_STUDENT_OBJECTIVE", "StudentObjective", owned.id, {}, req.ip);
+  res.json({ ok: true });
+});
+
 async function persistUserAvatarUrl(authUser: AppUser, avatarUrl: string) {
   await prisma.user.update({
     where: { id: authUser.id },
@@ -4145,7 +4337,7 @@ app.delete("/api/me/avatar", requireAuth, requireRbac, async (req, res) => {
 });
 
 // POST /api/me/password
-app.post("/api/me/password", requireAuth, requireRbac, async (req, res) => {
+app.post("/api/me/password", requireAuth, requireRbac, validateBody(passwordChangeSchema), async (req, res) => {
   const authUser = (req as any).authUser as AppUser;
   if (!canAccessAcademicProfile(authUser.role)) {
     res.status(403).json({ error: "Profil académique réservé aux administrateurs, professeurs et chercheurs" });
@@ -4154,10 +4346,6 @@ app.post("/api/me/password", requireAuth, requireRbac, async (req, res) => {
 
   const currentPassword = String(req.body?.currentPassword || "");
   const newPassword = String(req.body?.newPassword || "");
-  if (!currentPassword || newPassword.length < 6) {
-    res.status(400).json({ error: "Mot de passe actuel requis et nouveau mot de passe de 6 caractères minimum" });
-    return;
-  }
 
   const user = await prisma.user.findUnique({ where: { id: authUser.id } });
   if (!user) {
@@ -4622,19 +4810,7 @@ async function persistCoursePaymentEnrollment(params: {
   return { duplicate: false as const, user: updatedUser, invoice: newInvoice };
 }
 
-// GET /api/paypal/config - Public PayPal client configuration for the SDK
-app.get("/api/paypal/config", (_req, res) => {
-  const clientId = process.env.PAYPAL_CLIENT_ID?.trim();
-  if (!clientId || !isPayPalConfigured()) {
-    res.status(503).json({ error: "PayPal non configuré" });
-    return;
-  }
-
-  res.json({
-    clientId,
-    env: getPayPalRuntimeEnv(),
-  });
-});
+registerPayPalConfigRoute(app);
 
 // POST /api/paypal/create-order - Create a PayPal checkout order
 app.post("/api/paypal/create-order", requireAuth, async (req, res) => {

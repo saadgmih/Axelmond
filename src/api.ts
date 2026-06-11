@@ -346,6 +346,31 @@ export const api = {
     description?: string;
   }) => request<any>("PUT", `/api/me/study-schedule/${id}`, data),
   deleteStudyScheduleSession: (id: string) => request<any>("DELETE", `/api/me/study-schedule/${id}`),
+  getStudentObjectives: () => request<any[]>("GET", "/api/me/objectives"),
+  createStudentObjective: (data: {
+    title: string;
+    description?: string;
+    startAt: string;
+    endAt: string;
+    status?: "IN_PROGRESS" | "COMPLETED";
+    objectiveType?: string;
+    focusContentTitle?: string;
+    focusContentUrl?: string;
+    focusContentType?: string;
+  }) => request<any>("POST", "/api/me/objectives", data),
+  updateStudentObjective: (id: string, data: {
+    title: string;
+    description?: string;
+    startAt: string;
+    endAt: string;
+    status?: "IN_PROGRESS" | "COMPLETED";
+    objectiveType?: string;
+    focusContentTitle?: string;
+    focusContentUrl?: string;
+    focusContentType?: string;
+  }) => request<any>("PUT", `/api/me/objectives/${id}`, data),
+  completeStudentObjective: (id: string) => request<any>("PATCH", `/api/me/objectives/${id}/complete`),
+  deleteStudentObjective: (id: string) => request<any>("DELETE", `/api/me/objectives/${id}`),
   searchMessagingUsers: (query: string) =>
     request<any[]>("GET", `/api/messaging/users/search?q=${encodeURIComponent(query)}`),
   getConversations: () => request<any[]>("GET", "/api/conversations"),

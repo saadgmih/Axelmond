@@ -22,6 +22,24 @@ const ALLOWED_MIME_BY_KIND: Record<string, string[]> = {
   ],
 };
 
+const ALLOWED_ATTACHMENT_HOSTS = [
+  "uploadthing.com",
+  "ufs.sh",
+  "utfs.io",
+] as const;
+
+function isAllowedAttachmentUrl(rawUrl: string): boolean {
+  try {
+    const url = new URL(rawUrl);
+    if (url.protocol !== "https:") return false;
+    return ALLOWED_ATTACHMENT_HOSTS.some(
+      (host) => url.hostname === host || url.hostname.endsWith(`.${host}`),
+    );
+  } catch {
+    return false;
+  }
+}
+
 export interface MessagingUserRef {
   id: string;
   role: UserRole;
@@ -41,7 +59,7 @@ export function validateMessageAttachmentInput(input: MessageAttachmentInput): s
   const allowed = ALLOWED_MIME_BY_KIND[kind] || [];
   const mime = String(input.mimeType || "").toLowerCase();
   if (!allowed.includes(mime)) return "Type de fichier non autorisé";
-  if (!input.url || !String(input.url).startsWith("http")) return "URL de pièce jointe invalide";
+  if (!input.url || !isAllowedAttachmentUrl(String(input.url))) return "URL de pièce jointe invalide";
   if (!input.fileName?.trim()) return "Nom de fichier requis";
   const limit = MESSAGE_ATTACHMENT_LIMITS[kind];
   if (input.sizeBytes <= 0 || input.sizeBytes > limit) return "Taille de fichier non autorisée";
@@ -185,12 +203,6 @@ export async function serializeConversationSummary(
   });
   if (!conversation) return null;
 
-  const viewerParticipant = conversation.participants.find((entry) => entry.userId === viewerId);
-  if (!viewerParticipant) return null;
-
-  const peer = conversation.participants.find((entry) => entry.userId !== viewerId)?.user;
-  const peerParticipant = conversation.participants.find((entry) => entry.userId !== viewerId);
-  const lastMessage = conversation.messages[0];
   const unreadCount = await prisma.message.count({
     where: {
       conversationId,
@@ -198,6 +210,26 @@ export async function serializeConversationSummary(
       reads: { none: { userId: viewerId } },
     },
   });
+
+  return buildConversationSummary(conversation as any, viewerId, unreadCount);
+}
+
+function buildConversationSummary(conversation: {
+  id: string;
+  updatedAt: Date;
+  participants: Array<{
+    userId: string;
+    typingUntil?: Date | null;
+    user: { id: string; fullName: string; email: string; role: string; avatarUrl?: string | null };
+  }>;
+  messages: Array<Parameters<typeof serializeMessage>[0]>;
+}, viewerId: string, unreadCount: number) {
+  const viewerParticipant = conversation.participants.find((entry) => entry.userId === viewerId);
+  if (!viewerParticipant) return null;
+
+  const peer = conversation.participants.find((entry) => entry.userId !== viewerId)?.user;
+  const peerParticipant = conversation.participants.find((entry) => entry.userId !== viewerId);
+  const lastMessage = conversation.messages[0];
 
   return {
     id: conversation.id,
@@ -209,4 +241,63 @@ export async function serializeConversationSummary(
       : null,
     isPeerTyping: Boolean(peerParticipant?.typingUntil && peerParticipant.typingUntil > new Date()),
   };
+}
+
+export async function serializeConversationSummariesForViewer(
+  conversationIds: string[],
+  viewerId: string,
+) {
+  const uniqueConversationIds = [...new Set(conversationIds.filter(Boolean))];
+  if (uniqueConversationIds.length === 0) return [];
+
+  const [conversations, unreadRows] = await Promise.all([
+    prisma.conversation.findMany({
+      where: { id: { in: uniqueConversationIds } },
+      include: {
+        participants: {
+          include: {
+            user: { select: { id: true, fullName: true, email: true, role: true, avatarUrl: true } },
+          },
+        },
+        messages: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          include: {
+            sender: { select: { id: true, fullName: true, email: true, role: true, avatarUrl: true } },
+            attachments: true,
+            reads: true,
+          },
+        },
+      },
+    }),
+    prisma.message.groupBy({
+      by: ["conversationId"],
+      where: {
+        conversationId: { in: uniqueConversationIds },
+        senderId: { not: viewerId },
+        reads: { none: { userId: viewerId } },
+      },
+      _count: { _all: true },
+    }),
+  ]);
+
+  const unreadByConversation = new Map(
+    unreadRows.map((row) => [row.conversationId, row._count._all]),
+  );
+  const summaryByConversation = new Map(
+    conversations
+      .map((conversation) => [
+        conversation.id,
+        buildConversationSummary(
+          conversation as any,
+          viewerId,
+          unreadByConversation.get(conversation.id) || 0,
+        ),
+      ] as const)
+      .filter((entry) => Boolean(entry[1])),
+  );
+
+  return uniqueConversationIds
+    .map((conversationId) => summaryByConversation.get(conversationId))
+    .filter((summary): summary is NonNullable<typeof summary> => Boolean(summary));
 }

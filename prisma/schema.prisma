@@ -68,6 +68,7 @@ model User {
   liveActionLogs         LiveActionLog[]         @relation("LiveActionActor")
   scheduleSessions       ProfessorScheduleSession[]
   studyScheduleSessions  StudentStudyScheduleSession[]
+  objectives             StudentObjective[]
   conversationParticipants ConversationParticipant[]
   sentMessages           Message[]               @relation("SentMessages")
   messageReads           MessageRead[]
@@ -529,6 +530,53 @@ model StudentStudyScheduleSession {
   student     User                    @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@index([studentId, dayOfWeek])
+  @@schema("AxelmondResearchLab")
+}
+
+enum StudentObjectiveStatus {
+  IN_PROGRESS
+  COMPLETED
+  @@schema("AxelmondResearchLab")
+}
+
+enum StudentObjectiveType {
+  CHAPITRE
+  TD
+  RESUME
+  REVISION
+  AUTRE
+  @@schema("AxelmondResearchLab")
+}
+
+enum FocusContentType {
+  PODCAST
+  VIDEO
+  AUDIO_REMINDER
+  EDUCATIONAL_RESOURCE
+  OTHER
+  @@schema("AxelmondResearchLab")
+}
+
+model StudentObjective {
+  id                String                 @id @default(cuid())
+  studentId         String
+  title             String
+  description       String?
+  startAt           DateTime
+  endAt             DateTime
+  status            StudentObjectiveStatus @default(IN_PROGRESS)
+  objectiveType     StudentObjectiveType?
+  focusContentTitle String?
+  focusContentUrl   String?
+  focusContentType  FocusContentType?
+  completedAt       DateTime?
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  student           User                   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, status])
+  @@index([studentId, startAt])
+  @@index([studentId, endAt])
   @@schema("AxelmondResearchLab")
 }
 

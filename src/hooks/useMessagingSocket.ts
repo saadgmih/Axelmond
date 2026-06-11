@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { io, type Socket } from "socket.io-client";
 import { getFreshSessionToken } from "../api";
 import type { ChatMessage } from "../types/messaging";
@@ -46,23 +46,23 @@ export function useMessagingSocket(enabled: boolean, handlers: MessagingSocketHa
     };
   }, [enabled]);
 
-  const joinConversation = (conversationId: string | null) => {
+  const joinConversation = useCallback((conversationId: string | null) => {
     if (!conversationId || !socketRef.current) return;
     socketRef.current.emit("conversation:join", conversationId);
-  };
+  }, []);
 
-  const leaveConversation = (conversationId: string | null) => {
+  const leaveConversation = useCallback((conversationId: string | null) => {
     if (!conversationId || !socketRef.current) return;
     socketRef.current.emit("conversation:leave", conversationId);
-  };
+  }, []);
 
-  const emitTypingStart = (conversationId: string) => {
+  const emitTypingStart = useCallback((conversationId: string) => {
     socketRef.current?.emit("typing:start", conversationId);
-  };
+  }, []);
 
-  const emitTypingStop = (conversationId: string) => {
+  const emitTypingStop = useCallback((conversationId: string) => {
     socketRef.current?.emit("typing:stop", conversationId);
-  };
+  }, []);
 
   return { joinConversation, leaveConversation, emitTypingStart, emitTypingStop };
 }

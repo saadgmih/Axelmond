@@ -21,6 +21,30 @@ export interface CreateNotificationInput {
 
 let pushConfigured = false;
 
+function readPositiveInt(value: string | undefined, fallback: number): number {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  mapper: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let nextIndex = 0;
+  const workerCount = Math.min(Math.max(1, concurrency), items.length);
+
+  await Promise.all(Array.from({ length: workerCount }, async () => {
+    while (nextIndex < items.length) {
+      const currentIndex = nextIndex++;
+      results[currentIndex] = await mapper(items[currentIndex]);
+    }
+  }));
+
+  return results;
+}
+
 export function configureWebPush() {
   const publicKey = process.env.VAPID_PUBLIC_KEY?.trim();
   const privateKey = process.env.VAPID_PRIVATE_KEY?.trim();
@@ -65,11 +89,11 @@ export async function createNotificationsForUsers(
   input: Omit<CreateNotificationInput, "userId">,
 ) {
   const uniqueIds = [...new Set(userIds.filter(Boolean))];
-  const results = [];
-  for (const userId of uniqueIds) {
-    results.push(await createUserNotification({ ...input, userId }));
-  }
-  return results;
+  return mapWithConcurrency(
+    uniqueIds,
+    readPositiveInt(process.env.NOTIFICATION_FANOUT_CONCURRENCY, 8),
+    (userId) => createUserNotification({ ...input, userId }),
+  );
 }
 
 export async function getUnreadNotificationCount(userId: string) {
@@ -126,17 +150,21 @@ async function sendPushForNotification(
 ) {
   const subscriptions = await prisma.pushSubscription.findMany({ where: { userId } });
   const body = JSON.stringify(payload);
-  for (const subscription of subscriptions) {
-    await webpush.sendNotification(
-      {
-        endpoint: subscription.endpoint,
-        keys: { p256dh: subscription.p256dh, auth: subscription.auth },
-      },
-      body,
-    ).catch(async () => {
-      await prisma.pushSubscription.deleteMany({ where: { id: subscription.id } });
-    });
-  }
+  await mapWithConcurrency(
+    subscriptions,
+    readPositiveInt(process.env.PUSH_FANOUT_CONCURRENCY, 8),
+    async (subscription) => {
+      await webpush.sendNotification(
+        {
+          endpoint: subscription.endpoint,
+          keys: { p256dh: subscription.p256dh, auth: subscription.auth },
+        },
+        body,
+      ).catch(async () => {
+        await prisma.pushSubscription.deleteMany({ where: { id: subscription.id } });
+      });
+    },
+  );
 }
 
 export function serializeNotification(notification: {

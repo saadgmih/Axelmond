@@ -10,7 +10,7 @@ export const INSTITUTIONAL_VIEWS = new Set([
   "legal",
 ]);
 
-export const STUDENT_VIEWS = new Set(["dashboard", "catalog", "course", "profile", "live", "study-schedule", "messages", "notifications"]);
+export const STUDENT_VIEWS = new Set(["dashboard", "catalog", "course", "profile", "live", "study-schedule", "objectives", "messages", "notifications"]);
 
 export const TEACHER_VIEWS = new Set(["dashboard", "curriculum", "live-control", "academic-profile", "schedule", "messages", "notifications"]);
 
@@ -34,12 +34,14 @@ export function parsePlatformPath(pathname: string) {
 
   if (segments[0] === "student") {
     const view = segments[1] || "dashboard";
-    return { studentView: view, teacherView: "dashboard" as const, institutionalView: null as string | null };
+    const studentView = STUDENT_VIEWS.has(view) ? view : "dashboard";
+    return { studentView, teacherView: "dashboard" as const, institutionalView: null as string | null };
   }
 
   if (segments[0] === "teacher" || segments[0] === "professor" || segments[0] === "admin") {
     const teacherView = segments[1] || "dashboard";
-    return { studentView: "dashboard" as const, teacherView, institutionalView: null as string | null };
+    const normalizedTeacherView = TEACHER_VIEWS.has(teacherView) ? teacherView : "dashboard";
+    return { studentView: "dashboard" as const, teacherView: normalizedTeacherView, institutionalView: null as string | null };
   }
 
   if (segments.length === 1 && INSTITUTIONAL_VIEWS.has(segments[0])) {

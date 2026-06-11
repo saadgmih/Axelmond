@@ -53,4 +53,26 @@ assert.equal(
   null,
 );
 
+assert.match(
+  validateMessageAttachmentInput({
+    kind: "IMAGE",
+    fileName: "tracker.jpg",
+    mimeType: "image/jpeg",
+    sizeBytes: 1024,
+    url: "https://evil.example/tracker.jpg",
+  }) || "",
+  /URL/i,
+);
+
+assert.match(
+  validateMessageAttachmentInput({
+    kind: "IMAGE",
+    fileName: "photo.jpg",
+    mimeType: "image/jpeg",
+    sizeBytes: 1024,
+    url: "http://uploadthing.com/f/abc",
+  }) || "",
+  /URL/i,
+);
+
 console.log("Messaging validation tests passed");

@@ -58,6 +58,10 @@ assert.match(serverSource, /if\s*\(!isProduction\)/);
 
 // 6d. CSP durcie en production (pas de unsafe-eval)
 assert.match(serverSource, /scriptSrc:\s*isProduction/);
+assert.match(serverSource, /cspNonce/);
+assert.match(serverSource, /scriptSrc:\s*isProduction[\s\S]*?\?\s*\["'self'",\s*cspNonce/);
+assert.match(serverSource, /scriptSrcAttr:\s*\["'none'"\]/);
+assert.match(serverSource, /objectSrc:\s*\["'none'"\]/);
 
 // 7. Vérification d'e-mail avec rate limiters et protection
 assert.doesNotMatch(serverSource, /emailVerificationRateLimiter/);
@@ -87,9 +91,9 @@ assert.match(serverSource, /X-CSRF-Token/);
 
 // 10. Rate limiters admin
 assert.doesNotMatch(serverSource, /emailDiagnosticRateLimiter/);
-assert.match(serverSource, /const adminReadRateLimiter = rateLimit\(\{[\s\S]*?max: 300,[\s\S]*?keyGenerator:\s*adminRateLimitKey/);
-assert.match(serverSource, /const adminMutationRateLimiter = rateLimit\(\{[\s\S]*?max: 60,[\s\S]*?keyGenerator:\s*adminRateLimitKey/);
-assert.match(serverSource, /const adminDiagnosticRateLimiter = rateLimit\(\{[\s\S]*?max: 10,[\s\S]*?keyGenerator:\s*adminRateLimitKey/);
+assert.match(serverSource, /const adminReadRateLimiter = rateLimit\(\{[\s\S]*?max:\s*isSecurityRuntimeTest[\s\S]*?process\.env\.ADMIN_READ_RATE_LIMIT_MAX\)[\s\S]*?\|\| 9999[\s\S]*?process\.env\.ADMIN_READ_RATE_LIMIT_MAX\)[\s\S]*?\|\| 300,[\s\S]*?keyGenerator:\s*adminRateLimitKey/);
+assert.match(serverSource, /const adminMutationRateLimiter = rateLimit\(\{[\s\S]*?max:\s*isSecurityRuntimeTest[\s\S]*?process\.env\.ADMIN_MUTATION_RATE_LIMIT_MAX\)[\s\S]*?\|\| 9999[\s\S]*?process\.env\.ADMIN_MUTATION_RATE_LIMIT_MAX\)[\s\S]*?\|\| 60,[\s\S]*?keyGenerator:\s*adminRateLimitKey/);
+assert.match(serverSource, /const adminDiagnosticRateLimiter = rateLimit\(\{[\s\S]*?max:\s*isSecurityRuntimeTest[\s\S]*?process\.env\.ADMIN_DIAGNOSTIC_RATE_LIMIT_MAX\)[\s\S]*?\|\| 9999[\s\S]*?process\.env\.ADMIN_DIAGNOSTIC_RATE_LIMIT_MAX\)[\s\S]*?\|\| 10,[\s\S]*?keyGenerator:\s*adminRateLimitKey/);
 assert.equal((serverSource.match(/keyGenerator:\s*adminRateLimitKey/g) ?? []).length, 3);
 assert.match(serverSource, /app\.use\("\/api\/admin",\s*adminRouteRateLimiter\)/);
 assert.match(serverSource, /app\.use\("\/api\/test-email",\s*adminDiagnosticRateLimiter\)/);

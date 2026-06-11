@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Room, RoomEvent, Track } from "livekit-client";
 import VirtualClassroom, {
   type LiveParticipantCard,
@@ -321,6 +321,18 @@ export function useLiveKitRoom({
     return () => document.removeEventListener("fullscreenchange", syncFullscreen);
   }, []);
 
+  const liveMediaSignature = useMemo(
+    () => liveParticipants
+      .map((participant) => [
+        participant.identity,
+        participant.isLocal ? "local" : "remote",
+        participant.videoTrack?.sid || "",
+        participant.audioTrack?.sid || "",
+      ].join(":"))
+      .join("|"),
+    [liveParticipants],
+  );
+
   useEffect(() => {
     const primaryTrack =
       liveParticipants.find(
@@ -363,7 +375,7 @@ export function useLiveKitRoom({
         }
       });
     };
-  }, [liveParticipants, currentView, teacherView, activeLiveCourse?.id, activeSpeakerIdentity]);
+  }, [liveMediaSignature, currentView, teacherView, activeLiveCourse?.id, activeSpeakerIdentity]);
 
   useEffect(() => {
     if (liveRoom) syncLiveParticipants(liveRoom);
