@@ -1,22 +1,34 @@
 import { useMemo, useState } from "react";
-import { FlatList, StyleSheet, Text, TextInput, View } from "react-native";
-import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { FlatList, StyleSheet, Text, TextInput } from "react-native";
 import { CompositeScreenProps } from "@react-navigation/native";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import CourseCard from "../components/CourseCard";
+import EmptyState from "../components/EmptyState";
 import ScreenContainer from "../components/ScreenContainer";
 import { useAuth } from "../hooks/useAuth";
+import { useTheme } from "../hooks/useTheme";
 import { useCourses } from "../hooks/useCourses";
-import { colors, spacing } from "../theme/colors";
+import { useNavigation } from "@react-navigation/native";
 import type { StudentStackParamList, StudentTabParamList } from "../navigation/types";
+import type { TeacherStackParamList, TeacherTabParamList } from "../navigation/types";
 
-type Props = CompositeScreenProps<
+type StudentProps = CompositeScreenProps<
   BottomTabScreenProps<StudentTabParamList, "CourseCatalog">,
   NativeStackScreenProps<StudentStackParamList>
 >;
 
-export default function CourseCatalogScreen({ navigation }: Props) {
+type TeacherProps = CompositeScreenProps<
+  BottomTabScreenProps<TeacherTabParamList, "CourseCatalog">,
+  NativeStackScreenProps<TeacherStackParamList>
+>;
+
+type Props = StudentProps | TeacherProps;
+
+export default function CourseCatalogScreen(_props: Props) {
+  const navigation = useNavigation<any>();
   const { user } = useAuth();
+  const { theme } = useTheme();
   const { courses, loading, error } = useCourses();
   const [query, setQuery] = useState("");
 
@@ -32,15 +44,22 @@ export default function CourseCatalogScreen({ navigation }: Props) {
   }, [courses, query]);
 
   return (
-    <ScreenContainer title="Catalogue" subtitle="Parcourez les modules académiques" loading={loading}>
+    <ScreenContainer title="Catalogue" subtitle="Modules académiques Axelmond" loading={loading}>
       <TextInput
         placeholder="Rechercher un cours..."
-        placeholderTextColor={colors.textMuted}
-        style={styles.search}
+        placeholderTextColor={theme.colors.textMuted}
+        style={[
+          styles.search,
+          {
+            backgroundColor: theme.colors.surface,
+            borderColor: theme.colors.border,
+            color: theme.colors.text,
+          },
+        ]}
         value={query}
         onChangeText={setQuery}
       />
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? <Text style={{ color: theme.colors.danger, marginBottom: 12 }}>{error}</Text> : null}
       <FlatList
         data={filteredCourses}
         keyExtractor={(item) => String(item.id)}
@@ -51,7 +70,10 @@ export default function CourseCatalogScreen({ navigation }: Props) {
             onPress={() => navigation.navigate("CourseDetails", { courseId: item.id })}
           />
         )}
-        contentContainerStyle={{ paddingBottom: spacing.xl }}
+        ListEmptyComponent={
+          <EmptyState title="Aucun résultat" message="Essayez un autre mot-clé ou revenez plus tard." />
+        }
+        contentContainerStyle={{ paddingBottom: theme.spacing.xl }}
         showsVerticalScrollIndicator={false}
       />
     </ScreenContainer>
@@ -60,17 +82,10 @@ export default function CourseCatalogScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   search: {
-    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.border,
     borderRadius: 12,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: 16,
     paddingVertical: 12,
-    color: colors.text,
-    marginBottom: spacing.md,
-  },
-  error: {
-    color: colors.danger,
-    marginBottom: spacing.md,
+    marginBottom: 16,
   },
 });

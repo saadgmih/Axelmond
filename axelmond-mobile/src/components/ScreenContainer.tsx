@@ -1,6 +1,6 @@
 import { ActivityIndicator, StyleSheet, Text, View, type ViewProps } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors, spacing } from "../theme/colors";
+import { useTheme } from "../hooks/useTheme";
 
 type ScreenContainerProps = ViewProps & {
   loading?: boolean;
@@ -16,13 +16,16 @@ export default function ScreenContainer({
   style,
   ...rest
 }: ScreenContainerProps) {
+  const { theme } = useTheme();
+  const { colors, spacing } = theme;
+
   return (
-    <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
-      <View style={[styles.container, style]} {...rest}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={["top", "left", "right"]}>
+      <View style={[styles.container, { paddingHorizontal: spacing.md }, style]} {...rest}>
         {(title || subtitle) && (
-          <View style={styles.header}>
-            {title ? <Text style={styles.title}>{title}</Text> : null}
-            {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+          <View style={[styles.header, { paddingBottom: spacing.md }]}>
+            {title ? <Text style={[styles.title, { color: colors.text }]}>{title}</Text> : null}
+            {subtitle ? <Text style={[styles.subtitle, { color: colors.textMuted }]}>{subtitle}</Text> : null}
           </View>
         )}
         {loading ? (
@@ -38,35 +41,11 @@ export default function ScreenContainer({
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingHorizontal: spacing.md,
-  },
-  header: {
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.md,
-  },
-  title: {
-    color: colors.text,
-    fontSize: 28,
-    fontWeight: "800",
-  },
-  subtitle: {
-    color: colors.textMuted,
-    fontSize: 14,
-    marginTop: spacing.xs,
-  },
-  loadingWrap: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  content: {
-    flex: 1,
-  },
+  safe: { flex: 1 },
+  container: { flex: 1 },
+  header: { paddingTop: 8 },
+  title: { fontSize: 28, fontWeight: "800" },
+  subtitle: { fontSize: 14, marginTop: 4, lineHeight: 20 },
+  loadingWrap: { flex: 1, alignItems: "center", justifyContent: "center" },
+  content: { flex: 1 },
 });

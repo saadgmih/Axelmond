@@ -11,16 +11,20 @@ export type StudentTabParamList = {
   StudentProfile: undefined;
 };
 
+export type TeacherTabParamList = {
+  TeacherDashboard: undefined;
+  CourseCatalog: undefined;
+  TeacherProfile: undefined;
+};
+
 export type StudentStackParamList = {
   StudentTabs: NavigatorScreenParams<StudentTabParamList>;
   CourseDetails: { courseId: number };
-  LiveClassroom: { courseId: number; courseTitle?: string };
 };
 
 export type TeacherStackParamList = {
-  TeacherDashboard: undefined;
+  TeacherTabs: NavigatorScreenParams<TeacherTabParamList>;
   CourseDetails: { courseId: number };
-  LiveClassroom: { courseId: number; courseTitle?: string };
 };
 
 export type RootStackParamList = {

@@ -1,89 +1,70 @@
 import { useMemo } from "react";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { FlatList, StyleSheet, Text, View } from "react-native";
+import { CompositeScreenProps } from "@react-navigation/native";
+import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import CourseCard from "../components/CourseCard";
+import EmptyState from "../components/EmptyState";
 import ScreenContainer from "../components/ScreenContainer";
+import SectionHeader from "../components/SectionHeader";
+import StatCard from "../components/StatCard";
 import { useCourses } from "../hooks/useCourses";
-import { colors, spacing } from "../theme/colors";
-import type { TeacherStackParamList } from "../navigation/types";
+import { useTheme } from "../hooks/useTheme";
+import type { TeacherStackParamList, TeacherTabParamList } from "../navigation/types";
 
-type Props = NativeStackScreenProps<TeacherStackParamList, "TeacherDashboard">;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<TeacherTabParamList, "TeacherDashboard">,
+  NativeStackScreenProps<TeacherStackParamList>
+>;
 
 export default function TeacherDashboardScreen({ navigation }: Props) {
+  const { theme } = useTheme();
   const { courses, loading, error } = useCourses();
 
-  const teacherCourses = useMemo(() => courses.filter((course) => course.published !== false), [courses]);
-  const liveCourses = useMemo(() => teacherCourses.filter((course) => course.isLiveNow), [teacherCourses]);
+  const teacherCourses = useMemo(
+    () => courses.filter((course) => course.published !== false),
+    [courses],
+  );
+
+  const totalStudentsEstimate = teacherCourses.reduce((sum, course) => sum + Math.max(course.progress, 0), 0);
 
   return (
-    <ScreenContainer title="Espace enseignant" subtitle="Gérez vos modules et sessions live" loading={loading}>
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+    <ScreenContainer title="Espace enseignant" subtitle="Pilotage pédagogique Axelmond" loading={loading}>
+      {error ? <Text style={[styles.error, { color: theme.colors.danger }]}>{error}</Text> : null}
 
       <View style={styles.statsRow}>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>{teacherCourses.length}</Text>
-          <Text style={styles.statLabel}>Modules</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>{liveCourses.length}</Text>
-          <Text style={styles.statLabel}>Live actifs</Text>
-        </View>
+        <StatCard label="Modules" value={teacherCourses.length} />
+        <StatCard label="Publiés" value={teacherCourses.filter((c) => c.published !== false).length} accent={theme.colors.success} />
+        <StatCard label="Actifs" value={teacherCourses.filter((c) => c.progress > 0).length} accent={theme.colors.accentSoft} />
       </View>
 
-      {liveCourses.length > 0 ? (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Sessions live</Text>
-          {liveCourses.map((course) => (
-            <Pressable
-              key={course.id}
-              style={styles.liveCard}
-              onPress={() => navigation.navigate("LiveClassroom", { courseId: course.id, courseTitle: course.title })}
-            >
-              <Text style={styles.liveTitle}>{course.title}</Text>
-              <Text style={styles.liveMeta}>{course.liveSubject || "Session en cours"}</Text>
-            </Pressable>
-          ))}
-        </View>
-      ) : null}
+      <SectionHeader
+        title="Modules publiés"
+        subtitle="Gérez vos parcours académiques"
+        action="Tous les modules"
+        onActionPress={() => navigation.navigate("CourseCatalog")}
+      />
 
-      <Text style={styles.sectionTitle}>Vos cours publiés</Text>
       <FlatList
         data={teacherCourses}
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => (
           <CourseCard course={item} onPress={() => navigation.navigate("CourseDetails", { courseId: item.id })} />
         )}
-        ListEmptyComponent={<Text style={styles.empty}>Aucun cours publié.</Text>}
-        contentContainerStyle={{ paddingBottom: spacing.xl }}
+        ListEmptyComponent={
+          <EmptyState
+            icon="school-outline"
+            title="Aucun module publié"
+            message="Vos cours apparaîtront ici dès qu'ils seront disponibles sur la plateforme."
+          />
+        }
+        contentContainerStyle={{ paddingBottom: theme.spacing.xl }}
       />
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  statsRow: { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.lg },
-  statCard: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  statValue: { color: colors.text, fontSize: 22, fontWeight: "800" },
-  statLabel: { color: colors.textMuted, fontSize: 11, marginTop: 4 },
-  section: { marginBottom: spacing.lg },
-  sectionTitle: { color: colors.text, fontSize: 18, fontWeight: "800", marginBottom: spacing.sm },
-  liveCard: {
-    backgroundColor: "#450a0a",
-    borderRadius: 14,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-    borderWidth: 1,
-    borderColor: "#991b1b",
-  },
-  liveTitle: { color: colors.text, fontWeight: "800" },
-  liveMeta: { color: "#fecaca", marginTop: 4 },
-  empty: { color: colors.textMuted, textAlign: "center", marginTop: spacing.lg },
-  error: { color: colors.danger, marginBottom: spacing.md },
+  statsRow: { flexDirection: "row", gap: 8, marginBottom: 24 },
+  error: { marginBottom: 16 },
 });

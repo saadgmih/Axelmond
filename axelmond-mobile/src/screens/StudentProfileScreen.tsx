@@ -5,9 +5,10 @@ import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import Button from "../components/Button";
 import ScreenContainer from "../components/ScreenContainer";
+import StatCard from "../components/StatCard";
 import { useAuth } from "../hooks/useAuth";
+import { useTheme } from "../hooks/useTheme";
 import { api } from "../services/api";
-import { colors, spacing } from "../theme/colors";
 import type { StudentStackParamList, StudentTabParamList } from "../navigation/types";
 
 type Props = CompositeScreenProps<
@@ -17,8 +18,8 @@ type Props = CompositeScreenProps<
 
 export default function StudentProfileScreen(_props: Props) {
   const { user, logout, refreshUser } = useAuth();
-  const [profile, setProfile] = useState<any>(null);
-  const [summary, setSummary] = useState<any>(null);
+  const { theme } = useTheme();
+  const [summary, setSummary] = useState<Record<string, number> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,12 +28,11 @@ export default function StudentProfileScreen(_props: Props) {
       setLoading(true);
       setError(null);
       try {
-        const [profileData, summaryData] = await Promise.all([
-          api.getStudentProfile().catch(() => null),
-          api.getStudentObjectivesSummary().catch(() => null),
-        ]);
-        setProfile(profileData);
-        setSummary(profileData?.objectivesSummary ?? summaryData);
+        const profileData = await api.getStudentProfile().catch(async () => {
+          const fallbackSummary = await api.getStudentObjectivesSummary().catch(() => null);
+          return user ? { user, objectivesSummary: fallbackSummary || {} } : null;
+        });
+        setSummary(profileData?.objectivesSummary ?? null);
         await refreshUser();
       } catch (err) {
         setError(err instanceof Error ? err.message : "Profil indisponible");
@@ -40,32 +40,27 @@ export default function StudentProfileScreen(_props: Props) {
         setLoading(false);
       }
     })();
-  }, [refreshUser]);
+  }, [refreshUser, user]);
 
   return (
     <ScreenContainer title="Mon profil" subtitle="Informations académiques et session" loading={loading}>
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? <Text style={{ color: theme.colors.danger, marginBottom: 12 }}>{error}</Text> : null}
 
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <View style={styles.card}>
-          <Text style={styles.name}>{user?.fullName}</Text>
-          <Text style={styles.meta}>{user?.email}</Text>
-          <Text style={styles.meta}>{user?.levelOrTitle}{user?.filiere ? ` · ${user.filiere}` : ""}</Text>
+      <ScrollView contentContainerStyle={{ paddingBottom: theme.spacing.xl }} showsVerticalScrollIndicator={false}>
+        <View style={[styles.card, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+          <Text style={[styles.name, { color: theme.colors.text }]}>{user?.fullName}</Text>
+          <Text style={{ color: theme.colors.textMuted }}>{user?.email}</Text>
+          <Text style={{ color: theme.colors.textSoft, marginTop: 4 }}>
+            {user?.levelOrTitle}
+            {user?.filiere ? ` · ${user.filiere}` : ""}
+          </Text>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Statistiques</Text>
-          <Text style={styles.row}>Cours inscrits : {user?.enrolledCourses.length || 0}</Text>
-          <Text style={styles.row}>Objectifs actifs : {summary?.inProgress ?? 0}</Text>
-          <Text style={styles.row}>Objectifs terminés : {summary?.completed ?? 0}</Text>
+        <View style={styles.statsRow}>
+          <StatCard label="Cours inscrits" value={user?.enrolledCourses.length || 0} />
+          <StatCard label="Objectifs actifs" value={summary?.inProgress ?? 0} accent={theme.colors.primary} />
+          <StatCard label="Terminés" value={summary?.completed ?? 0} accent={theme.colors.success} />
         </View>
-
-        {profile?.bio ? (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Bio</Text>
-            <Text style={styles.row}>{profile.bio}</Text>
-          </View>
-        ) : null}
 
         <Button label="Se déconnecter" variant="danger" onPress={() => logout()} />
       </ScrollView>
@@ -74,18 +69,7 @@ export default function StudentProfileScreen(_props: Props) {
 }
 
 const styles = StyleSheet.create({
-  scroll: { paddingBottom: spacing.xl },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  name: { color: colors.text, fontSize: 22, fontWeight: "800" },
-  meta: { color: colors.textMuted, marginTop: 4 },
-  cardTitle: { color: colors.text, fontWeight: "800", marginBottom: spacing.sm },
-  row: { color: colors.textSoft, marginBottom: 4 },
-  error: { color: colors.danger, marginBottom: spacing.md },
+  card: { borderRadius: 14, padding: 16, marginBottom: 16, borderWidth: 1 },
+  name: { fontSize: 22, fontWeight: "800" },
+  statsRow: { flexDirection: "row", gap: 8, marginBottom: 24 },
 });

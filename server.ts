@@ -95,7 +95,7 @@ import {
 } from "./src/security-hardening";
 import { clearAuthCookies, readRefreshTokenFromRequest, setAuthCookies } from "./src/auth-cookies";
 import { csrfProtection } from "./src/auth-csrf";
-import { isMobileClientRequest, withMobileRefreshToken } from "./src/auth-mobile";
+import { isMobileClientRequest, MOBILE_CLIENT_HEADER, withMobileRefreshToken } from "./src/auth-mobile";
 import { applyMobileApiCorsHeaders, registerMobileApiRoutes } from "./src/mobile-api-routes";
 import { emailRateLimitKey } from "./src/email-rate-limit";
 import { liveKitRateLimitKey } from "./src/livekit-rate-limit";
@@ -225,7 +225,11 @@ app.use((_req, res, next) => {
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  if (isMobileClientRequest(req) && req.path.startsWith("/api/")) {
+  const requestedHeaders = req.headers["access-control-request-headers"];
+  const mobilePreflight =
+    typeof requestedHeaders === "string" &&
+    requestedHeaders.toLowerCase().includes(MOBILE_CLIENT_HEADER);
+  if (req.path.startsWith("/api/") && (isMobileClientRequest(req) || mobilePreflight)) {
     applyMobileApiCorsHeaders(req, res);
   } else if (origin && allowedOrigins.has(normalizeOriginUrl(origin))) {
     res.setHeader("Access-Control-Allow-Origin", origin);

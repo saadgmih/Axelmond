@@ -1,18 +1,19 @@
 import { useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import BrandHeader from "../components/BrandHeader";
 import Button from "../components/Button";
 import Input from "../components/Input";
-import LogoHeader from "../components/LogoHeader";
 import ScreenContainer from "../components/ScreenContainer";
 import { useAuth } from "../hooks/useAuth";
-import { colors, spacing } from "../theme/colors";
+import { useTheme } from "../hooks/useTheme";
 import type { AuthStackParamList } from "../navigation/types";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "Register">;
 
 export default function RegisterScreen({ navigation }: Props) {
   const { register } = useAuth();
+  const { theme } = useTheme();
   const [sector, setSector] = useState<"student" | "teacher">("student");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -48,15 +49,26 @@ export default function RegisterScreen({ navigation }: Props) {
     <ScreenContainer>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          <LogoHeader subtitle="Créer votre compte Axelmond" />
+          <BrandHeader subtitle="Rejoignez Axelmond Research Labs" compact />
 
           <View style={styles.sectorRow}>
-            <Pressable style={[styles.sectorBtn, sector === "student" && styles.sectorActive]} onPress={() => setSector("student")}>
-              <Text style={styles.sectorText}>Étudiant</Text>
-            </Pressable>
-            <Pressable style={[styles.sectorBtn, sector === "teacher" && styles.sectorActive]} onPress={() => setSector("teacher")}>
-              <Text style={styles.sectorText}>Enseignant</Text>
-            </Pressable>
+            {(["student", "teacher"] as const).map((value) => (
+              <Pressable
+                key={value}
+                style={[
+                  styles.sectorBtn,
+                  {
+                    backgroundColor: sector === value ? theme.colors.cardGlow : theme.colors.surface,
+                    borderColor: sector === value ? theme.colors.primary : theme.colors.border,
+                  },
+                ]}
+                onPress={() => setSector(value)}
+              >
+                <Text style={{ color: theme.colors.text, fontWeight: "700" }}>
+                  {value === "student" ? "Étudiant" : "Enseignant"}
+                </Text>
+              </Pressable>
+            ))}
           </View>
 
           <Input label="Nom complet" value={fullName} onChangeText={setFullName} />
@@ -68,12 +80,12 @@ export default function RegisterScreen({ navigation }: Props) {
             <Input label="Code invitation professeur" value={professorInviteCode} onChangeText={setProfessorInviteCode} />
           )}
 
-          {error ? <Text style={styles.error}>{error}</Text> : null}
-          {message ? <Text style={styles.success}>{message}</Text> : null}
+          {error ? <Text style={{ color: theme.colors.danger, marginBottom: 12 }}>{error}</Text> : null}
+          {message ? <Text style={{ color: theme.colors.success, marginBottom: 12 }}>{message}</Text> : null}
 
           <Button label="Créer mon compte" loading={loading} onPress={handleRegister} />
           <Pressable onPress={() => navigation.navigate("Login")} style={styles.linkWrap}>
-            <Text style={styles.link}>Déjà inscrit ? Se connecter</Text>
+            <Text style={{ color: theme.colors.primary, fontWeight: "700" }}>Déjà inscrit ? Se connecter</Text>
           </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -82,31 +94,14 @@ export default function RegisterScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  scroll: { paddingBottom: spacing.xl, paddingTop: spacing.lg },
-  sectorRow: {
-    flexDirection: "row",
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
-  },
+  scroll: { paddingBottom: 32, paddingTop: 16 },
+  sectorRow: { flexDirection: "row", gap: 8, marginBottom: 24 },
   sectorBtn: {
     flex: 1,
-    paddingVertical: spacing.md,
+    paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: colors.surface,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: colors.border,
   },
-  sectorActive: {
-    borderColor: colors.primary,
-    backgroundColor: "#1e1b4b",
-  },
-  sectorText: {
-    color: colors.text,
-    fontWeight: "700",
-  },
-  error: { color: colors.danger, marginBottom: spacing.md },
-  success: { color: colors.success, marginBottom: spacing.md },
-  linkWrap: { marginTop: spacing.lg, alignItems: "center" },
-  link: { color: colors.primary, fontWeight: "700" },
+  linkWrap: { marginTop: 24, alignItems: "center" },
 });

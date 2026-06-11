@@ -1,5 +1,5 @@
 import { StyleSheet, Text, TextInput, View, type TextInputProps } from "react-native";
-import { colors, radius, spacing } from "../theme/colors";
+import { useTheme } from "../hooks/useTheme";
 
 type InputProps = TextInputProps & {
   label: string;
@@ -7,45 +7,35 @@ type InputProps = TextInputProps & {
 };
 
 export default function Input({ label, error, style, ...rest }: InputProps) {
+  const { theme } = useTheme();
+  const { colors, spacing, radius } = theme;
+
   return (
-    <View style={styles.wrap}>
-      <Text style={styles.label}>{label}</Text>
+    <View style={[styles.wrap, { marginBottom: spacing.md }]}>
+      <Text style={[styles.label, { color: colors.textSoft }]}>{label}</Text>
       <TextInput
         placeholderTextColor={colors.textMuted}
-        style={[styles.input, error && styles.inputError, style]}
+        style={[
+          styles.input,
+          {
+            backgroundColor: colors.surface,
+            borderColor: error ? colors.danger : colors.border,
+            borderRadius: radius.md,
+            paddingHorizontal: spacing.md,
+            color: colors.text,
+          },
+          style,
+        ]}
         {...rest}
       />
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: {
-    marginBottom: spacing.md,
-  },
-  label: {
-    color: colors.textSoft,
-    fontSize: 13,
-    fontWeight: "600",
-    marginBottom: spacing.sm,
-  },
-  input: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 14,
-    color: colors.text,
-    fontSize: 15,
-  },
-  inputError: {
-    borderColor: colors.danger,
-  },
-  error: {
-    color: colors.danger,
-    fontSize: 12,
-    marginTop: spacing.xs,
-  },
+  wrap: {},
+  label: { fontSize: 13, fontWeight: "600", marginBottom: 8 },
+  input: { borderWidth: 1, paddingVertical: 14, fontSize: 15 },
+  error: { fontSize: 12, marginTop: 4 },
 });
