@@ -53,15 +53,17 @@ import LiveMediaControl from "./live/LiveMediaControl";
 import LiveParticipantTile from "./live/LiveParticipantTile";
 import LivePollPanel from "./live/LivePollPanel";
 import LiveReactionBar from "./live/LiveReactionBar";
+import LiveConnectionNotice from "./live/LiveConnectionNotice";
 import LiveResourceStage from "./live/LiveResourceStage";
 import LiveWhiteboardPanel from "./live/LiveWhiteboardPanel";
 import { resolveStageParticipants, stageGridClass } from "./live/live-stage";
 import type { LivePollState, LiveSharedResource, LiveWhiteboardStroke } from "../live/live-sync";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
+import { useLiveConnectionNotice } from "../hooks/useLiveConnectionNotice";
 import { useLiveSettings } from "../hooks/useLiveSettings";
 import { usePictureInPicture } from "../hooks/usePictureInPicture";
 import { useTvNavigation } from "../hooks/useTvNavigation";
-import { applyLiveVideoQuality, type LiveLayoutMode } from "../live/liveSettings";
+import { type LiveLayoutMode } from "../live/liveSettings";
 
 export interface LiveParticipantCard {
   identity: string;
@@ -245,6 +247,11 @@ export default function VirtualClassroom({
     toggleFocusMode,
     setSubtitleLanguage,
   } = useLiveSettings();
+  const connectionNotice = useLiveConnectionNotice({
+    liveRoom,
+    videoQuality: liveSettings.videoQuality,
+    cameraEnabled: isCameraEnabled,
+  });
   const {
     isPiPActive,
     pipError,
@@ -280,10 +287,6 @@ export default function VirtualClassroom({
       else video.play().catch(() => undefined);
     });
   }, [stageVolume, isStageVideoPaused, primaryVideoRef, videoRefs, participants.length]);
-
-  useEffect(() => {
-    void applyLiveVideoQuality(liveRoom, liveSettings.videoQuality, isCameraEnabled);
-  }, [liveRoom, liveSettings.videoQuality, isCameraEnabled]);
 
   useEffect(() => {
     if (!liveSettings.focusMode) return;
@@ -628,7 +631,7 @@ export default function VirtualClassroom({
             </div>
 
             <div className="flex min-w-0 flex-1 items-center overflow-x-auto hide-scrollbar gap-1.5 sm:gap-2">
-              <div className="hidden 2xl:block shrink-0">
+              <div className="hidden lg:block shrink-0">
                 <LiveReactionBar compact onReaction={onReaction} />
               </div>
 
@@ -732,6 +735,12 @@ export default function VirtualClassroom({
           {/* Main Video Area */}
           <div className="flex-1 min-h-[220px] sm:min-h-[280px] lg:min-h-[340px] p-0 lg:p-4 flex items-center justify-center relative min-w-0 bg-[#0a0a0a]">
             <div className="w-full h-full min-h-[200px] max-h-[min(72dvh,780px)] relative lg:rounded-2xl overflow-hidden bg-zinc-950 lg:border border-white/5 lg:shadow-2xl flex items-center justify-center box-border">
+              {connectionNotice && !whiteboardExpanded && (
+                <LiveConnectionNotice
+                  message={connectionNotice.message}
+                  variant={connectionNotice.variant}
+                />
+              )}
               {whiteboardExpanded ? (
                 <div className="h-full w-full p-3">
                   <LiveWhiteboardPanel

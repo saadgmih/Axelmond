@@ -1,3 +1,6 @@
+import { useEffect, useRef, useState } from "react";
+import { SmilePlus } from "lucide-react";
+
 const REACTIONS = ["👍", "👏", "❤️", "😂", "🎉", "🤔", "🔥", "✅"] as const;
 
 interface LiveReactionBarProps {
@@ -6,22 +9,97 @@ interface LiveReactionBarProps {
 }
 
 export default function LiveReactionBar({ onReaction, compact = false }: LiveReactionBarProps) {
-  return (
-    <div className={`flex flex-wrap gap-2 ${compact ? "" : "rounded-2xl border border-white/10 bg-zinc-900/70 p-3"}`}>
-      {!compact && (
-        <p className="w-full text-[10px] font-bold uppercase tracking-wider text-zinc-500">Réactions live</p>
-      )}
-      {REACTIONS.map((reaction) => (
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!compact || !open) return;
+
+    const handlePointerDown = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node | null;
+      if (containerRef.current && target && !containerRef.current.contains(target)) {
+        setOpen(false);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [compact, open]);
+
+  const pickReaction = (reaction: string) => {
+    onReaction(reaction);
+    setOpen(false);
+  };
+
+  if (compact) {
+    return (
+      <div ref={containerRef} className="relative shrink-0">
         <button
-          key={reaction}
           type="button"
-          onClick={() => onReaction(reaction)}
-          className="flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/10 bg-zinc-950/80 text-lg transition hover:scale-105 hover:border-indigo-400/30 hover:bg-indigo-500/10"
-          aria-label={`Réagir ${reaction}`}
+          data-tv-focusable
+          tabIndex={0}
+          onClick={() => setOpen((value) => !value)}
+          aria-label="Ouvrir les réactions live"
+          aria-expanded={open}
+          aria-haspopup="menu"
+          className={`kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${
+            open ? "bg-indigo-500/10 border border-indigo-400/30 text-indigo-300" : "hover:bg-zinc-800 text-zinc-300"
+          }`}
         >
-          {reaction}
+          <SmilePlus className="w-5 h-5 mb-1.5" />
+          <span className="text-[10px] font-bold">Réagir</span>
         </button>
-      ))}
+
+        {open && (
+          <div
+            role="menu"
+            aria-label="Réactions live"
+            className="absolute bottom-[calc(100%+0.5rem)] left-1/2 z-50 flex max-w-[min(92vw,320px)] -translate-x-1/2 flex-wrap justify-center gap-1.5 rounded-2xl border border-white/10 bg-zinc-900/95 p-2 shadow-2xl backdrop-blur-md"
+          >
+            {REACTIONS.map((reaction) => (
+              <button
+                key={reaction}
+                type="button"
+                role="menuitem"
+                onClick={() => pickReaction(reaction)}
+                className="flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/10 bg-zinc-950/80 text-lg transition hover:scale-105 hover:border-indigo-400/30 hover:bg-indigo-500/10"
+                aria-label={`Réagir ${reaction}`}
+              >
+                {reaction}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-2xl border border-white/10 bg-zinc-900/70 p-3">
+      <p className="mb-2 w-full text-[10px] font-bold uppercase tracking-wider text-zinc-500">Réactions live</p>
+      <div className="flex flex-wrap gap-2">
+        {REACTIONS.map((reaction) => (
+          <button
+            key={reaction}
+            type="button"
+            onClick={() => onReaction(reaction)}
+            className="flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/10 bg-zinc-950/80 text-lg transition hover:scale-105 hover:border-indigo-400/30 hover:bg-indigo-500/10"
+            aria-label={`Réagir ${reaction}`}
+          >
+            {reaction}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
