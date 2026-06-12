@@ -20,7 +20,9 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:push": "prisma db push",
-    "deploy:migrate-messaging": "node scripts/apply-messaging-notifications-migration.mjs"
+    "deploy:migrate-messaging": "node scripts/apply-messaging-notifications-migration.mjs",
+    "create:admin": "tsx scripts/create-admin-user.mjs",
+    "create:professor": "tsx scripts/create-professor-user.mjs"
   },
   "dependencies": {
     "@paypal/react-paypal-js": "^8.9.2",
