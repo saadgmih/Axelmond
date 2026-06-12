@@ -1,12 +1,6 @@
-import {
-  CalendarDays,
-  Clock3,
-  MapPin,
-  Pencil,
-  Plus,
-  Trash2,
-  X,
-} from "lucide-react";
+import { Plus, X } from "lucide-react";
+import { useMemo } from "react";
+import AxelCalendarShell from "../../components/calendar/AxelCalendarShell";
 import type { UseTeacherScheduleOptions } from "../../hooks/useTeacherSchedule";
 import { useTeacherSchedule } from "../../hooks/useTeacherSchedule";
 import { SCHEDULE_DAYS, SCHEDULE_SESSION_TYPES } from "../../schedule";
@@ -17,7 +11,6 @@ type TeacherScheduleViewProps = UseTeacherScheduleOptions;
 export default function TeacherScheduleView(props: TeacherScheduleViewProps) {
   const {
     sessions,
-    sessionsByDay,
     isLoading,
     statusMsg,
     errorMsg,
@@ -32,6 +25,20 @@ export default function TeacherScheduleView(props: TeacherScheduleViewProps) {
     handleSaveSession,
     handleDeleteSession,
   } = useTeacherSchedule(props);
+
+  const calendarSessions = useMemo(
+    () =>
+      sessions.map((session) => ({
+        id: session.id,
+        title: session.title,
+        startTime: session.startTime,
+        endTime: session.endTime,
+        dayOfWeek: session.dayOfWeek,
+        moduleName: session.moduleName,
+        sessionTypeLabel: session.sessionTypeLabel,
+      })),
+    [sessions],
+  );
 
   return (
     <div className={scheduleUi.page}>
@@ -59,76 +66,16 @@ export default function TeacherScheduleView(props: TeacherScheduleViewProps) {
           Chargement de votre emploi du temps...
         </div>
       ) : (
-        <section className={scheduleUi.weekGrid}>
-          {SCHEDULE_DAYS.map((day) => {
-            const daySessions = sessionsByDay.get(day.value) || [];
-            return (
-              <article key={day.value} className={scheduleUi.dayCard}>
-                <header className={scheduleUi.dayHeader}>
-                  <div>
-                    <h2 className={scheduleUi.dayTitle}>{day.label}</h2>
-                    <p className={scheduleUi.dayCount}>{daySessions.length} séance(s)</p>
-                  </div>
-                  <button
-                    type="button"
-                    className={scheduleUi.editBtn}
-                    onClick={() => openCreateForm(day.value)}
-                    aria-label={`Ajouter une séance le ${day.label}`}
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                  </button>
-                </header>
-                <div className={scheduleUi.dayBody}>
-                  {daySessions.length === 0 ? (
-                    <div className={scheduleUi.emptyDay}>Aucune séance planifiée</div>
-                  ) : (
-                    daySessions.map((session) => (
-                      <div key={session.id} className={scheduleUi.sessionCard}>
-                        <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <h3 className={scheduleUi.sessionTitle}>{session.title}</h3>
-                            <p className={scheduleUi.sessionMeta}>{session.moduleName}</p>
-                          </div>
-                          <span className={scheduleUi.typeBadge}>{session.sessionTypeLabel}</span>
-                        </div>
-                        <p className={`${scheduleUi.sessionTime} mt-2`}>
-                          <Clock3 className="h-3.5 w-3.5" />
-                          {session.startTime} - {session.endTime}
-                        </p>
-                        {session.roomOrLink && (
-                          <p className={`${scheduleUi.sessionMeta} mt-2 flex items-center gap-1`}>
-                            <MapPin className="h-3.5 w-3.5 shrink-0" />
-                            <span className="truncate">{session.roomOrLink}</span>
-                          </p>
-                        )}
-                        {session.description && (
-                          <p className={`${scheduleUi.sessionMeta} mt-2 line-clamp-3`}>{session.description}</p>
-                        )}
-                        <div className={scheduleUi.sessionActions}>
-                          <button type="button" className={scheduleUi.editBtn} onClick={() => openEditForm(session)}>
-                            <Pencil className="mr-1 inline h-3.5 w-3.5" />
-                            Modifier
-                          </button>
-                          <button type="button" className={scheduleUi.deleteBtn} onClick={() => handleDeleteSession(session.id)}>
-                            <Trash2 className="mr-1 inline h-3.5 w-3.5" />
-                            Supprimer
-                          </button>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </article>
-            );
-          })}
-        </section>
-      )}
-
-      {!isLoading && sessions.length > 0 && (
-        <div className="rounded-2xl border border-white/[0.08] bg-[#0f172a]/60 px-4 py-3 text-xs text-slate-400">
-          <CalendarDays className="mr-2 inline h-4 w-4 text-pink-400" />
-          {sessions.length} séance(s) planifiée(s) cette semaine.
-        </div>
+        <AxelCalendarShell
+          sessions={calendarSessions}
+          accent="pink"
+          onAddSession={() => openCreateForm()}
+          onDayAction={(_date, dayOfWeek) => openCreateForm(dayOfWeek)}
+          onSessionClick={(sessionId) => {
+            const session = sessions.find((item) => item.id === sessionId);
+            if (session) openEditForm(session);
+          }}
+        />
       )}
 
       {isFormOpen && (
@@ -237,6 +184,16 @@ export default function TeacherScheduleView(props: TeacherScheduleViewProps) {
             </div>
 
             <div className={scheduleUi.modalActions}>
+              {editingSessionId && (
+                <button
+                  type="button"
+                  className={`${scheduleUi.deleteBtn} w-full sm:mr-auto sm:w-auto`}
+                  onClick={() => handleDeleteSession(editingSessionId)}
+                  disabled={isSaving}
+                >
+                  Supprimer
+                </button>
+              )}
               <button type="button" className={scheduleUi.cancelBtn} onClick={closeForm} disabled={isSaving}>
                 Annuler
               </button>
