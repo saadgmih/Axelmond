@@ -13,6 +13,7 @@ assert.match(classroomSource, /LiveConnectionNotice/);
 assert.match(classroomSource, /useLiveConnectionNotice/);
 assert.match(readFileSync("src/components/live/LiveReactionBar.tsx", "utf8"), /aria-expanded=\{open\}/);
 assert.match(classroomSource, /LiveWhiteboardPanel/);
+assert.doesNotMatch(classroomSource, /live-sidebar/);
 assert.match(classroomSource, /formatLiveStat/);
 assert.match(classroomSource, /isSolo/);
 assert.doesNotMatch(mediaControlSource, /uppercase tracking-wide/);

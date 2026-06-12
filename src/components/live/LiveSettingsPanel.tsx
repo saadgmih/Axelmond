@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import {
   Captions,
   Focus,
@@ -65,10 +66,10 @@ export default function LiveSettingsPanel({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
-  return (
-    <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center p-0 sm:p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4">
       <button
         type="button"
         aria-label="Fermer les paramètres live"
@@ -204,7 +205,7 @@ export default function LiveSettingsPanel({
               <span>
                 <span className="block text-sm font-bold">Mode Concentration</span>
                 <span className="mt-1 block text-[11px] text-zinc-400">
-                  Masque chat et participants, conserve vidéo et tableau blanc.
+                  Ouvre le tableau blanc plein écran et simplifie la scène live.
                 </span>
               </span>
               <span
@@ -267,8 +268,8 @@ export default function LiveSettingsPanel({
                 ["H", "Main levée"],
                 ["F", "Plein écran"],
                 ["P", "Picture-in-Picture"],
-                ["T", "Chat"],
-                ["Esc", "Fermer panneaux"],
+                ["T", "Tableau blanc"],
+                ["Esc", "Fermer"],
               ].map(([key, label]) => (
                 <div key={key} className="flex items-center gap-2">
                   <kbd className="rounded-md border border-white/10 bg-zinc-950 px-2 py-0.5 font-mono text-[10px] text-indigo-200">
@@ -281,6 +282,7 @@ export default function LiveSettingsPanel({
           </section>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

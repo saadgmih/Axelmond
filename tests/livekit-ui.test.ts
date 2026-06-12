@@ -26,9 +26,11 @@ assert.match(classroomSource, /Mode concentration/);
 assert.match(classroomSource, /resolveStageParticipants/);
 assert.match(classroomSource, /LiveResourceStage/);
 assert.match(liveKitSource, /LIVE_SYNC_TOPIC/);
-assert.match(classroomSource, /applyLiveVideoQuality/);
+assert.match(classroomSource, /useLiveConnectionNotice/);
+assert.doesNotMatch(classroomSource, /Panneau interactif/);
 assert.match(classroomSource, /key: "v"/);
 assert.match(classroomSource, /key: "t"/);
+assert.match(readFileSync(new URL("../src/components/live/LiveSettingsPanel.tsx", import.meta.url), "utf8"), /createPortal/);
 assert.match(readFileSync(new URL("../src/components/live/LiveSettingsPanel.tsx", import.meta.url), "utf8"), /Bientôt disponible/);
 
 console.log("LiveKit UI rules passed");
