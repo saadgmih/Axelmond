@@ -10,6 +10,6 @@ assert.match(classroomSource, /LiveParticipantTile/);
 assert.match(classroomSource, /LiveMediaControl/);
 assert.match(mediaControlSource, /border-emerald-500\/40 bg-emerald-500\/10/);
 assert.match(classroomSource, /LiveReactionBar/);
-assert.match(classroomSource, /LiveWhiteboardPanel/);
-
-console.log("Live video grid rules passed");
+assert.match(classroomSource, /formatLiveStat/);
+assert.match(classroomSource, /isSolo/);
+assert.doesNotMatch(mediaControlSource, /uppercase tracking-wide/);

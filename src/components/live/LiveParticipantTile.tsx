@@ -6,6 +6,7 @@ interface LiveParticipantTileProps {
   participant: LiveParticipantCard;
   isActive: boolean;
   isFeatured: boolean;
+  isSolo?: boolean;
   videoRef?: (element: HTMLVideoElement | null) => void;
   roleLabel: (role?: string) => string;
 }
@@ -14,15 +15,17 @@ export default function LiveParticipantTile({
   participant,
   isActive,
   isFeatured,
+  isSolo = false,
   videoRef,
   roleLabel,
 }: LiveParticipantTileProps) {
   const hasVideo = Boolean(participant.videoTrack);
+  const avatarSize = isSolo || isFeatured ? "xl" : "lg";
 
   return (
     <div
-      className={`relative min-h-[140px] sm:min-h-[180px] rounded-2xl overflow-hidden border shadow-xl transition-all ${
-        isFeatured ? "min-h-[220px] sm:min-h-[280px]" : ""
+      className={`relative rounded-2xl overflow-hidden border shadow-xl transition-all ${
+        isSolo ? "h-full min-h-[240px]" : isFeatured ? "min-h-[220px] sm:min-h-[280px]" : "min-h-[140px] sm:min-h-[180px]"
       } ${isActive ? "border-indigo-400 ring-2 ring-indigo-500/40" : "border-white/10 bg-zinc-900/80"}`}
     >
       {hasVideo ? (
@@ -39,9 +42,9 @@ export default function LiveParticipantTile({
             name={participant.name}
             initials={participant.initials}
             avatarUrl={participant.avatarUrl}
-            size={isFeatured ? "xl" : "lg"}
+            size={avatarSize}
             isSpeaking={participant.isSpeaking}
-            isFeatured={isFeatured}
+            isFeatured={isFeatured || isSolo}
           />
         </div>
       )}

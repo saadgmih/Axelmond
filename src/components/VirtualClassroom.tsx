@@ -150,6 +150,10 @@ function formatDuration(seconds: number) {
   return `${rest}m ${String(safe % 60).padStart(2, "0")}s`;
 }
 
+function formatLiveStat(count: number, singular: string, plural: string) {
+  return `${count} ${count <= 1 ? singular : plural}`;
+}
+
 function roleLabel(role?: string) {
   if (role === "ADMIN") return "Administrateur";
   if (role === "RESEARCHER") return "Chercheur";
@@ -576,15 +580,15 @@ export default function VirtualClassroom({
               <>
                 <div className="flex items-center gap-2 text-xs text-zinc-300">
                   <UserCheck className="w-4 h-4 text-emerald-400" />
-                  <span className="font-bold">{connectedParticipants.length} connectés</span>
+                  <span className="font-bold">{formatLiveStat(connectedParticipants.length, "connecté", "connectés")}</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-zinc-300">
                   <Hand className="w-4 h-4 text-amber-400" />
-                  <span className="font-bold">{raisedHands} levées</span>
+                  <span className="font-bold">{formatLiveStat(raisedHands, "main levée", "mains levées")}</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-zinc-300 hidden sm:flex">
                   <MessageSquare className="w-4 h-4 text-indigo-400" />
-                  <span className="font-bold">{questionsCount} questions</span>
+                  <span className="font-bold">{formatLiveStat(questionsCount, "question", "questions")}</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-zinc-300 hidden lg:flex">
                   <Wifi className="w-4 h-4 text-zinc-400" />
@@ -598,37 +602,37 @@ export default function VirtualClassroom({
           <div
             ref={controlsRef}
             data-tv-zone="live-controls"
-            className="shrink-0 min-h-[80px] w-full max-w-full bg-zinc-900 border-b border-white/5 flex items-center justify-start md:justify-center z-30 px-2 sm:px-4 box-border overflow-x-auto hide-scrollbar py-2"
+            className="shrink-0 min-h-[80px] w-full max-w-full bg-zinc-900 border-b border-white/5 flex items-stretch z-30 px-2 sm:px-3 box-border py-2 gap-2"
           >
-            <div className="flex items-center gap-1.5 sm:gap-2 md:gap-4 shrink-0">
-              <div className="flex items-center gap-2 mr-2 md:mr-4 pr-2 md:pr-4 border-r border-white/10">
-                <LiveMediaControl
-                  label="Micro"
-                  enabledLabel="Activé"
-                  disabledLabel="Désactivé"
-                  enabled={isMicEnabled}
-                  enabledIcon={Mic}
-                  disabledIcon={MicOff}
-                  onClick={onToggleMic}
-                  ariaLabel={isMicEnabled ? "Couper le micro (M)" : "Activer le micro (M)"}
-                />
-                <LiveMediaControl
-                  label="Caméra"
-                  enabledLabel="Activée"
-                  disabledLabel="Désactivée"
-                  enabled={isCameraEnabled}
-                  enabledIcon={Video}
-                  disabledIcon={VideoOff}
-                  onClick={onToggleCamera}
-                  ariaLabel={isCameraEnabled ? "Couper la caméra (V)" : "Activer la caméra (V)"}
-                />
-              </div>
+            <div className="flex shrink-0 items-center gap-2 border-r border-white/10 pr-2 sm:pr-3">
+              <LiveMediaControl
+                label="Micro"
+                enabledLabel="Activé"
+                disabledLabel="Désactivé"
+                enabled={isMicEnabled}
+                enabledIcon={Mic}
+                disabledIcon={MicOff}
+                onClick={onToggleMic}
+                ariaLabel={isMicEnabled ? "Couper le micro (M)" : "Activer le micro (M)"}
+              />
+              <LiveMediaControl
+                label="Caméra"
+                enabledLabel="Activée"
+                disabledLabel="Désactivée"
+                enabled={isCameraEnabled}
+                enabledIcon={Video}
+                disabledIcon={VideoOff}
+                onClick={onToggleCamera}
+                ariaLabel={isCameraEnabled ? "Couper la caméra (V)" : "Activer la caméra (V)"}
+              />
+            </div>
 
-              <div className="hidden xl:block max-w-[220px]">
+            <div className="flex min-w-0 flex-1 items-center overflow-x-auto hide-scrollbar gap-1.5 sm:gap-2">
+              <div className="hidden 2xl:block shrink-0">
                 <LiveReactionBar compact onReaction={onReaction} />
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                 <button
                   type="button"
                   data-tv-focusable
@@ -694,7 +698,7 @@ export default function VirtualClassroom({
               </div>
 
               {canModerate && (
-                <div className="flex items-center gap-2 ml-2 md:ml-4 pl-2 md:pl-4 border-l border-white/10">
+                <div className="flex items-center gap-2 ml-1 sm:ml-2 pl-1 sm:pl-2 border-l border-white/10 shrink-0">
                   <button
                     type="button"
                     data-tv-focusable
@@ -709,19 +713,19 @@ export default function VirtualClassroom({
                   </button>
                 </div>
               )}
+            </div>
 
-              <div className="ml-2 md:ml-4 pl-2 md:pl-4 border-l border-white/10">
-                <button
-                  type="button"
-                  data-tv-focusable
-                  tabIndex={0}
-                  onClick={exitLiveSession}
-                  aria-label="Quitter la salle live (L)"
-                  className="kbd-nav-focus touch-target h-12 min-h-[48px] px-5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-bold transition-all shadow-md flex items-center justify-center"
-                >
-                  Quitter
-                </button>
-              </div>
+            <div className="flex shrink-0 items-center border-l border-white/10 pl-2 sm:pl-3">
+              <button
+                type="button"
+                data-tv-focusable
+                tabIndex={0}
+                onClick={exitLiveSession}
+                aria-label="Quitter la salle live (L)"
+                className="kbd-nav-focus touch-target h-12 min-h-[48px] px-4 sm:px-5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-bold transition-all shadow-md flex items-center justify-center whitespace-nowrap"
+              >
+                Quitter
+              </button>
             </div>
           </div>
 
@@ -742,16 +746,18 @@ export default function VirtualClassroom({
                 </div>
               ) : (
                 <>
-                  <div className={`live-video-grid grid ${videoGridClass} gap-3 w-full h-full p-3`}>
+                  <div className={`live-video-grid grid ${videoGridClass} gap-3 w-full h-full p-3 ${stageParticipants.length === 1 ? "grid-rows-1" : ""}`}>
                     {stageParticipants.map((participant, index) => {
                       const isActive = participant.identity === activeSpeaker?.identity || participant.isSpeaking;
                       const isFeatured = featuredLayout && index === 0;
+                      const isSolo = stageParticipants.length === 1;
                       return (
                         <LiveParticipantTile
                           key={participant.identity}
                           participant={participant}
                           isActive={Boolean(isActive)}
                           isFeatured={isFeatured}
+                          isSolo={isSolo}
                           roleLabel={roleLabel}
                           videoRef={(element) => {
                             videoRefs.current[participant.identity] = element;
