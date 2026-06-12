@@ -18,6 +18,9 @@ const REQUIRED_PRODUCTION_ENV = [
   "SMTP_PASS",
   "VAPID_PUBLIC_KEY",
   "VAPID_PRIVATE_KEY",
+] as const;
+
+const OPTIONAL_PRODUCTION_SECRETS = [
   "MOBILE_API_SECRET",
 ] as const;
 
@@ -76,6 +79,17 @@ export function validateProductionConfiguration(env: NodeJS.ProcessEnv = process
     const value = readEnv(env, key);
     if (value && value.length < 32) {
       issues.push(`${key} must be at least 32 characters in production`);
+    }
+  }
+
+  for (const key of OPTIONAL_PRODUCTION_SECRETS) {
+    const value = readEnv(env, key);
+    if (!value) continue;
+    if (hasPlaceholderValue(value)) {
+      issues.push(`${key} still uses a placeholder value`);
+    }
+    if (value.length < 32) {
+      issues.push(`${key} must be at least 32 characters in production when set`);
     }
   }
 
