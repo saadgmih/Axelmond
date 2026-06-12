@@ -12,7 +12,7 @@ export interface UseStudentCourseSessionOptions {
   setSelectedModule: Dispatch<SetStateAction<CourseModule | null>>;
   currentUser: AppUser | null;
   currentView: string;
-  refreshCourseContent: (courseId: number) => void | Promise<void>;
+  refreshCourseContent: (courseId: number) => void | Promise<unknown>;
   updateSessionUser: (user: AppUser) => void;
   setEnrolledCourses: Dispatch<SetStateAction<number[]>>;
   setInvoices: Dispatch<SetStateAction<Invoice[]>>;

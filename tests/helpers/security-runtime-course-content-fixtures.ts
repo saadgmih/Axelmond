@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { DEFAULT_DISCIPLINE_ID } from "../../src/academic-taxonomy.ts";
 import { prisma } from "../../src/db.ts";
 import { SECURITY_RUNTIME_TEST_PASSWORD } from "./security-runtime-fixtures.ts";
+import { deleteRuntimeCoursesByTitle } from "./security-runtime-course-cleanup.ts";
 
 export const COURSE_CONTENT_RUNTIME_EMAIL_PREFIX = "security-runtime-course-content+";
 export const COURSE_CONTENT_RUNTIME_COURSE_TITLE = "Security runtime course-content course";
@@ -50,17 +51,7 @@ export async function cleanupCourseContentRuntimeFixtures() {
     await prisma.academicProfile.deleteMany({ where: { userId: { in: userIds } } });
   }
 
-  const courses = await prisma.course.findMany({
-    where: { title: COURSE_CONTENT_RUNTIME_COURSE_TITLE },
-    select: { id: true },
-  });
-  const courseIds = courses.map((course) => course.id);
-
-  if (courseIds.length > 0) {
-    await prisma.lessonContent.deleteMany({ where: { courseId: { in: courseIds } } });
-    await prisma.contentSection.deleteMany({ where: { courseId: { in: courseIds } } });
-    await prisma.course.deleteMany({ where: { id: { in: courseIds } } });
-  }
+  await deleteRuntimeCoursesByTitle(COURSE_CONTENT_RUNTIME_COURSE_TITLE);
 
   if (userIds.length > 0) {
     await prisma.user.deleteMany({ where: { id: { in: userIds } } });

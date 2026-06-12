@@ -4,6 +4,7 @@ import {
   MOBILE_CLIENT_HEADER,
   MOBILE_CLIENT_VALUE,
   isMobileClientRequest,
+  isTrustedMobileClientRequest,
   withMobileRefreshToken,
 } from "../src/auth-mobile.ts";
 import { csrfProtection } from "../src/auth-csrf.ts";
@@ -41,9 +42,9 @@ assert.deepEqual(mobilePayload, {
 });
 
 assert.match(serverSource, /withMobileRefreshToken\(req/);
-assert.match(serverSource, /applyMobileApiCorsHeaders\(req, res\)/);
+assert.match(serverSource, /applyMobileApiCorsHeaders\(req, res, \{ originAllowed \}\)/);
 assert.match(serverSource, /registerMobileApiRoutes\(app, \{ requireAuth \}\)/);
-assert.match(authCsrfSource, /isMobileClientRequest/);
+assert.match(authCsrfSource, /isTrustedMobileClientRequest/);
 assert.match(mobileRoutesSource, /\/api\/mobile\/student-profile/);
 assert.match(mobileRoutesSource, /\/api\/mobile\/routes/);
 
@@ -72,6 +73,11 @@ applyMobileApiCorsHeaders(
 );
 assert.match(corsRes.headers["access-control-allow-headers"], /X-Axelmond-Client/);
 assert.equal(corsRes.headers["access-control-allow-origin"], "http://localhost:8081");
+
+const previousMobileSecret = process.env.MOBILE_API_SECRET;
+const previousNodeEnv = process.env.NODE_ENV;
+process.env.NODE_ENV = "development";
+delete process.env.MOBILE_API_SECRET;
 
 let mobileCsrfPassed = false;
 csrfProtection(
@@ -103,5 +109,16 @@ csrfProtection(
   () => { mobileRefreshPassed = true; },
 );
 assert.equal(mobileRefreshPassed, true);
+
+if (previousMobileSecret === undefined) {
+  delete process.env.MOBILE_API_SECRET;
+} else {
+  process.env.MOBILE_API_SECRET = previousMobileSecret;
+}
+if (previousNodeEnv === undefined) {
+  delete process.env.NODE_ENV;
+} else {
+  process.env.NODE_ENV = previousNodeEnv;
+}
 
 console.log("Mobile API rules passed");

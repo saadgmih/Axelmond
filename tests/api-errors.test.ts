@@ -9,7 +9,8 @@ assert.match(expressAsyncSource, /patchExpressAsyncRoutes/);
 assert.match(serverSource, /patchExpressAsyncRoutes\(app\)/);
 assert.match(serverSource, /P2021/);
 assert.match(serverSource, /verifyDatabaseConnection/);
-assert.match(serverSource, /prisma\.user\.findFirst/);
+assert.match(serverSource, /healthRateLimiter/);
+assert.match(serverSource, /\$queryRaw`SELECT 1`/);
 assert.match(serverSource, /isProduction\s*\?\s*\{\s*error: apiErrorMessage\(err\) \}/);
 assert.match(dbSource, /export async function verifyDatabaseConnection/);
 

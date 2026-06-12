@@ -37,6 +37,10 @@ assert.equal(canAccessApiRoute("PROFESSOR", "POST", "/api/livekit/moderation"), 
 assert.match(serverSource, /app\.post\("\/api\/livekit\/moderation",\s*requireAuth,\s*requireRbac/);
 assert.match(serverSource, /const liveKitModerationRateLimiter = rateLimit\(\{[\s\S]*?max:[\s\S]*?keyGenerator:\s*liveKitRateLimitKey/);
 assert.match(serverSource, /app\.use\("\/api\/livekit\/moderation",\s*liveKitModerationRateLimiter\)/);
+assert.match(serverSource, /app\.use\("\/api\/livekit\/messages",\s*liveKitMessagesRateLimiter\)/);
+assert.match(serverSource, /app\.use\("\/api\/paypal",\s*paypalRateLimiter\)/);
+assert.match(serverSource, /app\.use\("\/api\/conversations",\s*messagingRateLimiter\)/);
+assert.match(serverSource, /app\.use\("\/api\/contact",\s*contactSupportRateLimiter\)/);
 assert.doesNotMatch(serverSource, /app\.use\("\/api\/livekit\/messages",\s*liveKitModerationRateLimiter\)/);
 assert.match(serverSource, /roomService\.removeParticipant/);
 assert.match(serverSource, /roomService\.mutePublishedTrack/);

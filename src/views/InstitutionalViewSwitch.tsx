@@ -28,5 +28,12 @@ export default function InstitutionalViewSwitch({ currentView, currentUser, navi
   if (currentView === "legal") return <LegalView />;
   if (currentView === "research") return <ResearchView />;
   if (currentView === "publications") return <PublicationsView />;
-  return null;
+  return (
+    <div className="mx-auto max-w-xl p-8 text-center text-slate-300">
+      <p className="text-sm font-semibold">Page introuvable.</p>
+      <button type="button" onClick={() => navigateTo("dashboard")} className="mt-4 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white">
+        Retour à l&apos;accueil
+      </button>
+    </div>
+  );
 }

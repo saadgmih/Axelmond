@@ -10,7 +10,7 @@ interface NotificationsViewProps {
   onReload: () => void;
   onMarkRead: (id: string) => void;
   onMarkAllRead: () => void;
-  onNavigate?: (actionUrl: string) => void;
+  onNavigate?: (notification: AppNotification) => void;
   pushStatus?: string;
   onEnablePush?: () => void;
 }
@@ -89,7 +89,7 @@ export default function NotificationsView({
                   type="button"
                   onClick={() => {
                     if (!notification.isRead) onMarkRead(notification.id);
-                    if (notification.actionUrl && onNavigate) onNavigate(notification.actionUrl);
+                    if (notification.actionUrl && onNavigate) onNavigate(notification);
                   }}
                   className={`flex w-full items-start gap-4 px-5 py-4 text-left transition hover:bg-white/[0.03] ${notification.isRead ? "opacity-70" : "bg-indigo-500/5"}`}
                 >

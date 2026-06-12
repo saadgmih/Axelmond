@@ -21,6 +21,8 @@ assert.match(serverSource, /Refresh token reuse detected/);
 assert.match(serverSource, /verifyCourseAccess\(authUser,\s*course\.id\)/);
 assert.match(serverSource, /app\.post\("\/api\/livekit\/messages",\s*requireAuth,\s*validateBody\(liveMessageSchema\)/);
 assert.match(serverSource, /app\.post\("\/api\/chat-tutor",\s*requireAuth,\s*validateBody\(chatTutorSchema\)/);
+assert.match(serverSource, /generateChatTutorResponse/);
+assert.doesNotMatch(serverSource, /GEMINI_API_KEY|GoogleGenAI|@google\/genai|gemini-/i);
 assert.match(serverSource, /courseId:\s*z\.number\(\)\.int\(\)\.positive\(\)/);
 assert.match(serverSource, /assertCourseLearningAccess\(/);
 assert.doesNotMatch(serverSource, /courseContext:\s*z\.string\(\)/);

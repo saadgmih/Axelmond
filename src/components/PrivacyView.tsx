@@ -469,10 +469,10 @@ export default function PrivacyView() {
                   chip: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10",
                 },
                 {
-                  name: "Google Gemini AI",
+                  name: "OpenAI",
                   role: "Tuteur IA pédagogique",
                   data: "Questions posées au tuteur IA (aucune donnée d'identité transmise, contenu du module uniquement)",
-                  url: "policies.google.com/privacy",
+                  url: "openai.com/policies/privacy-policy",
                   color: "border-amber-800/40 bg-amber-950/20",
                   chip: "text-amber-300 border-amber-500/30 bg-amber-500/10",
                 },

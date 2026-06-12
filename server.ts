@@ -6,7 +6,11 @@ import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import { Prisma } from "@prisma/client";
-import { GoogleGenAI } from "@google/genai";
+import {
+  ChatTutorServiceError,
+  generateChatTutorResponse,
+  initializeOpenAIService,
+} from "./src/openai-service";
 import { AccessToken, RoomServiceClient } from "livekit-server-sdk";
 import { createRouteHandler } from "uploadthing/express";
 import compression from "compression";
@@ -92,6 +96,7 @@ import {
   REFRESH_RATE_LIMIT_WINDOW_MS,
   CHAT_TUTOR_MAX_HISTORY_MESSAGES,
   CHAT_TUTOR_MAX_PROMPT_CHARS,
+  hashRefreshToken,
 } from "./src/security-hardening";
 import { clearAuthCookies, readRefreshTokenFromRequest, setAuthCookies } from "./src/auth-cookies";
 import { csrfProtection } from "./src/auth-csrf";
@@ -100,15 +105,19 @@ import { applyMobileApiCorsHeaders, registerMobileApiRoutes } from "./src/mobile
 import { emailRateLimitKey } from "./src/email-rate-limit";
 import { liveKitRateLimitKey } from "./src/livekit-rate-limit";
 import { adminRateLimitKey } from "./src/admin-rate-limit";
+import { parsePositiveInt } from "./src/route-params";
+import { isAllowedAvatarUrl } from "./src/avatar-security";
 
 dotenv.config();
 
 const app = express();
 patchExpressAsyncRoutes(app);
 const PORT = Number(process.env.PORT) || 3000;
-const isProduction = process.env.NODE_ENV === "production";
-assertProductionConfiguration(process.env);
 const isSecurityRuntimeTest = process.env.SECURITY_RUNTIME_TEST === "1";
+const isProduction = process.env.NODE_ENV === "production";
+if (!isSecurityRuntimeTest) {
+  assertProductionConfiguration(process.env);
+}
 const AUTH_MAX_ATTEMPTS = Number(process.env.AUTH_MAX_ATTEMPTS) || 20;
 const AUTH_LOCKOUT_WINDOW_MS = Number(process.env.AUTH_LOCKOUT_WINDOW_MS) || 1 * 60 * 1000;
 const uploadThingCallbackUrl = process.env.UPLOADTHING_CALLBACK_URL || (process.env.APP_URL ? `${process.env.APP_URL}/api/uploadthing` : undefined);
@@ -230,7 +239,10 @@ app.use((req, res, next) => {
     typeof requestedHeaders === "string" &&
     requestedHeaders.toLowerCase().includes(MOBILE_CLIENT_HEADER);
   if (req.path.startsWith("/api/") && (isMobileClientRequest(req) || mobilePreflight)) {
-    applyMobileApiCorsHeaders(req, res);
+    const origin = req.headers.origin;
+    const originAllowed = typeof origin !== "string" || !origin.length || !isProduction
+      || allowedOrigins.has(normalizeOriginUrl(origin));
+    applyMobileApiCorsHeaders(req, res, { originAllowed });
   } else if (origin && allowedOrigins.has(normalizeOriginUrl(origin))) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Vary", "Origin");
@@ -459,12 +471,63 @@ const chatTutorRateLimiter = rateLimit({
   message: { error: "Trop de questions à l'assistant. Veuillez patienter 15 minutes.", code: "CHAT_TUTOR_RATE_LIMIT_EXCEEDED" },
 });
 
+const paypalRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: isSecurityRuntimeTest ? 9999 : Number(process.env.PAYPAL_RATE_LIMIT_MAX) || 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: liveKitRateLimitKey,
+  message: { error: "Trop de demandes PayPal. Veuillez patienter 15 minutes.", code: "PAYPAL_RATE_LIMIT_EXCEEDED" },
+});
+
+const liveKitMessagesRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: Number(process.env.LIVEKIT_MESSAGES_RATE_LIMIT_MAX) || 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: liveKitRateLimitKey,
+  message: { error: "Trop de messages live. Veuillez patienter 15 minutes.", code: "LIVEKIT_MESSAGES_RATE_LIMIT_EXCEEDED" },
+});
+
+const liveKitEventsRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: Number(process.env.LIVEKIT_EVENTS_RATE_LIMIT_MAX) || 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: liveKitRateLimitKey,
+  message: { error: "Trop d'événements live. Veuillez patienter 15 minutes.", code: "LIVEKIT_EVENTS_RATE_LIMIT_EXCEEDED" },
+});
+
+const messagingRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: Number(process.env.MESSAGING_RATE_LIMIT_MAX) || 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: liveKitRateLimitKey,
+  message: { error: "Trop de messages. Veuillez patienter 15 minutes.", code: "MESSAGING_RATE_LIMIT_EXCEEDED" },
+});
+
+const contactSupportRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: Number(process.env.CONTACT_SUPPORT_RATE_LIMIT_MAX) || 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: liveKitRateLimitKey,
+  message: { error: "Trop de demandes contact/support. Veuillez patienter 1 heure.", code: "CONTACT_SUPPORT_RATE_LIMIT_EXCEEDED" },
+});
+
 const refreshRateLimiter = rateLimit({
   windowMs: REFRESH_RATE_LIMIT_WINDOW_MS,
   max: REFRESH_RATE_LIMIT_MAX,
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => ipKeyGenerator(req.ip || ""),
+  keyGenerator: (req) => {
+    const refreshToken = readRefreshTokenFromRequest(req);
+    if (refreshToken) {
+      return `refresh:${hashRefreshToken(refreshToken).slice(0, 24)}`;
+    }
+    return ipKeyGenerator(req.ip || "");
+  },
   message: { error: "Trop de tentatives de renouvellement de session. Réessayez plus tard.", code: "REFRESH_RATE_LIMIT_EXCEEDED" },
 });
 
@@ -480,6 +543,12 @@ app.use("/api/uploadthing", uploadRateLimiter);
 app.use("/api/me/avatar", uploadRateLimiter);
 app.use("/api/livekit/token", liveKitRateLimiter);
 app.use("/api/livekit/moderation", liveKitModerationRateLimiter);
+app.use("/api/livekit/messages", liveKitMessagesRateLimiter);
+app.use("/api/livekit/events", liveKitEventsRateLimiter);
+app.use("/api/conversations", messagingRateLimiter);
+app.use("/api/paypal", paypalRateLimiter);
+app.use("/api/contact", contactSupportRateLimiter);
+app.use("/api/support", contactSupportRateLimiter);
 app.use("/api/admin", adminRouteRateLimiter);
 app.use("/api/chat-tutor", chatTutorRateLimiter);
 app.use("/api/test-email", adminDiagnosticRateLimiter);
@@ -565,7 +634,7 @@ function logEnvironmentStatus() {
     SMTP_HOST: isConfiguredEnv("SMTP_HOST"),
     SMTP_USER: isConfiguredEnv("SMTP_USER"),
     SMTP_PASS: isConfiguredEnv("SMTP_PASS"),
-    GEMINI_API_KEY: isConfiguredEnv("GEMINI_API_KEY"),
+    OPENAI_API_KEY: isConfiguredEnv("OPENAI_API_KEY"),
   });
   if (isProduction && allowedOrigins.size === 0) {
     logSecurity("WARN", "Production CORS has no allowed origins — set APP_URL and/or ALLOWED_ORIGINS", {});
@@ -3293,7 +3362,7 @@ app.post("/api/auth/register", validateBody(registerSchema), async (req, res) =>
   const normalizedEmail = email;
   const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
   if (existing) {
-    res.status(409).json({ error: "Un compte avec cet email existe déjà" });
+    res.status(409).json({ error: "Impossible de créer le compte avec ces informations. Vérifiez vos données ou connectez-vous." });
     return;
   }
 
@@ -3308,7 +3377,7 @@ app.post("/api/auth/register", validateBody(registerSchema), async (req, res) =>
   const availableCourses = await prisma.course.findMany({ select: { id: true } });
   const enrolledCourseIds = normalizedRole === "STUDENT"
     ? (availableCourses.length > 0 ? [availableCourses[0].id] : [])
-    : availableCourses.map(c => c.id);
+    : [];
   const passwordHash = await bcrypt.hash(password, 10);
 
   try {
@@ -3622,7 +3691,9 @@ app.post("/api/auth/resend-verification-code", validateBody(resendEmailSchema), 
     return;
   }
   if (user.emailVerified) {
-    res.status(400).json({ error: "E-mail déjà vérifié" });
+    res.json({
+      message: "Si le compte existe et n'est pas vérifié, un nouveau code a été envoyé.",
+    });
     return;
   }
 
@@ -4478,7 +4549,12 @@ app.post("/api/livekit/token", requireAuth, async (req, res) => {
 
 app.get("/api/livekit/messages/:courseId", requireAuth, async (req, res) => {
   const authUser = (req as any).authUser as AppUser;
-  const access = await assertLiveAccess(authUser, Number(req.params.courseId));
+  const courseId = parsePositiveInt(req.params.courseId);
+  if (!courseId) {
+    res.status(400).json({ error: "Identifiant de cours invalide" });
+    return;
+  }
+  const access = await assertLiveAccess(authUser, courseId);
   if (!access.ok) {
     res.status(access.status).json({ error: access.error });
     return;
@@ -5096,6 +5172,11 @@ app.post("/api/support/tickets", requireAuth, validateBody(supportTicketSchema),
   const authUser = (req as any).authUser as AppUser;
   const { subject, category, description, screenshotUrl } = req.body;
 
+  if (screenshotUrl && !isAllowedAvatarUrl(String(screenshotUrl))) {
+    res.status(400).json({ error: "URL de capture d'écran non autorisée" });
+    return;
+  }
+
   try {
     await logAudit(
       authUser.id,
@@ -5129,24 +5210,9 @@ app.post("/api/support/tickets", requireAuth, validateBody(supportTicketSchema),
   }
 });
 
-// ─── AI Tutor (existing) ─────────────────────────────────────────────────────
+// ─── AI Tutor (OpenAI, server-side only) ────────────────────────────────────
 
-const apiKey = process.env.GEMINI_API_KEY;
-let ai: any = null;
-
-if (apiKey) {
-  try {
-    ai = new GoogleGenAI({
-      apiKey: apiKey,
-      httpOptions: { headers: { 'User-Agent': 'aistudio-build' } }
-    });
-    console.log("GoogleGenAI client successfully initialized.");
-  } catch (err) {
-    console.error("Error setting up GoogleGenAI client:", err);
-  }
-} else {
-  console.log("Assistant IA: service externe non configuré, réponses pédagogiques locales activées.");
-}
+initializeOpenAIService();
 
 async function findCourseLearningAccessRecord(courseId: number) {
   return prisma.course.findUnique({
@@ -5193,49 +5259,28 @@ app.post("/api/chat-tutor", requireAuth, validateBody(chatTutorSchema), async (r
   const courseName = access.course.title;
   const resolvedModuleName = moduleName || "Sujet Libre";
 
-  const systemInstruction = `Tu es l'éminent tuteur IA de l'université Axelmond Research Labs.
-L'étudiant étudie actuellement le module : "${courseName}" et plus particulièrement le chapitre ou l'activité : "${resolvedModuleName}".
-Fournis des explications scientifiques et informatiques claires, extrêmement précises et pédagogiques.
-Si l'étudiant pose une question de programmation, donne des exemples de code structurés (en C, Python, SQL, ou Bash selon le contexte) avec des explications.
-Reste bienveillant, universitaire et s'il s'agit d'un exemple pratique, aide l'étudiant à comprendre la logique étape par étape.
-Réponds exclusivement en français, de manière polie.`;
-
-  if (!ai) {
-    const localAnswers: { [key: string]: string } = {
-      default: `Bonjour ! Je suis votre assistant personnel Axelmond Research Labs.\n\nC'est un plaisir de vous aider sur le module **${courseName}** (*${resolvedModuleName}*).\n\nVoici quelques conseils fondamentaux sur votre sujet actuel :\n1. **Comprenez la structure** : Avant de coder, dessinez les structures de données (listes, arbres) ou écrivez le pseudo-code.\n2. **Complexité** : N'oubliez pas d'évaluer la complexité O(n) de vos solutions.\n3. **Tests** : Testez toujours les cas limites (pointeur NULL, tableau vide, division par zéro).\n\nAvez-vous une question spécifique concernant le code ou la théorie de ce chapitre ?`
-    };
-    let reply = localAnswers.default;
-    const lowerPrompt = prompt.toLowerCase();
-    if (lowerPrompt.includes("complexit") || lowerPrompt.includes("o(")) {
-      reply = `### Analyse de la Complexité Temporelle O(n)\n\nEn Algorithmique, la complexité mesure l'évolution des ressources nécessaires (temps, mémoire) en fonction de la taille $n$ des données.\n\n- **$O(1)$ (Temps Constant)** : L'accès à un élément de tableau par son index \`A[i]\`.\n- **$O(\\log n)$ (Logarithmique)** : Recherche dichotomique dans un tableau trié.\n- **$O(n)$ (Linéaire)** : Recherche séquentielle dans un tableau non trié.\n- **$O(n^2)$ (Quadratique)** : Double boucle imbriquée.\n\nAvez-vous besoin que nous analysions un algorithme particulier ensemble ?`;
-    } else if (lowerPrompt.includes("sql") || lowerPrompt.includes("base de donn")) {
-      reply = `### Modélisation et Requêtes SQL\n\nPour concevoir une excellente structure relationnelle, voici les principes clés :\n\n1. **Clé Primaire (Primary Key)** : Identifie de manière unique chaque tuple de la table.\n2. **Clé Étrangère (Foreign Key)** : Établit un lien de référence avec une autre table.\n3. **Jointures** : Permettent de relier plusieurs tables.\n\nQue souhaitez-vous interroger ou modéliser aujourd'hui ?`;
-    } else if (lowerPrompt.includes("linux") || lowerPrompt.includes("processus")) {
-      reply = `### L'architecture Linux et la gestion de Processus\n\nDans un système d'exploitation conforme aux normes POSIX (comme Linux) :\n\n- **Processus** : Une instance de programme en cours d'exécution.\n- **Thread** : L'unité d'exécution de base d'un processus.\n- **fork()** : Appel système permettant de cloner un processus parent.\n\nAvez-vous une question concernant les sémaphores, le scheduling, ou la gestion des signaux ?`;
-    } else if (lowerPrompt.includes("ia") || lowerPrompt.includes("machine learning") || lowerPrompt.includes("neurone")) {
-      reply = `### Fondations de l'Intelligence Artificielle\n\nL'apprentissage statistique (Machine Learning) repose sur l'ajustement de paramètres mathématiques pour minimiser une fonction d'erreur.\n\n- **Supervisé** : Vous donnez des entrées $X$ et les étiquettes cibles $Y$.\n- **Non supervisé** : Regroupement automatique sans étiquettes.\n- **Réseau de Neurones** : Un modèle composé de couches de neurones artificiels.\n\nQuelle partie du Machine Learning vous intéresse en ce moment ?`;
-    }
-    res.json({ text: reply });
-    return;
-  }
-
   try {
-    const formattedHistory = (chatHistory || []).map((msg: any) => ({
-      role: msg.role === "user" ? "user" : "model",
-      parts: [{ text: msg.text }]
-    }));
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: [...formattedHistory, { text: prompt }],
-      config: { systemInstruction, temperature: 0.7 }
+    const text = await generateChatTutorResponse({
+      courseName,
+      moduleName: resolvedModuleName,
+      prompt,
+      chatHistory,
     });
-    res.json({ text: response.text });
-  } catch (err: any) {
-    console.error("Gemini invocation error:", err);
-    res.status(500).json({
-      error: "L'assistant a rencontré une erreur.",
-      ...(process.env.NODE_ENV !== "production" ? { details: err.message } : {}),
-    });
+    res.json({ text });
+  } catch (err) {
+    if (err instanceof ChatTutorServiceError) {
+      res.status(err.statusCode).json({
+        error: err.message,
+        code: err.code,
+        ...(process.env.NODE_ENV !== "production" && err.cause instanceof Error
+          ? { details: err.cause.message }
+          : {}),
+      });
+      return;
+    }
+
+    console.error("OpenAI chat-tutor route error:", err);
+    res.status(500).json({ error: "L'assistant a rencontré une erreur." });
   }
 });
 
@@ -5284,13 +5329,31 @@ function apiErrorMessage(err: any) {
   return err?.message || "Erreur serveur";
 }
 
-// ─── GET /api/health — healthcheck léger (exempté du rate limiter) ────────────
-app.get("/api/health", async (req, res) => {
+// ─── GET /api/health — healthcheck léger ────────────────────────────────────
+const HEALTH_CACHE_TTL_MS = 5_000;
+let healthCache: { checkedAt: number; dbHealthy: boolean } | null = null;
+
+const healthRateLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: isSecurityRuntimeTest ? 9999 : 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Trop de requêtes healthcheck. Veuillez patienter.", code: "HEALTH_RATE_LIMIT_EXCEEDED" },
+});
+
+app.get("/api/health", healthRateLimiter, async (req, res) => {
   let dbStatus = "HEALTHY";
   const dbSchema = getActivePgSchema();
-  try {
-    await prisma.user.findFirst({ select: { id: true } });
-  } catch (err) {
+  const now = Date.now();
+  if (!healthCache || now - healthCache.checkedAt >= HEALTH_CACHE_TTL_MS) {
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      healthCache = { checkedAt: now, dbHealthy: true };
+    } catch {
+      healthCache = { checkedAt: now, dbHealthy: false };
+    }
+  }
+  if (!healthCache.dbHealthy) {
     dbStatus = "UNHEALTHY";
   }
 

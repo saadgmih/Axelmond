@@ -106,7 +106,7 @@ export function useLiveKitRoom({
     const localName = room.localParticipant.name || currentUser?.fullName || "Vous";
     const localVideoPublication = getParticipantVideoPublication(room.localParticipant);
     const localAudioPublication = getParticipantAudioPublication(room.localParticipant);
-    const localSignal = liveSignals[room.localParticipant.identity] || {};
+    const localSignal = liveSignals[room.localParticipant.identity];
     nextParticipants.push({
       identity: room.localParticipant.identity,
       name: "Vous",
@@ -114,8 +114,8 @@ export function useLiveKitRoom({
       role: currentUser?.role || "STUDENT",
       isLocal: true,
       isSpeaking: activeSpeakerIdentity === room.localParticipant.identity,
-      handRaised: localSignal.handRaised,
-      reaction: localSignal.reaction,
+      handRaised: localSignal?.handRaised,
+      reaction: localSignal?.reaction,
       connectionQuality: String((room.localParticipant as any).connectionQuality || "stable"),
       hasAudio: Boolean(localAudioPublication && !localAudioPublication.isMuted),
       hasVideo: Boolean(localVideoPublication && !localVideoPublication.isMuted),
@@ -129,7 +129,7 @@ export function useLiveKitRoom({
       const displayName = participant.name || participant.identity.replace(/^axelmond-user-/, "");
       const videoPublication = getParticipantVideoPublication(participant);
       const audioPublication = getParticipantAudioPublication(participant);
-      const signal = liveSignals[participant.identity] || {};
+      const signal = liveSignals[participant.identity];
       nextParticipants.push({
         identity: participant.identity,
         name: displayName,
@@ -137,8 +137,8 @@ export function useLiveKitRoom({
         role: getParticipantRole(participant),
         isLocal: false,
         isSpeaking: activeSpeakerIdentity === participant.identity,
-        handRaised: signal.handRaised,
-        reaction: signal.reaction,
+        handRaised: signal?.handRaised,
+        reaction: signal?.reaction,
         connectionQuality: String((participant as any).connectionQuality || "stable"),
         joinedAtLabel: "Présence en temps réel",
         hasAudio: Boolean(audioPublication && !audioPublication.isMuted),

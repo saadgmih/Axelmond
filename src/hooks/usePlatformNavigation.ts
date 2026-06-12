@@ -12,6 +12,7 @@ export interface UsePlatformNavigationOptions {
   teacherView: string;
   setTeacherView: Dispatch<SetStateAction<string>>;
   enrolledCourses: number[];
+  courses: Course[];
   setSelectedCourse: Dispatch<SetStateAction<Course | null>>;
   setSelectedModule: Dispatch<SetStateAction<CourseModule | null>>;
   setActiveLiveCourse: Dispatch<SetStateAction<Course | null>>;
@@ -30,6 +31,7 @@ export function usePlatformNavigation({
   teacherView,
   setTeacherView,
   enrolledCourses,
+  courses,
   setSelectedCourse,
   setSelectedModule,
   setActiveLiveCourse,
@@ -70,10 +72,34 @@ export function usePlatformNavigation({
     }
     if (isStudentRole(currentUser.role)) {
       setCurrentView(parsed.studentView);
-    } else {
-      setTeacherView(parsed.teacherView);
+
+      if (parsed.studentView === "course") {
+        const enrolled = courses.filter((course) => enrolledCourses.includes(course.id));
+        if (enrolled.length > 0) {
+          setSelectedCourse((current) => current ?? enrolled[0] ?? null);
+          setSelectedModule((current) => {
+            if (current) return current;
+            const course = enrolled[0];
+            return course?.modules?.[0] ?? null;
+          });
+        }
+      }
+
+      if (parsed.studentView === "live") {
+        const liveCourse = courses.find((course) => enrolledCourses.includes(course.id) && course.isLiveNow)
+          ?? courses.find((course) => enrolledCourses.includes(course.id))
+          ?? null;
+        if (liveCourse) {
+          setActiveLiveCourse((current) => current ?? liveCourse);
+          setSelectedCourse((current) => current ?? liveCourse);
+        }
+      }
+      return;
     }
-  }, [location.pathname, currentUser, setCurrentView, setTeacherView]);
+
+    setTeacherView(parsed.teacherView);
+    setCurrentView("dashboard");
+  }, [location.pathname, currentUser, courses, enrolledCourses, setCurrentView, setTeacherView, setSelectedCourse, setSelectedModule, setActiveLiveCourse]);
 
   const navigateTo = useCallback((view: string, targetCourse: Course | null = null) => {
     if (INSTITUTIONAL_VIEWS.has(view)) {
@@ -147,9 +173,10 @@ export function usePlatformNavigation({
 
   const handleTeacherViewChange = useCallback((view: string) => {
     setTeacherView(view);
+    setCurrentView("dashboard");
     setIsMobileMenuOpen(false);
-    navigate(buildPlatformPath("teacher", currentView, view));
-  }, [currentView, navigate, setTeacherView, setIsMobileMenuOpen]);
+    navigate(buildPlatformPath("teacher", "dashboard", view));
+  }, [navigate, setTeacherView, setCurrentView, setIsMobileMenuOpen]);
 
   return { navigateTo, handleTeacherViewChange };
 }

@@ -376,9 +376,11 @@ export default function StudentDashboardView({
 
           {progress.continueTarget ? (
             <button
-              onClick={() =>
-                navigateTo("course", progress.continueTarget.course)
-              }
+              onClick={() => {
+                const target = progress.continueTarget;
+                if (!target) return;
+                navigateTo("course", target.course);
+              }}
               className="inline-flex items-center justify-center gap-2 self-start rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs px-5 py-3 min-h-[44px] transition-colors shadow-lg shadow-indigo-950/40"
             >
               <PlayCircle className="w-4 h-4 shrink-0" />

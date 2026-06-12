@@ -27,14 +27,14 @@ export function signAuthToken(user: { id: string; role: UserRole }, secret = get
   return jwt.sign(
     { userId: user.id, role: user.role },
     secret,
-    { expiresIn: "15m" }
+    { expiresIn: "15m", algorithm: "HS256" }
   );
 }
 
 export function verifyAuthToken(token: string | undefined, secret = getAuthTokenSecret()) {
   if (!token) return null;
   try {
-    const decoded = jwt.verify(token, secret) as { userId: string; role: string };
+    const decoded = jwt.verify(token, secret, { algorithms: ["HS256"] }) as { userId: string; role: string };
     const role = normalizeRole(decoded.role);
     if (!decoded.userId || !role) return null;
     return { userId: String(decoded.userId), role };

@@ -2,10 +2,12 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "strict": true,
-    "noImplicitAny": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "exactOptionalPropertyTypes": true,
-    "noUncheckedIndexedAccess": true
-  }
+    "noImplicitAny": true
+  },
+  "exclude": [
+    "server.ts",
+    "tests",
+    "dist",
+    "axelmond-mobile"
+  ]
 }

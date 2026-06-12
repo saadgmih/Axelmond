@@ -100,9 +100,11 @@ export function useTeacherCurriculum({
     setTimeout(() => setCurriculumErrorMsg(""), 8500);
   }, []);
 
-  const loadTeacherQuizzes = useCallback(async (courseId: number) => {
+  const loadTeacherQuizzes = useCallback(async (courseId?: number) => {
+    const targetCourseId = courseId ?? quizCourseId;
+    if (!targetCourseId) return;
     try {
-      const quizList = await api.getCourseQuizzes(courseId);
+      const quizList = await api.getCourseQuizzes(targetCourseId);
       setTeacherQuizzes(quizList);
       if (quizList.length > 0 && !quizList.some((q: any) => q.id === selectedQuizId)) {
         setSelectedQuizId(quizList[0].id);
@@ -113,7 +115,7 @@ export function useTeacherCurriculum({
       console.error("Failed to load quizzes:", err);
       setTeacherQuizzes([]);
     }
-  }, [selectedQuizId]);
+  }, [selectedQuizId, quizCourseId]);
 
   useEffect(() => {
     if (allDisciplines.length > 0 && !allDisciplines.some((discipline) => discipline.id === newCourseDisciplineId)) {
@@ -257,7 +259,7 @@ export function useTeacherCurriculum({
           published: uploadPublished,
         },
         headers: { Authorization: `Bearer ${token}` },
-        onUploadProgress: ({ progress }) => setUploadStatusMsg(`Téléversement UploadThing : ${progress}%`),
+        onUploadProgress: ({ progress }: { progress: number }) => setUploadStatusMsg(`Téléversement UploadThing : ${progress}%`),
       });
       await refreshCourseContent(uploadCourseId);
       setUploadFile(null);

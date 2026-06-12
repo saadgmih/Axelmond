@@ -63,8 +63,8 @@ if (!isSecurityRuntimeDatabaseAvailable()) {
   process.exit(0);
 }
 
-const previousGeminiKey = process.env.GEMINI_API_KEY;
-delete process.env.GEMINI_API_KEY;
+const previousOpenAIKey = process.env.OPENAI_API_KEY;
+delete process.env.OPENAI_API_KEY;
 
 let fixture: ChatTutorRuntimeFixture;
 let handle: ReturnType<typeof startSecurityRuntimeServer> | undefined;
@@ -178,9 +178,9 @@ try {
     await stopSecurityRuntimeServer(handle);
   }
   await cleanupChatTutorRuntimeFixtures();
-  if (previousGeminiKey !== undefined) {
-    process.env.GEMINI_API_KEY = previousGeminiKey;
+  if (previousOpenAIKey !== undefined) {
+    process.env.OPENAI_API_KEY = previousOpenAIKey;
   } else {
-    delete process.env.GEMINI_API_KEY;
+    delete process.env.OPENAI_API_KEY;
   }
 }

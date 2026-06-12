@@ -656,9 +656,9 @@ export default function TeacherCurriculumView({
                                       <p className="line-clamp-2 text-xs leading-relaxed text-slate-400">{course.description}</p>
                                     </div>
 
-                                    <span className={publishedBadge(course.published)}>
+                                    <span className={publishedBadge(course.published ?? false)}>
                                       <span className={`h-1.5 w-1.5 rounded-full ${course.published ? "bg-emerald-400" : "bg-amber-400"}`} />
-                                      {publishedLabel(course.published)}
+                                      {publishedLabel(course.published ?? false)}
                                     </span>
                                   </div>
 
@@ -810,7 +810,7 @@ export default function TeacherCurriculumView({
                                     <h4 className="text-sm font-black text-white">{section.title}</h4>
                                   </div>
                                   <span className={publishedBadge(section.published)}>
-                                    {publishedLabel(section.published)}
+                                    {publishedLabel(section.published ?? false)}
                                   </span>
                                 </div>
 
@@ -971,10 +971,11 @@ export default function TeacherCurriculumView({
                           ) : (
                             <div className="space-y-2.5 max-h-[500px] overflow-y-auto pr-1">
                               {managedSections.map((section) => {
-                                const indent = section.depth * 20;
+                                const depth = section.depth ?? 0;
+                                const indent = depth * 20;
                                 const isChapter = !section.parentId;
-                                const isPart = section.depth === 1;
-                                const isSubpart = section.depth === 2;
+                                const isPart = depth === 1;
+                                const isSubpart = depth === 2;
 
                                 return (
                                   <div
@@ -991,7 +992,7 @@ export default function TeacherCurriculumView({
                                     style={{ marginLeft: `${Math.min(indent, 80)}px` }}
                                   >
                                     <div className="flex items-start gap-2 flex-1 min-w-0">
-                                      {section.depth > 0 && (
+                                      {depth > 0 && (
                                         <span className="text-slate-300 font-light select-none pt-0.5">└─</span>
                                       )}
                                       <button
@@ -1090,7 +1091,7 @@ export default function TeacherCurriculumView({
                               <option value="">-- Directement dans le module (racine) --</option>
                               {managedSections.map((section) => (
                                 <option key={section.id} value={section.id}>
-                                  {`${"— ".repeat(section.depth)}${section.title}`}
+                                  {`${"— ".repeat(section.depth ?? 0)}${section.title}`}
                                 </option>
                               ))}
                             </select>
@@ -1260,7 +1261,7 @@ export default function TeacherCurriculumView({
                                     </div>
 
                                     <span className={publishedBadge(content.published)}>
-                                      {publishedLabel(content.published)}
+                                      {publishedLabel(content.published ?? false)}
                                     </span>
                                   </div>
 
@@ -1395,7 +1396,7 @@ export default function TeacherCurriculumView({
                                 <option value="">-- Directement dans le module (racine) --</option>
                                 {managedSections.map((section) => (
                                   <option key={section.id} value={section.id}>
-                                    {`— ${"— ".repeat(section.depth)}${section.title}`}
+                                    {`— ${"— ".repeat(section.depth ?? 0)}${section.title}`}
                                   </option>
                                 ))}
                               </select>

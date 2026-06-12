@@ -10,7 +10,8 @@ const paymentModalSource = fs.readFileSync("src/components/PaymentModal.tsx", "u
 assert.match(serverSource, /await revokeAllUserRefreshTokens\(user\.id\)/);
 assert.match(serverSource, /await revokeAllUserRefreshTokens\(authUser\.id\)/);
 assert.match(serverSource, /seedQuizModuleCourseMap\[moduleId\]/);
-assert.match(serverSource, /process\.env\.NODE_ENV !== "production" \? \{ details: err\.message \} : \{\}/);
+assert.match(serverSource, /err instanceof ChatTutorServiceError/);
+assert.match(serverSource, /process\.env\.NODE_ENV !== "production" && err\.cause instanceof Error/);
 
 assert.match(navigationSource, /INSTITUTIONAL_VIEWS\.has\(view\)/);
 assert.match(appSource, /onClick=\{\(\) => navigateTo\("research"\)\}/);

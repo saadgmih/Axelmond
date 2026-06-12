@@ -3,6 +3,7 @@ import { Server } from "socket.io";
 import { prisma } from "./db";
 import { verifyAuthToken } from "./auth-token";
 import { isConversationParticipant } from "./messaging";
+import { normalizeRole } from "./rbac";
 
 let messagingIo: Server | null = null;
 
@@ -32,6 +33,11 @@ export function initMessagingSocket(httpServer: HttpServer, allowedOrigins: Set<
       }
       const user = await prisma.user.findUnique({ where: { id: session.userId } });
       if (!user || !user.emailVerified) {
+        next(new Error("Unauthorized"));
+        return;
+      }
+      const dbRole = normalizeRole(user.role);
+      if (!dbRole || dbRole !== session.role) {
         next(new Error("Unauthorized"));
         return;
       }

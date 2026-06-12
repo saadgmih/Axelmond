@@ -18,6 +18,7 @@ const REQUIRED_PRODUCTION_ENV = [
   "SMTP_PASS",
   "VAPID_PUBLIC_KEY",
   "VAPID_PRIVATE_KEY",
+  "MOBILE_API_SECRET",
 ] as const;
 
 const HIGH_ENTROPY_SECRET_ENV = [
@@ -26,6 +27,7 @@ const HIGH_ENTROPY_SECRET_ENV = [
   "LIVEKIT_API_SECRET",
   "UPLOADTHING_TOKEN",
   "VAPID_PRIVATE_KEY",
+  "MOBILE_API_SECRET",
 ] as const;
 
 const DISTINCT_SECRET_ENV = [
@@ -36,6 +38,7 @@ const DISTINCT_SECRET_ENV = [
   "UPLOADTHING_TOKEN",
   "SMTP_PASS",
   "VAPID_PRIVATE_KEY",
+  "MOBILE_API_SECRET",
 ] as const;
 
 function readEnv(env: NodeJS.ProcessEnv, key: string): string {

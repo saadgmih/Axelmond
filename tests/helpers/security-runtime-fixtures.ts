@@ -1,6 +1,9 @@
 import bcrypt from "bcryptjs";
 import { DEFAULT_DISCIPLINE_ID } from "../../src/academic-taxonomy.ts";
 import { prisma } from "../../src/db.ts";
+import { deleteRuntimeCoursesByTitle } from "./security-runtime-course-cleanup.ts";
+
+const CHAT_TUTOR_RUNTIME_COURSE_TITLE = "Security runtime chat-tutor course";
 
 export const SECURITY_RUNTIME_TEST_PASSWORD = "Password123!";
 export const CHAT_TUTOR_RUNTIME_EMAIL_PREFIX = "security-runtime-chat-tutor+";
@@ -43,9 +46,7 @@ export async function cleanupChatTutorRuntimeFixtures() {
     await prisma.academicProfile.deleteMany({ where: { userId: { in: userIds } } });
   }
 
-  await prisma.course.deleteMany({
-    where: { title: "Security runtime chat-tutor course" },
-  });
+  await deleteRuntimeCoursesByTitle(CHAT_TUTOR_RUNTIME_COURSE_TITLE);
 
   if (userIds.length > 0) {
     await prisma.user.deleteMany({ where: { id: { in: userIds } } });
@@ -95,7 +96,7 @@ export async function seedChatTutorRuntimeFixtures(): Promise<ChatTutorRuntimeFi
 
   const course = await prisma.course.create({
     data: {
-      title: "Security runtime chat-tutor course",
+      title: CHAT_TUTOR_RUNTIME_COURSE_TITLE,
       level: "Module académique",
       credits: 3,
       duration: "10 heures",

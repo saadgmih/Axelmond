@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, Suspense, lazy } from "react";
 import {
   Code,
   Database,
@@ -23,11 +23,11 @@ import { api, getFreshSessionToken } from "./api";
 import { uploadFiles, getUploadedFileUrl, getUploadErrorMessage, validateUploadFile } from "./uploadthing-client";
 import Sidebar from "./components/Sidebar";
 import Topbar from "./components/Topbar";
-import PaymentModal from "./components/PaymentModal";
+const PaymentModal = lazy(() => import("./components/PaymentModal"));
 import AuthScreen, { AppUser } from "./components/AuthScreen";
 import InstitutionalViewSwitch from "./views/InstitutionalViewSwitch";
 import { INSTITUTIONAL_VIEWS } from "./navigation/platformPaths";
-import TeacherWorkspace from "./views/teacher/TeacherWorkspace";
+const TeacherWorkspace = lazy(() => import("./views/teacher/TeacherWorkspace"));
 import TeacherDashboardView from "./views/teacher/TeacherDashboardView";
 import TeacherAcademicProfileView from "./views/teacher/TeacherAcademicProfileView";
 import TeacherCurriculumView from "./views/teacher/TeacherCurriculumView";
@@ -45,7 +45,7 @@ import StudentCourseView from "./views/student/StudentCourseView";
 import StudentProfileView from "./views/student/StudentProfileView";
 import StudentStudyScheduleView from "./views/student/StudentStudyScheduleView";
 import StudentObjectivesView from "./views/student/StudentObjectivesView";
-import StudentLiveView from "./views/student/StudentLiveView";
+const StudentLiveView = lazy(() => import("./views/student/StudentLiveView"));
 import { useLiveKitRoom } from "./hooks/useLiveKitRoom";
 import { useCourseContent } from "./hooks/useCourseContent";
 import { useTeacherCurriculum } from "./hooks/useTeacherCurriculum";
@@ -252,6 +252,7 @@ export default function App() {
     teacherView,
     setTeacherView,
     enrolledCourses,
+    courses,
     setSelectedCourse,
     setSelectedModule,
     setActiveLiveCourse,
@@ -289,19 +290,42 @@ export default function App() {
     else navigateTo("notifications");
   };
 
-  const handleNotificationNavigate = (actionUrl: string) => {
+  const handleNotificationNavigate = (notification: AppNotification) => {
+    const { actionUrl, metadata } = notification;
+
     if (actionUrl.includes("messages")) {
+      const conversationId = typeof metadata.conversationId === "string"
+        ? metadata.conversationId
+        : new URL(actionUrl, window.location.origin).searchParams.get("conversation");
+      const messagesPath = role === "teacher" ? "/teacher/messages" : "/student/messages";
+      if (conversationId) {
+        window.history.replaceState(null, "", `${messagesPath}?conversation=${encodeURIComponent(conversationId)}`);
+      }
       if (role === "teacher") handleTeacherViewChange("messages");
       else navigateTo("messages");
       return;
     }
+
     if (actionUrl.includes("live")) {
-      const liveCourse = courses.find((course) => course.isLiveNow) || null;
+      const courseId = Number(metadata.courseId);
+      const liveCourse = (Number.isFinite(courseId)
+        ? courses.find((course) => course.id === courseId && enrolledCourses.includes(course.id))
+        : null)
+        ?? courses.find((course) => enrolledCourses.includes(course.id) && course.isLiveNow)
+        ?? null;
       if (liveCourse) navigateTo("live", liveCourse);
       return;
     }
+
     if (actionUrl.includes("course")) {
-      navigateTo("catalog");
+      const courseId = Number(metadata.courseId);
+      const targetCourse = (Number.isFinite(courseId)
+        ? courses.find((course) => course.id === courseId && enrolledCourses.includes(course.id))
+        : null)
+        ?? courses.find((course) => enrolledCourses.includes(course.id))
+        ?? null;
+      if (targetCourse) navigateTo("course", targetCourse);
+      else navigateTo("catalog");
     }
   };
 
@@ -453,7 +477,7 @@ export default function App() {
       const result = await (uploadFiles as any)("avatarImage", {
         files: [file],
         headers: { Authorization: `Bearer ${token}` },
-        onUploadProgress: ({ progress }) => setAvatarStatusMsg(`Téléversement de la photo : ${progress}%`),
+        onUploadProgress: ({ progress }: { progress: number }) => setAvatarStatusMsg(`Téléversement de la photo : ${progress}%`),
       });
       const avatarUrl = getUploadedFileUrl(result?.[0]);
       if (!avatarUrl) throw new Error("URL de photo introuvable après téléversement");
@@ -571,6 +595,7 @@ export default function App() {
 {INSTITUTIONAL_VIEWS.has(currentView) ? (
             <InstitutionalViewSwitch currentView={currentView} currentUser={currentUser} navigateTo={navigateTo} />
           ) : role === "teacher" ? (
+            <Suspense fallback={<div className="p-8 text-center text-slate-400">Chargement de l&apos;espace professeur…</div>}>
             <TeacherWorkspace immersive={isTeacherLiveRoom}>
               
               {teacherView === "dashboard" && (
@@ -635,6 +660,7 @@ export default function App() {
                 />
               )}
             </TeacherWorkspace>
+            </Suspense>
           ) : (
             <>
               {currentView === "dashboard" && (
@@ -661,6 +687,22 @@ export default function App() {
               setSelectedDisciplineId={setSelectedDisciplineId}
               setSearchQuery={setSearchQuery}
             />
+          )}
+          {currentView === "course" && !selectedCourse && (
+            <div className="mx-auto max-w-xl p-8 text-center text-slate-300">
+              <p className="text-sm font-semibold">Aucun cours sélectionné.</p>
+              <button type="button" onClick={() => navigateTo("dashboard")} className="mt-4 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white">
+                Retour au tableau de bord
+              </button>
+            </div>
+          )}
+          {currentView === "course" && selectedCourse && !selectedModule && (
+            <div className="mx-auto max-w-xl p-8 text-center text-slate-300">
+              <p className="text-sm font-semibold">Ce cours ne contient pas encore de module.</p>
+              <button type="button" onClick={() => navigateTo("dashboard")} className="mt-4 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white">
+                Retour au tableau de bord
+              </button>
+            </div>
           )}
           {currentView === "course" && selectedCourse && selectedModule && (
             <div className="h-full min-h-0">
@@ -713,13 +755,23 @@ export default function App() {
               />
             </div>
           )}
+          {currentView === "live" && !activeLiveCourse && (
+            <div className="mx-auto max-w-xl p-8 text-center text-slate-300">
+              <p className="text-sm font-semibold">Aucune session live disponible pour le moment.</p>
+              <button type="button" onClick={() => navigateTo("dashboard")} className="mt-4 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white">
+                Retour au tableau de bord
+              </button>
+            </div>
+          )}
           {currentView === "live" && activeLiveCourse && (
+            <Suspense fallback={<div className="p-8 text-center text-slate-400">Chargement de la classe live…</div>}>
               <StudentLiveView
                 course={activeLiveCourse}
                 currentUserRole={currentUser?.role || "STUDENT"}
                 onBack={() => navigateTo("course", activeLiveCourse)}
                 {...classroomBindings}
               />
+            </Suspense>
           )}
 
             </>
@@ -811,11 +863,13 @@ export default function App() {
       )}
 
       {/* PAYPAL CHECKOUT PAYMENTS OVERLAY MODAL */}
+      <Suspense fallback={null}>
       <PaymentModal
         course={courseToPurchase}
         onClose={() => setCourseToPurchase(null)}
         onSuccess={handlePaymentSuccess}
       />
+      </Suspense>
 
       <KeyboardShortcutsHelp open={showKeyboardHelp} onClose={() => setShowKeyboardHelp(false)} />
 

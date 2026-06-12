@@ -843,7 +843,7 @@ Uploads
   UploadThing route supportScreenshot → [auth] screenshot upload for support tickets
 
 AI Tutor
-  POST   /api/chat-tutor             → Gemini if GEMINI_API_KEY exists, local pedagogical fallback otherwise
+  POST   /api/chat-tutor             → OpenAI if OPENAI_API_KEY exists, local pedagogical fallback otherwise
 ```
 
 ### Component Tree (React)
@@ -914,7 +914,7 @@ AI Tutor
 | | ✅ Classe virtuelle premium `VirtualClassroom` : participants, modération, tableau blanc, ressources, LaTeX/code, sondages, présence | |
 | | ⏳ Enregistrement + publication replay | |
 | | ✅ Dashboard analytics (KPIs, graphiques) | |
-| **M5 — Polish** | ✅ AI Tutor (Gemini via API) | Semaine 9-10 |
+| **M5 — Polish** | ✅ AI Tutor (OpenAI via API) | Semaine 9-10 |
 | | ✅ Responsive design (mobile/tablette) | |
 | | ✅ Tests (Vitest + Supertest) | |
 | | ✅ Performance + bundle optimization | |

@@ -166,7 +166,7 @@ export default function AboutView() {
       icon: <Brain className="w-5 h-5 text-violet-300" />,
       accent: "bg-violet-500/15 border border-violet-500/20",
       title: "Tuteur IA Personnalisé",
-      description: "Assistant pédagogique basé sur Gemini AI, disponible dans les modules pour répondre aux questions et approfondir les concepts.",
+      description: "Assistant pédagogique basé sur OpenAI, disponible dans les modules pour répondre aux questions et approfondir les concepts.",
       badge: "IA",
     },
     {
@@ -627,7 +627,7 @@ export default function AboutView() {
                   </p>
                   <p>
                     La plateforme propose un catalogue de modules structurés par domaines et disciplines académiques,
-                    un système de sessions live intégré (LiveKit), un tuteur IA basé sur Gemini, des évaluations
+                    un système de sessions live intégré (LiveKit), un tuteur IA basé sur OpenAI, des évaluations
                     automatisées et des profils académiques complets avec publications et spécialités de recherche.
                   </p>
                   <p>
@@ -646,7 +646,7 @@ export default function AboutView() {
                       { label: "Node.js + Express", color: "text-emerald-300 bg-emerald-900/20 border-emerald-800/40" },
                       { label: "Prisma + PostgreSQL", color: "text-indigo-300 bg-indigo-900/20 border-indigo-800/40" },
                       { label: "LiveKit WebRTC", color: "text-pink-300 bg-pink-900/20 border-pink-800/40" },
-                      { label: "Gemini AI", color: "text-violet-300 bg-violet-900/20 border-violet-800/40" },
+                      { label: "OpenAI", color: "text-violet-300 bg-violet-900/20 border-violet-800/40" },
                       { label: "PayPal Checkout", color: "text-amber-300 bg-amber-900/20 border-amber-800/40" },
                       { label: "UploadThing CDN", color: "text-orange-300 bg-orange-900/20 border-orange-800/40" },
                       { label: "JWT + Bcrypt", color: "text-rose-300 bg-rose-900/20 border-rose-800/40" },

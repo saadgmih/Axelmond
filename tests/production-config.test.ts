@@ -22,6 +22,7 @@ const validProductionEnv: NodeJS.ProcessEnv = {
   EMAIL_VERIFICATION_URL: "https://axelmond.example",
   VAPID_PUBLIC_KEY: "vapid-public-key",
   VAPID_PRIVATE_KEY: "vapid-private-key-32-characters-minimum",
+  MOBILE_API_SECRET: "mobile-api-secret-32-characters-minimum",
 };
 
 assert.deepEqual(validateProductionConfiguration(validProductionEnv), []);

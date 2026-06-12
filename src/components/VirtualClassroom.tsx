@@ -529,7 +529,7 @@ export default function VirtualClassroom({
   const totalVotes = useMemo(() => Object.values(pollVotes).reduce<number>((sum, value) => sum + Number(value || 0), 0), [pollVotes]);
 
   return (
-    <div className="w-full max-w-full bg-zinc-950 text-white font-sans flex flex-col relative box-border min-h-[560px] overflow-x-hidden">
+    <div className="w-full max-w-full bg-zinc-950 text-white font-sans flex flex-col relative box-border min-h-0 flex-1 overflow-x-hidden">
       <span className="sr-only">Classe virtuelle sécurisée</span>
       <span className="sr-only">Tableau blanc collaboratif</span>
       <span className="sr-only">Rapport de présence</span>

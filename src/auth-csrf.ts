@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { CSRF_COOKIE_NAME } from "./auth-cookies";
-import { isMobileClientRequest } from "./auth-mobile";
+import { isTrustedMobileClientRequest } from "./auth-mobile";
 
 const UNSAFE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
@@ -31,7 +31,7 @@ function isCsrfExempt(req: Request): boolean {
 }
 
 function isMobileCsrfExempt(req: Request): boolean {
-  if (!isMobileClientRequest(req)) return false;
+  if (!isTrustedMobileClientRequest(req)) return false;
 
   const authHeader = req.headers.authorization;
   if (typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {

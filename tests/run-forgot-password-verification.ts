@@ -4,7 +4,7 @@ import * as path from "node:path";
 
 const PORT = 3000;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const LOG_FILE_PATH = "C:\\Users\\saadg\\.gemini\\antigravity-ide\\brain\\83ab9e24-386d-420e-893c-9557d61b3a09\\.system_generated\\tasks\\task-1041.log";
+const LOG_FILE_PATH = process.env.FORGOT_PASSWORD_LOG_PATH || path.join(process.cwd(), "tmp", "forgot-password-task.log");
 
 async function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));

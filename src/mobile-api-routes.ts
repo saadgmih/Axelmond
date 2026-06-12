@@ -54,19 +54,22 @@ export const MOBILE_API_ROUTE_CATALOG = {
   },
 } as const;
 
-export function applyMobileApiCorsHeaders(req: Pick<Request, "headers" | "path">, res: Response): void {
+export function applyMobileApiCorsHeaders(
+  req: Pick<Request, "headers" | "path">,
+  res: Response,
+  options: { originAllowed?: boolean } = {},
+): void {
   if (req.path.startsWith("/api/")) {
     res.setHeader(
       "Access-Control-Allow-Headers",
-      "Content-Type, Authorization, X-CSRF-Token, X-Axelmond-Client",
+      "Content-Type, Authorization, X-CSRF-Token, X-Axelmond-Client, X-Axelmond-Mobile-Secret",
     );
     res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
   }
 
   const origin = req.headers.origin;
-  if (typeof origin === "string" && origin.length > 0) {
-    // Native Expo/React Native requests usually omit Origin.
-    // When Origin is present (Expo Web, dev tools), echo it for preflight compatibility.
+  const originAllowed = options.originAllowed !== false;
+  if (typeof origin === "string" && origin.length > 0 && originAllowed) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Vary", "Origin");
   }

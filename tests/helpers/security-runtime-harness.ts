@@ -54,7 +54,7 @@ export function buildSecurityRuntimeServerEnv(port = DEFAULT_SECURITY_RUNTIME_PO
     PORT: String(port),
     SECURITY_RUNTIME_TEST: "1",
     RUN_STARTUP_SEED: "false",
-    NODE_ENV: process.env.NODE_ENV || "development",
+    NODE_ENV: "development",
     RATE_LIMIT_MAX_REQUESTS: process.env.RATE_LIMIT_MAX_REQUESTS || "999999",
     CHAT_TUTOR_RATE_LIMIT_MAX: process.env.CHAT_TUTOR_RATE_LIMIT_MAX || "9999",
     UPLOAD_RATE_LIMIT_MAX: process.env.UPLOAD_RATE_LIMIT_MAX || "9999",
