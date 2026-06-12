@@ -1,37 +1,78 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Contrast, Eye, Minimize2, Settings2, X } from "lucide-react";
 import { useAccessibilityPreferences } from "../hooks/useAccessibilityPreferences";
+import { getFocusableElements, useFocusTrap } from "../hooks/useFocusTrap";
+import {
+  computeFloatingPanelPosition,
+  type FloatingPanelPosition,
+} from "../utils/floating-panel-position";
+
+const PANEL_Z_INDEX = 140;
 
 export default function AccessibilityControls() {
   const { preferences, toggleHighContrast, toggleReduceMotion } = useAccessibilityPreferences();
   const [open, setOpen] = useState(false);
-  const [panelStyle, setPanelStyle] = useState<{ top: number; right: number }>({ top: 0, right: 16 });
+  const [position, setPosition] = useState<FloatingPanelPosition | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    if (!open || !triggerRef.current) return;
+  useFocusTrap(panelRef, open);
 
-    const updatePosition = () => {
-      const rect = triggerRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      setPanelStyle({
-        top: rect.bottom + 8,
-        right: Math.max(16, window.innerWidth - rect.right),
-      });
-    };
+  const updatePosition = () => {
+    const trigger = triggerRef.current;
+    const panel = panelRef.current;
+    if (!trigger || !panel) return;
+
+    const triggerRect = trigger.getBoundingClientRect();
+    const panelRect = panel.getBoundingClientRect();
+    setPosition(
+      computeFloatingPanelPosition({
+        triggerRect,
+        panelWidth: panelRect.width,
+        panelHeight: panelRect.height,
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+      }),
+    );
+  };
+
+  useLayoutEffect(() => {
+    if (!open) {
+      setPosition(null);
+      return;
+    }
 
     updatePosition();
-    window.addEventListener("resize", updatePosition);
-    window.addEventListener("scroll", updatePosition, true);
+
+    const onViewportChange = () => updatePosition();
+    window.addEventListener("resize", onViewportChange);
+    window.addEventListener("scroll", onViewportChange, true);
+
+    const observer =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => updatePosition())
+        : null;
+    if (observer && panelRef.current) {
+      observer.observe(panelRef.current);
+    }
+
     return () => {
-      window.removeEventListener("resize", updatePosition);
-      window.removeEventListener("scroll", updatePosition, true);
+      window.removeEventListener("resize", onViewportChange);
+      window.removeEventListener("scroll", onViewportChange, true);
+      observer?.disconnect();
     };
-  }, [open]);
+  }, [open, preferences.highContrast, preferences.reduceMotion]);
+
+  useEffect(() => {
+    if (!open || !panelRef.current) return;
+    const focusable = getFocusableElements(panelRef.current);
+    focusable[0]?.focus();
+  }, [open, position]);
 
   useEffect(() => {
     if (!open) return;
+
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
@@ -39,33 +80,37 @@ export default function AccessibilityControls() {
         triggerRef.current?.focus();
       }
     };
+
+    const onPointerDown = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (panelRef.current?.contains(target) || triggerRef.current?.contains(target)) return;
+      setOpen(false);
+    };
+
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    document.addEventListener("mousedown", onPointerDown, true);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("mousedown", onPointerDown, true);
+    };
   }, [open]);
 
-  return (
-    <div className="relative">
-      <button
-        ref={triggerRef}
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        className="kbd-nav-focus touch-target flex h-10 min-w-10 items-center justify-center rounded-xl border border-slate-700 bg-slate-900/70 text-slate-300 transition-colors hover:border-violet-500/40 hover:bg-violet-950/40 hover:text-violet-300"
-        aria-label="Options d'accessibilité"
-        aria-expanded={open}
-        aria-controls="accessibility-controls-panel"
-      >
-        <Settings2 className="h-4 w-4" aria-hidden="true" />
-      </button>
-
-      {open && (
+  const panel = open
+    ? createPortal(
         <div
           ref={panelRef}
           id="accessibility-controls-panel"
           role="dialog"
           aria-modal="false"
           aria-labelledby="accessibility-controls-title"
-          style={{ top: panelStyle.top, right: panelStyle.right }}
-          className="fixed z-[110] w-[min(18rem,calc(100vw-2rem))] rounded-2xl border border-slate-700 bg-slate-900 p-4 shadow-2xl shadow-black/40"
+          style={{
+            top: position?.top ?? -9999,
+            left: position?.left ?? -9999,
+            maxHeight: position?.maxHeight,
+            zIndex: PANEL_Z_INDEX,
+            visibility: position ? "visible" : "hidden",
+          }}
+          className="fixed w-[min(18rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-4 shadow-2xl shadow-black/40"
         >
           <div className="mb-3 flex items-start justify-between gap-3">
             <div>
@@ -131,8 +176,25 @@ export default function AccessibilityControls() {
               disponible dans le catalogue.
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        </div>,
+        document.body,
+      )
+    : null;
+
+  return (
+    <>
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className="kbd-nav-focus touch-target flex h-10 min-w-10 items-center justify-center rounded-xl border border-slate-700 bg-slate-900/70 text-slate-300 transition-colors hover:border-violet-500/40 hover:bg-violet-950/40 hover:text-violet-300"
+        aria-label="Options d'accessibilité"
+        aria-expanded={open}
+        aria-controls="accessibility-controls-panel"
+      >
+        <Settings2 className="h-4 w-4" aria-hidden="true" />
+      </button>
+      {panel}
+    </>
   );
 }

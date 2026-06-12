@@ -16,6 +16,9 @@ assert.match(mainSource, /AccessibilityPreferencesProvider/);
 assert.match(fs.readFileSync("src/hooks/useAccessibilityPreferences.tsx", "utf8"), /export function useAccessibilityPreferences/);
 assert.match(fs.readFileSync("src/hooks/useFocusTrap.ts", "utf8"), /export function useFocusTrap/);
 assert.match(fs.readFileSync("src/components/AccessibilityControls.tsx", "utf8"), /Contraste élevé/);
+assert.match(fs.readFileSync("src/components/AccessibilityControls.tsx", "utf8"), /createPortal/);
+assert.match(fs.readFileSync("src/components/AccessibilityControls.tsx", "utf8"), /computeFloatingPanelPosition/);
+assert.match(fs.readFileSync("src/components/AccessibilityControls.tsx", "utf8"), /useFocusTrap/);
 assert.match(fs.readFileSync("src/components/SkipLink.tsx", "utf8"), /Aller au contenu principal/);
 
 assert.match(appSource, /SkipLink/);
