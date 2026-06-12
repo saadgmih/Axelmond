@@ -50,9 +50,18 @@ export function configureWebPush() {
   const privateKey = process.env.VAPID_PRIVATE_KEY?.trim();
   const subject = process.env.VAPID_SUBJECT?.trim() || "mailto:support@uroahumain.com";
   if (!publicKey || !privateKey) return false;
-  webpush.setVapidDetails(subject, publicKey, privateKey);
-  pushConfigured = true;
-  return true;
+  try {
+    webpush.setVapidDetails(subject, publicKey, privateKey);
+    pushConfigured = true;
+    return true;
+  } catch {
+    pushConfigured = false;
+    return false;
+  }
+}
+
+export function isWebPushConfigured() {
+  return pushConfigured;
 }
 
 export function getVapidPublicKey() {

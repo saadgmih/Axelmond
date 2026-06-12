@@ -12,6 +12,7 @@ interface NotificationsViewProps {
   onMarkAllRead: () => void;
   onNavigate?: (notification: AppNotification) => void;
   pushStatus?: string;
+  pushStatusKind?: "idle" | "success" | "error" | "info";
   onEnablePush?: () => void;
 }
 
@@ -36,6 +37,7 @@ export default function NotificationsView({
   onMarkAllRead,
   onNavigate,
   pushStatus,
+  pushStatusKind = "info",
   onEnablePush,
 }: NotificationsViewProps) {
   useEffect(() => {
@@ -68,7 +70,11 @@ export default function NotificationsView({
         </div>
       </section>
 
-      {pushStatus && <div className={scheduleUi.alertSuccess}>{pushStatus}</div>}
+      {pushStatus && (
+        <div className={pushStatusKind === "error" ? scheduleUi.alertError : scheduleUi.alertSuccess}>
+          {pushStatus}
+        </div>
+      )}
       {error && <div className={scheduleUi.alertError}>{error}</div>}
 
       <div className="rounded-3xl border border-white/[0.08] bg-[#0f172a]/80 shadow-2xl shadow-black/30">

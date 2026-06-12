@@ -21,6 +21,7 @@ import {
   createUserNotification,
   getUnreadNotificationCount,
   getVapidPublicKey,
+  isWebPushConfigured,
   listUserNotifications,
   markAllNotificationsRead,
   markNotificationRead,
@@ -379,7 +380,7 @@ export function registerMessagingRoutes(
   });
 
   app.get("/api/notifications/vapid-public-key", middleware.requireAuth, middleware.requireRbac, (_req, res) => {
-    res.json({ publicKey: getVapidPublicKey() });
+    res.json({ publicKey: getVapidPublicKey(), configured: isWebPushConfigured() });
   });
 
   app.patch("/api/notifications/:id/read", middleware.requireAuth, middleware.requireRbac, async (req, res) => {

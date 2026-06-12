@@ -275,7 +275,7 @@ export default function App() {
     pushNotification,
   } = useNotifications(!!currentUser);
 
-  const { status: pushStatus, subscribe: subscribePushNotifications } = usePushNotifications(!!currentUser);
+  const { status: pushStatus, statusKind: pushStatusKind, subscribe: subscribePushNotifications } = usePushNotifications(!!currentUser);
 
   useMessagingSocket(!!currentUser, {
     onNotification: (payload) => {
@@ -640,6 +640,7 @@ export default function App() {
                     onMarkAllRead={markAllNotificationsRead}
                     onNavigate={handleNotificationNavigate}
                     pushStatus={pushStatus}
+                    pushStatusKind={pushStatusKind}
                     onEnablePush={subscribePushNotifications}
                   />
                 </div>
@@ -751,6 +752,7 @@ export default function App() {
                 onMarkAllRead={markAllNotificationsRead}
                 onNavigate={handleNotificationNavigate}
                 pushStatus={pushStatus}
+                pushStatusKind={pushStatusKind}
                 onEnablePush={subscribePushNotifications}
               />
             </div>
