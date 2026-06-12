@@ -1,4 +1,4 @@
-import { API_BASE_URL, MOBILE_CLIENT_HEADER, MOBILE_CLIENT_VALUE } from "../../config";
+import { API_BASE_URL, MOBILE_API_SECRET, MOBILE_API_SECRET_HEADER, MOBILE_CLIENT_HEADER, MOBILE_CLIENT_VALUE } from "../../config";
 import type { ApiError } from "../../types";
 import {
   clearAuthSession,
@@ -55,6 +55,10 @@ async function buildRequestOptions(method: string, body: unknown, token: string 
     [MOBILE_CLIENT_HEADER]: MOBILE_CLIENT_VALUE,
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
+
+  if (MOBILE_API_SECRET) {
+    headers[MOBILE_API_SECRET_HEADER] = MOBILE_API_SECRET;
+  }
 
   if (UNSAFE_METHODS.has(method)) {
     const csrfToken = await getCsrfToken();
