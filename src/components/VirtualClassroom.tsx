@@ -1,37 +1,62 @@
 ﻿import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Room } from "livekit-client";
 import {
+  Activity,
+  BookOpen,
+  Braces,
+  CameraOff,
+  CheckCircle,
   ChevronLeft,
   CircleDot,
   CircleStop,
+  ClipboardList,
+  Download,
+  FileText,
+  FileUp,
   Focus,
   Fullscreen,
   Hand,
+  Link,
   MessageSquare,
   Mic,
   MicOff,
+  MoreVertical,
+  Paperclip,
   PenTool,
   PictureInPicture2,
+  PieChart,
+  Presentation,
+  Radio,
   ScreenShare,
   ScreenShareOff,
+  Search,
+  Send,
   Settings,
+  Shapes,
+  Shield,
+  Sigma,
   Timer,
   UserCheck,
+  UserX,
+  Users,
   Video,
   VideoOff,
-  Wifi,
+  VolumeX,
+  Wifi
 } from "lucide-react";
 import { Course } from "../types";
+import { LiveChatMessage } from "../livekit";
+import AITutorChat from "./AITutorChat";
 import LiveSettingsPanel from "./live/LiveSettingsPanel";
 import LiveMediaControl from "./live/LiveMediaControl";
 import LiveParticipantTile from "./live/LiveParticipantTile";
+import LivePollPanel from "./live/LivePollPanel";
 import LiveReactionBar from "./live/LiveReactionBar";
 import LiveConnectionNotice from "./live/LiveConnectionNotice";
 import LiveResourceStage from "./live/LiveResourceStage";
 import LiveWhiteboardPanel from "./live/LiveWhiteboardPanel";
 import { resolveStageParticipants, stageGridClass } from "./live/live-stage";
 import type { LivePollState, LiveSharedResource, LiveWhiteboardStroke } from "../live/live-sync";
-import { LiveChatMessage } from "../livekit";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { useLiveConnectionNotice } from "../hooks/useLiveConnectionNotice";
 import { useLiveSettings } from "../hooks/useLiveSettings";
@@ -108,6 +133,14 @@ export interface VirtualClassroomProps {
   onShareResource: (title: string, url: string) => void;
   onDismissResource: () => void;
 }
+
+const sidebarTabs = [
+  { id: "participants", label: "Participants", icon: Users },
+  { id: "chat", label: "Chat", icon: MessageSquare },
+  { id: "whiteboard", label: "Tableau blanc", icon: PenTool },
+  { id: "tools", label: "Outils", icon: PieChart },
+  { id: "attendance", label: "Présence", icon: ClipboardList },
+];
 
 function formatDuration(seconds: number) {
   const safe = Math.max(0, seconds || 0);
@@ -186,9 +219,21 @@ export default function VirtualClassroom({
   onShareResource,
   onDismissResource,
 }: VirtualClassroomProps) {
+  const [activeTab, setActiveTab] = useState("participants");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia("(min-width: 1024px)").matches : false
+  );
   const [stageVolume, setStageVolume] = useState(1);
   const [isStageVideoPaused, setIsStageVideoPaused] = useState(false);
   const controlsRef = useRef<HTMLDivElement | null>(null);
+  const sidebarRef = useRef<HTMLElement | null>(null);
+  const [participantQuery, setParticipantQuery] = useState("");
+  const [messageMode, setMessageMode] = useState<"public" | "question" | "private">("public");
+  const [privateTarget, setPrivateTarget] = useState("");
+  const [latexDraft, setLatexDraft] = useState("\\int_a^b f(x)\\,dx = F(b)-F(a)");
+  const [codeDraft, setCodeDraft] = useState("def recherche_binaire(tableau, cible):\n    gauche, droite = 0, len(tableau) - 1\n    while gauche <= droite:\n        milieu = (gauche + droite) // 2\n        if tableau[milieu] == cible:\n            return milieu\n        if tableau[milieu] < cible:\n            gauche = milieu + 1\n        else:\n            droite = milieu - 1\n    return -1");
+  const [resourceTitle, setResourceTitle] = useState("");
+  const [resourceUrl, setResourceUrl] = useState("");
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [whiteboardExpanded, setWhiteboardExpanded] = useState(false);
@@ -219,10 +264,14 @@ export default function VirtualClassroom({
   }, [course.id, course.liveStartedAt]);
 
   useEffect(() => {
-    if (liveSettings.focusMode) {
-      setWhiteboardExpanded(true);
-    }
-  }, [liveSettings.focusMode]);
+    const media = window.matchMedia("(min-width: 1024px)");
+    const syncSidebar = (event?: MediaQueryListEvent) => {
+      setIsSidebarOpen(event ? event.matches : media.matches);
+    };
+    syncSidebar();
+    media.addEventListener("change", syncSidebar);
+    return () => media.removeEventListener("change", syncSidebar);
+  }, []);
 
   useEffect(() => {
     if (primaryVideoRef.current) {
@@ -238,11 +287,50 @@ export default function VirtualClassroom({
     });
   }, [stageVolume, isStageVideoPaused, primaryVideoRef, videoRefs, participants.length]);
 
-  const toggleWhiteboard = () => {
-    setWhiteboardExpanded((value) => !value);
+  useEffect(() => {
+    if (!liveSettings.focusMode) return;
+    if (activeTab === "chat" || activeTab === "participants" || activeTab === "attendance") {
+      setActiveTab("whiteboard");
+    }
+  }, [liveSettings.focusMode, activeTab]);
+
+  useEffect(() => {
+    if (activeTab === "whiteboard" && whiteboardExpanded) {
+      setIsSidebarOpen(false);
+    }
+  }, [activeTab, whiteboardExpanded]);
+
+  const visibleSidebarTabs = useMemo(
+    () => (liveSettings.focusMode
+      ? sidebarTabs.filter((tab) => tab.id === "whiteboard")
+      : sidebarTabs),
+    [liveSettings.focusMode],
+  );
+
+  const openPanelTab = (tabId: string) => {
+    if (liveSettings.focusMode && tabId !== "whiteboard") return;
+    setIsSidebarOpen(true);
+    setActiveTab(tabId);
+  };
+
+  const togglePanelTab = (tabId: string) => {
+    if (liveSettings.focusMode && tabId !== "whiteboard") return;
+    if (isSidebarOpen && activeTab === tabId) {
+      setIsSidebarOpen(false);
+      return;
+    }
+    openPanelTab(tabId);
+  };
+
+  const cyclePanelTab = (delta: number) => {
+    const ids = visibleSidebarTabs.map((tab) => tab.id);
+    const currentIndex = Math.max(0, ids.indexOf(activeTab));
+    const nextId = ids[(currentIndex + delta + ids.length) % ids.length];
+    openPanelTab(nextId);
   };
 
   useTvNavigation(controlsRef, true);
+  useTvNavigation(sidebarRef, isSidebarOpen);
 
   const exitLiveSession = () => {
     onLeave?.();
@@ -254,7 +342,7 @@ export default function VirtualClassroom({
     { key: "v", handler: () => onToggleCamera() },
     { key: "h", handler: () => onRaiseHand() },
     { key: "p", handler: () => { void togglePictureInPicture(); } },
-    { key: "t", handler: () => toggleWhiteboard() },
+    { key: "t", handler: () => togglePanelTab("chat") },
     { key: " ", handler: () => setIsStageVideoPaused((value) => !value) },
     {
       key: "l",
@@ -272,6 +360,8 @@ export default function VirtualClassroom({
       key: "ArrowDown",
       handler: () => setStageVolume((value) => Math.max(0, Number((value - 0.1).toFixed(2)))),
     },
+    { key: "ArrowLeft", handler: () => cyclePanelTab(-1) },
+    { key: "ArrowRight", handler: () => cyclePanelTab(1) },
     {
       key: "Escape",
       handler: () => {
@@ -279,8 +369,12 @@ export default function VirtualClassroom({
           setIsSettingsOpen(false);
           return;
         }
-        if (whiteboardExpanded) {
-          setWhiteboardExpanded(false);
+        if (isSidebarOpen && typeof window !== "undefined" && !window.matchMedia("(min-width: 1024px)").matches) {
+          setIsSidebarOpen(false);
+          return;
+        }
+        if (isSidebarOpen && liveSettings.focusMode) {
+          setIsSidebarOpen(false);
           return;
         }
         if (isFullscreen) {
@@ -325,12 +419,26 @@ export default function VirtualClassroom({
   );
   const featuredLayout = liveSettings.layoutMode !== "tile" && stageParticipants.some((participant) => participant.videoTrack);
   const videoGridClass = stageGridClass(stageParticipants.length, featuredLayout);
+  const raisedHandParticipants = connectedParticipants.filter((participant) => participant.handRaised);
 
+  const filteredParticipants = connectedParticipants.filter((participant) =>
+    participant.name.toLowerCase().includes(participantQuery.toLowerCase())
+    || roleLabel(participant.role).toLowerCase().includes(participantQuery.toLowerCase())
+  );
+  
   const raisedHands = connectedParticipants.filter((participant) => participant.handRaised).length;
   const questionsCount = chatMessages.filter(m => m.text.toLowerCase().includes("[question]")).length;
   const averageQuality = connectedParticipants.some((participant) => String(participant.connectionQuality || "").toLowerCase().includes("poor"))
     ? "À surveiller"
     : "Excellente";
+  const attendanceRows = attendanceReport?.attendances || [];
+
+  const shareResource = () => {
+    if (!resourceTitle.trim() && !resourceUrl.trim()) return;
+    onShareResource(resourceTitle.trim(), resourceUrl.trim());
+    setResourceTitle("");
+    setResourceUrl("");
+  };
 
   return (
     <div className="w-full max-w-full bg-zinc-950 text-white font-sans flex flex-col relative box-border min-h-0 flex-1 overflow-x-hidden">
@@ -412,23 +520,18 @@ export default function VirtualClassroom({
         </div>
         
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={toggleWhiteboard}
-            aria-pressed={whiteboardExpanded}
-            className={`relative touch-target p-2.5 rounded-lg transition-colors border flex items-center gap-2 min-h-[44px] ${
-              whiteboardExpanded
-                ? "bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-400/20"
-                : "bg-zinc-800 hover:bg-zinc-700 border-white/5"
-            }`}
-            title="Ouvrir le tableau blanc"
-            aria-label="Ouvrir ou fermer le tableau blanc"
-          >
-            <PenTool className={`w-4 h-4 ${whiteboardExpanded ? "text-emerald-300" : "text-zinc-300"}`} />
-            <span className={`text-xs font-bold hidden sm:block ${whiteboardExpanded ? "text-emerald-100" : "text-zinc-300"}`}>
-              Tableau blanc
-            </span>
-          </button>
+          {liveSettings.focusMode && (
+            <button
+              type="button"
+              onClick={() => openPanelTab("whiteboard")}
+              className="relative touch-target p-2.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 transition-colors border border-emerald-400/20 flex items-center gap-2 min-h-[44px]"
+              title="Ouvrir le tableau blanc"
+              aria-label="Ouvrir le tableau blanc"
+            >
+              <PenTool className="w-4 h-4 text-emerald-300" />
+              <span className="text-xs font-bold text-emerald-100 hidden sm:block">Tableau blanc</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setIsSettingsOpen(true)}
@@ -442,9 +545,29 @@ export default function VirtualClassroom({
       </header>
 
       {/* Main Container */}
-      <div className="flex flex-1 flex-col w-full max-w-full relative box-border min-h-[480px]">
+      <div className="flex flex-1 flex-col lg:flex-row w-full max-w-full relative box-border min-h-[480px]">
+        {!isSidebarOpen && (
+          <button
+            type="button"
+            aria-label="Ouvrir le panneau interactif"
+            className="lg:hidden fixed right-0 top-1/2 z-40 -translate-y-1/2 rounded-l-xl border border-white/10 border-r-0 bg-zinc-900/95 px-2 py-4 text-zinc-200 shadow-xl backdrop-blur-md"
+            onClick={() => setIsSidebarOpen(true)}
+          >
+            <MoreVertical className="h-5 w-5" />
+          </button>
+        )}
+
+        {isSidebarOpen && (
+          <button
+            type="button"
+            aria-label="Fermer le panneau interactif"
+            className="absolute inset-0 z-30 bg-black/40 lg:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+
         {/* Center Stage - Video & Control */}
-        <main
+        <main 
           ref={stageRef}
           className="flex flex-1 flex flex-col min-w-0 w-full relative bg-black box-border min-h-[360px]"
         >
@@ -665,6 +788,290 @@ export default function VirtualClassroom({
           </div>
         </main>
 
+        {/* Right Sidebar - Onglets Académiques */}
+        <aside 
+          ref={sidebarRef}
+          data-tv-zone="live-sidebar"
+          className={`absolute lg:static right-0 top-0 bottom-0 w-[min(100vw,360px)] lg:w-[360px] max-w-full lg:min-w-[360px] shrink-0 bg-zinc-900 border-l border-white/5 flex flex-col transition-transform duration-300 ease-out z-40 box-border lg:min-h-[480px] shadow-2xl lg:shadow-none ${isSidebarOpen ? "translate-x-0 lg:flex" : "translate-x-full lg:hidden"}`}
+        >
+          {/* Sidebar Tabs */}
+          <div className={`px-3 pt-4 pb-2 grid gap-1 shrink-0 border-b border-white/5 bg-zinc-900/50 ${
+            visibleSidebarTabs.length <= 2 ? "grid-cols-2" : visibleSidebarTabs.length === 3 ? "grid-cols-3" : "grid-cols-5"
+          }`}>
+            {visibleSidebarTabs.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                data-tv-focusable
+                tabIndex={0}
+                onClick={() => setActiveTab(tab.id)}
+                aria-label={`Onglet ${tab.label}`}
+                aria-selected={activeTab === tab.id}
+                className={`kbd-nav-focus flex flex-col items-center justify-center py-2 rounded-lg transition-all min-h-[52px] ${
+                  activeTab === tab.id 
+                    ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shadow-inner" 
+                    : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50"
+                }`}
+              >
+                <tab.icon className="w-4 h-4 mb-1" />
+                <span className="text-[9px] font-bold text-center leading-tight px-1">{tab.label}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Sidebar Content */}
+          <div className="flex-1 overflow-y-auto p-4 custom-scrollbar bg-zinc-950/30">
+            
+            {activeTab === "participants" && (
+              <div className="space-y-4 animate-in fade-in duration-300">
+                {raisedHandParticipants.length > 0 && (
+                  <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-amber-300">Mains levées</p>
+                    <div className="space-y-2">
+                      {raisedHandParticipants.map((participant) => (
+                        <div key={participant.identity} className="flex items-center gap-2 text-xs font-semibold text-amber-100">
+                          <Hand className="h-4 w-4" />
+                          <span>{participant.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div className="relative">
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                  <input 
+                    value={participantQuery} 
+                    onChange={(event) => setParticipantQuery(event.target.value)} 
+                    placeholder="Rechercher un participant..." 
+                    className="w-full bg-zinc-900 border border-white/5 rounded-xl pl-9 pr-3 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500 transition-colors" 
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center mb-3 border-b border-white/5 pb-2">
+                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                      Membres de la session
+                    </p>
+                    <span className="text-xs font-mono text-zinc-400">{filteredParticipants.length}</span>
+                  </div>
+                  {filteredParticipants.map((participant) => (
+                    <div key={participant.identity} className="group relative rounded-xl hover:bg-zinc-800/50 p-2.5 flex items-center justify-between transition-colors border border-transparent hover:border-white/5">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 flex items-center justify-center text-xs font-bold shrink-0">
+                          {participant.initials}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">{participant.name}</p>
+                          <p className="text-[10px] text-zinc-500 truncate font-medium">{roleLabel(participant.role)}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 shrink-0 ml-2">
+                        {participant.handRaised && <Hand className="w-3.5 h-3.5 text-amber-400" />}
+                        {participant.hasAudio ? <Mic className="w-3.5 h-3.5 text-zinc-500" /> : <MicOff className="w-3.5 h-3.5 text-red-400/70" />}
+                        {participant.hasVideo ? <Video className="w-3.5 h-3.5 text-zinc-500" /> : <VideoOff className="w-3.5 h-3.5 text-zinc-600" />}
+                      </div>
+
+                      {/* Moderation Hover Menu */}
+                      {canModerate && !participant.isLocal && (
+                        <div className="absolute right-2 opacity-0 group-hover:opacity-100 bg-zinc-800 p-1 rounded-lg flex items-center gap-1 shadow-xl border border-white/10 transition-opacity">
+                          <button onClick={() => onModerateParticipant("MUTE_AUDIO", participant)} className="p-1.5 hover:bg-zinc-700 rounded text-zinc-300" title="Couper le micro">
+                            <VolumeX className="w-3.5 h-3.5" />
+                          </button>
+                          <button onClick={() => onModerateParticipant("MUTE_VIDEO", participant)} className="p-1.5 hover:bg-zinc-700 rounded text-zinc-300" title="Couper la caméra">
+                            <CameraOff className="w-3.5 h-3.5" />
+                          </button>
+                          <button onClick={() => onModerateParticipant("REMOVE_PARTICIPANT", participant)} className="p-1.5 hover:bg-red-500/20 rounded text-red-400" title="Expulser">
+                            <UserX className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {activeTab === "chat" && (
+              <div className="h-full flex flex-col animate-in fade-in duration-300">
+                <div className="flex bg-zinc-900 rounded-lg p-1 mb-4 border border-white/5 shrink-0">
+                  {(["public", "question", "private"] as const).map((item) => (
+                    <button 
+                      key={item} 
+                      onClick={() => setMessageMode(item)} 
+                      className={`flex-1 rounded-md py-1.5 text-[10px] font-bold uppercase transition-colors ${
+                        messageMode === item ? "bg-zinc-700 text-white shadow-sm" : "text-zinc-500 hover:text-zinc-300"
+                      }`}
+                    >
+                      {item === "question" ? "Q&A" : item}
+                    </button>
+                  ))}
+                </div>
+                
+                {messageMode === "private" && (
+                  <select 
+                    value={privateTarget} 
+                    onChange={(event) => setPrivateTarget(event.target.value)} 
+                    className="w-full bg-zinc-900 border border-white/5 rounded-lg px-3 py-2 text-xs text-white mb-4 focus:outline-none focus:border-indigo-500"
+                  >
+                    <option value="">Sélectionner un destinataire...</option>
+                    {connectedParticipants.filter((p) => !p.isLocal).map((p) => (
+                      <option key={p.identity} value={p.name}>{p.name}</option>
+                    ))}
+                  </select>
+                )}
+
+                <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar min-h-[300px]">
+                  {chatMessages.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center text-center space-y-3 opacity-50">
+                      <MessageSquare className="w-8 h-8 text-zinc-600" />
+                      <p className="text-xs text-zinc-400">Le chat académique est ouvert.</p>
+                    </div>
+                  ) : (
+                    chatMessages.map((message) => (
+                      <div key={message.id} className={`flex flex-col ${message.isMe ? 'items-end' : 'items-start'}`}>
+                        <div className="flex items-baseline gap-2 mb-1 mx-1">
+                          <span className="text-[10px] font-bold text-zinc-400">{message.sender}</span>
+                          <span className="text-[9px] text-zinc-600 font-mono">{message.time}</span>
+                        </div>
+                        <div className={`px-3 py-2 rounded-2xl max-w-[85%] text-sm shadow-sm ${
+                          message.isMe 
+                            ? 'bg-indigo-600 text-white rounded-tr-sm' 
+                            : 'bg-zinc-800 text-zinc-100 rounded-tl-sm border border-white/5'
+                        }`}>
+                          {message.text}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div className="shrink-0 mt-4 space-y-3">
+                  <form onSubmit={onSendMessage} className="relative">
+                    <button 
+                      type="button" 
+                      className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 text-zinc-400 hover:text-white transition-colors"
+                      title="Joindre un fichier"
+                    >
+                      <Paperclip className="w-4 h-4" />
+                    </button>
+                    <input
+                      value={chatDraft}
+                      onChange={(event) => setChatDraft(event.target.value)}
+                      placeholder="Tapez votre message..."
+                      className="w-full bg-zinc-900 border border-white/10 rounded-xl pl-9 pr-12 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors shadow-inner"
+                    />
+                    <button 
+                      type="submit" 
+                      disabled={!chatDraft.trim()} 
+                      className="absolute right-1.5 top-1/2 -translate-y-1/2 touch-target p-2 bg-indigo-500 hover:bg-indigo-600 disabled:bg-transparent disabled:text-zinc-600 text-white rounded-lg transition-colors flex items-center justify-center"
+                    >
+                      <Send className="w-4 h-4" />
+                    </button>
+                  </form>
+                  <div className="border-t border-white/5 pt-3">
+                    <AITutorChat courseId={course.id} courseTitle={course.title} moduleTitle={course.liveSubject || "Session live"} className="min-h-[240px] h-[min(360px,40dvh)] flex-1 border-none shadow-none bg-zinc-950" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "whiteboard" && !whiteboardExpanded && (
+              <LiveWhiteboardPanel
+                expanded={false}
+                onToggleExpanded={() => {
+                  setWhiteboardExpanded(true);
+                  setIsSidebarOpen(false);
+                }}
+                canModerate={canModerate}
+                strokes={whiteboardStrokes}
+                localIdentity={localIdentity}
+                onStrokeComplete={onWhiteboardStroke}
+                onClear={onWhiteboardClear}
+              />
+            )}
+
+            {activeTab === "tools" && (
+              <div className="space-y-5 animate-in fade-in duration-300">
+                <LiveReactionBar onReaction={onReaction} />
+                <LivePollPanel
+                  canModerate={canModerate}
+                  pollQuestion={livePoll.question}
+                  pollOptions={livePoll.options}
+                  pollVotes={livePoll.votes}
+                  pollActive={livePoll.active}
+                  myVote={myPollVote}
+                  onQuestionChange={onPollQuestionChange}
+                  onPublishPoll={onPublishPoll}
+                  onEndPoll={onEndPoll}
+                  onVote={onVotePoll}
+                />
+                <div className="rounded-2xl border border-white/10 bg-zinc-900/70 p-4 space-y-3">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Partager une ressource</p>
+                  <input
+                    value={resourceTitle}
+                    onChange={(event) => setResourceTitle(event.target.value)}
+                    placeholder="Titre (PDF, slides, lien...)"
+                    className="w-full rounded-xl border border-white/10 bg-zinc-950 px-3 py-2 text-xs text-white"
+                  />
+                  <input
+                    value={resourceUrl}
+                    onChange={(event) => setResourceUrl(event.target.value)}
+                    placeholder="URL du document ou de la présentation"
+                    className="w-full rounded-xl border border-white/10 bg-zinc-950 px-3 py-2 text-xs text-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={shareResource}
+                    className="w-full rounded-xl border border-indigo-400/30 bg-indigo-500/10 py-2.5 text-xs font-bold text-indigo-200"
+                  >
+                    <FileUp className="mr-2 inline h-4 w-4" />
+                    Partager au cours
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "attendance" && (
+              <div className="space-y-4 animate-in fade-in duration-300">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-4 rounded-xl bg-zinc-900 border border-white/5 shadow-sm text-center">
+                    <p className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider mb-1">Actifs</p>
+                    <p className="text-3xl font-black text-emerald-400">{attendanceReport?.summary?.online ?? connectedParticipants.length}</p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-zinc-900 border border-white/5 shadow-sm text-center">
+                    <p className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider mb-1">Durée Moy.</p>
+                    <p className="text-2xl font-bold text-blue-400 mt-2 font-mono">{formatDuration(attendanceReport?.summary?.averageDurationSeconds || elapsedSeconds)}</p>
+                  </div>
+                </div>
+
+                <div className="bg-zinc-900 rounded-xl border border-white/5 overflow-hidden shadow-sm">
+                  <div className="flex justify-between px-4 py-2.5 text-[10px] font-bold text-zinc-500 uppercase bg-zinc-950/50 border-b border-white/5">
+                    <span>Identité</span>
+                    <span>Durée</span>
+                  </div>
+                  <div className="divide-y divide-white/5 max-h-[300px] overflow-y-auto custom-scrollbar">
+                    {(attendanceRows.length ? attendanceRows : connectedParticipants).map((row: any) => (
+                      <div key={row.id || row.identity} className="flex justify-between items-center px-4 py-3 hover:bg-zinc-800/50 transition-colors">
+                        <div>
+                          <p className="text-xs font-bold text-zinc-200">{row.name}</p>
+                          <p className="text-[10px] text-zinc-500 font-medium">{roleLabel(row.role)}</p>
+                        </div>
+                        <span className="text-[10px] font-mono font-bold text-indigo-300 bg-indigo-500/10 px-2 py-1 rounded">
+                          {formatDuration(row.durationSeconds || elapsedSeconds)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <button onClick={() => onLiveEvent("QUESTION", { type: "attendance_export_requested" })} className="w-full mt-2 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-xs font-bold transition-colors flex justify-center items-center gap-2 border border-white/5 shadow-sm">
+                  <Download className="w-4 h-4" /> Exporter le rapport (CSV)
+                </button>
+              </div>
+            )}
+
+          </div>
+        </aside>
 
       </div>
 
