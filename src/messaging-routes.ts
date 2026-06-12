@@ -379,8 +379,15 @@ export function registerMessagingRoutes(
     res.json({ count });
   });
 
-  app.get("/api/notifications/vapid-public-key", middleware.requireAuth, middleware.requireRbac, (_req, res) => {
-    res.json({ publicKey: getVapidPublicKey(), configured: isWebPushConfigured() });
+  app.get("/api/notifications/vapid-public-key", middleware.requireAuth, middleware.requireRbac, (req, res) => {
+    const publicKey = getVapidPublicKey();
+    const configured = isWebPushConfigured();
+    if (!configured) {
+      console.warn("[push] vapid-public-key requested but web push is not fully configured", {
+        hasPublicKey: Boolean(publicKey),
+      });
+    }
+    res.json({ publicKey, configured });
   });
 
   app.patch("/api/notifications/:id/read", middleware.requireAuth, middleware.requireRbac, async (req, res) => {
@@ -401,7 +408,27 @@ export function registerMessagingRoutes(
 
   app.post("/api/notifications/push-subscribe", middleware.requireAuth, middleware.requireRbac, middleware.validateBody(pushSubscribeSchema), async (req, res) => {
     const authUser = (req as any).authUser as AuthUser;
-    await savePushSubscription(authUser.id, req.body);
-    res.json({ ok: true });
+    if (!isWebPushConfigured()) {
+      console.error("[push] push-subscribe rejected: VAPID keys not configured on server");
+      res.status(503).json({ error: "Notifications push non configurées sur le serveur." });
+      return;
+    }
+    try {
+      await savePushSubscription(authUser.id, req.body);
+      console.log("[push] push-subscribe saved", {
+        userId: authUser.id,
+        endpointHost: (() => {
+          try {
+            return new URL(req.body.endpoint).host;
+          } catch {
+            return "invalid-endpoint";
+          }
+        })(),
+      });
+      res.json({ ok: true });
+    } catch (err: any) {
+      console.error("[push] push-subscribe failed", { userId: authUser.id, message: err?.message || String(err) });
+      res.status(500).json({ error: "Impossible d'enregistrer l'abonnement push." });
+    }
   });
 }

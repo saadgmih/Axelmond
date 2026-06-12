@@ -30,7 +30,12 @@ function readCsrfFromCookie(): string | null {
 }
 
 function getCsrfToken(): string | null {
-  return csrfTokenMemory || readCsrfFromCookie();
+  const fromCookie = readCsrfFromCookie();
+  if (fromCookie) {
+    csrfTokenMemory = fromCookie;
+    return fromCookie;
+  }
+  return csrfTokenMemory;
 }
 
 function purgeLegacyTokenStorage() {
@@ -81,6 +86,8 @@ async function performSessionRefresh(): Promise<string | null> {
     if (!payload?.token) throw new Error("Refresh token response missing access token");
     accessTokenMemory = payload.token;
     if (payload.csrfToken) csrfTokenMemory = payload.csrfToken;
+    const cookieCsrf = readCsrfFromCookie();
+    if (cookieCsrf) csrfTokenMemory = cookieCsrf;
     purgeLegacyTokenStorage();
     sessionExpiredNotified = false;
     return payload.token;
@@ -119,7 +126,7 @@ export function getStoredRefreshToken(): string | null {
   return null;
 }
 
-async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
+async function request<T>(method: string, path: string, body?: unknown, allowCsrfRetry = true): Promise<T> {
   let token = accessTokenMemory;
   const url = `${BASE_URL}${path}`;
   let res: Response;
@@ -136,6 +143,7 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
     Object.assign(error, { status: 0, method, path, url, cause: err });
     throw error;
   }
+
   if (!res.ok) {
     const text = await res.text();
     let err: any;
@@ -144,6 +152,21 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
     } catch {
       err = { error: text || res.statusText };
     }
+
+    if (
+      allowCsrfRetry
+      && res.status === 403
+      && err?.code === "CSRF_TOKEN_INVALID"
+      && UNSAFE_HTTP_METHODS.has(method)
+      && !AUTH_PATHS_WITHOUT_REFRESH.has(path)
+    ) {
+      csrfTokenMemory = null;
+      token = await refreshSessionToken();
+      if (token) {
+        return request<T>(method, path, body, false);
+      }
+    }
+
     const error = new Error(buildApiErrorMessage(method, path, res.status, err, res.statusText)) as Error & Record<string, unknown>;
     Object.assign(error, err, { status: res.status, method, path, url, response: text });
     if (res.status === 429) {
@@ -387,7 +410,7 @@ export const api = {
     request<any>("POST", `/api/conversations/${conversationId}/read`),
   getNotifications: () => request<any[]>("GET", "/api/notifications"),
   getNotificationUnreadCount: () => request<{ count: number }>("GET", "/api/notifications/unread-count"),
-  getVapidPublicKey: () => request<{ publicKey: string }>("GET", "/api/notifications/vapid-public-key"),
+  getVapidPublicKey: () => request<{ publicKey: string; configured?: boolean }>("GET", "/api/notifications/vapid-public-key"),
   markNotificationRead: (id: string) => request<any>("PATCH", `/api/notifications/${id}/read`),
   markAllNotificationsRead: () => request<any>("POST", "/api/notifications/read-all"),
   subscribePushNotifications: (data: { endpoint: string; keys: { p256dh: string; auth: string } }) =>

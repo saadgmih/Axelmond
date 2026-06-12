@@ -49,11 +49,19 @@ import { Course } from "../types";
 import { LiveChatMessage } from "../livekit";
 import AITutorChat from "./AITutorChat";
 import LiveSettingsPanel from "./live/LiveSettingsPanel";
+import LiveMediaControl from "./live/LiveMediaControl";
+import LiveParticipantTile from "./live/LiveParticipantTile";
+import LivePollPanel from "./live/LivePollPanel";
+import LiveReactionBar from "./live/LiveReactionBar";
+import LiveResourceStage from "./live/LiveResourceStage";
+import LiveWhiteboardPanel from "./live/LiveWhiteboardPanel";
+import { resolveStageParticipants, stageGridClass } from "./live/live-stage";
+import type { LivePollState, LiveSharedResource, LiveWhiteboardStroke } from "../live/live-sync";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { useLiveSettings } from "../hooks/useLiveSettings";
 import { usePictureInPicture } from "../hooks/usePictureInPicture";
 import { useTvNavigation } from "../hooks/useTvNavigation";
-import { applyLiveVideoQuality, isTeacherLikeRole, type LiveLayoutMode } from "../live/liveSettings";
+import { applyLiveVideoQuality, type LiveLayoutMode } from "../live/liveSettings";
 
 export interface LiveParticipantCard {
   identity: string;
@@ -69,6 +77,7 @@ export interface LiveParticipantCard {
   durationLabel?: string;
   hasAudio?: boolean;
   hasVideo?: boolean;
+  avatarUrl?: string | null;
   audioTrackSid?: string | null;
   videoTrackSid?: string | null;
   videoTrack?: any;
@@ -109,46 +118,28 @@ export interface VirtualClassroomProps {
   onModerateParticipant: (action: string, participant: LiveParticipantCard) => void;
   onLiveEvent: (action: string, details?: Record<string, unknown>) => void;
   onReconnectLive?: () => void;
+  livePoll: LivePollState;
+  myPollVote: string | null;
+  onPublishPoll: () => void;
+  onEndPoll: () => void;
+  onVotePoll: (option: string) => void;
+  onPollQuestionChange: (value: string) => void;
+  whiteboardStrokes: LiveWhiteboardStroke[];
+  localIdentity: string;
+  onWhiteboardStroke: (stroke: LiveWhiteboardStroke) => void;
+  onWhiteboardClear: () => void;
+  sharedResource: LiveSharedResource | null;
+  onShareResource: (title: string, url: string) => void;
+  onDismissResource: () => void;
 }
 
 const sidebarTabs = [
   { id: "participants", label: "Participants", icon: Users },
   { id: "chat", label: "Chat", icon: MessageSquare },
   { id: "whiteboard", label: "Tableau blanc", icon: PenTool },
+  { id: "tools", label: "Outils", icon: PieChart },
   { id: "attendance", label: "Présence", icon: ClipboardList },
 ];
-
-function resolveLayoutParticipants(
-  participants: LiveParticipantCard[],
-  layoutMode: LiveLayoutMode,
-  activeSpeaker: LiveParticipantCard | undefined,
-  classroomMode: "student" | "teacher",
-) {
-  const withVideo = participants.filter((participant) => participant.videoTrack);
-  if (withVideo.length === 0) return withVideo;
-
-  if (layoutMode === "tile") return withVideo;
-
-  if (layoutMode === "active-speaker") {
-    const featured = (activeSpeaker?.videoTrack ? activeSpeaker : undefined)
-      || withVideo.find((participant) => participant.isSpeaking)
-      || withVideo.find((participant) => !participant.isLocal)
-      || withVideo[0];
-    return featured ? [featured] : withVideo.slice(0, 1);
-  }
-
-  const teachers = withVideo.filter((participant) => isTeacherLikeRole(participant.role));
-  if (teachers.length > 0) {
-    if (classroomMode === "teacher") {
-      const localTeacher = teachers.find((participant) => participant.isLocal);
-      return localTeacher ? [localTeacher] : [teachers[0]!];
-    }
-    const remoteTeacher = teachers.find((participant) => !participant.isLocal);
-    return remoteTeacher ? [remoteTeacher] : [teachers[0]!];
-  }
-
-  return withVideo.slice(0, 1);
-}
 
 function formatDuration(seconds: number) {
   const safe = Math.max(0, seconds || 0);
@@ -209,6 +200,19 @@ export default function VirtualClassroom({
   onModerateParticipant,
   onLiveEvent,
   onReconnectLive,
+  livePoll,
+  myPollVote,
+  onPublishPoll,
+  onEndPoll,
+  onVotePoll,
+  onPollQuestionChange,
+  whiteboardStrokes,
+  localIdentity,
+  onWhiteboardStroke,
+  onWhiteboardClear,
+  sharedResource,
+  onShareResource,
+  onDismissResource,
 }: VirtualClassroomProps) {
   const [activeTab, setActiveTab] = useState("participants");
   const [isSidebarOpen, setIsSidebarOpen] = useState(() =>
@@ -225,11 +229,9 @@ export default function VirtualClassroom({
   const [codeDraft, setCodeDraft] = useState("def recherche_binaire(tableau, cible):\n    gauche, droite = 0, len(tableau) - 1\n    while gauche <= droite:\n        milieu = (gauche + droite) // 2\n        if tableau[milieu] == cible:\n            return milieu\n        if tableau[milieu] < cible:\n            gauche = milieu + 1\n        else:\n            droite = milieu - 1\n    return -1");
   const [resourceTitle, setResourceTitle] = useState("");
   const [resourceUrl, setResourceUrl] = useState("");
-  const [pollQuestion, setPollQuestion] = useState("Comprenez-vous la notion de base abordée ?");
-  const [pollOptions, setPollOptions] = useState(["Oui, c'est très clair", "J'ai besoin de plus d'exemples", "Non, je suis perdu"]);
-  const [pollVotes, setPollVotes] = useState<Record<string, number>>({});
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [whiteboardExpanded, setWhiteboardExpanded] = useState(false);
   const featuredVideoRef = useRef<HTMLVideoElement | null>(null);
   const {
     settings: liveSettings,
@@ -250,9 +252,6 @@ export default function VirtualClassroom({
     const parsed = course.liveStartedAt ? Date.parse(course.liveStartedAt) : NaN;
     return Number.isFinite(parsed) ? parsed : Date.now();
   }, [course.id, course.liveStartedAt]);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const whiteboardContainerRef = useRef<HTMLDivElement | null>(null);
-  const isDrawingRef = useRef(false);
 
   useEffect(() => {
     const media = window.matchMedia("(min-width: 1024px)");
@@ -288,6 +287,12 @@ export default function VirtualClassroom({
       setActiveTab("whiteboard");
     }
   }, [liveSettings.focusMode, activeTab]);
+
+  useEffect(() => {
+    if (activeTab === "whiteboard" && whiteboardExpanded) {
+      setIsSidebarOpen(false);
+    }
+  }, [activeTab, whiteboardExpanded]);
 
   const visibleSidebarTabs = useMemo(
     () => (liveSettings.focusMode
@@ -376,28 +381,6 @@ export default function VirtualClassroom({
   ]);
 
   useEffect(() => {
-    if (activeTab !== "whiteboard") return;
-    const container = whiteboardContainerRef.current;
-    const canvas = canvasRef.current;
-    if (!container || !canvas) return;
-
-    const resizeCanvas = () => {
-      const rect = container.getBoundingClientRect();
-      const width = Math.max(1, Math.floor(rect.width));
-      const height = Math.max(1, Math.floor(rect.height));
-      if (canvas.width !== width || canvas.height !== height) {
-        canvas.width = width;
-        canvas.height = height;
-      }
-    };
-
-    resizeCanvas();
-    const observer = new ResizeObserver(resizeCanvas);
-    observer.observe(container);
-    return () => observer.disconnect();
-  }, [activeTab]);
-
-  useEffect(() => {
     const updateElapsed = () => {
       setElapsedSeconds(Math.max(0, Math.round((Date.now() - liveStartedAtMs) / 1000)));
     };
@@ -422,17 +405,15 @@ export default function VirtualClassroom({
     || connectedParticipants.find((participant) => !participant.isLocal && participant.videoTrack)
     || connectedParticipants.find((participant) => participant.videoTrack)
     || connectedParticipants[0];
-  const videoParticipants = resolveLayoutParticipants(
+  const stageParticipants = resolveStageParticipants(
     connectedParticipants,
     liveSettings.layoutMode,
     activeSpeaker,
     mode,
   );
-  const videoGridClass = videoParticipants.length <= 1
-    ? "grid-cols-1"
-    : videoParticipants.length === 2
-      ? "grid-cols-1 lg:grid-cols-2"
-      : "grid-cols-1 md:grid-cols-2 xl:grid-cols-3";
+  const featuredLayout = liveSettings.layoutMode !== "tile" && stageParticipants.some((participant) => participant.videoTrack);
+  const videoGridClass = stageGridClass(stageParticipants.length, featuredLayout);
+  const raisedHandParticipants = connectedParticipants.filter((participant) => participant.handRaised);
 
   const filteredParticipants = connectedParticipants.filter((participant) =>
     participant.name.toLowerCase().includes(participantQuery.toLowerCase())
@@ -446,87 +427,12 @@ export default function VirtualClassroom({
     : "Excellente";
   const attendanceRows = attendanceReport?.attendances || [];
 
-  const getCoordinates = (event: React.PointerEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>, canvas: HTMLCanvasElement) => {
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    
-    let clientX, clientY;
-    if ('touches' in event && event.touches.length > 0) {
-      clientX = event.touches[0].clientX;
-      clientY = event.touches[0].clientY;
-    } else {
-      clientX = (event as React.PointerEvent).clientX;
-      clientY = (event as React.PointerEvent).clientY;
-    }
-    
-    return {
-      x: (clientX - rect.left) * scaleX,
-      y: (clientY - rect.top) * scaleY
-    };
-  };
-
-  const startDrawing = (event: React.PointerEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const context = canvas.getContext("2d");
-    if (!context) return;
-    
-    // Prevent default scrolling for touch
-    if ('touches' in event && event.cancelable) {
-      // event.preventDefault() cannot be called directly on React synthetic passive events easily, 
-      // but we use CSS touch-none to handle this.
-    }
-
-    const { x, y } = getCoordinates(event, canvas);
-    
-    isDrawingRef.current = true;
-    context.strokeStyle = "#8b5cf6"; // Violet pro
-    context.lineWidth = 3;
-    context.lineCap = "round";
-    context.beginPath();
-    context.moveTo(x, y);
-  };
-
-  const draw = (event: React.PointerEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!isDrawingRef.current) return;
-    const canvas = canvasRef.current;
-    const context = canvas?.getContext("2d");
-    if (!canvas || !context) return;
-    
-    const { x, y } = getCoordinates(event, canvas);
-    context.lineTo(x, y);
-    context.stroke();
-  };
-
-  const stopDrawing = () => {
-    if (isDrawingRef.current) {
-      onLiveEvent("WHITEBOARD_UPDATE", { tool: "freehand" });
-    }
-    isDrawingRef.current = false;
-  };
-
-  const clearWhiteboard = () => {
-    const canvas = canvasRef.current;
-    const context = canvas?.getContext("2d");
-    if (!canvas || !context) return;
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    onLiveEvent("WHITEBOARD_UPDATE", { tool: "clear" });
-  };
-
   const shareResource = () => {
     if (!resourceTitle.trim() && !resourceUrl.trim()) return;
-    onLiveEvent("RESOURCE_SHARE", { title: resourceTitle.trim(), url: resourceUrl.trim() });
+    onShareResource(resourceTitle.trim(), resourceUrl.trim());
     setResourceTitle("");
     setResourceUrl("");
   };
-
-  const votePoll = (option: string) => {
-    setPollVotes((prev) => ({ ...prev, [option]: (prev[option] || 0) + 1 }));
-    onLiveEvent("QUESTION", { type: "poll_vote", question: pollQuestion, option });
-  };
-
-  const totalVotes = useMemo(() => Object.values(pollVotes).reduce<number>((sum, value) => sum + Number(value || 0), 0), [pollVotes]);
 
   return (
     <div className="w-full max-w-full bg-zinc-950 text-white font-sans flex flex-col relative box-border min-h-0 flex-1 overflow-x-hidden">
@@ -696,30 +602,30 @@ export default function VirtualClassroom({
           >
             <div className="flex items-center gap-1.5 sm:gap-2 md:gap-4 shrink-0">
               <div className="flex items-center gap-2 mr-2 md:mr-4 pr-2 md:pr-4 border-r border-white/10">
-                <button
-                  type="button"
-                  data-tv-focusable
-                  tabIndex={0}
+                <LiveMediaControl
+                  label="Micro"
+                  enabledLabel="Activé"
+                  disabledLabel="Désactivé"
+                  enabled={isMicEnabled}
+                  enabledIcon={Mic}
+                  disabledIcon={MicOff}
                   onClick={onToggleMic}
-                  aria-label={isMicEnabled ? "Couper le micro (M)" : "Activer le micro (M)"}
-                  aria-pressed={isMicEnabled}
-                  className={`kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${isMicEnabled ? "hover:bg-zinc-800 text-zinc-200" : "bg-red-600/20 border border-red-500/40 text-red-300 hover:bg-red-600/30"}`}
-                >
-                  {isMicEnabled ? <Mic className="w-5 h-5 mb-1.5" /> : <MicOff className="w-5 h-5 mb-1.5" />}
-                  <span className="text-[10px] font-bold">{isMicEnabled ? "Désactiver" : "Activer"}</span>
-                </button>
-                <button
-                  type="button"
-                  data-tv-focusable
-                  tabIndex={0}
+                  ariaLabel={isMicEnabled ? "Couper le micro (M)" : "Activer le micro (M)"}
+                />
+                <LiveMediaControl
+                  label="Caméra"
+                  enabledLabel="Activée"
+                  disabledLabel="Désactivée"
+                  enabled={isCameraEnabled}
+                  enabledIcon={Video}
+                  disabledIcon={VideoOff}
                   onClick={onToggleCamera}
-                  aria-label={isCameraEnabled ? "Couper la caméra (V)" : "Activer la caméra (V)"}
-                  aria-pressed={isCameraEnabled}
-                  className={`kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${isCameraEnabled ? "hover:bg-zinc-800 text-zinc-200" : "bg-red-600/20 border border-red-500/40 text-red-300 hover:bg-red-600/30"}`}
-                >
-                  {isCameraEnabled ? <Video className="w-5 h-5 mb-1.5" /> : <VideoOff className="w-5 h-5 mb-1.5" />}
-                  <span className="text-[10px] font-bold">Caméra</span>
-                </button>
+                  ariaLabel={isCameraEnabled ? "Couper la caméra (V)" : "Activer la caméra (V)"}
+                />
+              </div>
+
+              <div className="hidden xl:block max-w-[220px]">
+                <LiveReactionBar compact onReaction={onReaction} />
               </div>
 
               <div className="flex items-center gap-2">
@@ -822,69 +728,48 @@ export default function VirtualClassroom({
           {/* Main Video Area */}
           <div className="flex-1 min-h-[220px] sm:min-h-[280px] lg:min-h-[340px] p-0 lg:p-4 flex items-center justify-center relative min-w-0 bg-[#0a0a0a]">
             <div className="w-full h-full min-h-[200px] max-h-[min(72dvh,780px)] relative lg:rounded-2xl overflow-hidden bg-zinc-950 lg:border border-white/5 lg:shadow-2xl flex items-center justify-center box-border">
-              {videoParticipants.length > 0 ? (
-                <div className={`live-video-grid grid ${videoGridClass} gap-3 w-full h-full p-3`}>
-                  {videoParticipants.map((participant) => {
-                    const isActive = participant.identity === activeSpeaker?.identity || participant.isSpeaking;
-                    return (
-                      <div
-                        key={participant.identity}
-                        className={`relative min-h-0 rounded-xl overflow-hidden bg-zinc-900 border shadow-xl transition-all ${
-                          isActive ? "border-indigo-400 ring-2 ring-indigo-500/40" : "border-white/10"
-                        }`}
-                      >
-                        <video
-                          ref={(el) => {
-                            videoRefs.current[participant.identity] = el;
-                            if (videoParticipants[0]?.identity === participant.identity) {
-                              featuredVideoRef.current = el;
-                            }
-                          }}
-                          autoPlay
-                          playsInline
-                          muted={participant.isLocal}
-                          className="absolute inset-0 w-full h-full object-contain bg-black"
-                        />
-                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent px-2 pb-2 pt-8 sm:p-3 sm:pt-10">
-                          <div className="flex items-end justify-between gap-2 min-w-0">
-                            <div className="min-w-0 flex-1">
-                              <p className="text-[10px] sm:text-xs font-black text-white truncate">{participant.name}</p>
-                              <p className="text-[9px] sm:text-[10px] text-zinc-300 truncate">{roleLabel(participant.role)}</p>
-                            </div>
-                            <div className="flex items-center gap-1 shrink-0 pb-0.5">
-                              {participant.hasAudio ? <Mic className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-400" /> : <MicOff className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-red-400" />}
-                              {participant.handRaised && <Hand className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400" />}
-                              {isActive && <Wifi className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-indigo-300" />}
-                            </div>
-                          </div>
-                        </div>
-                        {participant.reaction && (
-                          <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md border border-white/10 rounded-lg px-2 py-1 text-sm">
-                            {participant.reaction}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+              {whiteboardExpanded ? (
+                <div className="h-full w-full p-3">
+                  <LiveWhiteboardPanel
+                    expanded
+                    onToggleExpanded={() => setWhiteboardExpanded(false)}
+                    canModerate={canModerate}
+                    strokes={whiteboardStrokes}
+                    localIdentity={localIdentity}
+                    onStrokeComplete={onWhiteboardStroke}
+                    onClear={onWhiteboardClear}
+                  />
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-6 animate-in fade-in duration-500 px-4 py-6 w-full max-w-full">
-                  <div className="relative shrink-0">
-                    <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-zinc-800 flex items-center justify-center text-2xl sm:text-4xl font-black text-zinc-300 z-10 relative border border-zinc-700 shadow-xl">
-                      {activeSpeaker?.initials || "AR"}
-                    </div>
-                    {activeSpeaker?.isSpeaking && (
-                      <div className="absolute inset-0 rounded-full bg-indigo-500/20 animate-ping z-0 scale-150"></div>
-                    )}
+                <>
+                  <div className={`live-video-grid grid ${videoGridClass} gap-3 w-full h-full p-3`}>
+                    {stageParticipants.map((participant, index) => {
+                      const isActive = participant.identity === activeSpeaker?.identity || participant.isSpeaking;
+                      const isFeatured = featuredLayout && index === 0;
+                      return (
+                        <LiveParticipantTile
+                          key={participant.identity}
+                          participant={participant}
+                          isActive={Boolean(isActive)}
+                          isFeatured={isFeatured}
+                          roleLabel={roleLabel}
+                          videoRef={(element) => {
+                            videoRefs.current[participant.identity] = element;
+                            if (index === 0) featuredVideoRef.current = element;
+                            if (index === 0) primaryVideoRef.current = element;
+                          }}
+                        />
+                      );
+                    })}
                   </div>
-                  <div className="text-center space-y-1 sm:space-y-2 w-full max-w-[min(100%,18rem)]">
-                    <h2 className="text-base sm:text-xl font-bold text-white truncate">{activeSpeaker?.name || course.instructor}</h2>
-                    <div className="flex items-center justify-center gap-2 text-zinc-400 text-xs sm:text-sm">
-                      {activeSpeaker?.hasAudio ? <Mic className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400"/> : <MicOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-400"/>}
-                      <span className="truncate">{roleLabel(activeSpeaker?.role)}</span>
-                    </div>
-                  </div>
-                </div>
+                  {sharedResource && (
+                    <LiveResourceStage
+                      resource={sharedResource}
+                      canModerate={canModerate}
+                      onDismiss={onDismissResource}
+                    />
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -898,7 +783,7 @@ export default function VirtualClassroom({
         >
           {/* Sidebar Tabs */}
           <div className={`px-3 pt-4 pb-2 grid gap-1 shrink-0 border-b border-white/5 bg-zinc-900/50 ${
-            visibleSidebarTabs.length === 1 ? "grid-cols-1" : "grid-cols-4"
+            visibleSidebarTabs.length <= 2 ? "grid-cols-2" : visibleSidebarTabs.length === 3 ? "grid-cols-3" : "grid-cols-5"
           }`}>
             {visibleSidebarTabs.map((tab) => (
               <button
@@ -926,6 +811,19 @@ export default function VirtualClassroom({
             
             {activeTab === "participants" && (
               <div className="space-y-4 animate-in fade-in duration-300">
+                {raisedHandParticipants.length > 0 && (
+                  <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-amber-300">Mains levées</p>
+                    <div className="space-y-2">
+                      {raisedHandParticipants.map((participant) => (
+                        <div key={participant.identity} className="flex items-center gap-2 text-xs font-semibold text-amber-100">
+                          <Hand className="h-4 w-4" />
+                          <span>{participant.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div className="relative">
                   <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
                   <input 
@@ -1064,33 +962,59 @@ export default function VirtualClassroom({
               </div>
             )}
 
-            {activeTab === "whiteboard" && (
-              <div className="space-y-4 animate-in fade-in duration-300 flex flex-col h-full">
-                <div className="flex gap-2 shrink-0">
-                  {[{ id: 'draw', icon: PenTool, label: 'Dessin libre' }, { id: 'shapes', icon: Shapes, label: 'Géométrie' }].map((tool) => (
-                    <button key={tool.id} className="flex-1 py-2 bg-zinc-900 hover:bg-zinc-800 rounded-lg flex items-center justify-center gap-2 border border-white/5 transition-colors">
-                      <tool.icon className="w-4 h-4 text-zinc-300" />
-                      <span className="text-[11px] font-bold">{tool.label}</span>
-                    </button>
-                  ))}
-                </div>
-                <div ref={whiteboardContainerRef} className="flex-1 bg-white rounded-xl overflow-hidden shadow-inner border border-white/10 min-h-[240px]">
-                  <canvas
-                    ref={canvasRef}
-                    onPointerDown={startDrawing}
-                    onPointerMove={draw}
-                    onPointerUp={stopDrawing}
-                    onPointerLeave={stopDrawing}
-                    onTouchStart={startDrawing}
-                    onTouchMove={draw}
-                    onTouchEnd={stopDrawing}
-                    onTouchCancel={stopDrawing}
-                    className="w-full h-full touch-none cursor-crosshair"
+            {activeTab === "whiteboard" && !whiteboardExpanded && (
+              <LiveWhiteboardPanel
+                expanded={false}
+                onToggleExpanded={() => {
+                  setWhiteboardExpanded(true);
+                  setIsSidebarOpen(false);
+                }}
+                canModerate={canModerate}
+                strokes={whiteboardStrokes}
+                localIdentity={localIdentity}
+                onStrokeComplete={onWhiteboardStroke}
+                onClear={onWhiteboardClear}
+              />
+            )}
+
+            {activeTab === "tools" && (
+              <div className="space-y-5 animate-in fade-in duration-300">
+                <LiveReactionBar onReaction={onReaction} />
+                <LivePollPanel
+                  canModerate={canModerate}
+                  pollQuestion={livePoll.question}
+                  pollOptions={livePoll.options}
+                  pollVotes={livePoll.votes}
+                  pollActive={livePoll.active}
+                  myVote={myPollVote}
+                  onQuestionChange={onPollQuestionChange}
+                  onPublishPoll={onPublishPoll}
+                  onEndPoll={onEndPoll}
+                  onVote={onVotePoll}
+                />
+                <div className="rounded-2xl border border-white/10 bg-zinc-900/70 p-4 space-y-3">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Partager une ressource</p>
+                  <input
+                    value={resourceTitle}
+                    onChange={(event) => setResourceTitle(event.target.value)}
+                    placeholder="Titre (PDF, slides, lien...)"
+                    className="w-full rounded-xl border border-white/10 bg-zinc-950 px-3 py-2 text-xs text-white"
                   />
+                  <input
+                    value={resourceUrl}
+                    onChange={(event) => setResourceUrl(event.target.value)}
+                    placeholder="URL du document ou de la présentation"
+                    className="w-full rounded-xl border border-white/10 bg-zinc-950 px-3 py-2 text-xs text-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={shareResource}
+                    className="w-full rounded-xl border border-indigo-400/30 bg-indigo-500/10 py-2.5 text-xs font-bold text-indigo-200"
+                  >
+                    <FileUp className="mr-2 inline h-4 w-4" />
+                    Partager au cours
+                  </button>
                 </div>
-                <button onClick={clearWhiteboard} className="shrink-0 w-full py-2.5 text-xs font-bold text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-colors border border-red-500/20">
-                  Nettoyer le tableau
-                </button>
               </div>
             )}
 

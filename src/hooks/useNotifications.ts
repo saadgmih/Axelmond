@@ -34,15 +34,25 @@ export function useNotifications(enabled: boolean) {
   }, [enabled, refreshUnreadCount]);
 
   const markRead = useCallback(async (id: string) => {
-    await api.markNotificationRead(id);
-    setNotifications((prev) => prev.map((item) => (item.id === id ? { ...item, isRead: true, readAt: new Date().toISOString() } : item)));
-    setUnreadCount((count) => Math.max(0, count - 1));
+    setError("");
+    try {
+      await api.markNotificationRead(id);
+      setNotifications((prev) => prev.map((item) => (item.id === id ? { ...item, isRead: true, readAt: new Date().toISOString() } : item)));
+      setUnreadCount((count) => Math.max(0, count - 1));
+    } catch (err: any) {
+      setError(err?.message || "Impossible de marquer la notification comme lue");
+    }
   }, []);
 
   const markAllRead = useCallback(async () => {
-    await api.markAllNotificationsRead();
-    setNotifications((prev) => prev.map((item) => ({ ...item, isRead: true, readAt: item.readAt || new Date().toISOString() })));
-    setUnreadCount(0);
+    setError("");
+    try {
+      await api.markAllNotificationsRead();
+      setNotifications((prev) => prev.map((item) => ({ ...item, isRead: true, readAt: item.readAt || new Date().toISOString() })));
+      setUnreadCount(0);
+    } catch (err: any) {
+      setError(err?.message || "Impossible de marquer toutes les notifications comme lues");
+    }
   }, []);
 
   const pushNotification = useCallback((notification: AppNotification) => {

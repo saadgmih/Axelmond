@@ -24,4 +24,6 @@ test("isValidVapidPublicKey rejects malformed keys", () => {
 test("mapPushSubscribeError translates browser push service failures", () => {
   const message = mapPushSubscribeError("Registration failed - push service error");
   assert.match(message, /service push/i);
+  const unavailable = mapPushSubscribeError("Registration failed - push service not available");
+  assert.match(unavailable, /service push/i);
 });

@@ -43,10 +43,15 @@ export function usePushNotifications(enabled: boolean) {
         return false;
       }
 
-      const { publicKey } = await api.getVapidPublicKey();
+      const { publicKey, configured } = await api.getVapidPublicKey();
       if (!publicKey || !isValidVapidPublicKey(publicKey)) {
         setStatusKind("error");
         setStatus("Notifications push non configurées correctement sur le serveur.");
+        return false;
+      }
+      if (configured === false) {
+        setStatusKind("error");
+        setStatus("Notifications push partiellement configurées sur le serveur (clé privée manquante).");
         return false;
       }
 
@@ -69,6 +74,11 @@ export function usePushNotifications(enabled: boolean) {
       setStatus("Notifications push activées.");
       return true;
     } catch (err: any) {
+      console.error("[push] subscribe flow failed", {
+        name: err?.name,
+        message: err?.message,
+        stack: err?.stack,
+      });
       setStatusKind("error");
       setStatus(mapPushSubscribeError(err?.message || ""));
       return false;

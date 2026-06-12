@@ -9,6 +9,18 @@ import { api } from "../api";
 import { LiveChatMessage } from "../livekit";
 import { isStudentRole } from "../rbac";
 import type { Course, Invoice } from "../types";
+import {
+  LIVE_SYNC_TOPIC,
+  appendWhiteboardStroke,
+  applyPollStart,
+  buildSharedResource,
+  createEmptyPoll,
+  mergePollVote,
+  type LivePollState,
+  type LiveSharedResource,
+  type LiveSyncMessage,
+  type LiveWhiteboardStroke,
+} from "../live/live-sync";
 
 export type LiveKitClassroomBindings = Omit<
   VirtualClassroomProps,
@@ -70,10 +82,31 @@ export function useLiveKitRoom({
   >({});
   const [liveAttendanceReport, setLiveAttendanceReport] = useState<any | null>(null);
   const [liveReconnectNonce, setLiveReconnectNonce] = useState(0);
+  const [livePoll, setLivePoll] = useState<LivePollState>(() => createEmptyPoll());
+  const [myPollVote, setMyPollVote] = useState<string | null>(null);
+  const [whiteboardStrokes, setWhiteboardStrokes] = useState<LiveWhiteboardStroke[]>([]);
+  const [sharedResource, setSharedResource] = useState<LiveSharedResource | null>(null);
+  const whiteboardStrokesRef = useRef<LiveWhiteboardStroke[]>([]);
+  const sharedResourceRef = useRef<LiveSharedResource | null>(null);
+  const livePollRef = useRef<LivePollState>(createEmptyPoll());
   const primaryLiveVideoRef = useRef<HTMLVideoElement | null>(null);
   const liveVideoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   const liveAudioContainerRef = useRef<HTMLDivElement | null>(null);
   const liveStageRef = useRef<HTMLDivElement | null>(null);
+
+  const canModerateLive = Boolean(currentUser && !isStudentRole(currentUser.role));
+
+  useEffect(() => {
+    whiteboardStrokesRef.current = whiteboardStrokes;
+  }, [whiteboardStrokes]);
+
+  useEffect(() => {
+    sharedResourceRef.current = sharedResource;
+  }, [sharedResource]);
+
+  useEffect(() => {
+    livePollRef.current = livePoll;
+  }, [livePoll]);
 
   const getParticipantVideoPublication = (participant: any) => {
     const publications = Array.from(participant.videoTrackPublications.values()) as any[];
@@ -112,6 +145,7 @@ export function useLiveKitRoom({
       name: "Vous",
       initials: getInitials(localName),
       role: currentUser?.role || "STUDENT",
+      avatarUrl: currentUser?.avatarUrl || null,
       isLocal: true,
       isSpeaking: activeSpeakerIdentity === room.localParticipant.identity,
       handRaised: localSignal?.handRaised,
@@ -130,11 +164,18 @@ export function useLiveKitRoom({
       const videoPublication = getParticipantVideoPublication(participant);
       const audioPublication = getParticipantAudioPublication(participant);
       const signal = liveSignals[participant.identity];
+      let avatarUrl: string | null = null;
+      try {
+        avatarUrl = JSON.parse(participant.metadata || "{}")?.avatarUrl || null;
+      } catch {
+        avatarUrl = null;
+      }
       nextParticipants.push({
         identity: participant.identity,
         name: displayName,
         initials: getInitials(displayName),
         role: getParticipantRole(participant),
+        avatarUrl,
         isLocal: false,
         isSpeaking: activeSpeakerIdentity === participant.identity,
         handRaised: signal?.handRaised,
@@ -155,6 +196,74 @@ export function useLiveKitRoom({
 
   const appendLiveChatMessage = (message: LiveChatMessage) => {
     setLiveChatMessages((prev) => [...prev.slice(-49), message]);
+  };
+
+  const publishLiveSync = async (room: Room | null, message: LiveSyncMessage) => {
+    if (!room) return;
+    try {
+      await room.localParticipant.publishData(new TextEncoder().encode(JSON.stringify(message)), {
+        reliable: true,
+        topic: LIVE_SYNC_TOPIC,
+      });
+    } catch (err) {
+      console.error("[livekit] Live sync publish failed", err);
+    }
+  };
+
+  const applyLiveSyncMessage = (message: LiveSyncMessage, localIdentity: string) => {
+    switch (message.type) {
+      case "WHITEBOARD_STROKE":
+        setWhiteboardStrokes((prev) => appendWhiteboardStroke(prev, message.stroke));
+        break;
+      case "WHITEBOARD_CLEAR":
+        setWhiteboardStrokes([]);
+        break;
+      case "WHITEBOARD_SNAPSHOT":
+        setWhiteboardStrokes(message.strokes);
+        break;
+      case "POLL_START":
+        setLivePoll(applyPollStart(message.question, message.options));
+        setMyPollVote(null);
+        break;
+      case "POLL_SYNC":
+        setLivePoll(message.poll);
+        setMyPollVote(message.poll.voters[localIdentity] || null);
+        break;
+      case "POLL_VOTE":
+        setLivePoll((prev) => mergePollVote(prev, message.voterId, message.option) || prev);
+        if (message.voterId === localIdentity) {
+          setMyPollVote(message.option);
+        }
+        break;
+      case "POLL_END":
+        setLivePoll((prev) => ({ ...prev, active: false }));
+        break;
+      case "RESOURCE_SHARE":
+        setSharedResource(message.resource);
+        break;
+      case "RESOURCE_DISMISS":
+        setSharedResource(null);
+        break;
+      default:
+        break;
+    }
+  };
+
+  const respondToLiveSyncRequest = async (room: Room, requesterIdentity?: string) => {
+    if (!requesterIdentity || requesterIdentity === room.localParticipant.identity) return;
+
+    if (whiteboardStrokesRef.current.length > 0) {
+      await publishLiveSync(room, {
+        type: "WHITEBOARD_SNAPSHOT",
+        strokes: whiteboardStrokesRef.current,
+      });
+    }
+    if (livePollRef.current.active) {
+      await publishLiveSync(room, { type: "POLL_SYNC", poll: livePollRef.current });
+    }
+    if (sharedResourceRef.current) {
+      await publishLiveSync(room, { type: "RESOURCE_SHARE", resource: sharedResourceRef.current });
+    }
   };
 
   const refreshLiveAttendanceReport = async (courseId: number) => {
@@ -182,6 +291,10 @@ export function useLiveKitRoom({
     setActiveSpeakerIdentity("");
     setLiveSignals({});
     setLiveAttendanceReport(null);
+    setLivePoll(createEmptyPoll());
+    setMyPollVote(null);
+    setWhiteboardStrokes([]);
+    setSharedResource(null);
   };
 
   const disconnectLiveSession = () => {
@@ -193,6 +306,10 @@ export function useLiveKitRoom({
     setIsMicEnabled(false);
     setIsCameraEnabled(false);
     setIsScreenShareEnabled(false);
+    setLivePoll(createEmptyPoll());
+    setMyPollVote(null);
+    setWhiteboardStrokes([]);
+    setSharedResource(null);
   };
 
   useEffect(() => {
@@ -205,9 +322,18 @@ export function useLiveKitRoom({
     });
 
     const refreshParticipants = () => syncLiveParticipants(room);
-    const handleDataReceived = (payload: Uint8Array, participant: any, _kind: any, topic?: string) => {
+    const handleDataReceived = async (payload: Uint8Array, participant: any, _kind: any, topic?: string) => {
       try {
         const parsed = JSON.parse(new TextDecoder().decode(payload));
+        if (topic === LIVE_SYNC_TOPIC) {
+          const message = parsed as LiveSyncMessage;
+          if (message.type === "SYNC_REQUEST") {
+            await respondToLiveSyncRequest(room, participant?.identity);
+            return;
+          }
+          applyLiveSyncMessage(message, room.localParticipant.identity);
+          return;
+        }
         if (topic === "axelmond-live-action") {
           const identity = participant?.identity || parsed.identity || "unknown";
           setLiveSignals((prev) => ({
@@ -273,6 +399,7 @@ export function useLiveKitRoom({
         setLiveStatusMsg("Connecté à la salle LiveKit");
         syncLiveParticipants(room);
         refreshLiveAttendanceReport(activeLiveCourse.id);
+        await publishLiveSync(room, { type: "SYNC_REQUEST" });
         console.info("[livekit] Room connected", { courseId: activeLiveCourse.id, roomName: room.name });
       })
       .catch((err) => {
@@ -640,6 +767,79 @@ export function useLiveKitRoom({
     setLiveReconnectNonce((value) => value + 1);
   };
 
+  const publishLivePoll = async () => {
+    if (!canModerateLive || !activeLiveCourse) return;
+    const nextPoll = applyPollStart(livePollRef.current.question, livePollRef.current.options);
+    setLivePoll(nextPoll);
+    setMyPollVote(null);
+    await publishLiveSync(liveRoom, {
+      type: "POLL_START",
+      question: nextPoll.question,
+      options: nextPoll.options,
+    });
+    api.logLiveEvent({
+      courseId: activeLiveCourse.id,
+      action: "POLL_START",
+      details: { question: nextPoll.question, options: nextPoll.options },
+    }).catch((err) => console.warn("[livekit] Poll event persistence failed", err));
+  };
+
+  const voteLivePoll = async (option: string) => {
+    const voterId = liveRoom?.localParticipant.identity || String(currentUser?.id || "unknown");
+    const merged = mergePollVote(livePollRef.current, voterId, option);
+    if (!merged) return;
+    setLivePoll(merged);
+    setMyPollVote(option);
+    await publishLiveSync(liveRoom, { type: "POLL_VOTE", voterId, option });
+    if (activeLiveCourse) {
+      api.logLiveEvent({
+        courseId: activeLiveCourse.id,
+        action: "POLL_VOTE",
+        details: { option, question: livePollRef.current.question },
+      }).catch((err) => console.warn("[livekit] Poll vote persistence failed", err));
+    }
+  };
+
+  const endLivePoll = async () => {
+    if (!canModerateLive) return;
+    setLivePoll((prev) => ({ ...prev, active: false }));
+    await publishLiveSync(liveRoom, { type: "POLL_END" });
+  };
+
+  const updateLivePollQuestion = (question: string) => {
+    setLivePoll((prev) => ({ ...prev, question }));
+  };
+
+  const publishWhiteboardStroke = async (stroke: LiveWhiteboardStroke) => {
+    setWhiteboardStrokes((prev) => appendWhiteboardStroke(prev, stroke));
+    await publishLiveSync(liveRoom, { type: "WHITEBOARD_STROKE", stroke });
+  };
+
+  const clearLiveWhiteboard = async () => {
+    if (!canModerateLive) return;
+    setWhiteboardStrokes([]);
+    await publishLiveSync(liveRoom, { type: "WHITEBOARD_CLEAR" });
+  };
+
+  const shareLiveResource = async (title: string, url: string) => {
+    if (!canModerateLive || !activeLiveCourse) return;
+    const resource = buildSharedResource(title, url, currentUser?.fullName || "Animateur");
+    if (!resource) return;
+    setSharedResource(resource);
+    await publishLiveSync(liveRoom, { type: "RESOURCE_SHARE", resource });
+    api.logLiveEvent({
+      courseId: activeLiveCourse.id,
+      action: "RESOURCE_SHARE",
+      details: { title: resource.title, url: resource.url, kind: resource.kind },
+    }).catch((err) => console.warn("[livekit] Resource share persistence failed", err));
+  };
+
+  const dismissLiveResource = async () => {
+    if (!canModerateLive) return;
+    setSharedResource(null);
+    await publishLiveSync(liveRoom, { type: "RESOURCE_DISMISS" });
+  };
+
   const classroomBindings: LiveKitClassroomBindings = {
     liveRoom,
     participants: liveParticipants,
@@ -668,6 +868,19 @@ export function useLiveKitRoom({
     onModerateParticipant: handleLiveModeration,
     onLiveEvent: publishLiveAction,
     onReconnectLive: reconnectLiveSession,
+    livePoll,
+    myPollVote,
+    onPublishPoll: publishLivePoll,
+    onEndPoll: endLivePoll,
+    onVotePoll: voteLivePoll,
+    onPollQuestionChange: updateLivePollQuestion,
+    whiteboardStrokes,
+    localIdentity: liveRoom?.localParticipant.identity || String(currentUser?.id || "local"),
+    onWhiteboardStroke: publishWhiteboardStroke,
+    onWhiteboardClear: clearLiveWhiteboard,
+    sharedResource,
+    onShareResource: shareLiveResource,
+    onDismissResource: dismissLiveResource,
   };
 
   const renderLiveRoomInterface = (mode: "student" | "teacher"): ReactNode => {

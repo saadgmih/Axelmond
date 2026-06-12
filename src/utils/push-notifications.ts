@@ -25,14 +25,17 @@ export function isValidVapidPublicKey(publicKey: string): boolean {
 
 export function mapPushSubscribeError(message: string): string {
   const normalized = message.toLowerCase();
-  if (normalized.includes("push service error") || normalized.includes("registration failed")) {
-    return "Impossible de joindre le service push du navigateur. Activez les notifications Windows/macOS pour Chrome ou Edge, rechargez la page, puis réessayez.";
+  if (normalized.includes("push service error") || normalized.includes("push service not available") || normalized.includes("registration failed")) {
+    return "Impossible de joindre le service push du navigateur. Vérifiez que les notifications sont activées pour Chrome/Edge dans les paramètres Windows, rechargez la page, puis réessayez.";
   }
-  if (normalized.includes("permission")) {
-    return "Permission de notification refusée dans le navigateur.";
+  if (normalized.includes("permission") || normalized.includes("denied")) {
+    return "Permission de notification refusée. Autorisez les notifications pour ce site dans les paramètres du navigateur.";
   }
   if (normalized.includes("service worker")) {
     return "Le service worker n'est pas prêt. Rechargez la page puis réessayez.";
+  }
+  if (normalized.includes("non configurées") || normalized.includes("not configured")) {
+    return "Notifications push non configurées sur le serveur.";
   }
   return message || "Activation des notifications push impossible.";
 }
@@ -97,7 +100,13 @@ export async function subscribeToPush(
   try {
     return await registration.pushManager.subscribe(options);
   } catch (firstError) {
+    console.error("[push] pushManager.subscribe first attempt failed", firstError);
     await registration.pushManager.getSubscription().then((sub) => sub?.unsubscribe()).catch(() => undefined);
-    return registration.pushManager.subscribe(options);
+    try {
+      return await registration.pushManager.subscribe(options);
+    } catch (retryError) {
+      console.error("[push] pushManager.subscribe retry failed", retryError);
+      throw retryError;
+    }
   }
 }

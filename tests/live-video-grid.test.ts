@@ -2,11 +2,14 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const classroomSource = readFileSync("src/components/VirtualClassroom.tsx", "utf8");
+const mediaControlSource = readFileSync("src/components/live/LiveMediaControl.tsx", "utf8");
 
-assert.match(classroomSource, /videoParticipants/);
+assert.match(classroomSource, /stageParticipants/);
 assert.match(classroomSource, /live-video-grid/);
-assert.match(classroomSource, /videoParticipants\.map/);
-assert.doesNotMatch(classroomSource, /shouldShowFilmstrip/);
-assert.match(classroomSource, /bg-red-600\/20 border border-red-500\/40 text-red-300/);
+assert.match(classroomSource, /LiveParticipantTile/);
+assert.match(classroomSource, /LiveMediaControl/);
+assert.match(mediaControlSource, /border-emerald-500\/40 bg-emerald-500\/10/);
+assert.match(classroomSource, /LiveReactionBar/);
+assert.match(classroomSource, /LiveWhiteboardPanel/);
 
 console.log("Live video grid rules passed");

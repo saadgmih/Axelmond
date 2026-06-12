@@ -1,0 +1,74 @@
+import { Hand, Mic, MicOff, Wifi } from "lucide-react";
+import type { LiveParticipantCard } from "../VirtualClassroom";
+import LiveParticipantAvatar from "./LiveParticipantAvatar";
+
+interface LiveParticipantTileProps {
+  participant: LiveParticipantCard;
+  isActive: boolean;
+  isFeatured: boolean;
+  videoRef?: (element: HTMLVideoElement | null) => void;
+  roleLabel: (role?: string) => string;
+}
+
+export default function LiveParticipantTile({
+  participant,
+  isActive,
+  isFeatured,
+  videoRef,
+  roleLabel,
+}: LiveParticipantTileProps) {
+  const hasVideo = Boolean(participant.videoTrack);
+
+  return (
+    <div
+      className={`relative min-h-[140px] sm:min-h-[180px] rounded-2xl overflow-hidden border shadow-xl transition-all ${
+        isFeatured ? "min-h-[220px] sm:min-h-[280px]" : ""
+      } ${isActive ? "border-indigo-400 ring-2 ring-indigo-500/40" : "border-white/10 bg-zinc-900/80"}`}
+    >
+      {hasVideo ? (
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted={participant.isLocal}
+          className="absolute inset-0 h-full w-full object-cover bg-black"
+        />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-zinc-950 via-[#0b1020] to-indigo-950/40">
+          <LiveParticipantAvatar
+            name={participant.name}
+            initials={participant.initials}
+            avatarUrl={participant.avatarUrl}
+            size={isFeatured ? "xl" : "lg"}
+            isSpeaking={participant.isSpeaking}
+            isFeatured={isFeatured}
+          />
+        </div>
+      )}
+
+      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent px-3 pb-3 pt-10">
+        <div className="flex items-end justify-between gap-2 min-w-0">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs font-black text-white sm:text-sm">{participant.name}</p>
+            <p className="truncate text-[10px] text-zinc-300 sm:text-[11px]">{roleLabel(participant.role)}</p>
+          </div>
+          <div className="flex shrink-0 items-center gap-1 pb-0.5">
+            {participant.hasAudio ? (
+              <Mic className="h-3.5 w-3.5 text-emerald-400" />
+            ) : (
+              <MicOff className="h-3.5 w-3.5 text-red-400" />
+            )}
+            {participant.handRaised && <Hand className="h-3.5 w-3.5 text-amber-400" />}
+            {isActive && <Wifi className="h-3.5 w-3.5 text-indigo-300" />}
+          </div>
+        </div>
+      </div>
+
+      {participant.reaction && (
+        <div className="absolute right-3 top-3 rounded-xl border border-white/10 bg-black/60 px-2.5 py-1 text-lg backdrop-blur-md">
+          {participant.reaction}
+        </div>
+      )}
+    </div>
+  );
+}

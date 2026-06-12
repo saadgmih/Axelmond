@@ -49,13 +49,19 @@ export function configureWebPush() {
   const publicKey = process.env.VAPID_PUBLIC_KEY?.trim();
   const privateKey = process.env.VAPID_PRIVATE_KEY?.trim();
   const subject = process.env.VAPID_SUBJECT?.trim() || "mailto:support@uroahumain.com";
-  if (!publicKey || !privateKey) return false;
+  if (!publicKey || !privateKey) {
+    if (process.env.NODE_ENV === "production") {
+      console.warn("[push] VAPID keys missing — browser push delivery disabled");
+    }
+    return false;
+  }
   try {
     webpush.setVapidDetails(subject, publicKey, privateKey);
     pushConfigured = true;
     return true;
-  } catch {
+  } catch (err: any) {
     pushConfigured = false;
+    console.error("[push] Invalid VAPID key pair", err?.message || err);
     return false;
   }
 }

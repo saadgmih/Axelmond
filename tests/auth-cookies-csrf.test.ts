@@ -37,6 +37,9 @@ assert.doesNotMatch(serverSource, /refreshToken:\s*refreshToken/);
 assert.match(apiSource, /credentials:\s*"include"/);
 assert.match(apiSource, /X-CSRF-Token/);
 assert.match(apiSource, /accessTokenMemory/);
+assert.match(apiSource, /readCsrfFromCookie\(\)/);
+assert.match(apiSource, /CSRF_TOKEN_INVALID/);
+assert.match(apiSource, /allowCsrfRetry/);
 assert.match(apiSource, /purgeLegacyTokenStorage/);
 assert.doesNotMatch(apiSource, /localStorage\.setItem\(LEGACY_REFRESH_TOKEN_KEY/);
 
