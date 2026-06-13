@@ -1,6 +1,5 @@
 import { logSecurity } from "./security-logger";
 import { convertMadAmountForPayPal, getPayPalCheckoutCurrency } from "./paypal-currency";
-import { agentDebugLog } from "./agent-debug-log";
 
 export type PayPalRuntimeEnv = "sandbox" | "live";
 
@@ -98,21 +97,6 @@ async function paypalRequest<T>(
       status: response.status,
       payload,
     });
-    // #region agent log
-    agentDebugLog({
-      hypothesisId: "H2",
-      location: "paypal-server.ts:paypalRequest",
-      message: "PayPal API error",
-      data: {
-        method,
-        path,
-        status: response.status,
-        paypalMessage: payload?.message || payload?.details?.[0]?.description || null,
-        issue: payload?.details?.[0]?.issue || null,
-      },
-      runId: "pre-fix",
-    });
-    // #endregion
     const issue = payload?.details?.[0]?.issue;
     if (issue === "CURRENCY_NOT_SUPPORTED") {
       throw new Error("PayPal Live n'accepte pas le dirham (MAD). Le paiement sera converti en USD.");
@@ -188,21 +172,6 @@ export async function createPayPalOrder(params: {
     params.amountMad,
     payPalCurrency,
   );
-  // #region agent log
-  agentDebugLog({
-    hypothesisId: "H1",
-    location: "paypal-server.ts:createPayPalOrder",
-    message: "creating PayPal order",
-    data: {
-      courseId: params.courseId,
-      payPalCurrency,
-      payPalAmount,
-      amountMad: params.amountMad,
-      customIdLength: customId.length,
-    },
-    runId: "pre-fix",
-  });
-  // #endregion
   const payload = await paypalRequest<{ id?: string }>("POST", "/v2/checkout/orders", {
     intent: "CAPTURE",
     purchase_units: [

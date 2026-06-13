@@ -2,26 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 import { api, getFreshSessionToken } from "../api";
 import type { AppNotification } from "../types/messaging";
 
-const DEBUG_INGEST = "http://127.0.0.1:7908/ingest/313aa125-9bdc-4150-89fa-cbf8bc125e63";
-
-function logNotificationDebug(message: string, data: Record<string, unknown>) {
-  // #region agent log
-  fetch(DEBUG_INGEST, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "4a3252" },
-    body: JSON.stringify({
-      sessionId: "4a3252",
-      hypothesisId: "H4",
-      location: "useNotifications.ts",
-      message,
-      data,
-      timestamp: Date.now(),
-      runId: "pre-fix",
-    }),
-  }).catch(() => {});
-  // #endregion
-}
-
 export function useNotifications(enabled: boolean) {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -32,12 +12,11 @@ export function useNotifications(enabled: boolean) {
     if (!enabled) return;
     try {
       const token = await getFreshSessionToken();
-      logNotificationDebug("refreshUnreadCount", { enabled, hasToken: Boolean(token) });
       if (!token) return;
       const payload = await api.getNotificationUnreadCount();
       setUnreadCount(Number(payload?.count || 0));
-    } catch (err: any) {
-      logNotificationDebug("refreshUnreadCount failed", { status: err?.status, path: err?.path });
+    } catch {
+      /* ignore transient errors */
     }
   }, [enabled]);
 

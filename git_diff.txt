@@ -1,7 +1,7 @@
 const fs = require('fs');
 const readline = require('readline');
 
-const logFilePath = 'C:\\Users\\saadg\\.gemini\\antigravity-ide\\brain\\83ab9e24-386d-420e-893c-9557d61b3a09\\.system_generated\\logs\\transcript.jsonl';
+const logFilePath = process.argv[2] || process.env.TRANSCRIPT_LOG_PATH || "./transcript.jsonl";
 
 async function main() {
   const fileStream = fs.createReadStream(logFilePath);

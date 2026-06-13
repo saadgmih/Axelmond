@@ -10,7 +10,7 @@ async function main() {
       courseId: 1,
       courseTitle: "Programmation en C++",
       amountMad: 128,
-      userId: "test-user",
+      userId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
     });
     console.log("ORDER_OK", order.id, order.currency, order.amount, order.amountMad);
   } catch (err) {
