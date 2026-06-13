@@ -819,7 +819,7 @@ export default function App() {
                 <div className="space-y-2 text-xs text-slate-400">
                   <button type="button" aria-label="Aller au centre d'aide" onClick={() => navigateTo("support")} className="kbd-nav-focus block hover:text-white">Centre d'aide</button>
                   <button type="button" aria-label="Aller à la page contact" onClick={() => navigateTo("contact")} className="kbd-nav-focus block hover:text-white">Contact</button>
-                  <button type="button" aria-label="Signaler un problème" onClick={() => navigateTo("support")} className="kbd-nav-focus block hover:text-white">Signaler un problème</button>
+                  <button type="button" aria-label="Signaler un problème" onClick={() => navigateTo("report-problem")} className="kbd-nav-focus block hover:text-white">Signaler un problème</button>
                   <button type="button" aria-label="Aller à la page à propos" onClick={() => navigateTo("about")} className="kbd-nav-focus block hover:text-white">À propos</button>
                 </div>
               </div>

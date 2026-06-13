@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 const clientSource = readFileSync("src/uploadthing-client.ts", "utf-8");
 const serverSource = readFileSync("server.ts", "utf-8");
 const appSource = readFileSync("src/App.tsx", "utf-8");
-const supportSource = readFileSync("src/components/SupportView.tsx", "utf-8");
+const supportSource = readFileSync("src/components/SupportTicketForm.tsx", "utf-8");
 const uploadthingSource = readFileSync("src/uploadthing.ts", "utf-8");
 
 assert.match(clientSource, /uploadthingApiUrl/);

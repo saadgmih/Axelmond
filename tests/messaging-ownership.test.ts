@@ -8,6 +8,7 @@ const apiSource = fs.readFileSync("src/api.ts", "utf8");
 const appSource = fs.readFileSync("src/App.tsx", "utf8");
 const sidebarSource = fs.readFileSync("src/components/Sidebar.tsx", "utf8");
 const platformPathsSource = fs.readFileSync("src/navigation/platformPaths.ts", "utf8");
+const institutionalSwitchSource = fs.readFileSync("src/views/InstitutionalViewSwitch.tsx", "utf8");
 const migrationSource = fs.readFileSync("prisma/migrations/20260607140000_messaging_notifications/migration.sql", "utf8");
 const uploadSource = fs.readFileSync("src/uploadthing.ts", "utf8");
 
@@ -45,5 +46,9 @@ assert.match(appSource, /NotificationsView/);
 assert.match(sidebarSource, /Messagerie/);
 assert.match(platformPathsSource, /"messages"/);
 assert.match(platformPathsSource, /"notifications"/);
+assert.match(platformPathsSource, /"report-problem"/);
+assert.match(institutionalSwitchSource, /ReportProblemView/);
+assert.match(institutionalSwitchSource, /SupportView navigateTo/);
+assert.match(appSource, /navigateTo\("report-problem"\)/);
 
 console.log("Messaging ownership and wiring tests passed");
