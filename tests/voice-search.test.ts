@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import {
+  VOICE_SEARCH_BRAVE_FALLBACK_MSG,
+  VOICE_SEARCH_MICROPHONE_DENIED_MSG,
+  VOICE_SEARCH_NETWORK_ERROR_MSG,
   VOICE_SEARCH_NO_SPEECH_MSG,
-  VOICE_SEARCH_PERMISSION_DENIED_MSG,
+  VOICE_SEARCH_SERVICE_UNAVAILABLE_MSG,
   VOICE_SEARCH_UNSUPPORTED_MSG,
   extractTranscript,
   mapSpeechRecognitionError,
@@ -21,6 +24,14 @@ assert.match(utilsSource, /continuous = false/);
 assert.match(utilsSource, /interimResults = false/);
 assert.match(utilsSource, /lang = "fr-FR"/);
 assert.match(utilsSource, /mapSpeechRecognitionError/);
+assert.match(utilsSource, /logVoiceSearchError/);
+assert.match(utilsSource, /queryMicrophonePermission/);
+assert.match(utilsSource, /isVoiceSearchSecureContext/);
+
+assert.match(hookSource, /logVoiceSearchError/);
+assert.match(hookSource, /queryMicrophonePermission/);
+assert.match(hookSource, /isVoiceSearchSecureContext/);
+assert.match(hookSource, /\[Voice Search Error\]/);
 
 assert.match(topbarSource, /useVoiceSearch/);
 assert.match(topbarSource, /Mic/);
@@ -36,24 +47,28 @@ assert.match(cssSource, /voice-search-mic-pulse/);
 
 assert.match(packageSource, /voice-search\.test\.ts/);
 
+assert.equal(mapSpeechRecognitionError("not-allowed"), VOICE_SEARCH_MICROPHONE_DENIED_MSG);
+assert.equal(mapSpeechRecognitionError("service-not-allowed"), VOICE_SEARCH_SERVICE_UNAVAILABLE_MSG);
 assert.equal(
-  mapSpeechRecognitionError("not-allowed"),
-  VOICE_SEARCH_PERMISSION_DENIED_MSG,
-  "Permission refusée → message explicite",
-);
-assert.equal(
-  mapSpeechRecognitionError("service-not-allowed"),
-  VOICE_SEARCH_PERMISSION_DENIED_MSG,
-  "Service non autorisé → message permission",
+  mapSpeechRecognitionError("service-not-allowed", { likelyBrave: true }),
+  VOICE_SEARCH_BRAVE_FALLBACK_MSG,
 );
 assert.equal(mapSpeechRecognitionError("no-speech"), VOICE_SEARCH_NO_SPEECH_MSG);
 assert.equal(mapSpeechRecognitionError("aborted"), "");
+assert.equal(mapSpeechRecognitionError("network"), VOICE_SEARCH_NETWORK_ERROR_MSG);
+assert.equal(
+  mapSpeechRecognitionError("network", { likelyBrave: true }),
+  VOICE_SEARCH_BRAVE_FALLBACK_MSG,
+);
 assert.equal(
   mapSpeechRecognitionError("unknown-code"),
   "La recherche vocale est momentanément indisponible. Réessayez.",
 );
 
-assert.equal(VOICE_SEARCH_UNSUPPORTED_MSG, "La recherche vocale n'est pas supportée par ce navigateur.");
+assert.equal(
+  VOICE_SEARCH_UNSUPPORTED_MSG,
+  "Reconnaissance vocale non supportée par ce navigateur.",
+);
 
 const mockEvent = {
   results: {
