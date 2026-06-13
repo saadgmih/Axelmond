@@ -224,13 +224,13 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
     return teacherSpaceRoles.includes(normalized);
   }
 
-  if ((verb === "POST" && (cleanPath === "/api/livekit/events" || cleanPath === "/api/livekit/attendance/leave"))
-    || (verb === "GET" && /^\/api\/livekit\/attendance\/\d+$/.test(cleanPath))) {
+  if (verb === "POST" && cleanPath === "/api/livekit/sync") {
     return true;
   }
 
-  if (verb === "PUT" && cleanPath === "/api/users/sync") {
-    return normalized === "STUDENT";
+  if ((verb === "POST" && (cleanPath === "/api/livekit/events" || cleanPath === "/api/livekit/attendance/leave"))
+    || (verb === "GET" && /^\/api\/livekit\/attendance\/\d+$/.test(cleanPath))) {
+    return true;
   }
 
   // Routes quiz professeur (CRUD quiz)

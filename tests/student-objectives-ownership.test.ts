@@ -1,11 +1,13 @@
 import assert from "node:assert/strict";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
+import { readAppSources } from "./helpers/app-sources.ts";
 import fs from "node:fs";
 import { canAccessApiRoute } from "../src/rbac.ts";
 
-const serverSource = fs.readFileSync("server.ts", "utf8");
+const serverSource = readApiRouteSources();
 const schemaSource = fs.readFileSync("prisma/schema.prisma", "utf8");
 const apiSource = fs.readFileSync("src/api.ts", "utf8");
-const appSource = fs.readFileSync("src/App.tsx", "utf8");
+const appSource = readAppSources();
 const sidebarSource = fs.readFileSync("src/components/Sidebar.tsx", "utf8");
 const platformPathsSource = fs.readFileSync("src/navigation/platformPaths.ts", "utf8");
 const objectiveViewSource = fs.readFileSync("src/views/student/StudentObjectivesView.tsx", "utf8");

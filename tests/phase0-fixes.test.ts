@@ -1,16 +1,18 @@
 import assert from "node:assert/strict";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
+import { readAppSources } from "./helpers/app-sources.ts";
 import fs from "node:fs";
 
-const serverSource = fs.readFileSync("server.ts", "utf8");
-const appSource = fs.readFileSync("src/App.tsx", "utf8");
+const serverSource = readApiRouteSources();
+const appSource = readAppSources();
 const navigationSource = fs.readFileSync("src/hooks/usePlatformNavigation.ts", "utf8");
 const sessionSource = fs.readFileSync("src/hooks/useStudentCourseSession.ts", "utf8");
 const paymentModalSource = fs.readFileSync("src/components/PaymentModal.tsx", "utf8");
 
-assert.match(serverSource, /await revokeAllUserRefreshTokens\(user\.id\)/);
-assert.match(serverSource, /await revokeAllUserRefreshTokens\(authUser\.id\)/);
-assert.match(serverSource, /seedQuizModuleCourseMap\[moduleId\]/);
-assert.match(serverSource, /err instanceof ChatTutorServiceError/);
+assert.match(serverSource, /await api\.revokeAllUserRefreshTokens\(user\.id\)/);
+assert.match(serverSource, /await api\.revokeAllUserRefreshTokens\(authUser\.id\)/);
+assert.match(serverSource, /api\.seedQuizModuleCourseMap\[moduleId\]/);
+assert.match(serverSource, /err instanceof api\.ChatTutorServiceError/);
 assert.match(serverSource, /process\.env\.NODE_ENV !== "production" && err\.cause instanceof Error/);
 
 assert.match(navigationSource, /INSTITUTIONAL_VIEWS\.has\(view\)/);

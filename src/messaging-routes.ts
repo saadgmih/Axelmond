@@ -15,6 +15,7 @@ import {
   validateMessageAttachmentInput,
   type MessageAttachmentInput,
 } from "./messaging";
+import { findOrCreateDirectConversation } from "./direct-conversations";
 import { emitToConversation } from "./messaging-socket";
 import {
   configureWebPush,
@@ -25,6 +26,8 @@ import {
   listUserNotifications,
   markAllNotificationsRead,
   markNotificationRead,
+  PushSubscriptionLimitError,
+  PushSubscriptionValidationError,
   savePushSubscription,
   serializeNotification,
 } from "./notifications";
@@ -50,10 +53,10 @@ const sendMessageSchema = z.object({
 });
 
 const pushSubscribeSchema = z.object({
-  endpoint: z.string().url(),
+  endpoint: z.string().url().max(2048),
   keys: z.object({
-    p256dh: z.string().min(1),
-    auth: z.string().min(1),
+    p256dh: z.string().min(1).max(256),
+    auth: z.string().min(1).max(256),
   }),
 });
 
@@ -217,16 +220,7 @@ export function registerMessagingRoutes(
       return;
     }
 
-    const conversation = await prisma.conversation.create({
-      data: {
-        participants: {
-          create: [
-            { userId: authUser.id },
-            { userId: participant.id },
-          ],
-        },
-      },
-    });
+    const conversation = await findOrCreateDirectConversation(authUser.id, participant.id);
     const summary = await serializeConversationSummary(conversation.id, authUser.id);
     res.status(201).json(summary);
   });
@@ -427,6 +421,14 @@ export function registerMessagingRoutes(
       });
       res.json({ ok: true });
     } catch (err: any) {
+      if (err instanceof PushSubscriptionValidationError) {
+        res.status(400).json({ error: err.message });
+        return;
+      }
+      if (err instanceof PushSubscriptionLimitError) {
+        res.status(429).json({ error: err.message });
+        return;
+      }
       console.error("[push] push-subscribe failed", { userId: authUser.id, message: err?.message || String(err) });
       res.status(500).json({ error: "Impossible d'enregistrer l'abonnement push." });
     }

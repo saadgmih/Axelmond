@@ -78,8 +78,6 @@ assert.equal(canAccessApiRoute("STUDENT", "PUT", "/api/lesson-contents/abc"), fa
 assert.equal(canAccessApiRoute("ADMIN", "PUT", "/api/lesson-contents/abc"), true);
 assert.equal(canAccessApiRoute("STUDENT", "DELETE", "/api/lesson-contents/abc"), false);
 assert.equal(canAccessApiRoute("ADMIN", "DELETE", "/api/lesson-contents/abc"), true);
-assert.equal(canAccessApiRoute("STUDENT", "PUT", "/api/users/sync"), true);
-assert.equal(canAccessApiRoute("PROFESSOR", "PUT", "/api/users/sync"), false);
 assert.equal(canAccessApiRoute("STUDENT", "GET", "/api/me/profile"), false);
 assert.equal(canAccessApiRoute("PROFESSOR", "GET", "/api/me/profile"), true);
 assert.equal(canAccessApiRoute("RESEARCHER", "PUT", "/api/me/profile"), true);
@@ -88,6 +86,8 @@ assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/me/avatar"), true);
 assert.equal(canAccessApiRoute("STUDENT", "DELETE", "/api/me/avatar"), true);
 assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/me/password"), false);
 assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/livekit/moderation"), false);
+assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/livekit/sync"), true);
+assert.equal(canAccessApiRoute("PROFESSOR", "POST", "/api/livekit/sync"), true);
 assert.equal(canAccessApiRoute("PROFESSOR", "POST", "/api/livekit/moderation"), true);
 assert.equal(canAccessApiRoute("RESEARCHER", "POST", "/api/livekit/moderation"), true);
 assert.equal(canAccessApiRoute("ADMIN", "POST", "/api/livekit/moderation"), true);

@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
 
-const serverSource = readFileSync("server.ts", "utf-8");
+const serverSource = readApiRouteSources();
 const apiSource = readFileSync("src/api.ts", "utf-8");
 const authScreenSource = readFileSync("src/components/AuthScreen.tsx", "utf-8");
 

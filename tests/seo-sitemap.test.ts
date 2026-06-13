@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
 import fs from "node:fs";
 import path from "node:path";
 
 const sitemap = fs.readFileSync("public/sitemap.xml", "utf8");
 const robots = fs.readFileSync("public/robots.txt", "utf8");
 const indexHtml = fs.readFileSync("index.html", "utf8");
-const serverSource = fs.readFileSync("server.ts", "utf8");
+const serverSource = readApiRouteSources();
 
 assert.match(sitemap, /^<\?xml version="1\.0" encoding="UTF-8"\?>/);
 assert.match(sitemap, /<urlset xmlns="http:\/\/www\.sitemaps\.org\/schemas\/sitemap\/0\.9">/);

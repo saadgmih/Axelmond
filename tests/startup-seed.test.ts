@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
 import fs from "node:fs";
 import { shouldSkipStartupSeed } from "../src/startup-seed.ts";
 
-const serverSource = fs.readFileSync("server.ts", "utf8");
+const serverSource = readApiRouteSources();
 const dbSource = fs.readFileSync("src/db.ts", "utf8");
 const schemaSource = fs.readFileSync("prisma/schema.prisma", "utf8");
 const packageJsonSource = fs.readFileSync("package.json", "utf8");

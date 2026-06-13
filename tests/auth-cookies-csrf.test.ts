@@ -10,7 +10,10 @@ import {
 } from "../src/auth-cookies.ts";
 import { csrfProtection } from "../src/auth-csrf.ts";
 
-const serverSource = readFileSync("server.ts", "utf8");
+import { readApiRouteSources, readServerBootstrapSources } from "./helpers/api-route-sources.ts";
+
+const bootstrapSource = readServerBootstrapSources();
+const serverSource = readApiRouteSources();
 const apiSource = readFileSync("src/api.ts", "utf8");
 const authCookiesSource = readFileSync("src/auth-cookies.ts", "utf8");
 const authCsrfSource = readFileSync("src/auth-csrf.ts", "utf8");
@@ -24,12 +27,12 @@ assert.match(authCookiesSource, /sameSite:\s*"strict"/);
 assert.match(authCookiesSource, /path:\s*REFRESH_COOKIE_PATH/);
 assert.match(authCookiesSource, /httpOnly:\s*false/);
 
-assert.match(serverSource, /cookieParser\(\)/);
-assert.match(serverSource, /csrfProtection/);
-assert.match(serverSource, /setAuthCookies\(res,\s*refreshToken\)/);
-assert.match(serverSource, /setAuthCookies\(res,\s*newRefreshToken\)/);
-assert.match(serverSource, /clearAuthCookies\(res\)/);
-assert.match(serverSource, /readRefreshTokenFromRequest\(req\)/);
+assert.match(bootstrapSource, /cookieParser\(\)/);
+assert.match(bootstrapSource, /csrfProtection/);
+assert.match(serverSource, /api\.setAuthCookies\(res,\s*refreshToken\)/);
+assert.match(serverSource, /api\.setAuthCookies\(res,\s*newRefreshToken\)/);
+assert.match(serverSource, /api\.clearAuthCookies\(res\)/);
+assert.match(bootstrapSource, /readRefreshTokenFromRequest\(req\)/);
 assert.match(serverSource, /csrfToken/);
 assert.doesNotMatch(serverSource, /refreshToken:\s*newRefreshToken/);
 assert.doesNotMatch(serverSource, /refreshToken:\s*refreshToken/);
@@ -99,11 +102,32 @@ const refreshFromCookie = readRefreshTokenFromRequest({
 } as any);
 assert.equal(refreshFromCookie, "abc123");
 
-const refreshFromBody = readRefreshTokenFromRequest({
+const previousNodeEnv = process.env.NODE_ENV;
+const previousMobileSecret = process.env.MOBILE_API_SECRET;
+process.env.NODE_ENV = "production";
+process.env.MOBILE_API_SECRET = "trusted-mobile-secret-32-characters";
+
+const untrustedRefreshFromBody = readRefreshTokenFromRequest({
   cookies: {},
+  headers: { "x-axelmond-client": "mobile" },
   body: { refreshToken: "legacy-body-token" },
 } as any);
-assert.equal(refreshFromBody, "legacy-body-token");
+assert.equal(untrustedRefreshFromBody, null);
+
+const trustedRefreshFromBody = readRefreshTokenFromRequest({
+  cookies: {},
+  headers: {
+    "x-axelmond-client": "mobile",
+    "x-axelmond-mobile-secret": "trusted-mobile-secret-32-characters",
+  },
+  body: { refreshToken: "legacy-body-token" },
+} as any);
+assert.equal(trustedRefreshFromBody, "legacy-body-token");
+
+if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+else process.env.NODE_ENV = previousNodeEnv;
+if (previousMobileSecret === undefined) delete process.env.MOBILE_API_SECRET;
+else process.env.MOBILE_API_SECRET = previousMobileSecret;
 
 let nextCalled = false;
 let blockedStatus = 0;

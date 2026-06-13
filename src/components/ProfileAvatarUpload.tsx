@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { Camera, Trash2, Upload } from "lucide-react";
+import { isAllowedRasterImageUpload, RASTER_IMAGE_ACCEPT } from "../avatar-security";
 import AvatarPhotoEditor from "./AvatarPhotoEditor";
 
 type AccentVariant = "indigo" | "pink" | "violet" | "teal";
@@ -79,7 +80,7 @@ export default function ProfileAvatarUpload({
   const isDark = variant === "dark";
 
   const handleFilePick = (file: File | null) => {
-    if (!file || !file.type.startsWith("image/")) return;
+    if (!file || !isAllowedRasterImageUpload(file.name, file.type)) return;
     setSelectedFile(file);
     setIsEditorOpen(true);
     if (inputRef.current) inputRef.current.value = "";
@@ -144,7 +145,7 @@ export default function ProfileAvatarUpload({
           <input
             ref={inputRef}
             type="file"
-            accept="image/*"
+            accept={RASTER_IMAGE_ACCEPT}
             onChange={(e) => handleFilePick(e.target.files?.[0] || null)}
             className="sr-only"
           />

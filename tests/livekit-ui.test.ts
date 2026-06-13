@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const appSource = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
+import { readAppSources } from "./helpers/app-sources.ts";
+
+const appSource = readAppSources();
 const liveKitHookSource = readFileSync(new URL("../src/hooks/useLiveKitRoom.tsx", import.meta.url), "utf8");
 const liveKitSource = appSource + liveKitHookSource;
 const classroomSource = readFileSync(new URL("../src/components/VirtualClassroom.tsx", import.meta.url), "utf8");

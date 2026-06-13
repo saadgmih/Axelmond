@@ -46,6 +46,8 @@ export async function processPayPalCaptureEnrollment(
     courseTitle: string;
     coursePrice: number;
     invoiceId: string;
+    provider: "PAYPAL" | "MOCK";
+    externalId: string;
     auditAction: string;
     reqIp?: string;
   }) => Promise<{ duplicate: boolean; user: any; invoice: any }>,
@@ -114,6 +116,8 @@ export async function processPayPalCaptureEnrollment(
       courseTitle: course.title,
       coursePrice: Number.isFinite(coursePricePaid) ? coursePricePaid : course.price,
       invoiceId,
+      provider: "PAYPAL",
+      externalId: captureId,
       auditAction,
       reqIp,
     });

@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
+import { readAppSources } from "./helpers/app-sources.ts";
 import fs from "node:fs";
 
 const apiSource = fs.readFileSync("src/api.ts", "utf8");
-const appSource = fs.readFileSync("src/App.tsx", "utf8");
+const appSource = readAppSources();
 const paymentModalSource = fs.readFileSync("src/components/PaymentModal.tsx", "utf8");
-const serverSource = fs.readFileSync("server.ts", "utf8");
+const serverSource = readApiRouteSources();
 const paypalServerSource = fs.readFileSync("src/paypal-server.ts", "utf8");
 
 assert.match(apiSource, /createPayPalOrder:\s*\(courseId:\s*number,\s*promoCode\?:\s*string\)/);

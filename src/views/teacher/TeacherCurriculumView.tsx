@@ -24,6 +24,7 @@ import {
 import type { Dispatch, SetStateAction } from "react";
 import type { Course, ContentSection, FacultyDomain, LessonContent } from "../../types";
 import { formatCredits, formatMad } from "../../utils/morocco-locale";
+import { RASTER_IMAGE_ACCEPT } from "../../avatar-security";
 import {
   CURRICULUM_STEPS,
   curriculumUi,
@@ -1187,7 +1188,7 @@ export default function TeacherCurriculumView({
                               <input
                                 type="file"
                                 required
-                                accept={uploadType === "VIDEO" ? "video/*" : uploadType === "PDF" ? "application/pdf" : "image/*"}
+                                accept={uploadType === "VIDEO" ? "video/*" : uploadType === "PDF" ? "application/pdf" : RASTER_IMAGE_ACCEPT}
                                 onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
                                 className="hidden"
                               />

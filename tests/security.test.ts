@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { canAccessApiRoute } from "../src/rbac.ts";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
 
-const serverSource = fs.readFileSync("server.ts", "utf8");
+const serverSource = readApiRouteSources();
 const uploadthingSource = fs.readFileSync("src/uploadthing.ts", "utf8");
 
 // 1. Étudiant ne peut pas créer de module
@@ -14,10 +15,10 @@ assert.match(serverSource, /app\.get\("\/api\/admin\/professor-invites",\s*requi
 assert.match(serverSource, /app\.get\("\/api\/admin\/email-delivery-logs",\s*requireAuth,\s*requireAdmin/);
 
 // 3. Un professeur ne peut modifier que ses propres modules (vérification de l'ownership)
-assert.match(serverSource, /verifyCourseAccess\(authUser,\s*courseId\)/);
-assert.match(serverSource, /verifyChapterAccess\(authUser,\s*req\.params\.id\)/);
-assert.match(serverSource, /verifySectionAccess\(authUser,\s*req\.params\.id\)/);
-assert.match(serverSource, /verifyContentAccess\(authUser,\s*req\.params\.id\)/);
+assert.match(serverSource, /api\.verifyCourseAccess\(authUser,\s*courseId\)/);
+assert.match(serverSource, /api\.verifyChapterAccess\(authUser,\s*req\.params\.id\)/);
+assert.match(serverSource, /api\.verifySectionAccess\(authUser,\s*req\.params\.id\)/);
+assert.match(serverSource, /api\.verifyContentAccess\(authUser,\s*req\.params\.id\)/);
 assert.match(serverSource, /createdById:\s*authUser\.id/);
 
 // 4. Téléversement invalide ou suspect refusé et supprimé
@@ -51,7 +52,7 @@ assert.match(serverSource, /failedLoginAttempts:\s*attempts/);
 assert.match(serverSource, /app\.use\("\/api\/auth\/login",\s*authRateLimiter\)/);
 
 // 6b. Inscription publique validée par Zod (mot de passe 8+, email normalisé)
-assert.match(serverSource, /app\.post\("\/api\/auth\/register",\s*validateBody\(registerSchema\)/);
+assert.match(serverSource, /app\.post\("\/api\/auth\/register",\s*validateBody\(api\.registerSchema\)/);
 assert.match(serverSource, /password:\s*z\.string\(\)\.min\(8/);
 
 // 6c. CORS piloté par APP_URL / ALLOWED_ORIGINS ; localhost uniquement hors production
@@ -66,6 +67,11 @@ assert.match(serverSource, /cspNonce/);
 assert.match(serverSource, /scriptSrc:\s*isProduction[\s\S]*?\?\s*\["'self'",\s*cspNonce/);
 assert.match(serverSource, /scriptSrcAttr:\s*\["'none'"\]/);
 assert.match(serverSource, /objectSrc:\s*\["'none'"\]/);
+assert.match(serverSource, /function buildCspConnectSrc/);
+assert.match(serverSource, /wss:\/\/\*\.livekit\.cloud/);
+assert.doesNotMatch(serverSource, /connectSrc\.push\("ws:",\s*"wss:"\)/);
+assert.doesNotMatch(serverSource, /connectSrc:\s*\[[^\]]*"ws:"/);
+assert.doesNotMatch(serverSource, /connectSrc:\s*\[[^\]]*"wss:"/);
 
 // 7. Vérification d'e-mail avec rate limiters et protection
 assert.doesNotMatch(serverSource, /emailVerificationRateLimiter/);
@@ -84,7 +90,7 @@ assert.doesNotMatch(serverSource, /app\.use\("\/api\/auth\/login",\s*passwordRes
 // 8. Durcissement anti-intrusion
 assert.equal(canAccessApiRoute("STUDENT", "DELETE", "/api/admin/secret-backdoor"), false);
 assert.match(serverSource, /app\.use\("\/api\/auth\/refresh",\s*refreshRateLimiter\)/);
-assert.match(serverSource, /verifyCourseAccess\(authUser,\s*course\.id\)/);
+assert.match(serverSource, /api\.verifyCourseAccess\(authUser,\s*course\.id\)/);
 
 // 9. HttpOnly cookies + CSRF
 assert.match(serverSource, /cookieParser\(\)/);

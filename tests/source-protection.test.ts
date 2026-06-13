@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
 import { isBlockedProductionSourcePath } from "../src/static-source-guard.ts";
 
 const viteConfig = fs.readFileSync("vite.config.ts", "utf8");
-const serverSource = fs.readFileSync("server.ts", "utf8");
+const serverSource = readApiRouteSources();
 const mainSource = fs.readFileSync("src/main.tsx", "utf8");
 const shieldSource = fs.readFileSync("src/production-shield.ts", "utf8");
 

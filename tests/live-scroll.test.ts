@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { readAppSources } from "./helpers/app-sources.ts";
 
-const appSource = readFileSync("src/App.tsx", "utf8");
+const appSource = readAppSources();
 const classroomSource = readFileSync("src/components/VirtualClassroom.tsx", "utf8");
 const workspaceSource = readFileSync("src/views/teacher/TeacherWorkspace.tsx", "utf8");
 const liveThemeSource = readFileSync("src/views/teacher/live-control-theme.ts", "utf8");

@@ -23,6 +23,14 @@ export default defineConfig(({ mode }) => {
           entryFileNames: 'assets/[hash].js',
           chunkFileNames: 'assets/[hash].js',
           assetFileNames: 'assets/[hash][extname]',
+          manualChunks(id) {
+            if (id.includes('node_modules/livekit-client') || id.includes('node_modules/@livekit')) {
+              return 'livekit-vendor';
+            }
+            if (id.includes('node_modules/@paypal')) {
+              return 'paypal-vendor';
+            }
+          },
         },
       },
     },
@@ -31,8 +39,10 @@ export default defineConfig(({ mode }) => {
       legalComments: 'none',
     },
     server: {
-      hmr: process.env.DISABLE_HMR !== 'true',
-      watch: process.env.DISABLE_HMR === 'true' ? null : {},
+      host: "127.0.0.1",
+      strictPort: true,
+      hmr: process.env.DISABLE_HMR !== "true",
+      watch: process.env.DISABLE_HMR === "true" ? null : {},
     },
   };
 });

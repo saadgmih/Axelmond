@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
 import fs from "node:fs";
 import {
   computeDiscountedPrice,
@@ -27,7 +28,7 @@ assert.equal(withoutPromo.discountPercent, 0);
 const invalidPromo = resolveCourseChargeAmount(160, "BADCODE");
 assert.equal(invalidPromo.error, "Code promo invalide ou expiré.");
 
-const serverSource = fs.readFileSync("server.ts", "utf8");
+const serverSource = readApiRouteSources();
 const paymentModalSource = fs.readFileSync("src/components/PaymentModal.tsx", "utf8");
 const apiSource = fs.readFileSync("src/api.ts", "utf8");
 const paypalServerSource = fs.readFileSync("src/paypal-server.ts", "utf8");

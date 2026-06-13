@@ -130,38 +130,25 @@ export function useStudentCourseSession({
     setQuizScore(correctCount);
     setQuizSubmitted(true);
 
-    const updatedCourses = courses.map((c) => {
-      if (c.id === selectedCourse.id) {
-        const updatedModules = c.modules.map((m) => {
-          if (m.id === selectedModule.id) {
-            return {
-              ...m,
-              completed: true,
-              score: `${correctCount}/${questions.length}`,
-            };
-          }
-          return m;
-        });
-
-        const completedCount = updatedModules.filter((m) => m.completed).length;
-        const totalCount = updatedModules.length;
-        const progressPercentage = Math.round((completedCount / totalCount) * 100);
-
-        return {
-          ...c,
-          modules: updatedModules,
-          progress: progressPercentage,
-        };
-      }
-      return c;
-    });
-
-    setCourses(updatedCourses);
-    const activeC = updatedCourses.find((c) => c.id === selectedCourse.id);
-    if (activeC) {
-      setSelectedCourse(activeC);
-      const activeMod = activeC.modules.find((m) => m.id === selectedModule.id);
+    try {
+      const completedCourse = await api.completeModule(selectedCourse.id, selectedModule.id);
+      const updatedCourse = {
+        ...completedCourse,
+        modules: completedCourse.modules.map((module: CourseModule) => (
+          module.id === selectedModule.id
+            ? { ...module, completed: true, score: `${correctCount}/${questions.length}` }
+            : module
+        )),
+      };
+      setCourses((current) => current.map((course) => (
+        course.id === updatedCourse.id ? updatedCourse : course
+      )));
+      setSelectedCourse(updatedCourse);
+      const activeMod = updatedCourse.modules.find((module: CourseModule) => module.id === selectedModule.id);
       if (activeMod) setSelectedModule(activeMod);
+    } catch (err) {
+      console.error("Failed to synchronize module completion:", err);
+      setQuizSubmitError(err instanceof Error ? err.message : "Quiz enregistré, mais synchronisation de la progression impossible.");
     }
   };
 

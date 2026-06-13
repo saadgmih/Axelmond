@@ -7,7 +7,7 @@
 > Update 2026-06-01 : Renforcement de la sécurité (Production/Advanced Hardening) :
   - Authentification : Migration des sessions HMAC simples vers JWT de 15 minutes + Refresh Token rotatif stocké en base de données. Protection brute-force avec lockout temporaire (20 échecs max, 1 min lockout) et dummy hash checks pour éviter les fuites d'énumération par chronométrage.
   - Autorisations : Vérification systématique de l'ownership (verifyCourseAccess, verifyChapterAccess, etc.) sur toutes les routes d'édition/création des modules, chapitres, sections, contenus et quiz.
-  - Paiements & Inscriptions : Sécurisation de l'endpoint `/api/users/sync` pour interdire toute modification manuelle d'inscriptions ou factures par les étudiants. Ajout d'endpoints de paiement validés côté serveur (`/api/payments/enroll-mock` pour le mock, `/api/payments/create-checkout-session` pour Stripe avec validation de prix en base de données, et `/api/stripe/webhook` avec signature de webhook).
+  - Paiements & Inscriptions : Inscriptions validées côté serveur via PayPal (`/api/paypal/create-order`, `/api/paypal/capture-order`) et webhook ; mock dev via `/api/payments/enroll-mock`. Lecture du compte via `GET /api/auth/me` (plus de sync client `/api/users/sync`).
   - LiveKit : Réduction de la durée des tokens à 15 minutes, publication caméra/micro autorisée pour les participants authentifiés du module, et limitation stricte des profs à leurs propres modules.
   - Uploads : Ajout de filtres d'extensions dangereuses, validation stricte des types MIME réels, et suppression automatique des fichiers UploadThing sur suppression d'attachements.
   - HTTP & Erreurs : Ajout des entêtes Helmet et Content-Security-Policy (CSP) stricts. Sécurisation de l'endpoint de santé et masquage des stack traces / détails d'erreurs en production.
@@ -194,8 +194,6 @@ Backend
   POST /api/courses/:courseId/modules/:moduleId/complete → STUDENT only
   POST /api/courses/:courseId/modules                   → PROFESSOR | RESEARCHER | ADMIN only
   PATCH /api/courses/:courseId                          → PROFESSOR | RESEARCHER | ADMIN only
-  PUT  /api/users/sync                                  → STUDENT owner only
-  GET  /api/users/:id                                   → owner only
 ```
 
 Limite actuelle : les URLs SPA `/teacher`, `/professor`, `/admin`, `/student`, `/catalog`, `/course`, `/profile`, `/dashboard` sont corrigées côté client via `getRedirectPathForRole()` car l'application n'utilise pas de cookie HTTP-only permettant au serveur de connaître la session lors d'une navigation document. Les routes API sensibles sont protégées côté serveur.
@@ -813,10 +811,6 @@ Courses
   POST   /api/courses/:courseId/modules/:moduleId/complete → [auth: STUDENT] marks module complete
   POST   /api/courses/:courseId/modules       → [auth: PROFESSOR|RESEARCHER|ADMIN] add module
   PATCH  /api/courses/:courseId               → [auth: PROFESSOR|RESEARCHER|ADMIN] update price/live metadata
-
-Users
-  PUT    /api/users/sync                       → [auth: STUDENT owner] sync enrollments/invoices
-  GET    /api/users/:id                        → [auth: owner] read own user
 
 Contact
   POST   /api/contact                          → [auth] { name, email, subject, category, message } → { success, message }

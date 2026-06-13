@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { readServerBootstrapSources } from "./helpers/api-route-sources.ts";
 import {
   buildPayPalCustomId,
   formatPayPalAmount,
@@ -18,7 +19,8 @@ import {
   verifyPayPalWebhookSignature,
 } from "../src/paypal-webhook.ts";
 
-const serverSource = fs.readFileSync("server.ts", "utf8");
+const bootstrapSource = readServerBootstrapSources();
+const serverSource = bootstrapSource + fs.readFileSync("src/routes/payments-routes.ts", "utf8");
 const paypalServerSource = fs.readFileSync("src/paypal-server.ts", "utf8");
 
 assert.match(serverSource, /app\.post\(\s*"\s*\/api\/paypal\/webhook"/);
@@ -29,8 +31,8 @@ assert.match(serverSource, /processPayPalCaptureEnrollment/);
 assert.match(paypalServerSource, /export async function getPayPalOrder/);
 assert.match(paypalServerSource, /export async function getPayPalAccessTokenForWebhook/);
 
-const jsonIndex = serverSource.indexOf('app.use(express.json({ limit: JSON_BODY_LIMIT }));');
-const webhookIndex = serverSource.indexOf('app.post(\n  "/api/paypal/webhook"');
+const jsonIndex = bootstrapSource.indexOf('app.use(express.json({ limit: JSON_BODY_LIMIT }));');
+const webhookIndex = bootstrapSource.indexOf("registerPayPalWebhook(app, routeCtx)");
 assert.ok(webhookIndex > 0 && jsonIndex > 0 && webhookIndex < jsonIndex, "webhook route must be registered before express.json()");
 
 assert.equal(getPayPalWebhookId({ PAYPAL_WEBHOOK_ID: " wh-123 " } as NodeJS.ProcessEnv), "wh-123");

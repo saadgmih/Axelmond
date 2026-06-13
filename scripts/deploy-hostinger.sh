@@ -12,11 +12,8 @@ git pull origin main
 echo "==> npm install"
 npm install
 
-echo "==> prisma generate"
-npx prisma generate
-
-echo "==> messaging/notifications migration (Neon)"
-node scripts/apply-messaging-notifications-migration.mjs
+echo "==> prisma migrate deploy"
+npx prisma migrate deploy
 
 echo "==> build"
 npm run build

@@ -21,6 +21,14 @@ import {
   type LiveSyncMessage,
   type LiveWhiteboardStroke,
 } from "../live/live-sync";
+import {
+  extractParticipantRole,
+  isWhiteboardStrokeRateLimited,
+  shouldPublishLiveSyncViaServer,
+  trackWhiteboardStrokeTimestamp,
+  validateIncomingLiveSyncMessage,
+  validateOutgoingLiveSyncMessage,
+} from "../live/live-sync-validation";
 
 export type LiveKitClassroomBindings = Omit<
   VirtualClassroomProps,
@@ -90,6 +98,7 @@ export function useLiveKitRoom({
   const whiteboardStrokesRef = useRef<LiveWhiteboardStroke[]>([]);
   const sharedResourceRef = useRef<LiveSharedResource | null>(null);
   const livePollRef = useRef<LivePollState>(createEmptyPoll());
+  const whiteboardStrokeTimestampsRef = useRef<number[]>([]);
   const primaryLiveVideoRef = useRef<HTMLVideoElement | null>(null);
   const liveVideoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   const liveAudioContainerRef = useRef<HTMLDivElement | null>(null);
@@ -204,9 +213,25 @@ export function useLiveKitRoom({
   };
 
   const publishLiveSync = async (room: Room | null, message: LiveSyncMessage) => {
-    if (!room) return;
+    if (!room || !activeLiveCourse) return;
+
+    const validated = validateOutgoingLiveSyncMessage(message, {
+      localIdentity: room.localParticipant.identity,
+      canModerate: canModerateLive,
+      currentPoll: livePollRef.current,
+      currentStrokeCount: whiteboardStrokesRef.current.length,
+    });
+    if (!validated) {
+      console.warn("[livekit] Live sync publish rejected", { type: message.type });
+      return;
+    }
+
     try {
-      await room.localParticipant.publishData(new TextEncoder().encode(JSON.stringify(message)), {
+      if (shouldPublishLiveSyncViaServer(validated, canModerateLive)) {
+        await api.publishLiveSync(activeLiveCourse.id, validated);
+        return;
+      }
+      await room.localParticipant.publishData(new TextEncoder().encode(JSON.stringify(validated)), {
         reliable: true,
         topic: LIVE_SYNC_TOPIC,
       });
@@ -255,7 +280,7 @@ export function useLiveKitRoom({
   };
 
   const respondToLiveSyncRequest = async (room: Room, requesterIdentity?: string) => {
-    if (!requesterIdentity || requesterIdentity === room.localParticipant.identity) return;
+    if (!canModerateLive || !requesterIdentity || requesterIdentity === room.localParticipant.identity) return;
 
     if (whiteboardStrokesRef.current.length > 0) {
       await publishLiveSync(room, {
@@ -329,9 +354,23 @@ export function useLiveKitRoom({
     const refreshParticipants = () => syncLiveParticipants(room);
     const handleDataReceived = async (payload: Uint8Array, participant: any, _kind: any, topic?: string) => {
       try {
-        const parsed = JSON.parse(new TextDecoder().decode(payload));
         if (topic === LIVE_SYNC_TOPIC) {
-          const message = parsed as LiveSyncMessage;
+          const parsed = JSON.parse(new TextDecoder().decode(payload));
+          const message = validateIncomingLiveSyncMessage(parsed, {
+            senderIdentity: participant?.identity || "",
+            senderRole: participant ? extractParticipantRole(participant) : null,
+            localIdentity: room.localParticipant.identity,
+            currentPoll: livePollRef.current,
+            currentStrokeCount: whiteboardStrokesRef.current.length,
+            payloadSize: payload.byteLength,
+          });
+          if (!message) {
+            console.warn("[livekit] Live sync message rejected", {
+              type: typeof parsed === "object" && parsed ? (parsed as { type?: string }).type : "unknown",
+              sender: participant?.identity || "server",
+            });
+            return;
+          }
           if (message.type === "SYNC_REQUEST") {
             await respondToLiveSyncRequest(room, participant?.identity);
             return;
@@ -339,6 +378,8 @@ export function useLiveKitRoom({
           applyLiveSyncMessage(message, room.localParticipant.identity);
           return;
         }
+
+        const parsed = JSON.parse(new TextDecoder().decode(payload));
         if (topic === "axelmond-live-action") {
           const identity = participant?.identity || parsed.identity || "unknown";
           setLiveSignals((prev) => ({
@@ -829,6 +870,11 @@ export function useLiveKitRoom({
   };
 
   const publishWhiteboardStroke = async (stroke: LiveWhiteboardStroke) => {
+    if (isWhiteboardStrokeRateLimited(whiteboardStrokeTimestampsRef.current)) {
+      setLiveStatusMsg("Limite de tracés atteinte. Patientez quelques secondes.");
+      return;
+    }
+    whiteboardStrokeTimestampsRef.current = trackWhiteboardStrokeTimestamp(whiteboardStrokeTimestampsRef.current);
     setWhiteboardStrokes((prev) => appendWhiteboardStroke(prev, stroke));
     await publishLiveSync(liveRoom, { type: "WHITEBOARD_STROKE", stroke });
   };

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { prisma } from "./db";
 import { verifyAuthToken } from "./auth-token";
 import { canManageContent, isTeacherSpaceRole, normalizeRole } from "./rbac";
-import { isAllowedAvatarMime, isAllowedAvatarUrl } from "./avatar-security";
+import { isAllowedAvatarUrl, isAllowedRasterImageMime, isAllowedRasterImageUpload } from "./avatar-security";
 import { alertSuspectUpload } from "./security-logger";
 import { isConversationParticipant, validateMessageAttachmentInput, type MessageAttachmentInput } from "./messaging";
 
@@ -21,7 +21,8 @@ const uploadInput = z.object({
 
 const DANGEROUS_EXTENSIONS = [
   ".exe", ".dll", ".bat", ".cmd", ".sh", ".bash", ".php", ".js", ".ts",
-  ".py", ".pl", ".rb", ".html", ".htm", ".msi", ".jar", ".vbs", ".lnk"
+  ".py", ".pl", ".rb", ".html", ".htm", ".msi", ".jar", ".vbs", ".lnk",
+  ".svg", ".svgz",
 ];
 
 function isDangerousFile(filename: string): boolean {
@@ -35,7 +36,7 @@ function isValidMimeType(contentType: "VIDEO" | "PDF" | "IMAGE", mimeType: strin
   if (!mimeType) return false;
   const mime = mimeType.toLowerCase();
   if (contentType === "PDF") return mime === "application/pdf";
-  if (contentType === "IMAGE") return mime.startsWith("image/");
+  if (contentType === "IMAGE") return isAllowedRasterImageMime(mime);
   if (contentType === "VIDEO") return mime.startsWith("video/");
   return false;
 }
@@ -63,7 +64,7 @@ function getFileUrl(file: { ufsUrl?: string; url?: string; appUrl?: string }) {
 
 function detectMessageAttachmentKind(mimeType: string | null): MessageAttachmentInput["kind"] | null {
   const mime = String(mimeType || "").toLowerCase();
-  if (mime.startsWith("image/")) return "IMAGE";
+  if (isAllowedRasterImageMime(mime)) return "IMAGE";
   if (mime.startsWith("video/")) return "VIDEO";
   if (mime.startsWith("audio/")) return "AUDIO";
   if (
@@ -119,7 +120,7 @@ export const uploadRouter = {
     })
     .onUploadComplete(async ({ metadata, file }) => {
       const fileUrl = getFileUrl(file);
-      if (isDangerousFile(file.name) || !isAllowedAvatarMime(file.type || null)) {
+      if (isDangerousFile(file.name) || !isAllowedRasterImageUpload(file.name, file.type || null)) {
         alertSuspectUpload(metadata.userId, file.name, file.type || "unknown");
         await utapi.deleteFiles(file.key);
         throw new UploadThingError("Image de profil suspecte ou invalide refusée.");
@@ -169,7 +170,7 @@ export const uploadRouter = {
     })
     .onUploadComplete(async ({ metadata, file }) => {
       const fileUrl = getFileUrl(file);
-      if (isDangerousFile(file.name) || !file.type?.startsWith("image/")) {
+      if (isDangerousFile(file.name) || !isAllowedRasterImageUpload(file.name, file.type || null)) {
         alertSuspectUpload(metadata.userId, file.name, file.type || "unknown");
         await utapi.deleteFiles(file.key);
         throw new UploadThingError("Capture d'écran suspecte ou invalide refusée.");
@@ -228,7 +229,11 @@ export const uploadRouter = {
     })
     .onUploadComplete(async ({ metadata, file }) => {
       const fileUrl = getFileUrl(file);
-      if (isDangerousFile(file.name) || !isValidMimeType(metadata.contentType, file.type)) {
+      if (
+        isDangerousFile(file.name)
+        || !isValidMimeType(metadata.contentType, file.type)
+        || (metadata.contentType === "IMAGE" && !isAllowedRasterImageUpload(file.name, file.type || null))
+      ) {
         alertSuspectUpload(metadata.userId, file.name, file.type || "unknown");
         await utapi.deleteFiles(file.key);
         throw new UploadThingError("Type de fichier suspect ou invalide refusé.");
@@ -290,7 +295,7 @@ export const uploadRouter = {
     .onUploadComplete(async ({ metadata, file }) => {
       const fileUrl = getFileUrl(file);
       const kind = detectMessageAttachmentKind(file.type || null);
-      if (isDangerousFile(file.name) || !kind) {
+      if (isDangerousFile(file.name) || !kind || (kind === "IMAGE" && !isAllowedRasterImageUpload(file.name, file.type || null))) {
         alertSuspectUpload(metadata.userId, file.name, file.type || "unknown");
         await utapi.deleteFiles(file.key);
         throw new UploadThingError("Type de fichier non autorisé pour la messagerie.");

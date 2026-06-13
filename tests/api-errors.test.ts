@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
 import fs from "node:fs";
 
-const serverSource = fs.readFileSync("server.ts", "utf8");
+const serverSource = readApiRouteSources();
 const expressAsyncSource = fs.readFileSync("src/express-async.ts", "utf8");
 const dbSource = fs.readFileSync("src/db.ts", "utf8");
 

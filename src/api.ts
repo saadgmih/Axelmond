@@ -243,8 +243,6 @@ export const api = {
     request<any>("POST", `/api/courses/${courseId}/modules`, data),
   updateCourse: (courseId: number, data: { price?: number; isLiveNow?: boolean; liveSubject?: string | null; published?: boolean }) =>
     request<any>("PATCH", `/api/courses/${courseId}`, data),
-  enrollMock: (courseId: number) =>
-    request<any>("POST", "/api/payments/enroll-mock", { courseId }),
   getPayPalConfig: () =>
     request<{ clientId: string; env: "sandbox" | "live"; currency: string }>("GET", "/api/paypal/config"),
   createPayPalOrder: (courseId: number, promoCode?: string) =>
@@ -304,9 +302,8 @@ export const api = {
     request<any>("POST", "/api/livekit/events", data),
   moderateLiveParticipant: (data: { courseId: number; action: string; targetIdentity: string; targetName?: string | null; trackSid?: string | null }) =>
     request<any>("POST", "/api/livekit/moderation", data),
-  syncUser: (data: { id: string; enrolledCourses?: number[]; invoices?: any[] }) =>
-    request<any>("PUT", "/api/users/sync", data),
-  getUser: (id: string) => request<any>("GET", `/api/users/${id}`),
+  publishLiveSync: (courseId: number, message: Record<string, unknown>) =>
+    request<any>("POST", "/api/livekit/sync", { courseId, message }),
   getCourseQuizzes: (courseId: number) =>
     request<any[]>("GET", `/api/courses/${courseId}/quizzes`),
   createCourseQuiz: (courseId: number, data: { moduleId?: number | null; sectionId?: string | null; title: string; published: boolean }) =>

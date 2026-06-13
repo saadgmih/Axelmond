@@ -1,6 +1,15 @@
 import webpush from "web-push";
 import { prisma } from "./db";
 import { emitToUser } from "./messaging-socket";
+import {
+  getMaxPushSubscriptionsPerUser,
+  isAllowedPushEndpointUrl,
+  PushSubscriptionLimitError,
+  PushSubscriptionValidationError,
+  validatePushSubscriptionInput,
+} from "./push-endpoint-security";
+
+export { PushSubscriptionLimitError, PushSubscriptionValidationError } from "./push-endpoint-security";
 
 export type NotificationType =
   | "NEW_MESSAGE"
@@ -144,17 +153,32 @@ export async function savePushSubscription(
   userId: string,
   subscription: { endpoint: string; keys: { p256dh: string; auth: string } },
 ) {
+  const validated = validatePushSubscriptionInput(subscription);
+  const maxSubscriptions = getMaxPushSubscriptionsPerUser();
+
+  const existing = await prisma.pushSubscription.findUnique({
+    where: { userId_endpoint: { userId, endpoint: validated.endpoint } },
+    select: { id: true },
+  });
+
+  if (!existing) {
+    const count = await prisma.pushSubscription.count({ where: { userId } });
+    if (count >= maxSubscriptions) {
+      throw new PushSubscriptionLimitError();
+    }
+  }
+
   return prisma.pushSubscription.upsert({
-    where: { userId_endpoint: { userId, endpoint: subscription.endpoint } },
+    where: { userId_endpoint: { userId, endpoint: validated.endpoint } },
     update: {
-      p256dh: subscription.keys.p256dh,
-      auth: subscription.keys.auth,
+      p256dh: validated.keys.p256dh,
+      auth: validated.keys.auth,
     },
     create: {
       userId,
-      endpoint: subscription.endpoint,
-      p256dh: subscription.keys.p256dh,
-      auth: subscription.keys.auth,
+      endpoint: validated.endpoint,
+      p256dh: validated.keys.p256dh,
+      auth: validated.keys.auth,
     },
   });
 }
@@ -169,6 +193,10 @@ async function sendPushForNotification(
     subscriptions,
     readPositiveInt(process.env.PUSH_FANOUT_CONCURRENCY, 8),
     async (subscription) => {
+      if (!isAllowedPushEndpointUrl(subscription.endpoint)) {
+        await prisma.pushSubscription.deleteMany({ where: { id: subscription.id } });
+        return;
+      }
       await webpush.sendNotification(
         {
           endpoint: subscription.endpoint,

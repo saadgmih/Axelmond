@@ -26,6 +26,6 @@ export function withMobileRefreshToken<T extends Record<string, unknown>>(
   payload: T,
   rawRefreshToken: string,
 ): T & { refreshToken?: string } {
-  if (!isMobileClientRequest(req)) return payload;
+  if (!isTrustedMobileClientRequest(req)) return payload;
   return { ...payload, refreshToken: rawRefreshToken };
 }

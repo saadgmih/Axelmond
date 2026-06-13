@@ -1,4 +1,7 @@
 import { prisma } from "./db";
+import { buildDirectConversationKey, findDirectConversationId as lookupDirectConversationId } from "./direct-conversations";
+
+export { buildDirectConversationKey };
 import { isStudentRole, isTeacherSpaceRole, type UserRole } from "./rbac";
 
 export const MESSAGE_BODY_MAX = 4000;
@@ -115,17 +118,7 @@ export async function isConversationParticipant(conversationId: string, userId: 
 }
 
 export async function findDirectConversationId(userAId: string, userBId: string): Promise<string | null> {
-  const conversation = await prisma.conversation.findFirst({
-    where: {
-      AND: [
-        { participants: { some: { userId: userAId } } },
-        { participants: { some: { userId: userBId } } },
-      ],
-    },
-    include: { participants: true },
-  });
-  if (!conversation || conversation.participants.length !== 2) return null;
-  return conversation.id;
+  return lookupDirectConversationId(userAId, userBId);
 }
 
 export function serializeMessagingUser(user: { id: string; fullName: string; email: string; role: string; avatarUrl?: string | null }) {

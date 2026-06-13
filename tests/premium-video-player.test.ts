@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { readAppSources } from "./helpers/app-sources.ts";
 
-const appSource = readFileSync("src/App.tsx", "utf-8");
+const appSource = readAppSources();
 const studentCourseViewSource = readFileSync("src/views/student/StudentCourseView.tsx", "utf-8");
 const teacherCurriculumSource = readFileSync("src/views/teacher/TeacherCurriculumView.tsx", "utf-8");
 const playerSource = readFileSync("src/components/PremiumVideoPlayer.tsx", "utf-8");

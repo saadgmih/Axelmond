@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { readAppSources } from "./helpers/app-sources.ts";
 
-const appSource = fs.readFileSync("src/App.tsx", "utf8");
+const appSource = readAppSources();
 const classroomSource = fs.readFileSync("src/components/VirtualClassroom.tsx", "utf8");
 const paymentSource = fs.readFileSync("src/components/PaymentModal.tsx", "utf8");
 const catalogSource = fs.readFileSync("src/views/student/StudentCatalogView.tsx", "utf8");
@@ -19,7 +20,7 @@ assert.match(appSource, /useKeyboardShortcuts/);
 assert.match(classroomSource, /useKeyboardShortcuts/);
 assert.match(classroomSource, /onReconnectLive/);
 assert.match(classroomSource, /data-tv-zone="live-controls"/);
-assert.match(classroomSource, /aria-label=\{isMicEnabled \? "Couper le micro \(M\)" : "Activer le micro \(M\)"/);
+assert.match(classroomSource, /ariaLabel=\{isMicEnabled \? "Couper le micro \(M\)" : "Activer le micro \(M\)"/);
 
 assert.match(paymentSource, /close-payment-modal/);
 assert.match(paymentSource, /kbd-nav-focus/);

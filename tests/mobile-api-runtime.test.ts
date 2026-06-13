@@ -11,7 +11,7 @@ import {
   seedChatTutorRuntimeFixtures,
 } from "./helpers/security-runtime-fixtures.ts";
 import { SECURITY_RUNTIME_TEST_PASSWORD } from "./helpers/security-runtime-fixtures.ts";
-import { MOBILE_CLIENT_HEADER, MOBILE_CLIENT_VALUE } from "../src/auth-mobile.ts";
+import { MOBILE_API_SECRET_HEADER, MOBILE_CLIENT_HEADER, MOBILE_CLIENT_VALUE } from "../src/auth-mobile.ts";
 
 const RUNTIME_PORT = DEFAULT_SECURITY_RUNTIME_PORT + 7;
 
@@ -19,6 +19,7 @@ function mobileHeaders(extra: Record<string, string> = {}) {
   return {
     "Content-Type": "application/json",
     [MOBILE_CLIENT_HEADER]: MOBILE_CLIENT_VALUE,
+    [MOBILE_API_SECRET_HEADER]: process.env.MOBILE_API_SECRET || "runtime-mobile-secret-32-characters",
     ...extra,
   };
 }
@@ -32,6 +33,7 @@ process.env.LIVEKIT_URL ??= "wss://runtime-test.livekit.cloud";
 process.env.LIVEKIT_API_KEY ??= "runtime-test-key";
 process.env.LIVEKIT_API_SECRET ??= "runtime-test-secret";
 process.env.LIVEKIT_RATE_LIMIT_MAX ??= "99999";
+process.env.MOBILE_API_SECRET ??= "runtime-mobile-secret-32-characters";
 
 const runtime = startSecurityRuntimeServer(RUNTIME_PORT);
 const baseUrl = runtime.baseUrl;

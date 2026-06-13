@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
 
-const serverSource = fs.readFileSync("server.ts", "utf8");
+const serverSource = readApiRouteSources();
 const typesSource = fs.readFileSync("src/types.ts", "utf8");
 const classroomSource = fs.readFileSync("src/components/VirtualClassroom.tsx", "utf8");
 const projectMap = fs.readFileSync("PROJECT_MAP.md", "utf8");

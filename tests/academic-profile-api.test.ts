@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
+import { readAppSources } from "./helpers/app-sources.ts";
 
-const serverSource = fs.readFileSync("server.ts", "utf8");
-const appSource = fs.readFileSync("src/App.tsx", "utf8");
+const serverSource = readApiRouteSources();
+const appSource = readAppSources();
 const academicProfileHookSource = fs.readFileSync("src/hooks/useAcademicProfile.ts", "utf8");
 const appProfileBundle = appSource + academicProfileHookSource;
 const sidebarSource = fs.readFileSync("src/components/Sidebar.tsx", "utf8");

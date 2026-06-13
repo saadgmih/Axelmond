@@ -62,6 +62,7 @@ model User {
   emailDeliveryLogs      EmailDeliveryLog[]
   academicProfile        AcademicProfile?
   quizAttempts           QuizAttempt[]
+  moduleProgress         ModuleProgress[]
   refreshTokens          RefreshToken[]
   auditLogs              AuditLog[]
   liveAttendances        LiveAttendance[]
@@ -74,6 +75,8 @@ model User {
   messageReads           MessageRead[]
   notifications          Notification[]
   pushSubscriptions      PushSubscription[]
+  payments               Payment[]
+  invoiceRecords         Invoice[]
 
   @@index([role])
   @@schema("AxelmondResearchLab")
@@ -97,9 +100,16 @@ model AcademicProfile {
   @@schema("AxelmondResearchLab")
 }
 
+enum EmailVerificationPurpose {
+  EMAIL_VERIFY
+  PASSWORD_RESET
+  @@schema("AxelmondResearchLab")
+}
+
 model EmailVerificationCode {
   id        String    @id @default(cuid())
   userId    String
+  purpose   EmailVerificationPurpose @default(EMAIL_VERIFY)
   codeHash  String
   expiresAt DateTime
   usedAt    DateTime?
@@ -108,6 +118,7 @@ model EmailVerificationCode {
   user      User      @relation(fields: [userId], references: [id])
 
   @@index([userId, createdAt])
+  @@index([userId, purpose, usedAt, createdAt])
   @@schema("AxelmondResearchLab")
 }
 
@@ -202,6 +213,8 @@ model Course {
   attachments  Attachment[]
   quizzes      Quiz[]
   quizAttempts QuizAttempt[]
+  moduleProgress ModuleProgress[]
+  payments       Payment[]
 
   @@index([disciplineId])
   @@index([createdById])
@@ -533,6 +546,23 @@ model StudentStudyScheduleSession {
   @@schema("AxelmondResearchLab")
 }
 
+model ModuleProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  courseId    Int
+  moduleId    Int
+  completedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId, moduleId])
+  @@index([userId, courseId])
+  @@index([courseId, moduleId])
+  @@schema("AxelmondResearchLab")
+}
+
 enum StudentObjectiveStatus {
   IN_PROGRESS
   COMPLETED
@@ -603,6 +633,7 @@ enum MessageAttachmentKind {
 
 model Conversation {
   id           String                    @id @default(cuid())
+  directKey    String?                   @unique
   createdAt    DateTime                  @default(now())
   updatedAt    DateTime                  @updatedAt
   participants ConversationParticipant[]
@@ -695,6 +726,51 @@ model PushSubscription {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, endpoint])
+  @@schema("AxelmondResearchLab")
+}
+
+enum PaymentProvider {
+  PAYPAL
+  MOCK
+  @@schema("AxelmondResearchLab")
+}
+
+enum PaymentStatus {
+  COMPLETED
+  REFUNDED
+  @@schema("AxelmondResearchLab")
+}
+
+model Payment {
+  id         String          @id @default(cuid())
+  userId     String
+  courseId   Int
+  provider   PaymentProvider
+  externalId String
+  amountMad  Float
+  status     PaymentStatus   @default(COMPLETED)
+  createdAt  DateTime        @default(now())
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course     Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  invoice    Invoice?
+
+  @@unique([provider, externalId])
+  @@index([userId, courseId])
+  @@schema("AxelmondResearchLab")
+}
+
+model Invoice {
+  id          String   @id
+  userId      String
+  paymentId   String   @unique
+  courseTitle String
+  amountMad   Float
+  status      String
+  issuedAt    DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payment     Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([userId, issuedAt])
   @@schema("AxelmondResearchLab")
 }
 

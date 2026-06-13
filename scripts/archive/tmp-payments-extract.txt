@@ -1,0 +1,200 @@
+﻿  const promoCode = String(req.body?.promoCode || "").trim();
+  const chargePricing = resolveCourseChargeAmount(course.price, promoCode);
+  if (chargePricing.error) {
+    res.status(400).json({ error: chargePricing.error });
+    return;
+  }
+
+  try {
+    const order = await createPayPalOrder({
+      courseId,
+      courseTitle: course.title,
+      courseDescription: course.description,
+      amountMad: chargePricing.amount,
+      userId: authUser.id,
+    });
+    res.json({
+      id: order.id,
+      currency: order.currency,
+      amount: order.amount,
+      amountMad: order.amountMad,
+    });
+  } catch (err: any) {
+    logPayPalError("PayPal create-order route failed", {
+      userId: authUser.id,
+      courseId,
+      error: String(err?.message || err),
+    });
+    res.status(500).json({ error: err?.message || "Erreur lors de la création de la commande PayPal" });
+  }
+});
+
+// POST /api/paypal/capture-order - Capture payment and enroll student
+app.post("/api/paypal/capture-order", requireAuth, async (req, res) => {
+  const authUser = (req as any).authUser as AppUser;
+  const orderId = String(req.body?.orderId || "").trim();
+  const courseId = Number(req.body?.courseId);
+  if (!orderId) {
+    res.status(400).json({ error: "orderId requis" });
+    return;
+  }
+  if (!courseId || Number.isNaN(courseId)) {
+    res.status(400).json({ error: "courseId requis" });
+    return;
+  }
+
+  if (!isPayPalConfigured()) {
+    res.status(503).json({ error: "Le service de paiement PayPal n'est pas configuré" });
+    return;
+  }
+
+  try {
+    const captureResult = await capturePayPalOrder(orderId);
+    const result = await processPayPalCaptureEnrollment(
+      {
+        orderId,
+        captureResult,
+        reqIp: req.ip,
+        auditAction: "PAYMENT_PAYPAL_SUCCESS",
+        expectedUserId: authUser.id,
+        expectedCourseId: courseId,
+      },
+      persistCoursePaymentEnrollment,
+    );
+
+    if (result.ok === false) {
+      res.status(result.status).json({ error: result.error, code: result.code });
+      return;
+    }
+
+    if (result.duplicate) {
+      logSecurity("INFO", "PayPal capture duplicate ignored", {
+        userId: authUser.id,
+        courseId,
+        invoiceId: result.invoiceId,
+        orderId,
+      });
+    }
+
+    res.json({
+      ok: true,
+      message: "Paiement confirmé",
+      invoice: result.invoice,
+      user: toAppUser(result.user!),
+    });
+  } catch (err: any) {
+    logPayPalError("PayPal capture-order route failed", {
+      userId: authUser.id,
+      courseId,
+      orderId,
+      error: String(err?.message || err),
+    });
+    if (err?.message === "USER_NOT_FOUND") {
+      res.status(404).json({ error: "Utilisateur non trouvé" });
+      return;
+    }
+    res.status(500).json({ error: err?.message || "Erreur lors de la capture PayPal" });
+  }
+});
+
+// POST /api/payments/enroll-mock - Mock enrollment backend validation
+app.post("/api/payments/enroll-mock", requireAuth, async (req, res) => {
+  if (process.env.NODE_ENV === "production") {
+    res.status(403).json({ error: "Inscription mock indisponible en production" });
+    return;
+  }
+  const authUser = (req as any).authUser as AppUser;
+  const courseId = Number(req.body?.courseId);
+  if (!courseId || isNaN(courseId)) {
+    res.status(400).json({ error: "courseId requis" });
+    return;
+  }
+
+  const course = await prisma.course.findUnique({ where: { id: courseId } });
+  if (!course) {
+    res.status(404).json({ error: "Module non trouvé" });
+    return;
+  }
+
+  // Vérifier si déjà inscrit
+  const existing = await prisma.enrollment.findUnique({
+    where: { userId_courseId: { userId: authUser.id, courseId } }
+  });
+  if (existing && existing.active) {
+    res.status(400).json({ error: "Déjà inscrit à ce module" });
+    return;
+  }
+
+  const invoiceId = `INV-MOCK-${Math.floor(Math.random() * 90000 + 10000)}`;
+  const newInvoice = {
+    id: invoiceId,
+    date: new Date().toLocaleDateString("fr-FR"),
+    courseTitle: course.title,
+    amount: course.price,
+    status: "Payé"
+  };
+
+  try {
+    const user = await prisma.user.findUnique({ where: { id: authUser.id } });
+    if (!user) {
+      res.status(404).json({ error: "Utilisateur non trouvé" });
+      return;
+    }
+    const currentInvoices = Array.isArray(user.invoices) ? (user.invoices as any[]) : [];
+    const updatedInvoices = [...currentInvoices, newInvoice];
+
+    const [, , updatedUser] = await prisma.$transaction([
+      prisma.enrollment.upsert({
+        where: { userId_courseId: { userId: authUser.id, courseId } },
+        update: { active: true },
+        create: { userId: authUser.id, courseId, active: true }
+      }),
+      prisma.user.update({
+        where: { id: authUser.id },
+        data: { invoices: updatedInvoices }
+      }),
+      prisma.user.findUnique({
+        where: { id: authUser.id },
+        include: { enrollments: true },
+      }),
+    ]);
+    if (!updatedUser) {
+      res.status(404).json({ error: "Utilisateur non trouvé" });
+      return;
+    }
+
+    invalidateAuthUserCache(authUser.id);
+    await logAudit(authUser.id, authUser.email, "ENROLL_MOCK", "Course", String(courseId), { price: course.price, invoiceId }, req.ip);
+    logDb("INFO", "Student enrollment synchronized", { userId: authUser.id, courseId, invoiceId });
+    res.json({ ok: true, message: "Inscription réussie", invoice: newInvoice, user: toAppUser(updatedUser) });
+  } catch (err) {
+    logDb("ERROR", "Mock enrollment failed", { userId: authUser.id, courseId, error: String(err) });
+    res.status(500).json({ error: "Erreur lors de l'inscription" });
+  }
+});
+
+// GET /api/users/:id
+app.get("/api/users/:id", requireAuth, async (req, res) => {
+  const authUser = (req as any).authUser as AppUser;
+  if (authUser.id !== req.params.id) {
+    logSecurity("WARN", "User read target mismatch", { authUserId: authUser.id, targetUserId: req.params.id });
+    res.status(403).json({ error: "Accès refusé pour ce compte" });
+    return;
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: req.params.id },
+    include: { enrollments: true },
+  });
+  if (!user) { res.status(404).json({ error: "User not found" }); return; }
+  res.json(toAppUser(user));
+});
+
+// POST /api/contact
+app.post("/api/contact", requireAuth, validateBody(contactSchema), async (req, res) => {
+  const authUser = (req as any).authUser as AppUser;
+  const { name, email, subject, category, message } = req.body;
+
+  try {
+    await logAudit(
+      authUser.id,

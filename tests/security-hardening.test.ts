@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
 import fs from "node:fs";
 import { hashRefreshToken } from "../src/security-hardening.ts";
 import { canAccessApiRoute } from "../src/rbac.ts";
 
-const serverSource = fs.readFileSync("server.ts", "utf8");
+const serverSource = readApiRouteSources();
 const authTokenSource = fs.readFileSync("src/auth-token.ts", "utf8");
 
 assert.equal(hashRefreshToken("test-token-a"), hashRefreshToken("test-token-a"));
@@ -18,13 +19,13 @@ assert.equal(canAccessApiRoute("PROFESSOR", "POST", "/api/unknown-route"), false
 
 assert.match(serverSource, /app\.use\("\/api\/auth\/refresh",\s*refreshRateLimiter\)/);
 assert.match(serverSource, /Refresh token reuse detected/);
-assert.match(serverSource, /verifyCourseAccess\(authUser,\s*course\.id\)/);
-assert.match(serverSource, /app\.post\("\/api\/livekit\/messages",\s*requireAuth,\s*validateBody\(liveMessageSchema\)/);
-assert.match(serverSource, /app\.post\("\/api\/chat-tutor",\s*requireAuth,\s*validateBody\(chatTutorSchema\)/);
-assert.match(serverSource, /generateChatTutorResponse/);
+assert.match(serverSource, /api\.verifyCourseAccess\(authUser,\s*course\.id\)/);
+assert.match(serverSource, /app\.post\("\/api\/livekit\/messages",\s*requireAuth,\s*validateBody\(api\.liveMessageSchema\)/);
+assert.match(serverSource, /app\.post\("\/api\/chat-tutor",\s*requireAuth,\s*validateBody\(api\.chatTutorSchema\)/);
+assert.match(serverSource, /api\.generateChatTutorResponse/);
 assert.doesNotMatch(serverSource, /GEMINI_API_KEY|GoogleGenAI|@google\/genai|gemini-/i);
 assert.match(serverSource, /courseId:\s*z\.number\(\)\.int\(\)\.positive\(\)/);
-assert.match(serverSource, /assertCourseLearningAccess\(/);
+assert.match(serverSource, /api\.assertCourseLearningAccess\(/);
 assert.doesNotMatch(serverSource, /courseContext:\s*z\.string\(\)/);
 assert.match(serverSource, /newPassword:\s*z\.string\(\)\.min\(8/);
 assert.match(serverSource, /Refresh token reuse detected/);

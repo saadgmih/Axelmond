@@ -1,18 +1,20 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
+import { readAppSources } from "./helpers/app-sources.ts";
 
-const serverSource = fs.readFileSync("server.ts", "utf8");
-const appSource = fs.readFileSync("src/App.tsx", "utf8");
+const serverSource = readApiRouteSources();
+const appSource = readAppSources();
 const apiSource = fs.readFileSync("src/api.ts", "utf8");
 const uploadthingSource = fs.readFileSync("src/uploadthing.ts", "utf8");
 const supportViewSource = fs.readFileSync("src/components/SupportView.tsx", "utf8");
 const ticketFormSource = fs.readFileSync("src/components/SupportTicketForm.tsx", "utf8");
 const switchSource = fs.readFileSync("src/views/InstitutionalViewSwitch.tsx", "utf8");
 
-assert.match(serverSource, /const supportTicketSchema = z\.object\(\{/);
+assert.match(serverSource, /export const supportTicketSchema = z\.object\(\{/);
 assert.match(
   serverSource,
-  /app\.post\("\/api\/support\/tickets",\s*requireAuth,\s*validateBody\(supportTicketSchema\),\s*async\s*\(req,\s*res\)/
+  /app\.post\("\/api\/support\/tickets",\s*requireAuth,\s*validateBody\(api\.supportTicketSchema\),\s*async\s*\(req,\s*res\)/
 );
 assert.match(uploadthingSource, /supportScreenshot:\s*f\(/);
 assert.match(apiSource, /createSupportTicket:/);

@@ -8,6 +8,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { api, getFreshSessionToken } from "../api";
+import { RASTER_IMAGE_ACCEPT } from "../avatar-security";
 import { getUploadedFileUrl, getUploadErrorMessage, uploadFiles, validateUploadFile } from "../uploadthing-client";
 
 interface SupportTicketFormProps {
@@ -211,7 +212,7 @@ export default function SupportTicketForm({
             </div>
           ) : (
             <div className="space-y-2">
-              <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" disabled={isSubmitting || uploadProgress !== null} />
+              <input type="file" ref={fileInputRef} onChange={handleFileChange} accept={RASTER_IMAGE_ACCEPT} className="hidden" disabled={isSubmitting || uploadProgress !== null} />
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}

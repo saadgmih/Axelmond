@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import type { CookieOptions, Request, Response } from "express";
 import { REFRESH_TOKEN_TTL_MS } from "./auth-token";
+import { isTrustedMobileClientRequest } from "./auth-mobile";
 
 export const REFRESH_COOKIE_NAME = "refresh_token";
 export const CSRF_COOKIE_NAME = "csrf_token";
@@ -68,7 +69,12 @@ export function readRefreshTokenFromRequest(req: Request): string | null {
   }
 
   const fromBody = req.body?.refreshToken;
-  if (typeof fromBody === "string" && fromBody.length > 0 && fromBody.length <= 128) {
+  if (
+    isTrustedMobileClientRequest(req)
+    && typeof fromBody === "string"
+    && fromBody.length > 0
+    && fromBody.length <= 128
+  ) {
     return fromBody;
   }
 

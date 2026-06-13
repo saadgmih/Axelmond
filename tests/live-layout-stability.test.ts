@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { readAppSources } from "./helpers/app-sources.ts";
 
 const classroomSource = readFileSync("src/components/VirtualClassroom.tsx", "utf8");
 const tutorSource = readFileSync("src/components/AITutorChat.tsx", "utf8");
 const themeSource = readFileSync("src/views/teacher/live-control-theme.ts", "utf8");
-const appSource = readFileSync("src/App.tsx", "utf8");
+const appSource = readAppSources();
 
 assert.match(classroomSource, /data-live-video-stage/);
 assert.match(classroomSource, /live-classroom-main/);

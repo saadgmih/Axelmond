@@ -1,14 +1,16 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
+import { readAppSources } from "./helpers/app-sources.ts";
 
-const appSource = readFileSync("src/App.tsx", "utf8");
+const appSource = readAppSources();
 const courseContentSource = readFileSync("src/hooks/useCourseContent.ts", "utf8");
 const teacherCurriculumSource = readFileSync("src/hooks/useTeacherCurriculum.tsx", "utf8");
 const curriculumSource = readFileSync("src/views/teacher/TeacherCurriculumView.tsx", "utf8");
 const courseContentBundle = appSource + courseContentSource;
 const curriculumBundle = appSource + teacherCurriculumSource;
 const apiSource = readFileSync("src/api.ts", "utf8");
-const serverSource = readFileSync("server.ts", "utf8");
+const serverSource = readApiRouteSources();
 const uploadthingSource = readFileSync("src/uploadthing.ts", "utf8");
 
 assert.match(curriculumBundle, /useState<"chapter" \| "part" \| "subpart">\("chapter"\)/);

@@ -1,12 +1,13 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { readAppSources } from "./helpers/app-sources.ts";
 import {
   clampCoursePrice,
   getCoursePriceSliderPct,
   getCoursePriceSliderPercentage,
 } from "../src/components/CoursePriceSlider.tsx";
 
-const appSource = readFileSync("src/App.tsx", "utf8");
+const appSource = readAppSources();
 const teacherDashboardSource = readFileSync("src/views/teacher/TeacherDashboardView.tsx", "utf8");
 const sliderSource = readFileSync("src/components/CoursePriceSlider.tsx", "utf8");
 const cssSource = readFileSync("src/index.css", "utf8");

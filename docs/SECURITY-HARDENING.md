@@ -37,9 +37,12 @@ UPLOADTHING_IS_DEV=false
 ```bash
 git pull origin main
 npm install
+npm run deploy:migrate
 npm run build
 pm2 reload axelmond-research-labs
 ```
+
+Migrations : voir [`docs/MIGRATIONS-RUNBOOK.md`](docs/MIGRATIONS-RUNBOOK.md) (baselining, interdiction SQL manuel).
 
 Vérifier HTTPS actif, firewall (ports 80/443 seulement), PostgreSQL non exposé publiquement.
 

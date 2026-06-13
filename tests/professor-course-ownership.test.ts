@@ -1,17 +1,14 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
+import { readAppSources } from "./helpers/app-sources.ts";
 
-const serverSource = readFileSync("server.ts", "utf8");
-const appSource = readFileSync("src/App.tsx", "utf8");
+const serverSource = readApiRouteSources();
+const appSource = readAppSources();
 const projectMap = readFileSync("PROJECT_MAP.md", "utf8");
 
-const coursesRoute = serverSource.slice(
-  serverSource.indexOf('app.get("/api/courses"'),
-  serverSource.indexOf("// POST /api/courses")
-);
-
-assert.match(coursesRoute, /authUser && \(authUser\.role === "PROFESSOR" \|\| authUser\.role === "RESEARCHER"\)\s*\?\s*\{ createdById: authUser\.id \}/);
-assert.doesNotMatch(coursesRoute, /OR:\s*\[\{ createdById: authUser\.id \},\s*\{ published: true \}\]/);
+assert.match(serverSource, /app\.get\("\/api\/courses"[\s\S]*?authUser && \(authUser\.role === "PROFESSOR" \|\| authUser\.role === "RESEARCHER"\)[\s\S]*?\{ createdById: authUser\.id \}/);
+assert.doesNotMatch(serverSource, /OR:\s*\[\{ createdById: authUser\.id \},\s*\{ published: true \}\]/);
 
 assert.match(appSource, /managedCourses\.map\(\(c\) => <option key=\{c\.id\} value=\{c\.id\}>\{c\.title\}<\/option>\)/);
 assert.match(appSource, /managedCourses\.find\(c => c\.id === quizCourseId\)\?\.modules/);

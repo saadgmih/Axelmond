@@ -24,6 +24,7 @@
     "noEmit": true
   },
   "exclude": [
-    "axelmond-mobile"
+    "axelmond-mobile",
+    "scripts/archive"
   ]
 }

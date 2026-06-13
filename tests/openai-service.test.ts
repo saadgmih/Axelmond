@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
 import fs from "node:fs";
 import {
   buildChatTutorSystemInstruction,
@@ -36,7 +37,7 @@ assert.match(localResponse, /SQL/i);
 
 initializeOpenAIService();
 
-const serverSource = fs.readFileSync("server.ts", "utf8");
+const serverSource = readApiRouteSources();
 assert.doesNotMatch(serverSource, /GEMINI_API_KEY|GoogleGenAI|@google\/genai|gemini-/i);
 assert.match(serverSource, /openai-service/);
 assert.match(serverSource, /generateChatTutorResponse/);

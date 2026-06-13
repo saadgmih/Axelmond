@@ -124,6 +124,8 @@ export async function handlePayPalWebhookEvent(
       courseTitle: string;
       coursePrice: number;
       invoiceId: string;
+      provider: "PAYPAL" | "MOCK";
+      externalId: string;
       auditAction: string;
       reqIp?: string;
     }) => Promise<{ duplicate: boolean; user: any; invoice: any }>;

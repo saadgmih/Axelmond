@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 import {
   isAllowedAvatarMime,
   isAllowedAvatarUrl,
+  isAllowedRasterImageMime,
+  isAllowedRasterImageUpload,
+  isForbiddenRasterImageExtension,
   sanitizeAvatarUrl,
 } from "../src/avatar-security.ts";
 
@@ -23,6 +26,18 @@ assert.equal(isAllowedAvatarMime("image/svg+xml"), false);
 assert.equal(isAllowedAvatarMime("image/gif"), false);
 assert.equal(isAllowedAvatarMime("application/pdf"), false);
 assert.equal(isAllowedAvatarMime(null), false);
+
+assert.equal(isAllowedRasterImageMime("image/jpeg"), true);
+assert.equal(isAllowedRasterImageMime("image/svg+xml"), false);
+
+assert.equal(isForbiddenRasterImageExtension("logo.svg"), true);
+assert.equal(isForbiddenRasterImageExtension("logo.SVGZ"), true);
+assert.equal(isForbiddenRasterImageExtension("photo.jpg"), false);
+
+assert.equal(isAllowedRasterImageUpload("photo.jpg", "image/jpeg"), true);
+assert.equal(isAllowedRasterImageUpload("logo.svg", "image/svg+xml"), false);
+assert.equal(isAllowedRasterImageUpload("evil.jpg", "image/svg+xml"), false);
+assert.equal(isAllowedRasterImageUpload("photo.svg", "image/jpeg"), false);
 
 assert.equal(sanitizeAvatarUrl("  https://utfs.io/f/avatar.jpg  "), "https://utfs.io/f/avatar.jpg");
 assert.equal(sanitizeAvatarUrl("https://evil.com/avatar.jpg"), null);

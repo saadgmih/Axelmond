@@ -1,3 +1,5 @@
+import { sanitizeLiveSharedResource } from "./live-sync-validation";
+
 export const LIVE_SYNC_TOPIC = "axelmond-live-sync";
 
 export interface LiveSyncPoint {
@@ -109,12 +111,12 @@ export function buildSharedResource(title: string, url: string, sharedBy: string
   const safeTitle = title.trim();
   const safeUrl = url.trim();
   if (!safeUrl) return null;
-  return {
+  return sanitizeLiveSharedResource({
     title: safeTitle || "Ressource partagée",
     url: safeUrl,
     sharedBy,
     kind: detectResourceKind(safeUrl),
-  };
+  });
 }
 
 export function appendWhiteboardStroke(

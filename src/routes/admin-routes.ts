@@ -1,0 +1,153 @@
+import type { Express } from "express";
+import type { RouteContext } from "../server/route-context";
+import type { AppUser } from "../server/route-deps";
+import * as api from "../server/route-deps";
+
+export function registerAdminRoutes(app: Express, ctx: RouteContext): void {
+  const { requireAuth, requireRbac, requireAdmin, validateBody } = ctx.middleware;
+
+  app.get("/api/admin/professor-invites", requireAuth, requireAdmin, async (_req, res) => {  
+    const invitations = await api.prisma.professorInviteCode.findMany({  
+      orderBy: { createdAt: "desc" },  
+      include: { usedBy: true },  
+    });  
+    api.logInvitation("INFO", "Admin listed professor invitations");  
+    res.json(invitations.map(api.professorInviteSnapshot));  
+  });  
+    
+  app.post("/api/admin/professor-invites", requireAuth, requireAdmin, async (req, res) => {  
+    const authUser = (req as any).authUser as AppUser;  
+    const code = api.normalizeProfessorInviteCode(req.body?.code || api.generateProfessorInviteCode(true));  
+    if (!code) {  
+      res.status(400).json({ error: "Code d'invitation absent" });  
+      return;  
+    }  
+    
+    try {  
+      const invite = await api.prisma.professorInviteCode.create({  
+        data: { code, createdById: authUser.id },  
+      });  
+      api.logInvitation("INFO", "Admin created professor invitation", { codeSuffix: invite.code.slice(-4) });  
+      res.status(201).json({ code: invite.code });  
+    } catch (err: any) {  
+      if (err?.code === "P2002") {  
+        res.status(409).json({ error: "Code d'invitation déjà existant" });  
+        return;  
+      }  
+      api.logDb("ERROR", "Professor invitation creation failed", { codeSuffix: code.slice(-4), error: String(err) });  
+      res.status(500).json({ error: "Création du code impossible" });  
+    }  
+  });  
+    
+  app.delete("/api/admin/professor-invites/:code", requireAuth, requireAdmin, async (req, res) => {  
+    const code = api.normalizeProfessorInviteCode(req.params.code);  
+    const invite = await api.prisma.professorInviteCode.findUnique({ where: { code } });  
+    if (!invite || invite.revokedAt) {  
+      res.status(404).json({ error: "Code d'invitation introuvable ou déjà révoqué" });  
+      return;  
+    }  
+    
+    await api.prisma.professorInviteCode.update({  
+      where: { code },  
+      data: { revokedAt: new Date() },  
+    });  
+    api.logInvitation("INFO", "Admin revoked professor invitation", { codeSuffix: code.slice(-4) });  
+    res.json({ ok: true });  
+  });  
+    
+  app.get("/api/admin/email-delivery-logs", requireAuth, requireAdmin, async (_req, res) => {  
+    const logs = await api.prisma.emailDeliveryLog.findMany({  
+      orderBy: { createdAt: "desc" },  
+      take: 20,  
+    });  
+    api.logEmail("INFO", "Admin listed email delivery logs", { count: logs.length });  
+    res.json(logs.map(api.emailDeliveryLogSnapshot));  
+  });  
+    
+  app.get("/api/admin/email-delivery-summary", requireAuth, requireAdmin, async (_req, res) => {  
+    const today = new Date();  
+    today.setHours(0, 0, 0, 0);  
+    const logs = await api.prisma.emailDeliveryLog.findMany({  
+      orderBy: { createdAt: "desc" },  
+      take: 200,  
+    });  
+    const summary = api.buildEmailDeliverySummary(logs, api.getSmtpPublicConfig().configured);  
+    const emailsSentToday = await api.prisma.emailDeliveryLog.count({  
+      where: {  
+        providerStatus: "QUEUED",  
+        createdAt: { gte: today },  
+      },  
+    });  
+    api.logEmail("INFO", "Admin listed email delivery summary", { emailsSentToday });  
+    res.json({  
+      smtpConfigured: summary.smtpConfigured,  
+      lastEmailSent: summary.lastEmailSent ? api.emailDeliveryLogSnapshot(summary.lastEmailSent) : null,  
+      emailsSentToday,  
+      lastSmtpError: summary.lastSmtpError ? api.emailDeliveryLogSnapshot(summary.lastSmtpError) : null,  
+    });  
+  });  
+    
+  app.post("/api/test-email", requireAuth, requireAdmin, async (req, res) => {  
+    const authUser = (req as any).authUser as AppUser;  
+    const to = String(req.body?.to || "").trim().toLowerCase();  
+    if (!to || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {  
+      res.status(400).json({ error: "Adresse e-mail destinataire invalide" });  
+      return;  
+    }  
+    
+    api.logEmail("INFO", "Admin SMTP test requested", {  
+      userId: authUser.id,  
+      recipientDomain: api.getEmailDomain(to),  
+      smtp: api.getSmtpPublicConfig(),  
+    });  
+    
+    try {  
+      const delivery = await api.sendAdminTestEmail(to);  
+      if (!delivery.sent) {  
+        api.logEmail("WARN", "Admin SMTP test not sent", {  
+          userId: authUser.id,  
+          recipientDomain: api.getEmailDomain(to),  
+          reason: delivery.reason,  
+          smtp: api.getSmtpPublicConfig(),  
+        });  
+        await api.recordEmailDeliveryLog("admin_test", authUser.id, to, api.buildFailedEmailDelivery(to, delivery.reason));  
+        res.status(503).json({ error: "SMTP non configuré", details: api.getSmtpPublicConfig() });  
+        return;  
+      }  
+    
+      await api.recordEmailDeliveryLog("admin_test", authUser.id, to, delivery.delivery);  
+      api.logEmail("INFO", "Admin SMTP test sent", { userId: authUser.id, recipientDomain: api.getEmailDomain(to), delivery: delivery.delivery });  
+      res.json({ ok: true, message: "E-mail de diagnostic envoyé", delivery: delivery.delivery });  
+    } catch (err: any) {  
+      const details = api.getEmailErrorDetails(err);  
+      api.logEmail("ERROR", "Admin SMTP test failed", {  
+        userId: authUser.id,  
+        recipientDomain: api.getEmailDomain(to),  
+        smtp: api.getSmtpPublicConfig(),  
+        error: details,  
+      });  
+      await api.recordEmailDeliveryLog("admin_test", authUser.id, to, api.buildFailedEmailDelivery(to, details));  
+      res.status(502).json({ error: "Échec d'envoi SMTP", details });  
+    }  
+  });  
+    
+  
+  app.get("/api/admin/academic-profiles", requireAuth, requireAdmin, async (_req, res) => {  
+    const users = await api.prisma.user.findMany({  
+      where: { role: { in: ["PROFESSOR", "RESEARCHER", "ADMIN"] } },  
+      include: { academicProfile: true },  
+      orderBy: { createdAt: "desc" },  
+      take: 100,  
+    });  
+    res.json(users.map((user) => ({  
+      user: {  
+        id: user.id,  
+        fullName: user.fullName,  
+        email: user.email,  
+        role: user.role,  
+      },  
+      profile: user.academicProfile ? api.toAcademicProfile(user.academicProfile) : null,  
+    })));  
+  });  
+    
+}

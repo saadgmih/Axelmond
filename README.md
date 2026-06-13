@@ -22,6 +22,14 @@ npm run prisma:generate
 npm run prisma:migrate
 ```
 
+Production / staging — apply committed migrations only:
+
+```bash
+npm run deploy:migrate
+```
+
+See [`docs/MIGRATIONS-RUNBOOK.md`](docs/MIGRATIONS-RUNBOOK.md) for baselining and drift recovery.
+
 Start the application:
 
 ```bash

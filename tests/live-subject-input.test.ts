@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { readAppSources } from "./helpers/app-sources.ts";
 
-const appSource = readFileSync("src/App.tsx", "utf8");
+const appSource = readAppSources();
 
 assert.match(appSource, /liveSubject|liveCourseId|handleUpdateCourseLiveSubject/);
 

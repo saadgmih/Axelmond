@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
+import { readAppSources } from "./helpers/app-sources.ts";
 
 const schema = readFileSync("prisma/schema.prisma", "utf8");
-const serverSource = readFileSync("server.ts", "utf8");
+const serverSource = readApiRouteSources();
 const apiSource = readFileSync("src/api.ts", "utf8");
-const appSource = readFileSync("src/App.tsx", "utf8");
+const appSource = readAppSources();
 const teacherCurriculumSource = readFileSync("src/hooks/useTeacherCurriculum.tsx", "utf8");
 const curriculumSource = readFileSync("src/views/teacher/TeacherCurriculumView.tsx", "utf8");
 const curriculumBundle = appSource + teacherCurriculumSource;

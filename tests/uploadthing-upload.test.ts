@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
+import { readAppSources } from "./helpers/app-sources.ts";
 
 const clientSource = readFileSync("src/uploadthing-client.ts", "utf-8");
-const serverSource = readFileSync("server.ts", "utf-8");
-const appSource = readFileSync("src/App.tsx", "utf-8");
+const serverSource = readApiRouteSources();
+const appSource = readAppSources();
 const supportSource = readFileSync("src/components/SupportTicketForm.tsx", "utf-8");
 const uploadthingSource = readFileSync("src/uploadthing.ts", "utf-8");
 
@@ -36,9 +38,17 @@ assert.match(uploadthingSource, /Lesson asset upload denied/);
 
 assert.match(uploadthingSource, /avatarImage:\s*f\(/);
 assert.match(uploadthingSource, /image:\s*\{\s*maxFileSize:\s*["']2MB["'],\s*maxFileCount:\s*1\s*\}/);
-assert.match(uploadthingSource, /isAllowedAvatarMime\(file\.type/);
+assert.match(uploadthingSource, /isAllowedRasterImageUpload\(file\.name, file\.type/);
 assert.match(uploadthingSource, /isAllowedAvatarUrl\(fileUrl\)/);
+assert.match(uploadthingSource, /isAllowedRasterImageMime/);
+assert.match(uploadthingSource, /isAllowedRasterImageUpload/);
 assert.match(uploadthingSource, /from "\.\/avatar-security"/);
+assert.doesNotMatch(uploadthingSource, /mime\.startsWith\("image\/"\)/);
+
+assert.match(clientSource, /isAllowedRasterImageUpload/);
+assert.match(clientSource, /from "\.\/avatar-security"/);
+
+assert.match(supportSource, /RASTER_IMAGE_ACCEPT/);
 
 assert.match(appSource, /getUploadedFileUrl/);
 assert.match(appSource, /getUploadErrorMessage/);
