@@ -5,6 +5,7 @@ import {
   BookOpen,
   CheckCircle2,
   Clock,
+  CreditCard,
   Lock,
   ShieldCheck,
   Sparkles,
@@ -27,6 +28,15 @@ type PayPalConfig = {
   clientId: string;
   env: "sandbox" | "live";
   currency: string;
+};
+
+const PAYPAL_MAD_TO_USD_RATE = 0.1;
+
+const paypalButtonBaseStyle = {
+  layout: "vertical" as const,
+  shape: "rect" as const,
+  height: 44,
+  tagline: false,
 };
 
 const scrollAreaClass = "overflow-y-auto overscroll-contain";
@@ -113,6 +123,33 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
       setIsProcessing(false);
     }
   };
+
+  const handleCreatePayPalOrder = async () => {
+    setPaymentError("");
+    const appliedPromo = appliedDiscount > 0 ? promoCode.trim().toUpperCase() : undefined;
+    const token = await getFreshSessionToken();
+    if (!token) throw new Error("Session expirée. Reconnectez-vous.");
+    const order = await api.createPayPalOrder(course.id, appliedPromo);
+    if (order.amount && order.currency) {
+      setOrderPreviewAmount(`${order.amount} ${order.currency}`);
+    }
+    return order.id;
+  };
+
+  const onPayPalCreateOrder = async () => {
+    try {
+      return await handleCreatePayPalOrder();
+    } catch (err: any) {
+      const message = err?.message || "Impossible de créer la commande PayPal.";
+      setPaymentError(message);
+      throw err;
+    }
+  };
+
+  const checkoutEquivalent = paypalConfig && paypalConfig.currency !== PLATFORM_CURRENCY_CODE
+    ? `${(finalPrice * PAYPAL_MAD_TO_USD_RATE).toFixed(2)} ${paypalConfig.currency}`
+    : null;
+  const displayedCheckoutAmount = orderPreviewAmount ?? checkoutEquivalent;
 
   return (
     <div
@@ -255,50 +292,39 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                     )}
 
                     {paypalConfig && (
-                      <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#f7f9fc] p-2.5 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.45)]">
+                      <div className="axelmond-paypal-shell relative overflow-hidden rounded-2xl border border-indigo-400/15 bg-gradient-to-br from-indigo-500/[0.1] via-slate-900/50 to-violet-500/[0.08] p-3 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
                         {paypalConfig.currency !== PLATFORM_CURRENCY_CODE && (
-                          <p className="mb-2 px-1 text-[11px] leading-relaxed text-slate-600">
-                            Tarif affiché en {PLATFORM_CURRENCY_CODE}. PayPal encaisse en{" "}
-                            <span className="font-semibold">{paypalConfig.currency}</span>
-                            {typeof orderPreviewAmount === "string" ? ` (~${orderPreviewAmount})` : ""}.
-                          </p>
+                          <div className="mb-3 flex items-start gap-2.5 rounded-xl border border-indigo-400/20 bg-indigo-500/10 px-3 py-2.5">
+                            <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-indigo-300" />
+                            <p className="text-[11px] leading-relaxed text-indigo-100/90">
+                              Tarif affiché en{" "}
+                              <span className="font-semibold text-white">{PLATFORM_CURRENCY_CODE}</span>
+                              . Encaissement sécurisé en{" "}
+                              <span className="font-semibold text-indigo-200">{paypalConfig.currency}</span>
+                              {displayedCheckoutAmount ? ` (~${displayedCheckoutAmount})` : ""}.
+                            </p>
+                          </div>
                         )}
+
                         <PayPalScriptProvider
                           options={{
                             clientId: paypalConfig.clientId,
                             currency: paypalConfig.currency,
                             intent: "capture",
                             components: "buttons",
+                            disableFunding: ["venmo", "paylater", "credit"],
                           }}
                         >
-                          <div className="min-h-[120px] px-0.5">
+                          <div className="space-y-2.5">
                             <PayPalButtons
+                              fundingSource="paypal"
                               style={{
-                                layout: "vertical",
-                                color: "gold",
-                                shape: "rect",
+                                ...paypalButtonBaseStyle,
+                                color: "blue",
                                 label: "paypal",
-                                height: 45,
-                                tagline: false,
                               }}
                               disabled={isProcessing}
-                              createOrder={async () => {
-                                setPaymentError("");
-                                try {
-                                  const appliedPromo = appliedDiscount > 0 ? promoCode.trim().toUpperCase() : undefined;
-                                  const token = await getFreshSessionToken();
-                                  if (!token) throw new Error("Session expirée. Reconnectez-vous.");
-                                  const order = await api.createPayPalOrder(course.id, appliedPromo);
-                                  if (order.amount && order.currency) {
-                                    setOrderPreviewAmount(`${order.amount} ${order.currency}`);
-                                  }
-                                  return order.id;
-                                } catch (err: any) {
-                                  const message = err?.message || "Impossible de créer la commande PayPal.";
-                                  setPaymentError(message);
-                                  throw err;
-                                }
-                              }}
+                              createOrder={onPayPalCreateOrder}
                               onApprove={async (data) => {
                                 if (!data.orderID) {
                                   setPaymentError("Commande PayPal invalide.");
@@ -316,8 +342,39 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                                 setPaymentError("Paiement annulé.");
                               }}
                             />
+                            <PayPalButtons
+                              fundingSource="card"
+                              style={{
+                                ...paypalButtonBaseStyle,
+                                color: "silver",
+                                label: "pay",
+                              }}
+                              disabled={isProcessing}
+                              createOrder={onPayPalCreateOrder}
+                              onApprove={async (data) => {
+                                if (!data.orderID) {
+                                  setPaymentError("Commande PayPal invalide.");
+                                  return;
+                                }
+                                await handlePayPalApprove(data.orderID);
+                              }}
+                              onError={(err) => {
+                                console.error("[paypal] card checkout error", err);
+                                setPaymentError((current) =>
+                                  current || "Erreur carte. Veuillez réessayer ou utiliser PayPal.",
+                                );
+                              }}
+                              onCancel={() => {
+                                setPaymentError("Paiement annulé.");
+                              }}
+                            />
                           </div>
                         </PayPalScriptProvider>
+
+                        <p className="mt-3 flex items-center justify-center gap-1.5 text-[10px] font-medium text-slate-500">
+                          <CreditCard className="h-3 w-3 text-indigo-400/80" />
+                          Carte ou compte PayPal — traitement chiffré
+                        </p>
                       </div>
                     )}
 
