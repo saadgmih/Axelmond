@@ -32,6 +32,7 @@ import {
   Search,
   Send,
   Settings,
+  Sparkles,
   Shapes,
   Shield,
   Sigma,
@@ -229,6 +230,7 @@ export default function VirtualClassroom({
   const sidebarRef = useRef<HTMLElement | null>(null);
   const [participantQuery, setParticipantQuery] = useState("");
   const [messageMode, setMessageMode] = useState<"public" | "question" | "private">("public");
+  const [chatView, setChatView] = useState<"messages" | "tutor">("messages");
   const [privateTarget, setPrivateTarget] = useState("");
   const [latexDraft, setLatexDraft] = useState("\\int_a^b f(x)\\,dx = F(b)-F(a)");
   const [codeDraft, setCodeDraft] = useState("def recherche_binaire(tableau, cible):\n    gauche, droite = 0, len(tableau) - 1\n    while gauche <= droite:\n        milieu = (gauche + droite) // 2\n        if tableau[milieu] == cible:\n            return milieu\n        if tableau[milieu] < cible:\n            gauche = milieu + 1\n        else:\n            droite = milieu - 1\n    return -1");
@@ -820,7 +822,9 @@ export default function VirtualClassroom({
           </div>
 
           {/* Sidebar Content */}
-          <div className="flex-1 overflow-y-auto p-4 custom-scrollbar bg-zinc-950/30">
+          <div className={`flex-1 p-4 bg-zinc-950/30 ${
+            activeTab === "chat" ? "flex min-h-0 flex-col overflow-hidden" : "overflow-y-auto custom-scrollbar"
+          }`}>
             
             {activeTab === "participants" && (
               <div className="space-y-4 animate-in fade-in duration-300">
@@ -892,7 +896,45 @@ export default function VirtualClassroom({
             )}
 
             {activeTab === "chat" && (
-              <div className="h-full flex flex-col animate-in fade-in duration-300">
+              <div className="flex h-full min-h-0 flex-col animate-in fade-in duration-300">
+                <div className="mb-3 grid grid-cols-2 gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setChatView("messages")}
+                    aria-pressed={chatView === "messages"}
+                    className={`rounded-xl border px-3 py-2.5 text-xs font-bold transition ${
+                      chatView === "messages"
+                        ? "border-indigo-400/40 bg-indigo-500/10 text-indigo-200"
+                        : "border-white/10 bg-zinc-900 text-zinc-400 hover:text-zinc-200"
+                    }`}
+                  >
+                    Messages live
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setChatView("tutor")}
+                    aria-pressed={chatView === "tutor"}
+                    className={`rounded-xl border px-3 py-2.5 text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+                      chatView === "tutor"
+                        ? "border-indigo-400/40 bg-indigo-500/10 text-indigo-200"
+                        : "border-white/10 bg-zinc-900 text-zinc-400 hover:text-zinc-200"
+                    }`}
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    Tuteur IA
+                  </button>
+                </div>
+
+                {chatView === "tutor" ? (
+                  <AITutorChat
+                    courseId={course.id}
+                    courseTitle={course.title}
+                    moduleTitle={course.liveSubject || "Session live"}
+                    variant="live"
+                    className="min-h-0 flex-1"
+                  />
+                ) : (
+                  <div className="flex min-h-0 flex-1 flex-col">
                 <div className="flex bg-zinc-900 rounded-lg p-1 mb-4 border border-white/5 shrink-0">
                   {(["public", "question", "private"] as const).map((item) => (
                     <button 
@@ -920,7 +962,7 @@ export default function VirtualClassroom({
                   </select>
                 )}
 
-                <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar min-h-[300px]">
+                <div className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
                   {chatMessages.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-center space-y-3 opacity-50">
                       <MessageSquare className="w-8 h-8 text-zinc-600" />
@@ -968,10 +1010,9 @@ export default function VirtualClassroom({
                       <Send className="w-4 h-4" />
                     </button>
                   </form>
-                  <div className="border-t border-white/5 pt-3">
-                    <AITutorChat courseId={course.id} courseTitle={course.title} moduleTitle={course.liveSubject || "Session live"} className="min-h-[240px] h-[min(360px,40dvh)] flex-1 border-none shadow-none bg-zinc-950" />
-                  </div>
                 </div>
+                  </div>
+                )}
               </div>
             )}
 

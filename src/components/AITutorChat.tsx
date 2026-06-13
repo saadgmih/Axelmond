@@ -14,9 +14,19 @@ interface AITutorChatProps {
   moduleTitle: string;
   onClose?: () => void;
   className?: string;
+  variant?: "default" | "live";
 }
 
-export default function AITutorChat({ courseId, moduleId, courseTitle, moduleTitle, onClose, className }: AITutorChatProps) {
+export default function AITutorChat({
+  courseId,
+  moduleId,
+  courseTitle,
+  moduleTitle,
+  onClose,
+  className,
+  variant = "default",
+}: AITutorChatProps) {
+  const isLive = variant === "live";
   const inputId = useId();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -145,20 +155,26 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
   return (
     <section
       aria-label={`Tuteur académique IA pour ${courseTitle}`}
-      className={`bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden ${className || "min-h-[320px] h-[min(520px,60dvh)]"}`}
+      className={`flex flex-col overflow-hidden ${
+        isLive
+          ? "min-h-[min(620px,calc(100dvh-11rem))] h-full rounded-2xl border border-white/10 bg-zinc-950 shadow-xl"
+          : "bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 min-h-[320px] h-[min(520px,60dvh)]"
+      } ${className || ""}`}
     >
       {/* Header */}
-      <div className="bg-gradient-to-r from-slate-900 to-indigo-900 px-5 py-4 text-white flex items-center justify-between shadow-sm flex-shrink-0">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 bg-indigo-500/20 rounded-full flex items-center justify-center text-indigo-300 border border-indigo-500/30" aria-hidden="true">
-            <Brain className="w-5 h-5 animate-pulse" />
+      <div className={`px-5 py-4 text-white flex items-center justify-between shadow-sm flex-shrink-0 ${
+        isLive ? "bg-zinc-900 border-b border-white/10" : "bg-gradient-to-r from-slate-900 to-indigo-900"
+      }`}>
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-10 h-10 bg-indigo-500/20 rounded-full flex items-center justify-center text-indigo-300 border border-indigo-500/30 shrink-0" aria-hidden="true">
+            <Brain className="w-5 h-5" />
           </div>
-          <div>
+          <div className="min-w-0">
             <h3 className="font-bold text-sm text-white flex items-center gap-1.5">
-              Tuteur Académique 
+              Tuteur Académique
               <span className="text-[10px] bg-indigo-500 text-white font-mono uppercase px-1.5 py-0.5 rounded tracking-widest font-bold">IA</span>
             </h3>
-            <p className="text-[10px] text-indigo-200 truncate max-w-[200px]">En ligne • Prêt à répondre</p>
+            <p className="text-[11px] text-indigo-200 truncate">En ligne • Prêt à répondre</p>
           </div>
         </div>
         {onClose && (
@@ -180,7 +196,9 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
         aria-live="polite"
         aria-relevant="additions"
         aria-label="Historique de conversation avec le tuteur IA"
-        className="flex-1 overflow-y-auto p-5 space-y-4 bg-slate-50 dark:bg-slate-950 scroll-smooth"
+        className={`flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 space-y-4 scroll-smooth ${
+          isLive ? "bg-zinc-950" : "bg-slate-50 dark:bg-slate-950"
+        }`}
       >
         {messages.map((msg, i) => (
           <div key={i} className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}>
@@ -194,10 +212,12 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
                 </>
               )}
             </span>
-            <div className={`p-4 rounded-2xl max-w-[88%] text-sm leading-relaxed shadow-sm ${
+            <div className={`p-4 rounded-2xl max-w-[92%] text-sm leading-relaxed shadow-sm ${
               msg.role === "user"
                 ? "bg-indigo-600 text-white rounded-tr-none"
-                : "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-800 rounded-tl-none"
+                : isLive
+                  ? "bg-zinc-900 text-zinc-100 border border-white/10 rounded-tl-none"
+                  : "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-800 rounded-tl-none"
             }`}>
               {renderMessageContent(msg.text)}
             </div>
@@ -220,21 +240,27 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
 
       {/* Suggestion tags */}
       {messages.length === 1 && (
-        <div className="bg-slate-50 dark:bg-slate-950 px-4 py-2 border-t border-slate-200 dark:border-slate-800 flex-shrink-0 space-y-1.5 overflow-x-auto">
-          <p className="text-[11px] font-bold text-slate-500 uppercase flex items-center gap-1.5 px-1">
-            <GraduationCap className="w-3.5 h-3.5 text-indigo-500" aria-hidden="true" /> Suggestions de questions :
+        <div className={`px-4 py-3 border-t flex-shrink-0 space-y-2 ${
+          isLive ? "bg-zinc-900/80 border-white/10" : "bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800"
+        }`}>
+          <p className={`font-bold uppercase flex items-center gap-1.5 px-1 ${isLive ? "text-[11px] text-zinc-400" : "text-[11px] text-slate-500"}`}>
+            <GraduationCap className="w-4 h-4 text-indigo-400" aria-hidden="true" /> Suggestions de questions
           </p>
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1.5">
             {suggestions.map((sug, i) => (
               <button
                 key={i}
                 type="button"
                 onClick={() => handleSend(sug.text)}
                 aria-label={`Suggestion : ${sug.label}`}
-                className="kbd-nav-focus w-full text-left bg-white dark:bg-slate-900 text-xs text-indigo-700 dark:text-indigo-300 font-medium px-3 py-2 border border-slate-200 dark:border-slate-800 rounded-lg hover:border-indigo-400 hover:bg-indigo-50/40 dark:hover:bg-indigo-950/40 transition-all flex items-center justify-between group"
+                className={`kbd-nav-focus w-full text-left font-medium px-3 py-2.5 rounded-xl transition-all flex items-center justify-between group ${
+                  isLive
+                    ? "bg-zinc-950 text-sm text-indigo-200 border border-white/10 hover:border-indigo-400/40 hover:bg-indigo-500/10"
+                    : "bg-white dark:bg-slate-900 text-xs text-indigo-700 dark:text-indigo-300 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 hover:bg-indigo-50/40 dark:hover:bg-indigo-950/40"
+                }`}
               >
-                <span>{sug.label}</span>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-0.5 transition-all" aria-hidden="true" />
+                <span className="pr-2">{sug.label}</span>
+                <ArrowRight className="w-4 h-4 shrink-0 text-zinc-500 group-hover:text-indigo-300 group-hover:translate-x-0.5 transition-all" aria-hidden="true" />
               </button>
             ))}
           </div>
@@ -242,7 +268,9 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
       )}
 
       {/* Input */}
-      <div className="p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex-shrink-0">
+      <div className={`p-4 flex-shrink-0 border-t ${
+        isLive ? "bg-zinc-900 border-white/10" : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+      }`}>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -260,13 +288,17 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
             onChange={(e) => setInput(e.target.value)}
             disabled={isLoading}
             placeholder="Posez une question sur ce chapitre ou exercice..."
-            className="kbd-nav-focus flex-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-white placeholder-slate-400 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-600 disabled:opacity-50"
+            className={`kbd-nav-focus flex-1 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 ${
+              isLive
+                ? "bg-zinc-950 border border-white/10 text-white placeholder-zinc-500 focus:border-indigo-500"
+                : "bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white placeholder-slate-400 focus:bg-white dark:focus:bg-slate-900 focus:border-indigo-600"
+            }`}
           />
           <button
             type="submit"
             disabled={!input.trim() || isLoading}
             aria-label="Envoyer la question au tuteur IA"
-            className="kbd-nav-focus touch-target p-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-md shadow-indigo-100 disabled:opacity-50 disabled:shadow-none"
+            className="kbd-nav-focus touch-target min-h-[48px] min-w-[48px] p-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-all shadow-md disabled:opacity-50 disabled:shadow-none"
           >
             <Send className="w-4 h-4" aria-hidden="true" />
           </button>
