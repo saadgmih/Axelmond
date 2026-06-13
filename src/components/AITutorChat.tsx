@@ -157,7 +157,7 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
       aria-label={`Tuteur académique IA pour ${courseTitle}`}
       className={`flex flex-col overflow-hidden ${
         isLive
-          ? "h-full min-h-0 flex-1 rounded-2xl border border-white/10 bg-zinc-950 shadow-xl"
+          ? "min-h-0 flex-1 w-full self-stretch rounded-2xl border border-white/10 bg-zinc-950 shadow-xl"
           : "bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 min-h-[320px] h-[min(520px,60dvh)]"
       } ${className || ""}`}
     >
@@ -170,11 +170,11 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
             <Brain className="w-5 h-5" />
           </div>
           <div className="min-w-0">
-            <h3 className="font-bold text-sm text-white flex items-center gap-1.5">
+            <h3 className="font-bold text-base text-white flex items-center gap-1.5">
               Tuteur Académique
               <span className="text-[10px] bg-indigo-500 text-white font-mono uppercase px-1.5 py-0.5 rounded tracking-widest font-bold">IA</span>
             </h3>
-            <p className="text-[11px] text-indigo-200 truncate">En ligne • Prêt à répondre</p>
+            <p className="text-xs text-indigo-200 truncate">En ligne • Prêt à répondre</p>
           </div>
         </div>
         {onClose && (
@@ -196,8 +196,8 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
         aria-live="polite"
         aria-relevant="additions"
         aria-label="Historique de conversation avec le tuteur IA"
-        className={`flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 space-y-4 scroll-smooth ${
-          isLive ? "bg-zinc-950" : "bg-slate-50 dark:bg-slate-950"
+        className={`flex-1 min-h-[160px] overflow-y-auto p-4 sm:p-5 space-y-4 scroll-smooth ${
+          isLive ? "bg-zinc-950 custom-scrollbar" : "bg-slate-50 dark:bg-slate-950"
         }`}
       >
         {messages.map((msg, i) => (
@@ -253,9 +253,9 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
                 type="button"
                 onClick={() => handleSend(sug.text)}
                 aria-label={`Suggestion : ${sug.label}`}
-                className={`kbd-nav-focus w-full text-left font-medium px-3 py-2.5 rounded-xl transition-all flex items-center justify-between group ${
+                className={`kbd-nav-focus w-full text-left font-medium px-3 py-3 rounded-xl transition-all flex items-center justify-between group ${
                   isLive
-                    ? "bg-zinc-950 text-sm text-indigo-200 border border-white/10 hover:border-indigo-400/40 hover:bg-indigo-500/10"
+                    ? "bg-zinc-950 text-sm text-indigo-100 border border-white/10 hover:border-indigo-400/40 hover:bg-indigo-500/10"
                     : "bg-white dark:bg-slate-900 text-xs text-indigo-700 dark:text-indigo-300 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 hover:bg-indigo-50/40 dark:hover:bg-indigo-950/40"
                 }`}
               >

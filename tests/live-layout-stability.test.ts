@@ -11,11 +11,11 @@ assert.match(classroomSource, /live-classroom-main/);
 assert.match(classroomSource, /live-classroom-video-stage/);
 assert.match(classroomSource, /data-live-sidebar/);
 assert.match(classroomSource, /overflow-hidden/);
-assert.match(classroomSource, /isSidebarOpen \? "lg:grid-cols-\[minmax\(0,1fr\)_360px\]" : "lg:grid-cols-1"/);
+assert.match(classroomSource, /isSidebarOpen \? "lg:grid-cols-\[minmax\(0,1fr\)_420px\]" : "lg:grid-cols-1"/);
 assert.doesNotMatch(classroomSource, /max-h-\[min\(72dvh,780px\)\]/);
 assert.doesNotMatch(classroomSource, /lg:min-h-\[480px\]/);
 
-assert.match(tutorSource, /isLive[\s\S]*h-full min-h-0 flex-1/);
+assert.match(tutorSource, /isLive[\s\S]*min-h-0 flex-1 w-full self-stretch/);
 assert.doesNotMatch(tutorSource, /min-h-\[min\(620px,calc\(100dvh-11rem\)\)\]/);
 
 assert.match(themeSource, /roomShell:[\s\S]*overflow-hidden/);
