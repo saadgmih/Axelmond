@@ -16,7 +16,7 @@ export default function TeacherWorkspace({ children, immersive }: TeacherWorkspa
 
   if (immersive) {
     return (
-      <div className="w-full animate-in fade-in duration-200">
+      <div className="w-full p-4 sm:p-6 md:p-8 pb-8 animate-in fade-in duration-200">
         {children}
       </div>
     );

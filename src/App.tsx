@@ -415,7 +415,7 @@ export default function App() {
   const isTeacherLiveRoom = role === "teacher" && teacherView === "live-control" && !!activeLiveCourse;
   const isLiveSessionView = isStudentLive || isTeacherLiveRoom;
   const isImmersiveView = currentView === "course" || isLiveSessionView;
-  const lockMainScroll = currentView === "course" || isLiveSessionView;
+  const lockMainScroll = currentView === "course" || isStudentLive;
   const hideGlobalFooter = currentView === "course" || isLiveSessionView;
 
   useKeyboardShortcuts(

@@ -9,6 +9,7 @@ const liveThemeSource = readFileSync("src/views/teacher/live-control-theme.ts", 
 assert.match(appSource, /lockMainScroll/);
 assert.match(appSource, /overflow-y-auto/);
 assert.match(appSource, /isLiveSessionView/);
+assert.match(appSource, /lockMainScroll = currentView === "course" \|\| isStudentLive/);
 assert.match(appSource, /flex h-full min-h-0 flex-col overflow-hidden/);
 
 const liveControlSource = readFileSync("src/views/teacher/TeacherLiveControlView.tsx", "utf8");

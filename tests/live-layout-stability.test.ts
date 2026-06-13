@@ -21,7 +21,7 @@ assert.doesNotMatch(tutorSource, /min-h-\[min\(620px,calc\(100dvh-11rem\)\)\]/);
 assert.match(themeSource, /roomShell:[\s\S]*overflow-hidden/);
 assert.match(themeSource, /roomShell:[\s\S]*h-\[min\(78dvh,820px\)\]/);
 
-assert.match(appSource, /lockMainScroll = currentView === "course" \|\| isLiveSessionView/);
+assert.match(appSource, /lockMainScroll = currentView === "course" \|\| isStudentLive/);
 assert.match(appSource, /hideGlobalFooter = currentView === "course" \|\| isLiveSessionView/);
 
 console.log("Live layout stability rules passed");
