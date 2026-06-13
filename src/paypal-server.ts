@@ -114,13 +114,17 @@ export function buildPayPalCustomId(
   amountMad: number,
   payPalCurrency: string,
 ): string {
-  return JSON.stringify({
-    userId,
-    courseId,
-    expectedAmount: formatPayPalAmount(payPalAmount),
-    payPalCurrency,
-    amountMad: formatPayPalAmount(amountMad),
+  const customId = JSON.stringify({
+    u: userId,
+    c: courseId,
+    e: formatPayPalAmount(payPalAmount),
+    p: payPalCurrency,
+    m: formatPayPalAmount(amountMad),
   });
+  if (customId.length > 127) {
+    throw new Error("PayPal custom_id trop long");
+  }
+  return customId;
 }
 
 export function parsePayPalCustomId(
@@ -129,19 +133,19 @@ export function parsePayPalCustomId(
   if (!customId?.trim()) return null;
   try {
     const parsed = JSON.parse(customId);
-    const userId = String(parsed?.userId || "").trim();
-    const courseId = Number(parsed?.courseId);
-    const expectedAmount = parsed?.expectedAmount != null
-      ? String(parsed.expectedAmount)
-      : undefined;
-    const payPalCurrency = parsed?.payPalCurrency != null
-      ? String(parsed.payPalCurrency).trim().toUpperCase()
-      : undefined;
-    const amountMad = parsed?.amountMad != null
-      ? String(parsed.amountMad)
-      : undefined;
+    const userId = String(parsed?.u ?? parsed?.userId ?? "").trim();
+    const courseId = Number(parsed?.c ?? parsed?.courseId);
+    const expectedAmount = parsed?.e ?? parsed?.expectedAmount;
+    const payPalCurrency = parsed?.p ?? parsed?.payPalCurrency;
+    const amountMad = parsed?.m ?? parsed?.amountMad;
     if (!userId || !courseId || Number.isNaN(courseId)) return null;
-    return { userId, courseId, expectedAmount, payPalCurrency, amountMad };
+    return {
+      userId,
+      courseId,
+      expectedAmount: expectedAmount != null ? String(expectedAmount) : undefined,
+      payPalCurrency: payPalCurrency != null ? String(payPalCurrency).trim().toUpperCase() : undefined,
+      amountMad: amountMad != null ? String(amountMad) : undefined,
+    };
   } catch {
     return null;
   }

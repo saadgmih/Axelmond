@@ -25,6 +25,21 @@ try {
     payPalCurrency: "USD",
     amountMad: "128.00",
   });
+  const uuidCustomId = buildPayPalCustomId(
+    "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    12,
+    12.8,
+    128,
+    "USD",
+  );
+  assert.ok(uuidCustomId.length <= 127, `custom_id length ${uuidCustomId.length} exceeds PayPal limit`);
+  assert.deepEqual(parsePayPalCustomId('{"userId":"legacy","courseId":1,"expectedAmount":"1.00","payPalCurrency":"USD","amountMad":"10.00"}'), {
+    userId: "legacy",
+    courseId: 1,
+    expectedAmount: "1.00",
+    payPalCurrency: "USD",
+    amountMad: "10.00",
+  });
   assert.equal(parsePayPalCustomId("invalid"), null);
 
   console.log("PayPal server helper tests passed");
