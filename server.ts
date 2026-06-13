@@ -2,6 +2,7 @@ import express from "express";
 import { createServer } from "node:http";
 import crypto from "node:crypto";
 import path from "path";
+import fs from "node:fs";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
@@ -5489,6 +5490,16 @@ async function setupApp() {
       index: false,
       setHeaders(res, filePath) {
         res.setHeader("X-Content-Type-Options", "nosniff");
+        if (filePath.endsWith(".xml")) {
+          res.setHeader("Content-Type", "application/xml; charset=utf-8");
+          res.setHeader("Cache-Control", "public, max-age=86400");
+          return;
+        }
+        if (filePath.endsWith("robots.txt")) {
+          res.setHeader("Content-Type", "text/plain; charset=utf-8");
+          res.setHeader("Cache-Control", "public, max-age=86400");
+          return;
+        }
         if (filePath.endsWith(".html")) {
           res.setHeader("Cache-Control", "no-store");
           return;
@@ -5499,9 +5510,26 @@ async function setupApp() {
       },
     }));
 
+    const seoStaticFiles = ["sitemap.xml", "robots.txt"] as const;
+    for (const fileName of seoStaticFiles) {
+      app.get(`/${fileName}`, (_req, res) => {
+        const filePath = path.join(distPath, fileName);
+        if (!fs.existsSync(filePath)) {
+          res.status(404).type("text/plain").send("Not found");
+          return;
+        }
+        res.type(fileName.endsWith(".xml") ? "application/xml" : "text/plain");
+        res.sendFile(filePath);
+      });
+    }
+
     app.get("*", (req, res) => {
       if (isBlockedProductionSourcePath(req.path)) {
         res.status(404).end();
+        return;
+      }
+      if (req.path === "/sitemap.xml" || req.path === "/robots.txt") {
+        res.status(404).type("text/plain").send("Not found");
         return;
       }
       res.sendFile(path.join(distPath, "index.html"));
