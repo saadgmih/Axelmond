@@ -76,6 +76,7 @@ export const OPENAI_FALLBACK_NOTICE =
   "\n\n---\n*Service IA cloud momentanément indisponible — réponse pédagogique locale Axelmond.*";
 
 export function shouldUseLocalChatTutorFallback(err: unknown): boolean {
+  if (isOpenAIConfigured()) return false;
   if (!(err instanceof ChatTutorServiceError)) return false;
   return ["API_ERROR", "RATE_LIMIT", "TIMEOUT", "QUOTA_EXCEEDED", "AUTH_ERROR", "EMPTY_RESPONSE"].includes(err.code);
 }

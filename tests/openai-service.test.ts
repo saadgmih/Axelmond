@@ -46,10 +46,12 @@ assert.equal(
   shouldUseLocalChatTutorFallback(new ChatTutorServiceError("quota", "QUOTA_EXCEEDED", 503)),
   true,
 );
+process.env.OPENAI_API_KEY = "sk-test";
 assert.equal(
-  shouldUseLocalChatTutorFallback(new ChatTutorServiceError("auth", "AUTH_ERROR", 503)),
-  true,
+  shouldUseLocalChatTutorFallback(new ChatTutorServiceError("quota", "QUOTA_EXCEEDED", 503)),
+  false,
 );
+delete process.env.OPENAI_API_KEY;
 
 const openaiServiceSource = fs.readFileSync("src/openai-service.ts", "utf8");
 assert.match(openaiServiceSource, /insufficient_quota/);
