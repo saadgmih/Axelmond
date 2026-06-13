@@ -37,6 +37,7 @@ assert.match(apiSource, /createPayPalOrder:\s*\(courseId:\s*number,\s*promoCode\
 assert.match(paymentModalSource, /api\.createPayPalOrder\(course\.id,\s*appliedPromo\)/);
 assert.match(serverSource, /resolveCourseChargeAmount\(course\.price,\s*promoCode\)/);
 assert.match(paypalEnrollmentSource, /metadata\.expectedAmount/);
-assert.match(paypalServerSource, /buildPayPalCustomId\(params\.userId,\s*params\.courseId,\s*params\.amount\)/);
+assert.match(paypalServerSource, /buildPayPalCustomId\([\s\S]*payPalCurrency/);
+assert.match(serverSource, /amountMad: chargePricing\.amount/);
 
 console.log("Promo codes and PayPal pricing rules passed");

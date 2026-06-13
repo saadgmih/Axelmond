@@ -4,8 +4,7 @@ import {
   logPayPalError,
   parsePayPalCustomId,
 } from "./paypal-server";
-import { PLATFORM_CURRENCY_CODE } from "./utils/morocco-locale";
-
+import { convertMadAmountForPayPal, getPayPalCheckoutCurrency } from "./paypal-currency";
 export type PayPalCaptureEnrollmentInput = {
   orderId: string;
   captureResult: any;
@@ -86,9 +85,11 @@ export async function processPayPalCaptureEnrollment(
 
   const paidAmount = String(capture?.amount?.value || "");
   const paidCurrency = String(capture?.amount?.currency_code || "").toUpperCase();
-  const expectedAmount = metadata.expectedAmount ?? formatPayPalAmount(course.price);
+  const expectedCurrency = (metadata.payPalCurrency || getPayPalCheckoutCurrency()).toUpperCase();
+  const expectedAmount = metadata.expectedAmount
+    ?? formatPayPalAmount(convertMadAmountForPayPal(course.price));
 
-  if (paidCurrency !== PLATFORM_CURRENCY_CODE || paidAmount !== expectedAmount) {
+  if (paidCurrency !== expectedCurrency || paidAmount !== expectedAmount) {
     logPayPalError("PayPal capture amount mismatch", {
       orderId,
       courseId: metadata.courseId,
@@ -102,7 +103,9 @@ export async function processPayPalCaptureEnrollment(
 
   const captureId = String(capture?.id || orderId);
   const invoiceId = `INV-PAYPAL-${captureId.slice(-8).toUpperCase()}`;
-  const coursePricePaid = Number.parseFloat(expectedAmount);
+  const coursePricePaid = metadata.amountMad
+    ? Number.parseFloat(metadata.amountMad)
+    : Number.parseFloat(expectedAmount);
 
   try {
     const enrollmentResult = await persistCoursePaymentEnrollment({

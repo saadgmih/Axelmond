@@ -17,11 +17,13 @@ try {
 
   assert.equal(formatPayPalAmount(19.5), "19.50");
 
-  const customId = buildPayPalCustomId("user-123", 42, 128);
+  const customId = buildPayPalCustomId("user-123", 42, 12.8, 128, "USD");
   assert.deepEqual(parsePayPalCustomId(customId), {
     userId: "user-123",
     courseId: 42,
-    expectedAmount: "128.00",
+    expectedAmount: "12.80",
+    payPalCurrency: "USD",
+    amountMad: "128.00",
   });
   assert.equal(parsePayPalCustomId("invalid"), null);
 

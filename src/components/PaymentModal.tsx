@@ -26,6 +26,7 @@ interface PaymentModalProps {
 type PayPalConfig = {
   clientId: string;
   env: "sandbox" | "live";
+  currency: string;
 };
 
 const scrollAreaClass = "overflow-y-auto overscroll-contain";
@@ -41,6 +42,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
   const [step, setStep] = useState<"form" | "loading" | "success">("form");
   const [paypalConfig, setPaypalConfig] = useState<PayPalConfig | null>(null);
   const [configError, setConfigError] = useState("");
+  const [orderPreviewAmount, setOrderPreviewAmount] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -254,10 +256,17 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
 
                     {paypalConfig && (
                       <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#f7f9fc] p-2.5 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.45)]">
+                        {paypalConfig.currency !== PLATFORM_CURRENCY_CODE && (
+                          <p className="mb-2 px-1 text-[11px] leading-relaxed text-slate-600">
+                            Tarif affiché en {PLATFORM_CURRENCY_CODE}. PayPal encaisse en{" "}
+                            <span className="font-semibold">{paypalConfig.currency}</span>
+                            {typeof orderPreviewAmount === "string" ? ` (~${orderPreviewAmount})` : ""}.
+                          </p>
+                        )}
                         <PayPalScriptProvider
                           options={{
                             clientId: paypalConfig.clientId,
-                            currency: PLATFORM_CURRENCY_CODE,
+                            currency: paypalConfig.currency,
                             intent: "capture",
                             components: "buttons",
                           }}
@@ -275,9 +284,18 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                               disabled={isProcessing}
                               createOrder={async () => {
                                 setPaymentError("");
-                                const appliedPromo = appliedDiscount > 0 ? promoCode.trim().toUpperCase() : undefined;
-                                const order = await api.createPayPalOrder(course.id, appliedPromo);
-                                return order.id;
+                                try {
+                                  const appliedPromo = appliedDiscount > 0 ? promoCode.trim().toUpperCase() : undefined;
+                                  const order = await api.createPayPalOrder(course.id, appliedPromo);
+                                  if (order.amount && order.currency) {
+                                    setOrderPreviewAmount(`${order.amount} ${order.currency}`);
+                                  }
+                                  return order.id;
+                                } catch (err: any) {
+                                  const message = err?.message || "Impossible de créer la commande PayPal.";
+                                  setPaymentError(message);
+                                  throw err;
+                                }
                               }}
                               onApprove={async (data) => {
                                 if (!data.orderID) {
@@ -288,7 +306,9 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                               }}
                               onError={(err) => {
                                 console.error("[paypal] checkout error", err);
-                                setPaymentError("Erreur PayPal. Veuillez réessayer ou utiliser un autre moyen de paiement.");
+                                setPaymentError((current) =>
+                                  current || "Erreur PayPal. Veuillez réessayer ou utiliser un autre moyen de paiement.",
+                                );
                               }}
                               onCancel={() => {
                                 setPaymentError("Paiement annulé.");

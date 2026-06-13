@@ -4960,10 +4960,15 @@ app.post("/api/paypal/create-order", requireAuth, async (req, res) => {
       courseId,
       courseTitle: course.title,
       courseDescription: course.description,
-      amount: chargePricing.amount,
+      amountMad: chargePricing.amount,
       userId: authUser.id,
     });
-    res.json({ id: order.id });
+    res.json({
+      id: order.id,
+      currency: order.currency,
+      amount: order.amount,
+      amountMad: order.amountMad,
+    });
   } catch (err: any) {
     logPayPalError("PayPal create-order route failed", {
       userId: authUser.id,

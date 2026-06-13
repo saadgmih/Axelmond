@@ -98,8 +98,9 @@ const rejected = await verifyPayPalWebhookSignature({
 });
 assert.equal(rejected, false);
 
-function buildCompletedCaptureOrder(userId: string, courseId: number, amount: number) {
-  const customId = buildPayPalCustomId(userId, courseId, amount);
+function buildCompletedCaptureOrder(userId: string, courseId: number, amountMad: number) {
+  const payPalAmount = Math.round(amountMad * 0.1 * 100) / 100;
+  const customId = buildPayPalCustomId(userId, courseId, payPalAmount, amountMad, "USD");
   return {
     status: "COMPLETED",
     purchase_units: [
@@ -110,7 +111,7 @@ function buildCompletedCaptureOrder(userId: string, courseId: number, amount: nu
             {
               id: "CAPTURE12345678",
               status: "COMPLETED",
-              amount: { value: formatPayPalAmount(amount), currency_code: "MAD" },
+              amount: { value: formatPayPalAmount(payPalAmount), currency_code: "USD" },
             },
           ],
         },

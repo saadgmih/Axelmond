@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import { getPayPalCheckoutCurrency } from "./paypal-currency";
 import { getPayPalRuntimeEnv, isPayPalConfigured } from "./paypal-server";
 
 export function registerPayPalConfigRoute(app: Express): void {
@@ -12,6 +13,7 @@ export function registerPayPalConfigRoute(app: Express): void {
     res.json({
       clientId,
       env: getPayPalRuntimeEnv(),
+      currency: getPayPalCheckoutCurrency(),
     });
   });
 }

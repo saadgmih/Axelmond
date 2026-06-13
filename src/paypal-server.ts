@@ -1,5 +1,8 @@
 import { logSecurity } from "./security-logger";
-import { PLATFORM_CURRENCY_CODE } from "./utils/morocco-locale";
+import {
+  convertMadAmountForPayPal,
+  getPayPalCheckoutCurrency,
+} from "./paypal-currency";
 
 export type PayPalRuntimeEnv = "sandbox" | "live";
 
@@ -104,17 +107,25 @@ async function paypalRequest<T>(
   return payload as T;
 }
 
-export function buildPayPalCustomId(userId: string, courseId: number, expectedAmount: number): string {
+export function buildPayPalCustomId(
+  userId: string,
+  courseId: number,
+  payPalAmount: number,
+  amountMad: number,
+  payPalCurrency: string,
+): string {
   return JSON.stringify({
     userId,
     courseId,
-    expectedAmount: formatPayPalAmount(expectedAmount),
+    expectedAmount: formatPayPalAmount(payPalAmount),
+    payPalCurrency,
+    amountMad: formatPayPalAmount(amountMad),
   });
 }
 
 export function parsePayPalCustomId(
   customId: string | undefined,
-): { userId: string; courseId: number; expectedAmount?: string } | null {
+): { userId: string; courseId: number; expectedAmount?: string; payPalCurrency?: string; amountMad?: string } | null {
   if (!customId?.trim()) return null;
   try {
     const parsed = JSON.parse(customId);
@@ -123,8 +134,14 @@ export function parsePayPalCustomId(
     const expectedAmount = parsed?.expectedAmount != null
       ? String(parsed.expectedAmount)
       : undefined;
+    const payPalCurrency = parsed?.payPalCurrency != null
+      ? String(parsed.payPalCurrency).trim().toUpperCase()
+      : undefined;
+    const amountMad = parsed?.amountMad != null
+      ? String(parsed.amountMad)
+      : undefined;
     if (!userId || !courseId || Number.isNaN(courseId)) return null;
-    return { userId, courseId, expectedAmount };
+    return { userId, courseId, expectedAmount, payPalCurrency, amountMad };
   } catch {
     return null;
   }
@@ -138,19 +155,27 @@ export async function createPayPalOrder(params: {
   courseId: number;
   courseTitle: string;
   courseDescription?: string | null;
-  amount: number;
+  amountMad: number;
   userId: string;
-}): Promise<{ id: string }> {
+}): Promise<{ id: string; currency: string; amount: string; amountMad: string }> {
+  const payPalCurrency = getPayPalCheckoutCurrency();
+  const payPalAmount = convertMadAmountForPayPal(params.amountMad);
   const payload = await paypalRequest<{ id?: string }>("POST", "/v2/checkout/orders", {
     intent: "CAPTURE",
     purchase_units: [
       {
         reference_id: `course-${params.courseId}`,
-        custom_id: buildPayPalCustomId(params.userId, params.courseId, params.amount),
+        custom_id: buildPayPalCustomId(
+          params.userId,
+          params.courseId,
+          payPalAmount,
+          params.amountMad,
+          payPalCurrency,
+        ),
         description: params.courseTitle.slice(0, 127),
         amount: {
-          currency_code: PLATFORM_CURRENCY_CODE,
-          value: formatPayPalAmount(params.amount),
+          currency_code: payPalCurrency,
+          value: formatPayPalAmount(payPalAmount),
         },
       },
     ],
@@ -166,7 +191,12 @@ export async function createPayPalOrder(params: {
     throw new Error("Identifiant de commande PayPal manquant");
   }
 
-  return { id: payload.id };
+  return {
+    id: payload.id,
+    currency: payPalCurrency,
+    amount: formatPayPalAmount(payPalAmount),
+    amountMad: formatPayPalAmount(params.amountMad),
+  };
 }
 
 export async function capturePayPalOrder(orderId: string): Promise<any> {

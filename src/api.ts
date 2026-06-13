@@ -246,9 +246,9 @@ export const api = {
   enrollMock: (courseId: number) =>
     request<any>("POST", "/api/payments/enroll-mock", { courseId }),
   getPayPalConfig: () =>
-    request<{ clientId: string; env: "sandbox" | "live" }>("GET", "/api/paypal/config"),
+    request<{ clientId: string; env: "sandbox" | "live"; currency: string }>("GET", "/api/paypal/config"),
   createPayPalOrder: (courseId: number, promoCode?: string) =>
-    request<{ id: string }>("POST", "/api/paypal/create-order", { courseId, ...(promoCode ? { promoCode } : {}) }),
+    request<{ id: string; currency?: string; amount?: string; amountMad?: string }>("POST", "/api/paypal/create-order", { courseId, ...(promoCode ? { promoCode } : {}) }),
   capturePayPalOrder: (orderId: string, courseId: number) =>
     request<{ ok: boolean; invoice?: any; user?: any; message?: string }>("POST", "/api/paypal/capture-order", { orderId, courseId }),
   login: (email: string, password: string, role: string) =>
