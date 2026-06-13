@@ -47,6 +47,9 @@ export default function StudentCatalogView({
   const catalogGridRef = useRef<HTMLDivElement>(null);
   useTvNavigation(catalogGridRef, true);
 
+  const catalogCrumbClass =
+    "inline-flex items-center justify-center max-w-full px-4 py-2 rounded-full text-xs font-bold leading-snug border text-center transition-all";
+
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 animate-in fade-in duration-200">
       <div className="space-y-2">
@@ -62,7 +65,7 @@ export default function StudentCatalogView({
       </div>
 
       {(selectedDomain || selectedDiscipline) && (
-        <div className="flex flex-wrap gap-2 pt-2">
+        <div className="flex flex-wrap items-center gap-2 pt-2">
           <button
             type="button"
             data-tv-focusable
@@ -72,17 +75,18 @@ export default function StudentCatalogView({
               setSelectedDisciplineId(null);
               setSearchQuery("");
             }}
-            className="kbd-nav-focus touch-target px-4 py-1.5 rounded-full text-xs font-bold transition-all border bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+            className={`${catalogCrumbClass} kbd-nav-focus bg-white text-slate-600 border-slate-200 hover:bg-slate-50`}
           >
             Domaines
           </button>
           {selectedDomain && (
             <button
+              type="button"
               onClick={() => {
                 setSelectedDisciplineId(null);
                 setSearchQuery("");
               }}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border ${
+              className={`${catalogCrumbClass} ${
                 selectedDiscipline
                   ? "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                   : "bg-indigo-600 text-white border-indigo-700 shadow-sm"
@@ -92,7 +96,10 @@ export default function StudentCatalogView({
             </button>
           )}
           {selectedDiscipline && (
-            <span className="px-4 py-1.5 rounded-full text-xs font-bold border bg-indigo-600 text-white border-indigo-700 shadow-sm">
+            <span
+              aria-current="page"
+              className={`${catalogCrumbClass} bg-indigo-600 text-white border-indigo-700 shadow-sm`}
+            >
               {selectedDiscipline.name}
             </span>
           )}
