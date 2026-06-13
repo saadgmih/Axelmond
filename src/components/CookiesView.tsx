@@ -211,7 +211,7 @@ export default function CookiesView() {
   const retentionData = [
     { name: "refresh_token", type: "Cookie HttpOnly", duration: "7 jours max ou jusqu'à déconnexion", category: "Essentiel" },
     { name: "csrf_token", type: "Cookie lisible", duration: "7 jours max ou jusqu'à déconnexion", category: "Essentiel" },
-    { name: "axelmond_session_user", type: "localStorage", duration: "Jusqu'à déconnexion", category: "Essentiel" },
+    { name: "access_token (session)", type: "Mémoire navigateur", duration: "15 min max, rechargé via cookie HttpOnly", category: "Essentiel" },
     { name: "user_preferences", type: "localStorage", duration: "Persistent (jusqu'à effacement manuel)", category: "Fonctionnel" },
     { name: "analytics_session", type: "sessionStorage", duration: "Durée de la session navigateur", category: "Analytique" },
     { name: "theme_preference", type: "localStorage", duration: "Persistent (jusqu'à modification)", category: "Fonctionnel" },

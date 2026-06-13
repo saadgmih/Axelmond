@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type Dispatch, type SetStateA
 import { api, getFreshSessionToken, setSessionToken } from "../api";
 import type { AppUser } from "../components/AuthScreen";
 import { getAllowedUiRole, isStudentRole } from "../rbac";
+import { purgeLegacySessionUserStorage } from "../session-storage";
 import type { Course, Invoice } from "../types";
 
 export interface UseAppSessionOptions {
@@ -11,17 +12,7 @@ export interface UseAppSessionOptions {
 }
 
 export function useAppSession({ setCourses, onAfterLogin, onSessionExpired }: UseAppSessionOptions) {
-  const [currentUser, setCurrentUser] = useState<AppUser | null>(() => {
-    const saved = localStorage.getItem("axelmond_session_user");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    return null;
-  });
+  const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [enrolledCourses, setEnrolledCourses] = useState<number[]>([1]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -31,10 +22,14 @@ export function useAppSession({ setCourses, onAfterLogin, onSessionExpired }: Us
 
   const clearAuthState = useCallback(() => {
     setCurrentUser(null);
-    localStorage.removeItem("axelmond_session_user");
+    purgeLegacySessionUserStorage();
     setSessionToken(undefined);
     setEnrolledCourses([]);
     setInvoices([]);
+  }, []);
+
+  useEffect(() => {
+    purgeLegacySessionUserStorage();
   }, []);
 
   useEffect(() => {
@@ -62,28 +57,23 @@ export function useAppSession({ setCourses, onAfterLogin, onSessionExpired }: Us
 
       if (isEnrolledDiff || isInvoicesDiff) {
         lastSyncedUserStateRef.current = nextSignature;
-        const updatedUser: AppUser = {
+        setCurrentUser({
           ...currentUser,
           enrolledCourses,
           invoices,
-        };
-        setCurrentUser(updatedUser);
-        localStorage.setItem("axelmond_session_user", JSON.stringify(updatedUser));
+        });
       }
     }
   }, [enrolledCourses, invoices]);
 
   const updateSessionUser = useCallback((user: AppUser) => {
     setCurrentUser(user);
-    const { token, ...sessionUser } = user;
-    localStorage.setItem("axelmond_session_user", JSON.stringify(sessionUser));
   }, []);
 
   const handleLoginSuccess = useCallback((user: AppUser & { csrfToken?: string }) => {
-    setCurrentUser(user);
     const { token, csrfToken, ...sessionUser } = user;
     if (token) setSessionToken(token, csrfToken);
-    localStorage.setItem("axelmond_session_user", JSON.stringify(sessionUser));
+    setCurrentUser(sessionUser);
 
     if (isStudentRole(user.role)) {
       setEnrolledCourses(user.enrolledCourses || [1]);
@@ -104,17 +94,14 @@ export function useAppSession({ setCourses, onAfterLogin, onSessionExpired }: Us
         return api.me()
           .then((user) => {
             setCurrentUser(user);
-            localStorage.setItem("axelmond_session_user", JSON.stringify(user));
           })
           .catch((err) => {
             console.warn("[rbac] Session validation failed", err);
-            setCurrentUser(null);
-            localStorage.removeItem("axelmond_session_user");
-            setSessionToken(undefined);
+            clearAuthState();
           });
       })
       .finally(() => setIsAuthReady(true));
-  }, []);
+  }, [clearAuthState]);
 
   const handleLogout = useCallback(() => {
     api.logout().catch((err) => console.warn("[auth] Logout request failed", err));

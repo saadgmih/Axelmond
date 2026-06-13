@@ -1,3 +1,5 @@
+import { purgeLegacySessionUserStorage } from "./session-storage";
+
 const BASE_URL = ((import.meta as any).env?.VITE_API_BASE_URL || "").replace(/\/$/, "");
 const LEGACY_ACCESS_TOKEN_KEY = "axelmond_session_token";
 const LEGACY_REFRESH_TOKEN_KEY = "axelmond_refresh_token";
@@ -41,6 +43,7 @@ function getCsrfToken(): string | null {
 function purgeLegacyTokenStorage() {
   localStorage.removeItem(LEGACY_ACCESS_TOKEN_KEY);
   localStorage.removeItem(LEGACY_REFRESH_TOKEN_KEY);
+  purgeLegacySessionUserStorage();
 }
 
 function buildRequestOptions(method: string, body: unknown, token: string | null): RequestInit {
