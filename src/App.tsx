@@ -24,7 +24,7 @@ import { api, getFreshSessionToken } from "./api";
 import { uploadFiles, getUploadedFileUrl, getUploadErrorMessage, validateUploadFile } from "./uploadthing-client";
 import Sidebar from "./components/Sidebar";
 import Topbar from "./components/Topbar";
-const PaymentModal = lazy(() => import("./components/PaymentModal"));
+import PaymentModal from "./components/PaymentModal";
 import AuthScreen, { AppUser } from "./components/AuthScreen";
 import InstitutionalViewSwitch from "./views/InstitutionalViewSwitch";
 import { INSTITUTIONAL_VIEWS } from "./navigation/platformPaths";
@@ -889,13 +889,11 @@ export default function App() {
       )}
 
       {/* PAYPAL CHECKOUT PAYMENTS OVERLAY MODAL */}
-      <Suspense fallback={null}>
       <PaymentModal
         course={courseToPurchase}
         onClose={() => setCourseToPurchase(null)}
         onSuccess={handlePaymentSuccess}
       />
-      </Suspense>
 
       <KeyboardShortcutsHelp open={showKeyboardHelp} onClose={() => setShowKeyboardHelp(false)} />
 

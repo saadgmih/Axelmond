@@ -76,11 +76,9 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape" && step === "form" && !isProcessing) onClose();
     };
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", onKeyDown);
+    document.addEventListener("keydown", onKeyDown);
     return () => {
       window.clearTimeout(focusTimer);
-      document.body.style.overflow = "";
       window.removeEventListener("keydown", onKeyDown);
     };
   }, [course, onClose, step, isProcessing]);
@@ -292,7 +290,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                     )}
 
                     {paypalConfig && (
-                      <div className="axelmond-paypal-shell relative overflow-hidden rounded-2xl border border-indigo-400/15 bg-gradient-to-br from-indigo-500/[0.1] via-slate-900/50 to-violet-500/[0.08] p-3 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
+                      <div className="axelmond-paypal-shell relative rounded-2xl border border-indigo-400/15 bg-gradient-to-br from-indigo-500/[0.1] via-slate-900/50 to-violet-500/[0.08] p-3 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
                         {paypalConfig.currency !== PLATFORM_CURRENCY_CODE && (
                           <div className="mb-3 flex items-start gap-2.5 rounded-xl border border-indigo-400/20 bg-indigo-500/10 px-3 py-2.5">
                             <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-indigo-300" />
@@ -315,9 +313,8 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                             disableFunding: ["venmo", "paylater", "credit"],
                           }}
                         >
-                          <div className="space-y-2.5">
+                          <div className="min-h-[120px]">
                             <PayPalButtons
-                              fundingSource="paypal"
                               style={{
                                 ...paypalButtonBaseStyle,
                                 color: "blue",
@@ -336,32 +333,6 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                                 console.error("[paypal] checkout error", err);
                                 setPaymentError((current) =>
                                   current || "Erreur PayPal. Veuillez réessayer ou utiliser un autre moyen de paiement.",
-                                );
-                              }}
-                              onCancel={() => {
-                                setPaymentError("Paiement annulé.");
-                              }}
-                            />
-                            <PayPalButtons
-                              fundingSource="card"
-                              style={{
-                                ...paypalButtonBaseStyle,
-                                color: "silver",
-                                label: "pay",
-                              }}
-                              disabled={isProcessing}
-                              createOrder={onPayPalCreateOrder}
-                              onApprove={async (data) => {
-                                if (!data.orderID) {
-                                  setPaymentError("Commande PayPal invalide.");
-                                  return;
-                                }
-                                await handlePayPalApprove(data.orderID);
-                              }}
-                              onError={(err) => {
-                                console.error("[paypal] card checkout error", err);
-                                setPaymentError((current) =>
-                                  current || "Erreur carte. Veuillez réessayer ou utiliser PayPal.",
                                 );
                               }}
                               onCancel={() => {

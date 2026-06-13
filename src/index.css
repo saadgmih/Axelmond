@@ -484,7 +484,6 @@ body {
 /* PayPal checkout — align iframe shells with Axelmond dark UI */
 .axelmond-paypal-shell [data-funding-source] {
   border-radius: 0.75rem;
-  overflow: hidden;
 }
 
 .axelmond-paypal-shell iframe.component-frame {

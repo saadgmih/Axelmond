@@ -196,6 +196,25 @@ function buildCspConnectSrc(): string[] {
   return connectSrc;
 }
 
+const PAYPAL_CSP_SCRIPT_SRC = [
+  "https://www.paypal.com",
+  "https://www.sandbox.paypal.com",
+  "https://www.paypalobjects.com",
+];
+
+const PAYPAL_CSP_FRAME_SRC = [
+  "'self'",
+  "https://www.paypal.com",
+  "https://www.sandbox.paypal.com",
+  "https://checkout.paypal.com",
+  "https://*.paypal.com",
+];
+
+const PAYPAL_CSP_IMG_SRC = [
+  "https://www.paypal.com",
+  "https://www.paypalobjects.com",
+];
+
 app.use((_req, res, next) => {
   res.locals.cspNonce = crypto.randomBytes(16).toString("base64");
   next();
@@ -207,18 +226,19 @@ app.use(
       directives: {
         defaultSrc: ["'self'"],
         scriptSrc: isProduction
-          ? ["'self'", cspNonce, "https://www.paypal.com", "https://www.sandbox.paypal.com"]
-          : ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://www.paypal.com", "https://www.sandbox.paypal.com"],
+          ? ["'self'", cspNonce, ...PAYPAL_CSP_SCRIPT_SRC]
+          : ["'self'", "'unsafe-inline'", "'unsafe-eval'", ...PAYPAL_CSP_SCRIPT_SRC],
         scriptSrcAttr: ["'none'"],
-        frameSrc: ["'self'", "https://www.paypal.com", "https://www.sandbox.paypal.com"],
+        frameSrc: PAYPAL_CSP_FRAME_SRC,
+        childSrc: PAYPAL_CSP_FRAME_SRC,
         styleSrc: isProduction ? ["'self'", cspNonce] : ["'self'", "'unsafe-inline'"],
         styleSrcAttr: ["'unsafe-inline'"],
-        imgSrc: ["'self'", "data:", "blob:", "https://uploadthing.com", "https://*.uploadthing.com", "https://ufs.sh", "https://*.ufs.sh", "https://utfs.io", "https://*.utfs.io"],
+        imgSrc: ["'self'", "data:", "blob:", ...PAYPAL_CSP_IMG_SRC, "https://uploadthing.com", "https://*.uploadthing.com", "https://ufs.sh", "https://*.ufs.sh", "https://utfs.io", "https://*.utfs.io"],
         mediaSrc: ["'self'", "https://uploadthing.com", "https://*.uploadthing.com", "https://ufs.sh", "https://*.ufs.sh", "https://utfs.io", "https://*.utfs.io"],
         connectSrc: buildCspConnectSrc(),
         objectSrc: ["'none'"],
         baseUri: ["'self'"],
-        formAction: ["'self'"],
+        formAction: ["'self'", "https://www.paypal.com", "https://www.sandbox.paypal.com"],
         frameAncestors: ["'self'"],
       },
     },

@@ -156,6 +156,18 @@ export function formatPayPalAmount(value: number): string {
   return value.toFixed(2);
 }
 
+function getPayPalApplicationContext() {
+  const appUrl = (process.env.APP_URL || "https://axelmond.com").replace(/\/$/, "");
+  return {
+    brand_name: "Axelmond Research Labs",
+    user_action: "PAY_NOW" as const,
+    shipping_preference: "NO_SHIPPING" as const,
+    landing_page: "NO_PREFERENCE" as const,
+    return_url: `${appUrl}/?payment=success`,
+    cancel_url: `${appUrl}/?payment=cancel`,
+  };
+}
+
 export async function createPayPalOrder(params: {
   courseId: number;
   courseTitle: string;
@@ -185,11 +197,7 @@ export async function createPayPalOrder(params: {
         },
       },
     ],
-    application_context: {
-      brand_name: "Axelmond Research Labs",
-      user_action: "PAY_NOW",
-      shipping_preference: "NO_SHIPPING",
-    },
+    application_context: getPayPalApplicationContext(),
   });
 
   if (!payload.id) {
