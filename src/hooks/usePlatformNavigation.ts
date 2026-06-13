@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import type { AppUser } from "../components/AuthScreen";
 import { buildPlatformPath, parsePlatformPath, INSTITUTIONAL_VIEWS } from "../navigation/platformPaths";
 import { getAllowedUiRole, getRedirectPathForRole, isStudentRole } from "../rbac";
+import { scrollAppToTopDeferred } from "../utils/scroll-app-to-top";
 import type { Course, CourseModule } from "../types";
 
 export interface UsePlatformNavigationOptions {
@@ -105,8 +106,8 @@ export function usePlatformNavigation({
     if (INSTITUTIONAL_VIEWS.has(view)) {
       setCurrentView(view);
       setIsMobileMenuOpen(false);
-      window.scrollTo({ top: 0, behavior: "smooth" });
       navigate(`/${view}`);
+      scrollAppToTopDeferred();
       return;
     }
 
@@ -148,11 +149,11 @@ export function usePlatformNavigation({
 
     setCurrentView(view);
     setIsMobileMenuOpen(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
     if (currentUser) {
       const uiRole = getAllowedUiRole(currentUser.role);
       navigate(buildPlatformPath(uiRole, view, uiRole === "teacher" ? teacherView : undefined));
     }
+    scrollAppToTopDeferred();
   }, [
     currentUser,
     enrolledCourses,
@@ -176,6 +177,7 @@ export function usePlatformNavigation({
     setCurrentView("dashboard");
     setIsMobileMenuOpen(false);
     navigate(buildPlatformPath("teacher", "dashboard", view));
+    scrollAppToTopDeferred();
   }, [navigate, setTeacherView, setCurrentView, setIsMobileMenuOpen]);
 
   return { navigateTo, handleTeacherViewChange };
