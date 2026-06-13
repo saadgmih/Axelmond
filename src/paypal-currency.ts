@@ -2,9 +2,13 @@ import { PLATFORM_CURRENCY_CODE } from "./utils/morocco-locale";
 
 /** PayPal checkout currency (live accounts in Morocco typically require USD, not MAD). */
 export function getPayPalCheckoutCurrency(): string {
-  return (process.env.PAYPAL_CURRENCY_CODE || "USD").trim().toUpperCase();
+  const configured = (process.env.PAYPAL_CURRENCY_CODE || "USD").trim().toUpperCase();
+  const paypalEnv = (process.env.PAYPAL_ENV || "sandbox").trim().toLowerCase();
+  if (paypalEnv === "live" && configured === PLATFORM_CURRENCY_CODE) {
+    return "USD";
+  }
+  return configured || "USD";
 }
-
 /** MAD → PayPal currency multiplier (default ~0.10 when PayPal currency is USD). */
 export function getPayPalMadConversionRate(): number {
   const raw = Number(process.env.PAYPAL_MAD_TO_USD_RATE ?? "0.1");

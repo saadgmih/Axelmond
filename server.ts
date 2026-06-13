@@ -35,6 +35,7 @@ import {
   verifyPayPalWebhookSignature,
 } from "./src/paypal-webhook";
 import { resolveCourseChargeAmount } from "./src/promo-codes";
+import { agentDebugLog } from "./src/agent-debug-log";
 import { Course, CourseModule, DEFAULT_MODULE_CLASSIFICATION, DEFAULT_STUDENT_LABEL } from "./src/types";
 import { UserRole, canAccessAcademicProfile, canAccessApiRoute, canLoginToRequestedRole, normalizeRole } from "./src/rbac";
 import { signAuthToken, verifyAuthToken, createRefreshToken, rotateRefreshToken, findValidRefreshToken, revokeRefreshToken, revokeAllUserRefreshTokens } from "./src/auth-token";
@@ -4956,6 +4957,15 @@ app.post("/api/paypal/create-order", requireAuth, async (req, res) => {
   }
 
   try {
+    // #region agent log
+    agentDebugLog({
+      hypothesisId: "H3",
+      location: "server.ts:create-order",
+      message: "create-order request",
+      data: { courseId, amountMad: chargePricing.amount, promoApplied: Boolean(promoCode), userIdLength: authUser.id.length },
+      runId: "pre-fix",
+    });
+    // #endregion
     const order = await createPayPalOrder({
       courseId,
       courseTitle: course.title,
@@ -4970,6 +4980,15 @@ app.post("/api/paypal/create-order", requireAuth, async (req, res) => {
       amountMad: order.amountMad,
     });
   } catch (err: any) {
+    // #region agent log
+    agentDebugLog({
+      hypothesisId: "H2",
+      location: "server.ts:create-order",
+      message: "create-order failed",
+      data: { courseId, error: String(err?.message || err) },
+      runId: "pre-fix",
+    });
+    // #endregion
     logPayPalError("PayPal create-order route failed", {
       userId: authUser.id,
       courseId,

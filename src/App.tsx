@@ -282,11 +282,11 @@ export default function App() {
     markRead: markNotificationRead,
     markAllRead: markAllNotificationsRead,
     pushNotification,
-  } = useNotifications(!!currentUser);
+  } = useNotifications(isAuthReady && !!currentUser);
 
-  const { status: pushStatus, statusKind: pushStatusKind, subscribe: subscribePushNotifications } = usePushNotifications(!!currentUser);
+  const { status: pushStatus, statusKind: pushStatusKind, subscribe: subscribePushNotifications } = usePushNotifications(isAuthReady && !!currentUser);
 
-  useMessagingSocket(!!currentUser, {
+  useMessagingSocket(isAuthReady && !!currentUser, {
     onNotification: (payload) => {
       if (payload && typeof payload === "object") {
         pushNotification(payload as AppNotification);

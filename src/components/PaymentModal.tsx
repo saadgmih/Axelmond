@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { Course } from "../types";
 import type { AppUser } from "./AuthScreen";
-import { api } from "../api";
+import { api, getFreshSessionToken } from "../api";
 import { formatCredits, formatMad, PLATFORM_CURRENCY_CODE } from "../utils/morocco-locale";
 import { useFocusTrap } from "../hooks/useFocusTrap";
 
@@ -286,6 +286,23 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                                 setPaymentError("");
                                 try {
                                   const appliedPromo = appliedDiscount > 0 ? promoCode.trim().toUpperCase() : undefined;
+                                  const token = await getFreshSessionToken();
+                                  // #region agent log
+                                  fetch("http://127.0.0.1:7908/ingest/313aa125-9bdc-4150-89fa-cbf8bc125e63", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "4a3252" },
+                                    body: JSON.stringify({
+                                      sessionId: "4a3252",
+                                      hypothesisId: "H3",
+                                      location: "PaymentModal.tsx:createOrder",
+                                      message: "createOrder start",
+                                      data: { courseId: course.id, hasToken: Boolean(token), promo: appliedPromo || null },
+                                      timestamp: Date.now(),
+                                      runId: "pre-fix",
+                                    }),
+                                  }).catch(() => {});
+                                  // #endregion
+                                  if (!token) throw new Error("Session expirée. Reconnectez-vous.");
                                   const order = await api.createPayPalOrder(course.id, appliedPromo);
                                   if (order.amount && order.currency) {
                                     setOrderPreviewAmount(`${order.amount} ${order.currency}`);

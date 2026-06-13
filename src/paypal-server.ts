@@ -1,8 +1,6 @@
 import { logSecurity } from "./security-logger";
-import {
-  convertMadAmountForPayPal,
-  getPayPalCheckoutCurrency,
-} from "./paypal-currency";
+import { convertMadAmountForPayPal, getPayPalCheckoutCurrency } from "./paypal-currency";
+import { agentDebugLog } from "./agent-debug-log";
 
 export type PayPalRuntimeEnv = "sandbox" | "live";
 
@@ -100,6 +98,25 @@ async function paypalRequest<T>(
       status: response.status,
       payload,
     });
+    // #region agent log
+    agentDebugLog({
+      hypothesisId: "H2",
+      location: "paypal-server.ts:paypalRequest",
+      message: "PayPal API error",
+      data: {
+        method,
+        path,
+        status: response.status,
+        paypalMessage: payload?.message || payload?.details?.[0]?.description || null,
+        issue: payload?.details?.[0]?.issue || null,
+      },
+      runId: "pre-fix",
+    });
+    // #endregion
+    const issue = payload?.details?.[0]?.issue;
+    if (issue === "CURRENCY_NOT_SUPPORTED") {
+      throw new Error("PayPal Live n'accepte pas le dirham (MAD). Le paiement sera converti en USD.");
+    }
     const message = payload?.message || payload?.details?.[0]?.description || "Erreur PayPal";
     throw new Error(message);
   }
@@ -164,18 +181,34 @@ export async function createPayPalOrder(params: {
 }): Promise<{ id: string; currency: string; amount: string; amountMad: string }> {
   const payPalCurrency = getPayPalCheckoutCurrency();
   const payPalAmount = convertMadAmountForPayPal(params.amountMad);
+  const customId = buildPayPalCustomId(
+    params.userId,
+    params.courseId,
+    payPalAmount,
+    params.amountMad,
+    payPalCurrency,
+  );
+  // #region agent log
+  agentDebugLog({
+    hypothesisId: "H1",
+    location: "paypal-server.ts:createPayPalOrder",
+    message: "creating PayPal order",
+    data: {
+      courseId: params.courseId,
+      payPalCurrency,
+      payPalAmount,
+      amountMad: params.amountMad,
+      customIdLength: customId.length,
+    },
+    runId: "pre-fix",
+  });
+  // #endregion
   const payload = await paypalRequest<{ id?: string }>("POST", "/v2/checkout/orders", {
     intent: "CAPTURE",
     purchase_units: [
       {
         reference_id: `course-${params.courseId}`,
-        custom_id: buildPayPalCustomId(
-          params.userId,
-          params.courseId,
-          payPalAmount,
-          params.amountMad,
-          payPalCurrency,
-        ),
+        custom_id: customId,
         description: params.courseTitle.slice(0, 127),
         amount: {
           currency_code: payPalCurrency,

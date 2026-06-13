@@ -14,6 +14,7 @@ export function registerPayPalConfigRoute(app: Express): void {
       clientId,
       env: getPayPalRuntimeEnv(),
       currency: getPayPalCheckoutCurrency(),
+      build: "paypal-usd-v2",
     });
   });
 }
