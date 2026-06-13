@@ -992,7 +992,6 @@ export default function VirtualClassroom({
 
             {activeTab === "tools" && (
               <div className="space-y-5 animate-in fade-in duration-300">
-                <LiveReactionBar onReaction={onReaction} />
                 <LivePollPanel
                   canModerate={canModerate}
                   pollQuestion={livePoll.question}
