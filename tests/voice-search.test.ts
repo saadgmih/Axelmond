@@ -103,7 +103,7 @@ const interimEvent = {
       };
     },
   },
-} as SpeechRecognitionEvent;
+} as unknown as SpeechRecognitionEvent;
 
 assert.deepEqual(extractLatestTranscript(interimEvent), {
   text: "bonjour",
