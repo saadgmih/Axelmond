@@ -414,8 +414,8 @@ export default function App() {
   const isTeacherLiveRoom = role === "teacher" && teacherView === "live-control" && !!activeLiveCourse;
   const isLiveSessionView = isStudentLive || isTeacherLiveRoom;
   const isImmersiveView = currentView === "course" || isLiveSessionView;
-  const lockMainScroll = currentView === "course";
-  const hideGlobalFooter = currentView === "course" || isStudentLive;
+  const lockMainScroll = currentView === "course" || isLiveSessionView;
+  const hideGlobalFooter = currentView === "course" || isLiveSessionView;
 
   useKeyboardShortcuts(
     [
@@ -773,12 +773,14 @@ export default function App() {
           )}
           {currentView === "live" && activeLiveCourse && (
             <Suspense fallback={<div className="p-8 text-center text-slate-400">Chargement de la classe live…</div>}>
+              <div className="flex h-full min-h-0 flex-col overflow-hidden">
               <StudentLiveView
                 course={activeLiveCourse}
                 currentUserRole={currentUser?.role || "STUDENT"}
                 onBack={() => navigateTo("course", activeLiveCourse)}
                 {...classroomBindings}
               />
+              </div>
             </Suspense>
           )}
 

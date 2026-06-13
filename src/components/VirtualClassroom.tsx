@@ -443,7 +443,7 @@ export default function VirtualClassroom({
   };
 
   return (
-    <div className="w-full max-w-full bg-zinc-950 text-white font-sans flex flex-col relative box-border min-h-0 flex-1 overflow-x-hidden">
+    <div className="live-classroom-root w-full max-w-full h-full min-h-0 bg-zinc-950 text-white font-sans flex flex-col relative box-border flex-1 overflow-hidden">
       <span className="sr-only">Classe virtuelle sécurisée</span>
       <span className="sr-only">Tableau blanc collaboratif</span>
       <span className="sr-only">Rapport de présence</span>
@@ -546,8 +546,12 @@ export default function VirtualClassroom({
         </div>
       </header>
 
-      {/* Main Container */}
-      <div className="flex flex-1 flex-col lg:flex-row w-full max-w-full relative box-border min-h-[480px]">
+      {/* Main Container — hauteur figée ; le panneau latéral ne redimensionne jamais la scène vidéo */}
+      <div
+        className={`live-classroom-main flex flex-1 min-h-0 w-full max-w-full relative box-border overflow-hidden flex-col lg:grid lg:items-stretch ${
+          isSidebarOpen ? "lg:grid-cols-[minmax(0,1fr)_360px]" : "lg:grid-cols-1"
+        }`}
+      >
         {!isSidebarOpen && (
           <button
             type="button"
@@ -571,7 +575,8 @@ export default function VirtualClassroom({
         {/* Center Stage - Video & Control */}
         <main 
           ref={stageRef}
-          className="flex flex-1 flex flex-col min-w-0 w-full relative bg-black box-border min-h-[360px]"
+          data-live-stage="main"
+          className="live-classroom-stage flex flex-col min-w-0 min-h-0 h-full w-full relative bg-black box-border overflow-hidden"
         >
           {/* Barre de Statistiques Pédagogiques (Hybride Moodle/Blackboard) */}
           <div className="shrink-0 bg-zinc-900/95 border-b border-white/5 py-2 px-4 flex justify-between md:justify-center items-center gap-4 lg:gap-10 overflow-x-auto hide-scrollbar z-30">
@@ -733,8 +738,11 @@ export default function VirtualClassroom({
           </div>
 
           {/* Main Video Area */}
-          <div className="flex-1 min-h-[220px] sm:min-h-[280px] lg:min-h-[340px] p-0 lg:p-4 flex items-center justify-center relative min-w-0 bg-[#0a0a0a]">
-            <div className="w-full h-full min-h-[200px] max-h-[min(72dvh,780px)] relative lg:rounded-2xl overflow-hidden bg-zinc-950 lg:border border-white/5 lg:shadow-2xl flex items-center justify-center box-border">
+          <div className="live-classroom-video-shell flex-1 min-h-0 p-0 lg:p-4 flex flex-col relative min-w-0 bg-[#0a0a0a] overflow-hidden">
+            <div
+              data-live-video-stage
+              className="live-classroom-video-stage flex-1 min-h-0 w-full h-full relative lg:rounded-2xl overflow-hidden bg-zinc-950 lg:border border-white/5 lg:shadow-2xl flex items-center justify-center box-border"
+            >
               {connectionNotice && !whiteboardExpanded && (
                 <LiveConnectionNotice
                   message={connectionNotice.message}
@@ -794,7 +802,8 @@ export default function VirtualClassroom({
         <aside 
           ref={sidebarRef}
           data-tv-zone="live-sidebar"
-          className={`absolute lg:static right-0 top-0 bottom-0 w-[min(100vw,360px)] lg:w-[360px] max-w-full lg:min-w-[360px] shrink-0 bg-zinc-900 border-l border-white/5 flex flex-col transition-transform duration-300 ease-out z-40 box-border lg:min-h-[480px] shadow-2xl lg:shadow-none ${isSidebarOpen ? "translate-x-0 lg:flex" : "translate-x-full lg:hidden"}`}
+          data-live-sidebar
+          className={`live-classroom-sidebar absolute lg:static right-0 top-0 bottom-0 w-[min(100vw,360px)] lg:w-[360px] max-w-full lg:min-w-[360px] shrink-0 bg-zinc-900 border-l border-white/5 flex flex-col min-h-0 h-full max-h-full overflow-hidden transition-transform duration-300 ease-out z-40 box-border shadow-2xl lg:shadow-none ${isSidebarOpen ? "translate-x-0 lg:flex" : "translate-x-full lg:hidden"}`}
         >
           {/* Sidebar Tabs */}
           <div className={`px-3 pt-4 pb-2 grid gap-1 shrink-0 border-b border-white/5 bg-zinc-900/50 ${
@@ -821,10 +830,15 @@ export default function VirtualClassroom({
             ))}
           </div>
 
-          {/* Sidebar Content */}
-          <div className={`flex-1 p-4 bg-zinc-950/30 ${
-            activeTab === "chat" ? "flex min-h-0 flex-col overflow-hidden" : "overflow-y-auto custom-scrollbar"
-          }`}>
+          {/* Sidebar Content — scroll interne uniquement */}
+          <div className="flex flex-1 min-h-0 flex-col overflow-hidden p-4 bg-zinc-950/30">
+            <div
+              className={`flex-1 min-h-0 ${
+                activeTab === "chat"
+                  ? "flex flex-col overflow-hidden"
+                  : "overflow-y-auto custom-scrollbar"
+              }`}
+            >
             
             {activeTab === "participants" && (
               <div className="space-y-4 animate-in fade-in duration-300">
@@ -1110,6 +1124,7 @@ export default function VirtualClassroom({
               </div>
             )}
 
+            </div>
           </div>
         </aside>
 

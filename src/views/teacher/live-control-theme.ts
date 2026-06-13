@@ -48,5 +48,5 @@ export const liveControlUi = {
   enterBtnActive:
     "inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-950/30 px-5 py-3 text-xs font-black text-emerald-300",
   roomShell:
-    "w-full min-h-[420px] overflow-visible rounded-none border-y border-white/[0.08] lg:rounded-2xl lg:border",
+    "live-room-shell flex h-[min(78dvh,820px)] min-h-[480px] w-full flex-col overflow-hidden rounded-none border-y border-white/[0.08] lg:rounded-2xl lg:border",
 } as const;

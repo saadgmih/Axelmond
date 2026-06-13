@@ -157,7 +157,7 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
       aria-label={`Tuteur académique IA pour ${courseTitle}`}
       className={`flex flex-col overflow-hidden ${
         isLive
-          ? "min-h-[min(620px,calc(100dvh-11rem))] h-full rounded-2xl border border-white/10 bg-zinc-950 shadow-xl"
+          ? "h-full min-h-0 flex-1 rounded-2xl border border-white/10 bg-zinc-950 shadow-xl"
           : "bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 min-h-[320px] h-[min(520px,60dvh)]"
       } ${className || ""}`}
     >
