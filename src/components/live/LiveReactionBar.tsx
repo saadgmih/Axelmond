@@ -7,9 +7,10 @@ const REACTIONS = ["👍", "👏", "❤️", "😂", "🎉", "🤔", "🔥", "�
 interface LiveReactionBarProps {
   onReaction: (reaction: string) => void;
   compact?: boolean;
+  activeReaction?: string | null;
 }
 
-export default function LiveReactionBar({ onReaction, compact = false }: LiveReactionBarProps) {
+export default function LiveReactionBar({ onReaction, compact = false, activeReaction = null }: LiveReactionBarProps) {
   const [open, setOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
@@ -105,18 +106,26 @@ export default function LiveReactionBar({ onReaction, compact = false }: LiveRea
                 className="fixed z-[200] flex max-w-[min(92vw,320px)] -translate-x-1/2 -translate-y-full flex-wrap justify-center gap-1.5 rounded-2xl border border-white/10 bg-zinc-900/95 p-2 shadow-2xl backdrop-blur-md"
                 style={{ top: menuPosition.top, left: menuPosition.left }}
               >
-                {REACTIONS.map((reaction) => (
+                {REACTIONS.map((reaction) => {
+                  const isActive = activeReaction === reaction;
+                  return (
                   <button
                     key={reaction}
                     type="button"
                     role="menuitem"
                     onClick={() => pickReaction(reaction)}
-                    className="flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/10 bg-zinc-950/80 text-lg transition hover:scale-105 hover:border-indigo-400/30 hover:bg-indigo-500/10"
-                    aria-label={`Réagir ${reaction}`}
+                    aria-pressed={isActive}
+                    className={`flex h-10 min-w-10 items-center justify-center rounded-xl border text-lg transition hover:scale-105 ${
+                      isActive
+                        ? "border-indigo-400/50 bg-indigo-500/20 ring-2 ring-indigo-400/30"
+                        : "border-white/10 bg-zinc-950/80 hover:border-indigo-400/30 hover:bg-indigo-500/10"
+                    }`}
+                    aria-label={isActive ? `Retirer la réaction ${reaction}` : `Réagir ${reaction}`}
                   >
                     {reaction}
                   </button>
-                ))}
+                  );
+                })}
               </div>,
               document.body,
             )

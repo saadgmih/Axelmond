@@ -420,12 +420,12 @@ export default function VirtualClassroom({
   const featuredLayout = liveSettings.layoutMode !== "tile" && stageParticipants.some((participant) => participant.videoTrack);
   const videoGridClass = stageGridClass(stageParticipants.length, featuredLayout);
   const raisedHandParticipants = connectedParticipants.filter((participant) => participant.handRaised);
-
   const filteredParticipants = connectedParticipants.filter((participant) =>
     participant.name.toLowerCase().includes(participantQuery.toLowerCase())
     || roleLabel(participant.role).toLowerCase().includes(participantQuery.toLowerCase())
   );
-  
+  const localReaction = connectedParticipants.find((participant) => participant.isLocal)?.reaction || null;
+
   const raisedHands = connectedParticipants.filter((participant) => participant.handRaised).length;
   const questionsCount = chatMessages.filter(m => m.text.toLowerCase().includes("[question]")).length;
   const averageQuality = connectedParticipants.some((participant) => String(participant.connectionQuality || "").toLowerCase().includes("poor"))
@@ -630,7 +630,7 @@ export default function VirtualClassroom({
 
             <div className="flex min-w-0 flex-1 items-center overflow-x-auto hide-scrollbar gap-1.5 sm:gap-2">
               <div className="hidden lg:block shrink-0">
-                <LiveReactionBar compact onReaction={onReaction} />
+                <LiveReactionBar compact activeReaction={localReaction} onReaction={onReaction} />
               </div>
 
               <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">

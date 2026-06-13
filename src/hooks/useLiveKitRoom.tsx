@@ -80,6 +80,7 @@ export function useLiveKitRoom({
   const [liveSignals, setLiveSignals] = useState<
     Record<string, { handRaised?: boolean; reaction?: string; updatedAt: number }>
   >({});
+  const liveSignalsRef = useRef(liveSignals);
   const [liveAttendanceReport, setLiveAttendanceReport] = useState<any | null>(null);
   const [liveReconnectNonce, setLiveReconnectNonce] = useState(0);
   const [livePoll, setLivePoll] = useState<LivePollState>(() => createEmptyPoll());
@@ -107,6 +108,10 @@ export function useLiveKitRoom({
   useEffect(() => {
     livePollRef.current = livePoll;
   }, [livePoll]);
+
+  useEffect(() => {
+    liveSignalsRef.current = liveSignals;
+  }, [liveSignals]);
 
   const getParticipantVideoPublication = (participant: any) => {
     const publications = Array.from(participant.videoTrackPublications.values()) as any[];
@@ -345,7 +350,12 @@ export function useLiveKitRoom({
                   : parsed.action === "LOWER_HAND"
                     ? false
                     : prev[identity]?.handRaised,
-              reaction: parsed.reaction || prev[identity]?.reaction,
+              reaction:
+                parsed.action === "REACTION_CLEAR"
+                  ? undefined
+                  : parsed.action === "REACTION"
+                    ? (typeof parsed.reaction === "string" && parsed.reaction ? parsed.reaction : undefined)
+                    : prev[identity]?.reaction,
               updatedAt: Date.now(),
             },
           }));
@@ -695,9 +705,11 @@ export function useLiveKitRoom({
                 ? false
                 : prev[liveRoom?.localParticipant.identity || currentUser.id]?.handRaised,
           reaction:
-            typeof details.reaction === "string"
-              ? details.reaction
-              : prev[liveRoom?.localParticipant.identity || currentUser.id]?.reaction,
+            action === "REACTION_CLEAR"
+              ? undefined
+              : action === "REACTION" && typeof details.reaction === "string"
+                ? details.reaction
+                : prev[liveRoom?.localParticipant.identity || currentUser.id]?.reaction,
           updatedAt: Date.now(),
         },
       }));
@@ -718,6 +730,12 @@ export function useLiveKitRoom({
   };
 
   const sendLiveReaction = (reaction: string) => {
+    const identity = liveRoom?.localParticipant.identity || String(currentUser?.id || "");
+    const current = liveSignalsRef.current[identity]?.reaction;
+    if (current === reaction) {
+      publishLiveAction("REACTION_CLEAR", { reaction });
+      return;
+    }
     publishLiveAction("REACTION", { reaction });
   };
 
