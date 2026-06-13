@@ -65,7 +65,7 @@ async function main() {
   console.log(`  emailVerified: ${user.emailVerified}`);
   console.log(`  fullName: ${user.fullName}`);
   console.log("");
-  console.log("Connexion: Espace Professeur / Chercheur sur la page de login.");
+  console.log("Connexion: Espace Professeur / Chercheur / Admin sur la page de login.");
 }
 
 main()
