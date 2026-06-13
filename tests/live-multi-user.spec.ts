@@ -199,7 +199,7 @@ test("Campagne de test Live multi-utilisateurs (7 clients simultanés)", async (
       if (u.role === "STUDENT") {
         await page.click('button:has-text("Espace Étudiant")');
       } else {
-        await page.click('button:has-text("Espace Professeur / Chercheur")');
+        await page.click('button:has-text("Espace Professeur / Chercheur / Admin")');
       }
 
       // Passer en mode connexion

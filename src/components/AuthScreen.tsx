@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { Course, Invoice } from "../types";
 import { api, setSessionToken } from "../api";
-import { UserRole } from "../rbac";
+import { UserRole, getTeacherLoginSectorLabel, getTeacherLoginTabLabel } from "../rbac";
 import LogoSymbol from "./LogoSymbol";
 import SkipLink from "./SkipLink";
 import { useAccessibilityPreferences } from "../hooks/useAccessibilityPreferences";
@@ -348,7 +348,7 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
               }`}
             >
               <ShieldAlert className="w-4 h-4" aria-hidden="true" />
-              Espace Professeur / Chercheur
+              {getTeacherLoginTabLabel()}
             </button>
           </div>
 
@@ -358,7 +358,7 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
               <span className={`text-[10px] uppercase font-black tracking-widest px-2.5 py-0.5 rounded-full inline-block ${
                 activeSector === "student" ? "bg-indigo-900/40 text-indigo-300 border border-indigo-500/10" : "bg-pink-900/40 text-pink-300 border border-pink-500/10"
               }`}>
-                {activeSector === "student" ? "Secteur d'Études" : "Enseignants & Chercheurs"}
+                {activeSector === "student" ? "Secteur d'Études" : getTeacherLoginSectorLabel()}
               </span>
               <h2 className="text-xl font-extrabold text-white mt-2">
                 {verificationEmail

@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { Course, DEFAULT_STUDENT_LABEL } from "../types";
 import { AppUser } from "./AuthScreen";
-import { getRoleLabel } from "../rbac";
+import { getRoleLabel, getTeacherRoleBadgeTone, getTeacherSpaceTitle } from "../rbac";
 import LogoSymbol from "./LogoSymbol";
 import { useTvNavigation } from "../hooks/useTvNavigation";
 
@@ -103,7 +103,11 @@ export default function Sidebar({
         <div className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-bold ${
           role === "student"
             ? "bg-indigo-950/60 border-indigo-900/70 text-indigo-200"
-            : "bg-pink-950/60 border-pink-900/70 text-pink-200"
+            : getTeacherRoleBadgeTone(currentUser?.role) === "admin"
+              ? "bg-violet-950/60 border-violet-900/70 text-violet-200"
+              : getTeacherRoleBadgeTone(currentUser?.role) === "researcher"
+                ? "bg-amber-950/60 border-amber-900/70 text-amber-200"
+                : "bg-pink-950/60 border-pink-900/70 text-pink-200"
         }`}>
           {role === "student" ? <User className="w-3.5 h-3.5" /> : <ShieldAlert className="w-3.5 h-3.5" />}
           <span>{getRoleLabel(currentUser?.role)}</span>
@@ -246,7 +250,7 @@ export default function Sidebar({
               }`}
             >
               <LayoutDashboard className="w-5 h-5 text-pink-400" />
-              {currentUser?.role === "ADMIN" ? "Espace Administrateur" : "Espace Professeur / Chercheur"}
+              {getTeacherSpaceTitle(currentUser?.role)}
             </button>
 
             <button

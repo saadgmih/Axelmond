@@ -8,6 +8,10 @@ import {
   getRedirectPathForRole,
   normalizeRole,
   getRoleLabel,
+  getTeacherLoginTabLabel,
+  getTeacherLoginSectorLabel,
+  getTeacherSpaceTitle,
+  getTeacherRoleBadgeTone,
 } from "../src/rbac.ts";
 
 assert.equal(normalizeRole("student"), "STUDENT");
@@ -95,5 +99,14 @@ assert.equal(getRoleLabel("STUDENT"), "Étudiant");
 assert.equal(getRoleLabel("PROFESSOR"), "Professeur");
 assert.equal(getRoleLabel("RESEARCHER"), "Chercheur");
 assert.equal(getRoleLabel("ADMIN"), "Administrateur");
+
+assert.equal(getTeacherLoginTabLabel(), "Espace Professeur / Chercheur / Admin");
+assert.equal(getTeacherLoginSectorLabel(), "Professeurs, Chercheurs & Administration");
+assert.equal(getTeacherSpaceTitle("ADMIN"), "Espace Administrateur");
+assert.equal(getTeacherSpaceTitle("RESEARCHER"), "Espace Chercheur");
+assert.equal(getTeacherSpaceTitle("PROFESSOR"), "Espace Professeur");
+assert.equal(getTeacherRoleBadgeTone("ADMIN"), "admin");
+assert.equal(getTeacherRoleBadgeTone("RESEARCHER"), "researcher");
+assert.equal(getTeacherRoleBadgeTone("PROFESSOR"), "professor");
 
 console.log("RBAC rules passed");

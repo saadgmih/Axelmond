@@ -60,6 +60,33 @@ export function getRoleLabel(role: unknown): string {
   return "Professeur";
 }
 
+/** Onglet de connexion — espace enseignant (professeur, chercheur, admin). */
+export function getTeacherLoginTabLabel(): string {
+  return "Espace Professeur / Chercheur / Admin";
+}
+
+/** Sous-titre du secteur enseignant sur l'écran de connexion. */
+export function getTeacherLoginSectorLabel(): string {
+  return "Professeurs, Chercheurs & Administration";
+}
+
+/** Titre de navigation sidebar selon le rôle connecté. */
+export function getTeacherSpaceTitle(role: unknown): string {
+  const normalized = normalizeRole(role);
+  if (normalized === "ADMIN") return "Espace Administrateur";
+  if (normalized === "RESEARCHER") return "Espace Chercheur";
+  return "Espace Professeur";
+}
+
+export type TeacherRoleBadgeTone = "professor" | "researcher" | "admin";
+
+export function getTeacherRoleBadgeTone(role: unknown): TeacherRoleBadgeTone {
+  const normalized = normalizeRole(role);
+  if (normalized === "ADMIN") return "admin";
+  if (normalized === "RESEARCHER") return "researcher";
+  return "professor";
+}
+
 export function getRedirectPathForRole(role: unknown, pathname: string): string | null {
   const normalized = normalizeRole(role);
   if (!normalized) return "/login";
