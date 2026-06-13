@@ -787,9 +787,7 @@ export default function App() {
             </>
           )}
 
-        </main>
-
-          {/* Global Footer — hors zone scrollable pour éviter de rester en bas après navigation */}
+          {/* Global Footer — scroll avec le contenu de la page */}
           {!hideGlobalFooter && (
           <footer className="shrink-0 border-t border-slate-800 bg-slate-950 py-10 px-4 sm:px-6 transition-colors">
             <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -841,6 +839,8 @@ export default function App() {
             </div>
           </footer>
           )}
+
+        </main>
       </div>
 
       {activeLiveCourse && <div ref={liveAudioContainerRef} className="hidden" aria-hidden="true"></div>}

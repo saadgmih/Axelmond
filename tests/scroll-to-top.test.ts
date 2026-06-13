@@ -15,6 +15,7 @@ assert.match(utilSource, /main-content/);
 assert.match(utilSource, /window\.scrollTo\(0,\s*0\)/);
 assert.match(navSource, /scrollAppToTopDeferred/);
 assert.match(appSource, /scrollAppToTopDeferred/);
-assert.doesNotMatch(appSource, /<footer[\s\S]*<\/main>/);
+assert.match(appSource, /Global Footer[\s\S]*<footer[\s\S]*<\/main>/);
+assert.doesNotMatch(appSource, /<\/main>[\s\S]*<footer/);
 
 console.log("ScrollToTop navigation tests passed");
