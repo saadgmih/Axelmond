@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, Suspense, lazy } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef, Suspense, lazy } from "react";
+import { useLocation } from "react-router-dom";
 import {
   Code,
   Database,
@@ -27,7 +28,7 @@ const PaymentModal = lazy(() => import("./components/PaymentModal"));
 import AuthScreen, { AppUser } from "./components/AuthScreen";
 import InstitutionalViewSwitch from "./views/InstitutionalViewSwitch";
 import { INSTITUTIONAL_VIEWS } from "./navigation/platformPaths";
-const TeacherWorkspace = lazy(() => import("./views/teacher/TeacherWorkspace"));
+import TeacherWorkspace from "./views/teacher/TeacherWorkspace";
 import TeacherDashboardView from "./views/teacher/TeacherDashboardView";
 import TeacherAcademicProfileView from "./views/teacher/TeacherAcademicProfileView";
 import TeacherCurriculumView from "./views/teacher/TeacherCurriculumView";
@@ -38,6 +39,7 @@ import NotificationsView from "./views/shared/NotificationsView";
 import { useNotifications } from "./hooks/useNotifications";
 import { usePushNotifications } from "./hooks/usePushNotifications";
 import { useMessagingSocket } from "./hooks/useMessagingSocket";
+import { scrollAppToTopDeferred } from "./utils/scroll-app-to-top";
 import type { AppNotification } from "./types/messaging";
 import StudentDashboardView from "./views/student/StudentDashboardView";
 import StudentCatalogView from "./views/student/StudentCatalogView";
@@ -263,6 +265,12 @@ export default function App() {
     setQuizScore,
     setQuizSubmitError,
   });
+
+  const location = useLocation();
+  useLayoutEffect(() => {
+    if (!currentUser) return;
+    scrollAppToTopDeferred();
+  }, [currentUser, location.pathname, location.key, currentView, teacherView]);
 
   const {
     notifications,
@@ -595,7 +603,6 @@ export default function App() {
 {INSTITUTIONAL_VIEWS.has(currentView) ? (
             <InstitutionalViewSwitch currentView={currentView} currentUser={currentUser} navigateTo={navigateTo} />
           ) : role === "teacher" ? (
-            <Suspense fallback={<div className="p-8 text-center text-slate-400">Chargement de l&apos;espace professeur…</div>}>
             <TeacherWorkspace immersive={isTeacherLiveRoom}>
               
               {teacherView === "dashboard" && (
@@ -661,7 +668,6 @@ export default function App() {
                 />
               )}
             </TeacherWorkspace>
-            </Suspense>
           ) : (
             <>
               {currentView === "dashboard" && (
@@ -779,9 +785,11 @@ export default function App() {
             </>
           )}
 
-          {/* Global Footer */}
+        </main>
+
+          {/* Global Footer — hors zone scrollable pour éviter de rester en bas après navigation */}
           {!hideGlobalFooter && (
-          <footer className="border-t border-slate-800 bg-slate-950 py-10 px-4 sm:px-6 mt-12 transition-colors">
+          <footer className="shrink-0 border-t border-slate-800 bg-slate-950 py-10 px-4 sm:px-6 transition-colors">
             <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-slate-100 font-extrabold text-sm">
@@ -831,8 +839,6 @@ export default function App() {
             </div>
           </footer>
           )}
-
-        </main>
       </div>
 
       {activeLiveCourse && <div ref={liveAudioContainerRef} className="hidden" aria-hidden="true"></div>}
