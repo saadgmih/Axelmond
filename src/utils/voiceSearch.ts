@@ -158,3 +158,17 @@ export function extractTranscript(event: SpeechRecognitionEvent): string {
   const alternative = fallback.item(0);
   return alternative?.transcript?.trim() ?? "";
 }
+
+/** Dernier segment reconnu — interim ou final — pour affichage immédiat. */
+export function extractLatestTranscript(event: SpeechRecognitionEvent): {
+  text: string;
+  isFinal: boolean;
+} {
+  const latest = event.results.item(event.results.length - 1);
+  if (!latest) return { text: "", isFinal: false };
+  const alternative = latest.item(0);
+  return {
+    text: alternative?.transcript?.trim() ?? "",
+    isFinal: latest.isFinal,
+  };
+}

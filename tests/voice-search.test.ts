@@ -8,6 +8,7 @@ import {
   VOICE_SEARCH_SERVICE_UNAVAILABLE_MSG,
   VOICE_SEARCH_UNSUPPORTED_MSG,
   extractTranscript,
+  extractLatestTranscript,
   mapSpeechRecognitionError,
 } from "../src/utils/voiceSearch.ts";
 
@@ -33,7 +34,7 @@ assert.match(hookSource, /logVoiceSearchError/);
 assert.match(hookSource, /queryMicrophonePermission/);
 assert.match(hookSource, /isVoiceSearchSecureContext/);
 assert.match(hookSource, /VOICE_SEARCH_MAX_LISTEN_MS/);
-assert.match(hookSource, /noSpeechRetryRef/);
+assert.match(hookSource, /extractLatestTranscript/);
 
 assert.match(topbarSource, /useVoiceSearch/);
 assert.match(topbarSource, /Mic/);
@@ -89,5 +90,28 @@ const mockEvent = {
 } as SpeechRecognitionEvent;
 
 assert.equal(extractTranscript(mockEvent), "programmation python");
+
+const interimEvent = {
+  results: {
+    length: 1,
+    item() {
+      return {
+        isFinal: false,
+        item() {
+          return { transcript: "  bonjour  ", confidence: 0.5 };
+        },
+      };
+    },
+  },
+} as SpeechRecognitionEvent;
+
+assert.deepEqual(extractLatestTranscript(interimEvent), {
+  text: "bonjour",
+  isFinal: false,
+});
+assert.deepEqual(extractLatestTranscript(mockEvent), {
+  text: "programmation python",
+  isFinal: true,
+});
 
 console.log("Voice search rules passed");

@@ -6,7 +6,7 @@ import {
   VOICE_SEARCH_NO_SPEECH_RETRY_MAX,
   VOICE_SEARCH_UNSUPPORTED_MSG,
   createSpeechRecognitionInstance,
-  extractTranscript,
+  extractLatestTranscript,
   getVoiceSearchDiagnostics,
   isLikelyBraveBrowser,
   isSpeechRecognitionSupported,
@@ -94,6 +94,7 @@ export function useVoiceSearch({ onTranscript }: UseVoiceSearchOptions) {
 
     const likelyBrave = isLikelyBraveBrowser();
     setError(null);
+    onTranscript("");
 
     const tryRestartAfterNoSpeech = (): boolean => {
       if (hasTranscriptRef.current || noSpeechRetryRef.current >= VOICE_SEARCH_NO_SPEECH_RETRY_MAX) {
@@ -140,17 +141,20 @@ export function useVoiceSearch({ onTranscript }: UseVoiceSearchOptions) {
       recognitionRef.current = null;
     };
     recognition.onresult = (event) => {
-      const transcript = extractTranscript(event);
-      if (!transcript) return;
-
-      const latestResult = event.results.item(event.results.length - 1);
-      if (latestResult && !latestResult.isFinal) return;
+      const { text, isFinal } = extractLatestTranscript(event);
+      if (!text) return;
 
       hasTranscriptRef.current = true;
-      console.info("[Voice Search] transcript", transcript);
-      onTranscript(transcript);
-      clearListenTimeout();
-      recognition.stop();
+      onTranscript(text);
+
+      if (isFinal) {
+        console.info("[Voice Search] transcript final", text);
+        clearListenTimeout();
+        recognition.stop();
+        return;
+      }
+
+      console.debug("[Voice Search] transcript interim", text);
     };
 
     recognitionRef.current = recognition;
