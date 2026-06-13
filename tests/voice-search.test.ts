@@ -20,8 +20,9 @@ const packageSource = fs.readFileSync("package.json", "utf8");
 assert.match(hookSource, /export function useVoiceSearch/);
 assert.match(utilsSource, /webkitSpeechRecognition/);
 assert.match(utilsSource, /createSpeechRecognitionInstance/);
-assert.match(utilsSource, /continuous = false/);
-assert.match(utilsSource, /interimResults = false/);
+assert.match(utilsSource, /continuous = true/);
+assert.match(utilsSource, /interimResults = true/);
+assert.match(utilsSource, /VOICE_SEARCH_MAX_LISTEN_MS = 12_000/);
 assert.match(utilsSource, /lang = "fr-FR"/);
 assert.match(utilsSource, /mapSpeechRecognitionError/);
 assert.match(utilsSource, /logVoiceSearchError/);
@@ -31,7 +32,8 @@ assert.match(utilsSource, /isVoiceSearchSecureContext/);
 assert.match(hookSource, /logVoiceSearchError/);
 assert.match(hookSource, /queryMicrophonePermission/);
 assert.match(hookSource, /isVoiceSearchSecureContext/);
-assert.match(hookSource, /\[Voice Search Error\]/);
+assert.match(hookSource, /VOICE_SEARCH_MAX_LISTEN_MS/);
+assert.match(hookSource, /noSpeechRetryRef/);
 
 assert.match(topbarSource, /useVoiceSearch/);
 assert.match(topbarSource, /Mic/);
@@ -75,6 +77,7 @@ const mockEvent = {
     item(index: number) {
       if (index !== 0) return undefined;
       return {
+        isFinal: true,
         item(altIndex: number) {
           if (altIndex !== 0) return undefined;
           return { transcript: "  programmation python  ", confidence: 0.9 };

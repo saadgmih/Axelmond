@@ -23,6 +23,12 @@ export const VOICE_SEARCH_AUDIO_CAPTURE_MSG =
 export const VOICE_SEARCH_GENERIC_ERROR_MSG =
   "La recherche vocale est momentanément indisponible. Réessayez.";
 
+/** Durée max d'écoute avant arrêt automatique (Chrome coupe souvent vers 5–7 s sans réglage). */
+export const VOICE_SEARCH_MAX_LISTEN_MS = 12_000;
+
+/** Nombre de relances après une erreur no-speech sans transcript capturé. */
+export const VOICE_SEARCH_NO_SPEECH_RETRY_MAX = 1;
+
 /** @deprecated use VOICE_SEARCH_MICROPHONE_DENIED_MSG */
 export const VOICE_SEARCH_PERMISSION_DENIED_MSG = VOICE_SEARCH_MICROPHONE_DENIED_MSG;
 
@@ -93,8 +99,8 @@ export function createSpeechRecognitionInstance(): SpeechRecognition | null {
   if (!Ctor) return null;
   const recognition = new Ctor();
   recognition.lang = "fr-FR";
-  recognition.continuous = false;
-  recognition.interimResults = false;
+  recognition.continuous = true;
+  recognition.interimResults = true;
   recognition.maxAlternatives = 1;
   return recognition;
 }
@@ -138,8 +144,17 @@ export function logVoiceSearchError(
 }
 
 export function extractTranscript(event: SpeechRecognitionEvent): string {
-  const result = event.results.item(0);
-  if (!result) return "";
-  const alternative = result.item(0);
+  const results = event.results;
+  for (let index = results.length - 1; index >= 0; index -= 1) {
+    const result = results.item(index);
+    if (!result?.isFinal) continue;
+    const alternative = result.item(0);
+    const text = alternative?.transcript?.trim();
+    if (text) return text;
+  }
+
+  const fallback = results.item(results.length - 1);
+  if (!fallback) return "";
+  const alternative = fallback.item(0);
   return alternative?.transcript?.trim() ?? "";
 }
