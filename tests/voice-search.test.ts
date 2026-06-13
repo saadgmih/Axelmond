@@ -74,6 +74,7 @@ assert.equal(
 
 const mockEvent = {
   results: {
+    length: 1,
     item(index: number) {
       if (index !== 0) return undefined;
       return {
