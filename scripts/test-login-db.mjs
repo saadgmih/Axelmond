@@ -22,7 +22,7 @@ await testSchema("schema=AxelmondResearchLab", "AxelmondResearchLab", "AxelmondR
 await testSchema("schema=unicode (old URL)", "unicode", "unicode");
 
 try {
-  const res = await fetch("https://uroahumain.com/api/health");
+  const res = await fetch("https://axelmond.com/api/health");
   const body = await res.json();
   console.log("Production health:", res.status, JSON.stringify(body));
 } catch (err) {

@@ -48,7 +48,7 @@ async function mapWithConcurrency<T, R>(
 export function configureWebPush() {
   const publicKey = process.env.VAPID_PUBLIC_KEY?.trim();
   const privateKey = process.env.VAPID_PRIVATE_KEY?.trim();
-  const subject = process.env.VAPID_SUBJECT?.trim() || "mailto:support@uroahumain.com";
+  const subject = process.env.VAPID_SUBJECT?.trim() || "mailto:support@axelmond.com";
   if (!publicKey || !privateKey) {
     if (process.env.NODE_ENV === "production") {
       console.warn("[push] VAPID keys missing — browser push delivery disabled");

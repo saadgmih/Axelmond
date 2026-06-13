@@ -8,7 +8,7 @@ import { prisma } from "../src/db.ts";
 
 dotenv.config();
 
-const email = (process.argv[2] || process.env.ADMIN_BOOTSTRAP_EMAIL || "admin@uroahumain.com").trim().toLowerCase();
+const email = (process.argv[2] || process.env.ADMIN_BOOTSTRAP_EMAIL || "admin@axelmond.com").trim().toLowerCase();
 const password = process.argv[3] || process.env.ADMIN_BOOTSTRAP_PASSWORD || "Axelmond@Admin2026!";
 const fullName = process.argv[4] || process.env.ADMIN_BOOTSTRAP_NAME || "Administrateur Axelmond";
 

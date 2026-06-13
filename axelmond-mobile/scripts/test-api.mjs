@@ -4,7 +4,7 @@
  * Optional env: TEST_EMAIL, TEST_PASSWORD, API_BASE_URL
  */
 
-const API_BASE_URL = (process.env.API_BASE_URL || "https://www.uroahumain.com").replace(/\/$/, "");
+const API_BASE_URL = (process.env.API_BASE_URL || "https://axelmond.com").replace(/\/$/, "");
 const MOBILE_HEADERS = {
   "Content-Type": "application/json",
   "X-Axelmond-Client": "mobile",

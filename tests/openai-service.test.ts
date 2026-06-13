@@ -9,6 +9,7 @@ import {
   getOpenAIModelName,
   initializeOpenAIService,
   isOpenAIConfigured,
+  shouldUseLocalChatTutorFallback,
 } from "../src/openai-service.ts";
 
 const previousOpenAIKey = process.env.OPENAI_API_KEY;
@@ -41,6 +42,18 @@ assert.match(serverSource, /openai-service/);
 assert.match(serverSource, /generateChatTutorResponse/);
 
 assert.equal(new ChatTutorServiceError("test", "TIMEOUT", 504).statusCode, 504);
+assert.equal(
+  shouldUseLocalChatTutorFallback(new ChatTutorServiceError("quota", "QUOTA_EXCEEDED", 503)),
+  true,
+);
+assert.equal(
+  shouldUseLocalChatTutorFallback(new ChatTutorServiceError("auth", "AUTH_ERROR", 503)),
+  true,
+);
+
+const openaiServiceSource = fs.readFileSync("src/openai-service.ts", "utf8");
+assert.match(openaiServiceSource, /insufficient_quota/);
+assert.match(openaiServiceSource, /OPENAI_FALLBACK_NOTICE/);
 
 if (previousOpenAIKey !== undefined) {
   process.env.OPENAI_API_KEY = previousOpenAIKey;

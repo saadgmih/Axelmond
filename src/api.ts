@@ -415,6 +415,12 @@ export const api = {
   markAllNotificationsRead: () => request<any>("POST", "/api/notifications/read-all"),
   subscribePushNotifications: (data: { endpoint: string; keys: { p256dh: string; auth: string } }) =>
     request<any>("POST", "/api/notifications/push-subscribe", data),
+  chatTutor: (data: {
+    courseId: number;
+    moduleId?: number;
+    prompt: string;
+    chatHistory?: Array<{ role: "user" | "model" | "assistant"; text: string }>;
+  }) => request<{ text: string }>("POST", "/api/chat-tutor", data),
 };
 
 export function setSessionToken(token: string | undefined, csrfToken?: string) {

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useId } from "react";
 import { Send, Sparkles, Brain, GraduationCap, ArrowRight, RefreshCw, X } from "lucide-react";
-import { fetchWithAuth } from "../api";
+import { api } from "../api";
 
 interface ChatMessage {
   role: "user" | "model";
@@ -70,27 +70,15 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
         requestBody.moduleId = moduleId;
       }
 
-      const response = await fetchWithAuth("/api/chat-tutor", "POST", requestBody);
-
-      if (response.status === 403) {
-        const payload = await response.json().catch(() => ({}));
-        throw new Error(
-          payload?.error || "Accès refusé : vous devez être inscrit à ce module pour utiliser l'assistant IA.",
-        );
-      }
-
-      if (!response.ok) {
-        throw new Error("L'assistant a rencontré une latence réseau.");
-      }
-
-      const data = await response.json();
+      const data = await api.chatTutor(requestBody);
       setMessages((prev) => [...prev, { role: "model", text: data.text }]);
     } catch (err: any) {
+      const message = err?.message || err?.error || "Erreur de connexion";
       setMessages((prev) => [
         ...prev,
         {
           role: "model",
-          text: `Désolé, j'ai rencontré un problème pour me connecter aux services d'Axelmond Research Labs : ${err.message || "Erreur de connexion"}. Veuillez réessayer.`
+          text: `Désolé, j'ai rencontré un problème pour me connecter aux services d'Axelmond Research Labs : ${message}. Veuillez réessayer.`
         }
       ]);
     } finally {

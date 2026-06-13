@@ -11,7 +11,14 @@ export type ChatTutorHistoryMessage = {
 };
 
 export class ChatTutorServiceError extends Error {
-  readonly code: "NOT_CONFIGURED" | "TIMEOUT" | "RATE_LIMIT" | "API_ERROR" | "EMPTY_RESPONSE";
+  readonly code:
+    | "NOT_CONFIGURED"
+    | "TIMEOUT"
+    | "RATE_LIMIT"
+    | "QUOTA_EXCEEDED"
+    | "AUTH_ERROR"
+    | "API_ERROR"
+    | "EMPTY_RESPONSE";
   readonly statusCode: number;
   readonly cause?: unknown;
 
@@ -63,6 +70,14 @@ Si l'étudiant pose une question de programmation, donne des exemples de code st
 Reste bienveillant, universitaire et s'il s'agit d'un exemple pratique, aide l'étudiant à comprendre la logique étape par étape.
 Réponds dans la langue utilisée par l'étudiant (français, arabe ou anglais). Si la langue n'est pas claire, réponds en français.
 Pour les réponses longues, structure-les avec des titres, listes et exemples clairs.`;
+}
+
+export const OPENAI_FALLBACK_NOTICE =
+  "\n\n---\n*Service IA cloud momentanément indisponible — réponse pédagogique locale Axelmond.*";
+
+export function shouldUseLocalChatTutorFallback(err: unknown): boolean {
+  if (!(err instanceof ChatTutorServiceError)) return false;
+  return ["API_ERROR", "RATE_LIMIT", "TIMEOUT", "QUOTA_EXCEEDED", "AUTH_ERROR", "EMPTY_RESPONSE"].includes(err.code);
 }
 
 export function getLocalChatTutorFallback(prompt: string, courseName: string, moduleName: string): string {
@@ -120,12 +135,39 @@ function mapOpenAIError(err: unknown, model: string): ChatTutorServiceError {
     );
   }
 
+  if (
+    status === 429
+    && (errorCode === "insufficient_quota" || /insufficient_quota|exceeded your current quota/i.test(message))
+  ) {
+    logSecurity("ERROR", "OpenAI chat-tutor quota exceeded", { model });
+    return new ChatTutorServiceError(
+      "Quota OpenAI épuisé. Vérifiez la facturation du compte OpenAI.",
+      "QUOTA_EXCEEDED",
+      503,
+      err,
+    );
+  }
+
   if (status === 429 || errorCode === "rate_limit_exceeded") {
     logSecurity("WARN", "OpenAI chat-tutor rate limit", { model });
     return new ChatTutorServiceError(
       "L'assistant est temporairement surchargé. Réessayez dans quelques instants.",
       "RATE_LIMIT",
       429,
+      err,
+    );
+  }
+
+  if (
+    status === 401
+    || errorCode === "invalid_api_key"
+    || /invalid api key|incorrect api key/i.test(message)
+  ) {
+    logSecurity("ERROR", "OpenAI chat-tutor auth error", { model, status, code: errorCode });
+    return new ChatTutorServiceError(
+      "Clé OpenAI invalide ou expirée.",
+      "AUTH_ERROR",
+      503,
       err,
     );
   }
@@ -175,8 +217,15 @@ export async function generateChatTutorResponse(options: {
 
     return text;
   } catch (err) {
-    if (err instanceof ChatTutorServiceError) throw err;
-    throw mapOpenAIError(err, model);
+    const mapped = err instanceof ChatTutorServiceError ? err : mapOpenAIError(err, model);
+    if (shouldUseLocalChatTutorFallback(mapped)) {
+      logSecurity("WARN", "OpenAI chat-tutor degraded to local fallback", {
+        model,
+        code: mapped.code,
+      });
+      return `${getLocalChatTutorFallback(prompt, courseName, moduleName)}${OPENAI_FALLBACK_NOTICE}`;
+    }
+    throw mapped;
   }
 }
 

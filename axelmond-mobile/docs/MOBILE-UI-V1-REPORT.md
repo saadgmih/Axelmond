@@ -2,7 +2,7 @@
 
 Date : 11 juin 2026  
 Projet : `axelmond-mobile`  
-Backend cible : `https://www.uroahumain.com/api`  
+Backend cible : `https://axelmond.com/api`  
 Stack : Expo 56 · React Native 0.85 · React Navigation 7
 
 ---
@@ -15,7 +15,7 @@ Stack : Expo 56 · React Native 0.85 · React Navigation 7
 | Flux UI étudiant + enseignant (Expo Web, API locale) | **OK** | Navigation, login, catalogue, détail, profils, logout |
 | JWT persistance (SecureStore / localStorage web) | **OK** | Session restaurée après rechargement |
 | Refresh token | **OK** | `POST /api/auth/refresh` validé (API) |
-| Expo Go + comptes réels sur **production** | **BLOQUÉ** | Patch mobile non déployé sur `uroahumain.com` |
+| Expo Go + comptes réels sur **production** | **BLOQUÉ** | Patch mobile non déployé sur `axelmond.com` |
 | Device physique Android/iPhone | **À confirmer par l'utilisateur** | Voir instructions Expo Go ci-dessous |
 
 **Commit / push non effectués** : la validation Expo Go avec l’API production par défaut n’est pas encore possible tant que le patch backend mobile n’est pas déployé.
@@ -146,7 +146,7 @@ npm start                   # Expo Metro sur :8081
 
 - Rechargement Expo Web après login : retour direct sur dashboard étudiant avec token conservé
 
-### Production (`https://www.uroahumain.com`)
+### Production (`https://axelmond.com`)
 
 - `GET /api/health` : OK
 - `GET /api/mobile/routes` : renvoie du HTML SPA (patch non déployé)
@@ -158,7 +158,7 @@ npm start                   # Expo Metro sur :8081
 
 ### Option A — Production (après déploiement du patch mobile)
 
-1. Déployer sur `uroahumain.com` le commit `bc1092b` + correctif CORS preflight (`server.ts`)
+1. Déployer sur `axelmond.com` le commit `bc1092b` + correctif CORS preflight (`server.ts`)
 2. Retirer `.env.local` ou ne pas définir `EXPO_PUBLIC_API_BASE_URL`
 3. `cd axelmond-mobile && npm start`
 4. Scanner le QR avec Expo Go
