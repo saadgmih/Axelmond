@@ -2,7 +2,6 @@ export const INSTITUTIONAL_VIEWS = new Set([
   "about",
   "contact",
   "support",
-  "report-problem",
   "research",
   "publications",
   "privacy",

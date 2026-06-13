@@ -1,6 +1,5 @@
 import ContactView from "../components/ContactView";
 import SupportView from "../components/SupportView";
-import ReportProblemView from "../components/ReportProblemView";
 import AboutView from "../components/AboutView";
 import PrivacyView from "../components/PrivacyView";
 import TermsView from "../components/TermsView";
@@ -22,7 +21,6 @@ interface InstitutionalViewSwitchProps {
 export default function InstitutionalViewSwitch({ currentView, currentUser, navigateTo }: InstitutionalViewSwitchProps) {
   if (currentView === "contact") return <ContactView currentUser={currentUser} navigateTo={navigateTo} />;
   if (currentView === "support") return <SupportView navigateTo={navigateTo} />;
-  if (currentView === "report-problem") return <ReportProblemView navigateTo={navigateTo} />;
   if (currentView === "about") return <AboutView />;
   if (currentView === "privacy") return <PrivacyView />;
   if (currentView === "terms") return <TermsView />;

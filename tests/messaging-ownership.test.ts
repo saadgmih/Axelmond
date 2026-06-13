@@ -46,9 +46,11 @@ assert.match(appSource, /NotificationsView/);
 assert.match(sidebarSource, /Messagerie/);
 assert.match(platformPathsSource, /"messages"/);
 assert.match(platformPathsSource, /"notifications"/);
-assert.match(platformPathsSource, /"report-problem"/);
-assert.match(institutionalSwitchSource, /ReportProblemView/);
 assert.match(institutionalSwitchSource, /SupportView navigateTo/);
-assert.match(appSource, /navigateTo\("report-problem"\)/);
+assert.match(appSource, /scrollToSupportReportForm/);
+assert.match(appSource, /\/support#report/);
+assert.doesNotMatch(platformPathsSource, /"report-problem"/);
+assert.doesNotMatch(institutionalSwitchSource, /ReportProblemView/);
+assert.doesNotMatch(appSource, /navigateTo\("report-problem"\)/);
 
 console.log("Messaging ownership and wiring tests passed");

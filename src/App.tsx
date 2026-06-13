@@ -40,6 +40,7 @@ import { useNotifications } from "./hooks/useNotifications";
 import { usePushNotifications } from "./hooks/usePushNotifications";
 import { useMessagingSocket } from "./hooks/useMessagingSocket";
 import { scrollAppToTopDeferred } from "./utils/scroll-app-to-top";
+import { scrollToSupportReportForm } from "./components/SupportView";
 import type { AppNotification } from "./types/messaging";
 import StudentDashboardView from "./views/student/StudentDashboardView";
 import StudentCatalogView from "./views/student/StudentCatalogView";
@@ -819,7 +820,22 @@ export default function App() {
                 <div className="space-y-2 text-xs text-slate-400">
                   <button type="button" aria-label="Aller au centre d'aide" onClick={() => navigateTo("support")} className="kbd-nav-focus block hover:text-white">Centre d'aide</button>
                   <button type="button" aria-label="Aller à la page contact" onClick={() => navigateTo("contact")} className="kbd-nav-focus block hover:text-white">Contact</button>
-                  <button type="button" aria-label="Signaler un problème" onClick={() => navigateTo("report-problem")} className="kbd-nav-focus block hover:text-white">Signaler un problème</button>
+                  <button
+                    type="button"
+                    aria-label="Signaler un problème"
+                    onClick={() => {
+                      if (currentView !== "support") {
+                        navigateTo("support");
+                        window.history.replaceState(null, "", "/support#report");
+                      } else {
+                        window.history.replaceState(null, "", "/support#report");
+                        scrollToSupportReportForm();
+                      }
+                    }}
+                    className="kbd-nav-focus block hover:text-white"
+                  >
+                    Signaler un problème
+                  </button>
                   <button type="button" aria-label="Aller à la page à propos" onClick={() => navigateTo("about")} className="kbd-nav-focus block hover:text-white">À propos</button>
                 </div>
               </div>
