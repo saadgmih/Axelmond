@@ -330,8 +330,7 @@ export default function StudentDashboardView({
                 ? currentUser.levelOrTitle
                 : "Licence 3 d'Informatique"}
             </strong>{" "}
-            d'Axelmond Research Labs. Poursuivez vos modules interactifs de
-            programmation, SQL, architecture d'OS, ou conversez avec votre
+            d'Axelmond Research Labs. Poursuivez vos modules interactifs, ou conversez avec votre
             tuteur IA.
           </p>
 
