@@ -1,7 +1,8 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { api } from "../api";
 import type { AppUser } from "../components/AuthScreen";
 import type { AcademicProfilePayload } from "../types";
+import { useAsyncEffectGuard } from "./useAsyncEffectGuard";
 
 export interface UseAcademicProfileOptions {
   role: string;
@@ -36,6 +37,7 @@ export function useAcademicProfile({
   const [academicProfileStatusMsg, setAcademicProfileStatusMsg] = useState("");
   const [academicProfileErrorMsg, setAcademicProfileErrorMsg] = useState("");
   const [academicPasswordForm, setAcademicPasswordForm] = useState({ currentPassword: "", newPassword: "" });
+  const { startRequest } = useAsyncEffectGuard();
 
   const hydrateAcademicProfileForm = (payload: AcademicProfilePayload) => {
     const profile = payload.profile;
@@ -58,31 +60,33 @@ export function useAcademicProfile({
   const parseAcademicDomains = (value: string) =>
     value.split(/[,\n]/).map((item) => item.trim()).filter(Boolean);
 
-  const refreshAcademicProfile = async () => {
+  const refreshAcademicProfile = useCallback(async () => {
     if (role !== "teacher") return;
+    const request = startRequest();
     setAcademicProfileStatusMsg("Chargement du profil académique...");
     setAcademicProfileErrorMsg("");
     try {
       const payload = await api.getAcademicProfile();
+      if (!request.isActive()) return;
       setAcademicProfileData(payload);
       hydrateAcademicProfileForm(payload);
       setAcademicProfileStatusMsg("");
     } catch (err: any) {
+      if (!request.isActive()) return;
       setAcademicProfileData(null);
       setAcademicProfileErrorMsg(err.message || "Profil académique indisponible.");
       setAcademicProfileStatusMsg("");
     }
-  };
+  }, [role, startRequest]);
 
   useEffect(() => {
-    if (role === "teacher" && teacherView === "academic-profile") {
-      refreshAcademicProfile();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [role, teacherView, currentUser?.id]);
+    if (role !== "teacher" || teacherView !== "academic-profile") return;
+    void refreshAcademicProfile();
+  }, [role, teacherView, currentUser?.id, refreshAcademicProfile]);
 
   const handleUpdateAcademicProfile = async (e: FormEvent) => {
     e.preventDefault();
+    const request = startRequest();
     setAcademicProfileStatusMsg("Enregistrement du profil académique...");
     setAcademicProfileErrorMsg("");
     try {
@@ -102,10 +106,12 @@ export function useAcademicProfile({
           website: academicProfileForm.website,
         },
       });
+      if (!request.isActive()) return;
       setAcademicProfileData(payload);
       hydrateAcademicProfileForm(payload);
       setAcademicProfileStatusMsg(payload.message || "Profil académique mis à jour.");
     } catch (err: any) {
+      if (!request.isActive()) return;
       setAcademicProfileErrorMsg(err.message || "Mise à jour du profil impossible.");
       setAcademicProfileStatusMsg("");
     }
@@ -117,15 +123,18 @@ export function useAcademicProfile({
       setAcademicProfileErrorMsg("URL de photo requise.");
       return;
     }
+    const request = startRequest();
     setAcademicProfileStatusMsg("Mise à jour de la photo...");
     setAcademicProfileErrorMsg("");
     try {
       const payload = await api.updateAcademicAvatar(academicProfileForm.avatarUrl.trim());
+      if (!request.isActive()) return;
       setAcademicProfileData(payload);
       hydrateAcademicProfileForm(payload);
       if (currentUser) updateSessionUser({ ...currentUser, avatarUrl: academicProfileForm.avatarUrl.trim() });
       setAcademicProfileStatusMsg(payload.message || "Photo de profil mise à jour.");
     } catch (err: any) {
+      if (!request.isActive()) return;
       setAcademicProfileErrorMsg(err.message || "Mise à jour de la photo impossible.");
       setAcademicProfileStatusMsg("");
     }
@@ -133,13 +142,16 @@ export function useAcademicProfile({
 
   const handleChangeAcademicPassword = async (e: FormEvent) => {
     e.preventDefault();
+    const request = startRequest();
     setAcademicProfileStatusMsg("Mise à jour du mot de passe...");
     setAcademicProfileErrorMsg("");
     try {
       const payload = await api.changeAcademicPassword(academicPasswordForm.currentPassword, academicPasswordForm.newPassword);
+      if (!request.isActive()) return;
       setAcademicPasswordForm({ currentPassword: "", newPassword: "" });
       setAcademicProfileStatusMsg(payload.message || "Mot de passe mis à jour.");
     } catch (err: any) {
+      if (!request.isActive()) return;
       setAcademicProfileErrorMsg(err.message || "Changement de mot de passe impossible.");
       setAcademicProfileStatusMsg("");
     }

@@ -13,6 +13,7 @@ import { useTeacherCurriculum } from "../hooks/useTeacherCurriculum";
 import { useAppSession } from "../hooks/useAppSession";
 import { usePlatformNavigation } from "../hooks/usePlatformNavigation";
 import { useAcademicProfile } from "../hooks/useAcademicProfile";
+import { useAsyncEffectGuard } from "../hooks/useAsyncEffectGuard";
 import { useTeacherDashboard } from "../hooks/useTeacherDashboard";
 import { useStudentCourseSession } from "../hooks/useStudentCourseSession";
 import { isStudentRole } from "../rbac";
@@ -68,15 +69,23 @@ export function usePlatformApp() {
   });
 
   // Fetch courses from API on mount
+  const { startRequest: startCatalogRequest } = useAsyncEffectGuard();
+
   useEffect(() => {
+    const request = startCatalogRequest();
     Promise.all([api.getCourses(), api.getDomains()])
       .then(([courseData, domainData]) => {
+        if (!request.isActive()) return;
         setCourses(courseData);
         setDomains(domainData);
         setIsLoading(false);
       })
-      .catch((err) => { console.error("Failed to fetch academic catalog:", err); setIsLoading(false); });
-  }, []);
+      .catch((err) => {
+        if (!request.isActive()) return;
+        console.error("Failed to fetch academic catalog:", err);
+        setIsLoading(false);
+      });
+  }, [startCatalogRequest]);
 
   useEffect(() => {
     document.documentElement.classList.add("dark");

@@ -4,6 +4,8 @@ import { api, getFreshSessionToken } from "../api";
 import type { AppUser } from "../components/AuthScreen";
 import type { Course, ContentSection, FacultyDomain, LessonContent } from "../types";
 import { flattenSections } from "./useCourseContent";
+import { useAsyncEffectGuard, type AsyncRequestToken } from "./useAsyncEffectGuard";
+import { useAutoClearTimeout } from "./useAutoClearTimeout";
 
 type Discipline = FacultyDomain["disciplines"][number];
 
@@ -88,23 +90,28 @@ export function useTeacherCurriculum({
   const [quizManagerMsg, setQuizManagerMsg] = useState("");
   const [quizManagerError, setQuizManagerError] = useState("");
 
+  const { startRequest } = useAsyncEffectGuard();
+  const scheduleClear = useAutoClearTimeout();
+
   const showCurriculumSuccess = useCallback((message: string) => {
     setCurriculumErrorMsg("");
     setCurriculumSuccessMsg(message);
-    setTimeout(() => setCurriculumSuccessMsg(""), 6500);
-  }, []);
+    scheduleClear(() => setCurriculumSuccessMsg(""), 6500);
+  }, [scheduleClear]);
 
   const showCurriculumError = useCallback((message: string) => {
     setCurriculumSuccessMsg("");
     setCurriculumErrorMsg(message);
-    setTimeout(() => setCurriculumErrorMsg(""), 8500);
-  }, []);
+    scheduleClear(() => setCurriculumErrorMsg(""), 8500);
+  }, [scheduleClear]);
 
-  const loadTeacherQuizzes = useCallback(async (courseId?: number) => {
+  const loadTeacherQuizzes = useCallback(async (courseId?: number, request?: AsyncRequestToken) => {
+    const active = request ?? startRequest();
     const targetCourseId = courseId ?? quizCourseId;
     if (!targetCourseId) return;
     try {
       const quizList = await api.getCourseQuizzes(targetCourseId);
+      if (!active.isActive()) return;
       setTeacherQuizzes(quizList);
       if (quizList.length > 0 && !quizList.some((q: any) => q.id === selectedQuizId)) {
         setSelectedQuizId(quizList[0].id);
@@ -112,10 +119,11 @@ export function useTeacherCurriculum({
         setSelectedQuizId("");
       }
     } catch (err: any) {
+      if (!active.isActive()) return;
       console.error("Failed to load quizzes:", err);
       setTeacherQuizzes([]);
     }
-  }, [selectedQuizId, quizCourseId]);
+  }, [selectedQuizId, quizCourseId, startRequest]);
 
   useEffect(() => {
     if (allDisciplines.length > 0 && !allDisciplines.some((discipline) => discipline.id === newCourseDisciplineId)) {
@@ -140,10 +148,10 @@ export function useTeacherCurriculum({
   }, [role, managedCourseIds, newSectionCourseId, managedCourses, setCourseContentSections]);
 
   useEffect(() => {
-    if (role === "teacher" && activeCurriculumStep === 5 && quizCourseId) {
-      loadTeacherQuizzes(quizCourseId);
-    }
-  }, [role, activeCurriculumStep, quizCourseId, loadTeacherQuizzes]);
+    if (role !== "teacher" || activeCurriculumStep !== 5 || !quizCourseId) return;
+    const request = startRequest();
+    void loadTeacherQuizzes(quizCourseId, request);
+  }, [role, activeCurriculumStep, quizCourseId, loadTeacherQuizzes, startRequest]);
 
   useEffect(() => {
     if (!currentUser || role === "student") return;
@@ -151,7 +159,9 @@ export function useTeacherCurriculum({
       setCourseContentSections([]);
       return;
     }
-    refreshCourseContent(newSectionCourseId).then((sections) => {
+    const request = startRequest();
+    void refreshCourseContent(newSectionCourseId).then((sections) => {
+      if (!request.isActive()) return;
       const flat = flattenSectionsFn(sections);
       if (!flat.some((section) => section.id === newSectionParentId)) setNewSectionParentId("");
       if (uploadCourseId === newSectionCourseId && !flat.some((section) => section.id === uploadSectionId)) {
@@ -170,6 +180,7 @@ export function useTeacherCurriculum({
     uploadCourseId,
     uploadSectionId,
     newSectionParentId,
+    startRequest,
   ]);
 
   const handleCreateCourse = async (e: FormEvent) => {
@@ -304,7 +315,7 @@ export function useTeacherCurriculum({
       await loadTeacherQuizzes(quizCourseId);
       setSelectedQuizId(quiz.id);
       setQuizManagerMsg(`Quiz créé : "${quiz.title}"`);
-      setTimeout(() => setQuizManagerMsg(""), 5000);
+      scheduleClear(() => setQuizManagerMsg(""), 5000);
     } catch (err: any) {
       setQuizManagerError(err.message || "Création du quiz impossible.");
     }
@@ -339,7 +350,7 @@ export function useTeacherCurriculum({
       setNewQuestionExplanation("");
       await loadTeacherQuizzes(quizCourseId);
       setQuizManagerMsg("Question ajoutée avec succès.");
-      setTimeout(() => setQuizManagerMsg(""), 4000);
+      scheduleClear(() => setQuizManagerMsg(""), 4000);
     } catch (err: any) {
       setQuizManagerError(err.message || "Ajout de la question impossible.");
     }
@@ -351,7 +362,7 @@ export function useTeacherCurriculum({
       await api.deleteQuizQuestion(questionId);
       await loadTeacherQuizzes(quizCourseId);
       setQuizManagerMsg("Question supprimée.");
-      setTimeout(() => setQuizManagerMsg(""), 3000);
+      scheduleClear(() => setQuizManagerMsg(""), 3000);
     } catch (err: any) {
       setQuizManagerError(err.message || "Suppression impossible.");
     }
