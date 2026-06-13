@@ -11,7 +11,7 @@ assert.match(classroomSource, /LiveMediaControl/);
 assert.match(mediaControlSource, /border-emerald-500\/40 bg-emerald-500\/10/);
 assert.match(classroomSource, /LiveConnectionNotice/);
 assert.match(classroomSource, /useLiveConnectionNotice/);
-assert.match(readFileSync("src/components/live/LiveReactionBar.tsx", "utf8"), /aria-expanded=\{open\}/);
+assert.match(readFileSync("src/components/live/LiveReactionBar.tsx", "utf8"), /createPortal/);
 assert.match(classroomSource, /LiveWhiteboardPanel/);
 assert.match(classroomSource, /live-sidebar/);
 assert.doesNotMatch(classroomSource, /Panneau interactif/);
