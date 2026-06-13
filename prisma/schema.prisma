@@ -118,6 +118,7 @@ model EmailVerificationCode {
   user      User      @relation(fields: [userId], references: [id])
 
   @@index([userId, createdAt])
+  @@index([userId, usedAt, createdAt])
   @@index([userId, purpose, usedAt, createdAt])
   @@schema("AxelmondResearchLab")
 }
@@ -424,7 +425,7 @@ model LiveMessage {
   session   LiveSession? @relation(fields: [sessionId], references: [id])
   user      User?        @relation(fields: [userId], references: [id])
 
-  @@index([roomName])
+  @@index([roomName, createdAt])
   @@index([sessionId])
   @@index([userId])
   @@schema("AxelmondResearchLab")
@@ -447,6 +448,7 @@ model LiveAttendance {
   session            LiveSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   user               User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
 
+  @@index([sessionId, userId, leftAt])
   @@index([sessionId])
   @@index([roomName])
   @@index([userId])
