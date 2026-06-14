@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { readApiRouteSources } from "./helpers/api-route-sources.ts";
-import { matchAppRoute, matchChainedCall } from "./helpers/source-patterns.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("academic-level-removal", () => {

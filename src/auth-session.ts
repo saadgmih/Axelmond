@@ -1,5 +1,4 @@
 import type { Request, Response } from "express";
-import type { AppUser } from "./server/route-types";
 import type { prisma } from "./db";
 import type { createRefreshToken, signAuthToken } from "./auth-token";
 import type { setAuthCookies } from "./auth-cookies";

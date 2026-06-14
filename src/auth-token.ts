@@ -35,7 +35,7 @@ export function verifyAuthToken(token: string | undefined, secret = getAuthToken
     const role = normalizeRole(decoded.role);
     if (!decoded.userId || !role) return null;
     return { userId: String(decoded.userId), role };
-  } catch (err) {
+  } catch (_err) {
     return null;
   }
 }

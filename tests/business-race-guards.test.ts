@@ -3,7 +3,7 @@ import { readApiRouteSources } from "./helpers/api-route-sources.ts";
 import fs from "node:fs";
 import { buildDirectConversationKey, findDirectConversationId } from "../src/direct-conversations.ts";
 import { mergeUserInvoices, serializeInvoiceRecord } from "../src/course-payments.ts";
-import { ProfessorInviteConsumeError, reserveProfessorInviteCode } from "../src/professor-invite-consume.ts";
+import { ProfessorInviteConsumeError } from "../src/professor-invite-consume.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("business-race-guards", () => {

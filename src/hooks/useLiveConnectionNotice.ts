@@ -7,7 +7,6 @@ import {
   buildConnectionChangeNotice,
   buildManualQualityNotice,
   getAutoDefaultQuality,
-  normalizeConnectionQuality,
   suggestAdaptiveQualityChange,
   type LiveConnectionLevel,
 } from "../live/live-connection-notice";

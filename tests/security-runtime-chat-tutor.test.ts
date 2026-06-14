@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import {
   authedFetch,
   DEFAULT_SECURITY_RUNTIME_PORT,
-  isSecurityRuntimeDatabaseAvailable,
   loginViaHttp,
   startSecurityRuntimeServer,
   stopSecurityRuntimeServer,

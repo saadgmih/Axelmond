@@ -1,6 +1,5 @@
 import { generateSync, generateSecret, generateURI, verifySync } from "otplib";
 import QRCode from "qrcode";
-import type { Prisma } from "@prisma/client";
 import { prisma } from "./db";
 import {
   decryptMfaSecret,

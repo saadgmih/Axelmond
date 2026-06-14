@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { readCurriculumViewSources } from "./helpers/live-classroom-sources.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 

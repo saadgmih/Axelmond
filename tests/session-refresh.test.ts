@@ -10,7 +10,7 @@ rulesTest("session-refresh", () => {
   const appSource = readAppSources();
   const appSessionSource = readFileSync("src/hooks/useAppSession.ts", "utf8");
   const sessionSource = appSource + appSessionSource;
-  const bootstrapSource = readServerBootstrapSources();
+  const _bootstrapSource = readServerBootstrapSources();
   const serverSource = readApiRouteSources();
 
   assert.match(apiSource, /refreshSessionToken/);

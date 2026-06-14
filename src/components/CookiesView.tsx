@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 import { useInView } from "../hooks/useInView";
 import {
   Cookie,
@@ -56,7 +56,7 @@ const CookieTypeCard: React.FC<{
   delay: number;
   inView: boolean;
 }> = ({
-  icon,
+  icon: _icon,
   emoji,
   category,
   title,

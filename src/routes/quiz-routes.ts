@@ -1,7 +1,6 @@
 import type { Express } from "express";
 import { getAuthUser } from "../server/route-types";
 import type { RouteContext } from "../server/route-context";
-import type { AppUser } from "../server/route-deps";
 import * as api from "../server/route-deps";
 
 export function registerQuizRoutes(app: Express, ctx: RouteContext): void {

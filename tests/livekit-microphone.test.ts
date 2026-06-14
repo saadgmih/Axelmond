@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 
 import { readAppSources } from "./helpers/app-sources.ts";
 import { readLiveClassroomSources, readLiveKitHookSources } from "./helpers/live-classroom-sources.ts";

@@ -1,6 +1,5 @@
 import { useRef, useState } from "react";
 import { Camera, Trash2, Upload } from "lucide-react";
-import { isAllowedRasterImageUpload, RASTER_IMAGE_ACCEPT } from "../avatar-security";
 import AvatarPhotoEditor from "./AvatarPhotoEditor";
 
 type AccentVariant = "indigo" | "pink" | "violet" | "teal";

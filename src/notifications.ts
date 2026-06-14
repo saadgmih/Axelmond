@@ -5,7 +5,6 @@ import {
   getMaxPushSubscriptionsPerUser,
   isAllowedPushEndpointUrl,
   PushSubscriptionLimitError,
-  PushSubscriptionValidationError,
   validatePushSubscriptionInput,
 } from "./push-endpoint-security";
 

@@ -54,7 +54,7 @@ export function useTeacherCurriculum({
   const [newCourseTitle, setNewCourseTitle] = useState("");
   const [newCourseDescription, setNewCourseDescription] = useState("");
   const [newCourseDisciplineId, setNewCourseDisciplineId] = useState(601);
-  const [newCourseLevel, setNewCourseLevel] = useState("Licence 1");
+  const [newCourseLevel, _setNewCourseLevel] = useState("Licence 1");
   const [newCourseCredits, setNewCourseCredits] = useState(3);
   const [newCourseDuration, setNewCourseDuration] = useState("20 heures");
   const [newCoursePrice, setNewCoursePrice] = useState(0);

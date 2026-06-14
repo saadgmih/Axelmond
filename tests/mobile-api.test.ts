@@ -4,7 +4,6 @@ import {
   MOBILE_CLIENT_HEADER,
   MOBILE_CLIENT_VALUE,
   isMobileClientRequest,
-  isTrustedMobileClientRequest,
   withMobileRefreshToken,
 } from "../src/auth-mobile.ts";
 import { csrfProtection } from "../src/auth-csrf.ts";

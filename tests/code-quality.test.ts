@@ -19,7 +19,9 @@ rulesTest("code-quality", () => {
     packageJson.scripts["format:check"],
     'prettier --check "src/**/*.{ts,tsx}" "tests/**/*.{ts,tsx}" server.ts vite.config.ts vitest.config.ts .github/**/*.yml',
   );
-  assert.equal(packageJson.scripts["lint:eslint"], "eslint . --max-warnings 9999");
+  assert.equal(packageJson.scripts["lint:eslint"], "eslint . --max-warnings 0");
+  assert.equal(packageJson.scripts["lint:eslint:fix"], "eslint . --max-warnings 9999 --fix");
+  assert.equal(packageJson.scripts["fix:eslint-unused"], "node scripts/fix-eslint-unused.mjs");
 
   const harness = fs.readFileSync("tests/helpers/security-runtime-harness.ts", "utf8");
   assert.match(harness, /skipSecurityRuntimeTests/);

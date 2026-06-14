@@ -1,7 +1,6 @@
 import type { Express } from "express";
 import { getAuthUser } from "../server/route-types";
 import type { RouteContext } from "../server/route-context";
-import type { AppUser } from "../server/route-deps";
 import * as api from "../server/route-deps";
 
 export function registerProfileRoutes(app: Express, ctx: RouteContext): void {
@@ -336,7 +335,7 @@ export function registerProfileRoutes(app: Express, ctx: RouteContext): void {
     res.json({ ok: true });
   });
 
-  async function listStudentStudyScheduleSessions(studentId: string) {
+  async function _listStudentStudyScheduleSessions(studentId: string) {
     const sessions = await api.prisma.studentStudyScheduleSession.findMany({
       where: { studentId },
 
@@ -346,7 +345,7 @@ export function registerProfileRoutes(app: Express, ctx: RouteContext): void {
     return api.sortStudentStudySessions(sessions).map(api.serializeStudentStudySession);
   }
 
-  async function getOwnedStudentStudyScheduleSession(sessionId: string, authUserId: string) {
+  async function _getOwnedStudentStudyScheduleSession(sessionId: string, authUserId: string) {
     const session = await api.prisma.studentStudyScheduleSession.findUnique({ where: { id: sessionId } });
 
     if (!session || !api.canAccessStudentStudySession(session.studentId, authUserId)) return null;

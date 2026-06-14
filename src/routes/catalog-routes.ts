@@ -69,7 +69,7 @@ export function registerCatalogRoutes(app: Express, ctx: RouteContext): void {
     res.json(payload);
   });
 
-  async function invalidatePublicCatalogCache(): Promise<void> {
+  async function _invalidatePublicCatalogCache(): Promise<void> {
     await api.cacheDel("api:domains:public");
 
     await api.cacheDelByPrefix("api:courses:public:");

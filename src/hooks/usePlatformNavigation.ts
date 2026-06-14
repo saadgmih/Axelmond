@@ -27,7 +27,7 @@ export interface UsePlatformNavigationOptions {
 
 export function usePlatformNavigation({
   currentUser,
-  currentView,
+  currentView: _currentView,
   setCurrentView,
   teacherView,
   setTeacherView,

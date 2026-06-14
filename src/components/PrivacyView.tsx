@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 import { useInView } from "../hooks/useInView";
 import {
   Shield,
@@ -570,7 +570,7 @@ export default function PrivacyView() {
                   duration: "Jusqu'à expiration du token",
                   detail: "Expiration courte (15 min à 24h selon le type). Révocation immédiate à la déconnexion.",
                 },
-              ].map(({ type, duration, detail }) => (
+              ].map(({ type, duration, detail: _detail }) => (
                 <InfoRow key={type} label={type} value={duration} icon={<Clock className="w-3.5 h-3.5" />} />
               ))}
             </div>

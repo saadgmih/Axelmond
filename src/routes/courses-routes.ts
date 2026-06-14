@@ -2,11 +2,10 @@ import type { Express } from "express";
 import { getAuthUser } from "../server/route-types";
 import type { CourseModule } from "../server/route-deps";
 import type { RouteContext } from "../server/route-context";
-import type { AppUser } from "../server/route-deps";
 import * as api from "../server/route-deps";
 
 export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
-  const { requireAuth, requireRbac, requireAdmin, validateBody } = ctx.middleware;
+  const { requireAuth, requireRbac, requireAdmin: _requireAdmin, validateBody } = ctx.middleware;
 
   // GET /api/courses
 

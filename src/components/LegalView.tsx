@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 import { useInView } from "../hooks/useInView";
 import {
   Building2,
@@ -10,7 +10,6 @@ import {
   Mail,
   Info,
   Globe,
-  FileText,
   CheckCircle,
   ExternalLink,
   Scale,
@@ -51,7 +50,7 @@ const SectionHeader: React.FC<{
   icon: React.ReactNode;
   title: string;
   accentClass: string;
-}> = ({ number, emoji, icon, title, accentClass }) => (
+}> = ({ number, emoji, icon: _icon, title, accentClass }) => (
   <div className="flex items-center gap-3 mb-6">
     <div className={`w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 text-xl ${accentClass}`}>
       {emoji}

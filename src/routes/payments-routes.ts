@@ -2,7 +2,6 @@ import type { Express, RequestHandler } from "express";
 import express from "express";
 import { getAuthUser } from "../server/route-types";
 import type { RouteContext } from "../server/route-context";
-import type { AppUser } from "../server/route-deps";
 import * as api from "../server/route-deps";
 import { JSON_BODY_LIMIT } from "../security-hardening";
 import {
@@ -93,7 +92,7 @@ export function registerPayPalWebhook(app: Express, ctx: RouteContext, rateLimit
 }
 
 export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
-  const { requireAuth, requireRbac, requireAdmin, validateBody } = ctx.middleware;
+  const { requireAuth, requireRbac: _requireRbac, requireAdmin: _requireAdmin, validateBody: _validateBody } = ctx.middleware;
   const persistCoursePaymentEnrollment = buildPersistCoursePaymentEnrollment(ctx);
 
   registerPayPalConfigRoute(app);

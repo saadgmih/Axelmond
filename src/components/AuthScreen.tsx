@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { getClientErrorMessage } from "../client-errors";
 import { motion } from "motion/react";
-import { GraduationCap, User, ShieldAlert, Mail, Lock, LogIn, UserPlus, KeyRound } from "lucide-react";
+import { User, ShieldAlert, Mail, Lock, LogIn, UserPlus, KeyRound } from "lucide-react";
 import { startAuthentication } from "@simplewebauthn/browser";
 import { Course, Invoice } from "../types";
 import { api, setSessionToken } from "../api";
@@ -105,7 +105,7 @@ interface AuthScreenProps {
   courses: Course[];
 }
 
-export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps) {
+export default function AuthScreen({ onLoginSuccess, courses: _courses }: AuthScreenProps) {
   const { preferences } = useAccessibilityPreferences();
   const [activeSector, setActiveSector] = useState<"student" | "teacher">("student");
   const [authMode, setAuthMode] = useState<"login" | "register" | "forgot" | "reset">("register");

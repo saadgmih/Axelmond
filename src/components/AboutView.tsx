@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useInView } from "../hooks/useInView";
 import {
   GraduationCap,
@@ -14,7 +14,6 @@ import {
   Cpu,
   Activity,
   CheckCircle,
-  ArrowRight,
   Atom,
   Star,
   BrainCircuit,

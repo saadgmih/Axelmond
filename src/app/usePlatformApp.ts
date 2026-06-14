@@ -326,7 +326,7 @@ export function usePlatformApp() {
   const isStudentLive = role === "student" && currentView === "live" && !!activeLiveCourse;
   const isTeacherLiveRoom = role === "teacher" && teacherView === "live-control" && !!activeLiveCourse;
   const isLiveSessionView = isStudentLive || isTeacherLiveRoom;
-  const isImmersiveView = currentView === "course" || isLiveSessionView;
+  const _isImmersiveView = currentView === "course" || isLiveSessionView;
   const lockMainScroll = currentView === "course" || isStudentLive;
   const hideGlobalFooter = currentView === "course" || isLiveSessionView;
 

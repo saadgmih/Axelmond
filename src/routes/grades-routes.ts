@@ -3,7 +3,6 @@ import { getAuthUser } from "../server/route-types";
 import type { RouteContext } from "../server/route-context";
 import * as api from "../server/route-deps";
 
-import type { AppUser } from "../server/route-deps";
 
 export function registerGradesRoutes(app: Express, ctx: RouteContext): void {
   const { requireAuth } = ctx.middleware;

@@ -14,7 +14,7 @@ import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("email-verification", () => {
   const schemaSource = readFileSync("prisma/schema.prisma", "utf8");
-  const serverSource = readApiRouteSources();
+  const _serverSource = readApiRouteSources();
 
   const code = generateEmailVerificationCode();
   assert.match(code, /^\d{6}$/);

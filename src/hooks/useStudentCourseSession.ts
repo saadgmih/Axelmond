@@ -35,7 +35,7 @@ export function useStudentCourseSession({
   updateSessionUser,
   setEnrolledCourses,
   setInvoices,
-  invoices,
+  invoices: _invoices,
   setCurrentView,
   setIsMobileMenuOpen,
 }: UseStudentCourseSessionOptions) {

@@ -90,7 +90,7 @@ rulesTest("security-hardening", () => {
   assert.match(messagingRoutesSource, /toPushSubscribeClientResponse\(err\)/);
   assert.doesNotMatch(messagingRoutesSource, /error:\s*err\.message/);
 
-  const apiSource = fs.readFileSync("src/api.ts", "utf8");
+  const _apiSource = fs.readFileSync("src/api.ts", "utf8");
   const clientErrorsSource = fs.readFileSync("src/client-errors.ts", "utf8");
   const authRoutesSource = fs.readFileSync("src/routes/auth/register-login-routes.ts", "utf8");
   const emailVerificationRoutesSource = fs.readFileSync("src/routes/auth/email-verification-routes.ts", "utf8");

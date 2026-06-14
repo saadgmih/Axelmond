@@ -2,9 +2,6 @@ import assert from "node:assert/strict";
 import {
   isAllowedAvatarMime,
   isAllowedAvatarUrl,
-  isAllowedRasterImageMime,
-  isAllowedRasterImageUpload,
-  isForbiddenRasterImageExtension,
   sanitizeAvatarUrl,
 } from "../src/avatar-security.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";

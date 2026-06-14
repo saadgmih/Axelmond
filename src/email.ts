@@ -1,6 +1,5 @@
 import net from "node:net";
 import tls from "node:tls";
-import path from "node:path";
 import nodemailer from "nodemailer";
 
 interface VerificationEmailInput {
@@ -295,7 +294,7 @@ export async function readSmtpBanner(env: NodeJS.ProcessEnv = process.env, timeo
     | { ok: false; details: ReturnType<typeof getSmtpPublicConfig>; error: unknown }
   >((resolve) => {
     let done = false;
-    let socket: net.Socket | tls.TLSSocket;
+    const socket = secure ? tls.connect({ host, port, servername: host, timeout: timeoutMs }) : net.connect({ host, port });
     const finish = (result: any) => {
       if (done) return;
       done = true;
@@ -306,7 +305,6 @@ export async function readSmtpBanner(env: NodeJS.ProcessEnv = process.env, timeo
       }
       resolve(result);
     };
-    socket = secure ? tls.connect({ host, port, servername: host, timeout: timeoutMs }) : net.connect({ host, port });
 
     socket.setEncoding("utf8");
     socket.setTimeout(timeoutMs);

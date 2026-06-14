@@ -3,7 +3,6 @@ import { getAuthUser } from "../server/route-types";
 import rateLimit from "express-rate-limit";
 import type { CourseModule } from "../server/route-deps";
 import type { RouteContext } from "../server/route-context";
-import type { AppUser } from "../server/route-deps";
 import * as api from "../server/route-deps";
 
 export function registerMiscRoutes(app: Express, ctx: RouteContext): void {
@@ -221,7 +220,7 @@ export function registerMiscRoutes(app: Express, ctx: RouteContext): void {
     return Number.isInteger(err?.status) ? err.status : 500;
   }
 
-  function apiErrorMessage(err: any) {
+  function _apiErrorMessage(err: any) {
     const dbUnavailableCodes = new Set(["P1000", "P1001", "P1002", "P1003", "P1008", "P1017", "P2021", "P2022"]);
 
     if (dbUnavailableCodes.has(err?.code)) {

@@ -44,7 +44,7 @@ export function useVirtualClassroomUI({
   liveRoom,
   participants,
   chatMessages,
-  isMicEnabled,
+  isMicEnabled: _isMicEnabled,
   isCameraEnabled,
   isFullscreen,
   activeSpeakerIdentity,

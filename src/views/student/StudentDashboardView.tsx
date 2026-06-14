@@ -23,7 +23,7 @@ import type { ReactNode } from "react";
 import type { AppUser } from "../../components/AuthScreen";
 
 import type { Course, CourseModule } from "../../types";
-import { formatCredits, formatMad } from "../../utils/morocco-locale";
+import { formatCredits } from "../../utils/morocco-locale";
 import { useTvNavigation } from "../../hooks/useTvNavigation";
 
 type NavigateTo = (view: string, targetCourse?: Course | null) => void;

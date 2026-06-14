@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useId } from "react";
 import { getClientErrorMessage } from "../client-errors";
 import { CHAT_TUTOR_MAX_HISTORY_MESSAGES } from "../chat-tutor-limits";
-import { Send, Sparkles, Brain, GraduationCap, ArrowRight, RefreshCw, X } from "lucide-react";
+import { Send, Sparkles, Brain, GraduationCap, ArrowRight, X } from "lucide-react";
 import { api } from "../api";
 
 interface ChatMessage {

@@ -45,7 +45,7 @@ async function listUserCredentials(userId: string) {
 }
 
 export async function beginWebAuthnRegistration(userId: string, email: string, deviceName?: string) {
-  const { origin, rpID, rpName } = getWebAuthnConfig();
+  const { origin: _origin, rpID, rpName } = getWebAuthnConfig();
   const existing = await listUserCredentials(userId);
   const options = await generateRegistrationOptions({
     rpName,
@@ -121,7 +121,7 @@ export async function finishWebAuthnRegistration(
 }
 
 export async function beginWebAuthnLogin(params: { userId?: string; email?: string }) {
-  const { origin, rpID } = getWebAuthnConfig();
+  const { origin: _origin, rpID } = getWebAuthnConfig();
   let allowCredentials: Array<{ id: string; transports?: AuthenticatorTransportFuture[] }> = [];
   let userId = params.userId;
 

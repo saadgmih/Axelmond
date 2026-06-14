@@ -5,7 +5,7 @@ import type { AppUser } from "../server/route-deps";
 import * as api from "../server/route-deps";
 
 export function registerObjectivesRoutes(app: Express, ctx: RouteContext): void {
-  const { requireAuth, requireRbac, requireAdmin, validateBody } = ctx.middleware;
+  const { requireAuth, requireRbac, requireAdmin: _requireAdmin, validateBody } = ctx.middleware;
 
   async function listStudentStudyScheduleSessions(studentId: string) {
     const sessions = await api.prisma.studentStudyScheduleSession.findMany({
@@ -527,7 +527,7 @@ export function registerObjectivesRoutes(app: Express, ctx: RouteContext): void 
     res.json({ ok: true });
   });
 
-  async function persistUserAvatarUrl(authUser: AppUser, avatarUrl: string) {
+  async function _persistUserAvatarUrl(authUser: AppUser, avatarUrl: string) {
     await api.prisma.user.update({
       where: { id: authUser.id },
 

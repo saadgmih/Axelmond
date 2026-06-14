@@ -1,10 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useInView } from "../hooks/useInView";
 import {
   Brain,
   Database,
   Shield,
-  Cpu,
   Network,
   Lightbulb,
   BookOpen,
@@ -20,7 +19,6 @@ import {
   Activity,
   Microscope,
   GraduationCap,
-  Star,
   ExternalLink,
   BarChart2,
   Layers,

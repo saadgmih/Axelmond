@@ -69,7 +69,7 @@ export function useLiveKitRoom({
   navigateTo,
   currentView,
   teacherView,
-  handleToggleCourseLive,
+  handleToggleCourseLive: _handleToggleCourseLive,
 }: UseLiveKitRoomOptions) {
   const [liveRoom, setLiveRoom] = useState<Room | null>(null);
   const [liveParticipants, setLiveParticipants] = useState<LiveParticipantCard[]>([]);

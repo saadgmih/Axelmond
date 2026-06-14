@@ -1,10 +1,9 @@
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useInView } from "../hooks/useInView";
 import {
   BookOpen,
   Users,
   FileText,
-  Award,
   TrendingUp,
   Star,
   Search,
@@ -13,13 +12,10 @@ import {
   Download,
   Share2,
   Copy,
-  ExternalLink,
   Calendar,
-  Tag,
   Building2,
   Quote,
   BarChart2,
-  FlaskConical,
   Brain,
   Database,
   Shield,

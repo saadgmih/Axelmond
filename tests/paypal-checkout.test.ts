@@ -6,7 +6,7 @@ import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("paypal-checkout", () => {
   const apiSource = fs.readFileSync("src/api.ts", "utf8");
-  const appSource = readAppSources();
+  const _appSource = readAppSources();
   const paymentModalSource = fs.readFileSync("src/components/PaymentModal.tsx", "utf8");
   const serverSource = readApiRouteSources();
   const paypalServerSource = fs.readFileSync("src/paypal-server.ts", "utf8");

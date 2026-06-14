@@ -69,7 +69,7 @@ export function useLiveRoomControls({
   liveChatDraft,
   liveSignals,
   livePollRef,
-  whiteboardStrokesRef,
+  whiteboardStrokesRef: _whiteboardStrokesRef,
   whiteboardStrokeTimestampsRef,
   liveSignalsRef,
   liveStageRef,

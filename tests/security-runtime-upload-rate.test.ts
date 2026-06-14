@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import {
   allocateSecurityRuntimePort,
-  isSecurityRuntimeDatabaseAvailable,
   startSecurityRuntimeServer,
   stopSecurityRuntimeServer,
   waitForSecurityRuntimeHealth,

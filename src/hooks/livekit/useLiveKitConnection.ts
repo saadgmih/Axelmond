@@ -59,7 +59,7 @@ export function useLiveKitConnection({
   liveSignals,
   livePollRef,
   whiteboardStrokesRef,
-  sharedResourceRef,
+  sharedResourceRef: _sharedResourceRef,
   setLiveRoom,
   setLiveParticipants,
   setLiveChatMessages,

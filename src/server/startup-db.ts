@@ -1,10 +1,9 @@
 import { prisma, getActivePgSchema } from "../db";
-import { Course, DEFAULT_MODULE_CLASSIFICATION, DEFAULT_STUDENT_LABEL } from "../types";
-import { ACADEMIC_DOMAINS, DEFAULT_DISCIPLINE_ID, getDisciplineIdForCourse } from "../academic-taxonomy";
+import { Course, DEFAULT_MODULE_CLASSIFICATION } from "../types";
+import { ACADEMIC_DOMAINS, getDisciplineIdForCourse } from "../academic-taxonomy";
 import { shouldSkipStartupSeed } from "../startup-seed";
-import { decodeStoredText, decodeStoredValue } from "../text";
 import { Prisma } from "@prisma/client";
-import { normalizeProfessorInviteCode, parseProfessorInviteCodes, generateProfessorInviteCode } from "../invitations";
+import { parseProfessorInviteCodes } from "../invitations";
 import { canAccessAcademicProfile } from "../rbac";
 
 import { DEFAULT_LIVE_SUBJECT } from "../livekit";

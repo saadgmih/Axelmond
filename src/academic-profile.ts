@@ -1,4 +1,3 @@
-import { isTeacherSpaceRole } from "./rbac";
 import { sanitizeAvatarUrl as sanitizeAvatarUrlStrict } from "./avatar-security";
 import { sanitizeAcademicLinkField, sanitizeHttpsUrl } from "./external-url-security";
 
