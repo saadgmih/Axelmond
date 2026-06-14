@@ -1,6 +1,4 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { disconnectDatabase, prisma } from "../src/db.ts";
 
 function parseModules(raw) {
   if (!raw || !Array.isArray(raw)) return [];
@@ -62,5 +60,5 @@ main()
     process.exitCode = 1;
   })
   .finally(async () => {
-    await prisma.$disconnect();
+    await disconnectDatabase();
   });
