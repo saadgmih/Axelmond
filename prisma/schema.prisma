@@ -343,6 +343,7 @@ model Enrollment {
   course    Course    @relation(fields: [courseId], references: [id])
 
   @@unique([userId, courseId])
+  @@index([courseId])
   @@schema("AxelmondResearchLab")
 }
 
@@ -661,6 +662,7 @@ model Conversation {
   participants ConversationParticipant[]
   messages     Message[]
 
+  @@index([updatedAt])
   @@schema("AxelmondResearchLab")
 }
 

@@ -360,22 +360,45 @@ export async function getOptionalAuthUser(req: express.Request) {
   return toAppUser(user);
 }
 
-export async function getSectionAndDescendantIds(sectionId: string) {
-  const ids = [sectionId];
-  let queue = [sectionId];
+export function collectDescendantSectionIds(
+  rootId: string,
+  sections: Array<{ id: string; parentId: string | null }>,
+): string[] {
+  const childrenByParent = new Map<string, string[]>();
+  for (const section of sections) {
+    if (!section.parentId) continue;
+    const siblings = childrenByParent.get(section.parentId) ?? [];
+    siblings.push(section.id);
+    childrenByParent.set(section.parentId, siblings);
+  }
+
+  const ids = [rootId];
+  const queue = [rootId];
   while (queue.length > 0) {
-    const children = await prisma.contentSection.findMany({
-      where: { parentId: { in: queue } },
-      select: { id: true },
-    });
-    queue = children.map((child) => child.id);
-    ids.push(...queue);
+    const parentId = queue.shift()!;
+    const children = childrenByParent.get(parentId) ?? [];
+    ids.push(...children);
+    queue.push(...children);
   }
   return ids;
 }
 
+export async function getSectionAndDescendantIds(client: typeof prisma = prisma, sectionId: string) {
+  const root = await client.contentSection.findUnique({
+    where: { id: sectionId },
+    select: { id: true, courseId: true },
+  });
+  if (!root) return [sectionId];
+
+  const sections = await client.contentSection.findMany({
+    where: { courseId: root.courseId },
+    select: { id: true, parentId: true },
+  });
+  return collectDescendantSectionIds(sectionId, sections);
+}
+
 export async function deleteContentSectionTree(tx: any, sectionId: string) {
-  const sectionIds = await getSectionAndDescendantIds(sectionId);
+  const sectionIds = await getSectionAndDescendantIds(tx, sectionId);
   const contents = await tx.lessonContent.findMany({
     where: { sectionId: { in: sectionIds } },
     select: { id: true },

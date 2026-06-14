@@ -1,7 +1,7 @@
 import { Suspense } from "react";
-import NotificationsView from "../views/shared/NotificationsView";
 import {
   LazyMessagesView,
+  LazyNotificationsView,
   LazyTeacherAcademicProfileView,
   LazyTeacherCurriculumView,
   LazyTeacherDashboardView,
@@ -93,20 +93,22 @@ export function TeacherRouteSwitch() {
           </Suspense>
         )}
         {teacherView === "notifications" && (
-          <div className="p-4 md:p-8">
-            <NotificationsView
-              notifications={notifications}
-              loading={notificationsLoading}
-              error={notificationsError}
-              onReload={loadNotifications}
-              onMarkRead={markNotificationRead}
-              onMarkAllRead={markAllNotificationsRead}
-              onNavigate={handleNotificationNavigate}
-              pushStatus={pushStatus}
-              pushStatusKind={pushStatusKind}
-              onEnablePush={subscribePushNotifications}
-            />
-          </div>
+          <Suspense fallback={<RouteChunkFallback label="Chargement des notifications…" />}>
+            <div className="p-4 md:p-8">
+              <LazyNotificationsView
+                notifications={notifications}
+                loading={notificationsLoading}
+                error={notificationsError}
+                onReload={loadNotifications}
+                onMarkRead={markNotificationRead}
+                onMarkAllRead={markAllNotificationsRead}
+                onNavigate={handleNotificationNavigate}
+                pushStatus={pushStatus}
+                pushStatusKind={pushStatusKind}
+                onEnablePush={subscribePushNotifications}
+              />
+            </div>
+          </Suspense>
         )}
         {teacherView === "live-control" && (
           <Suspense fallback={<RouteChunkFallback label="Chargement du studio live…" />}>

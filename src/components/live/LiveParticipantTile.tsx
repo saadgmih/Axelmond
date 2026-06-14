@@ -1,26 +1,38 @@
+import { memo, useCallback } from "react";
 import { Hand, Mic, MicOff, Wifi } from "lucide-react";
 import type { LiveParticipantCard } from "../VirtualClassroom";
 import LiveParticipantAvatar from "./LiveParticipantAvatar";
+
+function liveRoleLabel(role?: string) {
+  if (role === "ADMIN") return "Administrateur";
+  if (role === "RESEARCHER") return "Chercheur";
+  if (role === "PROFESSOR") return "Professeur";
+  return "Étudiant";
+}
 
 interface LiveParticipantTileProps {
   participant: LiveParticipantCard;
   isActive: boolean;
   isFeatured: boolean;
   isSolo?: boolean;
-  videoRef?: (element: HTMLVideoElement | null) => void;
-  roleLabel: (role?: string) => string;
+  registerVideoRef: (identity: string, element: HTMLVideoElement | null) => void;
 }
 
-export default function LiveParticipantTile({
+function LiveParticipantTile({
   participant,
   isActive,
   isFeatured,
   isSolo = false,
-  videoRef,
-  roleLabel,
+  registerVideoRef,
 }: LiveParticipantTileProps) {
   const hasVideo = Boolean(participant.videoTrack);
   const avatarSize = isSolo || isFeatured ? "xl" : "lg";
+  const setVideoRef = useCallback(
+    (element: HTMLVideoElement | null) => {
+      registerVideoRef(participant.identity, element);
+    },
+    [participant.identity, registerVideoRef],
+  );
 
   return (
     <div
@@ -30,7 +42,7 @@ export default function LiveParticipantTile({
     >
       {hasVideo ? (
         <video
-          ref={videoRef}
+          ref={setVideoRef}
           autoPlay
           playsInline
           muted={participant.isLocal}
@@ -53,7 +65,7 @@ export default function LiveParticipantTile({
         <div className="flex items-end justify-between gap-2 min-w-0">
           <div className="min-w-0 flex-1">
             <p className="truncate text-xs font-black text-white sm:text-sm">{participant.name}</p>
-            <p className="truncate text-[10px] text-zinc-300 sm:text-[11px]">{roleLabel(participant.role)}</p>
+            <p className="truncate text-[10px] text-zinc-300 sm:text-[11px]">{liveRoleLabel(participant.role)}</p>
           </div>
           <div className="flex shrink-0 items-center gap-1 pb-0.5">
             {participant.hasAudio ? (
@@ -75,3 +87,5 @@ export default function LiveParticipantTile({
     </div>
   );
 }
+
+export default memo(LiveParticipantTile);

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getClientErrorMessage } from "../../client-errors";
 import {
   ArrowLeft,
@@ -72,6 +72,79 @@ function renderAttachment(message: ChatMessage) {
   );
 }
 
+interface ConversationListItemProps {
+  conversation: ConversationSummary;
+  active: boolean;
+  role: "student" | "teacher";
+  onSelect: (conversationId: string) => void;
+}
+
+const ConversationListItem = memo(function ConversationListItem({
+  conversation,
+  active,
+  role,
+  onSelect,
+}: ConversationListItemProps) {
+  const peerName = conversation.peer?.fullName || "Conversation";
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(conversation.id)}
+      className={`flex w-full items-start gap-3 border-b border-white/[0.05] px-4 py-3 text-left transition ${active ? "bg-white/10" : "hover:bg-white/5"}`}
+    >
+      <div className={`flex h-11 w-11 items-center justify-center rounded-full ${active ? (role === "teacher" ? "bg-pink-600/30" : "bg-indigo-600/30") : "bg-slate-700"} text-sm font-black text-white`}>
+        {conversation.peer?.avatarUrl ? (
+          <img src={conversation.peer.avatarUrl} alt="" className="h-full w-full rounded-full object-cover" />
+        ) : (
+          peerInitials(peerName)
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center justify-between gap-2">
+          <p className="truncate text-sm font-bold text-white">{peerName}</p>
+          <span className="text-[10px] font-semibold text-slate-500">
+            {conversation.lastMessage ? formatDayLabel(conversation.lastMessage.createdAt) : ""}
+          </span>
+        </div>
+        <p className="mt-1 truncate text-xs text-slate-400">
+          {conversation.isPeerTyping
+            ? "En train d'écrire..."
+            : conversation.lastMessage?.body || (conversation.lastMessage?.attachments?.length ? "Pièce jointe" : "Démarrer la conversation")}
+        </p>
+      </div>
+      {conversation.unreadCount > 0 && (
+        <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-black text-white">
+          {conversation.unreadCount}
+        </span>
+      )}
+    </button>
+  );
+});
+
+interface MessageBubbleProps {
+  message: ChatMessage;
+  mine: boolean;
+}
+
+const MessageBubble = memo(function MessageBubble({ message, mine }: MessageBubbleProps) {
+  return (
+    <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+      <div className={`max-w-[85%] rounded-2xl px-4 py-3 shadow-lg ${mine ? "rounded-br-md bg-indigo-600 text-white" : "rounded-bl-md border border-white/10 bg-[#0f172a] text-slate-100"}`}>
+        {message.body && <p className="whitespace-pre-wrap text-sm">{message.body}</p>}
+        {renderAttachment(message)}
+        <div className={`mt-2 flex items-center gap-1 text-[10px] ${mine ? "text-indigo-100/80" : "text-slate-500"}`}>
+          <span>{message.sentAtLabel}</span>
+          {mine && (
+            message.seenByOthers
+              ? <CheckCheck className="h-3.5 w-3.5" aria-label="Vu" />
+              : <Check className="h-3.5 w-3.5" aria-label="Envoyé" />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+});
+
 export default function MessagesView({ currentUserId, role }: MessagesViewProps) {
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -94,6 +167,10 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
     () => conversations.find((item) => item.id === selectedId) || null,
     [conversations, selectedId],
   );
+
+  const handleSelectConversation = useCallback((conversationId: string) => {
+    setSelectedId(conversationId);
+  }, []);
 
   const loadConversations = useCallback(async () => {
     setLoadingConversations(true);
@@ -357,44 +434,15 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
             ) : conversations.length === 0 ? (
               <p className="p-6 text-center text-sm text-slate-500">Aucune conversation pour le moment.</p>
             ) : (
-              conversations.map((conversation) => {
-                const active = conversation.id === selectedId;
-                const peerName = conversation.peer?.fullName || "Conversation";
-                return (
-                  <button
-                    key={conversation.id}
-                    type="button"
-                    onClick={() => setSelectedId(conversation.id)}
-                    className={`flex w-full items-start gap-3 border-b border-white/[0.05] px-4 py-3 text-left transition ${active ? "bg-white/10" : "hover:bg-white/5"}`}
-                  >
-                    <div className={`flex h-11 w-11 items-center justify-center rounded-full ${active ? (role === "teacher" ? "bg-pink-600/30" : "bg-indigo-600/30") : "bg-slate-700"} text-sm font-black text-white`}>
-                      {conversation.peer?.avatarUrl ? (
-                        <img src={conversation.peer.avatarUrl} alt="" className="h-full w-full rounded-full object-cover" />
-                      ) : (
-                        peerInitials(peerName)
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="truncate text-sm font-bold text-white">{peerName}</p>
-                        <span className="text-[10px] font-semibold text-slate-500">
-                          {conversation.lastMessage ? formatDayLabel(conversation.lastMessage.createdAt) : ""}
-                        </span>
-                      </div>
-                      <p className="mt-1 truncate text-xs text-slate-400">
-                        {conversation.isPeerTyping
-                          ? "En train d'écrire..."
-                          : conversation.lastMessage?.body || (conversation.lastMessage?.attachments?.length ? "Pièce jointe" : "Démarrer la conversation")}
-                      </p>
-                    </div>
-                    {conversation.unreadCount > 0 && (
-                      <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-black text-white">
-                        {conversation.unreadCount}
-                      </span>
-                    )}
-                  </button>
-                );
-              })
+              conversations.map((conversation) => (
+                <ConversationListItem
+                  key={conversation.id}
+                  conversation={conversation}
+                  active={conversation.id === selectedId}
+                  role={role}
+                  onSelect={handleSelectConversation}
+                />
+              ))
             )}
           </div>
         </aside>
@@ -422,25 +470,13 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
                 {loadingMessages ? (
                   <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-slate-400" /></div>
                 ) : (
-                  messages.map((message) => {
-                    const mine = message.senderId === currentUserId;
-                    return (
-                      <div key={message.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-                        <div className={`max-w-[85%] rounded-2xl px-4 py-3 shadow-lg ${mine ? "rounded-br-md bg-indigo-600 text-white" : "rounded-bl-md border border-white/10 bg-[#0f172a] text-slate-100"}`}>
-                          {message.body && <p className="whitespace-pre-wrap text-sm">{message.body}</p>}
-                          {renderAttachment(message)}
-                          <div className={`mt-2 flex items-center gap-1 text-[10px] ${mine ? "text-indigo-100/80" : "text-slate-500"}`}>
-                            <span>{message.sentAtLabel}</span>
-                            {mine && (
-                              message.seenByOthers
-                                ? <CheckCheck className="h-3.5 w-3.5" aria-label="Vu" />
-                                : <Check className="h-3.5 w-3.5" aria-label="Envoyé" />
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })
+                  messages.map((message) => (
+                    <MessageBubble
+                      key={message.id}
+                      message={message}
+                      mine={message.senderId === currentUserId}
+                    />
+                  ))
                 )}
                 <div ref={messagesEndRef} />
               </div>

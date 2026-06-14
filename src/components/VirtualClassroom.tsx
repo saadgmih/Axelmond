@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from "react";
+﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Room } from "livekit-client";
 import {
   Activity,
@@ -51,6 +51,7 @@ import AITutorChat from "./AITutorChat";
 import LiveSettingsPanel from "./live/LiveSettingsPanel";
 import LiveMediaControl from "./live/LiveMediaControl";
 import LiveParticipantTile from "./live/LiveParticipantTile";
+import LiveChatMessageRow from "./live/LiveChatMessageRow";
 import LivePollPanel from "./live/LivePollPanel";
 import LiveReactionBar from "./live/LiveReactionBar";
 import LiveConnectionNotice from "./live/LiveConnectionNotice";
@@ -421,6 +422,14 @@ export default function VirtualClassroom({
   );
   const featuredLayout = liveSettings.layoutMode !== "tile" && stageParticipants.some((participant) => participant.videoTrack);
   const videoGridClass = stageGridClass(stageParticipants.length, featuredLayout);
+  const registerParticipantVideoRef = useCallback((identity: string, element: HTMLVideoElement | null) => {
+    videoRefs.current[identity] = element;
+    const firstIdentity = stageParticipants[0]?.identity;
+    if (identity === firstIdentity) {
+      featuredVideoRef.current = element;
+      primaryVideoRef.current = element;
+    }
+  }, [videoRefs, primaryVideoRef, stageParticipants]);
   const raisedHandParticipants = connectedParticipants.filter((participant) => participant.handRaised);
   const filteredParticipants = connectedParticipants.filter((participant) =>
     participant.name.toLowerCase().includes(participantQuery.toLowerCase())
@@ -764,9 +773,9 @@ export default function VirtualClassroom({
               ) : (
                 <>
                   <div className={`live-video-grid grid ${videoGridClass} gap-3 w-full h-full p-3 ${stageParticipants.length === 1 ? "grid-rows-1" : ""}`}>
-                    {stageParticipants.map((participant, index) => {
+                    {stageParticipants.map((participant) => {
                       const isActive = participant.identity === activeSpeaker?.identity || participant.isSpeaking;
-                      const isFeatured = featuredLayout && index === 0;
+                      const isFeatured = featuredLayout && participant.identity === stageParticipants[0]?.identity;
                       const isSolo = stageParticipants.length === 1;
                       return (
                         <LiveParticipantTile
@@ -775,12 +784,7 @@ export default function VirtualClassroom({
                           isActive={Boolean(isActive)}
                           isFeatured={isFeatured}
                           isSolo={isSolo}
-                          roleLabel={roleLabel}
-                          videoRef={(element) => {
-                            videoRefs.current[participant.identity] = element;
-                            if (index === 0) featuredVideoRef.current = element;
-                            if (index === 0) primaryVideoRef.current = element;
-                          }}
+                          registerVideoRef={registerParticipantVideoRef}
                         />
                       );
                     })}
@@ -986,19 +990,7 @@ export default function VirtualClassroom({
                     </div>
                   ) : (
                     chatMessages.map((message) => (
-                      <div key={message.id} className={`flex flex-col ${message.isMe ? 'items-end' : 'items-start'}`}>
-                        <div className="flex items-baseline gap-2 mb-1 mx-1">
-                          <span className="text-[10px] font-bold text-zinc-400">{message.sender}</span>
-                          <span className="text-[9px] text-zinc-600 font-mono">{message.time}</span>
-                        </div>
-                        <div className={`px-3 py-2 rounded-2xl max-w-[85%] text-sm shadow-sm ${
-                          message.isMe 
-                            ? 'bg-indigo-600 text-white rounded-tr-sm' 
-                            : 'bg-zinc-800 text-zinc-100 rounded-tl-sm border border-white/5'
-                        }`}>
-                          {message.text}
-                        </div>
-                      </div>
+                      <LiveChatMessageRow key={message.id} message={message} />
                     ))
                   )}
                 </div>

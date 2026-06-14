@@ -18,6 +18,12 @@ export const LazyTeacherCurriculumView = lazy(() => import("./views/teacher/Teac
 export const LazyTeacherScheduleView = lazy(() => import("./views/teacher/TeacherScheduleView"));
 export const LazyTeacherLiveControlView = lazy(() => import("./views/teacher/TeacherLiveControlView"));
 export const LazyMessagesView = lazy(() => import("./views/shared/MessagesView"));
+export const LazyStudentDashboardView = lazy(() => import("./views/student/StudentDashboardView"));
+export const LazyStudentCatalogView = lazy(() => import("./views/student/StudentCatalogView"));
+export const LazyStudentProfileView = lazy(() => import("./views/student/StudentProfileView"));
+export const LazyStudentStudyScheduleView = lazy(() => import("./views/student/StudentStudyScheduleView"));
+export const LazyStudentObjectivesView = lazy(() => import("./views/student/StudentObjectivesView"));
+export const LazyNotificationsView = lazy(() => import("./views/shared/NotificationsView"));
 export const LazyStudentCourseView = lazy(() => import("./views/student/StudentCourseView"));
 export const LazyStudentLiveView = lazy(() => import("./views/student/StudentLiveView"));
 export const LazyPaymentModal = lazy(() => import("./components/PaymentModal"));

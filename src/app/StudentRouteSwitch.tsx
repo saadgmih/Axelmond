@@ -1,11 +1,16 @@
 import { Suspense } from "react";
-import StudentDashboardView from "../views/student/StudentDashboardView";
-import StudentCatalogView from "../views/student/StudentCatalogView";
-import StudentProfileView from "../views/student/StudentProfileView";
-import StudentStudyScheduleView from "../views/student/StudentStudyScheduleView";
-import StudentObjectivesView from "../views/student/StudentObjectivesView";
-import NotificationsView from "../views/shared/NotificationsView";
-import { LazyMessagesView, LazyStudentCourseView, LazyStudentLiveView, RouteChunkFallback } from "../lazyViews";
+import {
+  LazyMessagesView,
+  LazyNotificationsView,
+  LazyStudentCatalogView,
+  LazyStudentCourseView,
+  LazyStudentDashboardView,
+  LazyStudentLiveView,
+  LazyStudentObjectivesView,
+  LazyStudentProfileView,
+  LazyStudentStudyScheduleView,
+  RouteChunkFallback,
+} from "../lazyViews";
 import { getCourseIcon, getDomainIcon } from "./catalogIcons";
 import { usePlatformAppContext } from "./platform-app-context";
 
@@ -54,29 +59,33 @@ export function StudentRouteSwitch() {
   return (
     <>
       {currentView === "dashboard" && (
-        <StudentDashboardView
-          currentUser={currentUser}
-          navigateTo={navigateTo}
-          enrolledCourses={enrolledCourses}
-          courses={courses}
-          getCourseIcon={getCourseIcon}
-        />
+        <Suspense fallback={<RouteChunkFallback label="Chargement du tableau de bord…" />}>
+          <LazyStudentDashboardView
+            currentUser={currentUser}
+            navigateTo={navigateTo}
+            enrolledCourses={enrolledCourses}
+            courses={courses}
+            getCourseIcon={getCourseIcon}
+          />
+        </Suspense>
       )}
       {currentView === "catalog" && (
-        <StudentCatalogView
-          domains={domains}
-          selectedDomain={selectedDomain}
-          selectedDiscipline={selectedDiscipline}
-          catalogCourses={catalogCourses}
-          enrolledCourses={enrolledCourses}
-          getCourseIcon={getCourseIcon}
-          getDomainIcon={getDomainIcon}
-          navigateTo={navigateTo}
-          setCourseToPurchase={setCourseToPurchase}
-          setSelectedDomainId={setSelectedDomainId}
-          setSelectedDisciplineId={setSelectedDisciplineId}
-          setSearchQuery={setSearchQuery}
-        />
+        <Suspense fallback={<RouteChunkFallback label="Chargement du catalogue…" />}>
+          <LazyStudentCatalogView
+            domains={domains}
+            selectedDomain={selectedDomain}
+            selectedDiscipline={selectedDiscipline}
+            catalogCourses={catalogCourses}
+            enrolledCourses={enrolledCourses}
+            getCourseIcon={getCourseIcon}
+            getDomainIcon={getDomainIcon}
+            navigateTo={navigateTo}
+            setCourseToPurchase={setCourseToPurchase}
+            setSelectedDomainId={setSelectedDomainId}
+            setSelectedDisciplineId={setSelectedDisciplineId}
+            setSearchQuery={setSearchQuery}
+          />
+        </Suspense>
       )}
       {currentView === "course" && !selectedCourse && (
         <div className="mx-auto max-w-xl p-8 text-center text-slate-300">
@@ -111,21 +120,27 @@ export function StudentRouteSwitch() {
         </Suspense>
       )}
       {currentView === "profile" && (
-        <StudentProfileView
-          currentUser={currentUser}
-          enrolledCourses={enrolledCourses}
-          courses={courses}
-          invoices={platform.invoices}
-          avatarStatusMsg={avatarStatusMsg}
-          handleUploadAvatarFile={handleUploadAvatarFile}
-          handleDeleteAvatar={handleDeleteAvatar}
-        />
+        <Suspense fallback={<RouteChunkFallback label="Chargement du profil…" />}>
+          <LazyStudentProfileView
+            currentUser={currentUser}
+            enrolledCourses={enrolledCourses}
+            courses={courses}
+            invoices={platform.invoices}
+            avatarStatusMsg={avatarStatusMsg}
+            handleUploadAvatarFile={handleUploadAvatarFile}
+            handleDeleteAvatar={handleDeleteAvatar}
+          />
+        </Suspense>
       )}
       {currentView === "study-schedule" && (
-        <StudentStudyScheduleView role={role} currentView={currentView} />
+        <Suspense fallback={<RouteChunkFallback label="Chargement du planning…" />}>
+          <LazyStudentStudyScheduleView role={role} currentView={currentView} />
+        </Suspense>
       )}
       {currentView === "objectives" && (
-        <StudentObjectivesView role={role} currentView={currentView} />
+        <Suspense fallback={<RouteChunkFallback label="Chargement des objectifs…" />}>
+          <LazyStudentObjectivesView role={role} currentView={currentView} />
+        </Suspense>
       )}
       {currentView === "messages" && (
         <Suspense fallback={<RouteChunkFallback label="Chargement de la messagerie…" />}>
@@ -135,20 +150,22 @@ export function StudentRouteSwitch() {
         </Suspense>
       )}
       {currentView === "notifications" && (
-        <div className="p-4 md:p-8">
-          <NotificationsView
-            notifications={notifications}
-            loading={notificationsLoading}
-            error={notificationsError}
-            onReload={loadNotifications}
-            onMarkRead={markNotificationRead}
-            onMarkAllRead={markAllNotificationsRead}
-            onNavigate={handleNotificationNavigate}
-            pushStatus={pushStatus}
-            pushStatusKind={pushStatusKind}
-            onEnablePush={subscribePushNotifications}
-          />
-        </div>
+        <Suspense fallback={<RouteChunkFallback label="Chargement des notifications…" />}>
+          <div className="p-4 md:p-8">
+            <LazyNotificationsView
+              notifications={notifications}
+              loading={notificationsLoading}
+              error={notificationsError}
+              onReload={loadNotifications}
+              onMarkRead={markNotificationRead}
+              onMarkAllRead={markAllNotificationsRead}
+              onNavigate={handleNotificationNavigate}
+              pushStatus={pushStatus}
+              pushStatusKind={pushStatusKind}
+              onEnablePush={subscribePushNotifications}
+            />
+          </div>
+        </Suspense>
       )}
       {currentView === "live" && !activeLiveCourse && (
         <div className="mx-auto max-w-xl p-8 text-center text-slate-300">
