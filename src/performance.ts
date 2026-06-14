@@ -8,6 +8,7 @@
 
 import type express from "express";
 import * as os from "os";
+import v8 from "node:v8";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -132,15 +133,23 @@ export function startPerformanceMonitor(intervalMs: number = 30_000) {
   logPerf("INFO", "Performance monitor started", { intervalMs });
   monitorTimer = setInterval(() => {
     logPerformance();
-    // Alerte si heap > 80% du total
+    // V8 garde souvent heapTotal proche de heapUsed — mesurer vs la limite réelle (--max-old-space-size).
     const mem = process.memoryUsage();
-    const heapRatio = mem.heapUsed / mem.heapTotal;
-    if (heapRatio > 0.8) {
-      logPerf("WARN", "High heap usage detected", {
-        heapUsedMb: Math.round(mem.heapUsed / 1024 / 1024),
-        heapTotalMb: Math.round(mem.heapTotal / 1024 / 1024),
-        heapRatio: Math.round(heapRatio * 100) + "%",
+    const heapUsedMb = Math.round(mem.heapUsed / 1024 / 1024);
+    const heapTotalMb = Math.round(mem.heapTotal / 1024 / 1024);
+    const rssMb = Math.round(mem.rss / 1024 / 1024);
+    const heapLimitMb = Math.round(v8.getHeapStatistics().heap_size_limit / 1024 / 1024);
+    const heapPressure = mem.heapUsed / v8.getHeapStatistics().heap_size_limit;
+    if (heapPressure > 0.75) {
+      logPerf("WARN", "High heap pressure detected", {
+        heapUsedMb,
+        heapTotalMb,
+        heapLimitMb,
+        heapPressure: Math.round(heapPressure * 100) + "%",
+        rssMb,
       });
+    } else if (rssMb > 900) {
+      logPerf("WARN", "High RSS memory detected", { rssMb, heapUsedMb, heapLimitMb });
     }
     // Alerte RAM système < 10%
     const freeRatio = os.freemem() / os.totalmem();
