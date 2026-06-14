@@ -48,4 +48,20 @@ assert.doesNotMatch(liveRoutesSource, /error:\s*String\(err\?\.message/);
 assert.match(liveRoutesSource, /error:\s*"Action LiveKit impossible"/);
 assert.match(liveRoutesSource, /error:\s*"Relais LiveKit impossible"/);
 
+assert.match(paymentsRoutesSource, /toPayPalCaptureClientResponse\(result\)/);
+assert.doesNotMatch(paymentsRoutesSource, /error:\s*result\.error/);
+
+const miscRoutesSource = fs.readFileSync("src/routes/misc-routes.ts", "utf8");
+assert.match(miscRoutesSource, /toChatTutorClientResponse\(err\)/);
+assert.doesNotMatch(miscRoutesSource, /details:\s*err\.cause/);
+
+const openaiServiceSource = fs.readFileSync("src/openai-service.ts", "utf8");
+assert.match(openaiServiceSource, /toChatTutorClientResponse/);
+assert.doesNotMatch(openaiServiceSource, /Quota OpenAI épuisé/);
+assert.doesNotMatch(openaiServiceSource, /Clé OpenAI invalide/);
+
+const routeDepsSource = fs.readFileSync("src/server/route-deps.ts", "utf8");
+assert.match(routeDepsSource, /LIVE_ACCESS_ERRORS/);
+assert.doesNotMatch(routeDepsSource, /error:\s*"Course not found"/);
+
 console.log("Security hardening rules passed");

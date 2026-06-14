@@ -40,5 +40,5 @@ export function apiErrorMessage(err: any): string {
   if (status >= 500) {
     return "Une erreur interne est survenue";
   }
-  return err?.message || "Erreur serveur";
+  return "Erreur serveur";
 }

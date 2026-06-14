@@ -38,6 +38,29 @@ export function extractPayPalCaptureContext(captureResult: any) {
   return { purchaseUnit, metadata, capture };
 }
 
+export const PAYPAL_CAPTURE_CLIENT_MESSAGES: Record<string, string> = {
+  PAYPAL_METADATA_MISSING: "Commande PayPal invalide",
+  PAYPAL_USER_MISMATCH: "Commande PayPal invalide pour ce compte",
+  PAYPAL_COURSE_MISMATCH: "Commande PayPal invalide pour ce module",
+  COURSE_NOT_FOUND: "Module non trouvé",
+  PAYPAL_CAPTURE_INCOMPLETE: "Paiement PayPal non finalisé",
+  PAYPAL_AMOUNT_MISMATCH: "Montant de paiement incorrect",
+  USER_NOT_FOUND: "Utilisateur non trouvé",
+};
+
+export function toPayPalCaptureClientResponse(result: {
+  ok: false;
+  status: number;
+  error: string;
+  code?: string;
+}) {
+  const code = result.code || "PAYPAL_CAPTURE_FAILED";
+  return {
+    error: PAYPAL_CAPTURE_CLIENT_MESSAGES[code] || "Paiement PayPal invalide",
+    code,
+  };
+}
+
 export async function processPayPalCaptureEnrollment(
   params: PayPalCaptureEnrollmentInput,
   persistCoursePaymentEnrollment: (input: {

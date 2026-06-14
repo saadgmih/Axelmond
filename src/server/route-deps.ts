@@ -713,22 +713,28 @@ export async function recordLiveAttendanceLeave(session: { id: string; roomName:
   return updated;
 }
 
+export const LIVE_ACCESS_ERRORS = {
+  notFound: "Module introuvable",
+  enrollmentRequired: "Inscription requise pour rejoindre ce live",
+  accessDenied: "Accès refusé pour ce live",
+} as const;
+
 export async function assertLiveAccess(authUser: AppUser, courseId: number) {
   const course = await prisma.course.findUnique({
     where: { id: courseId },
     select: { id: true, createdById: true }
   });
-  if (!course) return { ok: false as const, status: 404, error: "Course not found" };
+  if (!course) return { ok: false as const, status: 404, error: LIVE_ACCESS_ERRORS.notFound };
   if (authUser.role === "STUDENT" && !authUser.enrolledCourses.includes(course.id)) {
-    return { ok: false as const, status: 403, error: "Inscription requise pour rejoindre ce live" };
+    return { ok: false as const, status: 403, error: LIVE_ACCESS_ERRORS.enrollmentRequired };
   }
   if ((authUser.role === "PROFESSOR" || authUser.role === "RESEARCHER") && course.createdById !== authUser.id) {
     logLiveKit("WARN", "Live access denied for foreign course", { userId: authUser.id, courseId });
-    return { ok: false as const, status: 403, error: "Accès refusé pour ce live" };
+    return { ok: false as const, status: 403, error: LIVE_ACCESS_ERRORS.accessDenied };
   }
 
   const fullCourse = await findCourse(courseId);
-  if (!fullCourse) return { ok: false as const, status: 404, error: "Course not found" };
+  if (!fullCourse) return { ok: false as const, status: 404, error: LIVE_ACCESS_ERRORS.notFound };
   return { ok: true as const, course: fullCourse };
 }
 
@@ -1117,7 +1123,7 @@ export { setAuthCookies, clearAuthCookies } from "../auth-cookies";
 export { withMobileRefreshToken, isMobileClientRequest, MOBILE_CLIENT_HEADER } from "../auth-mobile";
 export { readRefreshTokenFromRequest } from "../auth-cookies";
 export { parsePositiveInt } from "../route-params";
-export { generateChatTutorResponse, ChatTutorServiceError, initializeOpenAIService } from "../openai-service";
+export { generateChatTutorResponse, ChatTutorServiceError, toChatTutorClientResponse, initializeOpenAIService } from "../openai-service";
 export type { CourseModule } from "../types";
 export { createRefreshToken, rotateRefreshToken, revokeRefreshToken, revokeAllUserRefreshTokens, signAuthToken, verifyAuthToken, findValidRefreshToken } from "../auth-token";
 export { normalizeRole, canLoginToRequestedRole, canAccessAcademicProfile, isTeacherSpaceRole } from "../rbac";
@@ -1135,7 +1141,7 @@ export { validateIncomingLiveSyncMessage, isModeratorOnlyLiveSyncType } from "..
 export { LIVE_SYNC_TOPIC, createEmptyPoll } from "../live/live-sync";
 export { hashRefreshToken, CHAT_TUTOR_MAX_HISTORY_MESSAGES, CHAT_TUTOR_MAX_PROMPT_CHARS } from "../security-hardening";
 export { createPayPalOrder, capturePayPalOrder, isPayPalConfigured, logPayPalError } from "../paypal-server";
-export { processPayPalCaptureEnrollment } from "../paypal-enrollment";
+export { processPayPalCaptureEnrollment, toPayPalCaptureClientResponse } from "../paypal-enrollment";
 export { resolveCourseChargeAmount } from "../promo-codes";
 export { decodeStoredText } from "../text";
 export { AccessToken, RoomServiceClient, DataPacket_Kind } from "livekit-server-sdk";

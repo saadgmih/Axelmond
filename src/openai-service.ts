@@ -10,6 +10,23 @@ export type ChatTutorHistoryMessage = {
   text: string;
 };
 
+export const CHAT_TUTOR_CLIENT_MESSAGES: Record<ChatTutorServiceError["code"], string> = {
+  NOT_CONFIGURED: "Assistant indisponible pour le moment.",
+  TIMEOUT: "L'assistant met trop de temps à répondre. Réessayez.",
+  RATE_LIMIT: "L'assistant est temporairement surchargé. Réessayez dans quelques instants.",
+  QUOTA_EXCEEDED: "Assistant temporairement indisponible.",
+  AUTH_ERROR: "Assistant temporairement indisponible.",
+  API_ERROR: "L'assistant a rencontré une erreur.",
+  EMPTY_RESPONSE: "L'assistant n'a pas pu répondre.",
+};
+
+export function toChatTutorClientResponse(err: ChatTutorServiceError) {
+  return {
+    error: CHAT_TUTOR_CLIENT_MESSAGES[err.code],
+    code: err.code,
+  };
+}
+
 export class ChatTutorServiceError extends Error {
   readonly code:
     | "NOT_CONFIGURED"
@@ -51,7 +68,7 @@ function getOpenAIClient(): OpenAI {
 
   const apiKey = process.env.OPENAI_API_KEY?.trim();
   if (!apiKey) {
-    throw new ChatTutorServiceError("OpenAI non configuré", "NOT_CONFIGURED", 503);
+    throw new ChatTutorServiceError("Assistant indisponible pour le moment.", "NOT_CONFIGURED", 503);
   }
 
   openAIClient = new OpenAI({
@@ -142,7 +159,7 @@ function mapOpenAIError(err: unknown, model: string): ChatTutorServiceError {
   ) {
     logSecurity("ERROR", "OpenAI chat-tutor quota exceeded", { model });
     return new ChatTutorServiceError(
-      "Quota OpenAI épuisé. Vérifiez la facturation du compte OpenAI.",
+      "Assistant temporairement indisponible.",
       "QUOTA_EXCEEDED",
       503,
       err,
@@ -166,7 +183,7 @@ function mapOpenAIError(err: unknown, model: string): ChatTutorServiceError {
   ) {
     logSecurity("ERROR", "OpenAI chat-tutor auth error", { model, status, code: errorCode });
     return new ChatTutorServiceError(
-      "Clé OpenAI invalide ou expirée.",
+      "Assistant temporairement indisponible.",
       "AUTH_ERROR",
       503,
       err,

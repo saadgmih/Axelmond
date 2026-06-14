@@ -70,7 +70,7 @@ export function registerPayPalWebhook(app: Express, ctx: RouteContext): void {
         }
 
         if (result.ok === false) {
-          res.status(result.status).json({ error: result.error, code: result.code });
+          res.status(result.status).json(api.toPayPalCaptureClientResponse(result));
           return;
         }
 
@@ -283,7 +283,7 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
   
       if (result.ok === false) {
   
-        res.status(result.status).json({ error: result.error, code: result.code });
+        res.status(result.status).json(api.toPayPalCaptureClientResponse(result));
   
         return;
   

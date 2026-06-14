@@ -11,6 +11,7 @@ import {
   initializeOpenAIService,
   isOpenAIConfigured,
   shouldUseLocalChatTutorFallback,
+  toChatTutorClientResponse,
 } from "../src/openai-service.ts";
 
 const previousOpenAIKey = process.env.OPENAI_API_KEY;
@@ -43,6 +44,14 @@ assert.match(serverSource, /openai-service/);
 assert.match(serverSource, /generateChatTutorResponse/);
 
 assert.equal(new ChatTutorServiceError("test", "TIMEOUT", 504).statusCode, 504);
+assert.deepEqual(
+  toChatTutorClientResponse(new ChatTutorServiceError("internal sdk leak", "AUTH_ERROR", 503)),
+  { error: "Assistant temporairement indisponible.", code: "AUTH_ERROR" },
+);
+assert.doesNotMatch(
+  toChatTutorClientResponse(new ChatTutorServiceError("internal", "QUOTA_EXCEEDED", 503)).error,
+  /OpenAI/i,
+);
 assert.equal(
   shouldUseLocalChatTutorFallback(new ChatTutorServiceError("quota", "QUOTA_EXCEEDED", 503)),
   true,

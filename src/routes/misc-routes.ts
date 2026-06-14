@@ -275,23 +275,8 @@ export function registerMiscRoutes(app: Express, ctx: RouteContext): void {
     } catch (err) {
   
       if (err instanceof api.ChatTutorServiceError) {
-  
-        res.status(err.statusCode).json({
-  
-          error: err.message,
-  
-          code: err.code,
-  
-          ...(process.env.NODE_ENV !== "production" && err.cause instanceof Error
-  
-            ? { details: err.cause.message }
-  
-            : {}),
-  
-        });
-  
+        res.status(err.statusCode).json(api.toChatTutorClientResponse(err));
         return;
-  
       }
   
   
@@ -386,11 +371,11 @@ export function registerMiscRoutes(app: Express, ctx: RouteContext): void {
   
     if (status >= 500) {
   
-      return "Une erreur interne est survenue";
-  
+    return "Une erreur interne est survenue";
+
     }
-  
-    return err?.message || "Erreur serveur";
+
+    return "Erreur serveur";
   
   }
   

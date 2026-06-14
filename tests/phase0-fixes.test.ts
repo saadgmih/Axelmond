@@ -13,7 +13,8 @@ assert.match(serverSource, /await api\.revokeAllUserRefreshTokens\(user\.id\)/);
 assert.match(serverSource, /await api\.revokeAllUserRefreshTokens\(authUser\.id\)/);
 assert.match(serverSource, /api\.seedQuizModuleCourseMap\[moduleId\]/);
 assert.match(serverSource, /err instanceof api\.ChatTutorServiceError/);
-assert.match(serverSource, /process\.env\.NODE_ENV !== "production" && err\.cause instanceof Error/);
+assert.match(serverSource, /toChatTutorClientResponse\(err\)/);
+assert.doesNotMatch(serverSource, /details:\s*err\.cause\.message/);
 
 assert.match(navigationSource, /INSTITUTIONAL_VIEWS\.has\(view\)/);
 assert.match(appSource, /onClick=\{\(\) => navigateTo\("research"\)\}/);

@@ -221,7 +221,7 @@ try {
     recordScenario("T6", response);
     assert.equal(response.status, 404);
     const payload = await response.json() as { error?: string };
-    assert.match(payload.error || "", /Course not found/i);
+    assert.match(payload.error || "", /Module introuvable/i);
   }
 
   // T7. Admin → 200
@@ -323,7 +323,7 @@ try {
     recordScenario("M6", response);
     assert.equal(response.status, 404);
     const payload = await response.json() as { error?: string };
-    assert.match(payload.error || "", /Course not found/i);
+    assert.match(payload.error || "", /Module introuvable/i);
   }
 
   console.log("Security runtime LiveKit ACL tests passed");

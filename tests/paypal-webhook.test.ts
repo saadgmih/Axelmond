@@ -8,6 +8,7 @@ import {
 import {
   extractPayPalCaptureContext,
   processPayPalCaptureEnrollment,
+  toPayPalCaptureClientResponse,
 } from "../src/paypal-enrollment.ts";
 import {
   extractPayPalWebhookHeaders,
@@ -180,6 +181,19 @@ const enrollmentResult = await processPayPalCaptureEnrollment(
 assert.equal(enrollmentResult.ok, false);
 if (!enrollmentResult.ok) {
   assert.equal(enrollmentResult.code, "COURSE_NOT_FOUND");
+  assert.deepEqual(toPayPalCaptureClientResponse(enrollmentResult), {
+    error: "Module non trouvé",
+    code: "COURSE_NOT_FOUND",
+  });
+  assert.deepEqual(
+    toPayPalCaptureClientResponse({
+      ok: false,
+      status: 500,
+      error: "PayPal SDK: internal failure at https://api.paypal.com/v1/...",
+      code: "UNKNOWN_SDK",
+    }),
+    { error: "Paiement PayPal invalide", code: "UNKNOWN_SDK" },
+  );
 }
 
 console.log("PayPal webhook tests passed");
