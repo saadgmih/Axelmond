@@ -300,18 +300,18 @@ export default function SecuritySettingsPanel({ layout = "compact", emailVerifie
           </div>
         </div>
 
-        <div className="space-y-6 px-6 py-6 md:px-8">
+        <div className="px-6 py-6 md:px-8">
           {(message || error) && (
             <div
               role="alert"
-              className={`rounded-xl px-4 py-3 text-xs ${error ? "border border-rose-500/30 bg-rose-500/10 text-rose-300" : "border border-emerald-500/30 bg-emerald-500/10 text-emerald-300"}`}
+              className={`mb-6 rounded-xl px-4 py-3 text-xs ${error ? "border border-rose-500/30 bg-rose-500/10 text-rose-300" : "border border-emerald-500/30 bg-emerald-500/10 text-emerald-300"}`}
             >
               {error || message}
             </div>
           )}
 
           {recoveryCodes && (
-            <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-100">
+            <div className="mb-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-100">
               <p className="font-bold">Codes de secours — enregistrez-les maintenant :</p>
               <ul className="mt-2 grid grid-cols-2 gap-1 font-mono sm:grid-cols-4">
                 {recoveryCodes.map((code) => (
@@ -321,8 +321,8 @@ export default function SecuritySettingsPanel({ layout = "compact", emailVerifie
             </div>
           )}
 
-          <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
-            <section className="rounded-2xl border border-white/10 bg-[#0a0b14] p-5 md:p-6">
+          <div className="grid gap-6 lg:grid-cols-2 lg:items-stretch">
+            <section className="flex h-full flex-col rounded-2xl border border-white/10 bg-[#0a0b14] p-5 md:p-6">
               <div className="mb-5 flex items-start gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/15 text-violet-400">
                   <Smartphone className="h-5 w-5" />
@@ -342,6 +342,7 @@ export default function SecuritySettingsPanel({ layout = "compact", emailVerifie
                 </div>
               )}
 
+              <div className="flex flex-1 flex-col">
               {!totpEnabled && !totpSetup && (
                 <button
                   type="button"
@@ -369,7 +370,7 @@ export default function SecuritySettingsPanel({ layout = "compact", emailVerifie
               )}
 
               {totpEnabled && (
-                <form onSubmit={handleDisableTotp} className="space-y-3">
+                <form onSubmit={handleDisableTotp} className="flex flex-1 flex-col space-y-3">
                   <DarkInput
                     icon={Lock}
                     type="password"
@@ -386,16 +387,17 @@ export default function SecuritySettingsPanel({ layout = "compact", emailVerifie
                   />
                   <button
                     type="submit"
-                    className="inline-flex items-center gap-2 rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-2.5 text-xs font-bold text-rose-300 transition hover:bg-rose-500/15"
+                    className="mt-auto inline-flex items-center gap-2 rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-2.5 text-xs font-bold text-rose-300 transition hover:bg-rose-500/15"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                     Désactiver TOTP
                   </button>
                 </form>
               )}
+              </div>
             </section>
 
-            <section className="rounded-2xl border border-white/10 bg-[#0a0b14] p-5 md:p-6">
+            <section className="flex h-full flex-col rounded-2xl border border-white/10 bg-[#0a0b14] p-5 md:p-6">
               <div className="mb-5 flex items-start gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/15 text-violet-400">
                   <KeyRound className="h-5 w-5" />
@@ -447,7 +449,7 @@ export default function SecuritySettingsPanel({ layout = "compact", emailVerifie
                 className="mb-4"
               />
 
-              <ul className="space-y-2">
+              <ul className="flex flex-1 flex-col space-y-2">
                 {(status?.passkeys || []).map((passkey) => (
                   <li
                     key={passkey.id}
@@ -479,15 +481,14 @@ export default function SecuritySettingsPanel({ layout = "compact", emailVerifie
                   </li>
                 ))}
                 {(status?.passkeys || []).length === 0 && (
-                  <li className="rounded-xl border border-dashed border-white/10 px-4 py-6 text-center text-xs text-slate-500">
+                  <li className="flex flex-1 items-center justify-center rounded-xl border border-dashed border-white/10 px-4 py-6 text-center text-xs text-slate-500">
                     Aucune Passkey enregistrée.
                   </li>
                 )}
               </ul>
             </section>
-          </div>
 
-          <div className="rounded-2xl border border-white/10 bg-[#0a0b14] p-5 md:p-6">
+            <div className="rounded-2xl border border-white/10 bg-[#0a0b14] p-5 md:p-6 lg:col-span-2">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-start gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/15 text-violet-400">
@@ -515,6 +516,7 @@ export default function SecuritySettingsPanel({ layout = "compact", emailVerifie
                 En savoir plus
                 <ChevronRight className={`h-4 w-4 transition ${showLearnMore ? "rotate-90" : ""}`} />
               </button>
+            </div>
             </div>
           </div>
         </div>
