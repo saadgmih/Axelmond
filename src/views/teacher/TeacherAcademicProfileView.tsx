@@ -13,6 +13,7 @@ import {
   Video,
 } from "lucide-react";
 import ProfileAvatarUpload from "../../components/ProfileAvatarUpload";
+import SecuritySettingsPanel from "../../components/SecuritySettingsPanel";
 import type { AppUser } from "../../components/AuthScreen";
 import { getRoleLabel, type UserRole } from "../../rbac";
 import type { AcademicProfilePayload } from "../../types";
@@ -339,6 +340,9 @@ export default function TeacherAcademicProfileView({
                 Mettre à jour le mot de passe
               </button>
             </form>
+            <div className="border-t border-slate-100 p-5 sm:p-6">
+              <SecuritySettingsPanel />
+            </div>
           </section>
 
           <section className={profileUi.card}>

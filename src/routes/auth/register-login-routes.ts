@@ -328,16 +328,14 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
       },
     });
 
-    const safeUser = api.toAppUser(user);
+    const { maybeRequireTotpAfterPassword } = await import("./mfa-routes");
+    const { issueAuthenticatedSession } = await import("../../auth-session");
 
-    const refreshToken = await api.createRefreshToken(user.id);
+    if (await maybeRequireTotpAfterPassword(user, res)) {
+      return;
+    }
 
-    const csrfToken = api.setAuthCookies(res, refreshToken);
-
-    api.logSecurity("INFO", "User logged in", { userId: user.id, role: user.role });
-
-    res.json(
-      api.withMobileRefreshToken(req, { ...safeUser, token: api.signAuthToken(safeUser), csrfToken }, refreshToken),
-    );
+    const body = await issueAuthenticatedSession(req, res, api, user);
+    res.json(body);
   });
 }

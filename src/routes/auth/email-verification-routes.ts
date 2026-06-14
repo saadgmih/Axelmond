@@ -101,21 +101,17 @@ export function registerEmailVerificationRoutes(app: Express, ctx: RouteContext)
       });
     });
 
-    const safeUser = api.toAppUser(verifiedUser);
+    api.logEmail("INFO", "Email verified", { userId: verifiedUser.id, role: verifiedUser.role });
 
-    const newRefreshToken = await api.createRefreshToken(safeUser.id);
+    const { maybeRequireTotpAfterPassword } = await import("./mfa-routes");
+    const { issueAuthenticatedSession } = await import("../../auth-session");
 
-    const csrfToken = api.setAuthCookies(res, newRefreshToken);
+    if (await maybeRequireTotpAfterPassword(verifiedUser, res)) {
+      return;
+    }
 
-    api.logEmail("INFO", "Email verified", { userId: safeUser.id, role: safeUser.role });
-
-    res.json(
-      api.withMobileRefreshToken(
-        req,
-        { ...safeUser, token: api.signAuthToken(safeUser), csrfToken, message: "E-mail vérifié avec succès" },
-        newRefreshToken,
-      ),
-    );
+    const body = await issueAuthenticatedSession(req, res, api, verifiedUser, "User logged in after email verification");
+    res.json({ ...body, message: "E-mail vérifié avec succès" });
   });
 
   // POST /api/auth/resend-verification-code

@@ -45,6 +45,8 @@ model User {
   avatarUrl              String?
   failedLoginAttempts    Int                     @default(0)
   lockoutUntil           DateTime?
+  totpEnabled            Boolean                 @default(false)
+  totpSecretEnc          String?
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
   enrollments            Enrollment[]
@@ -76,6 +78,9 @@ model User {
   pushSubscriptions      PushSubscription[]
   payments               Payment[]
   invoiceRecords         Invoice[]
+  totpRecoveryCodes      TotpRecoveryCode[]
+  webAuthnCredentials    WebAuthnCredential[]
+  securityChallenges     SecurityChallenge[]
 
   @@index([role])
   @@schema("AxelmondResearchLab")
@@ -511,6 +516,50 @@ model RefreshToken {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@schema("AxelmondResearchLab")
+}
+
+model TotpRecoveryCode {
+  id        String    @id @default(cuid())
+  userId    String
+  codeHash  String
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@schema("AxelmondResearchLab")
+}
+
+model WebAuthnCredential {
+  id               String    @id @default(cuid())
+  userId           String
+  credentialId     String    @unique
+  credentialIdHash String    @unique
+  publicKey        Bytes
+  counter          BigInt    @default(0)
+  transports       Json      @default("[]")
+  deviceName       String?
+  createdAt        DateTime  @default(now())
+  lastUsedAt       DateTime?
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@schema("AxelmondResearchLab")
+}
+
+model SecurityChallenge {
+  id         String    @id @default(cuid())
+  userId     String?
+  kind       String
+  payload    Json
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
   @@schema("AxelmondResearchLab")
 }
 

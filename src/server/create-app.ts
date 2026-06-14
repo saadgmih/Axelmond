@@ -513,6 +513,9 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
   app.use("/api/auth/verify-email", emailVerificationCheckRateLimiter);
   app.use("/api/auth/forgot-password", passwordResetRequestRateLimiter);
   app.use("/api/auth/reset-password", passwordResetConfirmRateLimiter);
+  app.use("/api/auth/mfa/totp/verify", authRateLimiter);
+  app.use("/api/auth/mfa/passkey/login/options", authRateLimiter);
+  app.use("/api/auth/mfa/passkey/login/verify", authRateLimiter);
   app.use("/api/uploadthing", uploadRateLimiter);
   app.use("/api/me/avatar", uploadRateLimiter);
   app.use("/api/livekit/token", liveKitRateLimiter);

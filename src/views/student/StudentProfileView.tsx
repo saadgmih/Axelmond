@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Award, BookOpen, CheckCircle2, CreditCard, GraduationCap, Mail, ShieldCheck, Sparkles } from "lucide-react";
 import ProfileAvatarUpload from "../../components/ProfileAvatarUpload";
+import SecuritySettingsPanel from "../../components/SecuritySettingsPanel";
 import type { AppUser } from "../../components/AuthScreen";
 import type { Course, Invoice } from "../../types";
 import { formatCredits, formatMad } from "../../utils/morocco-locale";
@@ -322,6 +323,16 @@ export default function StudentProfileView({
                 onUpload={handleUploadAvatarFile}
                 onDelete={handleDeleteAvatar}
               />
+            </div>
+          </section>
+
+          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <div className="border-b border-slate-100 px-6 py-5">
+              <h3 className="text-sm font-black text-slate-900">Sécurité avancée</h3>
+              <p className="mt-0.5 text-[11px] text-slate-500">TOTP et Passkeys WebAuthn</p>
+            </div>
+            <div className="p-6">
+              <SecuritySettingsPanel />
             </div>
           </section>
 

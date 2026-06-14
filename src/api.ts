@@ -287,6 +287,24 @@ export const api = {
     }),
   login: (email: string, password: string, role: string) =>
     request<any>("POST", "/api/auth/login", { email, password, role }),
+  verifyMfaTotp: (mfaToken: string, code: string) =>
+    request<any>("POST", "/api/auth/mfa/totp/verify", { mfaToken, code }),
+  beginPasskeyLogin: (email?: string) =>
+    request<any>("POST", "/api/auth/mfa/passkey/login/options", email ? { email } : {}),
+  completePasskeyLogin: (challengeId: string, response: unknown, role?: string) =>
+    request<any>("POST", "/api/auth/mfa/passkey/login/verify", { challengeId, response, role }),
+  getMfaStatus: () => request<any>("GET", "/api/auth/mfa/status"),
+  setupTotp: () => request<any>("POST", "/api/auth/mfa/totp/setup", {}),
+  enableTotp: (challengeId: string, code: string) =>
+    request<any>("POST", "/api/auth/mfa/totp/enable", { challengeId, code }),
+  disableTotp: (password: string, code: string) =>
+    request<any>("POST", "/api/auth/mfa/totp/disable", { password, code }),
+  beginPasskeyRegister: (deviceName?: string) =>
+    request<any>("POST", "/api/auth/mfa/passkey/register/options", deviceName ? { deviceName } : {}),
+  completePasskeyRegister: (challengeId: string, response: unknown, deviceName?: string) =>
+    request<any>("POST", "/api/auth/mfa/passkey/register/verify", { challengeId, response, deviceName }),
+  deletePasskey: (id: string, password: string) =>
+    request<any>("DELETE", `/api/auth/mfa/passkeys/${id}`, { password }),
   register: (data: {
     email: string;
     password: string;

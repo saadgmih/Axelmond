@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { getClientErrorMessage } from "../client-errors";
 import { motion } from "motion/react";
-import { GraduationCap, User, ShieldAlert, Mail, Lock, LogIn, UserPlus } from "lucide-react";
+import { GraduationCap, User, ShieldAlert, Mail, Lock, LogIn, UserPlus, KeyRound } from "lucide-react";
+import { startAuthentication } from "@simplewebauthn/browser";
 import { Course, Invoice } from "../types";
 import { api, setSessionToken } from "../api";
+import AuthMfaStep from "./AuthMfaStep";
 import { UserRole, getTeacherLoginSectorLabel, getTeacherLoginTabLabel } from "../rbac";
 import LogoSymbol from "./LogoSymbol";
 import SkipLink from "./SkipLink";
@@ -119,6 +121,51 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
   const [successMsg, setSuccessMsg] = useState("");
   const [rateLimitError, setRateLimitError] = useState<{ seconds: number } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [mfaPending, setMfaPending] = useState<{
+    mfaToken: string;
+    email: string;
+    passkeysAvailable?: boolean;
+  } | null>(null);
+
+  const finishAuthSuccess = (user: AppUser) => {
+    setSessionToken(user.token, user.csrfToken);
+    setSuccessMsg("Connexion réussie ! Chargement de votre espace...");
+    setTimeout(() => onLoginSuccess(user), 800);
+  };
+
+  const handleMfaChallenge = (payload: any, fallbackEmail: string) => {
+    if (payload?.mfaRequired && payload?.mfaToken) {
+      setMfaPending({
+        mfaToken: payload.mfaToken,
+        email: payload.email || fallbackEmail,
+        passkeysAvailable: Boolean(payload.passkeysAvailable),
+      });
+      setIsLoading(false);
+      return true;
+    }
+    return false;
+  };
+
+  const handlePasskeyLogin = async () => {
+    setErrorMsg("");
+    setSuccessMsg("");
+    setRateLimitError(null);
+    setIsLoading(true);
+    const normalizedEmail = email.trim().toLowerCase();
+    try {
+      const { options, challengeId } = await api.beginPasskeyLogin(normalizedEmail || undefined);
+      const response = await startAuthentication({ optionsJSON: options });
+      const user = await api.completePasskeyLogin(
+        challengeId,
+        response,
+        activeSector === "student" ? "STUDENT" : "PROFESSOR",
+      );
+      finishAuthSuccess(user);
+    } catch (err: any) {
+      setIsLoading(false);
+      setErrorMsg(getClientErrorMessage(err, "Connexion Passkey impossible."));
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,9 +182,8 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
     const normalizedEmail = email.trim().toLowerCase();
     try {
       const user = await api.login(normalizedEmail, password, activeSector === "student" ? "STUDENT" : "PROFESSOR");
-      setSessionToken(user.token, user.csrfToken);
-      setSuccessMsg("Connexion réussie ! Chargement de votre espace...");
-      setTimeout(() => onLoginSuccess(user), 800);
+      if (handleMfaChallenge(user, normalizedEmail)) return;
+      finishAuthSuccess(user);
     } catch (err: any) {
       setIsLoading(false);
       if (err.verificationRequired) {
@@ -206,6 +252,7 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
     setIsLoading(true);
     try {
       const user = await api.verifyEmail(verificationEmail, verificationCode);
+      if (handleMfaChallenge(user, verificationEmail)) return;
       setSessionToken(user.token, user.csrfToken);
       setSuccessMsg(user.message || "E-mail vérifié avec succès");
       setTimeout(() => onLoginSuccess(user), 800);
@@ -412,7 +459,20 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
                 </div>
               )}
 
-              {verificationEmail ? (
+              {mfaPending ? (
+                <AuthMfaStep
+                  mfaToken={mfaPending.mfaToken}
+                  email={mfaPending.email}
+                  role={activeSector === "student" ? "STUDENT" : "PROFESSOR"}
+                  passkeysAvailable={mfaPending.passkeysAvailable}
+                  onSuccess={(user) => finishAuthSuccess(user)}
+                  onBack={() => {
+                    setMfaPending(null);
+                    setErrorMsg("");
+                    setSuccessMsg("");
+                  }}
+                />
+              ) : verificationEmail ? (
                 <form onSubmit={handleVerifyEmail} className="space-y-4">
                   <div className="space-y-1.5 animate-in slide-in-from-top-1 duration-200">
                     <label
@@ -697,6 +757,18 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
                         : "Se connecter"
                       : "Créer mon Compte Académique"}
                   </button>
+
+                  {authMode === "login" && (
+                    <button
+                      type="button"
+                      disabled={isLoading}
+                      onClick={() => void handlePasskeyLogin()}
+                      className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900 py-3 text-xs font-bold text-slate-200 transition-all hover:border-indigo-500/40"
+                    >
+                      <KeyRound className="h-4 w-4" />
+                      Se connecter avec une Passkey
+                    </button>
+                  )}
                 </form>
               )}
 

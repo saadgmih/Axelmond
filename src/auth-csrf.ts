@@ -11,6 +11,9 @@ const CSRF_EXEMPT_PATHS = new Set([
   "/api/auth/resend-verification-code",
   "/api/auth/forgot-password",
   "/api/auth/reset-password",
+  "/api/auth/mfa/totp/verify",
+  "/api/auth/mfa/passkey/login/options",
+  "/api/auth/mfa/passkey/login/verify",
 ]);
 
 const CSRF_EXEMPT_PREFIXES = ["/api/uploadthing", "/api/paypal/webhook"];
