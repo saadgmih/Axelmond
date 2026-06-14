@@ -35,15 +35,17 @@ export function registerAuthRoutes(app: Express, ctx: RouteContext): void {
   
   
     const normalizedEmail = email;
-  
+
+    const passwordHash = await api.bcrypt.hash(password, 10);
+
     const existing = await api.prisma.user.findUnique({ where: { email: normalizedEmail } });
-  
+
     if (existing) {
-  
-      res.status(409).json({ error: "Impossible de créer le compte avec ces informations. Vérifiez vos données ou connectez-vous." });
-  
+
+      res.status(409).json({ error: api.PUBLIC_API_ERRORS.registrationConflict });
+
       return;
-  
+
     }
   
   
@@ -71,11 +73,7 @@ export function registerAuthRoutes(app: Express, ctx: RouteContext): void {
       ? (availableCourses.length > 0 ? [availableCourses[0].id] : [])
   
       : [];
-  
-    const passwordHash = await api.bcrypt.hash(password, 10);
-  
-  
-  
+
     try {
   
       const user = await api.prisma.$transaction(async (tx) => {
@@ -135,19 +133,11 @@ export function registerAuthRoutes(app: Express, ctx: RouteContext): void {
             levelOrTitle: finalLevel,
   
             filiere: normalizedRole === "STUDENT" && typeof filiere === "string" ? filiere.trim() || null : null,
-  
-            invoices: normalizedRole === "STUDENT" ? api.createDefaultStudentInvoices() : [],
-  
-            enrollments: {
-  
-              create: enrolledCourseIds.map((courseId) => ({ courseId })),
-  
-            },
-  
+
           },
-  
-          include: { enrollments: true },
-  
+
+          include: api.APP_USER_BILLING_INCLUDE,
+
         });
   
   
@@ -181,12 +171,60 @@ export function registerAuthRoutes(app: Express, ctx: RouteContext): void {
   
   
         return createdUser;
-  
+
       });
-  
-  
-  
-      const safeUser = api.toAppUser(user);
+
+      let registeredUser = user;
+
+      if (normalizedRole === "STUDENT" && enrolledCourseIds.length > 0) {
+
+        const seedCourse = await api.prisma.course.findUnique({ where: { id: enrolledCourseIds[0] } });
+
+        if (seedCourse) {
+
+          try {
+
+            const seedResult = await api.persistCoursePaymentWithAudit({
+
+              userId: user.id,
+
+              courseId: seedCourse.id,
+
+              courseTitle: seedCourse.title,
+
+              coursePrice: seedCourse.price,
+
+              invoiceId: api.buildCourseInvoiceId("REG"),
+
+              provider: "MOCK",
+
+              externalId: `REG-SEED-${user.id}-${seedCourse.id}`,
+
+              auditAction: "REGISTRATION_SEED_ENROLLMENT",
+
+              reqIp: req.ip,
+
+            });
+
+            if (seedResult.user) {
+
+              registeredUser = seedResult.user;
+
+            }
+
+          } catch (seedErr: any) {
+
+            api.logDb("ERROR", "Registration seed billing failed", { userId: user.id, error: String(seedErr) });
+
+          }
+
+        }
+
+      }
+
+
+
+      const safeUser = api.toAppUser(registeredUser);
   
       const delivery = await api.sendEmailVerificationCode(safeUser);
   
@@ -221,11 +259,11 @@ export function registerAuthRoutes(app: Express, ctx: RouteContext): void {
       }
   
       if (err?.code === "P2002") {
-  
-        res.status(409).json({ error: "Un compte avec cet email existe déjà" });
-  
+
+        res.status(409).json({ error: api.PUBLIC_API_ERRORS.registrationConflict });
+
         return;
-  
+
       }
   
       api.logDb("ERROR", "User registration failed", { email: normalizedEmail, error: String(err) });
@@ -259,11 +297,11 @@ export function registerAuthRoutes(app: Express, ctx: RouteContext): void {
   
   
     const user = await api.prisma.user.findUnique({
-  
+
       where: { email },
-  
-      include: { enrollments: true },
-  
+
+      include: api.APP_USER_BILLING_INCLUDE,
+
     });
   
   
@@ -525,33 +563,27 @@ export function registerAuthRoutes(app: Express, ctx: RouteContext): void {
   
   
     const user = await api.prisma.user.findUnique({
-  
+
       where: { email },
-  
-      include: { enrollments: true },
-  
+
+      include: api.APP_USER_BILLING_INCLUDE,
+
     });
   
     if (!user) {
-  
-      res.status(400).json({ error: "Identifiants ou code incorrects" });
-  
+
+      res.status(400).json({ error: api.PUBLIC_API_ERRORS.emailVerificationFailed });
+
       return;
-  
+
     }
-  
+
     if (user.emailVerified) {
-  
-      const safeUser = api.toAppUser(user);
-  
-      const newRefreshToken = await api.createRefreshToken(safeUser.id);
-  
-      const csrfToken = api.setAuthCookies(res, newRefreshToken);
-  
-      res.json(api.withMobileRefreshToken(req, { ...safeUser, token: api.signAuthToken(safeUser), csrfToken, message: "E-mail déjà vérifié" }, newRefreshToken));
-  
+
+      res.status(400).json({ error: api.PUBLIC_API_ERRORS.emailVerificationFailed });
+
       return;
-  
+
     }
   
   
@@ -565,11 +597,11 @@ export function registerAuthRoutes(app: Express, ctx: RouteContext): void {
     });
   
     if (!verification) {
-  
-      res.status(400).json({ error: "Aucun code de vérification actif. Demandez un nouveau code." });
-  
+
+      res.status(400).json({ error: api.PUBLIC_API_ERRORS.emailVerificationFailed });
+
       return;
-  
+
     }
   
     if (!api.canAttemptEmailVerification(verification.attempts)) {
@@ -621,10 +653,10 @@ export function registerAuthRoutes(app: Express, ctx: RouteContext): void {
       res.status(attempts >= api.EMAIL_VERIFICATION_MAX_ATTEMPTS ? 429 : 400).json({
   
         error: attempts >= api.EMAIL_VERIFICATION_MAX_ATTEMPTS
-  
+
           ? "Nombre maximal de tentatives atteint. Demandez un nouveau code."
-  
-          : "Identifiants ou code incorrects",
+
+          : api.PUBLIC_API_ERRORS.emailVerificationFailed,
   
       });
   
@@ -650,7 +682,7 @@ export function registerAuthRoutes(app: Express, ctx: RouteContext): void {
   
         data: { emailVerified: true },
   
-        include: { enrollments: true },
+        include: api.APP_USER_BILLING_INCLUDE,
   
       });
   
@@ -683,40 +715,26 @@ export function registerAuthRoutes(app: Express, ctx: RouteContext): void {
     const user = await api.prisma.user.findUnique({ where: { email } });
   
     if (!user) {
-  
-      // Message générique pour éviter l'énumération
-  
-      res.json({
-  
-        message: "Si le compte existe et n'est pas vérifié, un nouveau code a été envoyé.",
-  
-      });
-  
+
+      res.json({ message: api.PUBLIC_API_ERRORS.resendVerificationGeneric });
+
       return;
-  
+
     }
-  
+
     if (user.emailVerified) {
-  
-      res.json({
-  
-        message: "Si le compte existe et n'est pas vérifié, un nouveau code a été envoyé.",
-  
-      });
-  
+
+      res.json({ message: api.PUBLIC_API_ERRORS.resendVerificationGeneric });
+
       return;
-  
+
     }
-  
-  
-  
-    const delivery = await api.sendEmailVerificationCode(user);
-  
-    res.json({
-  
-      message: delivery.sent ? "Code envoyé" : "Si le compte existe et n'est pas vérifié, un nouveau code a été envoyé. Le service e-mail n'est pas configuré.",
-  
-    });
+
+
+
+    await api.sendEmailVerificationCode(user);
+
+    res.json({ message: api.PUBLIC_API_ERRORS.resendVerificationGeneric });
   
   });
   

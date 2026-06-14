@@ -40,13 +40,17 @@ const liveRoutesSource = fs.readFileSync("src/routes/live-routes.ts", "utf8");
 assert.doesNotMatch(paymentsRoutesSource, /res\.status\(500\)\.json\(\{\s*error:\s*err\?\.message/);
 assert.doesNotMatch(paymentsRoutesSource, /details:\s*String\(err/);
 assert.match(paymentsRoutesSource, /logPayPalError\("PayPal create-order route failed"/);
-assert.match(paymentsRoutesSource, /error:\s*"Erreur lors de la création de la commande PayPal"/);
-assert.match(paymentsRoutesSource, /error:\s*"Erreur lors de la capture PayPal"/);
+assert.match(paymentsRoutesSource, /PUBLIC_API_ERRORS\.paypalCreateOrderFailed/);
+assert.match(paymentsRoutesSource, /PUBLIC_API_ERRORS\.paypalCaptureFailed/);
+assert.match(paymentsRoutesSource, /PUBLIC_API_ERRORS\.paymentServiceUnavailable/);
+assert.doesNotMatch(paymentsRoutesSource, /Utilisateur non trouvé/);
 
 assert.doesNotMatch(liveRoutesSource, /res\.status\([^)]+\)\.json\(\{[^}]*String\(err/);
 assert.doesNotMatch(liveRoutesSource, /details:\s*String\(err\?\.message/);
-assert.match(liveRoutesSource, /error:\s*"Action LiveKit impossible"/);
-assert.match(liveRoutesSource, /error:\s*"Relais LiveKit impossible"/);
+assert.doesNotMatch(liveRoutesSource, /Configuration LiveKit/);
+assert.match(liveRoutesSource, /PUBLIC_API_ERRORS\.liveActionFailed/);
+assert.match(liveRoutesSource, /PUBLIC_API_ERRORS\.liveRelayFailed/);
+assert.match(liveRoutesSource, /PUBLIC_API_ERRORS\.liveServiceUnavailable/);
 
 assert.match(paymentsRoutesSource, /toPayPalCaptureClientResponse\(result\)/);
 assert.doesNotMatch(paymentsRoutesSource, /error:\s*result\.error/);
@@ -89,6 +93,23 @@ assert.doesNotMatch(apiSource, /response:\s*text/);
 assert.doesNotMatch(apiSource, /Object\.assign\(error,\s*err,/);
 assert.doesNotMatch(authRoutesSource, /role must be STUDENT/);
 assert.match(authRoutesSource, /PUBLIC_API_ERRORS\.invalidRole/);
+assert.doesNotMatch(authRoutesSource, /Un compte avec cet email existe déjà/);
+assert.match(authRoutesSource, /PUBLIC_API_ERRORS\.registrationConflict/);
+assert.match(authRoutesSource, /PUBLIC_API_ERRORS\.resendVerificationGeneric/);
+assert.match(authRoutesSource, /persistCoursePaymentWithAudit/);
+assert.match(authRoutesSource, /REGISTRATION_SEED_ENROLLMENT/);
+assert.doesNotMatch(authRoutesSource, /E-mail déjà vérifié/);
+assert.match(adminRoutesSource, /PUBLIC_API_ERRORS/);
 assert.doesNotMatch(adminRoutesSource, /details:\s*api\.getSmtpPublicConfig/);
+
+const createAppSource = fs.readFileSync("src/server/create-app.ts", "utf8");
+assert.match(createAppSource, /RATE_LIMIT_MAX_REQUESTS\) \|\| 500/);
+assert.match(createAppSource, /app\.use\("\/api\/livekit\/sync", liveKitSyncRateLimiter\)/);
+
+const liveKitUiSource = fs.readFileSync("src/hooks/useLiveKitRoom.tsx", "utf8");
+assert.doesNotMatch(liveKitUiSource, /LIVEKIT_API_KEY/);
+
+const paypalEnrollmentSource = fs.readFileSync("src/paypal-enrollment.ts", "utf8");
+assert.doesNotMatch(paypalEnrollmentSource, /Utilisateur non trouvé/);
 
 console.log("Security hardening rules passed");

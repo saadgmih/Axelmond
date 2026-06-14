@@ -24,6 +24,16 @@ export const PUBLIC_API_ERRORS = {
   smtpNotConfigured: "SMTP non configuré.",
   smtpSendFailed: "Échec d'envoi SMTP.",
   quizQuestionFieldsRequired: "La question, les options (min. 2), la réponse et l'explication sont requis.",
+  registrationConflict: "Impossible de créer le compte avec ces informations. Vérifiez vos données ou connectez-vous.",
+  emailVerificationFailed: "Identifiants ou code incorrects.",
+  resendVerificationGeneric: "Si le compte existe et n'est pas vérifié, un nouveau code a été envoyé.",
+  serviceUnavailable: "Service temporairement indisponible.",
+  paymentServiceUnavailable: "Service de paiement temporairement indisponible.",
+  liveServiceUnavailable: "Service live temporairement indisponible.",
+  liveActionFailed: "Action live impossible.",
+  liveRelayFailed: "Relais live impossible.",
+  paypalCaptureFailed: "Erreur lors de la capture PayPal.",
+  paypalCreateOrderFailed: "Erreur lors de la création de la commande PayPal.",
 } as const;
 
 export const LIVE_ACCESS_ERRORS = {

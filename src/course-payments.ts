@@ -6,6 +6,10 @@ export const APP_USER_BILLING_INCLUDE = {
   invoiceRecords: { orderBy: { issuedAt: "desc" as const } },
 } as const;
 
+export function buildCourseInvoiceId(prefix: "PAYPAL" | "MOCK" | "REG"): string {
+  return `INV-${prefix}-${Math.floor(Math.random() * 90000 + 10000)}`;
+}
+
 export type CoursePaymentEnrollmentInput = {
   userId: string;
   courseId: number;
@@ -115,6 +119,14 @@ export async function persistCoursePaymentEnrollment(
   };
 
   try {
+    let persistedInvoice: {
+      id: string;
+      courseTitle: string;
+      amountMad: number;
+      status: string;
+      issuedAt: Date;
+    } | null = null;
+
     const updatedUser = await prisma.$transaction(async (tx) => {
       const payment = await tx.payment.create({
         data: {
@@ -133,6 +145,7 @@ export async function persistCoursePaymentEnrollment(
         },
         include: { invoice: true },
       });
+      persistedInvoice = payment.invoice!;
 
       await tx.enrollment.upsert({
         where: { userId_courseId: { userId: params.userId, courseId: params.courseId } },
@@ -183,13 +196,15 @@ export async function persistCoursePaymentEnrollment(
     return {
       duplicate: false as const,
       user: updatedUser,
-      invoice: serializeInvoiceRecord({
-        id: params.invoiceId,
-        courseTitle: params.courseTitle,
-        amountMad: params.coursePrice,
-        status: "Payé",
-        issuedAt: new Date(),
-      }),
+      invoice: persistedInvoice
+        ? serializeInvoiceRecord(persistedInvoice)
+        : serializeInvoiceRecord({
+          id: params.invoiceId,
+          courseTitle: params.courseTitle,
+          amountMad: params.coursePrice,
+          status: "Payé",
+          issuedAt: new Date(),
+        }),
     };
   } catch (err: any) {
     if (err?.code === "P2002") {

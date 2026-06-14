@@ -473,9 +473,7 @@ export function useLiveKitRoom({
           return;
         }
         if (message.toLowerCase().includes("invalid token")) {
-          setLiveStatusMsg(
-            "Token LiveKit refusé : vérifiez LIVEKIT_API_KEY et LIVEKIT_API_SECRET côté serveur, puis redémarrez le serveur.",
-          );
+          setLiveStatusMsg("Connexion live impossible. Réessayez ou contactez le support.");
           return;
         }
         setLiveStatusMsg(getClientErrorMessage(err, "Connexion LiveKit impossible"));

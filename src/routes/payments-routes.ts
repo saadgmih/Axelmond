@@ -117,7 +117,7 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
   
     if (!api.isPayPalConfigured()) {
   
-      res.status(503).json({ error: "Le service de paiement PayPal n'est pas configuré" });
+      res.status(503).json({ error: api.PUBLIC_API_ERRORS.paymentServiceUnavailable });
   
       return;
   
@@ -207,7 +207,7 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
   
       });
   
-      res.status(500).json({ error: "Erreur lors de la création de la commande PayPal" });
+      res.status(500).json({ error: api.PUBLIC_API_ERRORS.paypalCreateOrderFailed });
   
     }
   
@@ -245,7 +245,7 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
   
     if (!api.isPayPalConfigured()) {
   
-      res.status(503).json({ error: "Le service de paiement PayPal n'est pas configuré" });
+      res.status(503).json({ error: api.PUBLIC_API_ERRORS.paymentServiceUnavailable });
   
       return;
   
@@ -336,14 +336,14 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
       });
   
       if (err?.message === "USER_NOT_FOUND") {
-  
-        res.status(404).json({ error: "Utilisateur non trouvé" });
-  
+
+        res.status(500).json({ error: api.PUBLIC_API_ERRORS.paypalCaptureFailed });
+
         return;
-  
+
       }
-  
-      res.status(500).json({ error: "Erreur lors de la capture PayPal" });
+
+      res.status(500).json({ error: api.PUBLIC_API_ERRORS.paypalCaptureFailed });
   
     }
   
@@ -407,14 +407,15 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
   
   
   
-    const invoiceId = `INV-MOCK-${Math.floor(Math.random() * 90000 + 10000)}`;
+    const invoiceId = api.buildCourseInvoiceId("MOCK");
+    const chargePricing = api.resolveCourseChargeAmount(course.price, "");
 
     try {
       const result = await persistCoursePaymentEnrollment({
         userId: authUser.id,
         courseId,
         courseTitle: course.title,
-        coursePrice: course.price,
+        coursePrice: chargePricing.amount,
         invoiceId,
         provider: "MOCK",
         externalId: `mock-${authUser.id}-${courseId}`,
@@ -438,7 +439,7 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
     } catch (err) {
       api.logDb("ERROR", "Mock enrollment failed", { userId: authUser.id, courseId, error: String(err) });
       if ((err as Error)?.message === "USER_NOT_FOUND") {
-        res.status(404).json({ error: "Utilisateur non trouvé" });
+        res.status(500).json({ error: "Erreur lors de l'inscription" });
         return;
       }
       res.status(500).json({ error: "Erreur lors de l'inscription" });

@@ -45,7 +45,7 @@ export const PAYPAL_CAPTURE_CLIENT_MESSAGES: Record<string, string> = {
   COURSE_NOT_FOUND: "Module non trouvé",
   PAYPAL_CAPTURE_INCOMPLETE: "Paiement PayPal non finalisé",
   PAYPAL_AMOUNT_MISMATCH: "Montant de paiement incorrect",
-  USER_NOT_FOUND: "Utilisateur non trouvé",
+  USER_NOT_FOUND: "Paiement PayPal invalide",
 };
 
 export function toPayPalCaptureClientResponse(result: {
@@ -156,7 +156,7 @@ export async function processPayPalCaptureEnrollment(
     };
   } catch (err: any) {
     if (err?.message === "USER_NOT_FOUND") {
-      return { ok: false, status: 404, error: "Utilisateur non trouvé", code: "USER_NOT_FOUND" };
+      return { ok: false, status: 404, error: "USER_NOT_FOUND", code: "USER_NOT_FOUND" };
     }
     throw err;
   }

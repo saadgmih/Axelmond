@@ -34,7 +34,7 @@ export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
   
       api.logLiveKit("ERROR", "LiveKit server configuration missing");
   
-      res.status(503).json({ error: "Configuration LiveKit manquante côté serveur" });
+      res.status(503).json({ error: api.PUBLIC_API_ERRORS.liveServiceUnavailable });
   
       return;
   
@@ -528,7 +528,7 @@ export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
   
     if (!liveKitConfig) {
   
-      res.status(503).json({ error: "Configuration LiveKit manquante côté serveur" });
+      res.status(503).json({ error: api.PUBLIC_API_ERRORS.liveServiceUnavailable });
   
       return;
   
@@ -616,7 +616,7 @@ export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
   
       });
   
-      res.status(502).json({ error: "Action LiveKit impossible" });
+      res.status(502).json({ error: api.PUBLIC_API_ERRORS.liveActionFailed });
     }
   });
 
@@ -637,7 +637,7 @@ export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
 
     const liveKitConfig = api.getLiveKitConfig(process.env);
     if (!liveKitConfig) {
-      res.status(503).json({ error: "Configuration LiveKit manquante côté serveur" });
+      res.status(503).json({ error: api.PUBLIC_API_ERRORS.liveServiceUnavailable });
       return;
     }
 
@@ -677,7 +677,7 @@ export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
         userId: authUser.id,
         error: String(err?.message || err),
       });
-      res.status(502).json({ error: "Relais LiveKit impossible" });
+      res.status(502).json({ error: api.PUBLIC_API_ERRORS.liveRelayFailed });
     }
   });
 

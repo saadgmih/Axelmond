@@ -30,7 +30,8 @@ import { assertCourseLearningAccess } from "../course-access";
 import { sanitizeAcademicProfileInput, sanitizeAvatarUrl, isAvatarUrlFieldInvalid } from "../academic-profile";
 import { isAllowedAvatarUrl } from "../avatar-security";
 import { CHAT_TUTOR_MAX_HISTORY_MESSAGES, CHAT_TUTOR_MAX_PROMPT_CHARS } from "../security-hardening";
-import { APP_USER_BILLING_INCLUDE, mergeUserInvoices, persistCoursePaymentEnrollment } from "../course-payments";
+import { APP_USER_BILLING_INCLUDE, buildCourseInvoiceId, mergeUserInvoices, persistCoursePaymentEnrollment } from "../course-payments";
+import type { CoursePaymentEnrollmentInput } from "../course-payments";
 import { LIVE_ACCESS_ERRORS } from "../public-api-errors";
 
 
@@ -386,12 +387,19 @@ export async function deleteContentSectionTree(tx: any, sectionId: string) {
 
 export function createDefaultStudentInvoices() {
   return [{
-    id: `INV-AUTO-${Math.floor(Math.random() * 9000 + 1000)}`,
+    id: buildCourseInvoiceId("REG"),
     date: new Date().toLocaleDateString("fr-FR"),
     courseTitle: "Algorithmique et Structures de Données",
     amount: 15.99,
     status: "Payé"
   }];
+}
+
+export async function persistCoursePaymentWithAudit(params: CoursePaymentEnrollmentInput) {
+  return persistCoursePaymentEnrollment(params, {
+    logAudit,
+    invalidateAuthUserCache,
+  });
 }
 
 export function toAppUser(user: any): AppUser {
@@ -1111,7 +1119,7 @@ export { deleteCloudFiles } from "../uploadthing";
 export { notifyEnrolledStudentsForCourse } from "../notifications";
 export { buildCourseGradeRows } from "../grades";
 export { assertCourseLearningAccess } from "../course-access";
-export { APP_USER_BILLING_INCLUDE, mergeUserInvoices, persistCoursePaymentEnrollment };
+export { APP_USER_BILLING_INCLUDE, buildCourseInvoiceId, mergeUserInvoices, persistCoursePaymentEnrollment };
 export { PUBLIC_API_ERRORS, LIVE_ACCESS_ERRORS, toPushSubscribeClientResponse } from "../public-api-errors";
 export { sanitizeAcademicProfileInput, sanitizeAvatarUrl, isAvatarUrlFieldInvalid } from "../academic-profile";
 export { isAllowedAvatarUrl } from "../avatar-security";

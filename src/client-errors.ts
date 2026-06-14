@@ -3,7 +3,7 @@ const UNSAFE_CLIENT_ERROR_PATTERNS = [
   /\bat\s+\S+\(/,
   /:\d+:\d+/,
   /ECONNREFUSED|ETIMEDOUT|ENOTFOUND|EAI_AGAIN/i,
-  /\b(prisma|paypal|openai|livekit|postgres|sql|stack trace)\b/i,
+  /\b(prisma|paypal|openai|livekit|postgres|sql|stack trace|LIVEKIT_)\b/i,
 ];
 
 export function sanitizeClientErrorMessage(

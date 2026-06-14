@@ -207,7 +207,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
 
   const globalRateLimiter = rateLimit({
     windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-    max: Number(process.env.RATE_LIMIT_MAX_REQUESTS) || 5000,
+    max: Number(process.env.RATE_LIMIT_MAX_REQUESTS) || 500,
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: "Trop de requêtes. Veuillez réessayer dans quelques minutes.", code: "RATE_LIMIT_EXCEEDED" },
@@ -388,6 +388,15 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     message: { error: "Trop de demandes contact/support. Veuillez patienter 1 heure.", code: "CONTACT_SUPPORT_RATE_LIMIT_EXCEEDED" },
   });
 
+  const liveKitSyncRateLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: Number(process.env.LIVEKIT_SYNC_RATE_LIMIT_MAX) || 120,
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: liveKitRateLimitKey,
+    message: { error: "Trop de synchronisations live. Veuillez patienter 15 minutes.", code: "LIVEKIT_SYNC_RATE_LIMIT_EXCEEDED" },
+  });
+
   const refreshRateLimiter = rateLimit({
     windowMs: REFRESH_RATE_LIMIT_WINDOW_MS,
     max: REFRESH_RATE_LIMIT_MAX,
@@ -417,6 +426,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
   app.use("/api/livekit/moderation", liveKitModerationRateLimiter);
   app.use("/api/livekit/messages", liveKitMessagesRateLimiter);
   app.use("/api/livekit/events", liveKitEventsRateLimiter);
+  app.use("/api/livekit/sync", liveKitSyncRateLimiter);
   app.use("/api/conversations", messagingRateLimiter);
   app.use("/api/paypal", paypalRateLimiter);
   app.use("/api/contact", contactSupportRateLimiter);

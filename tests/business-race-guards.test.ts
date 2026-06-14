@@ -29,8 +29,10 @@ const paypalEnrollmentSource = fs.readFileSync("src/paypal-enrollment.ts", "utf8
 assert.match(serverSource, /reserveProfessorInviteCode/);
 assert.match(coursePaymentsSource, /persistCoursePaymentEnrollment/);
 assert.match(coursePaymentsSource, /externalId/);
-assert.match(serverSource, /api\.persistCoursePaymentEnrollment\(/);
+assert.match(serverSource, /persistCoursePaymentWithAudit/);
+assert.match(serverSource, /REGISTRATION_SEED_ENROLLMENT/);
 assert.match(serverSource, /buildPersistCoursePaymentEnrollment/);
+assert.match(coursePaymentsSource, /buildCourseInvoiceId/);
 assert.match(serverSource, /recordLiveAttendanceJoin/);
 assert.match(paypalEnrollmentSource, /provider: "PAYPAL" \| "MOCK"/);
 assert.match(messagingRoutesSource, /findOrCreateDirectConversation/);
