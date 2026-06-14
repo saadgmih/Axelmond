@@ -178,10 +178,10 @@ export default function StudentProfileView({
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start">
-        <div className="space-y-6 lg:col-span-8">
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-stretch">
           {/* Progression */}
-          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:col-span-8">
             <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5 md:px-8">
               <div>
                 <h2 className="text-lg font-black text-slate-900">Progression académique</h2>
@@ -227,8 +227,28 @@ export default function StudentProfileView({
             </div>
           </section>
 
+          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:col-span-4">
+            <div className="border-b border-slate-100 px-6 py-5">
+              <h3 className="text-sm font-black text-slate-900">Photo de profil</h3>
+              <p className="mt-0.5 text-[11px] text-slate-500">Recadrez la zone visible comme sur WhatsApp</p>
+            </div>
+
+            <div className="p-6">
+              <ProfileAvatarUpload
+                avatarUrl={currentUser?.avatarUrl}
+                initials={currentUser ? getInitials(currentUser.fullName) : "AR"}
+                statusMsg={avatarStatusMsg}
+                accent="indigo"
+                onUpload={handleUploadAvatarFile}
+                onDelete={handleDeleteAvatar}
+              />
+            </div>
+          </section>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-stretch">
           {/* Invoices */}
-          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+          <section className="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:col-span-8">
             <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5 md:px-8">
               <div>
                 <h2 className="text-lg font-black text-slate-900">Historique des paiements</h2>
@@ -241,7 +261,7 @@ export default function StudentProfileView({
 
             {invoices.length > 0 ? (
               <>
-                <div className="hidden overflow-x-auto md:block">
+                <div className="hidden flex-1 overflow-x-auto md:block">
                   <table className="w-full border-collapse text-left text-xs text-slate-600">
                     <thead>
                       <tr className="border-b border-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-400">
@@ -275,7 +295,7 @@ export default function StudentProfileView({
                   </table>
                 </div>
 
-                <div className="space-y-3 p-4 md:hidden">
+                <div className="flex-1 space-y-3 p-4 md:hidden">
                   {invoices.map((inv) => (
                     <div key={inv.id} className="rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
                       <div className="flex items-start justify-between gap-3">
@@ -296,44 +316,23 @@ export default function StudentProfileView({
                 </div>
               </>
             ) : (
-              <div className="px-6 py-12 text-center md:px-8">
+              <div className="flex flex-1 flex-col items-center justify-center px-6 py-12 text-center md:px-8">
                 <CreditCard className="mx-auto h-10 w-10 text-slate-300" />
                 <p className="mt-3 text-sm font-bold text-slate-600">Aucun paiement enregistré</p>
                 <p className="mt-1 text-xs text-slate-400">Vos reçus apparaîtront ici après inscription.</p>
               </div>
             )}
           </section>
-        </div>
-
-        {/* Sidebar */}
-        <aside className="space-y-6 lg:col-span-4">
-          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-slate-100 px-6 py-5">
-              <h3 className="text-sm font-black text-slate-900">Photo de profil</h3>
-              <p className="mt-0.5 text-[11px] text-slate-500">Recadrez la zone visible comme sur WhatsApp</p>
-            </div>
-
-            <div className="p-6">
-              <ProfileAvatarUpload
-                avatarUrl={currentUser?.avatarUrl}
-                initials={currentUser ? getInitials(currentUser.fullName) : "AR"}
-                statusMsg={avatarStatusMsg}
-                accent="indigo"
-                onUpload={handleUploadAvatarFile}
-                onDelete={handleDeleteAvatar}
-              />
-            </div>
-          </section>
 
           {/* Academic status */}
-          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+          <section className="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:col-span-4">
             <div className="border-b border-slate-100 px-6 py-5">
               <h3 className="flex items-center gap-2 text-sm font-black text-slate-900">
                 <Award className="h-4 w-4 text-amber-500" />
                 Statut académique
               </h3>
             </div>
-            <div className="space-y-3 p-6">
+            <div className="flex flex-1 flex-col justify-center space-y-3 p-6">
               {[
                 {
                   value: stats.validatedModules,
@@ -371,7 +370,7 @@ export default function StudentProfileView({
               ))}
             </div>
           </section>
-        </aside>
+        </div>
       </div>
 
       <SecuritySettingsPanel layout="wide" emailVerified={Boolean(currentUser?.emailVerified)} />
