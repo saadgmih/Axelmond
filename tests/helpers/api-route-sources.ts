@@ -35,6 +35,9 @@ export function readApiRouteSources(): string {
     fs.readFileSync(path.join(root, "src", "server", "startup-db.ts"), "utf8"),
     fs.readFileSync(path.join(root, "src", "routes", "register-api-routes.ts"), "utf8"),
     fs.readFileSync(path.join(root, "src", "server", "route-deps.ts"), "utf8"),
+    fs.readFileSync(path.join(root, "src", "server", "route-mappers.ts"), "utf8"),
+    fs.readFileSync(path.join(root, "src", "server", "route-schemas.ts"), "utf8"),
+    fs.readFileSync(path.join(root, "src", "auth-session.ts"), "utf8"),
     ...routeFiles,
     ...authRouteFiles,
   ].join("\n");
