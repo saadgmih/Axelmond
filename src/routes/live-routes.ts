@@ -616,7 +616,7 @@ export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
   
       });
   
-      res.status(502).json({ error: "Action LiveKit impossible", details: String(err?.message || err) });
+      res.status(502).json({ error: "Action LiveKit impossible" });
     }
   });
 

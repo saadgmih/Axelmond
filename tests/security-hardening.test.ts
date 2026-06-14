@@ -34,4 +34,18 @@ assert.match(serverSource, /express\.json\(\{\s*limit:\s*JSON_BODY_LIMIT/);
 assert.match(serverSource, /setAuthCookies/);
 assert.match(serverSource, /csrfProtection/);
 
+const paymentsRoutesSource = fs.readFileSync("src/routes/payments-routes.ts", "utf8");
+const liveRoutesSource = fs.readFileSync("src/routes/live-routes.ts", "utf8");
+
+assert.doesNotMatch(paymentsRoutesSource, /res\.status\(500\)\.json\(\{\s*error:\s*err\?\.message/);
+assert.doesNotMatch(paymentsRoutesSource, /details:\s*String\(err/);
+assert.match(paymentsRoutesSource, /logPayPalError\("PayPal create-order route failed"/);
+assert.match(paymentsRoutesSource, /error:\s*"Erreur lors de la création de la commande PayPal"/);
+assert.match(paymentsRoutesSource, /error:\s*"Erreur lors de la capture PayPal"/);
+
+assert.doesNotMatch(liveRoutesSource, /details:\s*String\(err\?\.message/);
+assert.doesNotMatch(liveRoutesSource, /error:\s*String\(err\?\.message/);
+assert.match(liveRoutesSource, /error:\s*"Action LiveKit impossible"/);
+assert.match(liveRoutesSource, /error:\s*"Relais LiveKit impossible"/);
+
 console.log("Security hardening rules passed");
