@@ -1,4 +1,5 @@
-import assert from "node:assert/strict";import {
+import assert from "node:assert/strict";
+import {
   canManageContent,
   canAccessAcademicProfile,
   canAccessApiRoute,
@@ -15,6 +16,7 @@ import assert from "node:assert/strict";import {
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("rbac", () => {
+
 assert.equal(normalizeRole("student"), "STUDENT");
 assert.equal(normalizeRole("teacher"), "PROFESSOR");
 assert.equal(normalizeRole("researcher"), "RESEARCHER");
@@ -89,6 +91,8 @@ assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/me/password"), false);
 assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/livekit/moderation"), false);
 assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/livekit/sync"), true);
 assert.equal(canAccessApiRoute("PROFESSOR", "POST", "/api/livekit/sync"), true);
+assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/livekit/sync"), true);
+assert.equal(canAccessApiRoute("PROFESSOR", "POST", "/api/livekit/sync"), true);
 assert.equal(canAccessApiRoute("PROFESSOR", "POST", "/api/livekit/moderation"), true);
 assert.equal(canAccessApiRoute("RESEARCHER", "POST", "/api/livekit/moderation"), true);
 assert.equal(canAccessApiRoute("ADMIN", "POST", "/api/livekit/moderation"), true);
@@ -110,4 +114,5 @@ assert.equal(getTeacherRoleBadgeTone("ADMIN"), "admin");
 assert.equal(getTeacherRoleBadgeTone("RESEARCHER"), "researcher");
 assert.equal(getTeacherRoleBadgeTone("PROFESSOR"), "professor");
 
+console.log("RBAC rules passed");
 });

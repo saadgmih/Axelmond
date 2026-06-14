@@ -24,6 +24,9 @@ export default defineConfig(({ mode }) => {
           chunkFileNames: 'assets/[hash].js',
           assetFileNames: 'assets/[hash][extname]',
           manualChunks(id) {
+            if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) {
+              return 'react-vendor';
+            }
             if (id.includes('node_modules/livekit-client') || id.includes('node_modules/@livekit')) {
               return 'livekit-vendor';
             }

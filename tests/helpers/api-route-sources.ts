@@ -21,11 +21,21 @@ export function readApiRouteSources(): string {
     .sort()
     .map((name) => fs.readFileSync(path.join(routesDir, name), "utf8"));
 
+  const authDir = path.join(routesDir, "auth");
+  const authRouteFiles = fs.existsSync(authDir)
+    ? fs
+        .readdirSync(authDir)
+        .filter((name) => name.endsWith(".ts"))
+        .sort()
+        .map((name) => fs.readFileSync(path.join(authDir, name), "utf8"))
+    : [];
+
   return [
     ...readServerBootstrapSources().split("\n"),
     fs.readFileSync(path.join(root, "src", "server", "startup-db.ts"), "utf8"),
     fs.readFileSync(path.join(root, "src", "routes", "register-api-routes.ts"), "utf8"),
     fs.readFileSync(path.join(root, "src", "server", "route-deps.ts"), "utf8"),
     ...routeFiles,
+    ...authRouteFiles,
   ].join("\n");
 }

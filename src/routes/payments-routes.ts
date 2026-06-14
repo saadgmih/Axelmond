@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, RequestHandler } from "express";
 import express from "express";
 import type { RouteContext } from "../server/route-context";
 import type { AppUser } from "../server/route-deps";
@@ -32,11 +32,16 @@ function buildPersistCoursePaymentEnrollment(ctx: RouteContext) {
   });
 }
 
-export function registerPayPalWebhook(app: Express, ctx: RouteContext): void {
+export function registerPayPalWebhook(
+  app: Express,
+  ctx: RouteContext,
+  rateLimiter?: RequestHandler,
+): void {
   const persistCoursePaymentEnrollment = buildPersistCoursePaymentEnrollment(ctx);
 
   app.post(
     "/api/paypal/webhook",
+    ...(rateLimiter ? [rateLimiter] : []),
     express.raw({ type: "application/json", limit: JSON_BODY_LIMIT }),
     async (req, res) => {
       if (!isPayPalWebhookConfigured()) {

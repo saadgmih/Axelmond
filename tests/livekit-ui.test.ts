@@ -1,10 +1,13 @@
-import assert from "node:assert/strict";import { readFileSync } from "node:fs";import { readAppSources } from "./helpers/app-sources.ts";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+
+import { readAppSources } from "./helpers/app-sources.ts";
 import { readLiveClassroomSources, readLiveKitHookSources } from "./helpers/live-classroom-sources.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("livekit-ui", () => {
+
 const appSource = readAppSources();
-const liveKitHookSource = readLiveKitHookSources();
 const liveKitSource = appSource + readLiveKitHookSources();
 const classroomSource = readLiveClassroomSources();
 
@@ -36,3 +39,5 @@ assert.match(readFileSync(new URL("../src/components/live/LiveSettingsPanel.tsx"
 assert.match(readFileSync(new URL("../src/components/live/LiveSettingsPanel.tsx", import.meta.url), "utf8"), /Bientôt disponible/);
 
 });
+
+console.log("LiveKit UI rules passed");

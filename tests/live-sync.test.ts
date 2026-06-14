@@ -43,7 +43,7 @@ assert.equal(appendWhiteboardStroke(strokes, stroke).length, 1);
 assert.equal(detectResourceKind("https://example.com/doc.pdf"), "pdf");
 assert.equal(detectResourceKind("https://example.com/page"), "link");
 
-const resource = buildSharedResource("Slides", "https://example.com/doc.pdf", "Prof");
+const resource = buildSharedResource("Slides", "https://utfs.io/f/doc.pdf", "Prof");
 assert.ok(resource);
 assert.equal(resource?.kind, "pdf");
 assert.equal(resource?.title, "Slides");

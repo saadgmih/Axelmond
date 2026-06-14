@@ -1,5 +1,10 @@
-import assert from "node:assert/strict";import fs from "node:fs";import { readApiRouteSources } from "./helpers/api-route-sources.ts";import { readAppSources } from "./helpers/app-sources.ts";
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
+import { readAppSources } from "./helpers/app-sources.ts";
+
 import { readLiveKitHookSources } from "./helpers/live-classroom-sources.ts";
+
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("student-live-sync", () => {
@@ -7,7 +12,6 @@ const apiSource = fs.readFileSync("src/api.ts", "utf8");
 const appSource = readAppSources();
 const studentCourseSessionSource = fs.readFileSync("src/hooks/useStudentCourseSession.ts", "utf8");
 const studentCourseBundle = appSource + studentCourseSessionSource;
-const liveKitHookSource = readLiveKitHookSources();
 const liveKitSource = appSource + readLiveKitHookSources();
 const serverSource = readApiRouteSources();
 
@@ -28,4 +32,5 @@ assert.match(serverSource, /api\.persistCoursePaymentEnrollment\(/);
 assert.match(serverSource, /provider:\s*"MOCK"/);
 assert.match(serverSource, /user:\s*api\.toAppUser\(result\.user\)/);
 
+console.log("Student live synchronization rules passed");
 });

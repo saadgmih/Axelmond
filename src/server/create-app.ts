@@ -199,7 +199,20 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
 
   app.use(cookieParser());
   const routeCtx = createRouteContext(routeDeps);
-  registerPayPalWebhook(app, routeCtx);
+
+  const paypalWebhookRateLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: isSecurityRuntimeTest ? 9999 : Number(process.env.PAYPAL_WEBHOOK_RATE_LIMIT_MAX) || 120,
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => ipKeyGenerator(req.ip || ""),
+    message: {
+      error: "Trop de requêtes webhook PayPal. Veuillez patienter 15 minutes.",
+      code: "PAYPAL_WEBHOOK_RATE_LIMIT_EXCEEDED",
+    },
+  });
+
+  registerPayPalWebhook(app, routeCtx, paypalWebhookRateLimiter);
 
   app.use(express.json({ limit: JSON_BODY_LIMIT }));
   app.use(csrfProtection);

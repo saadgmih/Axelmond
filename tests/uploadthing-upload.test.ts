@@ -1,4 +1,8 @@
-import assert from "node:assert/strict";import { readFileSync } from "node:fs";import { readApiRouteSources } from "./helpers/api-route-sources.ts";import { readAppSources } from "./helpers/app-sources.ts";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
+import { readAppSources } from "./helpers/app-sources.ts";
+
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("uploadthing-upload", () => {
@@ -49,6 +53,15 @@ assert.match(clientSource, /isAllowedRasterImageUpload/);
 assert.match(clientSource, /from "\.\/avatar-security"/);
 
 assert.match(supportSource, /RASTER_IMAGE_ACCEPT/);
+assert.match(uploadthingSource, /isAllowedRasterImageUpload/);
+assert.match(uploadthingSource, /from "\.\/avatar-security"/);
+assert.doesNotMatch(uploadthingSource, /mime\.startsWith\("image\/"\)/);
+
+assert.match(clientSource, /isAllowedRasterImageUpload/);
+assert.match(clientSource, /from "\.\/avatar-security"/);
+assert.doesNotMatch(clientSource, /file\.type\.startsWith\("image\/"\)/);
+
+assert.match(supportSource, /RASTER_IMAGE_ACCEPT/);
 
 assert.match(appSource, /getUploadedFileUrl/);
 assert.match(appSource, /getUploadErrorMessage/);
@@ -57,4 +70,5 @@ assert.match(appSource, /validateUploadFile/);
 assert.match(supportSource, /getUploadedFileUrl/);
 assert.match(supportSource, /getUploadErrorMessage/);
 
+console.log("UploadThing upload rules passed");
 });

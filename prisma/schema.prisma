@@ -219,6 +219,8 @@ model Course {
 
   @@index([disciplineId])
   @@index([createdById])
+  @@index([published])
+  @@index([disciplineId, published])
   @@schema("AxelmondResearchLab")
 }
 
@@ -343,6 +345,7 @@ model Enrollment {
 
   @@unique([userId, courseId])
   @@index([courseId])
+  @@index([courseId, active])
   @@schema("AxelmondResearchLab")
 }
 
@@ -430,6 +433,7 @@ model LiveSession {
   actionLogs  LiveActionLog[]
 
   @@index([courseId])
+  @@index([courseId, isActive])
   @@index([professorId])
   @@schema("AxelmondResearchLab")
 }

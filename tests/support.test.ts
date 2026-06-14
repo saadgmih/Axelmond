@@ -1,5 +1,10 @@
-import assert from "node:assert/strict";import fs from "node:fs";import { readApiRouteSources } from "./helpers/api-route-sources.ts";import { readAppSources } from "./helpers/app-sources.ts";
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
+
 import { rulesTest } from "./helpers/rulesTest.ts";
+
+import { readAppSources } from "./helpers/app-sources.ts";
 
 rulesTest("support", () => {
 const serverSource = readApiRouteSources();
@@ -38,4 +43,5 @@ assert.match(appSource, /scrollToSupportReportForm/);
 assert.match(appSource, /\/support#report/);
 assert.doesNotMatch(appSource, /navigateTo\("report-problem"\)/);
 
+console.log("Support center redesign tests passed successfully!");
 });

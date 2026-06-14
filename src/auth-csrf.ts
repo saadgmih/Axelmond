@@ -46,8 +46,7 @@ function isMobileCsrfExempt(req: Request): boolean {
     return true;
   }
 
-  const headerToken = req.headers["x-csrf-token"];
-  return typeof headerToken === "string" && headerToken.length > 0;
+  return false;
 }
 
 export function csrfProtection(req: Request, res: Response, next: NextFunction): void {

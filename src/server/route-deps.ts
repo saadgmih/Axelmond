@@ -36,27 +36,35 @@ import { APP_USER_BILLING_INCLUDE, buildCourseInvoiceId, mergeUserInvoices, pers
 import type { CoursePaymentEnrollmentInput } from "../course-payments";
 import {
   courseModuleRowFromJsonItem,
+  getNextCourseModuleId,
   resolveCourseModules,
   shouldReadRelationalCourseModules,
 } from "../course-syllabus-modules";
 import { LIVE_ACCESS_ERRORS } from "../public-api-errors";
+import { logDb, logEmail, logInvitation, logLiveKit } from "./route-loggers";
+import type { AppUser } from "./route-types";
+export type { AppUser } from "./route-types";
+import {
+  invalidatePublicCatalogCache,
+  verifyChapterAccess,
+  verifyContentAccess,
+  verifyCourseAccess,
+  verifyQuizAccess,
+  verifyQuizQuestionAccess,
+  verifySectionAccess,
+} from "./route-ownership";
+export {
+  invalidatePublicCatalogCache,
+  verifyChapterAccess,
+  verifyContentAccess,
+  verifyCourseAccess,
+  verifyQuizAccess,
+  verifyQuizQuestionAccess,
+  verifySectionAccess,
+} from "./route-ownership";
 
 
-export function logLiveKit(level: "INFO" | "WARN" | "ERROR", message: string, data?: unknown) {
-  console.log(`[${new Date().toISOString()}] [${level}] [livekit] ${message}${data ? " " + JSON.stringify(data) : ""}`);
-}
-
-export function logInvitation(level: "INFO" | "WARN", message: string, data?: unknown) {
-  console.log(`[${new Date().toISOString()}] [${level}] [invitation] ${message}${data ? " " + JSON.stringify(data) : ""}`);
-}
-
-export function logEmail(level: "INFO" | "WARN" | "ERROR", message: string, data?: unknown) {
-  console.log(`[${new Date().toISOString()}] [${level}] [email] ${message}${data ? " " + JSON.stringify(data) : ""}`);
-}
-
-export function logDb(level: "INFO" | "WARN" | "ERROR", message: string, data?: unknown) {
-  console.log(`[${new Date().toISOString()}] [${level}] [db] ${message}${data ? " " + JSON.stringify(data) : ""}`);
-}
+export { logLiveKit, logInvitation, logEmail, logDb } from "./route-loggers";
 
 interface CachedUser {
   dbUser: any;
@@ -143,20 +151,6 @@ export const requireAdmin: express.RequestHandler = (req, res, next) => {
 };
 
 // ─── Database-backed User Store ──────────────────────────────────────────────
-
-export interface AppUser {
-  id: string;
-  email: string;
-  password?: string;
-  fullName: string;
-  role: UserRole;
-  emailVerified: boolean;
-  levelOrTitle: string;
-  filiere?: string;
-  avatarUrl?: string;
-  enrolledCourses: number[];
-  invoices: { id: string; date: string; courseTitle: string; amount: number; status: string }[];
-}
 
 export function toDomain(domain: any) {
   return {
@@ -246,7 +240,7 @@ export function toCourse(course: any, completedModuleIds?: Set<number>): Course 
     liveStartedAt: getLiveStartedAt(course),
     modules: resolveCourseModules({
       modules: Array.isArray(course.modules) ? decodeStoredValue(course.modules) : course.modules,
-      courseModules: shouldReadRelationalCourseModules() ? course.courseModules : undefined,
+      courseModules: course.courseModules,
     }),
     published: course.published,
     createdById: course.createdById || undefined,
@@ -262,10 +256,36 @@ export async function getStudentCompletedModuleIds(userId: string, courseId: num
   return new Set(rows.map((row) => row.moduleId));
 }
 
-export async function toCourseForUser(course: any, authUser: AppUser): Promise<Course> {
+export async function getStudentCompletedModuleIdsByCourseIds(
+  userId: string,
+  courseIds: number[],
+): Promise<Map<number, Set<number>>> {
+  const uniqueCourseIds = [...new Set(courseIds)];
+  if (uniqueCourseIds.length === 0) return new Map();
+
+  const rows = await prisma.moduleProgress.findMany({
+    where: { userId, courseId: { in: uniqueCourseIds } },
+    select: { courseId: true, moduleId: true },
+  });
+
+  const byCourse = new Map<number, Set<number>>();
+  for (const courseId of uniqueCourseIds) {
+    byCourse.set(courseId, new Set());
+  }
+  for (const row of rows) {
+    byCourse.get(row.courseId)!.add(row.moduleId);
+  }
+  return byCourse;
+}
+
+export async function toCourseForUser(
+  course: any,
+  authUser: AppUser,
+  completedModuleIds?: Set<number>,
+): Promise<Course> {
   if (authUser.role !== "STUDENT") return toCourse(course);
-  const completedModuleIds = await getStudentCompletedModuleIds(authUser.id, course.id);
-  return toCourse(course, completedModuleIds);
+  const moduleIds = completedModuleIds ?? await getStudentCompletedModuleIds(authUser.id, course.id);
+  return toCourse(course, moduleIds);
 }
 
 export function toAttachment(attachment: any) {
@@ -1060,56 +1080,7 @@ export const liveAttendanceLeaveSchema = z.object({
 });
 
 // ─── Resource Ownership Verification Helpers ──────────────────────────────────
-
-export async function verifyCourseAccess(authUser: AppUser, courseId: number): Promise<boolean> {
-  if (authUser.role === "ADMIN") return true;
-  const course = await prisma.course.findUnique({ where: { id: courseId } });
-  if (!course) return false;
-  return course.createdById === authUser.id;
-}
-
-export async function verifyChapterAccess(authUser: AppUser, chapterId: string): Promise<boolean> {
-  if (authUser.role === "ADMIN") return true;
-  const chapter = await prisma.chapter.findUnique({ where: { id: chapterId } });
-  if (!chapter) return false;
-  return verifyCourseAccess(authUser, chapter.courseId);
-}
-
-export async function verifySectionAccess(authUser: AppUser, sectionId: string): Promise<boolean> {
-  if (authUser.role === "ADMIN") return true;
-  const section = await prisma.contentSection.findUnique({ where: { id: sectionId } });
-  if (!section) return false;
-  return verifyCourseAccess(authUser, section.courseId);
-}
-
-export async function verifyContentAccess(authUser: AppUser, contentId: string): Promise<boolean> {
-  if (authUser.role === "ADMIN") return true;
-  const content = await prisma.lessonContent.findUnique({ where: { id: contentId } });
-  if (!content) return false;
-  return verifyCourseAccess(authUser, content.courseId);
-}
-
-export async function verifyQuizAccess(authUser: AppUser, quizId: string): Promise<boolean> {
-  if (authUser.role === "ADMIN") return true;
-  const quiz = await prisma.quiz.findUnique({ where: { id: quizId } });
-  if (!quiz) return false;
-  return verifyCourseAccess(authUser, quiz.courseId);
-}
-
-export async function verifyQuizQuestionAccess(authUser: AppUser, questionId: string): Promise<boolean> {
-  if (authUser.role === "ADMIN") return true;
-  const question = await prisma.quizQuestion.findUnique({
-    where: { id: questionId },
-    include: { quiz: true },
-  });
-  if (!question || !question.quiz) return false;
-  return verifyCourseAccess(authUser, question.quiz.courseId);
-}
-
-export async function invalidatePublicCatalogCache(): Promise<void> {
-  await cacheDel("api:domains:public");
-  await cacheDelByPrefix("api:courses:public:");
-}
+// See route-ownership.ts
 
 export async function persistUserAvatarUrl(authUser: AppUser, avatarUrl: string) {
   await prisma.user.update({
@@ -1170,7 +1141,7 @@ export { validateStudentObjectivePayload, normalizeStudentObjectivePayload, seri
 export { validateIncomingLiveSyncMessage, isModeratorOnlyLiveSyncType } from "../live/live-sync-validation";
 export { LIVE_SYNC_TOPIC, createEmptyPoll } from "../live/live-sync";
 export { hashRefreshToken, CHAT_TUTOR_MAX_HISTORY_CHARS, CHAT_TUTOR_MAX_HISTORY_MESSAGES, CHAT_TUTOR_MAX_PROMPT_CHARS, trimChatTutorHistory } from "../security-hardening";
-export { courseModuleRowFromJsonItem, resolveCourseModules, shouldReadRelationalCourseModules } from "../course-syllabus-modules";
+export { courseModuleRowFromJsonItem, getNextCourseModuleId, resolveCourseModules, shouldReadRelationalCourseModules } from "../course-syllabus-modules";
 export { createPayPalOrder, capturePayPalOrder, isPayPalConfigured, logPayPalError } from "../paypal-server";
 export { processPayPalCaptureEnrollment, toPayPalCaptureClientResponse } from "../paypal-enrollment";
 export { resolveCourseChargeAmount } from "../promo-codes";

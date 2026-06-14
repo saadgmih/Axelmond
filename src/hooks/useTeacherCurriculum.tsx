@@ -508,6 +508,8 @@ export function useTeacherCurriculum({
       showCurriculumSuccess(`Média supprimé : ID ${content.id}.`);
     } catch (err: any) {
       showCurriculumError(getClientErrorMessage(err, "Suppression du média impossible."));
+    } catch (err: any) {
+      showCurriculumError(err.message || "Suppression du média impossible.");
     }
   };
 

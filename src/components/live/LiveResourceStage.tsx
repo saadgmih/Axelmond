@@ -56,7 +56,7 @@ export default function LiveResourceStage({ resource, canModerate, onDismiss }: 
             title={resource.title}
             src={embedUrl}
             className="absolute inset-0 h-full w-full border-0 bg-white"
-            sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+            sandbox="allow-same-origin allow-popups allow-forms"
             referrerPolicy="no-referrer"
             allow="fullscreen"
           />

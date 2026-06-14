@@ -1,4 +1,6 @@
-import assert from "node:assert/strict";import fs from "node:fs";
+import assert from "node:assert/strict";
+import fs from "node:fs";
+
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("session-storage-policy", () => {
@@ -15,4 +17,5 @@ assert.match(sessionSource, /useState<AppUser \| null>\(null\)/);
 assert.match(apiSource, /purgeLegacySessionUserStorage/);
 assert.match(storageSource, /LEGACY_SESSION_USER_KEY/);
 
+console.log("Session storage policy guard tests passed");
 });

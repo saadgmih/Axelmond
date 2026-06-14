@@ -5,8 +5,14 @@ rulesTest("server-routes-modular", () => {
 const root = process.cwd();
 const routesDir = path.join(root, "src", "routes");
 const maxRouteModuleLines: Record<string, number> = {
-  "auth-routes.ts": 1050,
+  "auth-routes.ts": 50,
 };
+const authSubmodules = [
+  "auth/register-login-routes.ts",
+  "auth/session-routes.ts",
+  "auth/email-verification-routes.ts",
+  "auth/password-routes.ts",
+];
 const defaultMaxRouteModuleLines = 900;
 const maxBootstrapLines = 500;
 
@@ -27,6 +33,10 @@ const expectedModules = [
 
 for (const fileName of expectedModules) {
   assert.ok(fs.existsSync(path.join(routesDir, fileName)), `Missing route module ${fileName}`);
+}
+
+for (const fileName of authSubmodules) {
+  assert.ok(fs.existsSync(path.join(routesDir, fileName)), `Missing auth submodule ${fileName}`);
 }
 
 const registerSource = fs.readFileSync(path.join(routesDir, "register-api-routes.ts"), "utf8");
@@ -56,7 +66,7 @@ assert.doesNotMatch(serverSource, /app\.use\(\s*helmet/);
 assert.ok(serverSource.split("\n").length <= 15, "server.ts must remain a thin entrypoint");
 
 assert.match(createAppSource, /registerApiRoutes\(app,\s*routeCtx\)/);
-assert.match(createAppSource, /registerPayPalWebhook\(app,\s*routeCtx\)/);
+assert.match(createAppSource, /registerPayPalWebhook\(app,\s*routeCtx,\s*paypalWebhookRateLimiter\)/);
 assert.match(createAppSource, /registerMobileApiRoutes/);
 assert.match(createAppSource, /registerMessagingRoutes/);
 assert.doesNotMatch(createAppSource, /app\.get\("\/api\/domains"/);
@@ -64,7 +74,9 @@ assert.ok(createAppSource.split("\n").length <= maxBootstrapLines, "create-app.t
 
 const routePathOwners = new Map<string, string>();
 
-for (const fileName of expectedModules) {
+const routeModulesToCheck = [...expectedModules, ...authSubmodules];
+
+for (const fileName of routeModulesToCheck) {
   const source = fs.readFileSync(path.join(routesDir, fileName), "utf8");
   const lineCount = source.split("\n").length;
   const maxLines = maxRouteModuleLines[fileName] ?? defaultMaxRouteModuleLines;

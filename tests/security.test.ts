@@ -39,6 +39,9 @@ assert.match(serverSource, /const liveKitModerationRateLimiter = rateLimit\(\{[\
 assert.match(serverSource, /app\.use\("\/api\/livekit\/moderation",\s*liveKitModerationRateLimiter\)/);
 assert.match(serverSource, /app\.use\("\/api\/livekit\/messages",\s*liveKitMessagesRateLimiter\)/);
 assert.match(serverSource, /app\.use\("\/api\/paypal",\s*paypalRateLimiter\)/);
+assert.match(serverSource, /paypalWebhookRateLimiter/);
+assert.match(serverSource, /PAYPAL_WEBHOOK_RATE_LIMIT_EXCEEDED/);
+assert.match(fs.readFileSync("src/live/live-sync-validation.ts", "utf8"), /isAllowedLiveResourceHost/);
 assert.match(serverSource, /app\.use\("\/api\/conversations",\s*messagingRateLimiter\)/);
 assert.match(serverSource, /app\.use\("\/api\/contact",\s*contactSupportRateLimiter\)/);
 assert.doesNotMatch(serverSource, /app\.use\("\/api\/livekit\/messages",\s*liveKitModerationRateLimiter\)/);

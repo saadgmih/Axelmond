@@ -1,4 +1,8 @@
-import assert from "node:assert/strict";import fs from "node:fs";import { readApiRouteSources } from "./helpers/api-route-sources.ts";import { isBlockedProductionSourcePath } from "../src/static-source-guard.ts";
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
+import { isBlockedProductionSourcePath } from "../src/static-source-guard.ts";
+
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("source-protection", () => {
@@ -29,4 +33,5 @@ assert.match(mainSource, /production-shield/);
 assert.match(shieldSource, /isProductionClient/);
 assert.match(shieldSource, /contextmenu/);
 
+console.log("Source protection rules passed");
 });

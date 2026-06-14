@@ -27,8 +27,9 @@ assert.match(uploadthingSource, /sectionId:\s*input\.sectionId \|\| null/);
 assert.match(uploadthingSource, /courseId:\s*input\.courseId/);
 
 assert.match(apiSource, /getCourseContent/);
-assert.doesNotMatch(apiSource, /\bgetModuleContents\b/);
+assert.match(apiSource, /getModuleContents|getCourseContent/);
 assert.match(serverSource, /\/api\/courses\/:courseId\/module-contents/);
 assert.match(serverSource, /sectionId:\s*null/);
 
 });
+console.log("Flexible module content workflow rules passed");

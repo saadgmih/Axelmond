@@ -1,5 +1,11 @@
-import assert from "node:assert/strict";import { readApiRouteSources } from "./helpers/api-route-sources.ts";import { readAppSources } from "./helpers/app-sources.ts";import fs from "node:fs";import { canAccessApiRoute } from "../src/rbac.ts";
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import { canAccessApiRoute } from "../src/rbac.ts";
+
 import { rulesTest } from "./helpers/rulesTest.ts";
+
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
+import { readAppSources } from "./helpers/app-sources.ts";
 
 rulesTest("student-objectives-ownership", () => {
 const serverSource = readApiRouteSources();
@@ -92,4 +98,5 @@ assert.match(objectiveViewSource, /role="dialog"/);
 assert.match(objectiveViewSource, /data-tv-zone="student-objectives"/);
 assert.match(objectiveViewSource, /data-tv-focusable/);
 
+console.log("Student objectives ownership and UI rules passed");
 });

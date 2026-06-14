@@ -80,7 +80,7 @@ export default function ProfileAvatarUpload({
   const isDark = variant === "dark";
 
   const handleFilePick = (file: File | null) => {
-    if (!file || !isAllowedRasterImageUpload(file.name, file.type)) return;
+    if (!file || !file.type.startsWith("image/")) return;
     setSelectedFile(file);
     setIsEditorOpen(true);
     if (inputRef.current) inputRef.current.value = "";
@@ -145,7 +145,7 @@ export default function ProfileAvatarUpload({
           <input
             ref={inputRef}
             type="file"
-            accept={RASTER_IMAGE_ACCEPT}
+            accept="image/*"
             onChange={(e) => handleFilePick(e.target.files?.[0] || null)}
             className="sr-only"
           />

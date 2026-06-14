@@ -69,9 +69,18 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
   
     });
   
-    const payload = authUser?.role === "STUDENT"
-      ? await Promise.all(courses.map((course) => api.toCourseForUser(course, authUser)))
-      : courses.map((course) => api.toCourse(course));
+    let payload;
+    if (authUser?.role === "STUDENT") {
+      const progressByCourse = await api.getStudentCompletedModuleIdsByCourseIds(
+        authUser.id,
+        courses.map((course) => course.id),
+      );
+      payload = courses.map((course) =>
+        api.toCourse(course, progressByCourse.get(course.id) ?? new Set()),
+      );
+    } else {
+      payload = courses.map((course) => api.toCourse(course));
+    }
   
     api.logDb("INFO", "Academic modules listed", {
   
@@ -380,61 +389,49 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
   
     }
   
-    const course = await api.findCourse(courseId);
-  
-    if (!course) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.courseNotFound }); return; }
-  
-  
-  
+    const dbCourse = await api.prisma.course.findUnique({
+      where: { id: courseId },
+      include: { courseModules: { orderBy: { sortOrder: "asc" } } },
+    });
+
+    if (!dbCourse) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.courseNotFound }); return; }
+
     const { title, type, duration, contentMarkdown } = req.body;
-  
+
     if (!title || !type || !duration) {
-  
+
       res.status(400).json({ error: api.PUBLIC_API_ERRORS.titleTypeDurationRequired });
-  
+
       return;
-  
+
     }
-  
-  
-  
-    const courses = (await api.prisma.course.findMany()).map((course) => api.toCourse(course));
-  
-    const allIds = courses.flatMap(c => c.modules.map(m => m.id));
-  
-    const nextId = Math.max(...allIds, 100) + 1;
-  
-  
-  
+
+    const nextId = await api.getNextCourseModuleId(dbCourse.id);
+
     const newModule: CourseModule = {
-  
+
       id: nextId,
-  
+
       title,
-  
+
       type,
-  
+
       duration,
-  
+
       completed: false,
-  
+
       contentMarkdown: type === "pdf" ? (contentMarkdown || "### Introduction théorique\nCe manuel a été rédigé par l'équipe enseignante d'Axelmond Research Labs.") : undefined,
-  
+
     };
-  
-  
-  
-    course.modules.push(newModule);
+
+    const sortOrder = dbCourse.courseModules.length;
 
     const updatedCourse = await api.prisma.$transaction(async (tx) => {
-      await tx.courseModule.upsert({
-        where: { courseId_id: { courseId: course.id, id: newModule.id } },
-        create: api.courseModuleRowFromJsonItem(course.id, newModule, course.modules.length - 1),
-        update: api.courseModuleRowFromJsonItem(course.id, newModule, course.modules.length - 1),
+      await tx.courseModule.create({
+        data: api.courseModuleRowFromJsonItem(dbCourse.id, newModule, sortOrder),
       });
-      return tx.course.update({
-        where: { id: course.id },
-        data: { modules: course.modules as unknown as api.Prisma.InputJsonValue },
+      return tx.course.findUniqueOrThrow({
+        where: { id: dbCourse.id },
         include: api.courseResponseInclude,
       });
     });

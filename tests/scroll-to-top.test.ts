@@ -1,4 +1,7 @@
-import assert from "node:assert/strict";import fs from "node:fs";import { readAppSources } from "./helpers/app-sources.ts";
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import { readAppSources } from "./helpers/app-sources.ts";
+
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("scroll-to-top", () => {
@@ -22,5 +25,11 @@ assert.match(appSource, /scrollAppToTopDeferred/);
 assert.match(layoutSource, /Global Footer[\s\S]*<AppFooter[\s\S]*<\/main>/);
 assert.match(footerSource, /<footer/);
 assert.doesNotMatch(layoutSource, /<\/main>[\s\S]*<footer/);
+assert.match(navSource, /scrollAppToTopDeferred/);
+assert.match(appSource, /scrollAppToTopDeferred/);
+assert.match(layoutSource, /Global Footer[\s\S]*<AppFooter[\s\S]*<\/main>/);
+assert.match(footerSource, /<footer/);
+assert.doesNotMatch(layoutSource, /<\/main>[\s\S]*<footer/);
 
+console.log("ScrollToTop navigation tests passed");
 });

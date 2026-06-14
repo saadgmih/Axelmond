@@ -1,4 +1,5 @@
 import type { CourseModule } from "./types";
+import { prisma } from "./db";
 
 export type CourseModuleRow = {
   courseId: number;
@@ -15,7 +16,8 @@ export type CourseModuleRow = {
 };
 
 export function shouldReadRelationalCourseModules(env: NodeJS.ProcessEnv = process.env): boolean {
-  return String(env.COURSE_MODULES_READ_RELATIONAL || "").trim().toLowerCase() === "true";
+  const flag = String(env.COURSE_MODULES_READ_RELATIONAL ?? "true").trim().toLowerCase();
+  return flag !== "false";
 }
 
 export function parseCourseModulesJson(raw: unknown): CourseModule[] {
@@ -54,6 +56,18 @@ export function courseModuleRowFromJsonItem(courseId: number, item: CourseModule
   };
 }
 
+export async function getNextCourseModuleId(
+  courseId: number,
+  client: Pick<typeof prisma, "courseModule"> = prisma,
+): Promise<number> {
+  const aggregate = await client.courseModule.aggregate({
+    where: { courseId },
+    _max: { id: true },
+  });
+  const maxId = aggregate._max.id ?? 0;
+  return Math.max(maxId, 100) + 1;
+}
+
 export function resolveCourseModules(
   course: {
     modules?: unknown;
@@ -78,4 +92,11 @@ export function resolveCourseModules(
     ...module,
     completed: completedModuleIds.has(module.id),
   }));
+}
+
+export function serializeCourseModulesForJsonMirror(rows: CourseModuleRow[]): CourseModule[] {
+  return rows
+    .slice()
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
+    .map((row) => serializeCourseModuleRow(row));
 }

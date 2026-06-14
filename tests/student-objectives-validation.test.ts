@@ -1,4 +1,5 @@
-import assert from "node:assert/strict";import {
+import assert from "node:assert/strict";
+import {
   canAccessStudentObjective,
   addRecurrenceInterval,
   buildNextRecurringObjectiveData,
@@ -12,6 +13,7 @@ import assert from "node:assert/strict";import {
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("student-objectives-validation", () => {
+
 const studentA = "student-a-id";
 const studentB = "student-b-id";
 
@@ -116,4 +118,5 @@ assert.equal(summary.stats.overdue, 2);
 assert.equal(summary.streak.days, 1);
 assert.ok(summary.calendar.days.some((day) => day.objectiveCount > 0));
 
+console.log("Student objectives validation rules passed");
 });

@@ -111,6 +111,7 @@ export function buildSharedResource(title: string, url: string, sharedBy: string
   const safeTitle = title.trim();
   const safeUrl = url.trim();
   if (!safeUrl) return null;
+
   return sanitizeLiveSharedResource({
     title: safeTitle || "Ressource partagée",
     url: safeUrl,

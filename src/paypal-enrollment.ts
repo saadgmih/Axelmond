@@ -5,6 +5,7 @@ import {
   parsePayPalCustomId,
 } from "./paypal-server";
 import { convertMadAmountForPayPal, getPayPalCheckoutCurrency } from "./paypal-currency";
+import { PUBLIC_API_ERRORS } from "./public-api-errors";
 export type PayPalCaptureEnrollmentInput = {
   orderId: string;
   captureResult: any;
@@ -156,7 +157,7 @@ export async function processPayPalCaptureEnrollment(
     };
   } catch (err: any) {
     if (err?.message === "USER_NOT_FOUND") {
-      return { ok: false, status: 404, error: "USER_NOT_FOUND", code: "USER_NOT_FOUND" };
+      return { ok: false, status: 404, error: PUBLIC_API_ERRORS.accountNotFound, code: "USER_NOT_FOUND" };
     }
     throw err;
   }

@@ -39,8 +39,12 @@ assert.doesNotMatch(appSource, /from "\.\/hooks\/useLiveKitRoom"/);
 assert.doesNotMatch(appSource, /from "\.\/components\/PaymentModal"/);
 assert.doesNotMatch(appSource, /from "\.\/views\/teacher\/TeacherCurriculumView"/);
 
+assert.match(lazyViewsSource, /lazy\(\(\) => import\("\.\/components\/AboutView"\)\)/);
+assert.match(lazyViewsSource, /lazy\(\(\) => import\("\.\/components\/PrivacyView"\)\)/);
+
 assert.match(viteSource, /manualChunks/);
 assert.match(viteSource, /livekit-vendor/);
 assert.match(viteSource, /paypal-vendor/);
+assert.match(viteSource, /react-vendor/);
 
 });

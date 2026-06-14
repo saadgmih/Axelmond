@@ -34,6 +34,7 @@ export const PUBLIC_API_ERRORS = {
   liveRelayFailed: "Relais live impossible.",
   paypalCaptureFailed: "Erreur lors de la capture PayPal.",
   paypalCreateOrderFailed: "Erreur lors de la création de la commande PayPal.",
+  accountNotFound: "Compte introuvable.",
 } as const;
 
 export const LIVE_ACCESS_ERRORS = {

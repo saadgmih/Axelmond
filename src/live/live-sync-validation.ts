@@ -55,6 +55,22 @@ export function extractParticipantRole(
   return normalizeRole(fallbackRole) || "STUDENT";
 }
 
+function isAllowedLiveResourceHost(hostname: string): boolean {
+  const host = hostname.toLowerCase();
+  if (host === "uploadthing.com" || host.endsWith(".uploadthing.com")) return true;
+  if (host === "ufs.sh" || host.endsWith(".ufs.sh")) return true;
+  if (host === "utfs.io" || host.endsWith(".utfs.io")) return true;
+
+  const extra = process.env.LIVE_RESOURCE_ALLOWED_HOSTS?.trim();
+  if (!extra) return false;
+
+  return extra
+    .split(",")
+    .map((entry) => entry.trim().toLowerCase())
+    .filter(Boolean)
+    .some((allowed) => host === allowed || host.endsWith(`.${allowed}`));
+}
+
 export function isSafeLiveResourceUrl(url: string): boolean {
   if (typeof url !== "string") return false;
   const trimmed = url.trim();
@@ -80,7 +96,8 @@ export function isSafeLiveResourceUrl(url: string): boolean {
 
   if (parsed.protocol !== "https:") return false;
   if (parsed.username || parsed.password) return false;
-  return Boolean(parsed.hostname);
+  if (!parsed.hostname) return false;
+  return isAllowedLiveResourceHost(parsed.hostname);
 }
 
 export function sanitizeLiveResourceUrl(value: unknown): string | null {

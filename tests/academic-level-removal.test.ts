@@ -1,4 +1,7 @@
-import assert from "node:assert/strict";import { readFileSync } from "node:fs";import { readApiRouteSources } from "./helpers/api-route-sources.ts";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
+
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("academic-level-removal", () => {
@@ -14,4 +17,5 @@ assert.match(serverSource, /normalizedRole === "STUDENT" \? api\.DEFAULT_STUDENT
 assert.match(migrationSource, /UPDATE "Course"/);
 assert.match(migrationSource, /UPDATE "User"/);
 
+console.log("Academic level removal rules passed");
 });

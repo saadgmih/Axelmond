@@ -1,4 +1,6 @@
-import assert from "node:assert/strict";import fs from "node:fs";
+import assert from "node:assert/strict";
+import fs from "node:fs";
+
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("async-effect-guard", () => {
@@ -22,4 +24,5 @@ assert.match(academicSource, /isActive\(\)/);
 assert.match(appSource, /PlatformAppRoot/);
 assert.doesNotMatch(appSource, /useEffect\(\(\)\s*=>\s*\{[\s\S]*Promise\.all/);
 
+console.log("Async effect guard tests passed");
 });

@@ -15,9 +15,6 @@ npm install
 echo "==> prisma migrate deploy"
 npx prisma migrate deploy
 
-echo "==> build"
-npm run build
-
 echo "==> pm2 reload"
 npm run reload:cluster
 

@@ -1,5 +1,6 @@
 import { isTeacherSpaceRole } from "./rbac";
 import { sanitizeAvatarUrl as sanitizeAvatarUrlStrict } from "./avatar-security";
+import { sanitizeAcademicLinkField, sanitizeHttpsUrl } from "./external-url-security";
 
 export { sanitizeAvatarUrlStrict as sanitizeAvatarUrl };
 
@@ -44,10 +45,10 @@ export function sanitizeDomainList(value: unknown) {
 export function sanitizeAcademicLinks(value: unknown): AcademicLinks {
   const source = value && typeof value === "object" ? value as Record<string, unknown> : {};
   const links: AcademicLinks = {};
-  const linkedIn = cleanText(source.linkedIn, 240);
-  const orcid = cleanText(source.orcid, 80);
-  const googleScholar = cleanText(source.googleScholar, 240);
-  const website = cleanText(source.website, 240);
+  const linkedIn = sanitizeAcademicLinkField(source.linkedIn, "linkedIn");
+  const orcid = sanitizeAcademicLinkField(source.orcid, "orcid", 80);
+  const googleScholar = sanitizeAcademicLinkField(source.googleScholar, "googleScholar");
+  const website = sanitizeHttpsUrl(source.website, { maxLength: 240 });
   if (linkedIn) links.linkedIn = linkedIn;
   if (orcid) links.orcid = orcid;
   if (googleScholar) links.googleScholar = googleScholar;

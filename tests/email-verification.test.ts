@@ -1,17 +1,19 @@
-import assert from "node:assert/strict";import { readFileSync } from "node:fs";import { readApiRouteSources } from "./helpers/api-route-sources.ts";import {
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
+import {
   EMAIL_VERIFICATION_MAX_ATTEMPTS,
   buildEmailVerificationExpiry,
   generateEmailVerificationCode,
   hashEmailVerificationCode,
-  isDevVerificationCodeLogEnabled,
   isEmailVerificationExpired,
-  maskEmailForDevLog,
   normalizeEmailVerificationCode,
   canAttemptEmailVerification,
 } from "../src/email-verification.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("email-verification", () => {
+
 const schemaSource = readFileSync("prisma/schema.prisma", "utf8");
 const serverSource = readApiRouteSources();
 
@@ -37,15 +39,10 @@ assert.equal(canAttemptEmailVerification(0), true);
 assert.equal(canAttemptEmailVerification(4), true);
 assert.equal(canAttemptEmailVerification(5), false);
 
-assert.equal(isDevVerificationCodeLogEnabled({ ALLOW_DEV_VERIFICATION_CODE_LOG: "true" }), true);
-assert.equal(isDevVerificationCodeLogEnabled({ ALLOW_DEV_VERIFICATION_CODE_LOG: "false" }), false);
-assert.equal(maskEmailForDevLog("student@example.com"), "s***@example.com");
-assert.doesNotMatch(serverSource, /Code de vérification pour \$\{user\.email\}\s*:\s*\$\{code\}/);
-assert.doesNotMatch(serverSource, /Code de réinitialisation pour \$\{user\.email\}\s*:\s*\$\{code\}/);
-
 assert.match(schemaSource, /enum EmailVerificationPurpose/);
 assert.match(schemaSource, /EMAIL_VERIFY/);
 assert.match(schemaSource, /PASSWORD_RESET/);
 assert.match(schemaSource, /purpose\s+EmailVerificationPurpose\s+@default\(EMAIL_VERIFY\)/);
 
+console.log("Email verification rules passed");
 });

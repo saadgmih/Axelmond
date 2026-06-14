@@ -13,15 +13,15 @@ assert.deepEqual(sanitizeDomainList([" Physique ", "", "Chimie"]), ["Physique", 
 
 assert.deepEqual(
   sanitizeAcademicLinks({
-    linkedIn: " https://linkedin.com/in/demo ",
-    orcid: "0000-0000-0000-0000",
+    linkedIn: " https://www.linkedin.com/in/demo ",
+    orcid: "https://orcid.org/0000-0000-0000-0000",
     googleScholar: "https://scholar.google.com/citations?user=demo",
     website: "https://axelmond.com",
     role: "ADMIN",
   }),
   {
-    linkedIn: "https://linkedin.com/in/demo",
-    orcid: "0000-0000-0000-0000",
+    linkedIn: "https://www.linkedin.com/in/demo",
+    orcid: "https://orcid.org/0000-0000-0000-0000",
     googleScholar: "https://scholar.google.com/citations?user=demo",
     website: "https://axelmond.com",
   },

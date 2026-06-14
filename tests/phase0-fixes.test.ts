@@ -27,3 +27,4 @@ assert.doesNotMatch(sessionSource, /INV-2026-00/);
 assert.match(paymentModalSource, /if \(!result\.user\)/);
 
 });
+console.log("Phase 0 security and UX fixes passed");

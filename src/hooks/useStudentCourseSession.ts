@@ -150,19 +150,6 @@ export function useStudentCourseSession({
     } catch (err) {
       console.error("Failed to synchronize module completion:", err);
       setQuizSubmitError(getClientErrorMessage(err, "Quiz enregistré, mais synchronisation de la progression impossible."));
-    }
-  };
-
-  const resetQuiz = () => {
-    setQuizAnswers({});
-    setQuizSubmitted(false);
-    setQuizScore(null);
-    setQuizSubmitError("");
-  };
-
-  return {
-    quizQuestions,
-    quizAnswers,
     setQuizAnswers,
     quizSubmitted,
     setQuizSubmitted,

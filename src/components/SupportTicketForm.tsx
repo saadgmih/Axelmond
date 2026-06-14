@@ -214,6 +214,7 @@ export default function SupportTicketForm({
           ) : (
             <div className="space-y-2">
               <input type="file" ref={fileInputRef} onChange={handleFileChange} accept={RASTER_IMAGE_ACCEPT} className="hidden" disabled={isSubmitting || uploadProgress !== null} />
+              <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" disabled={isSubmitting || uploadProgress !== null} />
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}

@@ -1,7 +1,4 @@
-// tests/performance.test.ts
-// TDD — Tests écrits AVANT que les modules soient finalisés dans server.ts.
-// Ces tests valident src/cache.ts et src/performance.ts en isolation.
-
+import assert from "node:assert/strict";
 import {
   cacheGet,
   cacheSet,
@@ -21,10 +18,11 @@ import {
 } from "../src/performance";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("performance", async () => {
 let passed = 0;
 let failed = 0;
 
-function assert(condition: boolean, label: string) {
+function check(condition: boolean, label: string) {
   if (condition) {
     console.log(`  ✅ ${label}`);
     passed++;
@@ -42,63 +40,63 @@ async function testCache() {
 
   // 1. GET sur clé inexistante → null
   const miss = await cacheGet("nonexistent");
-  assert(miss === null, "GET clé inexistante → null");
+  check(miss === null, "GET clé inexistante → null");
 
   // 2. SET puis GET → retourne la valeur
   await cacheSet("key1", "value1", 10);
   const hit = await cacheGet("key1");
-  assert(hit === "value1", "GET après SET → valeur correcte");
+  check(hit === "value1", "GET après SET → valeur correcte");
 
   // 3. SET avec TTL = 0 → immédiatement expiré (0 secondes = expiresAt = now)
   await cacheSet("key2", "value2", 0);
   const expired = await cacheGet("key2");
-  assert(expired === null, "GET avec TTL=0 → null (expiré)");
+  check(expired === null, "GET avec TTL=0 → null (expiré)");
 
   // 4. DEL supprime la clé
   await cacheSet("key3", "value3", 60);
   await cacheDel("key3");
   const deleted = await cacheGet("key3");
-  assert(deleted === null, "GET après DEL → null");
+  check(deleted === null, "GET après DEL → null");
 
   // 5. FLUSH vide tout
   await cacheSet("a", "1", 60);
   await cacheSet("b", "2", 60);
   await cacheFlush();
-  assert(cacheSize() === 0, "FLUSH → taille = 0");
+  check(cacheSize() === 0, "FLUSH → taille = 0");
 
   // 6. SET JSON sérialisé (comme l'utilise server.ts)
   const payload = { courses: [1, 2, 3] };
   await cacheSet("json_key", JSON.stringify(payload), 60);
   const raw = await cacheGet("json_key");
   const parsed = raw ? JSON.parse(raw) : null;
-  assert(parsed !== null && parsed.courses.length === 3, "GET JSON sérialisé → objet correct");
+  check(parsed !== null && parsed.courses.length === 3, "GET JSON sérialisé → objet correct");
 
   // 7. Suppression par préfixe pour invalider toutes les variantes filtrées
   await cacheSet("api:courses:public:d=0:dis=0", "all", 60);
   await cacheSet("api:courses:public:d=1:dis=0", "domain", 60);
   await cacheSet("api:domains:public", "domains", 60);
   const deletedByPrefix = await cacheDelByPrefix("api:courses:public:");
-  assert(deletedByPrefix === 2, "cacheDelByPrefix supprime toutes les clés de cours filtrées");
-  assert(await cacheGet("api:courses:public:d=0:dis=0") === null, "cacheDelByPrefix supprime la liste non filtrée");
-  assert(await cacheGet("api:courses:public:d=1:dis=0") === null, "cacheDelByPrefix supprime la liste filtrée");
-  assert(await cacheGet("api:domains:public") === "domains", "cacheDelByPrefix préserve les autres préfixes");
+  check(deletedByPrefix === 2, "cacheDelByPrefix supprime toutes les clés de cours filtrées");
+  check(await cacheGet("api:courses:public:d=0:dis=0") === null, "cacheDelByPrefix supprime la liste non filtrée");
+  check(await cacheGet("api:courses:public:d=1:dis=0") === null, "cacheDelByPrefix supprime la liste filtrée");
+  check(await cacheGet("api:domains:public") === "domains", "cacheDelByPrefix préserve les autres préfixes");
 
   // 8. Éviction LRU bornée
   await cacheFlush();
   for (let i = 0; i < 1001; i++) {
     await cacheSet(`lru:${i}`, String(i), 60);
   }
-  assert(cacheSize() === 1000, "cache borné à 1000 entrées par défaut");
-  assert(await cacheGet("lru:0") === null, "LRU évince la plus ancienne entrée");
-  assert(await cacheGet("lru:1") === "1", "GET rafraîchit l'ordre LRU");
+  check(cacheSize() === 1000, "cache borné à 1000 entrées par défaut");
+  check(await cacheGet("lru:0") === null, "LRU évince la plus ancienne entrée");
+  check(await cacheGet("lru:1") === "1", "GET rafraîchit l'ordre LRU");
   await cacheSet("lru:new", "new", 60);
-  assert(await cacheGet("lru:1") === "1", "entrée récemment lue conservée après éviction");
-  assert(await cacheGet("lru:2") === null, "entrée la moins récemment utilisée évincée");
+  check(await cacheGet("lru:1") === "1", "entrée récemment lue conservée après éviction");
+  check(await cacheGet("lru:2") === null, "entrée la moins récemment utilisée évincée");
 
   // 9. Pruner démarre et s'arrête sans erreur
   startCachePruner();
   stopCachePruner();
-  assert(true, "startCachePruner() / stopCachePruner() sans erreur");
+  check(true, "startCachePruner() / stopCachePruner() sans erreur");
 }
 
 // ─── Suite 2 : Performance monitoring ────────────────────────────────────────
@@ -108,21 +106,21 @@ function testPerformance() {
 
   // 1. logPerformance() retourne un snapshot valide
   const snapshot = logPerformance();
-  assert(typeof snapshot.heapUsedMb === "number" && snapshot.heapUsedMb > 0, "heapUsedMb > 0");
-  assert(typeof snapshot.heapTotalMb === "number" && snapshot.heapTotalMb > 0, "heapTotalMb > 0");
-  assert(typeof snapshot.rssMb === "number" && snapshot.rssMb > 0, "rssMb > 0");
-  assert(typeof snapshot.timestamp === "string" && snapshot.timestamp.includes("T"), "timestamp ISO valide");
-  assert(typeof snapshot.freeMb === "number", "freeMb est un nombre");
-  assert(typeof snapshot.totalMb === "number" && snapshot.totalMb > 0, "totalMb > 0");
+  check(typeof snapshot.heapUsedMb === "number" && snapshot.heapUsedMb > 0, "heapUsedMb > 0");
+  check(typeof snapshot.heapTotalMb === "number" && snapshot.heapTotalMb > 0, "heapTotalMb > 0");
+  check(typeof snapshot.rssMb === "number" && snapshot.rssMb > 0, "rssMb > 0");
+  check(typeof snapshot.timestamp === "string" && snapshot.timestamp.includes("T"), "timestamp ISO valide");
+  check(typeof snapshot.freeMb === "number", "freeMb est un nombre");
+  check(typeof snapshot.totalMb === "number" && snapshot.totalMb > 0, "totalMb > 0");
 
   // 2. Monitor démarre et s'arrête sans erreur
   startPerformanceMonitor(99999); // interval très long pour ne pas firer pendant le test
   stopPerformanceMonitor();
-  assert(true, "startPerformanceMonitor() / stopPerformanceMonitor() sans erreur");
+  check(true, "startPerformanceMonitor() / stopPerformanceMonitor() sans erreur");
 
   // 3. getRouteStats() retourne un objet
   const stats = getRouteStats();
-  assert(typeof stats === "object" && stats !== null, "getRouteStats() retourne un objet");
+  check(typeof stats === "object" && stats !== null, "getRouteStats() retourne un objet");
 
   // 4. requestTimingMiddleware appelle next()
   let nextCalled = false;
@@ -140,16 +138,16 @@ function testPerformance() {
     },
   };
   requestTimingMiddleware(fakeReq, fakeRes, () => { nextCalled = true; });
-  assert(nextCalled, "requestTimingMiddleware appelle next()");
+  check(nextCalled, "requestTimingMiddleware appelle next()");
 }
 
 // ─── Runner ──────────────────────────────────────────────────────────────────
 
-rulesTest("performance", async () => {
   console.log("=== tests/performance.test.ts ===");
+
   await testCache();
   testPerformance();
-  if (failed > 0) {
-    throw new Error(`${failed} performance assertion(s) failed (${passed} passed)`);
-  }
+
+  console.log(`\n─── Résultats : ${passed} ✅  ${failed} ❌ ───`);
+  assert.equal(failed, 0, `${failed} test(s) ont échoué.`);
 });

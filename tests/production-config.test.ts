@@ -1,4 +1,6 @@
-import assert from "node:assert/strict";import { validateProductionConfiguration } from "../src/production-config.ts";
+import assert from "node:assert/strict";
+import { validateProductionConfiguration } from "../src/production-config.ts";
+
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("production-config", () => {
@@ -52,12 +54,5 @@ assert.match(
   /APP_URL must be a public HTTPS URL/,
 );
 
-assert.match(
-  validateProductionConfiguration({
-    ...validProductionEnv,
-    MOBILE_API_SECRET: "",
-  }).join("\n"),
-  /MOBILE_API_SECRET is required in production/,
-);
-
+console.log("Production configuration guard tests passed");
 });

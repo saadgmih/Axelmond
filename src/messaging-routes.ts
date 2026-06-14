@@ -19,7 +19,7 @@ import { findOrCreateDirectConversation } from "./direct-conversations";
 import { emitToConversation } from "./messaging-socket";
 import {
   configureWebPush,
-  createUserNotification,
+  createNotificationsForUsers,
   getUnreadNotificationCount,
   getVapidPublicKey,
   isWebPushConfigured,
@@ -307,10 +307,12 @@ export function registerMessagingRoutes(
       where: { conversationId },
       select: { userId: true },
     });
-    for (const participant of participants) {
-      if (participant.userId === authUser.id) continue;
-      await createUserNotification({
-        userId: participant.userId,
+    const recipientIds = participants
+      .map((participant) => participant.userId)
+      .filter((userId) => userId !== authUser.id);
+
+    if (recipientIds.length > 0) {
+      await createNotificationsForUsers(recipientIds, {
         type: "NEW_MESSAGE",
         title: "Nouveau message",
         body: `${authUser.fullName} : ${body || "Pièce jointe envoyée"}`,

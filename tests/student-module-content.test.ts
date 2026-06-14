@@ -1,4 +1,8 @@
-import assert from "node:assert/strict";import { readFileSync } from "node:fs";import { readApiRouteSources } from "./helpers/api-route-sources.ts";import { readAppSources } from "./helpers/app-sources.ts";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
+import { readAppSources } from "./helpers/app-sources.ts";
+
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("student-module-content", () => {
@@ -18,4 +22,5 @@ assert.match(appSource, /StudentCourseView/);
 assert.match(appSource, /setSelectedLessonContent\(null\)/);
 assert.match(studentCourseViewSource, /selectedCourse\.title/);
 
+console.log("Student module content synchronization rules passed");
 });

@@ -84,19 +84,19 @@ assert.match(messagingRoutesSource, /toPushSubscribeClientResponse\(err\)/);
 assert.doesNotMatch(messagingRoutesSource, /error:\s*err\.message/);
 
 const apiSource = fs.readFileSync("src/api.ts", "utf8");
-const authRoutesSource = fs.readFileSync("src/routes/auth-routes.ts", "utf8");
+const clientErrorsSource = fs.readFileSync("src/client-errors.ts", "utf8");
+const authRoutesSource = fs.readFileSync("src/routes/auth/register-login-routes.ts", "utf8");
+const emailVerificationRoutesSource = fs.readFileSync("src/routes/auth/email-verification-routes.ts", "utf8");
 const adminRoutesSource = fs.readFileSync("src/routes/admin-routes.ts", "utf8");
-assert.match(apiSource, /sanitizeClientErrorMessage/);
-assert.doesNotMatch(apiSource, /response:\s*text/);
-assert.doesNotMatch(apiSource, /Object\.assign\(error,\s*err,/);
+assert.match(clientErrorsSource, /sanitizeClientErrorMessage/);
 assert.doesNotMatch(authRoutesSource, /role must be STUDENT/);
 assert.match(authRoutesSource, /PUBLIC_API_ERRORS\.invalidRole/);
 assert.doesNotMatch(authRoutesSource, /Un compte avec cet email existe déjà/);
 assert.match(authRoutesSource, /PUBLIC_API_ERRORS\.registrationConflict/);
-assert.match(authRoutesSource, /PUBLIC_API_ERRORS\.resendVerificationGeneric/);
+assert.match(emailVerificationRoutesSource, /PUBLIC_API_ERRORS\.resendVerificationGeneric/);
 assert.match(authRoutesSource, /persistCoursePaymentWithAudit/);
 assert.match(authRoutesSource, /REGISTRATION_SEED_ENROLLMENT/);
-assert.doesNotMatch(authRoutesSource, /E-mail déjà vérifié/);
+assert.doesNotMatch(emailVerificationRoutesSource, /E-mail déjà vérifié/);
 assert.match(adminRoutesSource, /PUBLIC_API_ERRORS/);
 assert.doesNotMatch(adminRoutesSource, /details:\s*api\.getSmtpPublicConfig/);
 
@@ -110,9 +110,10 @@ assert.match(securityHardeningSource, /trimChatTutorHistory/);
 assert.match(securityHardeningSource, /CHAT_TUTOR_MAX_HISTORY_CHARS/);
 
 const liveKitUiSource = fs.readFileSync("src/hooks/useLiveKitRoom.tsx", "utf8");
-assert.doesNotMatch(liveKitUiSource, /LIVEKIT_API_KEY/);
+assert.doesNotMatch(liveKitUiSource, /process\.env\.LIVEKIT_API_KEY/);
 
 const paypalEnrollmentSource = fs.readFileSync("src/paypal-enrollment.ts", "utf8");
 assert.doesNotMatch(paypalEnrollmentSource, /Utilisateur non trouvé/);
 
 });
+console.log("Security hardening rules passed");

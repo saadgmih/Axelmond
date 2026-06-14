@@ -23,6 +23,9 @@ const paypalServerSource = fs.readFileSync("src/paypal-server.ts", "utf8");
 
 assert.match(serverSource, /app\.post\(\s*"\s*\/api\/paypal\/webhook"/);
 assert.match(serverSource, /express\.raw\(\{\s*type:\s*"application\/json"/);
+assert.match(bootstrapSource, /paypalWebhookRateLimiter/);
+assert.match(bootstrapSource, /registerPayPalWebhook\(app,\s*routeCtx,\s*paypalWebhookRateLimiter\)/);
+assert.match(serverSource, /PAYPAL_WEBHOOK_RATE_LIMIT_EXCEEDED/);
 assert.match(serverSource, /verifyPayPalWebhookSignature/);
 assert.match(serverSource, /handlePayPalWebhookEvent/);
 assert.match(serverSource, /processPayPalCaptureEnrollment/);
@@ -30,7 +33,7 @@ assert.match(paypalServerSource, /export async function getPayPalOrder/);
 assert.match(paypalServerSource, /export async function getPayPalAccessTokenForWebhook/);
 
 const jsonIndex = bootstrapSource.indexOf('app.use(express.json({ limit: JSON_BODY_LIMIT }));');
-const webhookIndex = bootstrapSource.indexOf("registerPayPalWebhook(app, routeCtx)");
+const webhookIndex = bootstrapSource.indexOf("registerPayPalWebhook(app, routeCtx, paypalWebhookRateLimiter)");
 assert.ok(webhookIndex > 0 && jsonIndex > 0 && webhookIndex < jsonIndex, "webhook route must be registered before express.json()");
 
 assert.equal(getPayPalWebhookId({ PAYPAL_WEBHOOK_ID: " wh-123 " } as NodeJS.ProcessEnv), "wh-123");
@@ -194,3 +197,4 @@ if (!enrollmentResult.ok) {
 }
 
 });
+

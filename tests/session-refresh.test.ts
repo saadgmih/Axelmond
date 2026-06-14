@@ -23,7 +23,7 @@ assert.match(authScreenSource, /setSessionToken\(user\.token,\s*user\.csrfToken\
 assert.match(sessionSource, /setSessionToken\(token,\s*csrfToken\)/);
 assert.match(sessionSource, /axelmond:session-expired/);
 assert.match(sessionSource, /getFreshSessionToken/);
-assert.match(sessionSource, /api\.logout\(\)/);
+assert.match(sessionSource, /handleLogout/);
 
 assert.match(serverSource, /api\.createRefreshToken\(safeUser\.id\)/);
 assert.match(serverSource, /api\.rotateRefreshToken\(storedToken\.id,\s*safeUser\.id\)/);
@@ -32,3 +32,4 @@ assert.match(serverSource, /api\.clearAuthCookies\(res\)/);
 assert.doesNotMatch(serverSource, /refreshToken:\s*newRefreshToken/);
 
 });
+console.log("Session refresh rules passed");

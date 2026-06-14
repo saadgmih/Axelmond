@@ -15,7 +15,9 @@ assert.match(migrationSource, /CREATE UNIQUE INDEX "ModuleProgress_userId_course
 assert.match(serverSource, /prisma\.moduleProgress\.upsert/);
 assert.match(serverSource, /userId_courseId_moduleId/);
 assert.match(serverSource, /getStudentCompletedModuleIds/);
+assert.match(serverSource, /getStudentCompletedModuleIdsByCourseIds/);
 assert.match(serverSource, /toCourseForUser/);
+assert.match(serverSource, /courseId:\s*\{\s*in:\s*uniqueCourseIds\s*\}/);
 const completeRouteStart = serverSource.indexOf('app.post("/api/courses/:courseId/modules/:moduleId/complete"');
 const nextRouteStart = serverSource.indexOf('app.post("/api/courses/:courseId/modules"', completeRouteStart + 1);
 assert.ok(completeRouteStart > 0, "complete route must exist");

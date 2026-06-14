@@ -1,4 +1,7 @@
-import assert from "node:assert/strict";import fs from "node:fs";import { applyPollStart, buildSharedResource, createEmptyPoll } from "../src/live/live-sync.ts";import {
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import { applyPollStart, buildSharedResource, createEmptyPoll } from "../src/live/live-sync.ts";
+import {
   extractParticipantRole,
   isModeratorOnlyLiveSyncType,
   isSafeLiveResourceUrl,
@@ -9,7 +12,6 @@ import assert from "node:assert/strict";import fs from "node:fs";import { applyP
   validateOutgoingLiveSyncMessage,
 } from "../src/live/live-sync-validation.ts";
 import { readApiRouteSources } from "./helpers/api-route-sources.ts";
-import { readLiveKitHookSources } from "./helpers/live-classroom-sources.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("live-sync-validation", () => {
@@ -27,9 +29,10 @@ assert.equal(isModeratorOnlyLiveSyncType("RESOURCE_SHARE"), true);
 assert.equal(isModeratorOnlyLiveSyncType("POLL_VOTE"), false);
 assert.equal(extractParticipantRole({ attributes: { role: "PROFESSOR" } }), "PROFESSOR");
 
-assert.equal(isSafeLiveResourceUrl("https://example.com/doc.pdf"), true);
+assert.equal(isSafeLiveResourceUrl("https://ufs.sh/doc.pdf"), true);
+assert.equal(isSafeLiveResourceUrl("https://example.com/doc.pdf"), false);
 assert.equal(isSafeLiveResourceUrl("javascript:alert(1)"), false);
-assert.equal(isSafeLiveResourceUrl("http://example.com/doc.pdf"), false);
+assert.equal(isSafeLiveResourceUrl("http://ufs.sh/doc.pdf"), false);
 
 const forgedResource = validateIncomingLiveSyncMessage(
   {
@@ -50,7 +53,7 @@ const moderatorResource = validateIncomingLiveSyncMessage(
     type: "RESOURCE_SHARE",
     resource: {
       title: "Slides",
-      url: "https://example.com/doc.pdf",
+      url: "https://ufs.sh/doc.pdf",
       sharedBy: "Prof",
       kind: "pdf",
     },
@@ -118,13 +121,13 @@ const blockedModeratorAction = validateOutgoingLiveSyncMessage(
 assert.equal(blockedModeratorAction, null);
 
 assert.equal(buildSharedResource("Slides", "javascript:alert(1)", "Prof"), null);
-assert.ok(buildSharedResource("Slides", "https://example.com/doc.pdf", "Prof"));
+assert.ok(buildSharedResource("Slides", "https://ufs.sh/doc.pdf", "Prof"));
 
 const timestamps = Array.from({ length: 120 }, (_, index) => 1_000 + index);
 assert.equal(isWhiteboardStrokeRateLimited(timestamps, 61_000), true);
 assert.equal(isWhiteboardStrokeRateLimited(trackWhiteboardStrokeTimestamp(timestamps.slice(0, 10), 61_000), 61_000), false);
 
-const hookSource = readLiveKitHookSources();
+const hookSource = fs.readFileSync("src/hooks/useLiveKitRoom.tsx", "utf8");
 const serverSource = readApiRouteSources();
 const resourceStageSource = fs.readFileSync("src/components/live/LiveResourceStage.tsx", "utf8");
 
@@ -135,6 +138,5 @@ assert.match(hookSource, /if \(!canModerateLive \|\| !requesterIdentity/);
 assert.match(serverSource, /\/api\/livekit\/sync/);
 assert.match(serverSource, /roomService\.sendData/);
 assert.match(resourceStageSource, /sandbox=/);
-assert.doesNotMatch(resourceStageSource, /resource\.kind === "link" \? `\$\{resource\.url\}`/);
-
+assert.doesNotMatch(resourceStageSource, /allow-scripts/);
 });

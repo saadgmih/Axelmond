@@ -34,8 +34,6 @@ export function StudentRouteSwitch() {
     selectedModule,
     setSelectedModule,
     setSelectedLessonContent,
-    invoices,
-    studentCourseBindings,
     avatarStatusMsg,
     handleUploadAvatarFile,
     handleDeleteAvatar,
@@ -52,6 +50,7 @@ export function StudentRouteSwitch() {
     subscribePushNotifications,
     activeLiveCourse,
     classroomBindings,
+    studentCourseBindings,
   } = platform;
 
   if (!currentUser) return null;

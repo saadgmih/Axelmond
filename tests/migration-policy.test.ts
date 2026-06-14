@@ -50,4 +50,17 @@ assert.ok(
   "legacy messaging runner must stay archived, not deleted without trace",
 );
 
+const dropInvoicesMigration = fs.readFileSync(
+  "prisma/migrations/20260615100000_drop_user_invoices_json/migration.sql",
+  "utf8",
+);
+assert.match(dropInvoicesMigration, /"AxelmondResearchLab"\."User"/);
+
+const catalogIndexesMigration = fs.readFileSync(
+  "prisma/migrations/20260615110000_catalog_enrollment_live_indexes/migration.sql",
+  "utf8",
+);
+assert.match(catalogIndexesMigration, /Course_published_idx/);
+assert.match(catalogIndexesMigration, /Enrollment_courseId_active_idx/);
+
 });

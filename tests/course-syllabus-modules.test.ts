@@ -27,6 +27,6 @@ assert.equal(relational[0]?.title, "Intro");
 
 assert.match(fs.readFileSync("docs/MIGRATION-COURSE-MODULES.md", "utf8"), /CourseModule/);
 assert.match(fs.readFileSync("prisma/schema.prisma", "utf8"), /model CourseModule/);
-assert.match(fs.readFileSync("src/routes/courses-routes.ts", "utf8"), /courseModule\.upsert/);
+assert.match(fs.readFileSync("src/routes/courses-routes.ts", "utf8"), /courseModule\.create/);
 
 });
