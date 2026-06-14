@@ -538,7 +538,7 @@ export async function seedDatabase() {
 export async function synchronizePostgresSequences() {
   const targetSchema = getActivePgSchema();
   const tables = await prisma.$queryRaw<Array<{ table_schema: string }>>`
-    SELECT table_schema
+    SELECT table_schema::text AS table_schema
     FROM information_schema.tables
     WHERE table_name = 'Course'
       AND table_schema = ${targetSchema}
