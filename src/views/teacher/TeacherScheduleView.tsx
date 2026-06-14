@@ -49,7 +49,8 @@ export default function TeacherScheduleView(props: TeacherScheduleViewProps) {
           <div>
             <h1 className={scheduleUi.heroTitle}>Gestion de l&apos;emploi du temps</h1>
             <p className={scheduleUi.heroSubtitle}>
-              Planifiez vos séances hebdomadaires par jour, module et créneau horaire. Chaque professeur gère uniquement son propre emploi du temps.
+              Planifiez vos séances hebdomadaires par jour, module et créneau horaire. Chaque professeur gère uniquement
+              son propre emploi du temps.
             </p>
           </div>
           <button type="button" className={scheduleUi.addBtn} onClick={() => openCreateForm()}>

@@ -1,22 +1,13 @@
 import type { LiveSyncPoint, LiveWhiteboardStroke } from "../../live/live-sync";
 
-export function normalizeCanvasPoint(
-  x: number,
-  y: number,
-  canvasWidth: number,
-  canvasHeight: number,
-): LiveSyncPoint {
+export function normalizeCanvasPoint(x: number, y: number, canvasWidth: number, canvasHeight: number): LiveSyncPoint {
   return {
     x: canvasWidth > 0 ? x / canvasWidth : 0,
     y: canvasHeight > 0 ? y / canvasHeight : 0,
   };
 }
 
-export function denormalizeCanvasPoint(
-  point: LiveSyncPoint,
-  canvasWidth: number,
-  canvasHeight: number,
-) {
+export function denormalizeCanvasPoint(point: LiveSyncPoint, canvasWidth: number, canvasHeight: number) {
   return {
     x: point.x * canvasWidth,
     y: point.y * canvasHeight,

@@ -1,10 +1,5 @@
 import { isTeacherSpaceRole, normalizeRole, type UserRole } from "../rbac";
-import type {
-  LivePollState,
-  LiveSharedResource,
-  LiveSyncMessage,
-  LiveWhiteboardStroke,
-} from "./live-sync";
+import type { LivePollState, LiveSharedResource, LiveSyncMessage, LiveWhiteboardStroke } from "./live-sync";
 
 export const LIVE_SYNC_MAX_PAYLOAD_BYTES = 64 * 1024;
 export const LIVE_SYNC_MAX_STROKE_POINTS = 500;
@@ -34,11 +29,14 @@ export function isModeratorOnlyLiveSyncType(type: string): boolean {
 }
 
 export function extractParticipantRole(
-  participant: {
-    identity?: string;
-    attributes?: Record<string, string>;
-    metadata?: string;
-  } | null | undefined,
+  participant:
+    | {
+        identity?: string;
+        attributes?: Record<string, string>;
+        metadata?: string;
+      }
+    | null
+    | undefined,
   fallbackRole: UserRole = "STUDENT",
 ): UserRole {
   const fromAttributes = normalizeRole(participant?.attributes?.role);
@@ -78,11 +76,11 @@ export function isSafeLiveResourceUrl(url: string): boolean {
 
   const lower = trimmed.toLowerCase();
   if (
-    lower.startsWith("javascript:")
-    || lower.startsWith("data:")
-    || lower.startsWith("vbscript:")
-    || lower.startsWith("file:")
-    || lower.startsWith("blob:")
+    lower.startsWith("javascript:") ||
+    lower.startsWith("data:") ||
+    lower.startsWith("vbscript:") ||
+    lower.startsWith("file:") ||
+    lower.startsWith("blob:")
   ) {
     return false;
   }
@@ -112,15 +110,16 @@ export function sanitizeLiveSharedResource(value: unknown): LiveSharedResource |
   const url = sanitizeLiveResourceUrl(record.url);
   if (!url) return null;
 
-  const title = typeof record.title === "string"
-    ? record.title.trim().slice(0, LIVE_SYNC_MAX_RESOURCE_TITLE) || "Ressource partagée"
-    : "Ressource partagée";
-  const sharedBy = typeof record.sharedBy === "string"
-    ? record.sharedBy.trim().slice(0, 120) || "Animateur"
-    : "Animateur";
-  const kind = url.toLowerCase().endsWith(".pdf") || url.toLowerCase().includes(".pdf?") || url.toLowerCase().includes("/pdf")
-    ? "pdf"
-    : "link";
+  const title =
+    typeof record.title === "string"
+      ? record.title.trim().slice(0, LIVE_SYNC_MAX_RESOURCE_TITLE) || "Ressource partagée"
+      : "Ressource partagée";
+  const sharedBy =
+    typeof record.sharedBy === "string" ? record.sharedBy.trim().slice(0, 120) || "Animateur" : "Animateur";
+  const kind =
+    url.toLowerCase().endsWith(".pdf") || url.toLowerCase().includes(".pdf?") || url.toLowerCase().includes("/pdf")
+      ? "pdf"
+      : "link";
 
   return { title, url, sharedBy, kind };
 }
@@ -136,10 +135,7 @@ function sanitizePoint(value: unknown): { x: number; y: number } | null {
   };
 }
 
-export function sanitizeWhiteboardStroke(
-  value: unknown,
-  senderIdentity?: string,
-): LiveWhiteboardStroke | null {
+export function sanitizeWhiteboardStroke(value: unknown, senderIdentity?: string): LiveWhiteboardStroke | null {
   if (!value || typeof value !== "object") return null;
   const record = value as Record<string, unknown>;
   if (typeof record.id !== "string" || record.id.length === 0 || record.id.length > 120) return null;
@@ -148,7 +144,11 @@ export function sanitizeWhiteboardStroke(
   if (typeof record.color !== "string" || !HEX_COLOR_PATTERN.test(record.color)) return null;
   if (typeof record.width !== "number" || !Number.isFinite(record.width)) return null;
   const width = Math.min(20, Math.max(1, record.width));
-  if (!Array.isArray(record.points) || record.points.length === 0 || record.points.length > LIVE_SYNC_MAX_STROKE_POINTS) {
+  if (
+    !Array.isArray(record.points) ||
+    record.points.length === 0 ||
+    record.points.length > LIVE_SYNC_MAX_STROKE_POINTS
+  ) {
     return null;
   }
 
@@ -273,9 +273,8 @@ export function validateIncomingLiveSyncMessage(
     case "POLL_START": {
       const options = sanitizePollOptions(record.options);
       if (options.length === 0) return null;
-      const question = typeof record.question === "string"
-        ? record.question.trim().slice(0, LIVE_SYNC_MAX_POLL_QUESTION)
-        : "";
+      const question =
+        typeof record.question === "string" ? record.question.trim().slice(0, LIVE_SYNC_MAX_POLL_QUESTION) : "";
       return { type: "POLL_START", question, options };
     }
 

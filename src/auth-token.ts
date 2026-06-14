@@ -25,11 +25,7 @@ export function getAuthTokenSecret(env: NodeJS.ProcessEnv = process.env) {
 }
 
 export function signAuthToken(user: { id: string; role: UserRole }, secret = getAuthTokenSecret()) {
-  return jwt.sign(
-    { userId: user.id, role: user.role },
-    secret,
-    { expiresIn: "15m", algorithm: "HS256" }
-  );
+  return jwt.sign({ userId: user.id, role: user.role }, secret, { expiresIn: "15m", algorithm: "HS256" });
 }
 
 export function verifyAuthToken(token: string | undefined, secret = getAuthTokenSecret()) {

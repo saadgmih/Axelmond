@@ -1,9 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Room, RoomEvent, Track } from "livekit-client";
-import VirtualClassroom, {
-  type LiveParticipantCard,
-  type VirtualClassroomProps,
-} from "../components/VirtualClassroom";
+import VirtualClassroom, { type LiveParticipantCard, type VirtualClassroomProps } from "../components/VirtualClassroom";
 import type { AppUser } from "../components/AuthScreen";
 import { api } from "../api";
 import { LiveChatMessage } from "../livekit";
@@ -395,7 +392,9 @@ export function useLiveKitRoom({
                 parsed.action === "REACTION_CLEAR"
                   ? undefined
                   : parsed.action === "REACTION"
-                    ? (typeof parsed.reaction === "string" && parsed.reaction ? parsed.reaction : undefined)
+                    ? typeof parsed.reaction === "string" && parsed.reaction
+                      ? parsed.reaction
+                      : undefined
                     : prev[identity]?.reaction,
               updatedAt: Date.now(),
             },
@@ -433,13 +432,15 @@ export function useLiveKitRoom({
 
     setLiveStatusMsg("Connexion à la salle LiveKit...");
     setLiveChatMessages([]);
-    api.getLiveMessages(activeLiveCourse.id)
+    api
+      .getLiveMessages(activeLiveCourse.id)
       .then((messages) => {
         if (!disposed) setLiveChatMessages(messages);
       })
       .catch((err) => console.warn("[livekit] Failed to load stored messages", err));
 
-    api.getLiveKitToken(activeLiveCourse.id)
+    api
+      .getLiveKitToken(activeLiveCourse.id)
       .then(async ({ url, token }) => {
         await room.connect(url, token);
         if (disposed) {
@@ -500,22 +501,24 @@ export function useLiveKitRoom({
   }, []);
 
   const liveMediaSignature = useMemo(
-    () => liveParticipants
-      .map((participant) => [
-        participant.identity,
-        participant.isLocal ? "local" : "remote",
-        participant.videoTrack?.sid || "",
-        participant.audioTrack?.sid || "",
-      ].join(":"))
-      .join("|"),
+    () =>
+      liveParticipants
+        .map((participant) =>
+          [
+            participant.identity,
+            participant.isLocal ? "local" : "remote",
+            participant.videoTrack?.sid || "",
+            participant.audioTrack?.sid || "",
+          ].join(":"),
+        )
+        .join("|"),
     [liveParticipants],
   );
 
   useEffect(() => {
     const primaryTrack =
-      liveParticipants.find(
-        (participant) => participant.identity === activeSpeakerIdentity && participant.videoTrack,
-      )?.videoTrack ||
+      liveParticipants.find((participant) => participant.identity === activeSpeakerIdentity && participant.videoTrack)
+        ?.videoTrack ||
       liveParticipants.find((participant) => !participant.isLocal && participant.videoTrack)?.videoTrack ||
       liveParticipants.find((participant) => participant.videoTrack)?.videoTrack;
 
@@ -640,7 +643,9 @@ export function useLiveKitRoom({
       if (nextState) {
         const permissionState = await getMicrophonePermissionState();
         if (permissionState === "denied") {
-          setLiveStatusMsg("Microphone bloqué par le navigateur. Autorisez le micro via l'icône cadenas puis réessayez.");
+          setLiveStatusMsg(
+            "Microphone bloqué par le navigateur. Autorisez le micro via l'icône cadenas puis réessayez.",
+          );
           return;
         }
       }
@@ -711,7 +716,9 @@ export function useLiveKitRoom({
         topic: "axelmond-live-chat",
       });
       appendLiveChatMessage(message);
-      api.saveLiveMessage(activeLiveCourse.id, message).catch((err) => console.error("[livekit] Chat persistence failed", err));
+      api
+        .saveLiveMessage(activeLiveCourse.id, message)
+        .catch((err) => console.error("[livekit] Chat persistence failed", err));
       setLiveChatDraft("");
     } catch (err) {
       console.error("[livekit] Chat publish failed", err);
@@ -754,9 +761,9 @@ export function useLiveKitRoom({
           updatedAt: Date.now(),
         },
       }));
-      api.logLiveEvent({ courseId: activeLiveCourse.id, action, details }).catch((err) =>
-        console.warn("[livekit] Event persistence failed", err),
-      );
+      api
+        .logLiveEvent({ courseId: activeLiveCourse.id, action, details })
+        .catch((err) => console.warn("[livekit] Event persistence failed", err));
       refreshLiveAttendanceReport(activeLiveCourse.id);
     } catch (err) {
       console.error("[livekit] Live action publish failed", err);
@@ -836,11 +843,13 @@ export function useLiveKitRoom({
       question: nextPoll.question,
       options: nextPoll.options,
     });
-    api.logLiveEvent({
-      courseId: activeLiveCourse.id,
-      action: "POLL_START",
-      details: { question: nextPoll.question, options: nextPoll.options },
-    }).catch((err) => console.warn("[livekit] Poll event persistence failed", err));
+    api
+      .logLiveEvent({
+        courseId: activeLiveCourse.id,
+        action: "POLL_START",
+        details: { question: nextPoll.question, options: nextPoll.options },
+      })
+      .catch((err) => console.warn("[livekit] Poll event persistence failed", err));
   };
 
   const voteLivePoll = async (option: string) => {
@@ -851,11 +860,13 @@ export function useLiveKitRoom({
     setMyPollVote(option);
     await publishLiveSync(liveRoom, { type: "POLL_VOTE", voterId, option });
     if (activeLiveCourse) {
-      api.logLiveEvent({
-        courseId: activeLiveCourse.id,
-        action: "POLL_VOTE",
-        details: { option, question: livePollRef.current.question },
-      }).catch((err) => console.warn("[livekit] Poll vote persistence failed", err));
+      api
+        .logLiveEvent({
+          courseId: activeLiveCourse.id,
+          action: "POLL_VOTE",
+          details: { option, question: livePollRef.current.question },
+        })
+        .catch((err) => console.warn("[livekit] Poll vote persistence failed", err));
     }
   };
 
@@ -891,11 +902,13 @@ export function useLiveKitRoom({
     if (!resource) return;
     setSharedResource(resource);
     await publishLiveSync(liveRoom, { type: "RESOURCE_SHARE", resource });
-    api.logLiveEvent({
-      courseId: activeLiveCourse.id,
-      action: "RESOURCE_SHARE",
-      details: { title: resource.title, url: resource.url, kind: resource.kind },
-    }).catch((err) => console.warn("[livekit] Resource share persistence failed", err));
+    api
+      .logLiveEvent({
+        courseId: activeLiveCourse.id,
+        action: "RESOURCE_SHARE",
+        details: { title: resource.title, url: resource.url, kind: resource.kind },
+      })
+      .catch((err) => console.warn("[livekit] Resource share persistence failed", err));
   };
 
   const dismissLiveResource = async () => {

@@ -50,7 +50,9 @@ export default function PremiumVideoPlayer({ src, title, instructor, activeSecto
         onContextMenu={(e) => e.preventDefault()}
       />
 
-      <div className={`absolute inset-0 flex flex-col items-center justify-center z-10 bg-slate-950/20 transition-opacity duration-300 ${isPlaying ? "opacity-0 group-hover:opacity-100" : "opacity-100"}`}>
+      <div
+        className={`absolute inset-0 flex flex-col items-center justify-center z-10 bg-slate-950/20 transition-opacity duration-300 ${isPlaying ? "opacity-0 group-hover:opacity-100" : "opacity-100"}`}
+      >
         {!isPlaying ? (
           <div className="flex flex-col items-center gap-3">
             <button

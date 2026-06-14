@@ -1,10 +1,7 @@
 export function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-  const decode =
-    typeof globalThis.atob === "function"
-      ? globalThis.atob.bind(globalThis)
-      : null;
+  const decode = typeof globalThis.atob === "function" ? globalThis.atob.bind(globalThis) : null;
   if (!decode) {
     throw new Error("Base64 decoding unavailable");
   }
@@ -25,7 +22,11 @@ export function isValidVapidPublicKey(publicKey: string): boolean {
 
 export function mapPushSubscribeError(message: string): string {
   const normalized = message.toLowerCase();
-  if (normalized.includes("push service error") || normalized.includes("push service not available") || normalized.includes("registration failed")) {
+  if (
+    normalized.includes("push service error") ||
+    normalized.includes("push service not available") ||
+    normalized.includes("registration failed")
+  ) {
     return "Impossible de joindre le service push du navigateur. Vérifiez que les notifications sont activées pour Chrome/Edge dans les paramètres Windows, rechargez la page, puis réessayez.";
   }
   if (normalized.includes("permission") || normalized.includes("denied")) {
@@ -101,7 +102,10 @@ export async function subscribeToPush(
     return await registration.pushManager.subscribe(options);
   } catch (firstError) {
     console.error("[push] pushManager.subscribe first attempt failed", firstError);
-    await registration.pushManager.getSubscription().then((sub) => sub?.unsubscribe()).catch(() => undefined);
+    await registration.pushManager
+      .getSubscription()
+      .then((sub) => sub?.unsubscribe())
+      .catch(() => undefined);
     try {
       return await registration.pushManager.subscribe(options);
     } catch (retryError) {

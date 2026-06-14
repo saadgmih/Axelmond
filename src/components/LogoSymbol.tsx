@@ -6,12 +6,7 @@ interface LogoSymbolProps {
 
 export default function LogoSymbol({ className = "w-10 h-10" }: LogoSymbolProps) {
   return (
-    <svg 
-      className={className} 
-      viewBox="0 0 200 200" 
-      fill="none" 
-      xmlns="http://www.w3.org/2000/svg"
-    >
+    <svg className={className} viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="orbitGrad" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#818cf8" />
@@ -30,15 +25,38 @@ export default function LogoSymbol({ className = "w-10 h-10" }: LogoSymbolProps)
       </g>
 
       {/* A and R combined structures */}
-      <path d="M 62 145 L 90 70 L 100 70" stroke="currentColor" strokeWidth="11" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M 62 145 L 90 70 L 100 70"
+        stroke="currentColor"
+        strokeWidth="11"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
       <path d="M 95 70 L 125 145" stroke="currentColor" strokeWidth="11" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M 92 74 C 115 74 135 84 135 102 C 135 118 115 125 95 125" stroke="currentColor" strokeWidth="11" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M 112 120 L 140 145" stroke="currentColor" strokeWidth="11" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M 92 74 C 115 74 135 84 135 102 C 135 118 115 125 95 125"
+        stroke="currentColor"
+        strokeWidth="11"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M 112 120 L 140 145"
+        stroke="currentColor"
+        strokeWidth="11"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
 
       {/* Beaker/Flask in the center */}
       <g transform="translate(84, 94)">
         <path d="M 12 0 H 18 V 12 H 12 Z" fill="url(#flaskGrad)" />
-        <path d="M 12 12 L 0 35 C -2 39 1 42 6 42 H 24 C 29 42 32 39 30 35 L 18 12 Z" fill="url(#flaskGrad)" stroke="currentColor" strokeWidth="2.5" />
+        <path
+          d="M 12 12 L 0 35 C -2 39 1 42 6 42 H 24 C 29 42 32 39 30 35 L 18 12 Z"
+          fill="url(#flaskGrad)"
+          stroke="currentColor"
+          strokeWidth="2.5"
+        />
         <circle cx="10" cy="32" r="2.5" fill="#ffffff" opacity="0.9" />
         <circle cx="20" cy="28" r="2" fill="#ffffff" opacity="0.9" />
         <circle cx="14" cy="23" r="1.5" fill="#ffffff" opacity="0.7" />
@@ -46,9 +64,29 @@ export default function LogoSymbol({ className = "w-10 h-10" }: LogoSymbolProps)
 
       {/* Graduation Cap on top of A */}
       <g transform="translate(70, 22)">
-        <path d="M 30 0 L 60 10 L 30 20 L 0 10 Z" fill="currentColor" stroke="#ffffff" strokeWidth="1.5" strokeLinejoin="round" opacity="0.95" />
-        <path d="M 13 14.5 V 22 C 13 25 47 25 47 22 V 14.5" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
-        <path d="M 30 10 L 53 14 V 24" fill="none" stroke="#eab308" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path
+          d="M 30 0 L 60 10 L 30 20 L 0 10 Z"
+          fill="currentColor"
+          stroke="#ffffff"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+          opacity="0.95"
+        />
+        <path
+          d="M 13 14.5 V 22 C 13 25 47 25 47 22 V 14.5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="4"
+          strokeLinecap="round"
+        />
+        <path
+          d="M 30 10 L 53 14 V 24"
+          fill="none"
+          stroke="#eab308"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
         <circle cx="53" cy="25" r="2" fill="#eab308" />
       </g>
     </svg>

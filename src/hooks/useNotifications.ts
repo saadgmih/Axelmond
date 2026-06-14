@@ -40,7 +40,9 @@ export function useNotifications(enabled: boolean) {
     setError("");
     try {
       await api.markNotificationRead(id);
-      setNotifications((prev) => prev.map((item) => (item.id === id ? { ...item, isRead: true, readAt: new Date().toISOString() } : item)));
+      setNotifications((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, isRead: true, readAt: new Date().toISOString() } : item)),
+      );
       setUnreadCount((count) => Math.max(0, count - 1));
     } catch (err: any) {
       setError(getClientErrorMessage(err, "Impossible de marquer la notification comme lue"));
@@ -51,7 +53,9 @@ export function useNotifications(enabled: boolean) {
     setError("");
     try {
       await api.markAllNotificationsRead();
-      setNotifications((prev) => prev.map((item) => ({ ...item, isRead: true, readAt: item.readAt || new Date().toISOString() })));
+      setNotifications((prev) =>
+        prev.map((item) => ({ ...item, isRead: true, readAt: item.readAt || new Date().toISOString() })),
+      );
       setUnreadCount(0);
     } catch (err: any) {
       setError(getClientErrorMessage(err, "Impossible de marquer toutes les notifications comme lues"));

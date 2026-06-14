@@ -24,18 +24,66 @@ export function AppFooter() {
         <div className="space-y-3">
           <h4 className="text-xs font-black text-slate-200 uppercase tracking-widest">Navigation</h4>
           <div className="space-y-2 text-xs text-slate-400">
-            <button type="button" aria-label="Aller à l'accueil" onClick={() => { if (role === "student") navigateTo("dashboard"); else handleTeacherViewChange("dashboard"); }} className="kbd-nav-focus block hover:text-white">Accueil</button>
-            <button type="button" aria-label="Aller au catalogue" onClick={() => { if (role === "student") navigateTo("catalog"); else handleTeacherViewChange("curriculum"); }} className="kbd-nav-focus block hover:text-white">Catalogue</button>
-            <button type="button" aria-label="Aller à la recherche" onClick={() => navigateTo("research")} className="kbd-nav-focus block hover:text-white">Recherche</button>
-            <button type="button" aria-label="Aller aux publications" onClick={() => navigateTo("publications")} className="kbd-nav-focus block hover:text-white">Publications</button>
+            <button
+              type="button"
+              aria-label="Aller à l'accueil"
+              onClick={() => {
+                if (role === "student") navigateTo("dashboard");
+                else handleTeacherViewChange("dashboard");
+              }}
+              className="kbd-nav-focus block hover:text-white"
+            >
+              Accueil
+            </button>
+            <button
+              type="button"
+              aria-label="Aller au catalogue"
+              onClick={() => {
+                if (role === "student") navigateTo("catalog");
+                else handleTeacherViewChange("curriculum");
+              }}
+              className="kbd-nav-focus block hover:text-white"
+            >
+              Catalogue
+            </button>
+            <button
+              type="button"
+              aria-label="Aller à la recherche"
+              onClick={() => navigateTo("research")}
+              className="kbd-nav-focus block hover:text-white"
+            >
+              Recherche
+            </button>
+            <button
+              type="button"
+              aria-label="Aller aux publications"
+              onClick={() => navigateTo("publications")}
+              className="kbd-nav-focus block hover:text-white"
+            >
+              Publications
+            </button>
           </div>
         </div>
 
         <div className="space-y-3">
           <h4 className="text-xs font-black text-slate-200 uppercase tracking-widest">Support</h4>
           <div className="space-y-2 text-xs text-slate-400">
-            <button type="button" aria-label="Aller au centre d'aide" onClick={() => navigateTo("support")} className="kbd-nav-focus block hover:text-white">Centre d'aide</button>
-            <button type="button" aria-label="Aller à la page contact" onClick={() => navigateTo("contact")} className="kbd-nav-focus block hover:text-white">Contact</button>
+            <button
+              type="button"
+              aria-label="Aller au centre d'aide"
+              onClick={() => navigateTo("support")}
+              className="kbd-nav-focus block hover:text-white"
+            >
+              Centre d'aide
+            </button>
+            <button
+              type="button"
+              aria-label="Aller à la page contact"
+              onClick={() => navigateTo("contact")}
+              className="kbd-nav-focus block hover:text-white"
+            >
+              Contact
+            </button>
             <button
               type="button"
               aria-label="Signaler un problème"
@@ -52,17 +100,52 @@ export function AppFooter() {
             >
               Signaler un problème
             </button>
-            <button type="button" aria-label="Aller à la page à propos" onClick={() => navigateTo("about")} className="kbd-nav-focus block hover:text-white">À propos</button>
+            <button
+              type="button"
+              aria-label="Aller à la page à propos"
+              onClick={() => navigateTo("about")}
+              className="kbd-nav-focus block hover:text-white"
+            >
+              À propos
+            </button>
           </div>
         </div>
 
         <div className="space-y-3">
           <h4 className="text-xs font-black text-slate-200 uppercase tracking-widest">Légal</h4>
           <div className="space-y-2 text-xs text-slate-400">
-            <button type="button" aria-label="Politique de confidentialité" onClick={() => navigateTo("privacy")} className="kbd-nav-focus block hover:text-white">Politique de confidentialité</button>
-            <button type="button" aria-label="Conditions d'utilisation" onClick={() => navigateTo("terms")} className="kbd-nav-focus block hover:text-white">Conditions d'utilisation</button>
-            <button type="button" aria-label="Politique des cookies" onClick={() => navigateTo("cookies")} className="kbd-nav-focus block hover:text-white">Politique des cookies</button>
-            <button type="button" aria-label="Mentions légales" onClick={() => navigateTo("legal")} className="kbd-nav-focus block hover:text-white">Mentions légales</button>
+            <button
+              type="button"
+              aria-label="Politique de confidentialité"
+              onClick={() => navigateTo("privacy")}
+              className="kbd-nav-focus block hover:text-white"
+            >
+              Politique de confidentialité
+            </button>
+            <button
+              type="button"
+              aria-label="Conditions d'utilisation"
+              onClick={() => navigateTo("terms")}
+              className="kbd-nav-focus block hover:text-white"
+            >
+              Conditions d'utilisation
+            </button>
+            <button
+              type="button"
+              aria-label="Politique des cookies"
+              onClick={() => navigateTo("cookies")}
+              className="kbd-nav-focus block hover:text-white"
+            >
+              Politique des cookies
+            </button>
+            <button
+              type="button"
+              aria-label="Mentions légales"
+              onClick={() => navigateTo("legal")}
+              className="kbd-nav-focus block hover:text-white"
+            >
+              Mentions légales
+            </button>
           </div>
         </div>
       </div>

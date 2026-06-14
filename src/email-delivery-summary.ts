@@ -28,7 +28,9 @@ export function buildEmailDeliverySummary(logs: EmailDeliveryLogLike[], smtpConf
   const sortedLogs = [...logs].sort((a, b) => toDate(b.createdAt).getTime() - toDate(a.createdAt).getTime());
   const lastEmailSent = sortedLogs.find((log) => log.providerStatus === "QUEUED") || null;
   const lastSmtpError = sortedLogs.find(isErrorLog) || null;
-  const emailsSentToday = sortedLogs.filter((log) => log.providerStatus === "QUEUED" && isSameDay(toDate(log.createdAt), now)).length;
+  const emailsSentToday = sortedLogs.filter(
+    (log) => log.providerStatus === "QUEUED" && isSameDay(toDate(log.createdAt), now),
+  ).length;
 
   return {
     smtpConfigured,

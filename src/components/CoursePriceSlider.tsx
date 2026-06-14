@@ -11,11 +11,7 @@ function clampPrice(value: number) {
 }
 
 /** Normalized slider position 0 → 1, aligned to thumb travel axis */
-export function getCoursePriceSliderPct(
-  value: number,
-  min: number = MIN_PRICE,
-  max: number = MAX_PRICE,
-) {
+export function getCoursePriceSliderPct(value: number, min: number = MIN_PRICE, max: number = MAX_PRICE) {
   const clamped = clampPrice(value);
   if (max <= min) return 0;
   return (clamped - min) / (max - min);

@@ -52,11 +52,7 @@ export function sanitizeHttpsUrl(
   return trimmed;
 }
 
-export const UPLOAD_HOSTS = [
-  "uploadthing.com",
-  "ufs.sh",
-  "utfs.io",
-] as const;
+export const UPLOAD_HOSTS = ["uploadthing.com", "ufs.sh", "utfs.io"] as const;
 
 export const ACADEMIC_LINK_HOSTS = {
   linkedIn: ["linkedin.com", "www.linkedin.com"],

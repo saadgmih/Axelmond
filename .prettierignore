@@ -1,0 +1,8 @@
+node_modules
+dist
+coverage
+prisma/migrations
+axelmond-mobile
+scripts/archive
+test-results
+src/index.css

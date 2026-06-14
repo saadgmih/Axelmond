@@ -18,10 +18,10 @@ export function resolveStageParticipants(
 
   if (layoutMode === "active-speaker") {
     const featured =
-      (activeSpeaker?.videoTrack ? activeSpeaker : undefined)
-      || withVideo.find((participant) => participant.isSpeaking)
-      || withVideo.find((participant) => !participant.isLocal)
-      || withVideo[0];
+      (activeSpeaker?.videoTrack ? activeSpeaker : undefined) ||
+      withVideo.find((participant) => participant.isSpeaking) ||
+      withVideo.find((participant) => !participant.isLocal) ||
+      withVideo[0];
     if (!featured) return connected;
     const others = connected.filter((participant) => participant.identity !== featured.identity);
     return [featured, ...others];
@@ -45,7 +45,8 @@ export function resolveStageParticipants(
 
 export function stageGridClass(count: number, featuredLayout: boolean) {
   if (count <= 1) return "grid-cols-1";
-  if (count === 2) return featuredLayout ? "grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]" : "grid-cols-1 sm:grid-cols-2";
+  if (count === 2)
+    return featuredLayout ? "grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]" : "grid-cols-1 sm:grid-cols-2";
   if (count <= 4) return "grid-cols-2";
   if (count <= 6) return "grid-cols-2 md:grid-cols-3";
   return "grid-cols-2 md:grid-cols-3 xl:grid-cols-4";

@@ -105,7 +105,11 @@ export default function LiveControlBar({
             aria-pressed={isScreenShareEnabled}
             className={`kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${isScreenShareEnabled ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400" : "hover:bg-zinc-800 text-zinc-300"}`}
           >
-            {isScreenShareEnabled ? <ScreenShareOff className="w-5 h-5 mb-1.5" /> : <ScreenShare className="w-5 h-5 mb-1.5" />}
+            {isScreenShareEnabled ? (
+              <ScreenShareOff className="w-5 h-5 mb-1.5" />
+            ) : (
+              <ScreenShare className="w-5 h-5 mb-1.5" />
+            )}
             <span className="text-[10px] font-bold">Partager</span>
           </button>
           <button
@@ -127,7 +131,9 @@ export default function LiveControlBar({
             aria-label={isPiPActive ? "Quitter Picture-in-Picture (P)" : "Activer Picture-in-Picture (P)"}
             aria-pressed={isPiPActive}
             className={`kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${
-              isPiPActive ? "bg-indigo-500/10 border border-indigo-400/30 text-indigo-300" : "hover:bg-zinc-800 text-zinc-300"
+              isPiPActive
+                ? "bg-indigo-500/10 border border-indigo-400/30 text-indigo-300"
+                : "hover:bg-zinc-800 text-zinc-300"
             }`}
           >
             <PictureInPicture2 className="w-5 h-5 mb-1.5" />
@@ -141,7 +147,9 @@ export default function LiveControlBar({
             aria-label="Mode concentration"
             aria-pressed={focusMode}
             className={`kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all hidden md:flex ${
-              focusMode ? "bg-emerald-500/10 border border-emerald-400/30 text-emerald-300" : "hover:bg-zinc-800 text-zinc-300"
+              focusMode
+                ? "bg-emerald-500/10 border border-emerald-400/30 text-emerald-300"
+                : "hover:bg-zinc-800 text-zinc-300"
             }`}
           >
             <Focus className="w-5 h-5 mb-1.5" />

@@ -2,10 +2,7 @@ import { useCallback, useState } from "react";
 import { api } from "../api";
 import type { ContentSection, LessonContent } from "../types";
 
-export function flattenSections(
-  sections: ContentSection[],
-  depth = 0,
-): (ContentSection & { depth: number })[] {
+export function flattenSections(sections: ContentSection[], depth = 0): (ContentSection & { depth: number })[] {
   return sections.flatMap((section) => {
     const flatSection: ContentSection & { depth: number } = { ...section, depth };
     return [flatSection, ...flattenSections(section.children || [], depth + 1)];
@@ -13,10 +10,7 @@ export function flattenSections(
 }
 
 export function flattenContents(sections: ContentSection[]): LessonContent[] {
-  return sections.flatMap((section) => [
-    ...(section.contents || []),
-    ...flattenContents(section.children || []),
-  ]);
+  return sections.flatMap((section) => [...(section.contents || []), ...flattenContents(section.children || [])]);
 }
 
 export function useCourseContent() {

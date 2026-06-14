@@ -37,14 +37,16 @@ export function useAppSession({ setCourses, onAfterLogin, onSessionExpired }: Us
       if (isStudentRole(currentUser.role)) {
         const nextEnrolledCourses = currentUser.enrolledCourses || [1];
         const nextInvoices = currentUser.invoices || [];
-        lastSyncedUserStateRef.current = JSON.stringify({ enrolledCourses: nextEnrolledCourses, invoices: nextInvoices });
+        lastSyncedUserStateRef.current = JSON.stringify({
+          enrolledCourses: nextEnrolledCourses,
+          invoices: nextInvoices,
+        });
         setEnrolledCourses(nextEnrolledCourses);
         setInvoices(nextInvoices);
       } else {
         setEnrolledCourses([1, 2, 3, 4]);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser?.id, currentUser?.role]);
 
   useEffect(() => {
@@ -70,19 +72,25 @@ export function useAppSession({ setCourses, onAfterLogin, onSessionExpired }: Us
     setCurrentUser(user);
   }, []);
 
-  const handleLoginSuccess = useCallback((user: AppUser & { csrfToken?: string }) => {
-    const { token, csrfToken, ...sessionUser } = user;
-    if (token) setSessionToken(token, csrfToken);
-    setCurrentUser(sessionUser);
+  const handleLoginSuccess = useCallback(
+    (user: AppUser & { csrfToken?: string }) => {
+      const { token, csrfToken, ...sessionUser } = user;
+      if (token) setSessionToken(token, csrfToken);
+      setCurrentUser(sessionUser);
 
-    if (isStudentRole(user.role)) {
-      setEnrolledCourses(user.enrolledCourses || [1]);
-      setInvoices(user.invoices || []);
-    }
+      if (isStudentRole(user.role)) {
+        setEnrolledCourses(user.enrolledCourses || [1]);
+        setInvoices(user.invoices || []);
+      }
 
-    onAfterLogin?.(user);
-    api.getCourses().then(setCourses).catch((err) => console.error("Failed to refresh courses after login:", err));
-  }, [onAfterLogin, setCourses]);
+      onAfterLogin?.(user);
+      api
+        .getCourses()
+        .then(setCourses)
+        .catch((err) => console.error("Failed to refresh courses after login:", err));
+    },
+    [onAfterLogin, setCourses],
+  );
 
   useEffect(() => {
     getFreshSessionToken()
@@ -91,7 +99,8 @@ export function useAppSession({ setCourses, onAfterLogin, onSessionExpired }: Us
           setIsAuthReady(true);
           return;
         }
-        return api.me()
+        return api
+          .me()
           .then((user) => {
             setCurrentUser(user);
           })

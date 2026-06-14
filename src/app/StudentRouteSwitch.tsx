@@ -89,7 +89,11 @@ export function StudentRouteSwitch() {
       {currentView === "course" && !selectedCourse && (
         <div className="mx-auto max-w-xl p-8 text-center text-slate-300">
           <p className="text-sm font-semibold">Aucun cours sélectionné.</p>
-          <button type="button" onClick={() => navigateTo("dashboard")} className="mt-4 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white">
+          <button
+            type="button"
+            onClick={() => navigateTo("dashboard")}
+            className="mt-4 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white"
+          >
             Retour au tableau de bord
           </button>
         </div>
@@ -97,7 +101,11 @@ export function StudentRouteSwitch() {
       {currentView === "course" && selectedCourse && !selectedModule && (
         <div className="mx-auto max-w-xl p-8 text-center text-slate-300">
           <p className="text-sm font-semibold">Ce cours ne contient pas encore de module.</p>
-          <button type="button" onClick={() => navigateTo("dashboard")} className="mt-4 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white">
+          <button
+            type="button"
+            onClick={() => navigateTo("dashboard")}
+            className="mt-4 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white"
+          >
             Retour au tableau de bord
           </button>
         </div>
@@ -169,7 +177,11 @@ export function StudentRouteSwitch() {
       {currentView === "live" && !activeLiveCourse && (
         <div className="mx-auto max-w-xl p-8 text-center text-slate-300">
           <p className="text-sm font-semibold">Aucune session live disponible pour le moment.</p>
-          <button type="button" onClick={() => navigateTo("dashboard")} className="mt-4 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white">
+          <button
+            type="button"
+            onClick={() => navigateTo("dashboard")}
+            className="mt-4 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white"
+          >
             Retour au tableau de bord
           </button>
         </div>

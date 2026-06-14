@@ -7,8 +7,14 @@ if (!process.env.DATABASE_URL?.trim()) {
 
 const fixture = await seedChatTutorRuntimeFixtures();
 console.log("Mobile v1 fixtures seeded");
-console.log(JSON.stringify({
-  studentEmail: fixture.users.enrolledStudent.email,
-  teacherEmail: fixture.users.ownerProfessor.email,
-  courseId: fixture.courseId,
-}, null, 2));
+console.log(
+  JSON.stringify(
+    {
+      studentEmail: fixture.users.enrolledStudent.email,
+      teacherEmail: fixture.users.ownerProfessor.email,
+      courseId: fixture.courseId,
+    },
+    null,
+    2,
+  ),
+);

@@ -4,9 +4,12 @@ import { useCallback, useEffect, useRef } from "react";
 export function useAutoClearTimeout() {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    },
+    [],
+  );
 
   return useCallback((callback: () => void, delayMs: number) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);

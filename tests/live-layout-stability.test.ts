@@ -1,29 +1,30 @@
-import assert from "node:assert/strict";import { readFileSync } from "node:fs";import { readAppSources } from "./helpers/app-sources.ts";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { readAppSources } from "./helpers/app-sources.ts";
 import { readLiveClassroomSources } from "./helpers/live-classroom-sources.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("live-layout-stability", () => {
-const classroomSource = readLiveClassroomSources();
-const tutorSource = readFileSync("src/components/AITutorChat.tsx", "utf8");
-const themeSource = readFileSync("src/views/teacher/live-control-theme.ts", "utf8");
-const appSource = readAppSources();
+  const classroomSource = readLiveClassroomSources();
+  const tutorSource = readFileSync("src/components/AITutorChat.tsx", "utf8");
+  const themeSource = readFileSync("src/views/teacher/live-control-theme.ts", "utf8");
+  const appSource = readAppSources();
 
-assert.match(classroomSource, /data-live-video-stage/);
-assert.match(classroomSource, /live-classroom-main/);
-assert.match(classroomSource, /live-classroom-video-stage/);
-assert.match(classroomSource, /data-live-sidebar/);
-assert.match(classroomSource, /overflow-hidden/);
-assert.match(classroomSource, /isSidebarOpen \? "lg:grid-cols-\[minmax\(0,1fr\)_420px\]" : "lg:grid-cols-1"/);
-assert.doesNotMatch(classroomSource, /max-h-\[min\(72dvh,780px\)\]/);
-assert.doesNotMatch(classroomSource, /lg:min-h-\[480px\]/);
+  assert.match(classroomSource, /data-live-video-stage/);
+  assert.match(classroomSource, /live-classroom-main/);
+  assert.match(classroomSource, /live-classroom-video-stage/);
+  assert.match(classroomSource, /data-live-sidebar/);
+  assert.match(classroomSource, /overflow-hidden/);
+  assert.match(classroomSource, /isSidebarOpen \? "lg:grid-cols-\[minmax\(0,1fr\)_420px\]" : "lg:grid-cols-1"/);
+  assert.doesNotMatch(classroomSource, /max-h-\[min\(72dvh,780px\)\]/);
+  assert.doesNotMatch(classroomSource, /lg:min-h-\[480px\]/);
 
-assert.match(tutorSource, /isLive[\s\S]*min-h-0 flex-1 w-full self-stretch/);
-assert.doesNotMatch(tutorSource, /min-h-\[min\(620px,calc\(100dvh-11rem\)\)\]/);
+  assert.match(tutorSource, /isLive[\s\S]*min-h-0 flex-1 w-full self-stretch/);
+  assert.doesNotMatch(tutorSource, /min-h-\[min\(620px,calc\(100dvh-11rem\)\)\]/);
 
-assert.match(themeSource, /roomShell:[\s\S]*overflow-hidden/);
-assert.match(themeSource, /roomShell:[\s\S]*h-\[min\(78dvh,820px\)\]/);
+  assert.match(themeSource, /roomShell:[\s\S]*overflow-hidden/);
+  assert.match(themeSource, /roomShell:[\s\S]*h-\[min\(78dvh,820px\)\]/);
 
-assert.match(appSource, /lockMainScroll = currentView === "course" \|\| isStudentLive/);
-assert.match(appSource, /hideGlobalFooter = currentView === "course" \|\| isLiveSessionView/);
-
+  assert.match(appSource, /lockMainScroll = currentView === "course" \|\| isStudentLive/);
+  assert.match(appSource, /hideGlobalFooter = currentView === "course" \|\| isLiveSessionView/);
 });

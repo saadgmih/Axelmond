@@ -3,10 +3,7 @@ import { clickFocusedTvItem, focusNextInZone, isEditableTarget } from "../utils/
 
 type Direction = "up" | "down" | "left" | "right";
 
-export function useTvNavigation(
-  zoneRef: RefObject<HTMLElement | null>,
-  enabled = true,
-) {
+export function useTvNavigation(zoneRef: RefObject<HTMLElement | null>, enabled = true) {
   useEffect(() => {
     const zone = zoneRef.current;
     if (!enabled || !zone) return;

@@ -112,7 +112,13 @@ export function AuthenticatedPlatformLayout() {
       </div>
 
       {platform.courseToPurchase && (
-        <Suspense fallback={<div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm"><div className="h-10 w-10 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent" /></div>}>
+        <Suspense
+          fallback={
+            <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm">
+              <div className="h-10 w-10 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent" />
+            </div>
+          }
+        >
           <LazyPaymentModal
             course={platform.courseToPurchase}
             onClose={() => platform.setCourseToPurchase(null)}
@@ -121,32 +127,36 @@ export function AuthenticatedPlatformLayout() {
         </Suspense>
       )}
 
-      {platform.activeLiveCourse && !((platform.role === "student" && platform.currentView === "live") || (platform.role === "teacher" && platform.teacherView === "live-control")) && (
-        <button
-          type="button"
-          aria-label={`Rejoindre le live actif : ${platform.activeLiveCourse.title}`}
-          onClick={() => {
-            platform.setSelectedCourse(platform.activeLiveCourse);
-            platform.setLiveCourseId(platform.activeLiveCourse!.id);
-            if (platform.role === "student") {
-              platform.setCurrentView("live");
-            } else {
-              platform.setTeacherView("live-control");
-            }
-            platform.setIsMobileMenuOpen(false);
-          }}
-          className="fixed right-4 bottom-4 sm:right-5 sm:bottom-5 z-50 bg-slate-950 border border-indigo-500/50 text-white rounded-2xl px-4 py-3 shadow-2xl flex items-center gap-3 max-w-[min(280px,calc(100vw-2rem))] text-left cursor-pointer hover:bg-slate-900 transition-colors touch-target kbd-nav-focus"
-        >
-          <span className="relative flex h-3 w-3 flex-shrink-0">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-          </span>
-          <span className="min-w-0">
-            <span className="block text-[10px] font-black uppercase tracking-widest text-indigo-300">Live actif</span>
-            <span className="block text-xs font-bold truncate">{platform.activeLiveCourse.title}</span>
-          </span>
-        </button>
-      )}
+      {platform.activeLiveCourse &&
+        !(
+          (platform.role === "student" && platform.currentView === "live") ||
+          (platform.role === "teacher" && platform.teacherView === "live-control")
+        ) && (
+          <button
+            type="button"
+            aria-label={`Rejoindre le live actif : ${platform.activeLiveCourse.title}`}
+            onClick={() => {
+              platform.setSelectedCourse(platform.activeLiveCourse);
+              platform.setLiveCourseId(platform.activeLiveCourse!.id);
+              if (platform.role === "student") {
+                platform.setCurrentView("live");
+              } else {
+                platform.setTeacherView("live-control");
+              }
+              platform.setIsMobileMenuOpen(false);
+            }}
+            className="fixed right-4 bottom-4 sm:right-5 sm:bottom-5 z-50 bg-slate-950 border border-indigo-500/50 text-white rounded-2xl px-4 py-3 shadow-2xl flex items-center gap-3 max-w-[min(280px,calc(100vw-2rem))] text-left cursor-pointer hover:bg-slate-900 transition-colors touch-target kbd-nav-focus"
+          >
+            <span className="relative flex h-3 w-3 flex-shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+            </span>
+            <span className="min-w-0">
+              <span className="block text-[10px] font-black uppercase tracking-widest text-indigo-300">Live actif</span>
+              <span className="block text-xs font-bold truncate">{platform.activeLiveCourse.title}</span>
+            </span>
+          </button>
+        )}
 
       <KeyboardShortcutsHelp open={platform.showKeyboardHelp} onClose={() => platform.setShowKeyboardHelp(false)} />
     </div>

@@ -25,8 +25,7 @@ export const CURRICULUM_STEPS: CurriculumStepConfig[] = [
     label: "Modules",
     desc: "Création & catalogue",
     icon: BookOpen,
-    active:
-      "border-indigo-400/70 bg-indigo-950/50 text-white shadow-lg shadow-indigo-500/15 ring-1 ring-indigo-500/40",
+    active: "border-indigo-400/70 bg-indigo-950/50 text-white shadow-lg shadow-indigo-500/15 ring-1 ring-indigo-500/40",
     completed: "border-emerald-500/40 bg-emerald-950/30 text-emerald-200",
     badgeActive: "bg-indigo-500 text-white shadow-md shadow-indigo-500/40",
     badgeCompleted: "bg-emerald-600 text-white",
@@ -42,8 +41,7 @@ export const CURRICULUM_STEPS: CurriculumStepConfig[] = [
     label: "Syllabus",
     desc: "Syllabus principal",
     icon: Layers,
-    active:
-      "border-cyan-400/70 bg-cyan-950/40 text-white shadow-lg shadow-cyan-500/15 ring-1 ring-cyan-500/35",
+    active: "border-cyan-400/70 bg-cyan-950/40 text-white shadow-lg shadow-cyan-500/15 ring-1 ring-cyan-500/35",
     completed: "border-emerald-500/40 bg-emerald-950/30 text-emerald-200",
     badgeActive: "bg-cyan-500 text-white shadow-md shadow-cyan-500/40",
     badgeCompleted: "bg-emerald-600 text-white",
@@ -74,8 +72,7 @@ export const CURRICULUM_STEPS: CurriculumStepConfig[] = [
     label: "Médias",
     desc: "Vidéos, PDF & images",
     icon: Video,
-    active:
-      "border-amber-400/70 bg-amber-950/40 text-white shadow-lg shadow-amber-500/15 ring-1 ring-amber-500/35",
+    active: "border-amber-400/70 bg-amber-950/40 text-white shadow-lg shadow-amber-500/15 ring-1 ring-amber-500/35",
     completed: "border-emerald-500/40 bg-emerald-950/30 text-emerald-200",
     badgeActive: "bg-amber-500 text-white shadow-md shadow-amber-500/40",
     badgeCompleted: "bg-emerald-600 text-white",
@@ -90,8 +87,7 @@ export const CURRICULUM_STEPS: CurriculumStepConfig[] = [
     label: "Quiz",
     desc: "QCM de validation",
     icon: HelpCircle,
-    active:
-      "border-violet-400/70 bg-violet-950/40 text-white shadow-lg shadow-violet-500/15 ring-1 ring-violet-500/35",
+    active: "border-violet-400/70 bg-violet-950/40 text-white shadow-lg shadow-violet-500/15 ring-1 ring-violet-500/35",
     completed: "border-emerald-500/40 bg-emerald-950/30 text-emerald-200",
     badgeActive: "bg-violet-500 text-white shadow-md shadow-violet-500/40",
     badgeCompleted: "bg-emerald-600 text-white",
@@ -110,10 +106,8 @@ export function getStepTheme(step: number): CurriculumStepConfig {
 /** Dark studio layout — matches Axelmond curriculum mockup */
 export const curriculumUi = {
   page: "space-y-6 animate-in fade-in duration-300",
-  hero:
-    "relative overflow-hidden rounded-3xl border border-slate-800 bg-[#0b0e14] p-6 md:p-8 shadow-xl shadow-black/30",
-  heroGlow:
-    "pointer-events-none absolute -right-16 -top-16 h-52 w-52 rounded-full bg-violet-600/20 blur-3xl",
+  hero: "relative overflow-hidden rounded-3xl border border-slate-800 bg-[#0b0e14] p-6 md:p-8 shadow-xl shadow-black/30",
+  heroGlow: "pointer-events-none absolute -right-16 -top-16 h-52 w-52 rounded-full bg-violet-600/20 blur-3xl",
   studioBadge:
     "inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-950/60 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-violet-300",
   heroTitle: "text-2xl md:text-3xl font-black tracking-tight text-white",
@@ -126,8 +120,7 @@ export const curriculumUi = {
     "h-full rounded-full bg-gradient-to-r from-violet-500 via-indigo-500 to-cyan-400 transition-all duration-500 shadow-[0_0_12px_rgba(139,92,246,0.45)]",
   stepIdle:
     "border-slate-800 bg-slate-900/50 text-slate-500 hover:border-slate-700 hover:bg-slate-900/80 hover:text-slate-300",
-  panel:
-    "rounded-3xl border border-slate-800 bg-slate-900/70 p-6 shadow-lg shadow-black/20",
+  panel: "rounded-3xl border border-slate-800 bg-slate-900/70 p-6 shadow-lg shadow-black/20",
   panelTitle: "text-lg font-black text-white flex items-center gap-2.5",
   panelSubtitle: "text-xs text-slate-400 mt-1 font-medium leading-relaxed",
   sectionTitle: "text-xs font-black text-slate-200 uppercase tracking-wider flex items-center gap-2",
@@ -140,8 +133,7 @@ export const curriculumUi = {
     "w-full rounded-xl border border-slate-700 bg-[#090d16] pl-9 pr-4 py-3 text-xs font-semibold text-slate-100 transition-all placeholder:text-slate-600 focus:bg-slate-950 focus:outline-none focus:ring-4",
   checkbox:
     "flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900/60 px-4 py-3 text-xs font-bold text-slate-300 cursor-pointer select-none hover:bg-slate-800/80 transition-colors",
-  empty:
-    "text-center rounded-2xl border border-dashed border-slate-700 bg-slate-900/40 p-8 text-slate-400",
+  empty: "text-center rounded-2xl border border-dashed border-slate-700 bg-slate-900/40 p-8 text-slate-400",
   contextBanner:
     "rounded-3xl border border-slate-700 bg-gradient-to-r from-slate-900 via-[#0b0e14] to-indigo-950 p-4 md:px-6 md:py-5 text-white shadow-lg shadow-black/30",
   published:
@@ -158,15 +150,12 @@ export const curriculumUi = {
     "inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-black text-white shadow-lg transition-all active:scale-[0.98] bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 shadow-violet-900/30",
   createBtn:
     "w-full inline-flex items-center justify-center gap-2 rounded-xl py-3 text-xs font-black text-white shadow-lg transition-all active:scale-[0.98] bg-gradient-to-r from-pink-600 to-violet-600 hover:from-pink-500 hover:to-violet-500 shadow-pink-900/25",
-  moduleCard:
-    "rounded-3xl border border-slate-800 bg-slate-900/60 p-5 transition-all duration-300 md:p-6 shadow-sm",
+  moduleCard: "rounded-3xl border border-slate-800 bg-slate-900/60 p-5 transition-all duration-300 md:p-6 shadow-sm",
   moduleCardActive:
     "border-indigo-500/50 bg-gradient-to-br from-indigo-950/40 to-slate-900 shadow-lg shadow-indigo-900/25 ring-1 ring-indigo-500/30",
-  card:
-    "rounded-2xl border border-slate-800 bg-slate-900/60 p-4 md:p-5 transition-all shadow-sm",
+  card: "rounded-2xl border border-slate-800 bg-slate-900/60 p-4 md:p-5 transition-all shadow-sm",
   cardHover: "hover:border-slate-700 hover:bg-slate-900/80",
-  treePanel:
-    "rounded-3xl border border-slate-800 bg-slate-900/50 p-4 md:p-6 space-y-3",
+  treePanel: "rounded-3xl border border-slate-800 bg-slate-900/50 p-4 md:p-6 space-y-3",
   secondaryBtn:
     "inline-flex items-center justify-center gap-1 rounded-xl border border-slate-600 bg-slate-800 px-3 py-2 text-[10px] font-black text-white hover:bg-slate-700 transition-colors",
   levelChapter: "bg-slate-700 text-white border border-slate-600",
@@ -180,7 +169,8 @@ export const curriculumUi = {
   statPrice:
     "px-2.5 py-1.5 rounded-lg flex items-center gap-1 border bg-emerald-950/50 text-emerald-400 border-emerald-500/30 text-[10px] font-black",
   divider: "border-t border-slate-800",
-  alertSuccess: "rounded-2xl border border-emerald-500/30 bg-emerald-950/40 px-4 py-3 text-xs font-semibold text-emerald-300",
+  alertSuccess:
+    "rounded-2xl border border-emerald-500/30 bg-emerald-950/40 px-4 py-3 text-xs font-semibold text-emerald-300",
   alertError: "rounded-2xl border border-red-500/30 bg-red-950/40 px-4 py-3 text-xs font-semibold text-red-300",
 } as const;
 

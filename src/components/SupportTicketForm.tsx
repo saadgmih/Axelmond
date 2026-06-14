@@ -1,13 +1,6 @@
 import React, { useRef, useState } from "react";
 import { getClientErrorMessage } from "../client-errors";
-import {
-  AlertCircle,
-  CheckCircle2,
-  Image as ImageIcon,
-  Loader2,
-  Send,
-  Trash2,
-} from "lucide-react";
+import { AlertCircle, CheckCircle2, Image as ImageIcon, Loader2, Send, Trash2 } from "lucide-react";
 import { api, getFreshSessionToken } from "../api";
 import { RASTER_IMAGE_ACCEPT } from "../avatar-security";
 import { getUploadedFileUrl, getUploadErrorMessage, uploadFiles, validateUploadFile } from "../uploadthing-client";
@@ -32,7 +25,12 @@ export default function SupportTicketForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
-  const [createdTicket, setCreatedTicket] = useState<{ id: string; subject: string; category: string; status: string } | null>(null);
+  const [createdTicket, setCreatedTicket] = useState<{
+    id: string;
+    subject: string;
+    category: string;
+    status: string;
+  } | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,7 +87,8 @@ export default function SupportTicketForm({
     if (!subject.trim()) errors.subject = "Le sujet est requis.";
     else if (subject.trim().length < 3) errors.subject = "Le sujet doit contenir au moins 3 caractères.";
     if (!description.trim()) errors.description = "La description est requise.";
-    else if (description.trim().length < 10) errors.description = "La description doit contenir au moins 10 caractères.";
+    else if (description.trim().length < 10)
+      errors.description = "La description doit contenir au moins 10 caractères.";
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -133,9 +132,18 @@ export default function SupportTicketForm({
           </div>
           <div className="bg-slate-950/80 border border-slate-850 p-3 rounded-xl space-y-1.5 text-slate-350">
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Récapitulatif du ticket</p>
-            <p className="text-xs"><span className="text-slate-500">ID :</span> <span className="font-mono font-bold text-indigo-300">{createdTicket.id}</span></p>
-            <p className="text-xs"><span className="text-slate-500">Sujet :</span> <span className="font-bold text-white">{createdTicket.subject}</span></p>
-            <p className="text-xs"><span className="text-slate-500">Statut :</span> <span className="text-indigo-300">{createdTicket.status}</span></p>
+            <p className="text-xs">
+              <span className="text-slate-500">ID :</span>{" "}
+              <span className="font-mono font-bold text-indigo-300">{createdTicket.id}</span>
+            </p>
+            <p className="text-xs">
+              <span className="text-slate-500">Sujet :</span>{" "}
+              <span className="font-bold text-white">{createdTicket.subject}</span>
+            </p>
+            <p className="text-xs">
+              <span className="text-slate-500">Statut :</span>{" "}
+              <span className="text-indigo-300">{createdTicket.status}</span>
+            </p>
           </div>
         </div>
       )}
@@ -200,21 +208,48 @@ export default function SupportTicketForm({
         </div>
 
         <div className="space-y-1.5">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Capture d&apos;écran (facultatif)</span>
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+            Capture d&apos;écran (facultatif)
+          </span>
           {screenshotUrl ? (
             <div className="bg-slate-950 border border-slate-850 p-3 rounded-2xl flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <img src={screenshotUrl} alt="Capture d'écran" className="w-12 h-12 rounded-lg object-cover border border-slate-800" />
-                <p className="text-xs font-bold text-slate-300 truncate max-w-[180px]">{selectedFile?.name || "Capture"}</p>
+                <img
+                  src={screenshotUrl}
+                  alt="Capture d'écran"
+                  className="w-12 h-12 rounded-lg object-cover border border-slate-800"
+                />
+                <p className="text-xs font-bold text-slate-300 truncate max-w-[180px]">
+                  {selectedFile?.name || "Capture"}
+                </p>
               </div>
-              <button type="button" onClick={removeScreenshot} className="p-1.5 text-slate-400 hover:text-red-400" disabled={isSubmitting}>
+              <button
+                type="button"
+                onClick={removeScreenshot}
+                className="p-1.5 text-slate-400 hover:text-red-400"
+                disabled={isSubmitting}
+              >
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
           ) : (
             <div className="space-y-2">
-              <input type="file" ref={fileInputRef} onChange={handleFileChange} accept={RASTER_IMAGE_ACCEPT} className="hidden" disabled={isSubmitting || uploadProgress !== null} />
-              <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" disabled={isSubmitting || uploadProgress !== null} />
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept={RASTER_IMAGE_ACCEPT}
+                className="hidden"
+                disabled={isSubmitting || uploadProgress !== null}
+              />
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*"
+                className="hidden"
+                disabled={isSubmitting || uploadProgress !== null}
+              />
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
@@ -243,7 +278,15 @@ export default function SupportTicketForm({
           disabled={isSubmitting || uploadProgress !== null}
           className="w-full flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 px-4 rounded-xl text-xs disabled:opacity-50"
         >
-          {isSubmitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Envoi en cours...</> : <><Send className="w-4 h-4" /> {submitLabel}</>}
+          {isSubmitting ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" /> Envoi en cours...
+            </>
+          ) : (
+            <>
+              <Send className="w-4 h-4" /> {submitLabel}
+            </>
+          )}
         </button>
       </form>
     </div>

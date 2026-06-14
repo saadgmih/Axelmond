@@ -116,9 +116,10 @@ export function usePlatformApp() {
   const allDisciplines = domains.flatMap((domain) => domain.disciplines);
   const selectedDomain = domains.find((domain) => domain.id === selectedDomainId) || null;
   const selectedDiscipline = allDisciplines.find((discipline) => discipline.id === selectedDisciplineId) || null;
-  const managedCourses = role === "teacher" && currentUser?.role !== "ADMIN"
-    ? courses.filter((course) => course.createdById === currentUser?.id)
-    : courses;
+  const managedCourses =
+    role === "teacher" && currentUser?.role !== "ADMIN"
+      ? courses.filter((course) => course.createdById === currentUser?.id)
+      : courses;
   const managedCourseIds = managedCourses.map((course) => course.id).join(",");
 
   const curriculumBindings = {
@@ -156,11 +157,7 @@ export function usePlatformApp() {
     courses,
   };
 
-  const {
-    setGradesCourseId,
-    handleToggleCourseLive,
-    handleUpdateCourseLiveSubject,
-  } = teacherDashboardBindings;
+  const { setGradesCourseId, handleToggleCourseLive, handleUpdateCourseLiveSubject } = teacherDashboardBindings;
 
   useEffect(() => {
     if (role !== "teacher") return;
@@ -190,13 +187,8 @@ export function usePlatformApp() {
     setIsMobileMenuOpen,
   });
 
-  const {
-    setQuizAnswers,
-    setQuizSubmitted,
-    setQuizScore,
-    setQuizSubmitError,
-    handlePaymentSuccess,
-  } = studentCourseSession;
+  const { setQuizAnswers, setQuizSubmitted, setQuizScore, setQuizSubmitError, handlePaymentSuccess } =
+    studentCourseSession;
 
   const studentCourseBindings = {
     ...studentCourseSession,
@@ -214,7 +206,6 @@ export function usePlatformApp() {
     params.delete("canceled");
     const nextQuery = params.toString();
     window.history.replaceState(null, "", `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ""}`);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthReady, currentUser?.id]);
 
   const { navigateTo, handleTeacherViewChange } = usePlatformNavigation({
@@ -253,7 +244,11 @@ export function usePlatformApp() {
     pushNotification,
   } = useNotifications(isAuthReady && !!currentUser);
 
-  const { status: pushStatus, statusKind: pushStatusKind, subscribe: subscribePushNotifications } = usePushNotifications(isAuthReady && !!currentUser);
+  const {
+    status: pushStatus,
+    statusKind: pushStatusKind,
+    subscribe: subscribePushNotifications,
+  } = usePushNotifications(isAuthReady && !!currentUser);
 
   useMessagingSocket(isAuthReady && !!currentUser, {
     onNotification: (payload) => {
@@ -272,9 +267,10 @@ export function usePlatformApp() {
     const { actionUrl, metadata } = notification;
 
     if (actionUrl.includes("messages")) {
-      const conversationId = typeof metadata.conversationId === "string"
-        ? metadata.conversationId
-        : new URL(actionUrl, window.location.origin).searchParams.get("conversation");
+      const conversationId =
+        typeof metadata.conversationId === "string"
+          ? metadata.conversationId
+          : new URL(actionUrl, window.location.origin).searchParams.get("conversation");
       const messagesPath = role === "teacher" ? "/teacher/messages" : "/student/messages";
       if (conversationId) {
         window.history.replaceState(null, "", `${messagesPath}?conversation=${encodeURIComponent(conversationId)}`);
@@ -286,22 +282,24 @@ export function usePlatformApp() {
 
     if (actionUrl.includes("live")) {
       const courseId = Number(metadata.courseId);
-      const liveCourse = (Number.isFinite(courseId)
-        ? courses.find((course) => course.id === courseId && enrolledCourses.includes(course.id))
-        : null)
-        ?? courses.find((course) => enrolledCourses.includes(course.id) && course.isLiveNow)
-        ?? null;
+      const liveCourse =
+        (Number.isFinite(courseId)
+          ? courses.find((course) => course.id === courseId && enrolledCourses.includes(course.id))
+          : null) ??
+        courses.find((course) => enrolledCourses.includes(course.id) && course.isLiveNow) ??
+        null;
       if (liveCourse) navigateTo("live", liveCourse);
       return;
     }
 
     if (actionUrl.includes("course")) {
       const courseId = Number(metadata.courseId);
-      const targetCourse = (Number.isFinite(courseId)
-        ? courses.find((course) => course.id === courseId && enrolledCourses.includes(course.id))
-        : null)
-        ?? courses.find((course) => enrolledCourses.includes(course.id))
-        ?? null;
+      const targetCourse =
+        (Number.isFinite(courseId)
+          ? courses.find((course) => course.id === courseId && enrolledCourses.includes(course.id))
+          : null) ??
+        courses.find((course) => enrolledCourses.includes(course.id)) ??
+        null;
       if (targetCourse) navigateTo("course", targetCourse);
       else navigateTo("catalog");
     }
@@ -316,19 +314,14 @@ export function usePlatformApp() {
 
   const { setAcademicProfileForm } = academicProfileBindings;
 
-
-  const {
-    toggleTeacherLiveSession,
-    disconnectLiveSession,
-    renderLiveRoomInterface,
-    classroomBindings,
-  } = useLiveKitSession();
+  const { toggleTeacherLiveSession, disconnectLiveSession, renderLiveRoomInterface, classroomBindings } =
+    useLiveKitSession();
 
   onSessionExpiredRef.current = disconnectLiveSession;
 
   const needsLiveKitSession =
-    (role === "teacher" && teacherView === "live-control")
-    || (role === "student" && currentView === "live" && !!activeLiveCourse);
+    (role === "teacher" && teacherView === "live-control") ||
+    (role === "student" && currentView === "live" && !!activeLiveCourse);
 
   const isStudentLive = role === "student" && currentView === "live" && !!activeLiveCourse;
   const isTeacherLiveRoom = role === "teacher" && teacherView === "live-control" && !!activeLiveCourse;
@@ -379,7 +372,16 @@ export function usePlatformApp() {
       },
     ],
     Boolean(currentUser),
-    [showKeyboardHelp, courseToPurchase, isMobileMenuOpen, currentView, role, isStudentLive, isTeacherLiveRoom, currentUser],
+    [
+      showKeyboardHelp,
+      courseToPurchase,
+      isMobileMenuOpen,
+      currentView,
+      role,
+      isStudentLive,
+      isTeacherLiveRoom,
+      currentUser,
+    ],
   );
 
   const handleLogout = () => {
@@ -405,7 +407,8 @@ export function usePlatformApp() {
       const result = await (uploadFiles as any)("avatarImage", {
         files: [file],
         headers: { Authorization: `Bearer ${token}` },
-        onUploadProgress: ({ progress }: { progress: number }) => setAvatarStatusMsg(`Téléversement de la photo : ${progress}%`),
+        onUploadProgress: ({ progress }: { progress: number }) =>
+          setAvatarStatusMsg(`Téléversement de la photo : ${progress}%`),
       });
       const avatarUrl = getUploadedFileUrl(result?.[0]);
       if (!avatarUrl) throw new Error("URL de photo introuvable après téléversement");
@@ -424,7 +427,7 @@ export function usePlatformApp() {
     if (!currentUser) return;
     try {
       const response = await api.deleteAvatar();
-      const updatedUser = response.user ? response.user as AppUser : { ...currentUser, avatarUrl: undefined };
+      const updatedUser = response.user ? (response.user as AppUser) : { ...currentUser, avatarUrl: undefined };
       updateSessionUser(updatedUser);
       setAcademicProfileForm((prev) => ({ ...prev, avatarUrl: "" }));
       setAvatarStatusMsg(response.message || "Photo de profil supprimée.");
@@ -435,32 +438,93 @@ export function usePlatformApp() {
 
   const catalogCourses = courses.filter((c) => {
     const searchLower = searchQuery.toLowerCase();
-    const matchesSearch = (
+    const matchesSearch =
       c.title.toLowerCase().includes(searchLower) ||
       c.category.toLowerCase().includes(searchLower) ||
       c.level.toLowerCase().includes(searchLower) ||
       c.discipline?.name.toLowerCase().includes(searchLower) ||
-      c.discipline?.domain?.name.toLowerCase().includes(searchLower)
-    );
+      c.discipline?.domain?.name.toLowerCase().includes(searchLower);
     if (!matchesSearch) return false;
     if (selectedDisciplineId) return c.disciplineId === selectedDisciplineId;
     if (selectedDomainId) return c.discipline?.domainId === selectedDomainId;
     return true;
   });
   return {
-    courses, setCourses, domains, isLoading, isAuthReady, currentUser, role, enrolledCourses, invoices,
-    handleLoginSuccess, currentView, teacherView, selectedCourse, setSelectedCourse, selectedModule, setSelectedModule,
-    setSelectedLessonContent, activeLiveCourse, setActiveLiveCourse, liveCourseId, setLiveCourseId,
-    isMobileMenuOpen, setIsMobileMenuOpen, searchQuery, setSearchQuery, courseToPurchase, setCourseToPurchase,
-    showKeyboardHelp, setShowKeyboardHelp, catalogSearchRef, selectedDomain, selectedDiscipline,
-    setSelectedDomainId, setSelectedDisciplineId, catalogCourses, curriculumBindings, quizCourseId,
-    teacherDashboardBindings, handleToggleCourseLive, handleUpdateCourseLiveSubject, studentCourseBindings,
-    handlePaymentSuccess, navigateTo, handleTeacherViewChange, notifications, notificationUnreadCount,
-    notificationsLoading, notificationsError, loadNotifications, markNotificationRead, markAllNotificationsRead,
-    openNotificationsView, handleNotificationNavigate, pushStatus, pushStatusKind, subscribePushNotifications,
-    academicProfileBindings, avatarStatusMsg, handleUploadAvatarFile, handleDeleteAvatar,
-    toggleTeacherLiveSession, renderLiveRoomInterface, classroomBindings, needsLiveKitSession,
-    isStudentLive, isTeacherLiveRoom, isLiveSessionView, lockMainScroll, hideGlobalFooter, handleLogout,
-    updateSessionUser, setEnrolledCourses, setInvoices, setTeacherView, setCurrentView, getInitials,
+    courses,
+    setCourses,
+    domains,
+    isLoading,
+    isAuthReady,
+    currentUser,
+    role,
+    enrolledCourses,
+    invoices,
+    handleLoginSuccess,
+    currentView,
+    teacherView,
+    selectedCourse,
+    setSelectedCourse,
+    selectedModule,
+    setSelectedModule,
+    setSelectedLessonContent,
+    activeLiveCourse,
+    setActiveLiveCourse,
+    liveCourseId,
+    setLiveCourseId,
+    isMobileMenuOpen,
+    setIsMobileMenuOpen,
+    searchQuery,
+    setSearchQuery,
+    courseToPurchase,
+    setCourseToPurchase,
+    showKeyboardHelp,
+    setShowKeyboardHelp,
+    catalogSearchRef,
+    selectedDomain,
+    selectedDiscipline,
+    setSelectedDomainId,
+    setSelectedDisciplineId,
+    catalogCourses,
+    curriculumBindings,
+    quizCourseId,
+    teacherDashboardBindings,
+    handleToggleCourseLive,
+    handleUpdateCourseLiveSubject,
+    studentCourseBindings,
+    handlePaymentSuccess,
+    navigateTo,
+    handleTeacherViewChange,
+    notifications,
+    notificationUnreadCount,
+    notificationsLoading,
+    notificationsError,
+    loadNotifications,
+    markNotificationRead,
+    markAllNotificationsRead,
+    openNotificationsView,
+    handleNotificationNavigate,
+    pushStatus,
+    pushStatusKind,
+    subscribePushNotifications,
+    academicProfileBindings,
+    avatarStatusMsg,
+    handleUploadAvatarFile,
+    handleDeleteAvatar,
+    toggleTeacherLiveSession,
+    renderLiveRoomInterface,
+    classroomBindings,
+    needsLiveKitSession,
+    isStudentLive,
+    isTeacherLiveRoom,
+    isLiveSessionView,
+    lockMainScroll,
+    hideGlobalFooter,
+    handleLogout,
+    updateSessionUser,
+    setEnrolledCourses,
+    setInvoices,
+    setTeacherView,
+    setCurrentView,
+    getInitials,
   };
 }

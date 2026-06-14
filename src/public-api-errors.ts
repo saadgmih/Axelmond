@@ -59,9 +59,7 @@ export function toPushSubscribeClientResponse(err: { message: string; name?: str
   }
   const message = err.message.trim();
   return {
-    error: ALLOWED_PUSH_VALIDATION_MESSAGES.has(message)
-      ? message
-      : PUSH_SUBSCRIBE_CLIENT_MESSAGES.invalid,
+    error: ALLOWED_PUSH_VALIDATION_MESSAGES.has(message) ? message : PUSH_SUBSCRIBE_CLIENT_MESSAGES.invalid,
     code: "PUSH_SUBSCRIPTION_INVALID",
   };
 }

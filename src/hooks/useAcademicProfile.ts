@@ -27,12 +27,7 @@ const emptyAcademicProfileForm = {
   website: "",
 };
 
-export function useAcademicProfile({
-  role,
-  teacherView,
-  currentUser,
-  updateSessionUser,
-}: UseAcademicProfileOptions) {
+export function useAcademicProfile({ role, teacherView, currentUser, updateSessionUser }: UseAcademicProfileOptions) {
   const [academicProfileData, setAcademicProfileData] = useState<AcademicProfilePayload | null>(null);
   const [academicProfileForm, setAcademicProfileForm] = useState(emptyAcademicProfileForm);
   const [academicProfileStatusMsg, setAcademicProfileStatusMsg] = useState("");
@@ -59,7 +54,10 @@ export function useAcademicProfile({
   };
 
   const parseAcademicDomains = (value: string) =>
-    value.split(/[,\n]/).map((item) => item.trim()).filter(Boolean);
+    value
+      .split(/[,\n]/)
+      .map((item) => item.trim())
+      .filter(Boolean);
 
   const refreshAcademicProfile = useCallback(async () => {
     if (role !== "teacher") return;
@@ -147,7 +145,10 @@ export function useAcademicProfile({
     setAcademicProfileStatusMsg("Mise à jour du mot de passe...");
     setAcademicProfileErrorMsg("");
     try {
-      const payload = await api.changeAcademicPassword(academicPasswordForm.currentPassword, academicPasswordForm.newPassword);
+      const payload = await api.changeAcademicPassword(
+        academicPasswordForm.currentPassword,
+        academicPasswordForm.newPassword,
+      );
       if (!request.isActive()) return;
       setAcademicPasswordForm({ currentPassword: "", newPassword: "" });
       setAcademicProfileStatusMsg(payload.message || "Mot de passe mis à jour.");

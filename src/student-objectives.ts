@@ -154,7 +154,9 @@ export function serializeStudentObjective(objective: StudentObjectiveRecord) {
   };
 }
 
-export function sortStudentObjectives<T extends { status: string; endAt: string | Date; updatedAt?: string | Date }>(objectives: T[]): T[] {
+export function sortStudentObjectives<T extends { status: string; endAt: string | Date; updatedAt?: string | Date }>(
+  objectives: T[],
+): T[] {
   return [...objectives].sort((left, right) => {
     if (left.status !== right.status) return left.status === "IN_PROGRESS" ? -1 : 1;
     const leftEnd = new Date(left.endAt).getTime();
@@ -250,15 +252,18 @@ export function buildStudentObjectiveSummary(objectives: StudentObjectiveRecord[
   const totalCompleted = objectives.filter((objective) => objective.status === "COMPLETED").length;
   const overdueObjectives = objectives.filter((objective) => getObjectiveDueState(objective, now) === "overdue");
   const dueSoonObjectives = objectives.filter((objective) => getObjectiveDueState(objective, now) === "dueSoon");
-  const weeklyCreated = objectives.filter((objective) => objective.createdAt >= weekStart && objective.createdAt < weekEnd);
-  const weeklyCompleted = objectives.filter((objective) => objective.completedAt && objective.completedAt >= weekStart && objective.completedAt < weekEnd);
+  const weeklyCreated = objectives.filter(
+    (objective) => objective.createdAt >= weekStart && objective.createdAt < weekEnd,
+  );
+  const weeklyCompleted = objectives.filter(
+    (objective) => objective.completedAt && objective.completedAt >= weekStart && objective.completedAt < weekEnd,
+  );
   const successRate = totalCreated === 0 ? 0 : clampPercent((totalCompleted / totalCreated) * 100);
-  const weeklyCompletionRate = weeklyCreated.length === 0 ? 0 : clampPercent((weeklyCompleted.length / weeklyCreated.length) * 100);
+  const weeklyCompletionRate =
+    weeklyCreated.length === 0 ? 0 : clampPercent((weeklyCompleted.length / weeklyCreated.length) * 100);
 
   const completedDays = new Set(
-    objectives
-      .filter((objective) => objective.completedAt)
-      .map((objective) => dateKey(objective.completedAt!)),
+    objectives.filter((objective) => objective.completedAt).map((objective) => dateKey(objective.completedAt!)),
   );
   let streakDays = 0;
   const cursor = startOfDay(now);

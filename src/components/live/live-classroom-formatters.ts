@@ -1,10 +1,4 @@
-import {
-  ClipboardList,
-  MessageSquare,
-  PenTool,
-  PieChart,
-  Users,
-} from "lucide-react";
+import { ClipboardList, MessageSquare, PenTool, PieChart, Users } from "lucide-react";
 
 export const liveSidebarTabs = [
   { id: "participants", label: "Participants", icon: Users },

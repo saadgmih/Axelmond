@@ -150,10 +150,7 @@ export function useStudentObjectives({ role, currentView }: UseStudentObjectives
     setIsLoading(true);
     setErrorMsg("");
     try {
-      const [data, summaryData] = await Promise.all([
-        api.getStudentObjectives(),
-        api.getStudentObjectivesSummary(),
-      ]);
+      const [data, summaryData] = await Promise.all([api.getStudentObjectives(), api.getStudentObjectivesSummary()]);
       setObjectives(sortStudentObjectives(Array.isArray(data) ? data : []));
       setSummary(summaryData || emptySummary);
     } catch (err: any) {
@@ -247,19 +244,22 @@ export function useStudentObjectives({ role, currentView }: UseStudentObjectives
     }
   }, []);
 
-  const handleDeleteObjective = useCallback(async (objectiveId: string) => {
-    setStatusMsg("");
-    setErrorMsg("");
-    try {
-      await api.deleteStudentObjective(objectiveId);
-      setObjectives((current) => current.filter((objective) => objective.id !== objectiveId));
-      setStatusMsg("Objectif supprimé");
-      if (editingObjectiveId === objectiveId) closeForm();
-      loadObjectives().catch(() => undefined);
-    } catch (err: any) {
-      setErrorMsg(err.message || "Suppression impossible");
-    }
-  }, [closeForm, editingObjectiveId]);
+  const handleDeleteObjective = useCallback(
+    async (objectiveId: string) => {
+      setStatusMsg("");
+      setErrorMsg("");
+      try {
+        await api.deleteStudentObjective(objectiveId);
+        setObjectives((current) => current.filter((objective) => objective.id !== objectiveId));
+        setStatusMsg("Objectif supprimé");
+        if (editingObjectiveId === objectiveId) closeForm();
+        loadObjectives().catch(() => undefined);
+      } catch (err: any) {
+        setErrorMsg(err.message || "Suppression impossible");
+      }
+    },
+    [closeForm, editingObjectiveId],
+  );
 
   return {
     objectives,

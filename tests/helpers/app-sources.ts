@@ -4,10 +4,7 @@ import path from "node:path";
 /** Concatenate App entrypoint + modular platform shell for static analysis tests. */
 export function readAppSources(): string {
   const root = process.cwd();
-  const parts = [
-    path.join(root, "src/App.tsx"),
-    path.join(root, "src/lazyViews.tsx"),
-  ];
+  const parts = [path.join(root, "src/App.tsx"), path.join(root, "src/lazyViews.tsx")];
 
   const appDir = path.join(root, "src/app");
   const appFiles = [

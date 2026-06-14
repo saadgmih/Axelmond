@@ -38,11 +38,15 @@ export default function LiveAttendancePanel({
       <div className="grid grid-cols-2 gap-3">
         <div className="p-4 rounded-xl bg-zinc-900 border border-white/5 shadow-sm text-center">
           <p className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider mb-1">Actifs</p>
-          <p className="text-3xl font-black text-emerald-400">{attendanceReport?.summary?.online ?? connectedParticipants.length}</p>
+          <p className="text-3xl font-black text-emerald-400">
+            {attendanceReport?.summary?.online ?? connectedParticipants.length}
+          </p>
         </div>
         <div className="p-4 rounded-xl bg-zinc-900 border border-white/5 shadow-sm text-center">
           <p className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider mb-1">Durée Moy.</p>
-          <p className="text-2xl font-bold text-blue-400 mt-2 font-mono">{formatLiveDuration(attendanceReport?.summary?.averageDurationSeconds || elapsedSeconds)}</p>
+          <p className="text-2xl font-bold text-blue-400 mt-2 font-mono">
+            {formatLiveDuration(attendanceReport?.summary?.averageDurationSeconds || elapsedSeconds)}
+          </p>
         </div>
       </div>
 
@@ -53,7 +57,10 @@ export default function LiveAttendancePanel({
         </div>
         <div className="divide-y divide-white/5 max-h-[300px] overflow-y-auto custom-scrollbar">
           {rows.map((row) => (
-            <div key={row.id || row.identity} className="flex justify-between items-center px-4 py-3 hover:bg-zinc-800/50 transition-colors">
+            <div
+              key={row.id || row.identity}
+              className="flex justify-between items-center px-4 py-3 hover:bg-zinc-800/50 transition-colors"
+            >
               <div>
                 <p className="text-xs font-bold text-zinc-200">{row.name}</p>
                 <p className="text-[10px] text-zinc-500 font-medium">{liveRoleLabel(row.role)}</p>

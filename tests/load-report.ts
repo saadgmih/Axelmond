@@ -16,12 +16,12 @@ const DURATION_SECONDS = 10;
 
 // Seuils de qualité de service
 const SLO = {
-  p99LatencyMs: 2000,   // p99 < 2s
-  p95LatencyMs: 500,    // p95 < 500ms
-  errorRatePct: 1,      // < 1% d'erreurs
-  minRpsFor100: 50,     // 100 users → au moins 50 req/s
-  minRpsFor500: 100,    // 500 users → au moins 100 req/s
-  minRpsFor1000: 150,   // 1000 users → au moins 150 req/s
+  p99LatencyMs: 2000, // p99 < 2s
+  p95LatencyMs: 500, // p95 < 500ms
+  errorRatePct: 1, // < 1% d'erreurs
+  minRpsFor100: 50, // 100 users → au moins 50 req/s
+  minRpsFor500: 100, // 500 users → au moins 100 req/s
+  minRpsFor1000: 150, // 1000 users → au moins 150 req/s
 };
 
 interface ScenarioResult {
@@ -51,7 +51,7 @@ async function runScenario(connections: number, route: string): Promise<Scenario
         pipelining: 1,
         headers: {
           "Accept-Encoding": "gzip, deflate",
-          "Accept": "application/json",
+          Accept: "application/json",
         },
         timeout: 10,
       },
@@ -96,19 +96,15 @@ async function runScenario(connections: number, route: string): Promise<Scenario
           issues.push(`p95 latence ${p95}ms > ${SLO.p95LatencyMs}ms`);
         }
 
-        const minRps = connections === 100 ? SLO.minRpsFor100
-          : connections === 500 ? SLO.minRpsFor500
-          : SLO.minRpsFor1000;
+        const minRps =
+          connections === 100 ? SLO.minRpsFor100 : connections === 500 ? SLO.minRpsFor500 : SLO.minRpsFor1000;
 
         if (rps < minRps) {
           issues.push(`Débit ${rps} req/s < ${minRps} req/s attendu`);
         }
 
-        const status: ScenarioResult["status"] = issues.length === 0
-          ? "✅ OK"
-          : issues.length <= 1
-          ? "⚠️ DEGRADED"
-          : "❌ FAILED";
+        const status: ScenarioResult["status"] =
+          issues.length === 0 ? "✅ OK" : issues.length <= 1 ? "⚠️ DEGRADED" : "❌ FAILED";
 
         console.log(`    ${status}  RPS=${rps}  p50=${p50}ms  p95=${p95}ms  p99=${p99}ms  erreurs=${errors}`);
 
@@ -126,7 +122,7 @@ async function runScenario(connections: number, route: string): Promise<Scenario
           status,
           issues,
         });
-      }
+      },
     );
 
     // Afficher la progression
@@ -143,7 +139,7 @@ function buildMarkdownReport(results: ScenarioResult[]): string {
   const rows = results
     .map(
       (r) =>
-        `| ${r.connections} | \`${r.route}\` | ${r.rps} | ${r.p50}ms | ${r.p95}ms | ${r.p99}ms | ${r.errors} | ${r.throughputKbps} KB/s | ${r.status} |`
+        `| ${r.connections} | \`${r.route}\` | ${r.rps} | ${r.p50}ms | ${r.p95}ms | ${r.p99}ms | ${r.errors} | ${r.throughputKbps} KB/s | ${r.status} |`,
     )
     .join("\n");
 

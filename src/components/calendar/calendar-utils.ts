@@ -31,11 +31,7 @@ export function dateToScheduleDayOfWeek(date: Date): number {
 }
 
 export function isSameDay(a: Date, b: Date): boolean {
-  return (
-    a.getFullYear() === b.getFullYear()
-    && a.getMonth() === b.getMonth()
-    && a.getDate() === b.getDate()
-  );
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
 export function startOfWeekMonday(date: Date): Date {

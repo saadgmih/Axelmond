@@ -47,9 +47,7 @@ export function mergeUserInvoices(user: {
     issuedAt: Date;
   }>;
 }) {
-  return Array.isArray(user.invoiceRecords)
-    ? user.invoiceRecords.map(serializeInvoiceRecord)
-    : [];
+  return Array.isArray(user.invoiceRecords) ? user.invoiceRecords.map(serializeInvoiceRecord) : [];
 }
 
 export async function persistCoursePaymentEnrollment(
@@ -89,9 +87,7 @@ export async function persistCoursePaymentEnrollment(
     return {
       duplicate: true as const,
       user: existingPayment.user,
-      invoice: existingPayment.invoice
-        ? serializeInvoiceRecord(existingPayment.invoice)
-        : null,
+      invoice: existingPayment.invoice ? serializeInvoiceRecord(existingPayment.invoice) : null,
     };
   }
 
@@ -154,7 +150,12 @@ export async function persistCoursePaymentEnrollment(
       params.auditAction,
       "Course",
       String(params.courseId),
-      { price: params.coursePrice, invoiceId: params.invoiceId, provider: params.provider, externalId: params.externalId },
+      {
+        price: params.coursePrice,
+        invoiceId: params.invoiceId,
+        provider: params.provider,
+        externalId: params.externalId,
+      },
       params.reqIp,
     );
 
@@ -164,12 +165,12 @@ export async function persistCoursePaymentEnrollment(
       invoice: persistedInvoice
         ? serializeInvoiceRecord(persistedInvoice)
         : serializeInvoiceRecord({
-          id: params.invoiceId,
-          courseTitle: params.courseTitle,
-          amountMad: params.coursePrice,
-          status: "Payé",
-          issuedAt: new Date(),
-        }),
+            id: params.invoiceId,
+            courseTitle: params.courseTitle,
+            amountMad: params.coursePrice,
+            status: "Payé",
+            issuedAt: new Date(),
+          }),
     };
   } catch (err: any) {
     if (err?.code === "P2002") {
@@ -189,9 +190,7 @@ export async function persistCoursePaymentEnrollment(
         return {
           duplicate: true as const,
           user: racedPayment.user,
-          invoice: racedPayment.invoice
-            ? serializeInvoiceRecord(racedPayment.invoice)
-            : null,
+          invoice: racedPayment.invoice ? serializeInvoiceRecord(racedPayment.invoice) : null,
         };
       }
     }

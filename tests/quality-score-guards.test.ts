@@ -28,34 +28,71 @@ rulesTest("quality-score-guards", () => {
   );
 
   const guards: Array<{ id: string; ok: boolean; weight: number }> = [
-    { id: "paypal-webhook-rate-limit", ok: /paypalWebhookRateLimiter/.test(bootstrap) && /registerPayPalWebhook\(app,\s*routeCtx,\s*paypalWebhookRateLimiter\)/.test(bootstrap), weight: 4 },
-    { id: "module-progress-batch", ok: /getStudentCompletedModuleIdsByCourseIds/.test(apiSource) && !/Promise\.all\(courses\.map\(\(course\)\s*=>\s*api\.toCourseForUser/.test(apiSource), weight: 4 },
+    {
+      id: "paypal-webhook-rate-limit",
+      ok:
+        /paypalWebhookRateLimiter/.test(bootstrap) &&
+        /registerPayPalWebhook\(app,\s*routeCtx,\s*paypalWebhookRateLimiter\)/.test(bootstrap),
+      weight: 4,
+    },
+    {
+      id: "module-progress-batch",
+      ok:
+        /getStudentCompletedModuleIdsByCourseIds/.test(apiSource) &&
+        !/Promise\.all\(courses\.map\(\(course\)\s*=>\s*api\.toCourseForUser/.test(apiSource),
+      weight: 4,
+    },
     { id: "migration-schema-qualified", ok: /"AxelmondResearchLab"\."User"/.test(dropInvoicesMigration), weight: 2 },
     { id: "live-resource-host-allowlist", ok: /isAllowedLiveResourceHost/.test(liveValidation), weight: 4 },
-    { id: "live-pdf-no-scripts", ok: /sandbox=/.test(resourceStage) && !/allow-scripts/.test(resourceStage), weight: 3 },
-    { id: "csrf-mobile-no-fake-header", ok: /isMobileCsrfExempt/.test(authCsrf) && !/headerToken\.length > 0/.test(authCsrf), weight: 4 },
-    { id: "academic-links-https", ok: /sanitizeAcademicLinkField/.test(academicProfile) && /sanitizeHttpsUrl/.test(academicProfile), weight: 3 },
-    { id: "catalog-db-indexes", ok: /Course_published_idx/.test(catalogIndexesMigration) && /Enrollment_courseId_active_idx/.test(catalogIndexesMigration), weight: 3 },
-    { id: "notification-fanout-batch", ok: /createNotificationsForUsers\(recipientIds/.test(messagingRoutes), weight: 3 },
-    { id: "institutional-lazy-load", ok: /LazyAboutView/.test(lazyViews) && /LazyAboutView/.test(institutionalSwitch), weight: 3 },
+    {
+      id: "live-pdf-no-scripts",
+      ok: /sandbox=/.test(resourceStage) && !/allow-scripts/.test(resourceStage),
+      weight: 3,
+    },
+    {
+      id: "csrf-mobile-no-fake-header",
+      ok: /isMobileCsrfExempt/.test(authCsrf) && !/headerToken\.length > 0/.test(authCsrf),
+      weight: 4,
+    },
+    {
+      id: "academic-links-https",
+      ok: /sanitizeAcademicLinkField/.test(academicProfile) && /sanitizeHttpsUrl/.test(academicProfile),
+      weight: 3,
+    },
+    {
+      id: "catalog-db-indexes",
+      ok:
+        /Course_published_idx/.test(catalogIndexesMigration) &&
+        /Enrollment_courseId_active_idx/.test(catalogIndexesMigration),
+      weight: 3,
+    },
+    {
+      id: "notification-fanout-batch",
+      ok: /createNotificationsForUsers\(recipientIds/.test(messagingRoutes),
+      weight: 3,
+    },
+    {
+      id: "institutional-lazy-load",
+      ok: /LazyAboutView/.test(lazyViews) && /LazyAboutView/.test(institutionalSwitch),
+      weight: 3,
+    },
     { id: "react-vendor-chunk", ok: /react-vendor/.test(viteConfig), weight: 2 },
     { id: "autoprefixer-removed", ok: packageJson.devDependencies?.autoprefixer === undefined, weight: 1 },
-    { id: "jwt-types-dev-only", ok: packageJson.dependencies?.["@types/jsonwebtoken"] === undefined && packageJson.devDependencies?.["@types/jsonwebtoken"] !== undefined, weight: 1 },
+    {
+      id: "jwt-types-dev-only",
+      ok:
+        packageJson.dependencies?.["@types/jsonwebtoken"] === undefined &&
+        packageJson.devDependencies?.["@types/jsonwebtoken"] !== undefined,
+      weight: 1,
+    },
   ];
 
   const missing = guards.filter((guard) => !guard.ok).map((guard) => guard.id);
-  assert.equal(
-    missing.length,
-    0,
-    `Quality score guards failed: ${missing.join(", ")}`,
-  );
+  assert.equal(missing.length, 0, `Quality score guards failed: ${missing.join(", ")}`);
 
   const baseline = 74;
   const uplift = guards.reduce((sum, guard) => sum + (guard.ok ? guard.weight : 0), 0);
   const estimatedGlobal = Math.min(100, baseline + uplift);
 
-  assert.ok(
-    estimatedGlobal >= 95,
-    `Estimated global score ${estimatedGlobal}/100 is below target 95/100`,
-  );
+  assert.ok(estimatedGlobal >= 95, `Estimated global score ${estimatedGlobal}/100 is below target 95/100`);
 });

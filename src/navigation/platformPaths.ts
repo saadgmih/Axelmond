@@ -10,9 +10,27 @@ export const INSTITUTIONAL_VIEWS = new Set([
   "legal",
 ]);
 
-export const STUDENT_VIEWS = new Set(["dashboard", "catalog", "course", "profile", "live", "study-schedule", "objectives", "messages", "notifications"]);
+export const STUDENT_VIEWS = new Set([
+  "dashboard",
+  "catalog",
+  "course",
+  "profile",
+  "live",
+  "study-schedule",
+  "objectives",
+  "messages",
+  "notifications",
+]);
 
-export const TEACHER_VIEWS = new Set(["dashboard", "curriculum", "live-control", "academic-profile", "schedule", "messages", "notifications"]);
+export const TEACHER_VIEWS = new Set([
+  "dashboard",
+  "curriculum",
+  "live-control",
+  "academic-profile",
+  "schedule",
+  "messages",
+  "notifications",
+]);
 
 export function buildPlatformPath(role: "student" | "teacher", view: string, teacherView?: string) {
   if (role === "teacher") {
@@ -29,7 +47,11 @@ export function parsePlatformPath(pathname: string) {
   const segments = normalized.split("/").filter(Boolean);
 
   if (segments.length === 0) {
-    return { studentView: "dashboard" as const, teacherView: "dashboard" as const, institutionalView: null as string | null };
+    return {
+      studentView: "dashboard" as const,
+      teacherView: "dashboard" as const,
+      institutionalView: null as string | null,
+    };
   }
 
   if (segments[0] === "student") {
@@ -41,12 +63,20 @@ export function parsePlatformPath(pathname: string) {
   if (segments[0] === "teacher" || segments[0] === "professor" || segments[0] === "admin") {
     const teacherView = segments[1] || "dashboard";
     const normalizedTeacherView = TEACHER_VIEWS.has(teacherView) ? teacherView : "dashboard";
-    return { studentView: "dashboard" as const, teacherView: normalizedTeacherView, institutionalView: null as string | null };
+    return {
+      studentView: "dashboard" as const,
+      teacherView: normalizedTeacherView,
+      institutionalView: null as string | null,
+    };
   }
 
   if (segments.length === 1 && INSTITUTIONAL_VIEWS.has(segments[0])) {
     return { studentView: segments[0], teacherView: "dashboard" as const, institutionalView: segments[0] };
   }
 
-  return { studentView: "dashboard" as const, teacherView: "dashboard" as const, institutionalView: null as string | null };
+  return {
+    studentView: "dashboard" as const,
+    teacherView: "dashboard" as const,
+    institutionalView: null as string | null,
+  };
 }

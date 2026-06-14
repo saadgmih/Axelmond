@@ -1,4 +1,5 @@
-import assert from "node:assert/strict";import {
+import assert from "node:assert/strict";
+import {
   buildAdaptiveQualityNotice,
   buildConnectionChangeNotice,
   buildManualQualityNotice,
@@ -8,25 +9,24 @@ import assert from "node:assert/strict";import {
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("live-connection-notice", () => {
-assert.equal(normalizeConnectionQuality("excellent"), "excellent");
-assert.equal(normalizeConnectionQuality("poor"), "poor");
+  assert.equal(normalizeConnectionQuality("excellent"), "excellent");
+  assert.equal(normalizeConnectionQuality("poor"), "poor");
 
-const slowNotice = buildConnectionChangeNotice("good", "poor");
-assert.ok(slowNotice);
-assert.match(slowNotice!.message, /Connexion lente/i);
+  const slowNotice = buildConnectionChangeNotice("good", "poor");
+  assert.ok(slowNotice);
+  assert.match(slowNotice!.message, /Connexion lente/i);
 
-const improvedNotice = buildConnectionChangeNotice("poor", "excellent");
-assert.ok(improvedNotice);
-assert.match(improvedNotice!.message, /excellente/i);
+  const improvedNotice = buildConnectionChangeNotice("poor", "excellent");
+  assert.ok(improvedNotice);
+  assert.match(improvedNotice!.message, /excellente/i);
 
-assert.match(buildManualQualityNotice("auto").message, /automatique/i);
-assert.match(buildManualQualityNotice("720p").message, /720p/);
+  assert.match(buildManualQualityNotice("auto").message, /automatique/i);
+  assert.match(buildManualQualityNotice("720p").message, /720p/);
 
-const adaptiveDown = buildAdaptiveQualityNotice("720p", "480p");
-assert.ok(adaptiveDown);
-assert.match(adaptiveDown!.message, /réduite/i);
+  const adaptiveDown = buildAdaptiveQualityNotice("720p", "480p");
+  assert.ok(adaptiveDown);
+  assert.match(adaptiveDown!.message, /réduite/i);
 
-assert.equal(suggestAdaptiveQualityChange("poor", "720p"), "480p");
-assert.equal(suggestAdaptiveQualityChange("excellent", "480p"), "720p");
-
+  assert.equal(suggestAdaptiveQualityChange("poor", "720p"), "480p");
+  assert.equal(suggestAdaptiveQualityChange("excellent", "480p"), "720p");
 });

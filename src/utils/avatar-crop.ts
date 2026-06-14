@@ -69,17 +69,7 @@ export async function createCroppedAvatarFile(
 
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, AVATAR_OUTPUT_SIZE, AVATAR_OUTPUT_SIZE);
-  ctx.drawImage(
-    image,
-    sourceX,
-    sourceY,
-    sourceSize,
-    sourceSize,
-    0,
-    0,
-    AVATAR_OUTPUT_SIZE,
-    AVATAR_OUTPUT_SIZE,
-  );
+  ctx.drawImage(image, sourceX, sourceY, sourceSize, sourceSize, 0, 0, AVATAR_OUTPUT_SIZE, AVATAR_OUTPUT_SIZE);
 
   const blob = await new Promise<Blob | null>((resolve) => {
     canvas.toBlob(resolve, "image/jpeg", 0.92);

@@ -7,7 +7,13 @@ import { api } from "../../api";
 import { LiveChatMessage } from "../../livekit";
 import { isStudentRole } from "../../rbac";
 import type { Course, Invoice } from "../../types";
-import { LIVE_SYNC_TOPIC, type LivePollState, type LiveSharedResource, type LiveSyncMessage, type LiveWhiteboardStroke } from "../../live/live-sync";
+import {
+  LIVE_SYNC_TOPIC,
+  type LivePollState,
+  type LiveSharedResource,
+  type LiveSyncMessage,
+  type LiveWhiteboardStroke,
+} from "../../live/live-sync";
 import { extractParticipantRole, validateIncomingLiveSyncMessage } from "../../live/live-sync-validation";
 
 export interface UseLiveKitConnectionOptions {
@@ -28,7 +34,9 @@ export interface UseLiveKitConnectionOptions {
   setIsCameraEnabled: Dispatch<SetStateAction<boolean>>;
   setIsScreenShareEnabled: Dispatch<SetStateAction<boolean>>;
   setActiveSpeakerIdentity: Dispatch<SetStateAction<string>>;
-  setLiveSignals: Dispatch<SetStateAction<Record<string, { handRaised?: boolean; reaction?: string; updatedAt: number }>>>;
+  setLiveSignals: Dispatch<
+    SetStateAction<Record<string, { handRaised?: boolean; reaction?: string; updatedAt: number }>>
+  >;
   setLiveAttendanceReport: Dispatch<SetStateAction<any | null>>;
   syncLiveParticipants: (room: Room) => void;
   appendLiveChatMessage: (message: LiveChatMessage) => void;
@@ -126,7 +134,9 @@ export function useLiveKitConnection({
                 parsed.action === "REACTION_CLEAR"
                   ? undefined
                   : parsed.action === "REACTION"
-                    ? (typeof parsed.reaction === "string" && parsed.reaction ? parsed.reaction : undefined)
+                    ? typeof parsed.reaction === "string" && parsed.reaction
+                      ? parsed.reaction
+                      : undefined
                     : prev[identity]?.reaction,
               updatedAt: Date.now(),
             },
@@ -164,13 +174,15 @@ export function useLiveKitConnection({
 
     setLiveStatusMsg("Connexion à la salle LiveKit...");
     setLiveChatMessages([]);
-    api.getLiveMessages(activeLiveCourse.id)
+    api
+      .getLiveMessages(activeLiveCourse.id)
       .then((messages) => {
         if (!disposed) setLiveChatMessages(messages);
       })
       .catch((err) => console.warn("[livekit] Failed to load stored messages", err));
 
-    api.getLiveKitToken(activeLiveCourse.id)
+    api
+      .getLiveKitToken(activeLiveCourse.id)
       .then(async ({ url, token }) => {
         await room.connect(url, token);
         if (disposed) {

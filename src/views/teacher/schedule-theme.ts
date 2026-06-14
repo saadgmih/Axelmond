@@ -2,8 +2,7 @@ import { profileUi } from "./academic-profile-theme";
 
 export const scheduleUi = {
   page: "space-y-6 sm:space-y-8 animate-in fade-in duration-500 pb-8",
-  hero:
-    "relative overflow-hidden rounded-2xl sm:rounded-3xl border border-white/[0.08] bg-[#020617] text-white shadow-2xl shadow-black/40",
+  hero: "relative overflow-hidden rounded-2xl sm:rounded-3xl border border-white/[0.08] bg-[#020617] text-white shadow-2xl shadow-black/40",
   heroGradient:
     "pointer-events-none absolute inset-0 bg-gradient-to-br from-pink-600/20 via-indigo-600/15 to-transparent",
   heroInner: "relative z-10 p-5 sm:p-6 md:p-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between",
@@ -11,16 +10,15 @@ export const scheduleUi = {
   heroSubtitle: "text-sm text-slate-400 max-w-2xl",
   addBtn:
     "inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-pink-600 to-indigo-600 px-5 py-3 text-xs font-bold text-white shadow-lg shadow-pink-950/30 transition-all hover:from-pink-500 hover:to-indigo-500 active:scale-[0.98]",
-  weekGrid:
-    "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 tv:grid-cols-7 gap-4 lg:gap-5",
+  weekGrid: "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 tv:grid-cols-7 gap-4 lg:gap-5",
   dayCard:
     "flex min-h-[220px] flex-col rounded-2xl border border-white/[0.08] bg-[#0f172a]/80 shadow-xl shadow-black/20 backdrop-blur-xl",
-  dayHeader:
-    "border-b border-white/[0.06] px-4 py-3 flex items-center justify-between gap-2",
+  dayHeader: "border-b border-white/[0.06] px-4 py-3 flex items-center justify-between gap-2",
   dayTitle: "text-sm font-black text-white",
   dayCount: "text-[10px] font-bold uppercase tracking-widest text-slate-500",
   dayBody: "flex flex-1 flex-col gap-3 p-3 sm:p-4",
-  emptyDay: "flex flex-1 items-center justify-center rounded-xl border border-dashed border-white/[0.08] px-3 py-6 text-center text-[11px] font-semibold text-slate-500",
+  emptyDay:
+    "flex flex-1 items-center justify-center rounded-xl border border-dashed border-white/[0.08] px-3 py-6 text-center text-[11px] font-semibold text-slate-500",
   sessionCard:
     "rounded-xl border border-white/[0.08] bg-[#020617]/70 p-3 sm:p-4 shadow-inner shadow-black/20 transition-colors hover:border-pink-500/20",
   sessionTitle: "text-sm font-black text-white",
@@ -33,7 +31,8 @@ export const scheduleUi = {
     "inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-[10px] font-bold text-slate-200 transition hover:bg-white/10",
   deleteBtn:
     "inline-flex items-center justify-center rounded-lg border border-red-500/20 bg-red-950/30 px-3 py-1.5 text-[10px] font-bold text-red-300 transition hover:bg-red-950/50",
-  modalOverlay: "fixed inset-0 z-[120] flex items-end sm:items-center justify-center bg-black/70 p-0 sm:p-4 backdrop-blur-sm",
+  modalOverlay:
+    "fixed inset-0 z-[120] flex items-end sm:items-center justify-center bg-black/70 p-0 sm:p-4 backdrop-blur-sm",
   modalPanel:
     "w-full max-w-xl rounded-t-3xl sm:rounded-3xl border border-white/[0.08] bg-[#0f172a] shadow-2xl shadow-black/40 max-h-[92vh] overflow-y-auto",
   modalHeader: "border-b border-white/[0.06] px-5 py-4 sm:px-6",

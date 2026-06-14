@@ -3,10 +3,7 @@ import { createPortal } from "react-dom";
 import { Contrast, Eye, Minimize2, Settings2, X } from "lucide-react";
 import { useAccessibilityPreferences } from "../hooks/useAccessibilityPreferences";
 import { getFocusableElements, useFocusTrap } from "../hooks/useFocusTrap";
-import {
-  computeFloatingPanelPosition,
-  type FloatingPanelPosition,
-} from "../utils/floating-panel-position";
+import { computeFloatingPanelPosition, type FloatingPanelPosition } from "../utils/floating-panel-position";
 
 const PANEL_Z_INDEX = 140;
 
@@ -49,10 +46,7 @@ export default function AccessibilityControls() {
     window.addEventListener("resize", onViewportChange);
     window.addEventListener("scroll", onViewportChange, true);
 
-    const observer =
-      typeof ResizeObserver !== "undefined"
-        ? new ResizeObserver(() => updatePosition())
-        : null;
+    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(() => updatePosition()) : null;
     if (observer && panelRef.current) {
       observer.observe(panelRef.current);
     }
@@ -171,9 +165,8 @@ export default function AccessibilityControls() {
             </button>
 
             <div className="rounded-xl border border-slate-800 bg-slate-950/50 px-3 py-2.5 text-[10px] leading-relaxed text-slate-400">
-              <Eye className="mb-1 inline h-3.5 w-3.5 text-violet-400" aria-hidden="true" />{" "}
-              Tab / Shift+Tab pour naviguer. Esc ferme les fenêtres. La recherche vocale est
-              disponible dans le catalogue.
+              <Eye className="mb-1 inline h-3.5 w-3.5 text-violet-400" aria-hidden="true" /> Tab / Shift+Tab pour
+              naviguer. Esc ferme les fenêtres. La recherche vocale est disponible dans le catalogue.
             </div>
           </div>
         </div>,

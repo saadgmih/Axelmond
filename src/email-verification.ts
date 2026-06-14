@@ -8,11 +8,18 @@ export function generateEmailVerificationCode() {
 }
 
 export function normalizeEmailVerificationCode(code: unknown) {
-  return String(code || "").replace(/\D/g, "").slice(0, 6);
+  return String(code || "")
+    .replace(/\D/g, "")
+    .slice(0, 6);
 }
 
 export function getEmailVerificationSecret(env: NodeJS.ProcessEnv = process.env) {
-  return env.EMAIL_VERIFICATION_SECRET || env.BETTER_AUTH_SECRET || env.AUTH_TOKEN_SECRET || "axelmond-email-verification-dev-secret";
+  return (
+    env.EMAIL_VERIFICATION_SECRET ||
+    env.BETTER_AUTH_SECRET ||
+    env.AUTH_TOKEN_SECRET ||
+    "axelmond-email-verification-dev-secret"
+  );
 }
 
 export function hashEmailVerificationCode(code: string, secret = getEmailVerificationSecret()) {
@@ -32,7 +39,11 @@ export function canAttemptEmailVerification(attempts: number) {
 }
 
 export function isDevVerificationCodeLogEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
-  return String(env.ALLOW_DEV_VERIFICATION_CODE_LOG || "").trim().toLowerCase() === "true";
+  return (
+    String(env.ALLOW_DEV_VERIFICATION_CODE_LOG || "")
+      .trim()
+      .toLowerCase() === "true"
+  );
 }
 
 export function maskEmailForDevLog(email: string): string {

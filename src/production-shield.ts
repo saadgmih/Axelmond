@@ -3,7 +3,19 @@ const isProductionClient = Boolean((import.meta as ImportMeta & { env?: { PROD?:
 if (isProductionClient) {
   const noop = () => undefined;
 
-  for (const method of ["log", "debug", "info", "warn", "error", "trace", "dir", "table", "group", "groupCollapsed", "groupEnd"] as const) {
+  for (const method of [
+    "log",
+    "debug",
+    "info",
+    "warn",
+    "error",
+    "trace",
+    "dir",
+    "table",
+    "group",
+    "groupCollapsed",
+    "groupEnd",
+  ] as const) {
     try {
       Object.defineProperty(console, method, { value: noop, writable: false, configurable: false });
     } catch {

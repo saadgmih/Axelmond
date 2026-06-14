@@ -3,9 +3,7 @@ import { useCallback, useEffect, useState, type RefObject } from "react";
 export function usePictureInPicture(videoRef: RefObject<HTMLVideoElement | null>) {
   const [isPiPActive, setIsPiPActive] = useState(false);
   const [pipError, setPipError] = useState<string | null>(null);
-  const [isSupported] = useState(
-    () => typeof document !== "undefined" && "pictureInPictureEnabled" in document,
-  );
+  const [isSupported] = useState(() => typeof document !== "undefined" && "pictureInPictureEnabled" in document);
 
   useEffect(() => {
     const video = videoRef.current;

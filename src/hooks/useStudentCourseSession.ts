@@ -48,9 +48,13 @@ export function useStudentCourseSession({
 
   useEffect(() => {
     if (selectedModule && selectedModule.type === "quiz") {
-      api.getQuiz(selectedModule.id)
+      api
+        .getQuiz(selectedModule.id)
         .then((data) => setQuizQuestions(data))
-        .catch((err) => { console.error("Failed to fetch quiz:", err); setQuizQuestions(null); });
+        .catch((err) => {
+          console.error("Failed to fetch quiz:", err);
+          setQuizQuestions(null);
+        });
     } else {
       setQuizQuestions(null);
     }
@@ -135,21 +139,21 @@ export function useStudentCourseSession({
       const completedCourse = await api.completeModule(selectedCourse.id, selectedModule.id);
       const updatedCourse = {
         ...completedCourse,
-        modules: completedCourse.modules.map((module: CourseModule) => (
+        modules: completedCourse.modules.map((module: CourseModule) =>
           module.id === selectedModule.id
             ? { ...module, completed: true, score: `${correctCount}/${questions.length}` }
-            : module
-        )),
+            : module,
+        ),
       };
-      setCourses((current) => current.map((course) => (
-        course.id === updatedCourse.id ? updatedCourse : course
-      )));
+      setCourses((current) => current.map((course) => (course.id === updatedCourse.id ? updatedCourse : course)));
       setSelectedCourse(updatedCourse);
       const activeMod = updatedCourse.modules.find((module: CourseModule) => module.id === selectedModule.id);
       if (activeMod) setSelectedModule(activeMod);
     } catch (err) {
       console.error("Failed to synchronize module completion:", err);
-      setQuizSubmitError(getClientErrorMessage(err, "Quiz enregistré, mais synchronisation de la progression impossible."));
+      setQuizSubmitError(
+        getClientErrorMessage(err, "Quiz enregistré, mais synchronisation de la progression impossible."),
+      );
     }
   };
 

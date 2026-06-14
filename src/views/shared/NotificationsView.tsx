@@ -18,13 +18,20 @@ interface NotificationsViewProps {
 
 function typeLabel(type: string) {
   switch (type) {
-    case "NEW_MESSAGE": return "Message";
-    case "NEW_CHAPTER": return "Chapitre";
-    case "LIVE_STARTED": return "Live";
-    case "LIVE_SOON": return "Live bientôt";
-    case "NEW_QUIZ": return "Quiz";
-    case "NEW_HOMEWORK": return "Devoir";
-    default: return "Alerte";
+    case "NEW_MESSAGE":
+      return "Message";
+    case "NEW_CHAPTER":
+      return "Chapitre";
+    case "LIVE_STARTED":
+      return "Live";
+    case "LIVE_SOON":
+      return "Live bientôt";
+    case "NEW_QUIZ":
+      return "Quiz";
+    case "NEW_HOMEWORK":
+      return "Devoir";
+    default:
+      return "Alerte";
   }
 }
 
@@ -71,9 +78,7 @@ export default function NotificationsView({
       </section>
 
       {pushStatus && (
-        <div className={pushStatusKind === "error" ? scheduleUi.alertError : scheduleUi.alertSuccess}>
-          {pushStatus}
-        </div>
+        <div className={pushStatusKind === "error" ? scheduleUi.alertError : scheduleUi.alertSuccess}>{pushStatus}</div>
       )}
       {error && <div className={scheduleUi.alertError}>{error}</div>}
 
@@ -99,14 +104,18 @@ export default function NotificationsView({
                   }}
                   className={`flex w-full items-start gap-4 px-5 py-4 text-left transition hover:bg-white/[0.03] ${notification.isRead ? "opacity-70" : "bg-indigo-500/5"}`}
                 >
-                  <div className={`mt-1 flex h-10 w-10 items-center justify-center rounded-2xl ${notification.isRead ? "bg-slate-800" : "bg-indigo-600/20"}`}>
+                  <div
+                    className={`mt-1 flex h-10 w-10 items-center justify-center rounded-2xl ${notification.isRead ? "bg-slate-800" : "bg-indigo-600/20"}`}
+                  >
                     <Bell className={`h-4 w-4 ${notification.isRead ? "text-slate-400" : "text-indigo-300"}`} />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="text-sm font-black text-white">{notification.title}</p>
                       <span className={scheduleUi.typeBadge}>{typeLabel(notification.type)}</span>
-                      {!notification.isRead && <span className="h-2 w-2 rounded-full bg-red-500" aria-label="Non lue" />}
+                      {!notification.isRead && (
+                        <span className="h-2 w-2 rounded-full bg-red-500" aria-label="Non lue" />
+                      )}
                     </div>
                     <p className="mt-1 text-sm text-slate-400">{notification.body}</p>
                     <p className="mt-2 text-[11px] font-semibold text-slate-500">

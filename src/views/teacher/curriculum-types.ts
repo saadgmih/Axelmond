@@ -59,8 +59,26 @@ export interface TeacherCurriculumViewProps {
   uploadStatusMsg: string;
   editingCourse: Course | null;
   setEditingCourse: (value: Course | null) => void;
-  editCourseForm: { title: string; description: string; level: string; duration: string; credits: number; disciplineId: number; price: number };
-  setEditCourseForm: Dispatch<SetStateAction<{ title: string; description: string; level: string; duration: string; credits: number; disciplineId: number; price: number }>>;
+  editCourseForm: {
+    title: string;
+    description: string;
+    level: string;
+    duration: string;
+    credits: number;
+    disciplineId: number;
+    price: number;
+  };
+  setEditCourseForm: Dispatch<
+    SetStateAction<{
+      title: string;
+      description: string;
+      level: string;
+      duration: string;
+      credits: number;
+      disciplineId: number;
+      price: number;
+    }>
+  >;
 
   teacherQuizzes: any[];
   quizCourseId: number;
@@ -79,7 +97,7 @@ export interface TeacherCurriculumViewProps {
   setNewQuestionExplanation: (value: string) => void;
   quizManagerMsg: string;
   quizManagerError: string;
-  allDisciplines: FacultyDomain['disciplines'][number][];
+  allDisciplines: FacultyDomain["disciplines"][number][];
   managedCourses: Course[];
   managedCourse: Course | null;
   managedSections: (ContentSection & { depth?: number })[];

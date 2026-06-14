@@ -23,16 +23,19 @@ interface InstitutionalViewSwitchProps {
 }
 
 function withInstitutionalSuspense(label: string, node: ReactNode) {
-  return (
-    <Suspense fallback={<RouteChunkFallback label={label} />}>
-      {node}
-    </Suspense>
-  );
+  return <Suspense fallback={<RouteChunkFallback label={label} />}>{node}</Suspense>;
 }
 
-export default function InstitutionalViewSwitch({ currentView, currentUser, navigateTo }: InstitutionalViewSwitchProps) {
+export default function InstitutionalViewSwitch({
+  currentView,
+  currentUser,
+  navigateTo,
+}: InstitutionalViewSwitchProps) {
   if (currentView === "contact") {
-    return withInstitutionalSuspense("Chargement du contact…", <LazyContactView currentUser={currentUser} navigateTo={navigateTo} />);
+    return withInstitutionalSuspense(
+      "Chargement du contact…",
+      <LazyContactView currentUser={currentUser} navigateTo={navigateTo} />,
+    );
   }
   if (currentView === "support") {
     return withInstitutionalSuspense("Chargement du support…", <LazySupportView navigateTo={navigateTo} />);
@@ -47,7 +50,11 @@ export default function InstitutionalViewSwitch({ currentView, currentUser, navi
   return (
     <div className="mx-auto max-w-xl p-8 text-center text-slate-300">
       <p className="text-sm font-semibold">Page introuvable.</p>
-      <button type="button" onClick={() => navigateTo("dashboard")} className="mt-4 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white">
+      <button
+        type="button"
+        onClick={() => navigateTo("dashboard")}
+        className="mt-4 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white"
+      >
         Retour à l&apos;accueil
       </button>
     </div>

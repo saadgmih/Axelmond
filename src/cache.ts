@@ -16,9 +16,8 @@ const store = new Map<string, CacheEntry>();
 
 const DEFAULT_TTL_SECONDS = Number(process.env.CACHE_TTL_SECONDS) || 60;
 const configuredMaxEntries = Number(process.env.CACHE_MAX_ENTRIES);
-const DEFAULT_MAX_ENTRIES = Number.isInteger(configuredMaxEntries) && configuredMaxEntries > 0
-  ? configuredMaxEntries
-  : 1000;
+const DEFAULT_MAX_ENTRIES =
+  Number.isInteger(configuredMaxEntries) && configuredMaxEntries > 0 ? configuredMaxEntries : 1000;
 
 function logCache(level: "INFO" | "WARN", message: string, data?: unknown) {
   console.log(`[${new Date().toISOString()}] [${level}] [cache] ${message}${data ? " " + JSON.stringify(data) : ""}`);

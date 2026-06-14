@@ -1,9 +1,5 @@
 import { prisma } from "./db";
-import {
-  formatPayPalAmount,
-  logPayPalError,
-  parsePayPalCustomId,
-} from "./paypal-server";
+import { formatPayPalAmount, logPayPalError, parsePayPalCustomId } from "./paypal-server";
 import { convertMadAmountForPayPal, getPayPalCheckoutCurrency } from "./paypal-currency";
 import { PUBLIC_API_ERRORS } from "./public-api-errors";
 export type PayPalCaptureEnrollmentInput = {
@@ -49,12 +45,7 @@ export const PAYPAL_CAPTURE_CLIENT_MESSAGES: Record<string, string> = {
   USER_NOT_FOUND: "Paiement PayPal invalide",
 };
 
-export function toPayPalCaptureClientResponse(result: {
-  ok: false;
-  status: number;
-  error: string;
-  code?: string;
-}) {
+export function toPayPalCaptureClientResponse(result: { ok: false; status: number; error: string; code?: string }) {
   const code = result.code || "PAYPAL_CAPTURE_FAILED";
   return {
     error: PAYPAL_CAPTURE_CLIENT_MESSAGES[code] || "Paiement PayPal invalide",
@@ -112,8 +103,7 @@ export async function processPayPalCaptureEnrollment(
   const paidAmount = String(capture?.amount?.value || "");
   const paidCurrency = String(capture?.amount?.currency_code || "").toUpperCase();
   const expectedCurrency = (metadata.payPalCurrency || getPayPalCheckoutCurrency()).toUpperCase();
-  const expectedAmount = metadata.expectedAmount
-    ?? formatPayPalAmount(convertMadAmountForPayPal(course.price));
+  const expectedAmount = metadata.expectedAmount ?? formatPayPalAmount(convertMadAmountForPayPal(course.price));
 
   if (paidCurrency !== expectedCurrency || paidAmount !== expectedAmount) {
     logPayPalError("PayPal capture amount mismatch", {

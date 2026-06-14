@@ -1,9 +1,9 @@
 import React, { useRef } from "react";
-import { 
-  X, 
-  LayoutDashboard, 
-  BookOpen, 
-  User, 
+import {
+  X,
+  LayoutDashboard,
+  BookOpen,
+  User,
   GraduationCap,
   ShieldAlert,
   Sliders,
@@ -56,7 +56,7 @@ export default function Sidebar({
 }: SidebarProps) {
   const navRef = useRef<HTMLElement>(null);
   useTvNavigation(navRef, true);
-  
+
   const getInitials = (name: string) => {
     if (!name) return "UN";
     const parts = name.trim().split(/\s+/);
@@ -73,7 +73,7 @@ export default function Sidebar({
     >
       {/* Brand Header */}
       <div className="flex items-center justify-between p-5 border-b border-slate-800">
-        <div 
+        <div
           onClick={() => {
             if (role === "student") navigateTo("dashboard");
             else setTeacherView("dashboard");
@@ -83,7 +83,9 @@ export default function Sidebar({
           <LogoSymbol className="w-12 h-12 text-indigo-400 flex-shrink-0" />
           <div className="flex flex-col select-none">
             <span className="text-lg font-black tracking-tight text-white leading-none">Axelmond</span>
-            <span className="text-[10px] font-bold text-indigo-400 mt-1.5 uppercase tracking-widest leading-none">Research Labs</span>
+            <span className="text-[10px] font-bold text-indigo-400 mt-1.5 uppercase tracking-widest leading-none">
+              Research Labs
+            </span>
           </div>
         </div>
         <button
@@ -97,25 +99,30 @@ export default function Sidebar({
 
       {/* Authenticated role badge */}
       <div className="p-4 border-b border-slate-800 space-y-2 bg-slate-950/40">
-        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">
-          Rôle authentifié
-        </span>
-        <div className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-bold ${
-          role === "student"
-            ? "bg-indigo-950/60 border-indigo-900/70 text-indigo-200"
-            : getTeacherRoleBadgeTone(currentUser?.role) === "admin"
-              ? "bg-violet-950/60 border-violet-900/70 text-violet-200"
-              : getTeacherRoleBadgeTone(currentUser?.role) === "researcher"
-                ? "bg-amber-950/60 border-amber-900/70 text-amber-200"
-                : "bg-pink-950/60 border-pink-900/70 text-pink-200"
-        }`}>
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Rôle authentifié</span>
+        <div
+          className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-bold ${
+            role === "student"
+              ? "bg-indigo-950/60 border-indigo-900/70 text-indigo-200"
+              : getTeacherRoleBadgeTone(currentUser?.role) === "admin"
+                ? "bg-violet-950/60 border-violet-900/70 text-violet-200"
+                : getTeacherRoleBadgeTone(currentUser?.role) === "researcher"
+                  ? "bg-amber-950/60 border-amber-900/70 text-amber-200"
+                  : "bg-pink-950/60 border-pink-900/70 text-pink-200"
+          }`}
+        >
           {role === "student" ? <User className="w-3.5 h-3.5" /> : <ShieldAlert className="w-3.5 h-3.5" />}
           <span>{getRoleLabel(currentUser?.role)}</span>
         </div>
       </div>
 
       {/* Dynamic Navigation tabs depending on the active user role */}
-      <nav ref={navRef} data-tv-zone="sidebar-nav" aria-label="Navigation principale" className="flex-1 p-4 space-y-1.5 overflow-y-auto">
+      <nav
+        ref={navRef}
+        data-tv-zone="sidebar-nav"
+        aria-label="Navigation principale"
+        className="flex-1 p-4 space-y-1.5 overflow-y-auto"
+      >
         {role === "student" ? (
           <>
             <button
@@ -369,8 +376,10 @@ export default function Sidebar({
           <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-bold relative text-sm text-slate-200 flex-shrink-0 overflow-hidden">
             {currentUser?.avatarUrl ? (
               <img src={currentUser.avatarUrl} alt="Photo de profil" className="w-full h-full object-cover" />
+            ) : currentUser ? (
+              getInitials(currentUser.fullName)
             ) : (
-              currentUser ? getInitials(currentUser.fullName) : "AR"
+              "AR"
             )}
             <div
               className={`absolute bottom-0 right-0 w-3 h-3 border-2 border-slate-900 rounded-full ${
@@ -383,7 +392,9 @@ export default function Sidebar({
               {currentUser ? currentUser.fullName : "Axelmond Research Labs"}
             </p>
             <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider leading-tight mt-1.5 block truncate">
-              {role === "student" ? currentUser?.filiere || DEFAULT_STUDENT_LABEL : currentUser?.levelOrTitle || "Titulaire Chaire"}
+              {role === "student"
+                ? currentUser?.filiere || DEFAULT_STUDENT_LABEL
+                : currentUser?.levelOrTitle || "Titulaire Chaire"}
             </span>
           </div>
         </div>

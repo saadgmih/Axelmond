@@ -1,5 +1,8 @@
 import { prisma } from "./db";
-import { buildDirectConversationKey, findDirectConversationId as lookupDirectConversationId } from "./direct-conversations";
+import {
+  buildDirectConversationKey,
+  findDirectConversationId as lookupDirectConversationId,
+} from "./direct-conversations";
 
 export { buildDirectConversationKey };
 import { isStudentRole, isTeacherSpaceRole, type UserRole } from "./rbac";
@@ -25,19 +28,13 @@ const ALLOWED_MIME_BY_KIND: Record<string, string[]> = {
   ],
 };
 
-const ALLOWED_ATTACHMENT_HOSTS = [
-  "uploadthing.com",
-  "ufs.sh",
-  "utfs.io",
-] as const;
+const ALLOWED_ATTACHMENT_HOSTS = ["uploadthing.com", "ufs.sh", "utfs.io"] as const;
 
 function isAllowedAttachmentUrl(rawUrl: string): boolean {
   try {
     const url = new URL(rawUrl);
     if (url.protocol !== "https:") return false;
-    return ALLOWED_ATTACHMENT_HOSTS.some(
-      (host) => url.hostname === host || url.hostname.endsWith(`.${host}`),
-    );
+    return ALLOWED_ATTACHMENT_HOSTS.some((host) => url.hostname === host || url.hostname.endsWith(`.${host}`));
   } catch {
     return false;
   }
@@ -121,7 +118,13 @@ export async function findDirectConversationId(userAId: string, userBId: string)
   return lookupDirectConversationId(userAId, userBId);
 }
 
-export function serializeMessagingUser(user: { id: string; fullName: string; email: string; role: string; avatarUrl?: string | null }) {
+export function serializeMessagingUser(user: {
+  id: string;
+  fullName: string;
+  email: string;
+  role: string;
+  avatarUrl?: string | null;
+}) {
   return {
     id: user.id,
     fullName: user.fullName,
@@ -131,23 +134,26 @@ export function serializeMessagingUser(user: { id: string; fullName: string; ema
   };
 }
 
-export function serializeMessage(message: {
-  id: string;
-  conversationId: string;
-  senderId: string;
-  body: string;
-  createdAt: Date;
-  sender: { id: string; fullName: string; email: string; role: string; avatarUrl?: string | null };
-  attachments: Array<{
+export function serializeMessage(
+  message: {
     id: string;
-    kind: string;
-    fileName: string;
-    mimeType: string;
-    sizeBytes: number;
-    url: string;
-  }>;
-  reads: Array<{ userId: string; readAt: Date }>;
-}, viewerId: string) {
+    conversationId: string;
+    senderId: string;
+    body: string;
+    createdAt: Date;
+    sender: { id: string; fullName: string; email: string; role: string; avatarUrl?: string | null };
+    attachments: Array<{
+      id: string;
+      kind: string;
+      fileName: string;
+      mimeType: string;
+      sizeBytes: number;
+      url: string;
+    }>;
+    reads: Array<{ userId: string; readAt: Date }>;
+  },
+  viewerId: string,
+) {
   const readByOthers = message.reads.filter((read) => read.userId !== message.senderId);
   return {
     id: message.id,
@@ -171,10 +177,7 @@ export function serializeMessage(message: {
   };
 }
 
-export async function serializeConversationSummary(
-  conversationId: string,
-  viewerId: string,
-) {
+export async function serializeConversationSummary(conversationId: string, viewerId: string) {
   const conversation = await prisma.conversation.findUnique({
     where: { id: conversationId },
     include: {
@@ -207,16 +210,20 @@ export async function serializeConversationSummary(
   return buildConversationSummary(conversation as any, viewerId, unreadCount);
 }
 
-function buildConversationSummary(conversation: {
-  id: string;
-  updatedAt: Date;
-  participants: Array<{
-    userId: string;
-    typingUntil?: Date | null;
-    user: { id: string; fullName: string; email: string; role: string; avatarUrl?: string | null };
-  }>;
-  messages: Array<Parameters<typeof serializeMessage>[0]>;
-}, viewerId: string, unreadCount: number) {
+function buildConversationSummary(
+  conversation: {
+    id: string;
+    updatedAt: Date;
+    participants: Array<{
+      userId: string;
+      typingUntil?: Date | null;
+      user: { id: string; fullName: string; email: string; role: string; avatarUrl?: string | null };
+    }>;
+    messages: Array<Parameters<typeof serializeMessage>[0]>;
+  },
+  viewerId: string,
+  unreadCount: number,
+) {
   const viewerParticipant = conversation.participants.find((entry) => entry.userId === viewerId);
   if (!viewerParticipant) return null;
 
@@ -229,17 +236,12 @@ function buildConversationSummary(conversation: {
     peer: peer ? serializeMessagingUser(peer) : null,
     updatedAt: conversation.updatedAt.toISOString(),
     unreadCount,
-    lastMessage: lastMessage
-      ? serializeMessage(lastMessage as any, viewerId)
-      : null,
+    lastMessage: lastMessage ? serializeMessage(lastMessage as any, viewerId) : null,
     isPeerTyping: Boolean(peerParticipant?.typingUntil && peerParticipant.typingUntil > new Date()),
   };
 }
 
-export async function serializeConversationSummariesForViewer(
-  conversationIds: string[],
-  viewerId: string,
-) {
+export async function serializeConversationSummariesForViewer(conversationIds: string[], viewerId: string) {
   const uniqueConversationIds = [...new Set(conversationIds.filter(Boolean))];
   if (uniqueConversationIds.length === 0) return [];
 
@@ -274,19 +276,16 @@ export async function serializeConversationSummariesForViewer(
     }),
   ]);
 
-  const unreadByConversation = new Map(
-    unreadRows.map((row) => [row.conversationId, row._count._all]),
-  );
+  const unreadByConversation = new Map(unreadRows.map((row) => [row.conversationId, row._count._all]));
   const summaryByConversation = new Map(
     conversations
-      .map((conversation) => [
-        conversation.id,
-        buildConversationSummary(
-          conversation as any,
-          viewerId,
-          unreadByConversation.get(conversation.id) || 0,
-        ),
-      ] as const)
+      .map(
+        (conversation) =>
+          [
+            conversation.id,
+            buildConversationSummary(conversation as any, viewerId, unreadByConversation.get(conversation.id) || 0),
+          ] as const,
+      )
       .filter((entry) => Boolean(entry[1])),
   );
 

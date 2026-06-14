@@ -12,7 +12,7 @@ export async function logAudit(
   resource: string,
   resourceId: string | null,
   details?: any,
-  ip?: string
+  ip?: string,
 ) {
   try {
     await prisma.auditLog.create({

@@ -71,7 +71,9 @@ export default function ScheduleSessionFormModal<TForm extends ScheduleSessionFo
                 onChange={(e) => setForm((current) => ({ ...current, dayOfWeek: Number(e.target.value) }))}
               >
                 {scheduleDays.map((day) => (
-                  <option key={day.value} value={day.value}>{day.label}</option>
+                  <option key={day.value} value={day.value}>
+                    {day.label}
+                  </option>
                 ))}
               </select>
             </label>
@@ -84,7 +86,9 @@ export default function ScheduleSessionFormModal<TForm extends ScheduleSessionFo
                 onChange={(e) => setForm((current) => ({ ...current, sessionType: e.target.value }))}
               >
                 {sessionTypeOptions.map((type) => (
-                  <option key={type.value} value={type.value}>{type.label}</option>
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
                 ))}
               </select>
             </label>

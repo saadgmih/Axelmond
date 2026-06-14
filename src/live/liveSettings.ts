@@ -29,7 +29,11 @@ export const LIVE_VIDEO_QUALITY_OPTIONS: Array<{ value: LiveVideoQuality; label:
 ];
 
 export const LIVE_LAYOUT_OPTIONS: Array<{ value: LiveLayoutMode; label: string; description: string }> = [
-  { value: "teacher-only", label: "Enseignant uniquement", description: "Focus sur le professeur ou l'intervenant principal" },
+  {
+    value: "teacher-only",
+    label: "Enseignant uniquement",
+    description: "Focus sur le professeur ou l'intervenant principal",
+  },
   { value: "tile", label: "Vue mosaïque", description: "Grille responsive pour plusieurs participants" },
   { value: "active-speaker", label: "Intervenant actif", description: "Met en avant la personne qui parle" },
 ];
@@ -55,14 +59,14 @@ export function readStoredLiveSettings(): LiveSettings {
     const parsed = JSON.parse(raw) as Partial<LiveSettings>;
     return {
       videoQuality: LIVE_VIDEO_QUALITY_OPTIONS.some((option) => option.value === parsed.videoQuality)
-        ? parsed.videoQuality as LiveVideoQuality
+        ? (parsed.videoQuality as LiveVideoQuality)
         : DEFAULT_LIVE_SETTINGS.videoQuality,
       layoutMode: LIVE_LAYOUT_OPTIONS.some((option) => option.value === parsed.layoutMode)
-        ? parsed.layoutMode as LiveLayoutMode
+        ? (parsed.layoutMode as LiveLayoutMode)
         : DEFAULT_LIVE_SETTINGS.layoutMode,
       focusMode: Boolean(parsed.focusMode),
       subtitleLanguage: LIVE_SUBTITLE_OPTIONS.some((option) => option.value === parsed.subtitleLanguage)
-        ? parsed.subtitleLanguage as LiveSubtitleLanguage
+        ? (parsed.subtitleLanguage as LiveSubtitleLanguage)
         : DEFAULT_LIVE_SETTINGS.subtitleLanguage,
     };
   } catch {
@@ -75,11 +79,7 @@ export function persistLiveSettings(settings: LiveSettings) {
   localStorage.setItem(LIVE_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
 }
 
-export async function applyLiveVideoQuality(
-  room: Room | null,
-  quality: LiveVideoQuality,
-  cameraEnabled: boolean,
-) {
+export async function applyLiveVideoQuality(room: Room | null, quality: LiveVideoQuality, cameraEnabled: boolean) {
   if (!room || !cameraEnabled) return;
 
   if (quality === "auto") {

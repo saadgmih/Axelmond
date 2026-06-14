@@ -1,15 +1,5 @@
 import type { Dispatch, ReactNode, SetStateAction } from "react";
-import {
-  ChevronDown,
-  Code2,
-  FileText,
-  GraduationCap,
-  Pencil,
-  Radio,
-  Sparkles,
-  Square,
-  Video,
-} from "lucide-react";
+import { ChevronDown, Code2, FileText, GraduationCap, Pencil, Radio, Sparkles, Square, Video } from "lucide-react";
 import type { Course } from "../../types";
 import { liveControlUi } from "./live-control-theme";
 
@@ -20,7 +10,10 @@ export interface TeacherLiveControlViewProps {
   setCourses: Dispatch<SetStateAction<Course[]>>;
   handleUpdateCourseLiveSubject: (courseId: number, subject: string) => void | Promise<void>;
   handleToggleCourseLive: (id: number) => Promise<Course | null>;
-  toggleTeacherLiveSession: (courseId: number, toggleCourseLive: (id: number) => Promise<Course | null>) => void | Promise<void>;
+  toggleTeacherLiveSession: (
+    courseId: number,
+    toggleCourseLive: (id: number) => Promise<Course | null>,
+  ) => void | Promise<void>;
   activeLiveCourse: Course | null;
   renderTeacherLiveRoom: () => ReactNode;
 }
@@ -109,9 +102,7 @@ export default function TeacherLiveControlView({
               </div>
               <div>
                 <h2 className={liveControlUi.sectionTitle}>Sujet de révision actif</h2>
-                <p className={liveControlUi.sectionDesc}>
-                  Définissez le sujet qui sera synchronisé avec les étudiants
-                </p>
+                <p className={liveControlUi.sectionDesc}>Définissez le sujet qui sera synchronisé avec les étudiants</p>
               </div>
             </div>
             <div className={liveControlUi.fieldWrap}>
@@ -192,9 +183,7 @@ export default function TeacherLiveControlView({
         </div>
       </div>
 
-      {isRoomOpen && activeLiveCourse && (
-        <div className={liveControlUi.roomShell}>{renderTeacherLiveRoom()}</div>
-      )}
+      {isRoomOpen && activeLiveCourse && <div className={liveControlUi.roomShell}>{renderTeacherLiveRoom()}</div>}
     </div>
   );
 }

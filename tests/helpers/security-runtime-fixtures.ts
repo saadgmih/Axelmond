@@ -27,12 +27,7 @@ function runtimeEmail(label: string) {
 }
 
 export async function cleanupChatTutorRuntimeFixtures() {
-  const emails = [
-    runtimeEmail("owner"),
-    runtimeEmail("enrolled"),
-    runtimeEmail("unenrolled"),
-    runtimeEmail("foreign"),
-  ];
+  const emails = [runtimeEmail("owner"), runtimeEmail("enrolled"), runtimeEmail("unenrolled"), runtimeEmail("foreign")];
 
   const users = await prisma.user.findMany({
     where: { email: { in: emails } },

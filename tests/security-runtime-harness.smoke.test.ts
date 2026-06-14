@@ -1,29 +1,28 @@
-import assert from "node:assert/strict";import {
+import assert from "node:assert/strict";
+import {
   DEFAULT_SECURITY_RUNTIME_PORT,
   isSecurityRuntimeDatabaseAvailable,
   startSecurityRuntimeServer,
   stopSecurityRuntimeServer,
   waitForSecurityRuntimeHealth,
 } from "./helpers/security-runtime-harness.ts";
+import { skipSecurityRuntimeTests } from "./helpers/security-runtime-harness.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("security-runtime-harness.smoke", async () => {
-if (!isSecurityRuntimeDatabaseAvailable()) {
-  console.log("Security runtime harness smoke skipped: DATABASE_URL missing");
-  process.exit(0);
-}
+  if (skipSecurityRuntimeTests()) return;
 
-const handle = startSecurityRuntimeServer(DEFAULT_SECURITY_RUNTIME_PORT);
+  const handle = startSecurityRuntimeServer(DEFAULT_SECURITY_RUNTIME_PORT);
 
-try {
-  const health = await waitForSecurityRuntimeHealth(handle.baseUrl, { process: handle.process });
-  assert.equal(health.status, 200);
+  try {
+    const health = await waitForSecurityRuntimeHealth(handle.baseUrl, { process: handle.process });
+    assert.equal(health.status, 200);
 
-  const body = await health.json() as { status?: string };
-  assert.equal(body.status, "UP");
+    const body = (await health.json()) as { status?: string };
+    assert.equal(body.status, "UP");
 
-  console.log("Security runtime harness smoke passed");
-} finally {
-  await stopSecurityRuntimeServer(handle);
-}
+    console.log("Security runtime harness smoke passed");
+  } finally {
+    await stopSecurityRuntimeServer(handle);
+  }
 });

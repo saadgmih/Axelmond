@@ -42,9 +42,10 @@ export function evaluateCourseLearningAccess(
   }
 
   if (!canAccessCourseLearning(authUser, course)) {
-    const error = authUser.role === "STUDENT"
-      ? COURSE_LEARNING_ACCESS_ERRORS.enrollmentRequired
-      : COURSE_LEARNING_ACCESS_ERRORS.accessDenied;
+    const error =
+      authUser.role === "STUDENT"
+        ? COURSE_LEARNING_ACCESS_ERRORS.enrollmentRequired
+        : COURSE_LEARNING_ACCESS_ERRORS.accessDenied;
     return { ok: false, status: 403, error };
   }
 

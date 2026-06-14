@@ -66,8 +66,8 @@ export default function LiveResourceStage({ resource, canModerate, onDismiss }: 
             <div className="max-w-lg space-y-2">
               <p className="text-sm font-bold text-white">{resource.title}</p>
               <p className="text-xs text-zinc-400">
-                Pour des raisons de sécurité, seuls les PDF HTTPS sont intégrés dans la salle.
-                Ouvrez ce lien dans un nouvel onglet pour consulter la ressource.
+                Pour des raisons de sécurité, seuls les PDF HTTPS sont intégrés dans la salle. Ouvrez ce lien dans un
+                nouvel onglet pour consulter la ressource.
               </p>
             </div>
             <a

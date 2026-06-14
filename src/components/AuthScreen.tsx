@@ -1,15 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { getClientErrorMessage } from "../client-errors";
 import { motion } from "motion/react";
-import { 
-  GraduationCap, 
-  User, 
-  ShieldAlert, 
-  Mail, 
-  Lock, 
-  LogIn, 
-  UserPlus
-} from "lucide-react";
+import { GraduationCap, User, ShieldAlert, Mail, Lock, LogIn, UserPlus } from "lucide-react";
 import { Course, Invoice } from "../types";
 import { api, setSessionToken } from "../api";
 import { UserRole, getTeacherLoginSectorLabel, getTeacherLoginTabLabel } from "../rbac";
@@ -40,10 +32,14 @@ function RateLimitBanner({ initialSeconds, maxAttempts = 20, onExpire }: RateLim
         return s - 1;
       });
     }, 1000);
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
   }, [initialSeconds]);
 
-  const mins = Math.floor(secondsLeft / 60).toString().padStart(2, "0");
+  const mins = Math.floor(secondsLeft / 60)
+    .toString()
+    .padStart(2, "0");
   const secs = (secondsLeft % 60).toString().padStart(2, "0");
 
   return (
@@ -152,9 +148,7 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
       }
       // 429 Rate limit: show countdown banner
       if (err.isRateLimit) {
-        const seconds = typeof err.retryAfter === "number" && err.retryAfter > 0
-          ? err.retryAfter
-          : 1 * 60; // fallback: 1 min window
+        const seconds = typeof err.retryAfter === "number" && err.retryAfter > 0 ? err.retryAfter : 1 * 60; // fallback: 1 min window
         setRateLimitError({ seconds });
         setErrorMsg("");
         return;
@@ -290,7 +284,6 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-pink-600/10 rounded-full blur-3xl pointer-events-none"></div>
 
       <div className="w-full max-w-xl relative flex flex-col gap-6">
-        
         <div className="flex flex-col items-center gap-4 text-center pb-2">
           {/* Logo icône seule ARL - Centré, net et sans cadre blanc */}
           <LogoSymbol className="w-24 h-24 text-indigo-400 flex-shrink-0 animate-in zoom-in duration-300" />
@@ -304,401 +297,439 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
           </div>
         </div>
 
-        <motion.div 
-          initial={preferences.reduceMotion ? false : { opacity: 0, y: 15 }} 
+        <motion.div
+          initial={preferences.reduceMotion ? false : { opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           className="bg-slate-950/80 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-xl"
         >
           <main id="auth-main" tabIndex={-1} className="outline-none">
-          <div className="grid grid-cols-2 bg-slate-900 border-b border-slate-800 p-2 gap-2">
-            <button
-              type="button"
-              aria-pressed={activeSector === "student"}
-              onClick={() => {
-                setActiveSector("student");
-                setVerificationEmail("");
-                setAuthMode("register");
-                setErrorMsg("");
-                setRateLimitError(null);
-                setSuccessMsg("");
-              }}
-              className={`kbd-nav-focus flex items-center justify-center gap-1.5 py-3.5 px-2 sm:px-4 rounded-2xl text-[10px] sm:text-xs font-extrabold tracking-wide uppercase transition-all ${
-                activeSector === "student"
-                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-950/40"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/40"
-              }`}
-            >
-              <User className="w-4 h-4" aria-hidden="true" />
-              Espace Étudiant
-            </button>
-            <button
-              type="button"
-              aria-pressed={activeSector === "teacher"}
-              onClick={() => {
-                setActiveSector("teacher");
-                setVerificationEmail("");
-                setAuthMode("register");
-                setErrorMsg("");
-                setRateLimitError(null);
-                setSuccessMsg("");
-              }}
-              className={`kbd-nav-focus flex items-center justify-center gap-1.5 py-3.5 px-2 sm:px-4 rounded-2xl text-[10px] sm:text-xs font-extrabold tracking-wide uppercase transition-all ${
-                activeSector === "teacher"
-                  ? "bg-pink-600 text-white shadow-lg shadow-pink-950/40"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/40"
-              }`}
-            >
-              <ShieldAlert className="w-4 h-4" aria-hidden="true" />
-              {getTeacherLoginTabLabel()}
-            </button>
-          </div>
-
-          <div className="p-6 md:p-8 space-y-6">
-            
-            <div className="text-center space-y-1">
-              <span className={`text-[10px] uppercase font-black tracking-widest px-2.5 py-0.5 rounded-full inline-block ${
-                activeSector === "student" ? "bg-indigo-900/40 text-indigo-300 border border-indigo-500/10" : "bg-pink-900/40 text-pink-300 border border-pink-500/10"
-              }`}>
-                {activeSector === "student" ? "Secteur d'Études" : getTeacherLoginSectorLabel()}
-              </span>
-              <h2 className="text-xl font-extrabold text-white mt-2">
-                {verificationEmail
-                  ? "Vérifiez votre e-mail"
-                  : authMode === "forgot"
-                    ? "Mot de passe oublié"
-                    : authMode === "reset"
-                      ? "Réinitialiser le mot de passe"
-                      : authMode === "login" 
-                        ? "Connexion à votre espace académique" 
-                        : "Créer un compte universitaire Axelmond Research Labs"
-                }
-              </h2>
-              <p className="text-xs text-slate-400">
-                {verificationEmail
-                  ? `Code envoyé à ${verificationEmail}`
-                  : authMode === "forgot"
-                    ? "Saisissez votre e-mail pour recevoir un code de vérification"
-                    : authMode === "reset"
-                      ? "Saisissez le code reçu et votre nouveau mot de passe"
-                      : authMode === "login" 
-                        ? "Saisissez vos identifiants d'accès" 
-                        : "Inscrivez-vous pour accéder aux modules"
-                }
-              </p>
-            </div>
-
-            {/* 429 Rate-limit countdown banner */}
-            {rateLimitError && (
-              <RateLimitBanner
-                initialSeconds={rateLimitError.seconds}
-                maxAttempts={20}
-                onExpire={() => setRateLimitError(null)}
-              />
-            )}
-
-            {/* 401 / validation error */}
-            {errorMsg && !rateLimitError && (
-              <div id="auth-error-msg" role="alert" aria-live="assertive" className="p-3 bg-red-900/30 border border-red-800/50 text-red-300 text-xs font-semibold rounded-xl text-center">
-                {errorMsg}
-              </div>
-            )}
-            {successMsg && (
-              <div id="auth-success-msg" role="status" aria-live="polite" className="p-3 bg-emerald-900/30 border border-emerald-800/50 text-emerald-300 text-xs font-semibold rounded-xl text-center">
-                {successMsg}
-              </div>
-            )}
-
-            {verificationEmail ? (
-              <form onSubmit={handleVerifyEmail} className="space-y-4">
-                <div className="space-y-1.5 animate-in slide-in-from-top-1 duration-200">
-                  <label htmlFor="auth-verification-code" className="text-[10px] uppercase font-black tracking-widest text-slate-400 block">
-                    Code de vérification e-mail
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="auth-verification-code"
-                      type="text"
-                      inputMode="numeric"
-                      required
-                      maxLength={6}
-                      placeholder="123456"
-                      value={verificationCode}
-                      onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                      className="w-full bg-slate-900 border border-slate-800 focus:border-slate-700 px-4 py-3 pl-11 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-700 transition-all tracking-[0.35em] font-bold kbd-nav-focus"
-                    />
-                    <Mail className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" aria-hidden="true" />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className={`w-full py-3.5 rounded-xl text-xs font-black uppercase tracking-wider text-white transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                    activeSector === "student" 
-                      ? "bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-900/30" 
-                      : "bg-pink-600 hover:bg-pink-700 hover:shadow-pink-900/30"
-                  }`}
-                >
-                  <Mail className="w-4 h-4" />
-                  Vérifier mon e-mail
-                </button>
-
-                <button
-                  type="button"
-                  disabled={isLoading}
-                  onClick={handleResendVerificationCode}
-                  className="w-full py-3 rounded-xl text-xs font-black uppercase tracking-wider text-slate-300 border border-slate-800 hover:bg-slate-900 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Renvoyer le code
-                </button>
-              </form>
-            ) : authMode === "forgot" ? (
-              <form onSubmit={handleForgotPassword} className="space-y-4">
-                <div className="space-y-1.5 animate-in slide-in-from-top-1 duration-200">
-                  <label htmlFor="auth-email" className="text-[10px] uppercase font-black tracking-widest text-slate-400 block">
-                    Adresse e-mail universitaire
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="auth-email"
-                      type="email"
-                      required
-                      placeholder={activeSector === "student" ? "ex: etudiant@example.fr" : "ex: prof@example.fr"}
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 focus:border-slate-700 px-4 py-3 pl-11 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-700 transition-all"
-                    />
-                    <Mail className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className={`w-full py-3.5 rounded-xl text-xs font-black uppercase tracking-wider text-white transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                    activeSector === "student" 
-                      ? "bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-900/30" 
-                      : "bg-pink-600 hover:bg-pink-700 hover:shadow-pink-900/30"
-                  }`}
-                >
-                  <Mail className="w-4 h-4" />
-                  Envoyer le code
-                </button>
-              </form>
-            ) : authMode === "reset" ? (
-              <form onSubmit={handleResetPassword} className="space-y-4">
-                <div className="space-y-1.5 animate-in slide-in-from-top-1 duration-200">
-                  <label htmlFor="auth-email" className="text-[10px] uppercase font-black tracking-widest text-slate-400 block">
-                    Adresse e-mail universitaire
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="auth-email"
-                      type="email"
-                      required
-                      disabled
-                      value={email}
-                      className="w-full bg-slate-950 border border-slate-800 px-4 py-3 pl-11 rounded-xl text-xs text-slate-450 focus:outline-none cursor-not-allowed"
-                    />
-                    <Mail className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5 animate-in slide-in-from-top-1 duration-200">
-                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 block">
-                    Code de réinitialisation (6 chiffres)
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      required
-                      maxLength={6}
-                      placeholder="123456"
-                      value={verificationCode}
-                      onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                      className="w-full bg-slate-900 border border-slate-800 focus:border-slate-700 px-4 py-3 pl-11 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-700 transition-all tracking-[0.35em] font-bold"
-                    />
-                    <Lock className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5 animate-in slide-in-from-top-1 duration-200">
-                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 block">
-                    Nouveau mot de passe
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="password"
-                      required
-                      placeholder="Saisir votre nouveau mot de passe"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 focus:border-slate-700 px-4 py-3 pl-11 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-700 transition-all"
-                    />
-                    <Lock className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className={`w-full py-3.5 rounded-xl text-xs font-black uppercase tracking-wider text-white transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                    activeSector === "student" 
-                      ? "bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-900/30" 
-                      : "bg-pink-600 hover:bg-pink-700 hover:shadow-pink-900/30"
-                  }`}
-                >
-                  <Lock className="w-4 h-4" />
-                  Réinitialiser le mot de passe
-                </button>
-              </form>
-            ) : (
-              <form onSubmit={authMode === "login" ? handleLogin : handleRegister} className="space-y-4">
-              
-              {authMode === "register" && (
-                <div className="space-y-1.5 animate-in slide-in-from-top-1 duration-200">
-                  <label htmlFor="auth-full-name" className="text-[10px] uppercase font-black tracking-widest text-slate-400 block">
-                    Nom complet (Prénom Nom)
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="auth-full-name"
-                      type="text"
-                      required
-                      placeholder={activeSector === "student" ? "ex: Étudiant Axelmond" : "ex: Pr. Louise Vitet"}
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 focus:border-slate-700 px-4 py-3 pl-11 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-700 transition-all"
-                    />
-                    <User className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
-                  </div>
-                </div>
-              )}
-
-              <div className="space-y-1.5">
-                <label htmlFor="auth-email-login" className="text-[10px] uppercase font-black tracking-widest text-slate-400 block">
-                  Adresse e-mail universitaire
-                </label>
-                <div className="relative">
-                  <input
-                    id="auth-email-login"
-                    type="email"
-                    required
-                    placeholder={activeSector === "student" ? "ex: etudiant@example.fr" : "ex: prof@example.fr"}
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-800 focus:border-slate-700 px-4 py-3 pl-11 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-700 transition-all"
-                  />
-                  <Mail className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <div className="flex justify-between items-center">
-                  <label htmlFor="auth-password" className="text-[10px] uppercase font-black tracking-widest text-slate-400">
-                    Mot de passe de sécurité
-                  </label>
-                  {authMode === "login" && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAuthMode("forgot");
-                        setErrorMsg("");
-                        setSuccessMsg("");
-                      }}
-                      className={`text-[10px] font-bold hover:underline cursor-pointer ${
-                        activeSector === "student" ? "text-indigo-400" : "text-pink-400"
-                      }`}
-                    >
-                      Mot de passe oublié ?
-                    </button>
-                  )}
-                </div>
-                <div className="relative">
-                  <input
-                    id="auth-password"
-                    type="password"
-                    required
-                    placeholder="Saisir votre mot de passe"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-800 focus:border-slate-700 px-4 py-3 pl-11 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-700 transition-all"
-                  />
-                  <Lock className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
-                </div>
-              </div>
-
-              {authMode === "register" && (
-                <div className="space-y-1.5 animate-in slide-in-from-top-1 duration-200">
-                  <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 block">
-                    {activeSector === "student" ? "Filière" : "Code d'invitation professeur"}
-                  </label>
-                  <input
-                    type="text"
-                    required={activeSector === "teacher"}
-                    placeholder={activeSector === "student" ? "ex: Informatique, Mathématiques, Physique..." : "Code fourni par l'administrateur"}
-                    value={activeSector === "student" ? filiere : professorInviteCode}
-                    onChange={(e) => {
-                      if (activeSector === "student") setFiliere(e.target.value);
-                      else setProfessorInviteCode(e.target.value);
-                    }}
-                    className="w-full bg-slate-900 border border-slate-800 focus:border-slate-700 px-4 py-3 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-700 transition-all"
-                  />
-                  {activeSector === "student" && (
-                    <p className="text-[9px] text-slate-500 italic">Facultatif. Indique votre filière si vous souhaitez personnaliser votre profil.</p>
-                  )}
-                </div>
-              )}
-
+            <div className="grid grid-cols-2 bg-slate-900 border-b border-slate-800 p-2 gap-2">
               <button
-                type="submit"
-                disabled={isLoading}
-                className={`w-full py-3.5 rounded-xl text-xs font-black uppercase tracking-wider text-white transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                  activeSector === "student" 
-                    ? "bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-900/30" 
-                    : "bg-pink-600 hover:bg-pink-700 hover:shadow-pink-900/30"
-                }`}
-              >
-                {authMode === "login" ? <LogIn className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
-                {authMode === "login" 
-                  ? (activeSector === "student" ? "Se connecter" : "Se connecter")
-                  : "Créer mon Compte Académique"
-                }
-              </button>
-            </form>
-            )}
-
-            <div className="text-center pt-2">
-              <button
+                type="button"
+                aria-pressed={activeSector === "student"}
                 onClick={() => {
+                  setActiveSector("student");
                   setVerificationEmail("");
-                  setVerificationCode("");
-                  if (authMode === "forgot" || authMode === "reset") {
-                    setAuthMode("login");
-                  } else {
-                    setAuthMode(authMode === "login" ? "register" : "login");
-                  }
+                  setAuthMode("register");
                   setErrorMsg("");
                   setRateLimitError(null);
                   setSuccessMsg("");
                 }}
-                className={`text-xs font-bold underline transition-colors ${
-                  activeSector === "student" ? "text-indigo-400 hover:text-indigo-300" : "text-pink-400 hover:text-pink-300"
+                className={`kbd-nav-focus flex items-center justify-center gap-1.5 py-3.5 px-2 sm:px-4 rounded-2xl text-[10px] sm:text-xs font-extrabold tracking-wide uppercase transition-all ${
+                  activeSector === "student"
+                    ? "bg-indigo-600 text-white shadow-lg shadow-indigo-950/40"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/40"
                 }`}
               >
-                {verificationEmail
-                  ? "Utiliser une autre adresse e-mail"
-                  : (authMode === "forgot" || authMode === "reset")
-                    ? "Retour à la connexion"
-                    : authMode === "login"
-                      ? "Pas de compte ? S'inscrire maintenant"
-                      : "Déjà membre ? Se connecter à l'espace"
-                }
+                <User className="w-4 h-4" aria-hidden="true" />
+                Espace Étudiant
+              </button>
+              <button
+                type="button"
+                aria-pressed={activeSector === "teacher"}
+                onClick={() => {
+                  setActiveSector("teacher");
+                  setVerificationEmail("");
+                  setAuthMode("register");
+                  setErrorMsg("");
+                  setRateLimitError(null);
+                  setSuccessMsg("");
+                }}
+                className={`kbd-nav-focus flex items-center justify-center gap-1.5 py-3.5 px-2 sm:px-4 rounded-2xl text-[10px] sm:text-xs font-extrabold tracking-wide uppercase transition-all ${
+                  activeSector === "teacher"
+                    ? "bg-pink-600 text-white shadow-lg shadow-pink-950/40"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/40"
+                }`}
+              >
+                <ShieldAlert className="w-4 h-4" aria-hidden="true" />
+                {getTeacherLoginTabLabel()}
               </button>
             </div>
 
-          </div>
+            <div className="p-6 md:p-8 space-y-6">
+              <div className="text-center space-y-1">
+                <span
+                  className={`text-[10px] uppercase font-black tracking-widest px-2.5 py-0.5 rounded-full inline-block ${
+                    activeSector === "student"
+                      ? "bg-indigo-900/40 text-indigo-300 border border-indigo-500/10"
+                      : "bg-pink-900/40 text-pink-300 border border-pink-500/10"
+                  }`}
+                >
+                  {activeSector === "student" ? "Secteur d'Études" : getTeacherLoginSectorLabel()}
+                </span>
+                <h2 className="text-xl font-extrabold text-white mt-2">
+                  {verificationEmail
+                    ? "Vérifiez votre e-mail"
+                    : authMode === "forgot"
+                      ? "Mot de passe oublié"
+                      : authMode === "reset"
+                        ? "Réinitialiser le mot de passe"
+                        : authMode === "login"
+                          ? "Connexion à votre espace académique"
+                          : "Créer un compte universitaire Axelmond Research Labs"}
+                </h2>
+                <p className="text-xs text-slate-400">
+                  {verificationEmail
+                    ? `Code envoyé à ${verificationEmail}`
+                    : authMode === "forgot"
+                      ? "Saisissez votre e-mail pour recevoir un code de vérification"
+                      : authMode === "reset"
+                        ? "Saisissez le code reçu et votre nouveau mot de passe"
+                        : authMode === "login"
+                          ? "Saisissez vos identifiants d'accès"
+                          : "Inscrivez-vous pour accéder aux modules"}
+                </p>
+              </div>
+
+              {/* 429 Rate-limit countdown banner */}
+              {rateLimitError && (
+                <RateLimitBanner
+                  initialSeconds={rateLimitError.seconds}
+                  maxAttempts={20}
+                  onExpire={() => setRateLimitError(null)}
+                />
+              )}
+
+              {/* 401 / validation error */}
+              {errorMsg && !rateLimitError && (
+                <div
+                  id="auth-error-msg"
+                  role="alert"
+                  aria-live="assertive"
+                  className="p-3 bg-red-900/30 border border-red-800/50 text-red-300 text-xs font-semibold rounded-xl text-center"
+                >
+                  {errorMsg}
+                </div>
+              )}
+              {successMsg && (
+                <div
+                  id="auth-success-msg"
+                  role="status"
+                  aria-live="polite"
+                  className="p-3 bg-emerald-900/30 border border-emerald-800/50 text-emerald-300 text-xs font-semibold rounded-xl text-center"
+                >
+                  {successMsg}
+                </div>
+              )}
+
+              {verificationEmail ? (
+                <form onSubmit={handleVerifyEmail} className="space-y-4">
+                  <div className="space-y-1.5 animate-in slide-in-from-top-1 duration-200">
+                    <label
+                      htmlFor="auth-verification-code"
+                      className="text-[10px] uppercase font-black tracking-widest text-slate-400 block"
+                    >
+                      Code de vérification e-mail
+                    </label>
+                    <div className="relative">
+                      <input
+                        id="auth-verification-code"
+                        type="text"
+                        inputMode="numeric"
+                        required
+                        maxLength={6}
+                        placeholder="123456"
+                        value={verificationCode}
+                        onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                        className="w-full bg-slate-900 border border-slate-800 focus:border-slate-700 px-4 py-3 pl-11 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-700 transition-all tracking-[0.35em] font-bold kbd-nav-focus"
+                      />
+                      <Mail
+                        className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2"
+                        aria-hidden="true"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className={`w-full py-3.5 rounded-xl text-xs font-black uppercase tracking-wider text-white transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                      activeSector === "student"
+                        ? "bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-900/30"
+                        : "bg-pink-600 hover:bg-pink-700 hover:shadow-pink-900/30"
+                    }`}
+                  >
+                    <Mail className="w-4 h-4" />
+                    Vérifier mon e-mail
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={isLoading}
+                    onClick={handleResendVerificationCode}
+                    className="w-full py-3 rounded-xl text-xs font-black uppercase tracking-wider text-slate-300 border border-slate-800 hover:bg-slate-900 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Renvoyer le code
+                  </button>
+                </form>
+              ) : authMode === "forgot" ? (
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <div className="space-y-1.5 animate-in slide-in-from-top-1 duration-200">
+                    <label
+                      htmlFor="auth-email"
+                      className="text-[10px] uppercase font-black tracking-widest text-slate-400 block"
+                    >
+                      Adresse e-mail universitaire
+                    </label>
+                    <div className="relative">
+                      <input
+                        id="auth-email"
+                        type="email"
+                        required
+                        placeholder={activeSector === "student" ? "ex: etudiant@example.fr" : "ex: prof@example.fr"}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-800 focus:border-slate-700 px-4 py-3 pl-11 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-700 transition-all"
+                      />
+                      <Mail className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className={`w-full py-3.5 rounded-xl text-xs font-black uppercase tracking-wider text-white transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                      activeSector === "student"
+                        ? "bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-900/30"
+                        : "bg-pink-600 hover:bg-pink-700 hover:shadow-pink-900/30"
+                    }`}
+                  >
+                    <Mail className="w-4 h-4" />
+                    Envoyer le code
+                  </button>
+                </form>
+              ) : authMode === "reset" ? (
+                <form onSubmit={handleResetPassword} className="space-y-4">
+                  <div className="space-y-1.5 animate-in slide-in-from-top-1 duration-200">
+                    <label
+                      htmlFor="auth-email"
+                      className="text-[10px] uppercase font-black tracking-widest text-slate-400 block"
+                    >
+                      Adresse e-mail universitaire
+                    </label>
+                    <div className="relative">
+                      <input
+                        id="auth-email"
+                        type="email"
+                        required
+                        disabled
+                        value={email}
+                        className="w-full bg-slate-950 border border-slate-800 px-4 py-3 pl-11 rounded-xl text-xs text-slate-450 focus:outline-none cursor-not-allowed"
+                      />
+                      <Mail className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5 animate-in slide-in-from-top-1 duration-200">
+                    <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 block">
+                      Code de réinitialisation (6 chiffres)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        required
+                        maxLength={6}
+                        placeholder="123456"
+                        value={verificationCode}
+                        onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                        className="w-full bg-slate-900 border border-slate-800 focus:border-slate-700 px-4 py-3 pl-11 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-700 transition-all tracking-[0.35em] font-bold"
+                      />
+                      <Lock className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5 animate-in slide-in-from-top-1 duration-200">
+                    <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 block">
+                      Nouveau mot de passe
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="password"
+                        required
+                        placeholder="Saisir votre nouveau mot de passe"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-800 focus:border-slate-700 px-4 py-3 pl-11 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-700 transition-all"
+                      />
+                      <Lock className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className={`w-full py-3.5 rounded-xl text-xs font-black uppercase tracking-wider text-white transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                      activeSector === "student"
+                        ? "bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-900/30"
+                        : "bg-pink-600 hover:bg-pink-700 hover:shadow-pink-900/30"
+                    }`}
+                  >
+                    <Lock className="w-4 h-4" />
+                    Réinitialiser le mot de passe
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={authMode === "login" ? handleLogin : handleRegister} className="space-y-4">
+                  {authMode === "register" && (
+                    <div className="space-y-1.5 animate-in slide-in-from-top-1 duration-200">
+                      <label
+                        htmlFor="auth-full-name"
+                        className="text-[10px] uppercase font-black tracking-widest text-slate-400 block"
+                      >
+                        Nom complet (Prénom Nom)
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="auth-full-name"
+                          type="text"
+                          required
+                          placeholder={activeSector === "student" ? "ex: Étudiant Axelmond" : "ex: Pr. Louise Vitet"}
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
+                          className="w-full bg-slate-900 border border-slate-800 focus:border-slate-700 px-4 py-3 pl-11 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-700 transition-all"
+                        />
+                        <User className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="auth-email-login"
+                      className="text-[10px] uppercase font-black tracking-widest text-slate-400 block"
+                    >
+                      Adresse e-mail universitaire
+                    </label>
+                    <div className="relative">
+                      <input
+                        id="auth-email-login"
+                        type="email"
+                        required
+                        placeholder={activeSector === "student" ? "ex: etudiant@example.fr" : "ex: prof@example.fr"}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-800 focus:border-slate-700 px-4 py-3 pl-11 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-700 transition-all"
+                      />
+                      <Mail className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between items-center">
+                      <label
+                        htmlFor="auth-password"
+                        className="text-[10px] uppercase font-black tracking-widest text-slate-400"
+                      >
+                        Mot de passe de sécurité
+                      </label>
+                      {authMode === "login" && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAuthMode("forgot");
+                            setErrorMsg("");
+                            setSuccessMsg("");
+                          }}
+                          className={`text-[10px] font-bold hover:underline cursor-pointer ${
+                            activeSector === "student" ? "text-indigo-400" : "text-pink-400"
+                          }`}
+                        >
+                          Mot de passe oublié ?
+                        </button>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <input
+                        id="auth-password"
+                        type="password"
+                        required
+                        placeholder="Saisir votre mot de passe"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-800 focus:border-slate-700 px-4 py-3 pl-11 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-700 transition-all"
+                      />
+                      <Lock className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
+                    </div>
+                  </div>
+
+                  {authMode === "register" && (
+                    <div className="space-y-1.5 animate-in slide-in-from-top-1 duration-200">
+                      <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 block">
+                        {activeSector === "student" ? "Filière" : "Code d'invitation professeur"}
+                      </label>
+                      <input
+                        type="text"
+                        required={activeSector === "teacher"}
+                        placeholder={
+                          activeSector === "student"
+                            ? "ex: Informatique, Mathématiques, Physique..."
+                            : "Code fourni par l'administrateur"
+                        }
+                        value={activeSector === "student" ? filiere : professorInviteCode}
+                        onChange={(e) => {
+                          if (activeSector === "student") setFiliere(e.target.value);
+                          else setProfessorInviteCode(e.target.value);
+                        }}
+                        className="w-full bg-slate-900 border border-slate-800 focus:border-slate-700 px-4 py-3 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-700 transition-all"
+                      />
+                      {activeSector === "student" && (
+                        <p className="text-[9px] text-slate-500 italic">
+                          Facultatif. Indique votre filière si vous souhaitez personnaliser votre profil.
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className={`w-full py-3.5 rounded-xl text-xs font-black uppercase tracking-wider text-white transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                      activeSector === "student"
+                        ? "bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-900/30"
+                        : "bg-pink-600 hover:bg-pink-700 hover:shadow-pink-900/30"
+                    }`}
+                  >
+                    {authMode === "login" ? <LogIn className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
+                    {authMode === "login"
+                      ? activeSector === "student"
+                        ? "Se connecter"
+                        : "Se connecter"
+                      : "Créer mon Compte Académique"}
+                  </button>
+                </form>
+              )}
+
+              <div className="text-center pt-2">
+                <button
+                  onClick={() => {
+                    setVerificationEmail("");
+                    setVerificationCode("");
+                    if (authMode === "forgot" || authMode === "reset") {
+                      setAuthMode("login");
+                    } else {
+                      setAuthMode(authMode === "login" ? "register" : "login");
+                    }
+                    setErrorMsg("");
+                    setRateLimitError(null);
+                    setSuccessMsg("");
+                  }}
+                  className={`text-xs font-bold underline transition-colors ${
+                    activeSector === "student"
+                      ? "text-indigo-400 hover:text-indigo-300"
+                      : "text-pink-400 hover:text-pink-300"
+                  }`}
+                >
+                  {verificationEmail
+                    ? "Utiliser une autre adresse e-mail"
+                    : authMode === "forgot" || authMode === "reset"
+                      ? "Retour à la connexion"
+                      : authMode === "login"
+                        ? "Pas de compte ? S'inscrire maintenant"
+                        : "Déjà membre ? Se connecter à l'espace"}
+                </button>
+              </div>
+            </div>
           </main>
         </motion.div>
 

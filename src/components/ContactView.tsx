@@ -1,18 +1,18 @@
 import React, { useState } from "react";
-import { 
-  Mail, 
-  Phone, 
-  Globe, 
-  MapPin, 
-  Clock, 
-  ShieldCheck, 
-  Send, 
-  HelpCircle, 
-  Loader2, 
-  CheckCircle2, 
+import {
+  Mail,
+  Phone,
+  Globe,
+  MapPin,
+  Clock,
+  ShieldCheck,
+  Send,
+  HelpCircle,
+  Loader2,
+  CheckCircle2,
   AlertCircle,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
 } from "lucide-react";
 import { api } from "../api";
 
@@ -46,20 +46,24 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
   const faqItems = [
     {
       question: "Comment s'abonner à un module ?",
-      answer: "Rendez-vous dans le Catalogue des Modules, sélectionnez le module de votre choix, cliquez sur 'S'abonner' et suivez les instructions de paiement sécurisé. L'accès au contenu pédagogique est instantané pour une durée de 30 jours renouvelable."
+      answer:
+        "Rendez-vous dans le Catalogue des Modules, sélectionnez le module de votre choix, cliquez sur 'S'abonner' et suivez les instructions de paiement sécurisé. L'accès au contenu pédagogique est instantané pour une durée de 30 jours renouvelable.",
     },
     {
       question: "Comment participer aux sessions Live ?",
-      answer: "Lorsqu'une session en direct est lancée par un enseignant, une notification 'En direct' s'affiche sur votre tableau de bord et dans l'espace module. Cliquez simplement sur 'Rejoindre le live' pour vous connecter à la salle de visioconférence sécurisée LiveKit."
+      answer:
+        "Lorsqu'une session en direct est lancée par un enseignant, une notification 'En direct' s'affiche sur votre tableau de bord et dans l'espace module. Cliquez simplement sur 'Rejoindre le live' pour vous connecter à la salle de visioconférence sécurisée LiveKit.",
     },
     {
       question: "Mes notes et progrès de quiz sont-ils enregistrés ?",
-      answer: "Absolument. Chaque tentative de quiz, ainsi que la progression au sein des chapitres et des sections, sont calculées et enregistrées de manière persistante sur nos serveurs. Vous pouvez suivre vos moyennes cumulées et votre taux de complétion depuis votre espace étudiant."
+      answer:
+        "Absolument. Chaque tentative de quiz, ainsi que la progression au sein des chapitres et des sections, sont calculées et enregistrées de manière persistante sur nos serveurs. Vous pouvez suivre vos moyennes cumulées et votre taux de complétion depuis votre espace étudiant.",
     },
     {
       question: "Je rencontre un problème technique ou de connexion, que faire ?",
-      answer: "Assurez-vous que votre navigateur est à jour et que votre connexion internet est stable. Si vous rencontrez un dysfonctionnement (lecteur vidéo, chat en direct ou téléchargement de ressources), décrivez précisément l'action effectuée via ce formulaire afin que notre support technique puisse vous assister."
-    }
+      answer:
+        "Assurez-vous que votre navigateur est à jour et que votre connexion internet est stable. Si vous rencontrez un dysfonctionnement (lecteur vidéo, chat en direct ou téléchargement de ressources), décrivez précisément l'action effectuée via ce formulaire afin que notre support technique puisse vous assister.",
+    },
   ];
 
   const categories = [
@@ -67,7 +71,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
     "Questions Pédagogiques",
     "Facturation & Inscriptions",
     "Partenariats & Recherche",
-    "Autre Demande"
+    "Autre Demande",
   ];
 
   const toggleFaq = (index: number) => {
@@ -98,7 +102,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
     e.preventDefault();
     setSuccessMsg("");
     setErrorMsg("");
-    
+
     if (!validateForm()) return;
 
     setIsLoading(true);
@@ -108,9 +112,9 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
         email,
         subject,
         category,
-        message
+        message,
       });
-      
+
       setSuccessMsg(response.message || "Votre message a été transmis avec succès.");
       setSubject("");
       setMessage("");
@@ -125,7 +129,6 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-8 animate-in fade-in duration-200">
-      
       {/* Title Header Card */}
       <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-slate-900 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-lg border border-indigo-950">
         <div className="relative z-10 max-w-3xl space-y-3">
@@ -136,14 +139,14 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
             Contacter Axelmond Research Labs
           </h1>
           <p className="text-slate-300 text-sm md:text-base leading-relaxed">
-            Pour toute demande d'assistance technique, pédagogique, administrative ou pour des opportunités de recherche, nos équipes sont à votre entière disposition.
+            Pour toute demande d'assistance technique, pédagogique, administrative ou pour des opportunités de
+            recherche, nos équipes sont à votre entière disposition.
           </p>
         </div>
       </div>
 
       {/* Main Grid: Form (Left) & Info / FAQ (Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
         {/* Left Column: Form & Security Box */}
         <div className="lg:col-span-7 space-y-6">
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-sm space-y-6 text-white">
@@ -210,7 +213,10 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Catégorie */}
                 <div className="space-y-1.5 md:col-span-1">
-                  <label htmlFor="contact-category" className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  <label
+                    htmlFor="contact-category"
+                    className="text-xs font-bold text-slate-400 uppercase tracking-wider"
+                  >
                     Catégorie
                   </label>
                   <select
@@ -233,7 +239,10 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
 
                 {/* Sujet */}
                 <div className="space-y-1.5 md:col-span-2">
-                  <label htmlFor="contact-subject" className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  <label
+                    htmlFor="contact-subject"
+                    className="text-xs font-bold text-slate-400 uppercase tracking-wider"
+                  >
                     Sujet de la demande
                   </label>
                   <input
@@ -297,9 +306,13 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div className="space-y-1">
-              <h4 className="text-sm font-bold text-indigo-300">Données Sécurisées & Protection des données (loi 09-08)</h4>
+              <h4 className="text-sm font-bold text-indigo-300">
+                Données Sécurisées & Protection des données (loi 09-08)
+              </h4>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Les informations recueillies via ce formulaire sont cryptées de bout en bout et font l'objet d'un audit de sécurité. Elles sont utilisées exclusivement pour traiter votre demande par l'administration d'Axelmond Research Labs et ne seront jamais partagées avec des tiers.
+                Les informations recueillies via ce formulaire sont cryptées de bout en bout et font l'objet d'un audit
+                de sécurité. Elles sont utilisées exclusivement pour traiter votre demande par l'administration
+                d'Axelmond Research Labs et ne seront jamais partagées avec des tiers.
               </p>
             </div>
           </div>
@@ -307,7 +320,6 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
 
         {/* Right Column: Contact Info & FAQ */}
         <div className="lg:col-span-5 space-y-6">
-          
           {/* Card: Contact coordinates */}
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-sm space-y-5 text-white">
             <h2 className="text-lg font-bold text-white border-b border-slate-850 pb-3 flex items-center gap-2">
@@ -323,7 +335,9 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
                   <p className="font-bold text-slate-300">Adresse de l'Institut</p>
                   <p className="text-xs text-slate-400">Axelmond Research Labs</p>
                   <p className="text-xs text-slate-400">Casablanca, Maroc</p>
-                  <p className="text-[10px] text-slate-500 italic mt-1">Adresse complète communiquée sur demande administrative.</p>
+                  <p className="text-[10px] text-slate-500 italic mt-1">
+                    Adresse complète communiquée sur demande administrative.
+                  </p>
                 </div>
               </div>
 
@@ -367,7 +381,9 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
                 <div>
                   <p className="font-bold text-slate-300">Portail Universitaire</p>
                   <p className="text-xs text-slate-450 hover:text-indigo-400 transition-colors">
-                    <a href="https://www.axelmond.com" target="_blank" rel="noopener noreferrer">www.axelmond.com</a>
+                    <a href="https://www.axelmond.com" target="_blank" rel="noopener noreferrer">
+                      www.axelmond.com
+                    </a>
                   </p>
                 </div>
               </div>
@@ -378,7 +394,9 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
                 <div>
                   <p className="font-bold text-slate-300">Heures de Permanence</p>
                   <p className="text-xs text-slate-400">Lundi - Vendredi : 08:30 - 18:30</p>
-                  <p className="text-xs text-slate-500 italic mt-0.5">Fermé le week-end et les jours fériés académiques</p>
+                  <p className="text-xs text-slate-500 italic mt-0.5">
+                    Fermé le week-end et les jours fériés académiques
+                  </p>
                 </div>
               </div>
             </div>
@@ -395,7 +413,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
               {faqItems.map((item, index) => {
                 const isOpen = openFaqIndex === index;
                 return (
-                  <div 
+                  <div
                     key={index}
                     className="border border-slate-850 rounded-xl overflow-hidden transition-all duration-200"
                   >
@@ -423,20 +441,20 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
 
             {/* Quick Links Footer */}
             <div className="pt-2 border-t border-slate-850 flex flex-wrap gap-x-4 gap-y-2 justify-between text-xs text-slate-450">
-              <button 
-                onClick={() => navigateTo("catalog")} 
+              <button
+                onClick={() => navigateTo("catalog")}
                 className="hover:text-indigo-400 hover:underline cursor-pointer"
               >
                 Catalogue
               </button>
-              <button 
-                onClick={() => navigateTo("profile")} 
+              <button
+                onClick={() => navigateTo("profile")}
                 className="hover:text-indigo-400 hover:underline cursor-pointer"
               >
                 Mon Profil
               </button>
-              <button 
-                onClick={() => navigateTo("support")} 
+              <button
+                onClick={() => navigateTo("support")}
                 className="hover:text-indigo-400 hover:underline cursor-pointer"
               >
                 Support technique
@@ -444,7 +462,6 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );

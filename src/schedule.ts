@@ -104,10 +104,7 @@ export function findScheduleOverlap(
   return null;
 }
 
-export function canAccessProfessorScheduleSession(
-  sessionProfessorId: string,
-  authUserId: string,
-): boolean {
+export function canAccessProfessorScheduleSession(sessionProfessorId: string, authUserId: string): boolean {
   return sessionProfessorId === authUserId;
 }
 
@@ -168,7 +165,8 @@ export function serializeScheduleSession(session: ScheduleSessionRecord) {
     startTime: session.startTime,
     endTime: session.endTime,
     sessionType: session.sessionType,
-    sessionTypeLabel: SCHEDULE_SESSION_TYPES.find((type) => type.value === session.sessionType)?.label || session.sessionType,
+    sessionTypeLabel:
+      SCHEDULE_SESSION_TYPES.find((type) => type.value === session.sessionType)?.label || session.sessionType,
     roomOrLink: session.roomOrLink || "",
     description: session.description || "",
   };

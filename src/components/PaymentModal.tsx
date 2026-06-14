@@ -57,7 +57,8 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
 
   useEffect(() => {
     let active = true;
-    api.getPayPalConfig()
+    api
+      .getPayPalConfig()
       .then((config) => {
         if (active) setPaypalConfig(config);
       })
@@ -145,9 +146,10 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
     }
   };
 
-  const checkoutEquivalent = paypalConfig && paypalConfig.currency !== PLATFORM_CURRENCY_CODE
-    ? `${(finalPrice * PAYPAL_MAD_TO_USD_RATE).toFixed(2)} ${paypalConfig.currency}`
-    : null;
+  const checkoutEquivalent =
+    paypalConfig && paypalConfig.currency !== PLATFORM_CURRENCY_CODE
+      ? `${(finalPrice * PAYPAL_MAD_TO_USD_RATE).toFixed(2)} ${paypalConfig.currency}`
+      : null;
   const displayedCheckoutAmount = orderPreviewAmount ?? checkoutEquivalent;
 
   return (
@@ -189,8 +191,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                   Activer votre abonnement
                 </h2>
                 <p className="mt-1.5 line-clamp-2 text-sm leading-snug text-slate-400">
-                  Module{" "}
-                  <span className="font-semibold text-slate-200">{course.title}</span>
+                  Module <span className="font-semibold text-slate-200">{course.title}</span>
                 </p>
               </div>
 
@@ -208,9 +209,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                       </div>
                       <div className="shrink-0 text-right">
                         {appliedDiscount > 0 && (
-                          <p className="text-xs font-medium text-slate-500 line-through">
-                            {formatMad(originalPrice)}
-                          </p>
+                          <p className="text-xs font-medium text-slate-500 line-through">{formatMad(originalPrice)}</p>
                         )}
                         <div className="flex items-baseline justify-end gap-1">
                           <span className="text-[2rem] font-black leading-none tracking-tight text-white">
@@ -240,7 +239,10 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
 
                   {/* Promo */}
                   <div className="space-y-2">
-                    <label htmlFor="promo-code" className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                    <label
+                      htmlFor="promo-code"
+                      className="text-[10px] font-bold uppercase tracking-widest text-slate-500"
+                    >
                       Code promo
                     </label>
                     <div className="relative">
@@ -273,9 +275,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
 
                   {/* PayPal */}
                   <div className="space-y-2.5">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                      Payer avec PayPal
-                    </p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Payer avec PayPal</p>
 
                     {configError && (
                       <p className="rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2.5 text-xs font-medium text-red-300">
@@ -297,9 +297,8 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                             <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-indigo-300" />
                             <p className="text-[11px] leading-relaxed text-indigo-100/90">
                               Tarif affiché en{" "}
-                              <span className="font-semibold text-white">{PLATFORM_CURRENCY_CODE}</span>
-                              . Encaissement sécurisé en{" "}
-                              <span className="font-semibold text-indigo-200">{paypalConfig.currency}</span>
+                              <span className="font-semibold text-white">{PLATFORM_CURRENCY_CODE}</span>. Encaissement
+                              sécurisé en <span className="font-semibold text-indigo-200">{paypalConfig.currency}</span>
                               {displayedCheckoutAmount ? ` (~${displayedCheckoutAmount})` : ""}.
                             </p>
                           </div>
@@ -332,8 +331,10 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                               }}
                               onError={(err) => {
                                 console.error("[paypal] checkout error", err);
-                                setPaymentError((current) =>
-                                  current || "Erreur PayPal. Veuillez réessayer ou utiliser un autre moyen de paiement.",
+                                setPaymentError(
+                                  (current) =>
+                                    current ||
+                                    "Erreur PayPal. Veuillez réessayer ou utiliser un autre moyen de paiement.",
                                 );
                               }}
                               onCancel={() => {
@@ -396,8 +397,8 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
               </div>
               <h3 className="mt-5 text-xl font-bold text-white">Paiement confirmé</h3>
               <p className="mt-2 max-w-xs text-sm leading-relaxed text-slate-400">
-                Votre accès au module{" "}
-                <span className="font-semibold text-slate-200">{course.title}</span> est maintenant actif.
+                Votre accès au module <span className="font-semibold text-slate-200">{course.title}</span> est
+                maintenant actif.
               </p>
               <button
                 type="button"

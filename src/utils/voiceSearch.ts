@@ -1,5 +1,4 @@
-export const VOICE_SEARCH_UNSUPPORTED_MSG =
-  "Reconnaissance vocale non supportée par ce navigateur.";
+export const VOICE_SEARCH_UNSUPPORTED_MSG = "Reconnaissance vocale non supportée par ce navigateur.";
 
 export const VOICE_SEARCH_INSECURE_CONTEXT_MSG =
   "La reconnaissance vocale nécessite une connexion HTTPS sécurisée (https://).";
@@ -8,20 +7,16 @@ export const VOICE_SEARCH_MICROPHONE_DENIED_MSG = "Microphone refusé.";
 
 export const VOICE_SEARCH_SERVICE_UNAVAILABLE_MSG = "Service vocal indisponible.";
 
-export const VOICE_SEARCH_NETWORK_ERROR_MSG =
-  "Erreur réseau du moteur de reconnaissance vocale.";
+export const VOICE_SEARCH_NETWORK_ERROR_MSG = "Erreur réseau du moteur de reconnaissance vocale.";
 
 export const VOICE_SEARCH_BRAVE_FALLBACK_MSG =
   "Service vocal indisponible sur ce navigateur. Sur Brave, désactivez Shields pour ce site ou utilisez Chrome/Edge.";
 
-export const VOICE_SEARCH_NO_SPEECH_MSG =
-  "Aucune parole détectée. Réessayez en parlant près du micro.";
+export const VOICE_SEARCH_NO_SPEECH_MSG = "Aucune parole détectée. Réessayez en parlant près du micro.";
 
-export const VOICE_SEARCH_AUDIO_CAPTURE_MSG =
-  "Microphone introuvable ou indisponible sur cet appareil.";
+export const VOICE_SEARCH_AUDIO_CAPTURE_MSG = "Microphone introuvable ou indisponible sur cet appareil.";
 
-export const VOICE_SEARCH_GENERIC_ERROR_MSG =
-  "La recherche vocale est momentanément indisponible. Réessayez.";
+export const VOICE_SEARCH_GENERIC_ERROR_MSG = "La recherche vocale est momentanément indisponible. Réessayez.";
 
 /** Durée max d'écoute avant arrêt automatique (Chrome coupe souvent vers 5–7 s sans réglage). */
 export const VOICE_SEARCH_MAX_LISTEN_MS = 12_000;
@@ -110,9 +105,7 @@ export function mapSpeechRecognitionError(code: string, options?: { likelyBrave?
     case "not-allowed":
       return VOICE_SEARCH_MICROPHONE_DENIED_MSG;
     case "service-not-allowed":
-      return options?.likelyBrave
-        ? VOICE_SEARCH_BRAVE_FALLBACK_MSG
-        : VOICE_SEARCH_SERVICE_UNAVAILABLE_MSG;
+      return options?.likelyBrave ? VOICE_SEARCH_BRAVE_FALLBACK_MSG : VOICE_SEARCH_SERVICE_UNAVAILABLE_MSG;
     case "no-speech":
       return VOICE_SEARCH_NO_SPEECH_MSG;
     case "aborted":
@@ -120,27 +113,17 @@ export function mapSpeechRecognitionError(code: string, options?: { likelyBrave?
     case "audio-capture":
       return VOICE_SEARCH_AUDIO_CAPTURE_MSG;
     case "network":
-      return options?.likelyBrave
-        ? VOICE_SEARCH_BRAVE_FALLBACK_MSG
-        : VOICE_SEARCH_NETWORK_ERROR_MSG;
+      return options?.likelyBrave ? VOICE_SEARCH_BRAVE_FALLBACK_MSG : VOICE_SEARCH_NETWORK_ERROR_MSG;
     default:
       return VOICE_SEARCH_GENERIC_ERROR_MSG;
   }
 }
 
-export function logVoiceSearchError(
-  event: SpeechRecognitionErrorEvent,
-  context?: Record<string, unknown>,
-): void {
-  console.error(
-    "[Voice Search Error]",
-    event.error,
-    event.message || "",
-    {
-      ...getVoiceSearchDiagnostics(),
-      ...context,
-    },
-  );
+export function logVoiceSearchError(event: SpeechRecognitionErrorEvent, context?: Record<string, unknown>): void {
+  console.error("[Voice Search Error]", event.error, event.message || "", {
+    ...getVoiceSearchDiagnostics(),
+    ...context,
+  });
 }
 
 export function extractTranscript(event: SpeechRecognitionEvent): string {

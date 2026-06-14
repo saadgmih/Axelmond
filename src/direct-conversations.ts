@@ -15,10 +15,7 @@ export async function findDirectConversationId(userAId: string, userBId: string)
 
   const conversation = await prisma.conversation.findFirst({
     where: {
-      AND: [
-        { participants: { some: { userId: userAId } } },
-        { participants: { some: { userId: userBId } } },
-      ],
+      AND: [{ participants: { some: { userId: userAId } } }, { participants: { some: { userId: userBId } } }],
     },
     include: { participants: true },
   });

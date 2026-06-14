@@ -13,10 +13,7 @@ const CSRF_EXEMPT_PATHS = new Set([
   "/api/auth/reset-password",
 ]);
 
-const CSRF_EXEMPT_PREFIXES = [
-  "/api/uploadthing",
-  "/api/paypal/webhook",
-];
+const CSRF_EXEMPT_PREFIXES = ["/api/uploadthing", "/api/paypal/webhook"];
 
 function isCsrfExempt(req: Request): boolean {
   if (!UNSAFE_METHODS.has(req.method)) return true;
@@ -24,9 +21,7 @@ function isCsrfExempt(req: Request): boolean {
   const path = req.path;
   if (CSRF_EXEMPT_PATHS.has(path)) return true;
 
-  return CSRF_EXEMPT_PREFIXES.some(
-    (prefix) => path === prefix || path.startsWith(`${prefix}/`),
-  );
+  return CSRF_EXEMPT_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
 }
 
 function isMobileCsrfExempt(req: Request): boolean {
@@ -39,9 +34,9 @@ function isMobileCsrfExempt(req: Request): boolean {
 
   const refreshToken = req.body?.refreshToken;
   if (
-    typeof refreshToken === "string"
-    && refreshToken.length > 0
-    && (req.path === "/api/auth/refresh" || req.path === "/api/auth/logout")
+    typeof refreshToken === "string" &&
+    refreshToken.length > 0 &&
+    (req.path === "/api/auth/refresh" || req.path === "/api/auth/logout")
   ) {
     return true;
   }
@@ -64,10 +59,10 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction):
   const cookieToken = req.cookies?.[CSRF_COOKIE_NAME];
 
   if (
-    typeof headerToken !== "string"
-    || typeof cookieToken !== "string"
-    || headerToken.length === 0
-    || headerToken !== cookieToken
+    typeof headerToken !== "string" ||
+    typeof cookieToken !== "string" ||
+    headerToken.length === 0 ||
+    headerToken !== cookieToken
   ) {
     res.status(403).json({
       error: "Jeton CSRF invalide ou manquant",

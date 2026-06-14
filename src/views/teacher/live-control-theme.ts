@@ -5,8 +5,7 @@ export const liveControlUi = {
     "relative overflow-hidden rounded-3xl border border-indigo-500/25 bg-[#070b14] p-5 shadow-2xl shadow-indigo-950/30 sm:p-6 md:p-8",
   shellGlow:
     "pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-br from-pink-500/10 via-indigo-500/5 to-transparent",
-  shellBorder:
-    "pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-inset ring-white/[0.06]",
+  shellBorder: "pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-inset ring-white/[0.06]",
   hero: "relative z-10 flex flex-col gap-6 border-b border-white/[0.06] pb-6 lg:flex-row lg:items-center lg:justify-between",
   heroIcon:
     "flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-500 to-violet-600 shadow-lg shadow-pink-900/40",
@@ -22,17 +21,14 @@ export const liveControlUi = {
   sectionTitle: "text-[11px] font-black uppercase tracking-[0.14em] text-white",
   sectionDesc: "mt-0.5 text-[11px] text-slate-500 leading-relaxed",
   fieldWrap: "relative",
-  fieldIcon:
-    "pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500",
+  fieldIcon: "pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500",
   select:
     "w-full appearance-none rounded-xl border border-white/[0.08] bg-[#050810] py-3.5 pl-10 pr-10 text-xs font-semibold text-slate-100 transition-all focus:border-pink-500/40 focus:outline-none focus:ring-4 focus:ring-pink-500/10",
   input:
     "w-full rounded-xl border border-white/[0.08] bg-[#050810] py-3.5 pl-10 pr-4 text-xs font-semibold text-slate-100 placeholder:text-slate-600 transition-all focus:border-pink-500/40 focus:outline-none focus:ring-4 focus:ring-pink-500/10",
-  selectChevron:
-    "pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500",
+  selectChevron: "pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500",
   syncNote: "flex items-center gap-1.5 text-[10px] text-slate-500",
-  broadcastCard:
-    "relative z-10 rounded-2xl border border-white/[0.08] bg-[#0c101a]/90 p-4 sm:p-5",
+  broadcastCard: "relative z-10 rounded-2xl border border-white/[0.08] bg-[#0c101a]/90 p-4 sm:p-5",
   liveBadge:
     "inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/50 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-400",
   liveDot: "relative flex h-2 w-2",

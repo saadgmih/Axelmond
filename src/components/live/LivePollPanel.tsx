@@ -41,7 +41,9 @@ export default function LivePollPanel({
       )}
 
       {pollActive && (
-        <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Sondage en cours · {totalVotes} vote{totalVotes > 1 ? "s" : ""}</p>
+        <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">
+          Sondage en cours · {totalVotes} vote{totalVotes > 1 ? "s" : ""}
+        </p>
       )}
 
       <div className="space-y-2">
@@ -67,7 +69,9 @@ export default function LivePollPanel({
               />
               <div className="relative flex items-center justify-between gap-3">
                 <span className="text-xs font-semibold text-zinc-100">{option}</span>
-                <span className="text-[10px] font-black text-indigo-300">{ratio}% ({votes})</span>
+                <span className="text-[10px] font-black text-indigo-300">
+                  {ratio}% ({votes})
+                </span>
               </div>
             </button>
           );

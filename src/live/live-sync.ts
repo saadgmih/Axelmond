@@ -43,11 +43,7 @@ export type LiveSyncMessage =
   | { type: "RESOURCE_DISMISS" };
 
 export const DEFAULT_POLL_QUESTION = "Comprenez-vous la notion de base abordée ?";
-export const DEFAULT_POLL_OPTIONS = [
-  "Oui, c'est très clair",
-  "J'ai besoin de plus d'exemples",
-  "Non, je suis perdu",
-];
+export const DEFAULT_POLL_OPTIONS = ["Oui, c'est très clair", "J'ai besoin de plus d'exemples", "Non, je suis perdu"];
 
 export function createEmptyPoll(): LivePollState {
   const votes: Record<string, number> = {};

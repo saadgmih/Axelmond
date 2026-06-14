@@ -37,7 +37,11 @@ function LiveParticipantTile({
   return (
     <div
       className={`relative rounded-2xl overflow-hidden border shadow-xl transition-all ${
-        isSolo ? "h-full min-h-[240px]" : isFeatured ? "min-h-[220px] sm:min-h-[280px]" : "min-h-[140px] sm:min-h-[180px]"
+        isSolo
+          ? "h-full min-h-[240px]"
+          : isFeatured
+            ? "min-h-[220px] sm:min-h-[280px]"
+            : "min-h-[140px] sm:min-h-[180px]"
       } ${isActive ? "border-indigo-400 ring-2 ring-indigo-500/40" : "border-white/10 bg-zinc-900/80"}`}
     >
       {hasVideo ? (

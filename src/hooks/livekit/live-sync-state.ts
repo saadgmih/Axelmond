@@ -1,16 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { Room } from "livekit-client";
-import type {
-  LivePollState,
-  LiveSharedResource,
-  LiveSyncMessage,
-  LiveWhiteboardStroke,
-} from "../../live/live-sync";
-import {
-  appendWhiteboardStroke,
-  applyPollStart,
-  mergePollVote,
-} from "../../live/live-sync";
+import type { LivePollState, LiveSharedResource, LiveSyncMessage, LiveWhiteboardStroke } from "../../live/live-sync";
+import { appendWhiteboardStroke, applyPollStart, mergePollVote } from "../../live/live-sync";
 
 export function applyLiveSyncMessage(
   message: LiveSyncMessage,

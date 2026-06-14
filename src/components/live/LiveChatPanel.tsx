@@ -98,9 +98,13 @@ export default function LiveChatPanel({
               className="w-full bg-zinc-900 border border-white/5 rounded-lg px-3 py-2 text-xs text-white mb-4 focus:outline-none focus:border-indigo-500"
             >
               <option value="">Sélectionner un destinataire...</option>
-              {connectedParticipants.filter((p) => !p.isLocal).map((p) => (
-                <option key={p.identity} value={p.name}>{p.name}</option>
-              ))}
+              {connectedParticipants
+                .filter((p) => !p.isLocal)
+                .map((p) => (
+                  <option key={p.identity} value={p.name}>
+                    {p.name}
+                  </option>
+                ))}
             </select>
           )}
 
@@ -111,9 +115,7 @@ export default function LiveChatPanel({
                 <p className="text-xs text-zinc-400">Le chat académique est ouvert.</p>
               </div>
             ) : (
-              chatMessages.map((message) => (
-                <LiveChatMessageRow key={message.id} message={message} />
-              ))
+              chatMessages.map((message) => <LiveChatMessageRow key={message.id} message={message} />)
             )}
           </div>
 

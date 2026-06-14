@@ -1,12 +1,4 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 export interface AccessibilityPreferences {
   highContrast: boolean;
@@ -25,8 +17,7 @@ function readStoredPreferences(): AccessibilityPreferences {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
-      const prefersReduced =
-        window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+      const prefersReduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
       return { ...DEFAULT_PREFERENCES, reduceMotion: prefersReduced };
     }
     const parsed = JSON.parse(raw) as Partial<AccessibilityPreferences>;
@@ -55,13 +46,10 @@ interface AccessibilityPreferencesContextValue {
   toggleReduceMotion: () => void;
 }
 
-const AccessibilityPreferencesContext =
-  createContext<AccessibilityPreferencesContextValue | null>(null);
+const AccessibilityPreferencesContext = createContext<AccessibilityPreferencesContextValue | null>(null);
 
 export function AccessibilityPreferencesProvider({ children }: { children: ReactNode }) {
-  const [preferences, setPreferences] = useState<AccessibilityPreferences>(() =>
-    readStoredPreferences(),
-  );
+  const [preferences, setPreferences] = useState<AccessibilityPreferences>(() => readStoredPreferences());
 
   useEffect(() => {
     applyAccessibilityPreferences(preferences);
@@ -106,11 +94,7 @@ export function AccessibilityPreferencesProvider({ children }: { children: React
     [preferences, setHighContrast, setReduceMotion, toggleHighContrast, toggleReduceMotion],
   );
 
-  return (
-    <AccessibilityPreferencesContext.Provider value={value}>
-      {children}
-    </AccessibilityPreferencesContext.Provider>
-  );
+  return <AccessibilityPreferencesContext.Provider value={value}>{children}</AccessibilityPreferencesContext.Provider>;
 }
 
 export function useAccessibilityPreferences() {

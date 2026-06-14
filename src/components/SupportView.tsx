@@ -38,17 +38,65 @@ export default function SupportView({ navigateTo }: SupportViewProps) {
   const faqCategories = ["Toutes", "Modules", "Compte", "Paiements", "Sécurité", "Support Technique"];
 
   const faqItems: FaqItem[] = [
-    { category: "Modules", question: "Comment s'inscrire à un module ?", answer: "Rendez-vous dans le Catalogue des Modules, sélectionnez le module de votre choix, cliquez sur 'S'abonner' et procédez au paiement. L'accès est validé instantanément pour 30 jours." },
-    { category: "Modules", question: "Où trouver mes notes de quiz ?", answer: "Vos notes de quiz sont sauvegardées automatiquement et affichées dans l'espace notes ou progrès de chaque module." },
-    { category: "Modules", question: "Puis-je télécharger les vidéos de module ?", answer: "Les vidéos sont disponibles en streaming uniquement. Les supports PDF peuvent être téléchargés depuis chaque module." },
-    { category: "Compte", question: "Comment changer mon mot de passe ?", answer: "Les professeurs et chercheurs peuvent changer leur mot de passe depuis leur profil académique. Les étudiants doivent contacter l'administration." },
-    { category: "Compte", question: "Je n'ai pas reçu mon code de vérification d'email", answer: "Vérifiez vos spams. Si le code n'arrive pas, cliquez sur 'Renvoyer le code' sur la page de connexion." },
-    { category: "Paiements", question: "Quels sont les modes de paiement acceptés ?", answer: "Paiements sécurisés via PayPal Checkout uniquement." },
-    { category: "Paiements", question: "Où télécharger mes factures ?", answer: "Dans la section facturation de votre profil utilisateur." },
-    { category: "Sécurité", question: "Mes données sont-elles protégées ?", answer: "Oui, conformément à la loi n° 09-08 sur la protection des données personnelles au Maroc." },
-    { category: "Support Technique", question: "La visioconférence (Live) ne fonctionne pas", answer: "Autorisez caméra/micro dans le navigateur et vérifiez une connexion d'au moins 2 Mbps." },
-    { category: "Support Technique", question: "L'upload d'un fichier échoue", answer: "Vérifiez la taille (max 8 Mo images, 32 Mo PDF) et le type de fichier." },
-    { category: "Support Technique", question: "Erreur réseau récurrente", answer: "Videz le cache (Ctrl+F5) ou essayez une fenêtre de navigation privée." },
+    {
+      category: "Modules",
+      question: "Comment s'inscrire à un module ?",
+      answer:
+        "Rendez-vous dans le Catalogue des Modules, sélectionnez le module de votre choix, cliquez sur 'S'abonner' et procédez au paiement. L'accès est validé instantanément pour 30 jours.",
+    },
+    {
+      category: "Modules",
+      question: "Où trouver mes notes de quiz ?",
+      answer:
+        "Vos notes de quiz sont sauvegardées automatiquement et affichées dans l'espace notes ou progrès de chaque module.",
+    },
+    {
+      category: "Modules",
+      question: "Puis-je télécharger les vidéos de module ?",
+      answer:
+        "Les vidéos sont disponibles en streaming uniquement. Les supports PDF peuvent être téléchargés depuis chaque module.",
+    },
+    {
+      category: "Compte",
+      question: "Comment changer mon mot de passe ?",
+      answer:
+        "Les professeurs et chercheurs peuvent changer leur mot de passe depuis leur profil académique. Les étudiants doivent contacter l'administration.",
+    },
+    {
+      category: "Compte",
+      question: "Je n'ai pas reçu mon code de vérification d'email",
+      answer: "Vérifiez vos spams. Si le code n'arrive pas, cliquez sur 'Renvoyer le code' sur la page de connexion.",
+    },
+    {
+      category: "Paiements",
+      question: "Quels sont les modes de paiement acceptés ?",
+      answer: "Paiements sécurisés via PayPal Checkout uniquement.",
+    },
+    {
+      category: "Paiements",
+      question: "Où télécharger mes factures ?",
+      answer: "Dans la section facturation de votre profil utilisateur.",
+    },
+    {
+      category: "Sécurité",
+      question: "Mes données sont-elles protégées ?",
+      answer: "Oui, conformément à la loi n° 09-08 sur la protection des données personnelles au Maroc.",
+    },
+    {
+      category: "Support Technique",
+      question: "La visioconférence (Live) ne fonctionne pas",
+      answer: "Autorisez caméra/micro dans le navigateur et vérifiez une connexion d'au moins 2 Mbps.",
+    },
+    {
+      category: "Support Technique",
+      question: "L'upload d'un fichier échoue",
+      answer: "Vérifiez la taille (max 8 Mo images, 32 Mo PDF) et le type de fichier.",
+    },
+    {
+      category: "Support Technique",
+      question: "Erreur réseau récurrente",
+      answer: "Videz le cache (Ctrl+F5) ou essayez une fenêtre de navigation privée.",
+    },
   ];
 
   useEffect(() => {
@@ -59,20 +107,30 @@ export default function SupportView({ navigateTo }: SupportViewProps) {
 
   const getCategoryIcon = (catName: string) => {
     switch (catName) {
-      case "Modules": return <BookOpen className="w-4 h-4" />;
-      case "Compte": return <User className="w-4 h-4" />;
-      case "Paiements": return <CreditCard className="w-4 h-4" />;
-      case "Sécurité": return <ShieldAlert className="w-4 h-4" />;
-      case "Support Technique": return <Wrench className="w-4 h-4" />;
-      default: return <HelpCircle className="w-4 h-4" />;
+      case "Modules":
+        return <BookOpen className="w-4 h-4" />;
+      case "Compte":
+        return <User className="w-4 h-4" />;
+      case "Paiements":
+        return <CreditCard className="w-4 h-4" />;
+      case "Sécurité":
+        return <ShieldAlert className="w-4 h-4" />;
+      case "Support Technique":
+        return <Wrench className="w-4 h-4" />;
+      default:
+        return <HelpCircle className="w-4 h-4" />;
     }
   };
 
-  const filteredFaq = useMemo(() => faqItems.filter((item) => {
-    const matchesCategory = selectedFaqCategory === "Toutes" || item.category === selectedFaqCategory;
-    const q = searchQuery.toLowerCase();
-    return matchesCategory && (item.question.toLowerCase().includes(q) || item.answer.toLowerCase().includes(q));
-  }), [searchQuery, selectedFaqCategory]);
+  const filteredFaq = useMemo(
+    () =>
+      faqItems.filter((item) => {
+        const matchesCategory = selectedFaqCategory === "Toutes" || item.category === selectedFaqCategory;
+        const q = searchQuery.toLowerCase();
+        return matchesCategory && (item.question.toLowerCase().includes(q) || item.answer.toLowerCase().includes(q));
+      }),
+    [searchQuery, selectedFaqCategory],
+  );
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-8 animate-in fade-in duration-200">
@@ -102,15 +160,27 @@ export default function SupportView({ navigateTo }: SupportViewProps) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <button type="button" onClick={() => navigateTo("catalog")} className="bg-slate-900 border border-slate-800 p-4 rounded-2xl text-left text-white hover:border-slate-600 flex items-center justify-between">
+        <button
+          type="button"
+          onClick={() => navigateTo("catalog")}
+          className="bg-slate-900 border border-slate-800 p-4 rounded-2xl text-left text-white hover:border-slate-600 flex items-center justify-between"
+        >
           <span className="text-xs font-bold">Catalogue des modules</span>
           <ArrowRight className="w-4 h-4 text-slate-500" />
         </button>
-        <button type="button" onClick={() => navigateTo("contact")} className="bg-slate-900 border border-slate-800 p-4 rounded-2xl text-left text-white hover:border-slate-600 flex items-center justify-between">
+        <button
+          type="button"
+          onClick={() => navigateTo("contact")}
+          className="bg-slate-900 border border-slate-800 p-4 rounded-2xl text-left text-white hover:border-slate-600 flex items-center justify-between"
+        >
           <span className="text-xs font-bold">Contacter le secrétariat</span>
           <ArrowRight className="w-4 h-4 text-slate-500" />
         </button>
-        <button type="button" onClick={() => scrollToSupportReportForm()} className="bg-amber-950/30 border border-amber-800/40 p-4 rounded-2xl text-left text-amber-100 hover:border-amber-600/50 flex items-center justify-between">
+        <button
+          type="button"
+          onClick={() => scrollToSupportReportForm()}
+          className="bg-amber-950/30 border border-amber-800/40 p-4 rounded-2xl text-left text-amber-100 hover:border-amber-600/50 flex items-center justify-between"
+        >
           <span className="text-xs font-bold">Signaler un problème</span>
           <ArrowRight className="w-4 h-4 text-amber-400" />
         </button>
@@ -140,7 +210,10 @@ export default function SupportView({ navigateTo }: SupportViewProps) {
               <button
                 key={cat}
                 type="button"
-                onClick={() => { setSelectedFaqCategory(cat); setOpenFaqIndex(null); }}
+                onClick={() => {
+                  setSelectedFaqCategory(cat);
+                  setOpenFaqIndex(null);
+                }}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 ${selectedFaqCategory === cat ? "bg-indigo-600 text-white" : "bg-slate-950 text-slate-400 hover:text-white"}`}
               >
                 {cat !== "Toutes" && getCategoryIcon(cat)}
@@ -150,29 +223,31 @@ export default function SupportView({ navigateTo }: SupportViewProps) {
           </div>
 
           <div className="space-y-3">
-            {filteredFaq.length > 0 ? filteredFaq.map((item, index) => {
-              const isOpen = openFaqIndex === index;
-              return (
-                <div key={item.question} className="border border-slate-800 rounded-xl overflow-hidden">
-                  <button
-                    type="button"
-                    onClick={() => setOpenFaqIndex(isOpen ? null : index)}
-                    className="w-full flex items-center justify-between p-3.5 text-left text-xs font-bold text-slate-300 hover:bg-slate-850/50"
-                  >
-                    <span className="flex items-center gap-2">
-                      <span className="text-slate-500">{getCategoryIcon(item.category)}</span>
-                      {item.question}
-                    </span>
-                    {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                  </button>
-                  {isOpen && (
-                    <div className="p-3.5 bg-slate-950/30 text-xs text-slate-400 border-t border-slate-800 leading-relaxed">
-                      {item.answer}
-                    </div>
-                  )}
-                </div>
-              );
-            }) : (
+            {filteredFaq.length > 0 ? (
+              filteredFaq.map((item, index) => {
+                const isOpen = openFaqIndex === index;
+                return (
+                  <div key={item.question} className="border border-slate-800 rounded-xl overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setOpenFaqIndex(isOpen ? null : index)}
+                      className="w-full flex items-center justify-between p-3.5 text-left text-xs font-bold text-slate-300 hover:bg-slate-850/50"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="text-slate-500">{getCategoryIcon(item.category)}</span>
+                        {item.question}
+                      </span>
+                      {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </button>
+                    {isOpen && (
+                      <div className="p-3.5 bg-slate-950/30 text-xs text-slate-400 border-t border-slate-800 leading-relaxed">
+                        {item.answer}
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            ) : (
               <div className="p-8 text-center text-slate-500">
                 <AlertCircle className="w-8 h-8 mx-auto text-slate-600 mb-2" />
                 <p className="text-xs">Aucune question ne correspond à votre recherche.</p>

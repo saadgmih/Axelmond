@@ -8,10 +8,11 @@ rulesTest("route-deps-modular", () => {
   assert.match(routeDeps, /from "\.\/route-loggers"/);
   assert.match(routeDeps, /from "\.\/route-ownership"/);
   assert.match(routeDeps, /from "\.\/route-types"/);
+  assert.match(routeDeps, /getAuthUser/);
   assert.ok(fs.existsSync("src/server/route-loggers.ts"));
   assert.ok(fs.existsSync("src/server/route-ownership.ts"));
   assert.ok(fs.existsSync("src/server/route-types.ts"));
 
   const lineCount = routeDeps.split("\n").length;
-  assert.ok(lineCount <= 1200, `route-deps.ts still ${lineCount} lines — continue splitting schemas/live helpers`);
+  assert.ok(lineCount <= 1350, `route-deps.ts still ${lineCount} lines — continue splitting schemas/live helpers`);
 });

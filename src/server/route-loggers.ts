@@ -3,7 +3,9 @@ export function logLiveKit(level: "INFO" | "WARN" | "ERROR", message: string, da
 }
 
 export function logInvitation(level: "INFO" | "WARN", message: string, data?: unknown) {
-  console.log(`[${new Date().toISOString()}] [${level}] [invitation] ${message}${data ? " " + JSON.stringify(data) : ""}`);
+  console.log(
+    `[${new Date().toISOString()}] [${level}] [invitation] ${message}${data ? " " + JSON.stringify(data) : ""}`,
+  );
 }
 
 export function logEmail(level: "INFO" | "WARN" | "ERROR", message: string, data?: unknown) {

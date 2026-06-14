@@ -116,12 +116,20 @@ export default function AxelCalendarShell({
               <span
                 key={cell.date.toISOString()}
                 className={`relative flex h-5 items-center justify-center rounded-full text-[9px] font-semibold ${
-                  !visible ? "text-transparent" : cell.isToday ? `${accentBg} text-white` : cell.isWeekend ? accentSoft : "text-slate-300"
+                  !visible
+                    ? "text-transparent"
+                    : cell.isToday
+                      ? `${accentBg} text-white`
+                      : cell.isWeekend
+                        ? accentSoft
+                        : "text-slate-300"
                 }`}
               >
                 {visible ? cell.date.getDate() : ""}
                 {visible && daySessions.length > 0 && !cell.isToday && (
-                  <span className={`absolute bottom-0 h-1 w-1 rounded-full ${accent === "pink" ? "bg-pink-400" : "bg-indigo-400"}`} />
+                  <span
+                    className={`absolute bottom-0 h-1 w-1 rounded-full ${accent === "pink" ? "bg-pink-400" : "bg-indigo-400"}`}
+                  />
                 )}
               </span>
             );
@@ -165,11 +173,7 @@ export default function AxelCalendarShell({
           >
             <span
               className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold sm:h-7 sm:w-7 ${
-                cell.isToday
-                  ? `${accentBg} text-white`
-                  : cell.isWeekend
-                    ? accentSoft
-                    : "text-slate-200"
+                cell.isToday ? `${accentBg} text-white` : cell.isWeekend ? accentSoft : "text-slate-200"
               }`}
             >
               {cell.date.getDate()}
@@ -192,13 +196,14 @@ export default function AxelCalendarShell({
     </div>
   );
 
-  const headerTitle = viewMode === "year"
-    ? String(year)
-    : viewMode === "month"
-      ? `${MONTH_LABELS_SHORT[monthIndex]} ${year}`
-      : viewMode === "week"
-        ? formatWeekRange(weekStart)
-        : formatFrenchDate(focusDate);
+  const headerTitle =
+    viewMode === "year"
+      ? String(year)
+      : viewMode === "month"
+        ? `${MONTH_LABELS_SHORT[monthIndex]} ${year}`
+        : viewMode === "week"
+          ? formatWeekRange(weekStart)
+          : formatFrenchDate(focusDate);
 
   return (
     <section className="space-y-4">
@@ -208,7 +213,12 @@ export default function AxelCalendarShell({
             type="button"
             aria-label="Période précédente"
             className="rounded-lg border border-white/10 bg-white/5 p-2 text-slate-300 hover:bg-white/10"
-            onClick={() => shiftFocus(-1, viewMode === "year" ? "year" : viewMode === "week" ? "week" : viewMode === "day" ? "day" : "month")}
+            onClick={() =>
+              shiftFocus(
+                -1,
+                viewMode === "year" ? "year" : viewMode === "week" ? "week" : viewMode === "day" ? "day" : "month",
+              )
+            }
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -217,7 +227,12 @@ export default function AxelCalendarShell({
             type="button"
             aria-label="Période suivante"
             className="rounded-lg border border-white/10 bg-white/5 p-2 text-slate-300 hover:bg-white/10"
-            onClick={() => shiftFocus(1, viewMode === "year" ? "year" : viewMode === "week" ? "week" : viewMode === "day" ? "day" : "month")}
+            onClick={() =>
+              shiftFocus(
+                1,
+                viewMode === "year" ? "year" : viewMode === "week" ? "week" : viewMode === "day" ? "day" : "month",
+              )
+            }
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -273,7 +288,9 @@ export default function AxelCalendarShell({
                       daySessions.map((session) => (
                         <div key={session.id} className="rounded-lg border border-white/[0.06] bg-black/20 px-2 py-1.5">
                           <p className="text-[11px] font-bold text-white">{session.title}</p>
-                          <p className={`text-[10px] font-semibold ${accentText}`}>{session.startTime} – {session.endTime}</p>
+                          <p className={`text-[10px] font-semibold ${accentText}`}>
+                            {session.startTime} – {session.endTime}
+                          </p>
                         </div>
                       ))
                     )}
@@ -310,7 +327,9 @@ export default function AxelCalendarShell({
                       </span>
                     )}
                   </div>
-                  <p className={`mt-2 text-xs font-bold ${accentText}`}>{session.startTime} – {session.endTime}</p>
+                  <p className={`mt-2 text-xs font-bold ${accentText}`}>
+                    {session.startTime} – {session.endTime}
+                  </p>
                 </button>
               ))
             )}

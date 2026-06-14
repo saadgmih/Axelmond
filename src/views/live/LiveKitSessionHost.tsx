@@ -6,9 +6,7 @@ export default function LiveKitSessionHost(options: UseLiveKitRoomOptions) {
 
   return (
     <LiveKitSessionContext.Provider value={liveKit}>
-      {options.activeLiveCourse && (
-        <div ref={liveKit.liveAudioContainerRef} className="hidden" aria-hidden="true" />
-      )}
+      {options.activeLiveCourse && <div ref={liveKit.liveAudioContainerRef} className="hidden" aria-hidden="true" />}
     </LiveKitSessionContext.Provider>
   );
 }

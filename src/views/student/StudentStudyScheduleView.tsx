@@ -49,7 +49,8 @@ export default function StudentStudyScheduleView(props: StudentStudyScheduleView
           <div>
             <h1 className={scheduleUi.heroTitle}>Mon emploi du temps d&apos;étude</h1>
             <p className={scheduleUi.heroSubtitle}>
-              Organisez vos révisions, cours, devoirs et lives personnels. Votre planning reste privé et visible uniquement par vous.
+              Organisez vos révisions, cours, devoirs et lives personnels. Votre planning reste privé et visible
+              uniquement par vous.
             </p>
           </div>
           <button

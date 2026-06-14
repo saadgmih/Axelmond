@@ -1,25 +1,26 @@
-import assert from "node:assert/strict";import fs from "node:fs";import { readApiRouteSources } from "./helpers/api-route-sources.ts";
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
 import { readLiveClassroomSources } from "./helpers/live-classroom-sources.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("live-session-timer", () => {
-const serverSource = readApiRouteSources();
-const typesSource = fs.readFileSync("src/types.ts", "utf8");
-const classroomSource = readLiveClassroomSources();
-const projectMap = fs.readFileSync("PROJECT_MAP.md", "utf8");
+  const serverSource = readApiRouteSources();
+  const typesSource = fs.readFileSync("src/types.ts", "utf8");
+  const classroomSource = readLiveClassroomSources();
+  const projectMap = fs.readFileSync("PROJECT_MAP.md", "utf8");
 
-assert.match(typesSource, /liveStartedAt\?:\s*string\s*\|\s*null/);
+  assert.match(typesSource, /liveStartedAt\?:\s*string\s*\|\s*null/);
 
-assert.match(serverSource, /liveStartedAt:\s*getLiveStartedAt\(course\)/);
-assert.match(serverSource, /if\s*\(!course\.isLiveNow\)\s*return\s+null/);
-assert.match(serverSource, /liveSessions:\s*activeLiveSessionInclude/);
-assert.match(serverSource, /startTime:\s*liveStartedAt/);
-assert.match(serverSource, /Live session synced/);
+  assert.match(serverSource, /liveStartedAt:\s*getLiveStartedAt\(course\)/);
+  assert.match(serverSource, /if\s*\(!course\.isLiveNow\)\s*return\s+null/);
+  assert.match(serverSource, /liveSessions:\s*activeLiveSessionInclude/);
+  assert.match(serverSource, /startTime:\s*liveStartedAt/);
+  assert.match(serverSource, /Live session synced/);
 
-assert.match(classroomSource, /course\.liveStartedAt/);
-assert.match(classroomSource, /liveStartedAtMs/);
-assert.doesNotMatch(classroomSource, /meetingStartedAtRef/);
+  assert.match(classroomSource, /course\.liveStartedAt/);
+  assert.match(classroomSource, /liveStartedAtMs/);
+  assert.doesNotMatch(classroomSource, /meetingStartedAtRef/);
 
-assert.match(projectMap, /Live timer/);
-
+  assert.match(projectMap, /Live timer/);
 });

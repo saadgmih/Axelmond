@@ -33,7 +33,11 @@ function getProviderStatus(response: unknown) {
   return "UNKNOWN";
 }
 
-export function buildMailDeliveryDetails(info: any, smtp = getSmtpPublicConfig(), mail?: { from?: string; to?: unknown }) {
+export function buildMailDeliveryDetails(
+  info: any,
+  smtp = getSmtpPublicConfig(),
+  mail?: { from?: string; to?: unknown },
+) {
   const accepted = Array.isArray(info?.accepted) ? info.accepted : [];
   const rejected = Array.isArray(info?.rejected) ? info.rejected : [];
   const envelopeTo = normalizeRecipients(info?.envelope?.to);
@@ -112,11 +116,7 @@ function firstName(fullName: string) {
 }
 
 function escapeHtml(value: string) {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
 export function getVerificationUrl(env: NodeJS.ProcessEnv = process.env) {
@@ -260,14 +260,24 @@ export function buildVerificationEmailContent(input: VerificationEmailContentInp
 
 export async function verifySmtpConnection(env: NodeJS.ProcessEnv = process.env) {
   if (!isSmtpConfigured(env)) {
-    return { ok: false as const, configured: false as const, details: getSmtpPublicConfig(env), error: "SMTP_NOT_CONFIGURED" };
+    return {
+      ok: false as const,
+      configured: false as const,
+      details: getSmtpPublicConfig(env),
+      error: "SMTP_NOT_CONFIGURED",
+    };
   }
 
   try {
     await createSmtpTransporter(env).verify();
     return { ok: true as const, configured: true as const, details: getSmtpPublicConfig(env) };
   } catch (err: any) {
-    return { ok: false as const, configured: true as const, details: getSmtpPublicConfig(env), error: getEmailErrorDetails(err) };
+    return {
+      ok: false as const,
+      configured: true as const,
+      details: getSmtpPublicConfig(env),
+      error: getEmailErrorDetails(err),
+    };
   }
 }
 
@@ -296,9 +306,7 @@ export async function readSmtpBanner(env: NodeJS.ProcessEnv = process.env, timeo
       }
       resolve(result);
     };
-    socket = secure
-      ? tls.connect({ host, port, servername: host, timeout: timeoutMs })
-      : net.connect({ host, port });
+    socket = secure ? tls.connect({ host, port, servername: host, timeout: timeoutMs }) : net.connect({ host, port });
 
     socket.setEncoding("utf8");
     socket.setTimeout(timeoutMs);
@@ -335,13 +343,16 @@ export async function sendVerificationEmail(input: VerificationEmailInput, env: 
     verifyUrl: getVerificationUrl(env),
   });
 
-  const delivery = await sendMailWithDiagnostics({
-    from: env.EMAIL_FROM,
-    to: input.to,
-    subject: "Votre code de vérification Axelmond Research Labs",
-    text: content.text,
-    html: content.html
-  }, env);
+  const delivery = await sendMailWithDiagnostics(
+    {
+      from: env.EMAIL_FROM,
+      to: input.to,
+      subject: "Votre code de vérification Axelmond Research Labs",
+      text: content.text,
+      html: content.html,
+    },
+    env,
+  );
 
   return { sent: true as const, delivery };
 }
@@ -351,20 +362,21 @@ export async function sendAdminTestEmail(to: string, env: NodeJS.ProcessEnv = pr
     return { sent: false, reason: "SMTP_NOT_CONFIGURED" as const };
   }
 
-  const delivery = await sendMailWithDiagnostics({
-    from: env.EMAIL_FROM,
-    to,
-    subject: "Diagnostic SMTP Axelmond Research Labs",
-    text: [
-      "Bonjour,",
-      "",
-      "Ceci est un e-mail de diagnostic envoyé depuis l'administration Axelmond Research Labs.",
-      "",
-      "Si vous recevez ce message, la configuration SMTP Hostinger fonctionne.",
-      "",
-      "Axelmond Research Labs",
-    ].join("\n"),
-    html: `<!doctype html>
+  const delivery = await sendMailWithDiagnostics(
+    {
+      from: env.EMAIL_FROM,
+      to,
+      subject: "Diagnostic SMTP Axelmond Research Labs",
+      text: [
+        "Bonjour,",
+        "",
+        "Ceci est un e-mail de diagnostic envoyé depuis l'administration Axelmond Research Labs.",
+        "",
+        "Si vous recevez ce message, la configuration SMTP Hostinger fonctionne.",
+        "",
+        "Axelmond Research Labs",
+      ].join("\n"),
+      html: `<!doctype html>
 <html lang="fr">
   <body style="margin:0;padding:0;background:#0f172a;font-family:Arial,Helvetica,sans-serif;color:#e5e7eb;">
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#0f172a;padding:18px 12px;">
@@ -397,7 +409,9 @@ export async function sendAdminTestEmail(to: string, env: NodeJS.ProcessEnv = pr
     </table>
   </body>
 </html>`,
-  }, env);
+    },
+    env,
+  );
 
   return { sent: true as const, delivery };
 }
@@ -464,20 +478,23 @@ export function buildResetPasswordEmailContent(input: { fullName: string; resetU
       </tr>
     </table>
   </body>
-</html>`
+</html>`,
   };
 }
 
 export async function sendResetPasswordEmail(input: ResetPasswordEmailInput, env: NodeJS.ProcessEnv = process.env) {
   if (!isSmtpConfigured(env)) return { sent: false, reason: "SMTP_NOT_CONFIGURED" as const };
   const content = buildResetPasswordEmailContent({ fullName: input.fullName, resetUrl: input.resetUrl });
-  const delivery = await sendMailWithDiagnostics({
-    from: env.EMAIL_FROM,
-    to: input.to,
-    subject: "Réinitialisation de votre mot de passe - Axelmond Research Labs",
-    text: content.text,
-    html: content.html,
-  }, env);
+  const delivery = await sendMailWithDiagnostics(
+    {
+      from: env.EMAIL_FROM,
+      to: input.to,
+      subject: "Réinitialisation de votre mot de passe - Axelmond Research Labs",
+      text: content.text,
+      html: content.html,
+    },
+    env,
+  );
   return { sent: true, delivery };
 }
 
@@ -547,20 +564,27 @@ export function buildInvitationEmailContent(input: { fullName: string; inviteCod
       </tr>
     </table>
   </body>
-</html>`
+</html>`,
   };
 }
 
 export async function sendInvitationEmail(input: InvitationEmailInput, env: NodeJS.ProcessEnv = process.env) {
   if (!isSmtpConfigured(env)) return { sent: false, reason: "SMTP_NOT_CONFIGURED" as const };
-  const content = buildInvitationEmailContent({ fullName: input.fullName, inviteCode: input.inviteCode, inviteUrl: input.inviteUrl });
-  const delivery = await sendMailWithDiagnostics({
-    from: env.EMAIL_FROM,
-    to: input.to,
-    subject: "Invitation à rejoindre Axelmond Research Labs",
-    text: content.text,
-    html: content.html,
-  }, env);
+  const content = buildInvitationEmailContent({
+    fullName: input.fullName,
+    inviteCode: input.inviteCode,
+    inviteUrl: input.inviteUrl,
+  });
+  const delivery = await sendMailWithDiagnostics(
+    {
+      from: env.EMAIL_FROM,
+      to: input.to,
+      subject: "Invitation à rejoindre Axelmond Research Labs",
+      text: content.text,
+      html: content.html,
+    },
+    env,
+  );
   return { sent: true, delivery };
 }
 
@@ -573,7 +597,12 @@ interface NotificationEmailInput {
   actionUrl?: string;
 }
 
-export function buildNotificationEmailContent(input: { fullName: string; messageTitle: string; messageBody: string; actionUrl?: string }) {
+export function buildNotificationEmailContent(input: {
+  fullName: string;
+  messageTitle: string;
+  messageBody: string;
+  actionUrl?: string;
+}) {
   const name = escapeHtml(firstName(input.fullName));
   const title = escapeHtml(input.messageTitle);
   const body = escapeHtml(input.messageBody);
@@ -632,7 +661,7 @@ export function buildNotificationEmailContent(input: { fullName: string; message
       </tr>
     </table>
   </body>
-</html>`
+</html>`,
   };
 }
 
@@ -642,14 +671,17 @@ export async function sendNotificationEmail(input: NotificationEmailInput, env: 
     fullName: input.fullName,
     messageTitle: input.messageTitle,
     messageBody: input.messageBody,
-    actionUrl: input.actionUrl
+    actionUrl: input.actionUrl,
   });
-  const delivery = await sendMailWithDiagnostics({
-    from: env.EMAIL_FROM,
-    to: input.to,
-    subject: `Notification : ${input.messageTitle} - Axelmond Research Labs`,
-    text: content.text,
-    html: content.html,
-  }, env);
+  const delivery = await sendMailWithDiagnostics(
+    {
+      from: env.EMAIL_FROM,
+      to: input.to,
+      subject: `Notification : ${input.messageTitle} - Axelmond Research Labs`,
+      text: content.text,
+      html: content.html,
+    },
+    env,
+  );
   return { sent: true, delivery };
 }

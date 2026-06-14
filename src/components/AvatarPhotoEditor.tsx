@@ -198,9 +198,7 @@ export default function AvatarPhotoEditor({
           </div>
         </div>
 
-        {errorMsg && (
-          <p className="px-5 pb-2 text-center text-xs font-semibold text-red-300">{errorMsg}</p>
-        )}
+        {errorMsg && <p className="px-5 pb-2 text-center text-xs font-semibold text-red-300">{errorMsg}</p>}
 
         <div className="flex gap-3 border-t border-slate-800 px-5 py-4">
           <button

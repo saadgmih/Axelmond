@@ -82,12 +82,7 @@ function buildCspConnectSrc(allowedOrigins: Set<string>, isProduction: boolean):
   ];
 
   if (!isProduction) {
-    connectSrc.push(
-      "ws://localhost:*",
-      "ws://127.0.0.1:*",
-      "http://localhost:*",
-      "http://127.0.0.1:*",
-    );
+    connectSrc.push("ws://localhost:*", "ws://127.0.0.1:*", "http://localhost:*", "http://127.0.0.1:*");
   }
 
   for (const origin of allowedOrigins) {
@@ -107,10 +102,13 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
   const isProduction = process.env.NODE_ENV === "production";
   const AUTH_MAX_ATTEMPTS = Number(process.env.AUTH_MAX_ATTEMPTS) || 20;
   const AUTH_LOCKOUT_WINDOW_MS = Number(process.env.AUTH_LOCKOUT_WINDOW_MS) || 1 * 60 * 1000;
-  const uploadThingCallbackUrl = process.env.UPLOADTHING_CALLBACK_URL || (process.env.APP_URL ? `${process.env.APP_URL}/api/uploadthing` : undefined);
-  const isUploadThingDevMode = process.env.UPLOADTHING_IS_DEV === "true"
-    || process.env.NODE_ENV !== "production"
-    || Boolean(uploadThingCallbackUrl?.includes("localhost") || uploadThingCallbackUrl?.includes("127.0.0.1"));
+  const uploadThingCallbackUrl =
+    process.env.UPLOADTHING_CALLBACK_URL ||
+    (process.env.APP_URL ? `${process.env.APP_URL}/api/uploadthing` : undefined);
+  const isUploadThingDevMode =
+    process.env.UPLOADTHING_IS_DEV === "true" ||
+    process.env.NODE_ENV !== "production" ||
+    Boolean(uploadThingCallbackUrl?.includes("localhost") || uploadThingCallbackUrl?.includes("127.0.0.1"));
 
   const allowedOrigins = buildAllowedOrigins(PORT, isProduction);
   if (isProduction && allowedOrigins.size === 0) {
@@ -138,10 +136,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     "https://*.utfs.io",
   ];
 
-  const PAYPAL_CSP_IMG_SRC = [
-    "https://www.paypal.com",
-    "https://www.paypalobjects.com",
-  ];
+  const PAYPAL_CSP_IMG_SRC = ["https://www.paypal.com", "https://www.paypalobjects.com"];
 
   app.use((_req, res, next) => {
     res.locals.cspNonce = crypto.randomBytes(16).toString("base64");
@@ -161,8 +156,27 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
           childSrc: PAYPAL_CSP_FRAME_SRC,
           styleSrc: isProduction ? ["'self'", cspNonce] : ["'self'", "'unsafe-inline'"],
           styleSrcAttr: ["'unsafe-inline'"],
-          imgSrc: ["'self'", "data:", "blob:", ...PAYPAL_CSP_IMG_SRC, "https://uploadthing.com", "https://*.uploadthing.com", "https://ufs.sh", "https://*.ufs.sh", "https://utfs.io", "https://*.utfs.io"],
-          mediaSrc: ["'self'", "https://uploadthing.com", "https://*.uploadthing.com", "https://ufs.sh", "https://*.ufs.sh", "https://utfs.io", "https://*.utfs.io"],
+          imgSrc: [
+            "'self'",
+            "data:",
+            "blob:",
+            ...PAYPAL_CSP_IMG_SRC,
+            "https://uploadthing.com",
+            "https://*.uploadthing.com",
+            "https://ufs.sh",
+            "https://*.ufs.sh",
+            "https://utfs.io",
+            "https://*.utfs.io",
+          ],
+          mediaSrc: [
+            "'self'",
+            "https://uploadthing.com",
+            "https://*.uploadthing.com",
+            "https://ufs.sh",
+            "https://*.ufs.sh",
+            "https://utfs.io",
+            "https://*.utfs.io",
+          ],
           connectSrc: buildCspConnectSrc(allowedOrigins, isProduction),
           objectSrc: ["'none'"],
           baseUri: ["'self'"],
@@ -185,12 +199,14 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     const origin = req.headers.origin;
     const requestedHeaders = req.headers["access-control-request-headers"];
     const mobilePreflight =
-      typeof requestedHeaders === "string" &&
-      requestedHeaders.toLowerCase().includes(MOBILE_CLIENT_HEADER);
+      typeof requestedHeaders === "string" && requestedHeaders.toLowerCase().includes(MOBILE_CLIENT_HEADER);
     if (req.path.startsWith("/api/") && (isMobileClientRequest(req) || mobilePreflight)) {
       const reqOrigin = req.headers.origin;
-      const originAllowed = typeof reqOrigin !== "string" || !reqOrigin.length || !isProduction
-        || allowedOrigins.has(normalizeOriginUrl(reqOrigin));
+      const originAllowed =
+        typeof reqOrigin !== "string" ||
+        !reqOrigin.length ||
+        !isProduction ||
+        allowedOrigins.has(normalizeOriginUrl(reqOrigin));
       applyMobileApiCorsHeaders(req, res, { originAllowed });
     } else if (origin && allowedOrigins.has(normalizeOriginUrl(origin))) {
       res.setHeader("Access-Control-Allow-Origin", origin);
@@ -246,7 +262,10 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
       const email = req.body?.email;
       return email ? String(email).trim().toLowerCase() : ipKeyGenerator(req.ip || "");
     },
-    message: { error: "Trop de tentatives d'authentification (20 maximum). Veuillez patienter 1 minute.", code: "AUTH_RATE_LIMIT_EXCEEDED" },
+    message: {
+      error: "Trop de tentatives d'authentification (20 maximum). Veuillez patienter 1 minute.",
+      code: "AUTH_RATE_LIMIT_EXCEEDED",
+    },
   });
 
   const emailVerificationSendRateLimiter = rateLimit({
@@ -255,7 +274,10 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     standardHeaders: true,
     legacyHeaders: false,
     keyGenerator: emailRateLimitKey,
-    message: { error: "Trop de demandes de vérification. Veuillez patienter 15 minutes.", code: "EMAIL_RATE_LIMIT_EXCEEDED" },
+    message: {
+      error: "Trop de demandes de vérification. Veuillez patienter 15 minutes.",
+      code: "EMAIL_RATE_LIMIT_EXCEEDED",
+    },
   });
 
   const emailVerificationCheckRateLimiter = rateLimit({
@@ -264,7 +286,10 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     standardHeaders: true,
     legacyHeaders: false,
     keyGenerator: emailRateLimitKey,
-    message: { error: "Trop de demandes de vérification. Veuillez patienter 15 minutes.", code: "EMAIL_RATE_LIMIT_EXCEEDED" },
+    message: {
+      error: "Trop de demandes de vérification. Veuillez patienter 15 minutes.",
+      code: "EMAIL_RATE_LIMIT_EXCEEDED",
+    },
   });
 
   const passwordResetRequestRateLimiter = rateLimit({
@@ -273,7 +298,10 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     standardHeaders: true,
     legacyHeaders: false,
     keyGenerator: emailRateLimitKey,
-    message: { error: "Trop de demandes de vérification. Veuillez patienter 15 minutes.", code: "EMAIL_RATE_LIMIT_EXCEEDED" },
+    message: {
+      error: "Trop de demandes de vérification. Veuillez patienter 15 minutes.",
+      code: "EMAIL_RATE_LIMIT_EXCEEDED",
+    },
   });
 
   const passwordResetConfirmRateLimiter = rateLimit({
@@ -282,7 +310,10 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     standardHeaders: true,
     legacyHeaders: false,
     keyGenerator: emailRateLimitKey,
-    message: { error: "Trop de demandes de vérification. Veuillez patienter 15 minutes.", code: "EMAIL_RATE_LIMIT_EXCEEDED" },
+    message: {
+      error: "Trop de demandes de vérification. Veuillez patienter 15 minutes.",
+      code: "EMAIL_RATE_LIMIT_EXCEEDED",
+    },
   });
 
   const uploadRateLimiter = rateLimit({
@@ -298,7 +329,10 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     max: Number(process.env.LIVEKIT_RATE_LIMIT_MAX) || 100,
     standardHeaders: true,
     legacyHeaders: false,
-    message: { error: "Trop de demandes de connexions live. Veuillez patienter 15 minutes.", code: "LIVEKIT_RATE_LIMIT_EXCEEDED" },
+    message: {
+      error: "Trop de demandes de connexions live. Veuillez patienter 15 minutes.",
+      code: "LIVEKIT_RATE_LIMIT_EXCEEDED",
+    },
   });
 
   const liveKitModerationRateLimiter = rateLimit({
@@ -309,7 +343,10 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     standardHeaders: true,
     legacyHeaders: false,
     keyGenerator: liveKitRateLimitKey,
-    message: { error: "Trop d'actions de modération live. Veuillez patienter 15 minutes.", code: "LIVEKIT_MODERATION_RATE_LIMIT_EXCEEDED" },
+    message: {
+      error: "Trop d'actions de modération live. Veuillez patienter 15 minutes.",
+      code: "LIVEKIT_MODERATION_RATE_LIMIT_EXCEEDED",
+    },
   });
 
   const adminReadRateLimiter = rateLimit({
@@ -320,7 +357,10 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     standardHeaders: true,
     legacyHeaders: false,
     keyGenerator: adminRateLimitKey,
-    message: { error: "Trop de lectures admin. Veuillez patienter 15 minutes.", code: "ADMIN_READ_RATE_LIMIT_EXCEEDED" },
+    message: {
+      error: "Trop de lectures admin. Veuillez patienter 15 minutes.",
+      code: "ADMIN_READ_RATE_LIMIT_EXCEEDED",
+    },
   });
 
   const adminMutationRateLimiter = rateLimit({
@@ -331,7 +371,10 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     standardHeaders: true,
     legacyHeaders: false,
     keyGenerator: adminRateLimitKey,
-    message: { error: "Trop d'actions admin. Veuillez patienter 15 minutes.", code: "ADMIN_MUTATION_RATE_LIMIT_EXCEEDED" },
+    message: {
+      error: "Trop d'actions admin. Veuillez patienter 15 minutes.",
+      code: "ADMIN_MUTATION_RATE_LIMIT_EXCEEDED",
+    },
   });
 
   const adminDiagnosticRateLimiter = rateLimit({
@@ -342,7 +385,10 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     standardHeaders: true,
     legacyHeaders: false,
     keyGenerator: adminRateLimitKey,
-    message: { error: "Trop de diagnostics email. Veuillez patienter 15 minutes.", code: "ADMIN_DIAGNOSTIC_RATE_LIMIT_EXCEEDED" },
+    message: {
+      error: "Trop de diagnostics email. Veuillez patienter 15 minutes.",
+      code: "ADMIN_DIAGNOSTIC_RATE_LIMIT_EXCEEDED",
+    },
   });
 
   const ADMIN_MUTATION_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
@@ -369,7 +415,10 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
       if (session?.userId) return `chat-tutor:user:${session.userId}`;
       return ipKeyGenerator(req.ip || "");
     },
-    message: { error: "Trop de questions à l'assistant. Veuillez patienter 15 minutes.", code: "CHAT_TUTOR_RATE_LIMIT_EXCEEDED" },
+    message: {
+      error: "Trop de questions à l'assistant. Veuillez patienter 15 minutes.",
+      code: "CHAT_TUTOR_RATE_LIMIT_EXCEEDED",
+    },
   });
 
   const paypalRateLimiter = rateLimit({
@@ -387,7 +436,10 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     standardHeaders: true,
     legacyHeaders: false,
     keyGenerator: liveKitRateLimitKey,
-    message: { error: "Trop de messages live. Veuillez patienter 15 minutes.", code: "LIVEKIT_MESSAGES_RATE_LIMIT_EXCEEDED" },
+    message: {
+      error: "Trop de messages live. Veuillez patienter 15 minutes.",
+      code: "LIVEKIT_MESSAGES_RATE_LIMIT_EXCEEDED",
+    },
   });
 
   const liveKitEventsRateLimiter = rateLimit({
@@ -396,7 +448,10 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     standardHeaders: true,
     legacyHeaders: false,
     keyGenerator: liveKitRateLimitKey,
-    message: { error: "Trop d'événements live. Veuillez patienter 15 minutes.", code: "LIVEKIT_EVENTS_RATE_LIMIT_EXCEEDED" },
+    message: {
+      error: "Trop d'événements live. Veuillez patienter 15 minutes.",
+      code: "LIVEKIT_EVENTS_RATE_LIMIT_EXCEEDED",
+    },
   });
 
   const messagingRateLimiter = rateLimit({
@@ -414,7 +469,10 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     standardHeaders: true,
     legacyHeaders: false,
     keyGenerator: liveKitRateLimitKey,
-    message: { error: "Trop de demandes contact/support. Veuillez patienter 1 heure.", code: "CONTACT_SUPPORT_RATE_LIMIT_EXCEEDED" },
+    message: {
+      error: "Trop de demandes contact/support. Veuillez patienter 1 heure.",
+      code: "CONTACT_SUPPORT_RATE_LIMIT_EXCEEDED",
+    },
   });
 
   const liveKitSyncRateLimiter = rateLimit({
@@ -423,7 +481,10 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     standardHeaders: true,
     legacyHeaders: false,
     keyGenerator: liveKitRateLimitKey,
-    message: { error: "Trop de synchronisations live. Veuillez patienter 15 minutes.", code: "LIVEKIT_SYNC_RATE_LIMIT_EXCEEDED" },
+    message: {
+      error: "Trop de synchronisations live. Veuillez patienter 15 minutes.",
+      code: "LIVEKIT_SYNC_RATE_LIMIT_EXCEEDED",
+    },
   });
 
   const refreshRateLimiter = rateLimit({
@@ -438,7 +499,10 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
       }
       return ipKeyGenerator(req.ip || "");
     },
-    message: { error: "Trop de tentatives de renouvellement de session. Réessayez plus tard.", code: "REFRESH_RATE_LIMIT_EXCEEDED" },
+    message: {
+      error: "Trop de tentatives de renouvellement de session. Réessayez plus tard.",
+      code: "REFRESH_RATE_LIMIT_EXCEEDED",
+    },
   });
 
   app.use("/api", globalRateLimiter);

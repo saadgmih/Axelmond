@@ -1,15 +1,5 @@
 import React from "react";
-import {
-  CameraOff,
-  Hand,
-  Mic,
-  MicOff,
-  Search,
-  UserX,
-  Video,
-  VideoOff,
-  VolumeX,
-} from "lucide-react";
+import { CameraOff, Hand, Mic, MicOff, Search, UserX, Video, VideoOff, VolumeX } from "lucide-react";
 import type { LiveParticipantCard } from "../VirtualClassroom";
 import { liveRoleLabel } from "./live-classroom-formatters";
 
@@ -56,13 +46,14 @@ export default function LiveParticipantsPanel({
       </div>
       <div className="space-y-1.5">
         <div className="flex justify-between items-center mb-3 border-b border-white/5 pb-2">
-          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
-            Membres de la session
-          </p>
+          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Membres de la session</p>
           <span className="text-xs font-mono text-zinc-400">{filteredParticipants.length}</span>
         </div>
         {filteredParticipants.map((participant) => (
-          <div key={participant.identity} className="group relative rounded-xl hover:bg-zinc-800/50 p-2.5 flex items-center justify-between transition-colors border border-transparent hover:border-white/5">
+          <div
+            key={participant.identity}
+            className="group relative rounded-xl hover:bg-zinc-800/50 p-2.5 flex items-center justify-between transition-colors border border-transparent hover:border-white/5"
+          >
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 flex items-center justify-center text-xs font-bold shrink-0">
                 {participant.initials}
@@ -75,19 +66,39 @@ export default function LiveParticipantsPanel({
 
             <div className="flex items-center gap-2 shrink-0 ml-2">
               {participant.handRaised && <Hand className="w-3.5 h-3.5 text-amber-400" />}
-              {participant.hasAudio ? <Mic className="w-3.5 h-3.5 text-zinc-500" /> : <MicOff className="w-3.5 h-3.5 text-red-400/70" />}
-              {participant.hasVideo ? <Video className="w-3.5 h-3.5 text-zinc-500" /> : <VideoOff className="w-3.5 h-3.5 text-zinc-600" />}
+              {participant.hasAudio ? (
+                <Mic className="w-3.5 h-3.5 text-zinc-500" />
+              ) : (
+                <MicOff className="w-3.5 h-3.5 text-red-400/70" />
+              )}
+              {participant.hasVideo ? (
+                <Video className="w-3.5 h-3.5 text-zinc-500" />
+              ) : (
+                <VideoOff className="w-3.5 h-3.5 text-zinc-600" />
+              )}
             </div>
 
             {canModerate && !participant.isLocal && (
               <div className="absolute right-2 opacity-0 group-hover:opacity-100 bg-zinc-800 p-1 rounded-lg flex items-center gap-1 shadow-xl border border-white/10 transition-opacity">
-                <button onClick={() => onModerateParticipant("MUTE_AUDIO", participant)} className="p-1.5 hover:bg-zinc-700 rounded text-zinc-300" title="Couper le micro">
+                <button
+                  onClick={() => onModerateParticipant("MUTE_AUDIO", participant)}
+                  className="p-1.5 hover:bg-zinc-700 rounded text-zinc-300"
+                  title="Couper le micro"
+                >
                   <VolumeX className="w-3.5 h-3.5" />
                 </button>
-                <button onClick={() => onModerateParticipant("MUTE_VIDEO", participant)} className="p-1.5 hover:bg-zinc-700 rounded text-zinc-300" title="Couper la caméra">
+                <button
+                  onClick={() => onModerateParticipant("MUTE_VIDEO", participant)}
+                  className="p-1.5 hover:bg-zinc-700 rounded text-zinc-300"
+                  title="Couper la caméra"
+                >
                   <CameraOff className="w-3.5 h-3.5" />
                 </button>
-                <button onClick={() => onModerateParticipant("REMOVE_PARTICIPANT", participant)} className="p-1.5 hover:bg-red-500/20 rounded text-red-400" title="Expulser">
+                <button
+                  onClick={() => onModerateParticipant("REMOVE_PARTICIPANT", participant)}
+                  className="p-1.5 hover:bg-red-500/20 rounded text-red-400"
+                  title="Expulser"
+                >
                   <UserX className="w-3.5 h-3.5" />
                 </button>
               </div>

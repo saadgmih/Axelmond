@@ -1,11 +1,13 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { Room } from "livekit-client";
 import { api } from "../../api";
-import { LIVE_SYNC_TOPIC, type LivePollState, type LiveSyncMessage, type LiveWhiteboardStroke } from "../../live/live-sync";
 import {
-  shouldPublishLiveSyncViaServer,
-  validateOutgoingLiveSyncMessage,
-} from "../../live/live-sync-validation";
+  LIVE_SYNC_TOPIC,
+  type LivePollState,
+  type LiveSyncMessage,
+  type LiveWhiteboardStroke,
+} from "../../live/live-sync";
+import { shouldPublishLiveSyncViaServer, validateOutgoingLiveSyncMessage } from "../../live/live-sync-validation";
 
 export interface LiveSyncPublisherContext {
   activeLiveCourseId: number | undefined;

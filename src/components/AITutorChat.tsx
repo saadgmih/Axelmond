@@ -35,8 +35,8 @@ export default function AITutorChat({
       role: "model",
       text: `Bonjour ! Je suis l'assistant académique de l'université **Axelmond Research Labs** pour le module **${courseTitle}** (*${moduleTitle}*). 
 
-Je peux vous expliquer n'importe quelle portion du module, décortiquer un morceau de code, ou concevoir un exercice d'entraînement supplémentaire sur mesure. Que souhaitez-vous étudier ?`
-    }
+Je peux vous expliquer n'importe quelle portion du module, décortiquer un morceau de code, ou concevoir un exercice d'entraînement supplémentaire sur mesure. Que souhaitez-vous étudier ?`,
+    },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -85,8 +85,8 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
         ...prev,
         {
           role: "model",
-          text: `Désolé, j'ai rencontré un problème pour me connecter aux services d'Axelmond Research Labs : ${message}. Veuillez réessayer.`
-        }
+          text: `Désolé, j'ai rencontré un problème pour me connecter aux services d'Axelmond Research Labs : ${message}. Veuillez réessayer.`,
+        },
       ]);
     } finally {
       setIsLoading(false);
@@ -94,9 +94,18 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
   };
 
   const suggestions = [
-    { label: "Expliquer la complexité $O(n \\log n)$", text: "Pouvez-vous m'expliquer précisément la complexité temporelle O(n log n) avec un exemple concret ?" },
-    { label: "Donner un exemple de jointure SQL complexe", text: "Générez un exercice sur les requêtes SQL de jointures multiples (INNER JOIN, LEFT JOIN) avec sa correction détaillée." },
-    { label: "Comprendre une section critique POSIX", text: "Qu'est-ce qu'une section critique en programmation système Linux ? Donnez-moi un exemple de situation de concurrence (race condition)." },
+    {
+      label: "Expliquer la complexité $O(n \\log n)$",
+      text: "Pouvez-vous m'expliquer précisément la complexité temporelle O(n log n) avec un exemple concret ?",
+    },
+    {
+      label: "Donner un exemple de jointure SQL complexe",
+      text: "Générez un exercice sur les requêtes SQL de jointures multiples (INNER JOIN, LEFT JOIN) avec sa correction détaillée.",
+    },
+    {
+      label: "Comprendre une section critique POSIX",
+      text: "Qu'est-ce qu'une section critique en programmation système Linux ? Donnez-moi un exemple de situation de concurrence (race condition).",
+    },
   ];
 
   // Helper to render basic markdown and code highlights safely
@@ -107,13 +116,19 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
         // Code Block
         const lines = part.slice(3, -3).trim().split("\n");
         let language = "code";
-        if (lines[0] && ["c", "cpp", "python", "sql", "bash", "javascript", "typescript", "html"].includes(lines[0].toLowerCase())) {
+        if (
+          lines[0] &&
+          ["c", "cpp", "python", "sql", "bash", "javascript", "typescript", "html"].includes(lines[0].toLowerCase())
+        ) {
           language = lines[0].toLowerCase();
           lines.shift();
         }
         const code = lines.join("\n");
         return (
-          <div key={index} className="my-3 font-mono text-xs bg-slate-950 text-slate-100 rounded-xl overflow-hidden border border-slate-800 shadow-md">
+          <div
+            key={index}
+            className="my-3 font-mono text-xs bg-slate-950 text-slate-100 rounded-xl overflow-hidden border border-slate-800 shadow-md"
+          >
             <div className="bg-slate-900 px-4 py-1.5 flex justify-between items-center text-slate-500 text-[10px] uppercase font-bold tracking-wider select-none border-b border-slate-900">
               <span>{language}</span>
               <span className="text-indigo-400">Axelmond Research Labs Compiler</span>
@@ -130,7 +145,11 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
           <span key={index} className="whitespace-pre-wrap leading-relaxed">
             {textParts.map((subPart, subIndex) => {
               if (subPart.startsWith("**") && subPart.endsWith("**")) {
-                return <strong key={subIndex} className="font-extrabold text-slate-900 dark:text-slate-100">{subPart.slice(2, -2)}</strong>;
+                return (
+                  <strong key={subIndex} className="font-extrabold text-slate-900 dark:text-slate-100">
+                    {subPart.slice(2, -2)}
+                  </strong>
+                );
               } else if (subPart.startsWith("* ")) {
                 return (
                   <span key={subIndex} className="block pl-4 my-1 relative">
@@ -157,17 +176,24 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
       } ${className || ""}`}
     >
       {/* Header */}
-      <div className={`px-5 py-4 text-white flex items-center justify-between shadow-sm flex-shrink-0 ${
-        isLive ? "bg-zinc-900 border-b border-white/10" : "bg-gradient-to-r from-slate-900 to-indigo-900"
-      }`}>
+      <div
+        className={`px-5 py-4 text-white flex items-center justify-between shadow-sm flex-shrink-0 ${
+          isLive ? "bg-zinc-900 border-b border-white/10" : "bg-gradient-to-r from-slate-900 to-indigo-900"
+        }`}
+      >
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-10 h-10 bg-indigo-500/20 rounded-full flex items-center justify-center text-indigo-300 border border-indigo-500/30 shrink-0" aria-hidden="true">
+          <div
+            className="w-10 h-10 bg-indigo-500/20 rounded-full flex items-center justify-center text-indigo-300 border border-indigo-500/30 shrink-0"
+            aria-hidden="true"
+          >
             <Brain className="w-5 h-5" />
           </div>
           <div className="min-w-0">
             <h3 className="font-bold text-base text-white flex items-center gap-1.5">
               Tuteur Académique
-              <span className="text-[10px] bg-indigo-500 text-white font-mono uppercase px-1.5 py-0.5 rounded tracking-widest font-bold">IA</span>
+              <span className="text-[10px] bg-indigo-500 text-white font-mono uppercase px-1.5 py-0.5 rounded tracking-widest font-bold">
+                IA
+              </span>
             </h3>
             <p className="text-xs text-indigo-200 truncate">En ligne • Prêt à répondre</p>
           </div>
@@ -207,13 +233,15 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
                 </>
               )}
             </span>
-            <div className={`p-4 rounded-2xl max-w-[92%] text-sm leading-relaxed shadow-sm ${
-              msg.role === "user"
-                ? "bg-indigo-600 text-white rounded-tr-none"
-                : isLive
-                  ? "bg-zinc-900 text-zinc-100 border border-white/10 rounded-tl-none"
-                  : "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-800 rounded-tl-none"
-            }`}>
+            <div
+              className={`p-4 rounded-2xl max-w-[92%] text-sm leading-relaxed shadow-sm ${
+                msg.role === "user"
+                  ? "bg-indigo-600 text-white rounded-tr-none"
+                  : isLive
+                    ? "bg-zinc-900 text-zinc-100 border border-white/10 rounded-tl-none"
+                    : "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-800 rounded-tl-none"
+              }`}
+            >
               {renderMessageContent(msg.text)}
             </div>
           </div>
@@ -235,10 +263,16 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
 
       {/* Suggestion tags */}
       {messages.length === 1 && (
-        <div className={`px-4 py-3 border-t flex-shrink-0 space-y-2 ${
-          isLive ? "bg-zinc-900/80 border-white/10" : "bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800"
-        }`}>
-          <p className={`font-bold uppercase flex items-center gap-1.5 px-1 ${isLive ? "text-[11px] text-zinc-400" : "text-[11px] text-slate-500"}`}>
+        <div
+          className={`px-4 py-3 border-t flex-shrink-0 space-y-2 ${
+            isLive
+              ? "bg-zinc-900/80 border-white/10"
+              : "bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800"
+          }`}
+        >
+          <p
+            className={`font-bold uppercase flex items-center gap-1.5 px-1 ${isLive ? "text-[11px] text-zinc-400" : "text-[11px] text-slate-500"}`}
+          >
             <GraduationCap className="w-4 h-4 text-indigo-400" aria-hidden="true" /> Suggestions de questions
           </p>
           <div className="flex flex-col gap-1.5">
@@ -255,7 +289,10 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
                 }`}
               >
                 <span className="pr-2">{sug.label}</span>
-                <ArrowRight className="w-4 h-4 shrink-0 text-zinc-500 group-hover:text-indigo-300 group-hover:translate-x-0.5 transition-all" aria-hidden="true" />
+                <ArrowRight
+                  className="w-4 h-4 shrink-0 text-zinc-500 group-hover:text-indigo-300 group-hover:translate-x-0.5 transition-all"
+                  aria-hidden="true"
+                />
               </button>
             ))}
           </div>
@@ -263,9 +300,11 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
       )}
 
       {/* Input */}
-      <div className={`p-4 flex-shrink-0 border-t ${
-        isLive ? "bg-zinc-900 border-white/10" : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
-      }`}>
+      <div
+        className={`p-4 flex-shrink-0 border-t ${
+          isLive ? "bg-zinc-900 border-white/10" : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+        }`}
+      >
         <form
           onSubmit={(e) => {
             e.preventDefault();

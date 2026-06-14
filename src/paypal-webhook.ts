@@ -1,14 +1,6 @@
 import type { Request } from "express";
-import {
-  capturePayPalOrder,
-  getPayPalOrder,
-  getPayPalRuntimeEnv,
-  logPayPalError,
-} from "./paypal-server";
-import {
-  processPayPalCaptureEnrollment,
-  type PayPalCaptureEnrollmentResult,
-} from "./paypal-enrollment";
+import { capturePayPalOrder, getPayPalOrder, getPayPalRuntimeEnv, logPayPalError } from "./paypal-server";
+import { processPayPalCaptureEnrollment, type PayPalCaptureEnrollmentResult } from "./paypal-enrollment";
 import { logSecurity } from "./security-logger";
 
 export type PayPalWebhookHeaders = {
@@ -29,9 +21,7 @@ export function isPayPalWebhookConfigured(env: NodeJS.ProcessEnv = process.env):
   return Boolean(clientId && clientSecret) && Boolean(getPayPalWebhookId(env));
 }
 
-export function extractPayPalWebhookHeaders(
-  headers: Request["headers"],
-): PayPalWebhookHeaders | null {
+export function extractPayPalWebhookHeaders(headers: Request["headers"]): PayPalWebhookHeaders | null {
   const authAlgo = String(headers["paypal-auth-algo"] || "").trim();
   const certUrl = String(headers["paypal-cert-url"] || "").trim();
   const transmissionId = String(headers["paypal-transmission-id"] || "").trim();
@@ -56,15 +46,15 @@ export async function verifyPayPalWebhookSignature(params: {
   if (!webhookId) return false;
 
   const fetchImpl = params.fetchImpl ?? fetch;
-  const getAccessToken = params.getAccessToken ?? (async () => {
-    const { getPayPalAccessTokenForWebhook } = await import("./paypal-server");
-    return getPayPalAccessTokenForWebhook();
-  });
+  const getAccessToken =
+    params.getAccessToken ??
+    (async () => {
+      const { getPayPalAccessTokenForWebhook } = await import("./paypal-server");
+      return getPayPalAccessTokenForWebhook();
+    });
 
   const accessToken = await getAccessToken();
-  const baseUrl = getPayPalRuntimeEnv() === "live"
-    ? "https://api-m.paypal.com"
-    : "https://api-m.sandbox.paypal.com";
+  const baseUrl = getPayPalRuntimeEnv() === "live" ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com";
 
   const response = await fetchImpl(`${baseUrl}/v1/notifications/verify-webhook-signature`, {
     method: "POST",
@@ -105,10 +95,7 @@ export function parsePayPalWebhookEvent(rawBody: Buffer | string): any | null {
   }
 }
 
-const HANDLED_EVENTS = new Set([
-  "CHECKOUT.ORDER.APPROVED",
-  "PAYMENT.CAPTURE.COMPLETED",
-]);
+const HANDLED_EVENTS = new Set(["CHECKOUT.ORDER.APPROVED", "PAYMENT.CAPTURE.COMPLETED"]);
 
 export function isHandledPayPalWebhookEvent(eventType: string): boolean {
   return HANDLED_EVENTS.has(eventType);
@@ -187,9 +174,12 @@ export async function handlePayPalWebhookEvent(
   const captureResource = event?.resource;
   const captureId = String(captureResource?.id || "").trim();
   const orderId = String(
-    captureResource?.supplementary_data?.related_ids?.order_id
-      || captureResource?.links?.find?.((link: any) => link?.rel === "up")?.href?.split("/").pop()
-      || "",
+    captureResource?.supplementary_data?.related_ids?.order_id ||
+      captureResource?.links
+        ?.find?.((link: any) => link?.rel === "up")
+        ?.href?.split("/")
+        .pop() ||
+      "",
   ).trim();
 
   if (!orderId) {

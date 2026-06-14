@@ -40,12 +40,7 @@ export class ChatTutorServiceError extends Error {
   readonly statusCode: number;
   readonly cause?: unknown;
 
-  constructor(
-    message: string,
-    code: ChatTutorServiceError["code"],
-    statusCode = 500,
-    cause?: unknown,
-  ) {
+  constructor(message: string, code: ChatTutorServiceError["code"], statusCode = 500, cause?: unknown) {
     super(message);
     this.name = "ChatTutorServiceError";
     this.code = code;
@@ -112,16 +107,18 @@ export function getLocalChatTutorFallback(prompt: string, courseName: string, mo
     reply = `### Modélisation et Requêtes SQL\n\nPour concevoir une excellente structure relationnelle, voici les principes clés :\n\n1. **Clé Primaire (Primary Key)** : Identifie de manière unique chaque tuple de la table.\n2. **Clé Étrangère (Foreign Key)** : Établit un lien de référence avec une autre table.\n3. **Jointures** : Permettent de relier plusieurs tables.\n\nQue souhaitez-vous interroger ou modéliser aujourd'hui ?`;
   } else if (lowerPrompt.includes("linux") || lowerPrompt.includes("processus")) {
     reply = `### L'architecture Linux et la gestion de Processus\n\nDans un système d'exploitation conforme aux normes POSIX (comme Linux) :\n\n- **Processus** : Une instance de programme en cours d'exécution.\n- **Thread** : L'unité d'exécution de base d'un processus.\n- **fork()** : Appel système permettant de cloner un processus parent.\n\nAvez-vous une question concernant les sémaphores, le scheduling, ou la gestion des signaux ?`;
-  } else if (lowerPrompt.includes("ia") || lowerPrompt.includes("machine learning") || lowerPrompt.includes("neurone")) {
+  } else if (
+    lowerPrompt.includes("ia") ||
+    lowerPrompt.includes("machine learning") ||
+    lowerPrompt.includes("neurone")
+  ) {
     reply = `### Fondations de l'Intelligence Artificielle\n\nL'apprentissage statistique (Machine Learning) repose sur l'ajustement de paramètres mathématiques pour minimiser une fonction d'erreur.\n\n- **Supervisé** : Vous donnez des entrées $X$ et les étiquettes cibles $Y$.\n- **Non supervisé** : Regroupement automatique sans étiquettes.\n- **Réseau de Neurones** : Un modèle composé de couches de neurones artificiels.\n\nQuelle partie du Machine Learning vous intéresse en ce moment ?`;
   }
 
   return reply;
 }
 
-function toOpenAIMessages(
-  history: ChatTutorHistoryMessage[],
-): OpenAI.Chat.ChatCompletionMessageParam[] {
+function toOpenAIMessages(history: ChatTutorHistoryMessage[]): OpenAI.Chat.ChatCompletionMessageParam[] {
   return history.map((msg) => ({
     role: msg.role === "user" ? "user" : "assistant",
     content: msg.text,
@@ -140,31 +137,17 @@ function mapOpenAIError(err: unknown, model: string): ChatTutorServiceError {
   const status = apiError?.status;
   const errorCode = apiError?.code || apiError?.error?.code || apiError?.error?.type;
 
-  if (
-    errorCode === "ETIMEDOUT"
-    || errorCode === "timeout"
-    || /timed out/i.test(message)
-  ) {
+  if (errorCode === "ETIMEDOUT" || errorCode === "timeout" || /timed out/i.test(message)) {
     logSecurity("ERROR", "OpenAI chat-tutor timeout", { model });
-    return new ChatTutorServiceError(
-      "L'assistant met trop de temps à répondre. Réessayez.",
-      "TIMEOUT",
-      504,
-      err,
-    );
+    return new ChatTutorServiceError("L'assistant met trop de temps à répondre. Réessayez.", "TIMEOUT", 504, err);
   }
 
   if (
-    status === 429
-    && (errorCode === "insufficient_quota" || /insufficient_quota|exceeded your current quota/i.test(message))
+    status === 429 &&
+    (errorCode === "insufficient_quota" || /insufficient_quota|exceeded your current quota/i.test(message))
   ) {
     logSecurity("ERROR", "OpenAI chat-tutor quota exceeded", { model });
-    return new ChatTutorServiceError(
-      "Assistant temporairement indisponible.",
-      "QUOTA_EXCEEDED",
-      503,
-      err,
-    );
+    return new ChatTutorServiceError("Assistant temporairement indisponible.", "QUOTA_EXCEEDED", 503, err);
   }
 
   if (status === 429 || errorCode === "rate_limit_exceeded") {
@@ -177,18 +160,9 @@ function mapOpenAIError(err: unknown, model: string): ChatTutorServiceError {
     );
   }
 
-  if (
-    status === 401
-    || errorCode === "invalid_api_key"
-    || /invalid api key|incorrect api key/i.test(message)
-  ) {
+  if (status === 401 || errorCode === "invalid_api_key" || /invalid api key|incorrect api key/i.test(message)) {
     logSecurity("ERROR", "OpenAI chat-tutor auth error", { model, status, code: errorCode });
-    return new ChatTutorServiceError(
-      "Assistant temporairement indisponible.",
-      "AUTH_ERROR",
-      503,
-      err,
-    );
+    return new ChatTutorServiceError("Assistant temporairement indisponible.", "AUTH_ERROR", 503, err);
   }
 
   logSecurity("ERROR", "OpenAI chat-tutor error", {

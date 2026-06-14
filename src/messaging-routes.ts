@@ -1,4 +1,5 @@
 import type { Express, Request, Response, NextFunction } from "express";
+import { getAuthUser } from "./server/route-types";
 import { z } from "zod";
 import { prisma } from "./db";
 import { isStudentRole, isTeacherSpaceRole, normalizeRole } from "./rbac";
@@ -43,14 +44,17 @@ const createConversationSchema = z.object({
 
 const sendMessageSchema = z.object({
   body: z.string().max(MESSAGE_BODY_MAX).default(""),
-  attachment: z.object({
-    kind: z.enum(["IMAGE", "VIDEO", "AUDIO", "DOCUMENT"]),
-    fileName: z.string().min(1).max(200),
-    mimeType: z.string().min(3).max(120),
-    sizeBytes: z.number().int().positive(),
-    url: z.string().url(),
-    storageKey: z.string().optional().nullable(),
-  }).optional().nullable(),
+  attachment: z
+    .object({
+      kind: z.enum(["IMAGE", "VIDEO", "AUDIO", "DOCUMENT"]),
+      fileName: z.string().min(1).max(200),
+      mimeType: z.string().min(3).max(120),
+      sizeBytes: z.number().int().positive(),
+      url: z.string().url(),
+      storageKey: z.string().optional().nullable(),
+    })
+    .optional()
+    .nullable(),
 });
 
 const pushSubscribeSchema = z.object({
@@ -70,7 +74,9 @@ async function filterAllowedMessagingCandidates(
 
   const candidatesWithRole = candidates
     .map((candidate) => ({ ...candidate, role: normalizeRole(candidate.role) }))
-    .filter((candidate): candidate is typeof candidate & { role: NonNullable<ReturnType<typeof normalizeRole>> } => Boolean(candidate.role));
+    .filter((candidate): candidate is typeof candidate & { role: NonNullable<ReturnType<typeof normalizeRole>> } =>
+      Boolean(candidate.role),
+    );
 
   const allowedUserIds = new Set<string>();
   const teacherCandidates = candidatesWithRole.filter((candidate) => isTeacherSpaceRole(candidate.role));
@@ -150,7 +156,7 @@ export function registerMessagingRoutes(
   configureWebPush();
 
   app.get("/api/messaging/users/search", middleware.requireAuth, middleware.requireRbac, async (req, res) => {
-    const authUser = (req as any).authUser as AuthUser;
+    const authUser = getAuthUser(req) as AuthUser;
     const query = String(req.query.q || "").trim();
     if (query.length < MESSAGE_SEARCH_MIN) {
       res.json([]);
@@ -175,7 +181,7 @@ export function registerMessagingRoutes(
   });
 
   app.get("/api/conversations", middleware.requireAuth, middleware.requireRbac, async (req, res) => {
-    const authUser = (req as any).authUser as AuthUser;
+    const authUser = getAuthUser(req) as AuthUser;
     const memberships = await prisma.conversationParticipant.findMany({
       where: { userId: authUser.id },
       orderBy: { conversation: { updatedAt: "desc" } },
@@ -188,46 +194,52 @@ export function registerMessagingRoutes(
     res.json(summaries);
   });
 
-  app.post("/api/conversations", middleware.requireAuth, middleware.requireRbac, middleware.validateBody(createConversationSchema), async (req, res) => {
-    const authUser = (req as any).authUser as AuthUser;
-    const participantUserId = String(req.body.participantUserId);
-    const participant = await prisma.user.findUnique({
-      where: { id: participantUserId },
-      select: { id: true, role: true, fullName: true, email: true, avatarUrl: true, emailVerified: true },
-    });
-    if (!participant || !participant.emailVerified) {
-      res.status(404).json({ error: "Utilisateur introuvable" });
-      return;
-    }
-    const participantRole = normalizeRole(participant.role);
-    const authRole = normalizeRole(authUser.role);
-    if (!participantRole || !authRole) {
-      res.status(400).json({ error: "Rôle utilisateur invalide" });
-      return;
-    }
-    const allowed = await canUsersDirectMessage(
-      { id: authUser.id, role: authRole },
-      { id: participant.id, role: participantRole },
-    );
-    if (!allowed) {
-      res.status(403).json({ error: "Conversation non autorisée avec cet utilisateur" });
-      return;
-    }
+  app.post(
+    "/api/conversations",
+    middleware.requireAuth,
+    middleware.requireRbac,
+    middleware.validateBody(createConversationSchema),
+    async (req, res) => {
+      const authUser = getAuthUser(req) as AuthUser;
+      const participantUserId = String(req.body.participantUserId);
+      const participant = await prisma.user.findUnique({
+        where: { id: participantUserId },
+        select: { id: true, role: true, fullName: true, email: true, avatarUrl: true, emailVerified: true },
+      });
+      if (!participant || !participant.emailVerified) {
+        res.status(404).json({ error: "Utilisateur introuvable" });
+        return;
+      }
+      const participantRole = normalizeRole(participant.role);
+      const authRole = normalizeRole(authUser.role);
+      if (!participantRole || !authRole) {
+        res.status(400).json({ error: "Rôle utilisateur invalide" });
+        return;
+      }
+      const allowed = await canUsersDirectMessage(
+        { id: authUser.id, role: authRole },
+        { id: participant.id, role: participantRole },
+      );
+      if (!allowed) {
+        res.status(403).json({ error: "Conversation non autorisée avec cet utilisateur" });
+        return;
+      }
 
-    const existingId = await findDirectConversationId(authUser.id, participant.id);
-    if (existingId) {
-      const summary = await serializeConversationSummary(existingId, authUser.id);
-      res.json(summary);
-      return;
-    }
+      const existingId = await findDirectConversationId(authUser.id, participant.id);
+      if (existingId) {
+        const summary = await serializeConversationSummary(existingId, authUser.id);
+        res.json(summary);
+        return;
+      }
 
-    const conversation = await findOrCreateDirectConversation(authUser.id, participant.id);
-    const summary = await serializeConversationSummary(conversation.id, authUser.id);
-    res.status(201).json(summary);
-  });
+      const conversation = await findOrCreateDirectConversation(authUser.id, participant.id);
+      const summary = await serializeConversationSummary(conversation.id, authUser.id);
+      res.status(201).json(summary);
+    },
+  );
 
   app.get("/api/conversations/:id/messages", middleware.requireAuth, middleware.requireRbac, async (req, res) => {
-    const authUser = (req as any).authUser as AuthUser;
+    const authUser = getAuthUser(req) as AuthUser;
     const conversationId = String(req.params.id);
     if (!(await isConversationParticipant(conversationId, authUser.id))) {
       res.status(403).json({ error: "Accès refusé à cette conversation" });
@@ -248,84 +260,92 @@ export function registerMessagingRoutes(
     res.json(messages.map((message) => serializeMessage(message as any, authUser.id)));
   });
 
-  app.post("/api/conversations/:id/messages", middleware.requireAuth, middleware.requireRbac, middleware.validateBody(sendMessageSchema), async (req, res) => {
-    const authUser = (req as any).authUser as AuthUser;
-    const conversationId = String(req.params.id);
-    if (!(await isConversationParticipant(conversationId, authUser.id))) {
-      res.status(403).json({ error: "Accès refusé à cette conversation" });
-      return;
-    }
-
-    const body = String(req.body.body || "").trim();
-    const attachment = req.body.attachment as MessageAttachmentInput | null | undefined;
-    if (!body && !attachment) {
-      res.status(400).json({ error: "Message texte ou pièce jointe requis" });
-      return;
-    }
-    if (attachment) {
-      const attachmentError = validateMessageAttachmentInput(attachment);
-      if (attachmentError) {
-        res.status(400).json({ error: attachmentError });
+  app.post(
+    "/api/conversations/:id/messages",
+    middleware.requireAuth,
+    middleware.requireRbac,
+    middleware.validateBody(sendMessageSchema),
+    async (req, res) => {
+      const authUser = getAuthUser(req) as AuthUser;
+      const conversationId = String(req.params.id);
+      if (!(await isConversationParticipant(conversationId, authUser.id))) {
+        res.status(403).json({ error: "Accès refusé à cette conversation" });
         return;
       }
-    }
 
-    const message = await prisma.message.create({
-      data: {
-        conversationId,
-        senderId: authUser.id,
-        body,
-        attachments: attachment
-          ? {
-              create: [{
-                kind: attachment.kind,
-                fileName: attachment.fileName,
-                mimeType: attachment.mimeType,
-                sizeBytes: attachment.sizeBytes,
-                url: attachment.url,
-                storageKey: attachment.storageKey || null,
-              }],
-            }
-          : undefined,
-      },
-      include: {
-        sender: { select: { id: true, fullName: true, email: true, role: true, avatarUrl: true } },
-        attachments: true,
-        reads: true,
-      },
-    });
+      const body = String(req.body.body || "").trim();
+      const attachment = req.body.attachment as MessageAttachmentInput | null | undefined;
+      if (!body && !attachment) {
+        res.status(400).json({ error: "Message texte ou pièce jointe requis" });
+        return;
+      }
+      if (attachment) {
+        const attachmentError = validateMessageAttachmentInput(attachment);
+        if (attachmentError) {
+          res.status(400).json({ error: attachmentError });
+          return;
+        }
+      }
 
-    await prisma.conversation.update({
-      where: { id: conversationId },
-      data: { updatedAt: new Date() },
-    });
-
-    const payload = serializeMessage(message as any, authUser.id);
-    emitToConversation(conversationId, "message:new", payload);
-
-    const participants = await prisma.conversationParticipant.findMany({
-      where: { conversationId },
-      select: { userId: true },
-    });
-    const recipientIds = participants
-      .map((participant) => participant.userId)
-      .filter((userId) => userId !== authUser.id);
-
-    if (recipientIds.length > 0) {
-      await createNotificationsForUsers(recipientIds, {
-        type: "NEW_MESSAGE",
-        title: "Nouveau message",
-        body: `${authUser.fullName} : ${body || "Pièce jointe envoyée"}`,
-        actionUrl: `/messages?conversation=${conversationId}`,
-        metadata: { conversationId, messageId: message.id },
+      const message = await prisma.message.create({
+        data: {
+          conversationId,
+          senderId: authUser.id,
+          body,
+          attachments: attachment
+            ? {
+                create: [
+                  {
+                    kind: attachment.kind,
+                    fileName: attachment.fileName,
+                    mimeType: attachment.mimeType,
+                    sizeBytes: attachment.sizeBytes,
+                    url: attachment.url,
+                    storageKey: attachment.storageKey || null,
+                  },
+                ],
+              }
+            : undefined,
+        },
+        include: {
+          sender: { select: { id: true, fullName: true, email: true, role: true, avatarUrl: true } },
+          attachments: true,
+          reads: true,
+        },
       });
-    }
 
-    res.status(201).json(payload);
-  });
+      await prisma.conversation.update({
+        where: { id: conversationId },
+        data: { updatedAt: new Date() },
+      });
+
+      const payload = serializeMessage(message as any, authUser.id);
+      emitToConversation(conversationId, "message:new", payload);
+
+      const participants = await prisma.conversationParticipant.findMany({
+        where: { conversationId },
+        select: { userId: true },
+      });
+      const recipientIds = participants
+        .map((participant) => participant.userId)
+        .filter((userId) => userId !== authUser.id);
+
+      if (recipientIds.length > 0) {
+        await createNotificationsForUsers(recipientIds, {
+          type: "NEW_MESSAGE",
+          title: "Nouveau message",
+          body: `${authUser.fullName} : ${body || "Pièce jointe envoyée"}`,
+          actionUrl: `/messages?conversation=${conversationId}`,
+          metadata: { conversationId, messageId: message.id },
+        });
+      }
+
+      res.status(201).json(payload);
+    },
+  );
 
   app.post("/api/conversations/:id/read", middleware.requireAuth, middleware.requireRbac, async (req, res) => {
-    const authUser = (req as any).authUser as AuthUser;
+    const authUser = getAuthUser(req) as AuthUser;
     const conversationId = String(req.params.id);
     if (!(await isConversationParticipant(conversationId, authUser.id))) {
       res.status(403).json({ error: "Accès refusé à cette conversation" });
@@ -365,13 +385,13 @@ export function registerMessagingRoutes(
   });
 
   app.get("/api/notifications", middleware.requireAuth, middleware.requireRbac, async (req, res) => {
-    const authUser = (req as any).authUser as AuthUser;
+    const authUser = getAuthUser(req) as AuthUser;
     const notifications = await listUserNotifications(authUser.id);
     res.json(notifications.map(serializeNotification));
   });
 
   app.get("/api/notifications/unread-count", middleware.requireAuth, middleware.requireRbac, async (req, res) => {
-    const authUser = (req as any).authUser as AuthUser;
+    const authUser = getAuthUser(req) as AuthUser;
     const count = await getUnreadNotificationCount(authUser.id);
     res.json({ count });
   });
@@ -388,7 +408,7 @@ export function registerMessagingRoutes(
   });
 
   app.patch("/api/notifications/:id/read", middleware.requireAuth, middleware.requireRbac, async (req, res) => {
-    const authUser = (req as any).authUser as AuthUser;
+    const authUser = getAuthUser(req) as AuthUser;
     const ok = await markNotificationRead(String(req.params.id), authUser.id);
     if (!ok) {
       res.status(404).json({ error: "Notification introuvable" });
@@ -398,39 +418,45 @@ export function registerMessagingRoutes(
   });
 
   app.post("/api/notifications/read-all", middleware.requireAuth, middleware.requireRbac, async (req, res) => {
-    const authUser = (req as any).authUser as AuthUser;
+    const authUser = getAuthUser(req) as AuthUser;
     await markAllNotificationsRead(authUser.id);
     res.json({ ok: true });
   });
 
-  app.post("/api/notifications/push-subscribe", middleware.requireAuth, middleware.requireRbac, middleware.validateBody(pushSubscribeSchema), async (req, res) => {
-    const authUser = (req as any).authUser as AuthUser;
-    if (!isWebPushConfigured()) {
-      console.error("[push] push-subscribe rejected: VAPID keys not configured on server");
-      res.status(503).json({ error: "Notifications push non configurées sur le serveur." });
-      return;
-    }
-    try {
-      await savePushSubscription(authUser.id, req.body);
-      console.log("[push] push-subscribe saved", {
-        userId: authUser.id,
-        endpointHost: (() => {
-          try {
-            return new URL(req.body.endpoint).host;
-          } catch {
-            return "invalid-endpoint";
-          }
-        })(),
-      });
-      res.json({ ok: true });
-    } catch (err: any) {
-      if (err instanceof PushSubscriptionValidationError || err instanceof PushSubscriptionLimitError) {
-        const clientError = toPushSubscribeClientResponse(err);
-        res.status(err instanceof PushSubscriptionLimitError ? 429 : 400).json(clientError);
+  app.post(
+    "/api/notifications/push-subscribe",
+    middleware.requireAuth,
+    middleware.requireRbac,
+    middleware.validateBody(pushSubscribeSchema),
+    async (req, res) => {
+      const authUser = getAuthUser(req) as AuthUser;
+      if (!isWebPushConfigured()) {
+        console.error("[push] push-subscribe rejected: VAPID keys not configured on server");
+        res.status(503).json({ error: "Notifications push non configurées sur le serveur." });
         return;
       }
-      console.error("[push] push-subscribe failed", { userId: authUser.id, message: err?.message || String(err) });
-      res.status(500).json({ error: "Impossible d'enregistrer l'abonnement push." });
-    }
-  });
+      try {
+        await savePushSubscription(authUser.id, req.body);
+        console.log("[push] push-subscribe saved", {
+          userId: authUser.id,
+          endpointHost: (() => {
+            try {
+              return new URL(req.body.endpoint).host;
+            } catch {
+              return "invalid-endpoint";
+            }
+          })(),
+        });
+        res.json({ ok: true });
+      } catch (err: any) {
+        if (err instanceof PushSubscriptionValidationError || err instanceof PushSubscriptionLimitError) {
+          const clientError = toPushSubscribeClientResponse(err);
+          res.status(err instanceof PushSubscriptionLimitError ? 429 : 400).json(clientError);
+          return;
+        }
+        console.error("[push] push-subscribe failed", { userId: authUser.id, message: err?.message || String(err) });
+        res.status(500).json({ error: "Impossible d'enregistrer l'abonnement push." });
+      }
+    },
+  );
 }

@@ -151,7 +151,15 @@ export interface AcademicProfilePayload {
   };
   profile: AcademicProfile;
   courses: { id: number; title: string; published: boolean; liveSubject?: string | null }[];
-  lives: { id: string; roomName: string; courseId: number; active: boolean; startedAt: string; endedAt?: string | null; course?: { title: string } }[];
+  lives: {
+    id: string;
+    roomName: string;
+    courseId: number;
+    active: boolean;
+    startedAt: string;
+    endedAt?: string | null;
+    course?: { title: string };
+  }[];
   publishedContentsCount: number;
   message?: string;
 }

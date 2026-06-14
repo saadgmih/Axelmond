@@ -1,11 +1,7 @@
 import { useEffect } from "react";
 import { isEditableTarget, matchShortcut, type ShortcutSpec } from "../utils/keyboardNavigation";
 
-export function useKeyboardShortcuts(
-  shortcuts: ShortcutSpec[],
-  enabled = true,
-  deps: unknown[] = [],
-) {
+export function useKeyboardShortcuts(shortcuts: ShortcutSpec[], enabled = true, deps: unknown[] = []) {
   useEffect(() => {
     if (!enabled) return;
 

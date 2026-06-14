@@ -89,7 +89,7 @@ export async function listAuditLogs(filters: AuditLogFilters = {}) {
 
   return {
     items,
-    nextCursor: hasMore ? items[items.length - 1]?.id ?? null : null,
+    nextCursor: hasMore ? (items[items.length - 1]?.id ?? null) : null,
   };
 }
 
@@ -104,17 +104,19 @@ export async function fetchAuditLogsForExport(filters: Omit<AuditLogFilters, "li
 export function buildAuditLogCsv(logs: ReturnType<typeof auditLogSnapshot>[]) {
   const escapeCsv = (value: string) => `"${value.replace(/"/g, '""')}"`;
   const header = "id,createdAt,userId,userEmail,action,resource,resourceId,ip,details";
-  const rows = logs.map((log) => [
-    log.id,
-    log.createdAt,
-    log.userId ?? "",
-    log.userEmail ?? "",
-    log.action,
-    log.resource,
-    log.resourceId ?? "",
-    log.ip ?? "",
-    escapeCsv(JSON.stringify(log.details ?? {})),
-  ].join(","));
+  const rows = logs.map((log) =>
+    [
+      log.id,
+      log.createdAt,
+      log.userId ?? "",
+      log.userEmail ?? "",
+      log.action,
+      log.resource,
+      log.resourceId ?? "",
+      log.ip ?? "",
+      escapeCsv(JSON.stringify(log.details ?? {})),
+    ].join(","),
+  );
 
   return [header, ...rows].join("\n");
 }

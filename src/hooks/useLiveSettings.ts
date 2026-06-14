@@ -20,25 +20,37 @@ export function useLiveSettings() {
     setSettings((current) => ({ ...current, ...patch }));
   }, []);
 
-  const setVideoQuality = useCallback((videoQuality: LiveVideoQuality) => {
-    patchSettings({ videoQuality });
-  }, [patchSettings]);
+  const setVideoQuality = useCallback(
+    (videoQuality: LiveVideoQuality) => {
+      patchSettings({ videoQuality });
+    },
+    [patchSettings],
+  );
 
-  const setLayoutMode = useCallback((layoutMode: LiveLayoutMode) => {
-    patchSettings({ layoutMode });
-  }, [patchSettings]);
+  const setLayoutMode = useCallback(
+    (layoutMode: LiveLayoutMode) => {
+      patchSettings({ layoutMode });
+    },
+    [patchSettings],
+  );
 
-  const setFocusMode = useCallback((focusMode: boolean) => {
-    patchSettings({ focusMode });
-  }, [patchSettings]);
+  const setFocusMode = useCallback(
+    (focusMode: boolean) => {
+      patchSettings({ focusMode });
+    },
+    [patchSettings],
+  );
 
   const toggleFocusMode = useCallback(() => {
     setSettings((current) => ({ ...current, focusMode: !current.focusMode }));
   }, []);
 
-  const setSubtitleLanguage = useCallback((subtitleLanguage: LiveSubtitleLanguage) => {
-    patchSettings({ subtitleLanguage });
-  }, [patchSettings]);
+  const setSubtitleLanguage = useCallback(
+    (subtitleLanguage: LiveSubtitleLanguage) => {
+      patchSettings({ subtitleLanguage });
+    },
+    [patchSettings],
+  );
 
   const resetSettings = useCallback(() => {
     setSettings(DEFAULT_LIVE_SETTINGS);

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useInView } from "../hooks/useInView";
 import {
   GraduationCap,
   FlaskConical,
@@ -44,37 +45,32 @@ function useCountUp(target: number, duration = 1800, start = false) {
   return value;
 }
 
-// ─── Intersection observer (animate-on-scroll) ───────────────────────────────
-function useInView(threshold = 0.15) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setInView(true); obs.disconnect(); } },
-      { threshold }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [threshold]);
-  return { ref, inView };
-}
-
 // ─── Stat Card ───────────────────────────────────────────────────────────────
 const StatCard: React.FC<{
-  value: number; suffix: string; label: string; sublabel?: string;
-  color: string; bgColor: string; borderColor: string; icon: React.ReactNode; start: boolean;
+  value: number;
+  suffix: string;
+  label: string;
+  sublabel?: string;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+  icon: React.ReactNode;
+  start: boolean;
 }> = ({ value, suffix, label, sublabel, color, bgColor, borderColor, icon, start }) => {
   const count = useCountUp(value, 1800, start);
   return (
-    <div className={`relative overflow-hidden rounded-2xl border ${borderColor} ${bgColor} p-5 flex flex-col gap-3 group transition-all duration-300 hover:scale-[1.03] hover:shadow-lg`}>
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color.replace("text-", "bg-").replace("400", "900/40").replace("300", "900/40")} border border-current/10`}>
+    <div
+      className={`relative overflow-hidden rounded-2xl border ${borderColor} ${bgColor} p-5 flex flex-col gap-3 group transition-all duration-300 hover:scale-[1.03] hover:shadow-lg`}
+    >
+      <div
+        className={`w-10 h-10 rounded-xl flex items-center justify-center ${color.replace("text-", "bg-").replace("400", "900/40").replace("300", "900/40")} border border-current/10`}
+      >
         <span className={color}>{icon}</span>
       </div>
       <div>
         <div className={`text-3xl font-black tabular-nums ${color}`}>
-          {count.toLocaleString("fr-FR")}{suffix}
+          {count.toLocaleString("fr-FR")}
+          {suffix}
         </div>
         <div className="text-white text-sm font-bold mt-0.5">{label}</div>
         {sublabel && <div className="text-slate-500 text-[11px] mt-0.5">{sublabel}</div>}
@@ -85,8 +81,13 @@ const StatCard: React.FC<{
 
 // ─── Feature Card ─────────────────────────────────────────────────────────────
 const FeatureCard: React.FC<{
-  icon: React.ReactNode; title: string; description: string;
-  badge?: string; accent: string; delay?: number; inView: boolean;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  badge?: string;
+  accent: string;
+  delay?: number;
+  inView: boolean;
 }> = ({ icon, title, description, badge, accent, delay = 0, inView }) => {
   return (
     <div
@@ -98,9 +99,7 @@ const FeatureCard: React.FC<{
       }}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${accent}`}>
-          {icon}
-        </div>
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${accent}`}>{icon}</div>
         {badge && (
           <span className="text-[9px] font-black uppercase tracking-widest bg-indigo-500/15 text-indigo-300 border border-indigo-500/20 px-2 py-0.5 rounded-full flex-shrink-0">
             {badge}
@@ -117,8 +116,12 @@ const FeatureCard: React.FC<{
 
 // ─── Value Card ───────────────────────────────────────────────────────────────
 const ValueCard: React.FC<{
-  icon: React.ReactNode; title: string; description: string;
-  gradient: string; delay?: number; inView: boolean;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  gradient: string;
+  delay?: number;
+  inView: boolean;
 }> = ({ icon, title, description, gradient, delay = 0, inView }) => {
   return (
     <div
@@ -153,52 +156,60 @@ export default function AboutView() {
       icon: <BookOpen className="w-5 h-5 text-indigo-300" />,
       accent: "bg-indigo-500/15 border border-indigo-500/20",
       title: "Modules Structurés Multi-niveaux",
-      description: "Catalogue organisé par domaines, disciplines et niveaux académiques avec chapitres, sections et contenus riches (texte, vidéo, quiz).",
+      description:
+        "Catalogue organisé par domaines, disciplines et niveaux académiques avec chapitres, sections et contenus riches (texte, vidéo, quiz).",
     },
     {
       icon: <Video className="w-5 h-5 text-pink-300" />,
       accent: "bg-pink-500/15 border border-pink-500/20",
       title: "Sessions Live (LiveKit)",
-      description: "Visioconférences académiques intégrées avec partage d'écran, chat en direct et gestion des participants.",
+      description:
+        "Visioconférences académiques intégrées avec partage d'écran, chat en direct et gestion des participants.",
       badge: "Live",
     },
     {
       icon: <Brain className="w-5 h-5 text-violet-300" />,
       accent: "bg-violet-500/15 border border-violet-500/20",
       title: "Tuteur IA Personnalisé",
-      description: "Assistant pédagogique basé sur OpenAI, disponible dans les modules pour répondre aux questions et approfondir les concepts.",
+      description:
+        "Assistant pédagogique basé sur OpenAI, disponible dans les modules pour répondre aux questions et approfondir les concepts.",
       badge: "IA",
     },
     {
       icon: <Award className="w-5 h-5 text-amber-300" />,
       accent: "bg-amber-500/15 border border-amber-500/20",
       title: "Évaluations & Quizzes",
-      description: "Système d'examens intégré avec correction automatique, feedback détaillé et suivi de progression par module.",
+      description:
+        "Système d'examens intégré avec correction automatique, feedback détaillé et suivi de progression par module.",
     },
     {
       icon: <Shield className="w-5 h-5 text-emerald-300" />,
       accent: "bg-emerald-500/15 border border-emerald-500/20",
       title: "Sécurité Niveau Production",
-      description: "RBAC strict, JWT avec expiration, protection brute-force, vérification email obligatoire, rate-limiting et audit complet.",
+      description:
+        "RBAC strict, JWT avec expiration, protection brute-force, vérification email obligatoire, rate-limiting et audit complet.",
       badge: "Sécurisé",
     },
     {
       icon: <Layers className="w-5 h-5 text-cyan-300" />,
       accent: "bg-cyan-500/15 border border-cyan-500/20",
       title: "Profils Académiques Complets",
-      description: "Espaces personnalisés pour étudiants, professeurs et chercheurs avec biographies, publications et domaines de spécialité.",
+      description:
+        "Espaces personnalisés pour étudiants, professeurs et chercheurs avec biographies, publications et domaines de spécialité.",
     },
     {
       icon: <Lock className="w-5 h-5 text-orange-300" />,
       accent: "bg-orange-500/15 border border-orange-500/20",
       title: "Paiements Sécurisés (PayPal)",
-      description: "Abonnements à l'accès aux modules avec facturation automatique, reçus archivés et intégration PayPal Checkout complète.",
+      description:
+        "Abonnements à l'accès aux modules avec facturation automatique, reçus archivés et intégration PayPal Checkout complète.",
     },
     {
       icon: <Activity className="w-5 h-5 text-rose-300" />,
       accent: "bg-rose-500/15 border border-rose-500/20",
       title: "Tableau de Bord Analytique",
-      description: "Statistiques de progression, taux de complétion, scores de quiz et métriques pédagogiques pour l'enseignant.",
+      description:
+        "Statistiques de progression, taux de complétion, scores de quiz et métriques pédagogiques pour l'enseignant.",
     },
   ];
 
@@ -206,28 +217,32 @@ export default function AboutView() {
     {
       icon: <FlaskConical className="w-6 h-6 text-indigo-300" />,
       title: "Excellence Académique",
-      description: "Nous nous engageons à proposer des contenus de niveau universitaire et à maintenir les plus hauts standards pédagogiques et scientifiques.",
+      description:
+        "Nous nous engageons à proposer des contenus de niveau universitaire et à maintenir les plus hauts standards pédagogiques et scientifiques.",
       gradient: "linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(79,70,229,0.05) 100%)",
       delay: 0,
     },
     {
       icon: <Lightbulb className="w-6 h-6 text-amber-300" />,
       title: "Innovation Continue",
-      description: "La plateforme intègre les dernières avancées technologiques — IA générative, visioconférence temps réel, analyses avancées — au service de la pédagogie.",
+      description:
+        "La plateforme intègre les dernières avancées technologiques — IA générative, visioconférence temps réel, analyses avancées — au service de la pédagogie.",
       gradient: "linear-gradient(135deg, rgba(245,158,11,0.15) 0%, rgba(217,119,6,0.05) 100%)",
       delay: 100,
     },
     {
       icon: <Shield className="w-6 h-6 text-emerald-300" />,
       title: "Sécurité & Confiance",
-      description: "Chaque donnée, chaque session et chaque transaction est protégée par une infrastructure sécurisée conforme aux bonnes pratiques de l'industrie.",
+      description:
+        "Chaque donnée, chaque session et chaque transaction est protégée par une infrastructure sécurisée conforme aux bonnes pratiques de l'industrie.",
       gradient: "linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(5,150,105,0.05) 100%)",
       delay: 200,
     },
     {
       icon: <Globe className="w-6 h-6 text-sky-300" />,
       title: "Accessibilité Universelle",
-      description: "Accessible sur tous les appareils, responsive et conçue pour s'adapter à chaque profil d'utilisateur, qu'il soit étudiant, enseignant ou chercheur.",
+      description:
+        "Accessible sur tous les appareils, responsive et conçue pour s'adapter à chaque profil d'utilisateur, qu'il soit étudiant, enseignant ou chercheur.",
       gradient: "linear-gradient(135deg, rgba(14,165,233,0.15) 0%, rgba(2,132,199,0.05) 100%)",
       delay: 300,
     },
@@ -298,7 +313,6 @@ export default function AboutView() {
 
   return (
     <div className="min-h-full bg-slate-950 text-white">
-
       {/* ── HERO SECTION ────────────────────────────────────────────────── */}
       <div
         ref={heroRef.ref}
@@ -333,18 +347,33 @@ export default function AboutView() {
                   Plateforme académique de nouvelle génération dédiée à la{" "}
                   <span className="text-indigo-300 font-semibold">recherche</span>,{" "}
                   <span className="text-violet-300 font-semibold">la formation</span> et{" "}
-                  <span className="text-pink-300 font-semibold">l'innovation</span>.
-                  Conçue pour les étudiants, les enseignants et les chercheurs.
+                  <span className="text-pink-300 font-semibold">l'innovation</span>. Conçue pour les étudiants, les
+                  enseignants et les chercheurs.
                 </p>
 
                 {/* Pillars row */}
                 <div className="flex flex-wrap gap-3 pt-2">
                   {[
-                    { label: "Research", icon: <Atom className="w-3.5 h-3.5" />, color: "text-indigo-300 border-indigo-500/30 bg-indigo-500/10" },
-                    { label: "Innovation", icon: <Lightbulb className="w-3.5 h-3.5" />, color: "text-amber-300 border-amber-500/30 bg-amber-500/10" },
-                    { label: "Education", icon: <GraduationCap className="w-3.5 h-3.5" />, color: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10" },
+                    {
+                      label: "Research",
+                      icon: <Atom className="w-3.5 h-3.5" />,
+                      color: "text-indigo-300 border-indigo-500/30 bg-indigo-500/10",
+                    },
+                    {
+                      label: "Innovation",
+                      icon: <Lightbulb className="w-3.5 h-3.5" />,
+                      color: "text-amber-300 border-amber-500/30 bg-amber-500/10",
+                    },
+                    {
+                      label: "Education",
+                      icon: <GraduationCap className="w-3.5 h-3.5" />,
+                      color: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10",
+                    },
                   ].map(({ label, icon, color }) => (
-                    <span key={label} className={`flex items-center gap-1.5 text-xs font-bold border px-3 py-1.5 rounded-full ${color}`}>
+                    <span
+                      key={label}
+                      className={`flex items-center gap-1.5 text-xs font-bold border px-3 py-1.5 rounded-full ${color}`}
+                    >
                       {icon}
                       {label}
                     </span>
@@ -380,13 +409,19 @@ export default function AboutView() {
                   {/* Fake activity bar */}
                   <div className="space-y-2 pt-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Activité plateforme</span>
+                      <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">
+                        Activité plateforme
+                      </span>
                       <span className="flex items-center gap-1.5 text-[10px] text-emerald-400 font-bold">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
                         En ligne
                       </span>
                     </div>
-                    {[["Modules complétés", 78], ["Taux de réussite quiz", 85], ["Uptime serveur", 99]].map(([label, val]) => (
+                    {[
+                      ["Modules complétés", 78],
+                      ["Taux de réussite quiz", 85],
+                      ["Uptime serveur", 99],
+                    ].map(([label, val]) => (
                       <div key={label as string}>
                         <div className="flex justify-between text-[10px] text-slate-400 mb-1">
                           <span>{label}</span>
@@ -409,7 +444,6 @@ export default function AboutView() {
       </div>
 
       <div className="max-w-6xl mx-auto px-6 md:px-10 py-12 space-y-20">
-
         {/* ── MISSION & VISION ─────────────────────────────────────────────── */}
         <div ref={missionRef.ref} className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Mission */}
@@ -431,10 +465,10 @@ export default function AboutView() {
               <h2 className="text-2xl font-black text-white mt-1">Former. Innover. Rechercher.</h2>
             </div>
             <p className="text-slate-300 text-sm leading-relaxed">
-              Axelmond Research Labs a pour mission de rendre l'enseignement supérieur accessible,
-              moderne et connecté. Nous fournissons aux institutions académiques les outils numériques
-              nécessaires pour offrir une expérience d'apprentissage de niveau mondial — des modules
-              interactifs jusqu'aux sessions live et aux profils de chercheurs.
+              Axelmond Research Labs a pour mission de rendre l'enseignement supérieur accessible, moderne et connecté.
+              Nous fournissons aux institutions académiques les outils numériques nécessaires pour offrir une expérience
+              d'apprentissage de niveau mondial — des modules interactifs jusqu'aux sessions live et aux profils de
+              chercheurs.
             </p>
             <ul className="space-y-2 pt-1">
               {[
@@ -469,9 +503,9 @@ export default function AboutView() {
               <h2 className="text-2xl font-black text-white mt-1">L'université du futur, maintenant.</h2>
             </div>
             <p className="text-slate-300 text-sm leading-relaxed">
-              Nous imaginons un avenir où chaque étudiant, professeur et chercheur dispose d'une
-              plateforme unifiée et intelligente pour apprendre, enseigner et publier.
-              Un hub académique mondial, connecté, sécurisé et enrichi par l'intelligence artificielle.
+              Nous imaginons un avenir où chaque étudiant, professeur et chercheur dispose d'une plateforme unifiée et
+              intelligente pour apprendre, enseigner et publier. Un hub académique mondial, connecté, sécurisé et
+              enrichi par l'intelligence artificielle.
             </p>
             <ul className="space-y-2 pt-1">
               {[
@@ -596,7 +630,8 @@ export default function AboutView() {
           <div
             className="relative overflow-hidden rounded-3xl border border-slate-800"
             style={{
-              background: "linear-gradient(135deg, rgba(15,23,42,0.95) 0%, rgba(30,27,75,0.4) 50%, rgba(15,23,42,0.95) 100%)",
+              background:
+                "linear-gradient(135deg, rgba(15,23,42,0.95) 0%, rgba(30,27,75,0.4) 50%, rgba(15,23,42,0.95) 100%)",
               opacity: visionRef.inView ? 1 : 0,
               transform: visionRef.inView ? "translateY(0)" : "translateY(30px)",
               transition: "opacity 0.7s ease, transform 0.7s ease",
@@ -619,21 +654,23 @@ export default function AboutView() {
                 </div>
                 <div className="space-y-4 text-sm text-slate-300 leading-relaxed">
                   <p>
-                    <strong className="text-white">Axelmond Research Labs</strong> est une plateforme numérique académique
-                    de nouvelle génération, conçue pour réunir en un seul endroit tous les acteurs de l'éducation
-                    supérieure et de la recherche scientifique. Elle s'adresse aux <span className="text-indigo-300">étudiants</span>,
-                    aux <span className="text-pink-300">enseignants</span> et aux{" "}
+                    <strong className="text-white">Axelmond Research Labs</strong> est une plateforme numérique
+                    académique de nouvelle génération, conçue pour réunir en un seul endroit tous les acteurs de
+                    l'éducation supérieure et de la recherche scientifique. Elle s'adresse aux{" "}
+                    <span className="text-indigo-300">étudiants</span>, aux{" "}
+                    <span className="text-pink-300">enseignants</span> et aux{" "}
                     <span className="text-violet-300">chercheurs</span>.
                   </p>
                   <p>
-                    La plateforme propose un catalogue de modules structurés par domaines et disciplines académiques,
-                    un système de sessions live intégré (LiveKit), un tuteur IA basé sur OpenAI, des évaluations
+                    La plateforme propose un catalogue de modules structurés par domaines et disciplines académiques, un
+                    système de sessions live intégré (LiveKit), un tuteur IA basé sur OpenAI, des évaluations
                     automatisées et des profils académiques complets avec publications et spécialités de recherche.
                   </p>
                   <p>
-                    Toute l'infrastructure repose sur une <strong className="text-white">architecture sécurisée de niveau production</strong> :
-                    RBAC strict, authentification JWT, vérification email, rate-limiting, audit trail et
-                    chiffrement des données sensibles. Les paiements sont gérés par PayPal avec une conformité totale.
+                    Toute l'infrastructure repose sur une{" "}
+                    <strong className="text-white">architecture sécurisée de niveau production</strong> : RBAC strict,
+                    authentification JWT, vérification email, rate-limiting, audit trail et chiffrement des données
+                    sensibles. Les paiements sont gérés par PayPal avec une conformité totale.
                   </p>
                 </div>
 
@@ -687,7 +724,10 @@ export default function AboutView() {
                     sub: "Données protégées · Audit trail",
                   },
                 ].map(({ icon, title, value, sub }) => (
-                  <div key={title} className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 flex items-center gap-4">
+                  <div
+                    key={title}
+                    className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 flex items-center gap-4"
+                  >
                     <div className="w-8 h-8 rounded-xl bg-slate-800 flex items-center justify-center flex-shrink-0">
                       {icon}
                     </div>
@@ -706,7 +746,10 @@ export default function AboutView() {
         {/* ── CTA FOOTER ───────────────────────────────────────────────────── */}
         <div
           className="relative overflow-hidden rounded-3xl border border-indigo-900/40 p-8 md:p-10 text-center space-y-5"
-          style={{ background: "linear-gradient(135deg, rgba(79,70,229,0.15) 0%, rgba(139,92,246,0.10) 50%, rgba(236,72,153,0.10) 100%)" }}
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(79,70,229,0.15) 0%, rgba(139,92,246,0.10) 50%, rgba(236,72,153,0.10) 100%)",
+          }}
         >
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute top-0 left-1/4 w-64 h-64 bg-indigo-500/5 rounded-full blur-2xl" />
@@ -718,12 +761,11 @@ export default function AboutView() {
             </span>
             <h2 className="text-3xl font-black text-white">Prêt à explorer la plateforme ?</h2>
             <p className="text-slate-400 text-sm max-w-md mx-auto mt-3">
-              Accédez à des centaines de modules académiques, participez aux sessions live et rejoignez
-              une communauté de chercheurs et d'étudiants passionnés.
+              Accédez à des centaines de modules académiques, participez aux sessions live et rejoignez une communauté
+              de chercheurs et d'étudiants passionnés.
             </p>
           </div>
         </div>
-
       </div>
     </div>
   );

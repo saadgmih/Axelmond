@@ -38,11 +38,7 @@ function mapLiveKitQuality(quality: ConnectionQuality): LiveConnectionLevel {
   }
 }
 
-export function useLiveConnectionNotice({
-  liveRoom,
-  videoQuality,
-  cameraEnabled,
-}: UseLiveConnectionNoticeOptions) {
+export function useLiveConnectionNotice({ liveRoom, videoQuality, cameraEnabled }: UseLiveConnectionNoticeOptions) {
   const [notice, setNotice] = useState<LiveConnectionNoticeState | null>(null);
   const [adaptiveQuality, setAdaptiveQuality] = useState<LiveVideoQuality>(getAutoDefaultQuality());
   const connectionRef = useRef<LiveConnectionLevel>("unknown");

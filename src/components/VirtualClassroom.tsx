@@ -195,7 +195,9 @@ export default function VirtualClassroom({
           <div className="flex-1">
             <h4 className="text-xs font-bold text-white mb-0.5">Erreur Microphone</h4>
             <p className="text-[11px] text-zinc-300">{micError}</p>
-            <p className="text-[10px] text-zinc-500 mt-1">Si l'accès est refusé, utilisez l'icône cadenas de la barre d'adresse pour autoriser le micro.</p>
+            <p className="text-[10px] text-zinc-500 mt-1">
+              Si l'accès est refusé, utilisez l'icône cadenas de la barre d'adresse pour autoriser le micro.
+            </p>
           </div>
           <button
             onClick={onToggleMic}
@@ -269,7 +271,9 @@ export default function VirtualClassroom({
             onToggleCamera={onToggleCamera}
             onToggleScreenShare={onToggleScreenShare}
             onRaiseHand={onRaiseHand}
-            onTogglePictureInPicture={() => { void ui.togglePictureInPicture(); }}
+            onTogglePictureInPicture={() => {
+              void ui.togglePictureInPicture();
+            }}
             onToggleFocusMode={ui.toggleFocusMode}
             onToggleFullscreen={onToggleFullscreen}
             onRecordToggle={onRecordToggle}
@@ -302,9 +306,15 @@ export default function VirtualClassroom({
           data-live-sidebar
           className={`live-classroom-sidebar absolute lg:static right-0 top-0 bottom-0 w-[min(100vw,420px)] lg:w-[420px] max-w-full lg:min-w-[420px] shrink-0 bg-zinc-900 border-l border-white/5 flex flex-col min-h-0 h-full max-h-full overflow-hidden transition-transform duration-300 ease-out z-40 box-border shadow-2xl lg:shadow-none ${ui.isSidebarOpen ? "translate-x-0 lg:flex" : "translate-x-full lg:hidden"}`}
         >
-          <div className={`px-3 pt-4 pb-2 grid gap-1 shrink-0 border-b border-white/5 bg-zinc-900/50 ${
-            ui.visibleSidebarTabs.length <= 2 ? "grid-cols-2" : ui.visibleSidebarTabs.length === 3 ? "grid-cols-3" : "grid-cols-5"
-          }`}>
+          <div
+            className={`px-3 pt-4 pb-2 grid gap-1 shrink-0 border-b border-white/5 bg-zinc-900/50 ${
+              ui.visibleSidebarTabs.length <= 2
+                ? "grid-cols-2"
+                : ui.visibleSidebarTabs.length === 3
+                  ? "grid-cols-3"
+                  : "grid-cols-5"
+            }`}
+          >
             {ui.visibleSidebarTabs.map((tab) => (
               <button
                 key={tab.id}
@@ -329,9 +339,7 @@ export default function VirtualClassroom({
           <div className="flex flex-1 min-h-0 flex-col overflow-hidden p-3 sm:p-4 bg-zinc-950/30">
             <div
               className={`flex-1 min-h-0 ${
-                ui.activeTab === "chat"
-                  ? "flex flex-col overflow-hidden"
-                  : "overflow-y-auto custom-scrollbar"
+                ui.activeTab === "chat" ? "flex flex-col overflow-hidden" : "overflow-y-auto custom-scrollbar"
               }`}
             >
               {ui.activeTab === "participants" && (
@@ -418,7 +426,9 @@ export default function VirtualClassroom({
         onSubtitleLanguageChange={ui.setSubtitleLanguage}
         pipSupported={ui.pipSupported}
         isPiPActive={ui.isPiPActive}
-        onTogglePiP={() => { void ui.togglePictureInPicture(); }}
+        onTogglePiP={() => {
+          void ui.togglePictureInPicture();
+        }}
       />
     </div>
   );

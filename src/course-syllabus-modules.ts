@@ -16,7 +16,9 @@ export type CourseModuleRow = {
 };
 
 export function shouldReadRelationalCourseModules(env: NodeJS.ProcessEnv = process.env): boolean {
-  const flag = String(env.COURSE_MODULES_READ_RELATIONAL ?? "true").trim().toLowerCase();
+  const flag = String(env.COURSE_MODULES_READ_RELATIONAL ?? "true")
+    .trim()
+    .toLowerCase();
   return flag !== "false";
 }
 
@@ -77,9 +79,9 @@ export function resolveCourseModules(
   env: NodeJS.ProcessEnv = process.env,
 ): CourseModule[] {
   if (
-    shouldReadRelationalCourseModules(env)
-    && Array.isArray(course.courseModules)
-    && course.courseModules.length > 0
+    shouldReadRelationalCourseModules(env) &&
+    Array.isArray(course.courseModules) &&
+    course.courseModules.length > 0
   ) {
     return course.courseModules
       .slice()

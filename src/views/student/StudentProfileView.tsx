@@ -1,14 +1,5 @@
 import { useMemo } from "react";
-import {
-  Award,
-  BookOpen,
-  CheckCircle2,
-  CreditCard,
-  GraduationCap,
-  Mail,
-  ShieldCheck,
-  Sparkles,
-} from "lucide-react";
+import { Award, BookOpen, CheckCircle2, CreditCard, GraduationCap, Mail, ShieldCheck, Sparkles } from "lucide-react";
 import ProfileAvatarUpload from "../../components/ProfileAvatarUpload";
 import type { AppUser } from "../../components/AuthScreen";
 import type { Course, Invoice } from "../../types";
@@ -82,11 +73,7 @@ export default function StudentProfileView({
               <div className="relative shrink-0">
                 <div className="h-28 w-28 overflow-hidden rounded-2xl border-4 border-white/20 bg-gradient-to-tr from-indigo-500 to-purple-600 shadow-2xl ring-4 ring-indigo-500/20">
                   {currentUser?.avatarUrl ? (
-                    <img
-                      src={currentUser.avatarUrl}
-                      alt="Photo de profil"
-                      className="h-full w-full object-cover"
-                    />
+                    <img src={currentUser.avatarUrl} alt="Photo de profil" className="h-full w-full object-cover" />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-3xl font-black">
                       {currentUser ? getInitials(currentUser.fullName) : "AR"}
@@ -125,9 +112,7 @@ export default function StudentProfileView({
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm lg:min-w-[220px]">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-300/80">
-                Identifiant
-              </p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-300/80">Identifiant</p>
               <p className="mt-1 font-mono text-sm font-bold text-white">
                 {currentUser ? `ID-${currentUser.id.slice(0, 8).toUpperCase()}` : "—"}
               </p>
@@ -173,7 +158,9 @@ export default function StudentProfileView({
             key={item.label}
             className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
           >
-            <div className={`absolute -right-4 -top-4 h-20 w-20 rounded-full bg-gradient-to-br ${item.accent} opacity-10 transition-opacity group-hover:opacity-20`} />
+            <div
+              className={`absolute -right-4 -top-4 h-20 w-20 rounded-full bg-gradient-to-br ${item.accent} opacity-10 transition-opacity group-hover:opacity-20`}
+            />
             <div className="relative flex items-start justify-between gap-3">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{item.label}</p>
@@ -266,7 +253,10 @@ export default function StudentProfileView({
                     </thead>
                     <tbody>
                       {invoices.map((inv) => (
-                        <tr key={inv.id} className="border-b border-slate-50 transition-colors last:border-none hover:bg-slate-50/80">
+                        <tr
+                          key={inv.id}
+                          className="border-b border-slate-50 transition-colors last:border-none hover:bg-slate-50/80"
+                        >
                           <td className="px-6 py-4 font-mono font-semibold text-slate-800">{inv.id}</td>
                           <td className="px-4 py-4">{inv.date}</td>
                           <td className="px-4 py-4 font-semibold text-slate-900">{inv.courseTitle}</td>
@@ -364,8 +354,13 @@ export default function StudentProfileView({
                   color: "bg-emerald-50 text-emerald-700 border-emerald-100",
                 },
               ].map((item) => (
-                <div key={item.title} className="flex items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50/50 p-3.5">
-                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border text-sm font-black ${item.color}`}>
+                <div
+                  key={item.title}
+                  className="flex items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50/50 p-3.5"
+                >
+                  <div
+                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border text-sm font-black ${item.color}`}
+                  >
                     {item.value}
                   </div>
                   <div>

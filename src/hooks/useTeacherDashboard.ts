@@ -41,7 +41,8 @@ export function useTeacherDashboard({
     if (role !== "teacher" || !gradesCourseId) return;
     let disposed = false;
     setGradesStatusMsg("Chargement des notes réelles...");
-    api.getCourseGrades(gradesCourseId)
+    api
+      .getCourseGrades(gradesCourseId)
       .then((grades) => {
         if (disposed) return;
         setCourseGrades(grades);
@@ -76,7 +77,6 @@ export function useTeacherDashboard({
       setEmailDeliverySummary(null);
       setEmailDeliveryStatusMsg("");
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser?.id, currentUser?.role]);
 
   const handleUpdateCoursePrice = async (id: number, newPrice: number) => {
@@ -97,13 +97,9 @@ export function useTeacherDashboard({
     try {
       const updatedCourse = await api.updateCourse(id, {
         isLiveNow: nextState,
-        liveSubject: nextState
-          ? course.liveSubject || "Rotation d'arbres AVL & complexités algorithmiques"
-          : null,
+        liveSubject: nextState ? course.liveSubject || "Rotation d'arbres AVL & complexités algorithmiques" : null,
       });
-      setCourses((prev) =>
-        prev.map((c) => (c.id === id ? updatedCourse : c))
-      );
+      setCourses((prev) => prev.map((c) => (c.id === id ? updatedCourse : c)));
       setActiveLiveCourse((current) => {
         if (current?.id !== id) return current;
         return nextState ? updatedCourse : null;
@@ -118,9 +114,7 @@ export function useTeacherDashboard({
   const handleUpdateCourseLiveSubject = async (id: number, liveSubject: string) => {
     try {
       const updatedCourse = await api.updateCourse(id, { liveSubject: liveSubject.trim() || null });
-      setCourses((prev) =>
-        prev.map((c) => (c.id === id ? updatedCourse : c))
-      );
+      setCourses((prev) => prev.map((c) => (c.id === id ? updatedCourse : c)));
       setActiveLiveCourse((current) => (current?.id === id ? updatedCourse : current));
     } catch (err) {
       console.error("Failed to update course live subject:", err);
@@ -149,7 +143,8 @@ export function useTeacherDashboard({
     return new Date(value).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
   };
 
-  const selectedGradesCourse = managedCourses.find((course) => course.id === gradesCourseId) || managedCourses[0] || null;
+  const selectedGradesCourse =
+    managedCourses.find((course) => course.id === gradesCourseId) || managedCourses[0] || null;
 
   const getGradeBadgeClass = (score: number | null) => {
     if (score === null) return "text-slate-500 bg-slate-100";

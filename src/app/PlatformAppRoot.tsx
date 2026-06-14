@@ -22,12 +22,7 @@ export function PlatformAppRoot() {
   }
 
   if (!platform.currentUser) {
-    return (
-      <AuthScreen
-        onLoginSuccess={platform.handleLoginSuccess}
-        courses={platform.courses}
-      />
-    );
+    return <AuthScreen onLoginSuccess={platform.handleLoginSuccess} courses={platform.courses} />;
   }
 
   return (

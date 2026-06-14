@@ -120,30 +120,32 @@ async function attachStaticOrVite(app: express.Express, isSecurityRuntimeTest: b
     next();
   });
 
-  app.use(express.static(distPath, {
-    dotfiles: "deny",
-    index: false,
-    setHeaders(res, filePath) {
-      res.setHeader("X-Content-Type-Options", "nosniff");
-      if (filePath.endsWith(".xml")) {
-        res.setHeader("Content-Type", "application/xml; charset=utf-8");
-        res.setHeader("Cache-Control", "public, max-age=86400");
-        return;
-      }
-      if (filePath.endsWith("robots.txt")) {
-        res.setHeader("Content-Type", "text/plain; charset=utf-8");
-        res.setHeader("Cache-Control", "public, max-age=86400");
-        return;
-      }
-      if (filePath.endsWith(".html")) {
-        res.setHeader("Cache-Control", "no-store");
-        return;
-      }
-      if (/\.(js|css|woff2?|png|svg|jpg|jpeg|webp|ico)$/i.test(filePath)) {
-        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
-      }
-    },
-  }));
+  app.use(
+    express.static(distPath, {
+      dotfiles: "deny",
+      index: false,
+      setHeaders(res, filePath) {
+        res.setHeader("X-Content-Type-Options", "nosniff");
+        if (filePath.endsWith(".xml")) {
+          res.setHeader("Content-Type", "application/xml; charset=utf-8");
+          res.setHeader("Cache-Control", "public, max-age=86400");
+          return;
+        }
+        if (filePath.endsWith("robots.txt")) {
+          res.setHeader("Content-Type", "text/plain; charset=utf-8");
+          res.setHeader("Cache-Control", "public, max-age=86400");
+          return;
+        }
+        if (filePath.endsWith(".html")) {
+          res.setHeader("Cache-Control", "no-store");
+          return;
+        }
+        if (/\.(js|css|woff2?|png|svg|jpg|jpeg|webp|ico)$/i.test(filePath)) {
+          res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+        }
+      },
+    }),
+  );
 
   const seoStaticFiles = ["sitemap.xml", "robots.txt"] as const;
   for (const fileName of seoStaticFiles) {
@@ -234,7 +236,10 @@ export async function startAxelmondServer() {
     if (smtpBanner.ok) {
       logEmail("INFO", "SMTP banner received at startup", { smtp: smtpBanner.details, banner: smtpBanner.banner });
     } else {
-      logEmail("WARN", "SMTP banner check failed at startup", { smtp: smtpBanner.details, error: "error" in smtpBanner ? smtpBanner.error : undefined });
+      logEmail("WARN", "SMTP banner check failed at startup", {
+        smtp: smtpBanner.details,
+        error: "error" in smtpBanner ? smtpBanner.error : undefined,
+      });
     }
 
     startCachePruner();

@@ -6,18 +6,16 @@ import { readLiveClassroomSources, readLiveKitHookSources } from "./helpers/live
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("livekit-microphone", () => {
+  const appSource = readAppSources();
+  const liveKitSource = appSource + readLiveKitHookSources();
+  const classroomSource = readLiveClassroomSources();
 
-const appSource = readAppSources();
-const liveKitSource = appSource + readLiveKitHookSources();
-const classroomSource = readLiveClassroomSources();
-
-assert.match(liveKitSource, /getMicrophonePermissionState/);
-assert.match(liveKitSource, /Microphone bloqué par le navigateur/);
-assert.match(liveKitSource, /setMicrophoneEnabled\(nextState\)/);
-assert.doesNotMatch(liveKitSource, /navigator\.mediaDevices\.getUserMedia\(\{\s*audio:\s*true\s*\}\)/);
-assert.match(classroomSource, /Autoriser le micro/);
-assert.match(classroomSource, /icône cadenas/);
-
+  assert.match(liveKitSource, /getMicrophonePermissionState/);
+  assert.match(liveKitSource, /Microphone bloqué par le navigateur/);
+  assert.match(liveKitSource, /setMicrophoneEnabled\(nextState\)/);
+  assert.doesNotMatch(liveKitSource, /navigator\.mediaDevices\.getUserMedia\(\{\s*audio:\s*true\s*\}\)/);
+  assert.match(classroomSource, /Autoriser le micro/);
+  assert.match(classroomSource, /icône cadenas/);
 });
 
 console.log("LiveKit microphone rules passed");

@@ -45,7 +45,11 @@ function renderAttachment(message: ChatMessage) {
   if (attachment.kind === "IMAGE") {
     return (
       <a href={attachment.url} target="_blank" rel="noreferrer" className="block mt-2">
-        <img src={attachment.url} alt={attachment.fileName} className="max-w-full max-h-64 rounded-xl border border-white/10 object-cover" />
+        <img
+          src={attachment.url}
+          alt={attachment.fileName}
+          className="max-w-full max-h-64 rounded-xl border border-white/10 object-cover"
+        />
       </a>
     );
   }
@@ -92,7 +96,9 @@ const ConversationListItem = memo(function ConversationListItem({
       onClick={() => onSelect(conversation.id)}
       className={`flex w-full items-start gap-3 border-b border-white/[0.05] px-4 py-3 text-left transition ${active ? "bg-white/10" : "hover:bg-white/5"}`}
     >
-      <div className={`flex h-11 w-11 items-center justify-center rounded-full ${active ? (role === "teacher" ? "bg-pink-600/30" : "bg-indigo-600/30") : "bg-slate-700"} text-sm font-black text-white`}>
+      <div
+        className={`flex h-11 w-11 items-center justify-center rounded-full ${active ? (role === "teacher" ? "bg-pink-600/30" : "bg-indigo-600/30") : "bg-slate-700"} text-sm font-black text-white`}
+      >
         {conversation.peer?.avatarUrl ? (
           <img src={conversation.peer.avatarUrl} alt="" className="h-full w-full rounded-full object-cover" />
         ) : (
@@ -109,7 +115,8 @@ const ConversationListItem = memo(function ConversationListItem({
         <p className="mt-1 truncate text-xs text-slate-400">
           {conversation.isPeerTyping
             ? "En train d'écrire..."
-            : conversation.lastMessage?.body || (conversation.lastMessage?.attachments?.length ? "Pièce jointe" : "Démarrer la conversation")}
+            : conversation.lastMessage?.body ||
+              (conversation.lastMessage?.attachments?.length ? "Pièce jointe" : "Démarrer la conversation")}
         </p>
       </div>
       {conversation.unreadCount > 0 && (
@@ -129,16 +136,19 @@ interface MessageBubbleProps {
 const MessageBubble = memo(function MessageBubble({ message, mine }: MessageBubbleProps) {
   return (
     <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-      <div className={`max-w-[85%] rounded-2xl px-4 py-3 shadow-lg ${mine ? "rounded-br-md bg-indigo-600 text-white" : "rounded-bl-md border border-white/10 bg-[#0f172a] text-slate-100"}`}>
+      <div
+        className={`max-w-[85%] rounded-2xl px-4 py-3 shadow-lg ${mine ? "rounded-br-md bg-indigo-600 text-white" : "rounded-bl-md border border-white/10 bg-[#0f172a] text-slate-100"}`}
+      >
         {message.body && <p className="whitespace-pre-wrap text-sm">{message.body}</p>}
         {renderAttachment(message)}
         <div className={`mt-2 flex items-center gap-1 text-[10px] ${mine ? "text-indigo-100/80" : "text-slate-500"}`}>
           <span>{message.sentAtLabel}</span>
-          {mine && (
-            message.seenByOthers
-              ? <CheckCheck className="h-3.5 w-3.5" aria-label="Vu" />
-              : <Check className="h-3.5 w-3.5" aria-label="Envoyé" />
-          )}
+          {mine &&
+            (message.seenByOthers ? (
+              <CheckCheck className="h-3.5 w-3.5" aria-label="Vu" />
+            ) : (
+              <Check className="h-3.5 w-3.5" aria-label="Envoyé" />
+            ))}
         </div>
       </div>
     </div>
@@ -209,7 +219,10 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
             ...item,
             updatedAt: message.createdAt,
             lastMessage: message,
-            unreadCount: message.senderId === currentUserId ? item.unreadCount : item.unreadCount + (selectedId === item.id ? 0 : 1),
+            unreadCount:
+              message.senderId === currentUserId
+                ? item.unreadCount
+                : item.unreadCount + (selectedId === item.id ? 0 : 1),
             isPeerTyping: false,
           };
         });
@@ -224,19 +237,21 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
     },
     onMessageRead: ({ conversationId, messageId, userId }) => {
       if (userId === currentUserId) return;
-      setMessages((prev) => prev.map((item) => (
-        item.id === messageId && item.senderId === currentUserId
-          ? { ...item, seenByOthers: true, seenCount: item.seenCount + 1 }
-          : item
-      )));
+      setMessages((prev) =>
+        prev.map((item) =>
+          item.id === messageId && item.senderId === currentUserId
+            ? { ...item, seenByOthers: true, seenCount: item.seenCount + 1 }
+            : item,
+        ),
+      );
       if (conversationId === selectedId) setPeerTyping(false);
     },
     onTyping: ({ conversationId, userId, isTyping }) => {
       if (conversationId !== selectedId || userId === currentUserId) return;
       setPeerTyping(isTyping);
-      setConversations((prev) => prev.map((item) => (
-        item.id === conversationId ? { ...item, isPeerTyping: isTyping } : item
-      )));
+      setConversations((prev) =>
+        prev.map((item) => (item.id === conversationId ? { ...item, isPeerTyping: isTyping } : item)),
+      );
     },
   });
 
@@ -367,9 +382,10 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
     }
   };
 
-  const accentBtn = role === "teacher"
-    ? "bg-gradient-to-r from-pink-600 to-indigo-600 hover:from-pink-500 hover:to-indigo-500"
-    : "bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500";
+  const accentBtn =
+    role === "teacher"
+      ? "bg-gradient-to-r from-pink-600 to-indigo-600 hover:from-pink-500 hover:to-indigo-500"
+      : "bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500";
 
   return (
     <div className={scheduleUi.page}>
@@ -379,7 +395,8 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
           <div>
             <h1 className={scheduleUi.heroTitle}>Messagerie</h1>
             <p className={scheduleUi.heroSubtitle}>
-              Conversations sécurisées entre professeurs et étudiants, avec pièces jointes et statut de lecture en temps réel.
+              Conversations sécurisées entre professeurs et étudiants, avec pièces jointes et statut de lecture en temps
+              réel.
             </p>
           </div>
           <button type="button" className={scheduleUi.addBtn} onClick={() => setShowNewChat(true)}>
@@ -392,7 +409,9 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
       {error && <div className={scheduleUi.alertError}>{error}</div>}
 
       <div className="grid min-h-[70vh] grid-cols-1 overflow-hidden rounded-3xl border border-white/[0.08] bg-[#0f172a]/80 shadow-2xl shadow-black/30 lg:grid-cols-[340px_1fr]">
-        <aside className={`border-b border-white/[0.08] lg:border-b-0 lg:border-r ${selectedId ? "hidden lg:flex" : "flex"} flex-col`}>
+        <aside
+          className={`border-b border-white/[0.08] lg:border-b-0 lg:border-r ${selectedId ? "hidden lg:flex" : "flex"} flex-col`}
+        >
           <div className="border-b border-white/[0.08] p-4">
             <label className="relative block">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
@@ -455,27 +474,32 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
           ) : (
             <>
               <header className="flex items-center gap-3 border-b border-white/[0.08] px-4 py-3">
-                <button type="button" className="lg:hidden rounded-lg p-2 hover:bg-white/10" onClick={() => setSelectedId(null)} aria-label="Retour">
+                <button
+                  type="button"
+                  className="lg:hidden rounded-lg p-2 hover:bg-white/10"
+                  onClick={() => setSelectedId(null)}
+                  aria-label="Retour"
+                >
                   <ArrowLeft className="h-5 w-5 text-white" />
                 </button>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-black text-white">{selectedConversation.peer?.fullName}</p>
                   <p className="truncate text-[11px] text-slate-400">
-                    {peerTyping || selectedConversation.isPeerTyping ? "En train d'écrire..." : selectedConversation.peer?.email}
+                    {peerTyping || selectedConversation.isPeerTyping
+                      ? "En train d'écrire..."
+                      : selectedConversation.peer?.email}
                   </p>
                 </div>
               </header>
 
               <div className="flex-1 space-y-3 overflow-y-auto p-4 sm:p-6">
                 {loadingMessages ? (
-                  <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-slate-400" /></div>
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+                  </div>
                 ) : (
                   messages.map((message) => (
-                    <MessageBubble
-                      key={message.id}
-                      message={message}
-                      mine={message.senderId === currentUserId}
-                    />
+                    <MessageBubble key={message.id} message={message} mine={message.senderId === currentUserId} />
                   ))
                 )}
                 <div ref={messagesEndRef} />
@@ -483,7 +507,13 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
 
               <footer className="border-t border-white/[0.08] p-3 sm:p-4">
                 <div className="flex items-end gap-2">
-                  <input ref={fileInputRef} type="file" className="hidden" onChange={handleFilePick} accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,audio/mpeg,audio/wav,audio/webm,application/pdf,.doc,.docx" />
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    className="hidden"
+                    onChange={handleFilePick}
+                    accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,audio/mpeg,audio/wav,audio/webm,application/pdf,.doc,.docx"
+                  />
                   <button
                     type="button"
                     className="rounded-xl border border-white/10 bg-white/5 p-3 text-slate-200 hover:bg-white/10"
@@ -517,10 +547,18 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
                   </button>
                 </div>
                 <div className="mt-2 flex flex-wrap gap-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-                  <span className="inline-flex items-center gap-1"><ImageIcon className="h-3 w-3" /> Images</span>
-                  <span className="inline-flex items-center gap-1"><Video className="h-3 w-3" /> Vidéos</span>
-                  <span className="inline-flex items-center gap-1"><Mic className="h-3 w-3" /> Audio</span>
-                  <span className="inline-flex items-center gap-1"><FileText className="h-3 w-3" /> PDF / Word</span>
+                  <span className="inline-flex items-center gap-1">
+                    <ImageIcon className="h-3 w-3" /> Images
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <Video className="h-3 w-3" /> Vidéos
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <Mic className="h-3 w-3" /> Audio
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <FileText className="h-3 w-3" /> PDF / Word
+                  </span>
                 </div>
               </footer>
             </>

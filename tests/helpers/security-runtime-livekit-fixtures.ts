@@ -120,11 +120,7 @@ export async function seedLiveKitRuntimeFixtures(): Promise<LiveKitRuntimeFixtur
         fullName: `Runtime ${user.id}`,
         role: user.role,
         emailVerified: true,
-        levelOrTitle: user.role === "STUDENT"
-          ? "Étudiant"
-          : user.role === "ADMIN"
-            ? "Administrateur"
-            : "Professeur",
+        levelOrTitle: user.role === "STUDENT" ? "Étudiant" : user.role === "ADMIN" ? "Administrateur" : "Professeur",
       },
     });
   }

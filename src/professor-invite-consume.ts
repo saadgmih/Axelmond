@@ -12,10 +12,7 @@ export class ProfessorInviteConsumeError extends Error {
   }
 }
 
-export async function reserveProfessorInviteCode(
-  tx: Prisma.TransactionClient,
-  inviteCode: string,
-) {
+export async function reserveProfessorInviteCode(tx: Prisma.TransactionClient, inviteCode: string) {
   const reserved = await tx.professorInviteCode.updateMany({
     where: {
       code: inviteCode,
@@ -39,11 +36,7 @@ export async function reserveProfessorInviteCode(
   }
 }
 
-export async function attachProfessorInviteUsage(
-  tx: Prisma.TransactionClient,
-  inviteCode: string,
-  userId: string,
-) {
+export async function attachProfessorInviteUsage(tx: Prisma.TransactionClient, inviteCode: string, userId: string) {
   await tx.professorInviteCode.update({
     where: { code: inviteCode },
     data: { usedById: userId },

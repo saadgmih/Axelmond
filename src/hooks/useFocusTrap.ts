@@ -9,10 +9,7 @@ export function getFocusableElements(container: HTMLElement): HTMLElement[] {
   );
 }
 
-export function useFocusTrap(
-  containerRef: RefObject<HTMLElement | null>,
-  active: boolean,
-) {
+export function useFocusTrap(containerRef: RefObject<HTMLElement | null>, active: boolean) {
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {

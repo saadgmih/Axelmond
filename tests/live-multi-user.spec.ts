@@ -10,9 +10,27 @@ const TEST_USERS = [
   { id: "test-prof-2", role: "PROFESSOR" as const, email: "prof2@axelmond.edu.fr", name: "Pr. Marie Curie" },
   { id: "test-prof-3", role: "PROFESSOR" as const, email: "prof3@axelmond.edu.fr", name: "Pr. Albert Einstein" },
   { id: "test-prof-4", role: "PROFESSOR" as const, email: "prof4@axelmond.edu.fr", name: "Pr. Isaac Newton" },
-  { id: "test-stud-1", role: "STUDENT" as const, email: "stud1@axelmond.univ.fr", name: "Elie Cartan", filiere: "Mathématiques" },
-  { id: "test-stud-2", role: "STUDENT" as const, email: "stud2@axelmond.univ.fr", name: "Sophie Germain", filiere: "Physique" },
-  { id: "test-stud-3", role: "STUDENT" as const, email: "stud3@axelmond.univ.fr", name: "Henri Poincare", filiere: "Informatique" },
+  {
+    id: "test-stud-1",
+    role: "STUDENT" as const,
+    email: "stud1@axelmond.univ.fr",
+    name: "Elie Cartan",
+    filiere: "Mathématiques",
+  },
+  {
+    id: "test-stud-2",
+    role: "STUDENT" as const,
+    email: "stud2@axelmond.univ.fr",
+    name: "Sophie Germain",
+    filiere: "Physique",
+  },
+  {
+    id: "test-stud-3",
+    role: "STUDENT" as const,
+    email: "stud3@axelmond.univ.fr",
+    name: "Henri Poincare",
+    filiere: "Informatique",
+  },
 ];
 
 const COURSE_ID = 1; // Algorithmique et Structures de Données
@@ -77,7 +95,7 @@ test.beforeAll(async () => {
   // Assigner l'ownership du cours ID 1 au Professeur 1
   await prisma.course.update({
     where: { id: COURSE_ID },
-    data: { 
+    data: {
       createdById: "test-prof-1",
       published: true,
       isLiveNow: false,
@@ -89,10 +107,7 @@ test.beforeAll(async () => {
 
 test("Campagne de test Live multi-utilisateurs (7 clients simultanés)", async () => {
   const browserInstance = await chromium.launch({
-    args: [
-      "--use-fake-ui-for-media-stream",
-      "--use-fake-device-for-media-stream",
-    ]
+    args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream"],
   });
   const contexts: any[] = [];
   const pages: any[] = [];
@@ -169,7 +184,7 @@ test("Campagne de test Live multi-utilisateurs (7 clients simultanés)", async (
     });
 
     const page = await context.newPage();
-    
+
     // Capturer les erreurs de la console pour le rapport de performance final
     page.on("pageerror", (exception) => {
       const errStr = `[${TEST_USERS[i].name}] Console Error: ${exception.message}`;
@@ -179,7 +194,12 @@ test("Campagne de test Live multi-utilisateurs (7 clients simultanés)", async (
 
     page.on("console", (msg) => {
       const text = msg.text();
-      if (msg.type() === "error" || text.toLowerCase().includes("livekit") || text.toLowerCase().includes("webrtc") || text.toLowerCase().includes("peerconnection")) {
+      if (
+        msg.type() === "error" ||
+        text.toLowerCase().includes("livekit") ||
+        text.toLowerCase().includes("webrtc") ||
+        text.toLowerCase().includes("peerconnection")
+      ) {
         console.log(`   [${TEST_USERS[i].name} Console] [${msg.type()}] ${text}`);
       }
     });
@@ -219,17 +239,20 @@ test("Campagne de test Live multi-utilisateurs (7 clients simultanés)", async (
         await expect(page.locator('button:has-text("Contrôleur de Modules Live")')).toBeVisible({ timeout: 10000 });
       }
       console.log(`   ✅ [${u.name}] Connecté avec succès.`);
-    })
+    }),
   );
 
   // 3. Professeur 1 crée la salle Live
   console.log("2. Lancement du live par le Professeur principal (Prof-1)...");
   const prof1Page = pages[0];
   await prof1Page.click('button:has-text("Contrôleur de Modules Live")');
-  
+
   // Renseigner le sujet de révision actif
-  await prof1Page.fill('input[placeholder="ex: Résolution par pivot de Gauss..."]', "Tests Multi-Utilisateurs en conditions réelles");
-  
+  await prof1Page.fill(
+    'input[placeholder="ex: Résolution par pivot de Gauss..."]',
+    "Tests Multi-Utilisateurs en conditions réelles",
+  );
+
   // Lancer le live
   const toggleLiveBtn = prof1Page.locator('button:has-text("Lancer la session live")');
   if (await toggleLiveBtn.isVisible()) {
@@ -248,7 +271,7 @@ test("Campagne de test Live multi-utilisateurs (7 clients simultanés)", async (
       await page.click('button:has-text("Rejoindre la session live")');
       await expect(page.locator('text="Classe virtuelle sécurisée"')).toBeVisible({ timeout: 15000 });
       console.log(`   ✅ [${name}] Salle Live rejointe.`);
-    })
+    }),
   );
 
   // 5. Rejoindre la salle depuis les étudiants (Stud-1, Stud-2, Stud-3)
@@ -257,7 +280,7 @@ test("Campagne de test Live multi-utilisateurs (7 clients simultanés)", async (
     [pages[4], pages[5], pages[6]].map(async (page, index) => {
       const name = TEST_USERS[index + 4].name;
       const joinBtn = page.locator('button:has-text("Rejoindre la salle de classe")');
-      
+
       // Essayer de recharger la page jusqu'à 4 fois avec un intervalle de 2 secondes
       // pour laisser le temps au statut live de se propager et d'invalider le cache.
       for (let attempt = 1; attempt <= 4; attempt++) {
@@ -271,28 +294,28 @@ test("Campagne de test Live multi-utilisateurs (7 clients simultanés)", async (
           await page.waitForTimeout(2000);
         }
       }
-      
+
       await joinBtn.click();
       await expect(page.locator('text="Classe virtuelle sécurisée"')).toBeVisible({ timeout: 15000 });
       console.log(`   ✅ [${name}] Classe live rejointe.`);
-    })
+    }),
   );
 
   // 6. Gestion correcte des rôles et liste des participants
   console.log("5. Vérification de la liste des participants et des rôles...");
   await prof1Page.click('button:has-text("Participants")');
   await expect(prof1Page.locator('text="Membres de la session"')).toBeVisible();
-  
+
   // Vérifier le nombre correct de connectés dans la liste (7)
   const connectedCountLocator = prof1Page.locator('span.font-mono:has-text("7")');
   await expect(connectedCountLocator).toBeVisible({ timeout: 10000 });
-  
+
   // Vérifier la présence des participants
   for (const u of TEST_USERS) {
     if (u.id === TEST_USERS[0].id) {
-      await expect(prof1Page.locator('aside').locator('text=Vous').first()).toBeVisible({ timeout: 10000 });
+      await expect(prof1Page.locator("aside").locator("text=Vous").first()).toBeVisible({ timeout: 10000 });
     } else {
-      await expect(prof1Page.locator('aside').locator(`text="${u.name}"`).first()).toBeVisible({ timeout: 10000 });
+      await expect(prof1Page.locator("aside").locator(`text="${u.name}"`).first()).toBeVisible({ timeout: 10000 });
     }
   }
   console.log("   ✅ Tous les 7 utilisateurs sont présents dans la liste avec leurs rôles respectifs.");
@@ -302,7 +325,7 @@ test("Campagne de test Live multi-utilisateurs (7 clients simultanés)", async (
   // Activer micro pour Prof-1
   await prof1Page.click('button:has-text("Activer")');
   await expect(prof1Page.locator('button:has-text("Désactiver")')).toBeVisible();
-  
+
   // Activer caméra pour Prof-1
   await prof1Page.click('button:has-text("Caméra")');
   console.log("   ✅ Caméra et micro testés avec succès.");
@@ -318,7 +341,7 @@ test("Campagne de test Live multi-utilisateurs (7 clients simultanés)", async (
   console.log("8. Validation du tableau blanc...");
   await prof1Page.click('button:has-text("Tableau blanc")');
   await expect(prof1Page.locator("canvas")).toBeVisible();
-  
+
   // Simuler un tracé de souris sur le canvas
   const canvas = prof1Page.locator("canvas");
   const box = await canvas.boundingBox();
@@ -328,7 +351,7 @@ test("Campagne de test Live multi-utilisateurs (7 clients simultanés)", async (
     await prof1Page.mouse.move(box.x + 150, box.y + 150);
     await prof1Page.mouse.up();
   }
-  
+
   // Nettoyer le tableau
   await prof1Page.click('button:has-text("Nettoyer le tableau")');
   console.log("   ✅ Dessin et effacement sur le tableau blanc validés.");
@@ -340,23 +363,26 @@ test("Campagne de test Live multi-utilisateurs (7 clients simultanés)", async (
   await prof1Page.click('button:has-text("Chat")');
 
   // Étudiant 1 envoie une question
-  await stud1Page.fill('input[placeholder="Tapez votre message..."]', "Bonjour, [question] Quelle est la complexité du tri fusion ?");
+  await stud1Page.fill(
+    'input[placeholder="Tapez votre message..."]',
+    "Bonjour, [question] Quelle est la complexité du tri fusion ?",
+  );
   await stud1Page.press('input[placeholder="Tapez votre message..."]', "Enter");
-  
+
   // Professeur 1 répond
   await prof1Page.fill('input[placeholder="Tapez votre message..."]', "C'est O(n log n) dans tous les cas !");
   await prof1Page.press('input[placeholder="Tapez votre message..."]', "Enter");
 
   // Attendre et vérifier la présence des messages
-  await expect(prof1Page.locator('text=Quelle est la complexité du tri fusion')).toBeVisible({ timeout: 5000 });
-  await expect(stud1Page.locator('text=C\'est O(n log n)')).toBeVisible({ timeout: 5000 });
+  await expect(prof1Page.locator("text=Quelle est la complexité du tri fusion")).toBeVisible({ timeout: 5000 });
+  await expect(stud1Page.locator("text=C'est O(n log n)")).toBeVisible({ timeout: 5000 });
   console.log("   ✅ Messagerie en temps réel vérifiée sans perte.");
 
   // 11. Tests permissions
   console.log("10. Vérification stricte des permissions...");
   // Vérifier qu'un étudiant ne voit pas le bouton d'enregistrement (Rec)
-  await expect(stud1Page.locator('button').filter({ hasText: /^Rec$/ })).not.toBeVisible();
-  
+  await expect(stud1Page.locator("button").filter({ hasText: /^Rec$/ })).not.toBeVisible();
+
   // Vérifier qu'un étudiant ne peut pas modérer les participants
   await stud1Page.click('button:has-text("Participants")');
   await expect(stud1Page.locator('button[title="Expulser"]')).not.toBeVisible();
@@ -366,7 +392,7 @@ test("Campagne de test Live multi-utilisateurs (7 clients simultanés)", async (
   console.log("11. Test de déconnexion et reconnexion d'un étudiant...");
   const stud3Page = pages[6]; // Henri Poincaré
   await stud3Page.click('button:has-text("Quitter")');
-  
+
   // Vérifier que le nombre de participants passe à 6
   await expect(prof1Page.locator('span.font-mono:has-text("6")')).toBeVisible({ timeout: 10000 });
   console.log("   ✅ Déconnexion détectée.");
@@ -376,7 +402,7 @@ test("Campagne de test Live multi-utilisateurs (7 clients simultanés)", async (
   const student3JoinBtn = stud3Page.locator('button:has-text("Rejoindre la salle de classe")');
   await expect(student3JoinBtn).toBeVisible({ timeout: 10000 });
   await student3JoinBtn.click();
-  
+
   // Vérifier que le nombre remonte à 7
   await expect(prof1Page.locator('span.font-mono:has-text("7")')).toBeVisible({ timeout: 15000 });
   console.log("   ✅ Reconnexion réussie et validée.");

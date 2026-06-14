@@ -83,18 +83,18 @@ function ObjectiveCard({
             <span className={`${scheduleUi.typeBadge} mt-2 inline-flex`}>{objective.objectiveTypeLabel}</span>
           )}
         </div>
-        <span className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${
-          completed
-            ? "border border-emerald-400/20 bg-emerald-500/10 text-emerald-200"
-            : "border border-amber-400/20 bg-amber-500/10 text-amber-200"
-        }`}>
+        <span
+          className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${
+            completed
+              ? "border border-emerald-400/20 bg-emerald-500/10 text-emerald-200"
+              : "border border-amber-400/20 bg-amber-500/10 text-amber-200"
+          }`}
+        >
           {objective.statusLabel}
         </span>
       </div>
 
-      {objective.description && (
-        <p className={`${scheduleUi.sessionMeta} line-clamp-3`}>{objective.description}</p>
-      )}
+      {objective.description && <p className={`${scheduleUi.sessionMeta} line-clamp-3`}>{objective.description}</p>}
 
       {objective.recurrence && objective.recurrence !== "NONE" && (
         <p className="inline-flex w-fit items-center gap-1 rounded-full border border-violet-400/20 bg-violet-500/10 px-2 py-1 text-[10px] font-black uppercase tracking-widest text-violet-200">
@@ -194,7 +194,8 @@ export default function StudentObjectivesView(props: StudentObjectivesViewProps)
           <div>
             <h1 className={scheduleUi.heroTitle}>Objectifs</h1>
             <p className={scheduleUi.heroSubtitle}>
-              Organisez vos objectifs d'étude, suivez vos priorités et choisissez librement les contenus qui vous aident à rester concentré.
+              Organisez vos objectifs d'étude, suivez vos priorités et choisissez librement les contenus qui vous aident
+              à rester concentré.
             </p>
           </div>
           <button
@@ -215,7 +216,9 @@ export default function StudentObjectivesView(props: StudentObjectivesViewProps)
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-[10px] font-black uppercase tracking-widest text-cyan-300">Progression hebdomadaire</p>
-            <h2 className="mt-1 text-xl font-black text-white">{weeklyProgress.percent}% des objectifs terminés cette semaine</h2>
+            <h2 className="mt-1 text-xl font-black text-white">
+              {weeklyProgress.percent}% des objectifs terminés cette semaine
+            </h2>
             <p className="mt-1 text-xs font-semibold text-slate-400">
               {weeklyProgress.completed} terminé(s) sur {weeklyProgress.created} créé(s) cette semaine.
             </p>
@@ -232,10 +235,30 @@ export default function StudentObjectivesView(props: StudentObjectivesViewProps)
       </section>
 
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <ProductivityStatCard label="Créés" value={stats.totalCreated} detail="Objectifs au total" icon={<Target className="h-5 w-5" />} />
-        <ProductivityStatCard label="Terminés" value={stats.totalCompleted} detail="Objectifs validés" icon={<CheckCircle2 className="h-5 w-5" />} />
-        <ProductivityStatCard label="En retard" value={stats.overdue} detail="À rattraper maintenant" icon={<AlertTriangle className="h-5 w-5" />} />
-        <ProductivityStatCard label="Réussite" value={`${stats.successRate}%`} detail={`Streak ${streak.days} jour(s)`} icon={<Flame className="h-5 w-5" />} />
+        <ProductivityStatCard
+          label="Créés"
+          value={stats.totalCreated}
+          detail="Objectifs au total"
+          icon={<Target className="h-5 w-5" />}
+        />
+        <ProductivityStatCard
+          label="Terminés"
+          value={stats.totalCompleted}
+          detail="Objectifs validés"
+          icon={<CheckCircle2 className="h-5 w-5" />}
+        />
+        <ProductivityStatCard
+          label="En retard"
+          value={stats.overdue}
+          detail="À rattraper maintenant"
+          icon={<AlertTriangle className="h-5 w-5" />}
+        />
+        <ProductivityStatCard
+          label="Réussite"
+          value={`${stats.successRate}%`}
+          detail={`Streak ${streak.days} jour(s)`}
+          icon={<Flame className="h-5 w-5" />}
+        />
       </section>
 
       {(dueSoonObjectives.length > 0 || overdueObjectives.length > 0) && (
@@ -248,7 +271,9 @@ export default function StudentObjectivesView(props: StudentObjectivesViewProps)
               </h2>
               <div className="mt-3 space-y-2">
                 {overdueObjectives.slice(0, 3).map((objective) => (
-                  <p key={objective.id} className="text-xs font-semibold text-red-100/90">{objective.title} · {formatDateTime(objective.endAt)}</p>
+                  <p key={objective.id} className="text-xs font-semibold text-red-100/90">
+                    {objective.title} · {formatDateTime(objective.endAt)}
+                  </p>
                 ))}
               </div>
             </div>
@@ -261,7 +286,9 @@ export default function StudentObjectivesView(props: StudentObjectivesViewProps)
               </h2>
               <div className="mt-3 space-y-2">
                 {dueSoonObjectives.slice(0, 3).map((objective) => (
-                  <p key={objective.id} className="text-xs font-semibold text-amber-100/90">{objective.title} · {formatDateTime(objective.endAt)}</p>
+                  <p key={objective.id} className="text-xs font-semibold text-amber-100/90">
+                    {objective.title} · {formatDateTime(objective.endAt)}
+                  </p>
                 ))}
               </div>
             </div>
@@ -274,7 +301,8 @@ export default function StudentObjectivesView(props: StudentObjectivesViewProps)
           <div>
             <h2 className="text-base font-black text-white">Écoute / concentration</h2>
             <p className="mt-1 text-xs font-semibold leading-relaxed text-slate-400">
-              Ajoutez, pour chaque objectif, un podcast, une vidéo éducative, un rappel audio ou toute ressource utile. Le choix du contenu appartient à l'étudiant.
+              Ajoutez, pour chaque objectif, un podcast, une vidéo éducative, un rappel audio ou toute ressource utile.
+              Le choix du contenu appartient à l'étudiant.
             </p>
           </div>
           <Headphones className="hidden h-8 w-8 text-cyan-300 sm:block" />
@@ -288,7 +316,9 @@ export default function StudentObjectivesView(props: StudentObjectivesViewProps)
               <CalendarDays className="h-4 w-4 text-cyan-300" />
               Calendrier des objectifs
             </h2>
-            <p className="mt-1 text-xs font-semibold text-slate-500">{formatMonthLabel(calendarDays[0]?.date?.slice(0, 7) || "")}</p>
+            <p className="mt-1 text-xs font-semibold text-slate-500">
+              {formatMonthLabel(calendarDays[0]?.date?.slice(0, 7) || "")}
+            </p>
           </div>
           <p className="inline-flex items-center gap-1 text-xs font-bold text-slate-400">
             <TrendingUp className="h-3.5 w-3.5 text-emerald-300" />
@@ -314,7 +344,11 @@ export default function StudentObjectivesView(props: StudentObjectivesViewProps)
               {day.objectiveCount > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
                   <span className="rounded-full bg-white/10 px-1.5 py-0.5 font-bold">{day.objectiveCount}</span>
-                  {day.completedCount > 0 && <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.5 font-bold">{day.completedCount} OK</span>}
+                  {day.completedCount > 0 && (
+                    <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.5 font-bold">
+                      {day.completedCount} OK
+                    </span>
+                  )}
                 </div>
               )}
             </div>
@@ -334,7 +368,9 @@ export default function StudentObjectivesView(props: StudentObjectivesViewProps)
               <p className="text-xs font-semibold text-slate-500">{inProgressObjectives.length} objectif(s) à suivre</p>
             </div>
             {inProgressObjectives.length === 0 ? (
-              <div className={scheduleUi.emptyDay}>Aucun objectif en cours. Ajoutez votre prochain objectif d'étude.</div>
+              <div className={scheduleUi.emptyDay}>
+                Aucun objectif en cours. Ajoutez votre prochain objectif d'étude.
+              </div>
             ) : (
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 {inProgressObjectives.map((objective) => (
@@ -377,7 +413,12 @@ export default function StudentObjectivesView(props: StudentObjectivesViewProps)
       )}
 
       {isFormOpen && (
-        <div className={scheduleUi.modalOverlay} role="dialog" aria-modal="true" aria-labelledby="student-objective-form-title">
+        <div
+          className={scheduleUi.modalOverlay}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="student-objective-form-title"
+        >
           <div className={scheduleUi.modalPanel}>
             <div className={scheduleUi.modalHeader}>
               <div className="flex items-center justify-between gap-3">
@@ -438,11 +479,15 @@ export default function StudentObjectivesView(props: StudentObjectivesViewProps)
                   <select
                     className={scheduleUi.input}
                     value={form.objectiveType}
-                    onChange={(e) => setForm((current) => ({ ...current, objectiveType: e.target.value as typeof form.objectiveType }))}
+                    onChange={(e) =>
+                      setForm((current) => ({ ...current, objectiveType: e.target.value as typeof form.objectiveType }))
+                    }
                   >
                     <option value="">Non précisé</option>
                     {STUDENT_OBJECTIVE_TYPES.map((type) => (
-                      <option key={type.value} value={type.value}>{type.label}</option>
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
                     ))}
                   </select>
                 </label>
@@ -451,7 +496,9 @@ export default function StudentObjectivesView(props: StudentObjectivesViewProps)
                   <select
                     className={scheduleUi.input}
                     value={form.status}
-                    onChange={(e) => setForm((current) => ({ ...current, status: e.target.value as typeof form.status }))}
+                    onChange={(e) =>
+                      setForm((current) => ({ ...current, status: e.target.value as typeof form.status }))
+                    }
                   >
                     <option value="IN_PROGRESS">En cours</option>
                     <option value="COMPLETED">Terminé</option>
@@ -464,10 +511,14 @@ export default function StudentObjectivesView(props: StudentObjectivesViewProps)
                 <select
                   className={scheduleUi.input}
                   value={form.recurrence}
-                  onChange={(e) => setForm((current) => ({ ...current, recurrence: e.target.value as typeof form.recurrence }))}
+                  onChange={(e) =>
+                    setForm((current) => ({ ...current, recurrence: e.target.value as typeof form.recurrence }))
+                  }
                 >
                   {STUDENT_OBJECTIVE_RECURRENCES.map((recurrence) => (
-                    <option key={recurrence.value} value={recurrence.value}>{recurrence.label}</option>
+                    <option key={recurrence.value} value={recurrence.value}>
+                      {recurrence.label}
+                    </option>
                   ))}
                 </select>
               </label>
@@ -476,7 +527,8 @@ export default function StudentObjectivesView(props: StudentObjectivesViewProps)
                 <div className="mb-4">
                   <h3 className="text-sm font-black text-cyan-100">Écoute / concentration</h3>
                   <p className="mt-1 text-[11px] font-semibold text-slate-400">
-                    Vous pouvez ajouter un lien ou un contenu à écouter pendant le travail. Podcast, vidéo éducative, rappel audio ou autre: le choix vous appartient.
+                    Vous pouvez ajouter un lien ou un contenu à écouter pendant le travail. Podcast, vidéo éducative,
+                    rappel audio ou autre: le choix vous appartient.
                   </p>
                 </div>
                 <div className="grid grid-cols-1 gap-4">
@@ -503,11 +555,18 @@ export default function StudentObjectivesView(props: StudentObjectivesViewProps)
                     <select
                       className={scheduleUi.input}
                       value={form.focusContentType}
-                      onChange={(e) => setForm((current) => ({ ...current, focusContentType: e.target.value as typeof form.focusContentType }))}
+                      onChange={(e) =>
+                        setForm((current) => ({
+                          ...current,
+                          focusContentType: e.target.value as typeof form.focusContentType,
+                        }))
+                      }
                     >
                       <option value="">Non précisé</option>
                       {FOCUS_CONTENT_TYPES.map((type) => (
-                        <option key={type.value} value={type.value}>{type.label}</option>
+                        <option key={type.value} value={type.value}>
+                          {type.label}
+                        </option>
                       ))}
                     </select>
                   </label>

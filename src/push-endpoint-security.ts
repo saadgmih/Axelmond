@@ -16,12 +16,7 @@ export const MAX_PUSH_ENDPOINT_LENGTH = 2048;
 export const MAX_PUSH_KEY_LENGTH = 256;
 export const DEFAULT_MAX_PUSH_SUBSCRIPTIONS_PER_USER = 5;
 
-const BLOCKED_HOSTNAMES = new Set([
-  "localhost",
-  "metadata.google.internal",
-  "metadata.google",
-  "instance-data",
-]);
+const BLOCKED_HOSTNAMES = new Set(["localhost", "metadata.google.internal", "metadata.google", "instance-data"]);
 
 const BASE64URL_PATTERN = /^[A-Za-z0-9_-]+={0,2}$/;
 
@@ -49,9 +44,7 @@ function readAllowedHostSuffixes(env: NodeJS.ProcessEnv = process.env): string[]
 
 function readMaxSubscriptionsPerUser(env: NodeJS.ProcessEnv = process.env): number {
   const parsed = Number(env.PUSH_MAX_SUBSCRIPTIONS_PER_USER);
-  return Number.isInteger(parsed) && parsed > 0
-    ? parsed
-    : DEFAULT_MAX_PUSH_SUBSCRIPTIONS_PER_USER;
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : DEFAULT_MAX_PUSH_SUBSCRIPTIONS_PER_USER;
 }
 
 function parseIpv4(host: string): number[] | null {
@@ -74,7 +67,10 @@ function isPrivateOrBlockedIpv4(parts: number[]): boolean {
 }
 
 function normalizeIpv6(host: string): string {
-  return host.trim().toLowerCase().replace(/^\[(.*)\]$/, "$1");
+  return host
+    .trim()
+    .toLowerCase()
+    .replace(/^\[(.*)\]$/, "$1");
 }
 
 function isPrivateOrBlockedIpv6(host: string): boolean {
@@ -106,32 +102,24 @@ export function isPrivateOrBlockedHost(host: string): boolean {
   return false;
 }
 
-export function isAllowedPushProviderHost(
-  host: string,
-  env: NodeJS.ProcessEnv = process.env,
-): boolean {
+export function isAllowedPushProviderHost(host: string, env: NodeJS.ProcessEnv = process.env): boolean {
   const hostname = host.trim().toLowerCase().replace(/\.$/, "");
   if (!hostname || isPrivateOrBlockedHost(hostname)) return false;
 
-  return readAllowedHostSuffixes(env).some((suffix) =>
-    hostname === suffix || hostname.endsWith(`.${suffix}`),
-  );
+  return readAllowedHostSuffixes(env).some((suffix) => hostname === suffix || hostname.endsWith(`.${suffix}`));
 }
 
-export function isAllowedPushEndpointUrl(
-  value: string,
-  env: NodeJS.ProcessEnv = process.env,
-): boolean {
+export function isAllowedPushEndpointUrl(value: string, env: NodeJS.ProcessEnv = process.env): boolean {
   if (typeof value !== "string") return false;
   const trimmed = value.trim();
   if (!trimmed || trimmed.length > MAX_PUSH_ENDPOINT_LENGTH) return false;
 
   const lower = trimmed.toLowerCase();
   if (
-    lower.startsWith("http://")
-    || lower.startsWith("javascript:")
-    || lower.startsWith("data:")
-    || lower.startsWith("file:")
+    lower.startsWith("http://") ||
+    lower.startsWith("javascript:") ||
+    lower.startsWith("data:") ||
+    lower.startsWith("file:")
   ) {
     return false;
   }

@@ -17,7 +17,10 @@ export interface ScheduleSessionFormPayload {
   description?: string;
 }
 
-export interface UseScheduleSessionsOptions<TSession extends { id: string; dayOfWeek: number }, TForm extends ScheduleSessionFormPayload> {
+export interface UseScheduleSessionsOptions<
+  TSession extends { id: string; dayOfWeek: number },
+  TForm extends ScheduleSessionFormPayload,
+> {
   shouldLoad: boolean;
   emptyForm: TForm;
   loadErrorMessage: string;
@@ -31,7 +34,10 @@ export interface UseScheduleSessionsOptions<TSession extends { id: string; dayOf
   scheduleDays: ReadonlyArray<ScheduleDayOption>;
 }
 
-export function useScheduleSessions<TSession extends { id: string; dayOfWeek: number }, TForm extends ScheduleSessionFormPayload>({
+export function useScheduleSessions<
+  TSession extends { id: string; dayOfWeek: number },
+  TForm extends ScheduleSessionFormPayload,
+>({
   shouldLoad,
   emptyForm,
   loadErrorMessage,
@@ -87,13 +93,16 @@ export function useScheduleSessions<TSession extends { id: string; dayOfWeek: nu
     return grouped;
   }, [scheduleDays, sessions, sortSessions]);
 
-  const openCreateForm = useCallback((dayOfWeek = 0) => {
-    setEditingSessionId(null);
-    setForm({ ...emptyForm, dayOfWeek } as TForm);
-    setStatusMsg("");
-    setErrorMsg("");
-    setIsFormOpen(true);
-  }, [emptyForm]);
+  const openCreateForm = useCallback(
+    (dayOfWeek = 0) => {
+      setEditingSessionId(null);
+      setForm({ ...emptyForm, dayOfWeek } as TForm);
+      setStatusMsg("");
+      setErrorMsg("");
+      setIsFormOpen(true);
+    },
+    [emptyForm],
+  );
 
   const openEditForm = useCallback((session: TSession & TForm) => {
     setEditingSessionId(session.id);
@@ -128,9 +137,7 @@ export function useScheduleSessions<TSession extends { id: string; dayOfWeek: nu
         roomOrLink: form.roomOrLink?.trim() || undefined,
         description: form.description?.trim() || undefined,
       } as TForm;
-      const saved = editingSessionId
-        ? await updateSession(editingSessionId, payload)
-        : await createSession(payload);
+      const saved = editingSessionId ? await updateSession(editingSessionId, payload) : await createSession(payload);
       setSessions((current) => {
         const next = editingSessionId
           ? current.map((session) => (session.id === editingSessionId ? saved : session))
@@ -146,18 +153,21 @@ export function useScheduleSessions<TSession extends { id: string; dayOfWeek: nu
     }
   }, [closeForm, createSession, editingSessionId, form, saveErrorMessage, sortSessions, updateSession]);
 
-  const handleDeleteSession = useCallback(async (sessionId: string) => {
-    setStatusMsg("");
-    setErrorMsg("");
-    try {
-      await deleteSession(sessionId);
-      setSessions((current) => current.filter((session) => session.id !== sessionId));
-      setStatusMsg("Séance supprimée");
-      if (editingSessionId === sessionId) closeForm();
-    } catch (err: unknown) {
-      setErrorMsg(getClientErrorMessage(err, deleteErrorMessage));
-    }
-  }, [closeForm, deleteErrorMessage, deleteSession, editingSessionId]);
+  const handleDeleteSession = useCallback(
+    async (sessionId: string) => {
+      setStatusMsg("");
+      setErrorMsg("");
+      try {
+        await deleteSession(sessionId);
+        setSessions((current) => current.filter((session) => session.id !== sessionId));
+        setStatusMsg("Séance supprimée");
+        if (editingSessionId === sessionId) closeForm();
+      } catch (err: unknown) {
+        setErrorMsg(getClientErrorMessage(err, deleteErrorMessage));
+      }
+    },
+    [closeForm, deleteErrorMessage, deleteSession, editingSessionId],
+  );
 
   return {
     sessions,

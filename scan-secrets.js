@@ -2,15 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const SCAN_ROOTS = ["src", "scripts", "prisma", "server.ts", "vite.config.ts", "ecosystem.config.cjs"];
-const IGNORED_DIRS = new Set([
-  "node_modules",
-  "dist",
-  ".git",
-  ".data",
-  "coverage",
-  "archive",
-  "axelmond-mobile",
-]);
+const IGNORED_DIRS = new Set(["node_modules", "dist", ".git", ".data", "coverage", "archive", "axelmond-mobile"]);
 const IGNORED_FILES = new Set([".env", ".env.example", "scan-secrets.js", "package-lock.json", "smoke-test.mjs"]);
 
 const ALLOWLIST_SUBSTRINGS = [
@@ -32,8 +24,7 @@ const CRITICAL_PATTERNS = {
   Postgres_Remote: /postgresql:\/\/[^@\s\n]+@(?!localhost|127\.0\.0\.1)[^/\s\n]+/i,
 };
 
-const SOURCE_GENERIC_PATTERN =
-  /(?:api[-_]?key|secret|password|passwd)\s*[:=]\s*['"`]([^'"`]{12,})['"`]/i;
+const SOURCE_GENERIC_PATTERN = /(?:api[-_]?key|secret|password|passwd)\s*[:=]\s*['"`]([^'"`]{12,})['"`]/i;
 
 /** @type {Array<{ rule: string; file: string; snippet: string }>} */
 const findings = [];

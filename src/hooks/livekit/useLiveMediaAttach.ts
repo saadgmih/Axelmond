@@ -23,22 +23,24 @@ export function useLiveMediaAttach({
   liveAudioContainerRef,
 }: UseLiveMediaAttachOptions) {
   const liveMediaSignature = useMemo(
-    () => liveParticipants
-      .map((participant) => [
-        participant.identity,
-        participant.isLocal ? "local" : "remote",
-        participant.videoTrack?.sid || "",
-        participant.audioTrack?.sid || "",
-      ].join(":"))
-      .join("|"),
+    () =>
+      liveParticipants
+        .map((participant) =>
+          [
+            participant.identity,
+            participant.isLocal ? "local" : "remote",
+            participant.videoTrack?.sid || "",
+            participant.audioTrack?.sid || "",
+          ].join(":"),
+        )
+        .join("|"),
     [liveParticipants],
   );
 
   useEffect(() => {
     const primaryTrack =
-      liveParticipants.find(
-        (participant) => participant.identity === activeSpeakerIdentity && participant.videoTrack,
-      )?.videoTrack ||
+      liveParticipants.find((participant) => participant.identity === activeSpeakerIdentity && participant.videoTrack)
+        ?.videoTrack ||
       liveParticipants.find((participant) => !participant.isLocal && participant.videoTrack)?.videoTrack ||
       liveParticipants.find((participant) => participant.videoTrack)?.videoTrack;
 

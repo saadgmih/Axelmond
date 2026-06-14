@@ -131,15 +131,11 @@ export default function ProfileAvatarUpload({
 
         <label
           className={`flex cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 border-dashed px-4 py-5 transition-colors ${theme.border} ${
-            isDark
-              ? "border-white/[0.08] bg-[#020617]/60"
-              : "border-slate-200 bg-slate-50/80"
+            isDark ? "border-white/[0.08] bg-[#020617]/60" : "border-slate-200 bg-slate-50/80"
           }`}
         >
           <Camera className={`h-5 w-5 ${theme.icon}`} />
-          <span
-            className={`text-center text-[11px] font-semibold ${isDark ? "text-slate-400" : "text-slate-600"}`}
-          >
+          <span className={`text-center text-[11px] font-semibold ${isDark ? "text-slate-400" : "text-slate-600"}`}>
             Choisir une photo et recadrer
           </span>
           <input

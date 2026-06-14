@@ -5,10 +5,7 @@ export default defineConfig({
   plugins: [react()],
   test: {
     include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"],
-    exclude: [
-      "tests/security-runtime-*.test.ts",
-      "tests/mobile-api-runtime.test.ts",
-    ],
+    exclude: ["tests/security-runtime-*.test.ts", "tests/mobile-api-runtime.test.ts"],
     environment: "node",
     pool: "threads",
     fileParallelism: true,

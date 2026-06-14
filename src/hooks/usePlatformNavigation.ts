@@ -87,9 +87,10 @@ export function usePlatformNavigation({
       }
 
       if (parsed.studentView === "live") {
-        const liveCourse = courses.find((course) => enrolledCourses.includes(course.id) && course.isLiveNow)
-          ?? courses.find((course) => enrolledCourses.includes(course.id))
-          ?? null;
+        const liveCourse =
+          courses.find((course) => enrolledCourses.includes(course.id) && course.isLiveNow) ??
+          courses.find((course) => enrolledCourses.includes(course.id)) ??
+          null;
         if (liveCourse) {
           setActiveLiveCourse((current) => current ?? liveCourse);
           setSelectedCourse((current) => current ?? liveCourse);
@@ -100,85 +101,101 @@ export function usePlatformNavigation({
 
     setTeacherView(parsed.teacherView);
     setCurrentView("dashboard");
-  }, [location.pathname, currentUser, courses, enrolledCourses, setCurrentView, setTeacherView, setSelectedCourse, setSelectedModule, setActiveLiveCourse]);
-
-  const navigateTo = useCallback((view: string, targetCourse: Course | null = null) => {
-    if (INSTITUTIONAL_VIEWS.has(view)) {
-      setCurrentView(view);
-      setIsMobileMenuOpen(false);
-      navigate(`/${view}`);
-      scrollAppToTopDeferred();
-      return;
-    }
-
-    if (currentUser && !isStudentRole(currentUser.role)) {
-      console.info("[rbac] Blocked student navigation for teacher-space user", {
-        role: currentUser.role,
-        view,
-      });
-      setTeacherView("dashboard");
-      window.history.replaceState(null, "", "/teacher");
-      return;
-    }
-
-    if (view === "course" && targetCourse) {
-      if (!enrolledCourses.includes(targetCourse.id)) {
-        setCourseToPurchase(targetCourse);
-        return;
-      }
-      setSelectedCourse(targetCourse);
-      if (targetCourse.modules && targetCourse.modules.length > 0) {
-        setSelectedModule(targetCourse.modules[0]);
-      } else {
-        setSelectedModule(null);
-      }
-      setQuizAnswers({});
-      setQuizSubmitted(false);
-      setQuizScore(null);
-      setQuizSubmitError("");
-    }
-
-    if (view === "live" && targetCourse) {
-      if (!enrolledCourses.includes(targetCourse.id)) {
-        setCourseToPurchase(targetCourse);
-        return;
-      }
-      setSelectedCourse(targetCourse);
-      setActiveLiveCourse(targetCourse);
-    }
-
-    setCurrentView(view);
-    setIsMobileMenuOpen(false);
-    if (currentUser) {
-      const uiRole = getAllowedUiRole(currentUser.role);
-      navigate(buildPlatformPath(uiRole, view, uiRole === "teacher" ? teacherView : undefined));
-    }
-    scrollAppToTopDeferred();
   }, [
+    location.pathname,
     currentUser,
+    courses,
     enrolledCourses,
-    teacherView,
-    navigate,
+    setCurrentView,
     setTeacherView,
-    setCourseToPurchase,
     setSelectedCourse,
     setSelectedModule,
-    setQuizAnswers,
-    setQuizSubmitted,
-    setQuizScore,
-    setQuizSubmitError,
-    setCurrentView,
-    setIsMobileMenuOpen,
     setActiveLiveCourse,
   ]);
 
-  const handleTeacherViewChange = useCallback((view: string) => {
-    setTeacherView(view);
-    setCurrentView("dashboard");
-    setIsMobileMenuOpen(false);
-    navigate(buildPlatformPath("teacher", "dashboard", view));
-    scrollAppToTopDeferred();
-  }, [navigate, setTeacherView, setCurrentView, setIsMobileMenuOpen]);
+  const navigateTo = useCallback(
+    (view: string, targetCourse: Course | null = null) => {
+      if (INSTITUTIONAL_VIEWS.has(view)) {
+        setCurrentView(view);
+        setIsMobileMenuOpen(false);
+        navigate(`/${view}`);
+        scrollAppToTopDeferred();
+        return;
+      }
+
+      if (currentUser && !isStudentRole(currentUser.role)) {
+        console.info("[rbac] Blocked student navigation for teacher-space user", {
+          role: currentUser.role,
+          view,
+        });
+        setTeacherView("dashboard");
+        window.history.replaceState(null, "", "/teacher");
+        return;
+      }
+
+      if (view === "course" && targetCourse) {
+        if (!enrolledCourses.includes(targetCourse.id)) {
+          setCourseToPurchase(targetCourse);
+          return;
+        }
+        setSelectedCourse(targetCourse);
+        if (targetCourse.modules && targetCourse.modules.length > 0) {
+          setSelectedModule(targetCourse.modules[0]);
+        } else {
+          setSelectedModule(null);
+        }
+        setQuizAnswers({});
+        setQuizSubmitted(false);
+        setQuizScore(null);
+        setQuizSubmitError("");
+      }
+
+      if (view === "live" && targetCourse) {
+        if (!enrolledCourses.includes(targetCourse.id)) {
+          setCourseToPurchase(targetCourse);
+          return;
+        }
+        setSelectedCourse(targetCourse);
+        setActiveLiveCourse(targetCourse);
+      }
+
+      setCurrentView(view);
+      setIsMobileMenuOpen(false);
+      if (currentUser) {
+        const uiRole = getAllowedUiRole(currentUser.role);
+        navigate(buildPlatformPath(uiRole, view, uiRole === "teacher" ? teacherView : undefined));
+      }
+      scrollAppToTopDeferred();
+    },
+    [
+      currentUser,
+      enrolledCourses,
+      teacherView,
+      navigate,
+      setTeacherView,
+      setCourseToPurchase,
+      setSelectedCourse,
+      setSelectedModule,
+      setQuizAnswers,
+      setQuizSubmitted,
+      setQuizScore,
+      setQuizSubmitError,
+      setCurrentView,
+      setIsMobileMenuOpen,
+      setActiveLiveCourse,
+    ],
+  );
+
+  const handleTeacherViewChange = useCallback(
+    (view: string) => {
+      setTeacherView(view);
+      setCurrentView("dashboard");
+      setIsMobileMenuOpen(false);
+      navigate(buildPlatformPath("teacher", "dashboard", view));
+      scrollAppToTopDeferred();
+    },
+    [navigate, setTeacherView, setCurrentView, setIsMobileMenuOpen],
+  );
 
   return { navigateTo, handleTeacherViewChange };
 }

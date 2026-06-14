@@ -31,11 +31,7 @@ function cleanText(value: unknown, maxLength: number) {
 }
 
 export function sanitizeDomainList(value: unknown) {
-  const rawValues = Array.isArray(value)
-    ? value
-    : typeof value === "string"
-      ? value.split(/[\n,]/)
-      : [];
+  const rawValues = Array.isArray(value) ? value : typeof value === "string" ? value.split(/[\n,]/) : [];
   return rawValues
     .map((item) => cleanText(item, 80))
     .filter((item): item is string => Boolean(item))
@@ -43,7 +39,7 @@ export function sanitizeDomainList(value: unknown) {
 }
 
 export function sanitizeAcademicLinks(value: unknown): AcademicLinks {
-  const source = value && typeof value === "object" ? value as Record<string, unknown> : {};
+  const source = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
   const links: AcademicLinks = {};
   const linkedIn = sanitizeAcademicLinkField(source.linkedIn, "linkedIn");
   const orcid = sanitizeAcademicLinkField(source.orcid, "orcid", 80);
@@ -64,7 +60,7 @@ export function isAvatarUrlFieldInvalid(value: unknown): boolean {
 }
 
 export function sanitizeAcademicProfileInput(value: unknown): AcademicProfileInput {
-  const source = value && typeof value === "object" ? value as Record<string, unknown> : {};
+  const source = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
   return {
     title: cleanText(source.title, 120),
     department: cleanText(source.department, 160),

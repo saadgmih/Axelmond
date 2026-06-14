@@ -89,7 +89,9 @@ export default function TeacherAcademicProfileView({
   const inputFocus = `${profileUi.input} ${theme.focusRing}`;
 
   return (
-    <div className={`${profileUi.page} rounded-2xl border border-white/[0.06] bg-[#020617] p-5 shadow-2xl shadow-black/20 sm:rounded-3xl sm:p-6 md:p-8 2xl:p-10`}>
+    <div
+      className={`${profileUi.page} rounded-2xl border border-white/[0.06] bg-[#020617] p-5 shadow-2xl shadow-black/20 sm:rounded-3xl sm:p-6 md:p-8 2xl:p-10`}
+    >
       {/* Hero banner */}
       <div className={profileUi.hero}>
         <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${theme.heroGradient}`} />
@@ -140,10 +142,7 @@ export default function TeacherAcademicProfileView({
       </div>
 
       {(academicProfileStatusMsg || academicProfileErrorMsg) && (
-        <div
-          role="alert"
-          className={academicProfileErrorMsg ? profileUi.alertError : profileUi.alertSuccess}
-        >
+        <div role="alert" className={academicProfileErrorMsg ? profileUi.alertError : profileUi.alertSuccess}>
           {academicProfileErrorMsg || academicProfileStatusMsg}
         </div>
       )}

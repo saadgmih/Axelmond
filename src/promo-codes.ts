@@ -4,7 +4,9 @@ const PROMO_DISCOUNTS: Record<string, number> = {
 
 /** Returns discount percent (0 = no promo), or null if code is invalid. */
 export function resolvePromoDiscountPercent(promoCode: string | undefined | null): number | null {
-  const normalized = String(promoCode || "").trim().toUpperCase();
+  const normalized = String(promoCode || "")
+    .trim()
+    .toUpperCase();
   if (!normalized) return 0;
   const discount = PROMO_DISCOUNTS[normalized];
   return discount != null ? discount : null;
@@ -15,7 +17,10 @@ export function computeDiscountedPrice(originalPrice: number, discountPercent: n
   return Math.round(raw * 100) / 100;
 }
 
-export function resolveCourseChargeAmount(originalPrice: number, promoCode: string | undefined | null): {
+export function resolveCourseChargeAmount(
+  originalPrice: number,
+  promoCode: string | undefined | null,
+): {
   amount: number;
   discountPercent: number;
   error?: string;

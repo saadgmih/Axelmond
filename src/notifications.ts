@@ -44,12 +44,14 @@ async function mapWithConcurrency<T, R>(
   let nextIndex = 0;
   const workerCount = Math.min(Math.max(1, concurrency), items.length);
 
-  await Promise.all(Array.from({ length: workerCount }, async () => {
-    while (nextIndex < items.length) {
-      const currentIndex = nextIndex++;
-      results[currentIndex] = await mapper(items[currentIndex]);
-    }
-  }));
+  await Promise.all(
+    Array.from({ length: workerCount }, async () => {
+      while (nextIndex < items.length) {
+        const currentIndex = nextIndex++;
+        results[currentIndex] = await mapper(items[currentIndex]);
+      }
+    }),
+  );
 
   return results;
 }
@@ -108,15 +110,10 @@ export async function createUserNotification(input: CreateNotificationInput) {
   return notification;
 }
 
-export async function createNotificationsForUsers(
-  userIds: string[],
-  input: Omit<CreateNotificationInput, "userId">,
-) {
+export async function createNotificationsForUsers(userIds: string[], input: Omit<CreateNotificationInput, "userId">) {
   const uniqueIds = [...new Set(userIds.filter(Boolean))];
-  return mapWithConcurrency(
-    uniqueIds,
-    readPositiveInt(process.env.NOTIFICATION_FANOUT_CONCURRENCY, 8),
-    (userId) => createUserNotification({ ...input, userId }),
+  return mapWithConcurrency(uniqueIds, readPositiveInt(process.env.NOTIFICATION_FANOUT_CONCURRENCY, 8), (userId) =>
+    createUserNotification({ ...input, userId }),
   );
 }
 
@@ -197,15 +194,17 @@ async function sendPushForNotification(
         await prisma.pushSubscription.deleteMany({ where: { id: subscription.id } });
         return;
       }
-      await webpush.sendNotification(
-        {
-          endpoint: subscription.endpoint,
-          keys: { p256dh: subscription.p256dh, auth: subscription.auth },
-        },
-        body,
-      ).catch(async () => {
-        await prisma.pushSubscription.deleteMany({ where: { id: subscription.id } });
-      });
+      await webpush
+        .sendNotification(
+          {
+            endpoint: subscription.endpoint,
+            keys: { p256dh: subscription.p256dh, auth: subscription.auth },
+          },
+          body,
+        )
+        .catch(async () => {
+          await prisma.pushSubscription.deleteMany({ where: { id: subscription.id } });
+        });
     },
   );
 }
@@ -241,5 +240,8 @@ export async function notifyEnrolledStudentsForCourse(
     where: { courseId },
     select: { userId: true },
   });
-  return createNotificationsForUsers(enrollments.map((entry) => entry.userId), input);
+  return createNotificationsForUsers(
+    enrollments.map((entry) => entry.userId),
+    input,
+  );
 }

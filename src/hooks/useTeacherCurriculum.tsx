@@ -94,37 +94,46 @@ export function useTeacherCurriculum({
   const { startRequest } = useAsyncEffectGuard();
   const scheduleClear = useAutoClearTimeout();
 
-  const showCurriculumSuccess = useCallback((message: string) => {
-    setCurriculumErrorMsg("");
-    setCurriculumSuccessMsg(message);
-    scheduleClear(() => setCurriculumSuccessMsg(""), 6500);
-  }, [scheduleClear]);
+  const showCurriculumSuccess = useCallback(
+    (message: string) => {
+      setCurriculumErrorMsg("");
+      setCurriculumSuccessMsg(message);
+      scheduleClear(() => setCurriculumSuccessMsg(""), 6500);
+    },
+    [scheduleClear],
+  );
 
-  const showCurriculumError = useCallback((message: string) => {
-    setCurriculumSuccessMsg("");
-    setCurriculumErrorMsg(message);
-    scheduleClear(() => setCurriculumErrorMsg(""), 8500);
-  }, [scheduleClear]);
+  const showCurriculumError = useCallback(
+    (message: string) => {
+      setCurriculumSuccessMsg("");
+      setCurriculumErrorMsg(message);
+      scheduleClear(() => setCurriculumErrorMsg(""), 8500);
+    },
+    [scheduleClear],
+  );
 
-  const loadTeacherQuizzes = useCallback(async (courseId?: number, request?: AsyncRequestToken) => {
-    const active = request ?? startRequest();
-    const targetCourseId = courseId ?? quizCourseId;
-    if (!targetCourseId) return;
-    try {
-      const quizList = await api.getCourseQuizzes(targetCourseId);
-      if (!active.isActive()) return;
-      setTeacherQuizzes(quizList);
-      if (quizList.length > 0 && !quizList.some((q: any) => q.id === selectedQuizId)) {
-        setSelectedQuizId(quizList[0].id);
-      } else if (quizList.length === 0) {
-        setSelectedQuizId("");
+  const loadTeacherQuizzes = useCallback(
+    async (courseId?: number, request?: AsyncRequestToken) => {
+      const active = request ?? startRequest();
+      const targetCourseId = courseId ?? quizCourseId;
+      if (!targetCourseId) return;
+      try {
+        const quizList = await api.getCourseQuizzes(targetCourseId);
+        if (!active.isActive()) return;
+        setTeacherQuizzes(quizList);
+        if (quizList.length > 0 && !quizList.some((q: any) => q.id === selectedQuizId)) {
+          setSelectedQuizId(quizList[0].id);
+        } else if (quizList.length === 0) {
+          setSelectedQuizId("");
+        }
+      } catch (err: any) {
+        if (!active.isActive()) return;
+        console.error("Failed to load quizzes:", err);
+        setTeacherQuizzes([]);
       }
-    } catch (err: any) {
-      if (!active.isActive()) return;
-      console.error("Failed to load quizzes:", err);
-      setTeacherQuizzes([]);
-    }
-  }, [selectedQuizId, quizCourseId, startRequest]);
+    },
+    [selectedQuizId, quizCourseId, startRequest],
+  );
 
   useEffect(() => {
     if (allDisciplines.length > 0 && !allDisciplines.some((discipline) => discipline.id === newCourseDisciplineId)) {
@@ -224,19 +233,23 @@ export function useTeacherCurriculum({
     try {
       const result = newSectionParentId
         ? await api.createSection(newSectionCourseId, {
-          title: newSectionTitle,
-          parentId: newSectionParentId,
-          published: newSectionPublished,
-        })
+            title: newSectionTitle,
+            parentId: newSectionParentId,
+            published: newSectionPublished,
+          })
         : await api.createChapter(newSectionCourseId, {
-          title: newSectionTitle,
-          published: newSectionPublished,
-        });
+            title: newSectionTitle,
+            published: newSectionPublished,
+          });
       const sections = await refreshCourseContent(newSectionCourseId);
       setUploadCourseId(newSectionCourseId);
       setUploadSectionId(newSectionParentId ? result.id : result.section?.id || "");
       setNewSectionTitle("");
-      showCurriculumSuccess(newSectionParentId ? `Partie créée : ID ${result.id}.` : `Chapitre créé : ID ${result.chapter?.id} — section racine ${result.section?.id}.`);
+      showCurriculumSuccess(
+        newSectionParentId
+          ? `Partie créée : ID ${result.id}.`
+          : `Chapitre créé : ID ${result.chapter?.id} — section racine ${result.section?.id}.`,
+      );
       if (!uploadSectionId && sections[0]) setUploadSectionId(sections[0].id);
     } catch (err: any) {
       console.error("Failed to create content section:", err);
@@ -271,7 +284,8 @@ export function useTeacherCurriculum({
           published: uploadPublished,
         },
         headers: { Authorization: `Bearer ${token}` },
-        onUploadProgress: ({ progress }: { progress: number }) => setUploadStatusMsg(`Téléversement UploadThing : ${progress}%`),
+        onUploadProgress: ({ progress }: { progress: number }) =>
+          setUploadStatusMsg(`Téléversement UploadThing : ${progress}%`),
       });
       await refreshCourseContent(uploadCourseId);
       setUploadFile(null);
@@ -399,7 +413,7 @@ export function useTeacherCurriculum({
         disciplineId: Number(editCourseForm.disciplineId),
         price: Number(editCourseForm.price),
       });
-      setCourses((prev) => prev.map((item) => item.id === updatedCourse.id ? updatedCourse : item));
+      setCourses((prev) => prev.map((item) => (item.id === updatedCourse.id ? updatedCourse : item)));
       setEditingCourse(null);
       showCurriculumSuccess(`Module modifié : "${updatedCourse.title}" (ID ${updatedCourse.id}).`);
     } catch (err: any) {
@@ -410,7 +424,7 @@ export function useTeacherCurriculum({
   const handleToggleCoursePublished = async (course: Course) => {
     try {
       const updatedCourse = await api.updateCourse(course.id, { published: !course.published });
-      setCourses((prev) => prev.map((item) => item.id === updatedCourse.id ? updatedCourse : item));
+      setCourses((prev) => prev.map((item) => (item.id === updatedCourse.id ? updatedCourse : item)));
       showCurriculumSuccess(`Module ${updatedCourse.published ? "publié" : "dépublié"} : ID ${updatedCourse.id}.`);
     } catch (err: any) {
       showCurriculumError(getClientErrorMessage(err, "Changement de publication impossible."));
@@ -436,7 +450,10 @@ export function useTeacherCurriculum({
   };
 
   const handleUpdateSectionTitle = async (section: ContentSection) => {
-    const title = window.prompt(section.parentId ? "Nouveau titre de la partie" : "Nouveau titre du chapitre", section.title);
+    const title = window.prompt(
+      section.parentId ? "Nouveau titre de la partie" : "Nouveau titre du chapitre",
+      section.title,
+    );
     if (!title || !title.trim()) return;
     try {
       if (!section.parentId && section.chapterId) {
@@ -445,7 +462,9 @@ export function useTeacherCurriculum({
         await api.putContentSection(section.id, { title: title.trim() });
       }
       await refreshCourseContent(section.courseId);
-      showCurriculumSuccess(`${section.parentId ? "Section" : "Chapitre"} modifié : ID ${section.parentId ? section.id : section.chapterId}.`);
+      showCurriculumSuccess(
+        `${section.parentId ? "Section" : "Chapitre"} modifié : ID ${section.parentId ? section.id : section.chapterId}.`,
+      );
     } catch (err: any) {
       showCurriculumError(getClientErrorMessage(err, "Modification impossible."));
     }
@@ -459,7 +478,9 @@ export function useTeacherCurriculum({
         await api.updateContentSection(section.id, { published: !section.published });
       }
       await refreshCourseContent(section.courseId);
-      showCurriculumSuccess(`${section.parentId ? "Section" : "Chapitre"} ${!section.published ? "publié" : "dépublié"} : ID ${section.parentId ? section.id : section.chapterId}.`);
+      showCurriculumSuccess(
+        `${section.parentId ? "Section" : "Chapitre"} ${!section.published ? "publié" : "dépublié"} : ID ${section.parentId ? section.id : section.chapterId}.`,
+      );
     } catch (err: any) {
       showCurriculumError(getClientErrorMessage(err, "Publication impossible."));
     }
@@ -475,7 +496,9 @@ export function useTeacherCurriculum({
       }
       await refreshCourseContent(section.courseId);
       if (uploadSectionId === section.id) setUploadSectionId("");
-      showCurriculumSuccess(`${section.parentId ? "Section" : "Chapitre"} supprimé : ID ${section.parentId ? section.id : section.chapterId}.`);
+      showCurriculumSuccess(
+        `${section.parentId ? "Section" : "Chapitre"} supprimé : ID ${section.parentId ? section.id : section.chapterId}.`,
+      );
     } catch (err: any) {
       showCurriculumError(getClientErrorMessage(err, "Suppression impossible."));
     }

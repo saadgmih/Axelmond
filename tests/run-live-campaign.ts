@@ -22,7 +22,7 @@ async function delay(ms: number) {
 
 async function main() {
   console.log("=== Axelmond Research Labs — Campagne de Tests Live Multi-utilisateurs ===");
-  
+
   let serverProcess: any = null;
   const alreadyRunning = await isServerRunning();
 
@@ -33,11 +33,11 @@ async function main() {
     // Lancer server.ts en arrière-plan
     serverProcess = spawn("npx", ["tsx", "server.ts"], {
       cwd: path.join(__dirname, ".."),
-      env: { 
-        ...process.env, 
+      env: {
+        ...process.env,
         PORT: String(PORT),
         RATE_LIMIT_MAX_REQUESTS: "1000",
-        LIVEKIT_RATE_LIMIT_MAX: "100"
+        LIVEKIT_RATE_LIMIT_MAX: "100",
       },
       shell: true,
     });
@@ -74,19 +74,16 @@ async function main() {
 
   try {
     // Exécuter Playwright avec les arguments de flux fake pour camera/micro
-    const cmd = 'npx playwright test tests/live-multi-user.spec.ts --reporter=list';
+    const cmd = "npx playwright test tests/live-multi-user.spec.ts --reporter=list";
     console.log(`   Commande : ${cmd}`);
-    
+
     // Configurer l'environnement pour Chromium fake media
     const env = {
       ...process.env,
       // Passer les flags chromium pour fake devices
       PLAYWRIGHT_CHROMIUM_LAUNCH_OPTIONS: JSON.stringify({
-        args: [
-          "--use-fake-ui-for-media-stream",
-          "--use-fake-device-for-media-stream",
-        ]
-      })
+        args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream"],
+      }),
     };
 
     // Nous lisons l'output
@@ -120,7 +117,7 @@ async function main() {
   // Analyser l'output pour compiler les statistiques du rapport
   console.log("\n🔄 Génération du rapport final...");
   const reportPath = path.join(__dirname, "..", "LIVE_TEST_REPORT.md");
-  
+
   // Extraire les tests et échecs
   const testsPassed = playwrightSuccess ? 12 : 11; // Nombre estimé de scénarios intérieurs validés
   const testsFailed = playwrightSuccess ? 0 : 1;
@@ -135,13 +132,13 @@ async function main() {
   if (!playwrightSuccess) {
     bugsDetected.push("Échec général des tests E2E multi-utilisateurs.");
   }
-  
+
   // Vérification de la limitation de permission d'accès
   bugsDetected.push(
-    "Vérification des droits de co-animation : Par défaut, la route `/api/livekit/token` interdisait l'accès aux professeurs n'étant pas les créateurs du cours (`course.createdById !== authUser.id`), ce qui bloquait les 3 autres professeurs. Résolu par assouplissement de la logique d'autorisation dans `server.ts`."
+    "Vérification des droits de co-animation : Par défaut, la route `/api/livekit/token` interdisait l'accès aux professeurs n'étant pas les créateurs du cours (`course.createdById !== authUser.id`), ce qui bloquait les 3 autres professeurs. Résolu par assouplissement de la logique d'autorisation dans `server.ts`.",
   );
   bugsDetected.push(
-    "Erreur console avertissement : Le bouton d'activation/désactivation du microphone génère parfois des alertes d'état dans le terminal local lorsque aucun périphérique physique n'est connecté. Atténué par l'injection des flags de streaming simulés Playwright."
+    "Erreur console avertissement : Le bouton d'activation/désactivation du microphone génère parfois des alertes d'état dans le terminal local lorsque aucun périphérique physique n'est connecté. Atténué par l'injection des flags de streaming simulés Playwright.",
   );
 
   const reportContent = `# Rapport Final de Campagne de Tests Live Multi-utilisateurs
@@ -191,9 +188,10 @@ ${bugsDetected.map((bug, index) => `${index + 1}. **Bug** : ${bug}`).join("\n")}
 
 ## 📸 Capture des Erreurs Console
 
-${uniqConsoleErrors.length > 0
-  ? uniqConsoleErrors.map((err) => `- \`${err}\``).join("\n")
-  : "✅ Aucune erreur console critique détectée pendant la session multi-utilisateurs."
+${
+  uniqConsoleErrors.length > 0
+    ? uniqConsoleErrors.map((err) => `- \`${err}\``).join("\n")
+    : "✅ Aucune erreur console critique détectée pendant la session multi-utilisateurs."
 }
 
 ---

@@ -62,7 +62,7 @@ export function useVirtualClassroomUI({
 }: UseVirtualClassroomUIParams) {
   const [activeTab, setActiveTab] = useState("participants");
   const [isSidebarOpen, setIsSidebarOpen] = useState(() =>
-    typeof window !== "undefined" ? window.matchMedia("(min-width: 1024px)").matches : false
+    typeof window !== "undefined" ? window.matchMedia("(min-width: 1024px)").matches : false,
   );
   const [stageVolume, setStageVolume] = useState(1);
   const [isStageVideoPaused, setIsStageVideoPaused] = useState(false);
@@ -145,33 +145,40 @@ export function useVirtualClassroomUI({
   }, [activeTab, whiteboardExpanded]);
 
   const visibleSidebarTabs = useMemo(
-    () => (liveSettings.focusMode
-      ? liveSidebarTabs.filter((tab) => tab.id === "whiteboard")
-      : liveSidebarTabs),
+    () => (liveSettings.focusMode ? liveSidebarTabs.filter((tab) => tab.id === "whiteboard") : liveSidebarTabs),
     [liveSettings.focusMode],
   );
 
-  const openPanelTab = useCallback((tabId: string) => {
-    if (liveSettings.focusMode && tabId !== "whiteboard") return;
-    setIsSidebarOpen(true);
-    setActiveTab(tabId);
-  }, [liveSettings.focusMode]);
+  const openPanelTab = useCallback(
+    (tabId: string) => {
+      if (liveSettings.focusMode && tabId !== "whiteboard") return;
+      setIsSidebarOpen(true);
+      setActiveTab(tabId);
+    },
+    [liveSettings.focusMode],
+  );
 
-  const togglePanelTab = useCallback((tabId: string) => {
-    if (liveSettings.focusMode && tabId !== "whiteboard") return;
-    if (isSidebarOpen && activeTab === tabId) {
-      setIsSidebarOpen(false);
-      return;
-    }
-    openPanelTab(tabId);
-  }, [liveSettings.focusMode, isSidebarOpen, activeTab, openPanelTab]);
+  const togglePanelTab = useCallback(
+    (tabId: string) => {
+      if (liveSettings.focusMode && tabId !== "whiteboard") return;
+      if (isSidebarOpen && activeTab === tabId) {
+        setIsSidebarOpen(false);
+        return;
+      }
+      openPanelTab(tabId);
+    },
+    [liveSettings.focusMode, isSidebarOpen, activeTab, openPanelTab],
+  );
 
-  const cyclePanelTab = useCallback((delta: number) => {
-    const ids = visibleSidebarTabs.map((tab) => tab.id);
-    const currentIndex = Math.max(0, ids.indexOf(activeTab));
-    const nextId = ids[(currentIndex + delta + ids.length) % ids.length];
-    openPanelTab(nextId);
-  }, [visibleSidebarTabs, activeTab, openPanelTab]);
+  const cyclePanelTab = useCallback(
+    (delta: number) => {
+      const ids = visibleSidebarTabs.map((tab) => tab.id);
+      const currentIndex = Math.max(0, ids.indexOf(activeTab));
+      const nextId = ids[(currentIndex + delta + ids.length) % ids.length];
+      openPanelTab(nextId);
+    },
+    [visibleSidebarTabs, activeTab, openPanelTab],
+  );
 
   useTvNavigation(controlsRef, true);
   useTvNavigation(sidebarRef, isSidebarOpen);
@@ -185,7 +192,12 @@ export function useVirtualClassroomUI({
     { key: "m", handler: () => onToggleMic() },
     { key: "v", handler: () => onToggleCamera() },
     { key: "h", handler: () => onRaiseHand() },
-    { key: "p", handler: () => { void togglePictureInPicture(); } },
+    {
+      key: "p",
+      handler: () => {
+        void togglePictureInPicture();
+      },
+    },
     { key: "t", handler: () => togglePanelTab("chat") },
     { key: " ", handler: () => setIsStageVideoPaused((value) => !value) },
     {
@@ -242,19 +254,25 @@ export function useVirtualClassroomUI({
   }, [liveStartedAtMs]);
 
   const canModerate = mode === "teacher" && currentUserRole !== "STUDENT";
-  const connectedParticipants = participants.length > 0 ? participants : [{
-    identity: "connecting",
-    name: "Connexion LiveKit",
-    initials: "LK",
-    isLocal: true,
-    role: currentUserRole,
-    connectionQuality: "stable",
-  }];
+  const connectedParticipants =
+    participants.length > 0
+      ? participants
+      : [
+          {
+            identity: "connecting",
+            name: "Connexion LiveKit",
+            initials: "LK",
+            isLocal: true,
+            role: currentUserRole,
+            connectionQuality: "stable",
+          },
+        ];
 
-  const activeSpeaker = connectedParticipants.find((participant) => participant.identity === activeSpeakerIdentity)
-    || connectedParticipants.find((participant) => !participant.isLocal && participant.videoTrack)
-    || connectedParticipants.find((participant) => participant.videoTrack)
-    || connectedParticipants[0];
+  const activeSpeaker =
+    connectedParticipants.find((participant) => participant.identity === activeSpeakerIdentity) ||
+    connectedParticipants.find((participant) => !participant.isLocal && participant.videoTrack) ||
+    connectedParticipants.find((participant) => participant.videoTrack) ||
+    connectedParticipants[0];
 
   const stageParticipants = resolveStageParticipants(
     connectedParticipants,
@@ -263,30 +281,40 @@ export function useVirtualClassroomUI({
     mode,
   );
 
-  const featuredLayout = liveSettings.layoutMode !== "tile" && stageParticipants.some((participant) => participant.videoTrack);
+  const featuredLayout =
+    liveSettings.layoutMode !== "tile" && stageParticipants.some((participant) => participant.videoTrack);
   const videoGridClass = stageGridClass(stageParticipants.length, featuredLayout);
 
-  const registerParticipantVideoRef = useCallback((identity: string, element: HTMLVideoElement | null) => {
-    videoRefs.current[identity] = element;
-    const firstIdentity = stageParticipants[0]?.identity;
-    if (identity === firstIdentity) {
-      featuredVideoRef.current = element;
-      primaryVideoRef.current = element;
-    }
-  }, [videoRefs, primaryVideoRef, stageParticipants]);
+  const registerParticipantVideoRef = useCallback(
+    (identity: string, element: HTMLVideoElement | null) => {
+      videoRefs.current[identity] = element;
+      const firstIdentity = stageParticipants[0]?.identity;
+      if (identity === firstIdentity) {
+        featuredVideoRef.current = element;
+        primaryVideoRef.current = element;
+      }
+    },
+    [videoRefs, primaryVideoRef, stageParticipants],
+  );
 
   const raisedHandParticipants = connectedParticipants.filter((participant) => participant.handRaised);
-  const filteredParticipants = connectedParticipants.filter((participant) =>
-    participant.name.toLowerCase().includes(participantQuery.toLowerCase())
-    || liveRoleLabel(participant.role).toLowerCase().includes(participantQuery.toLowerCase())
+  const filteredParticipants = connectedParticipants.filter(
+    (participant) =>
+      participant.name.toLowerCase().includes(participantQuery.toLowerCase()) ||
+      liveRoleLabel(participant.role).toLowerCase().includes(participantQuery.toLowerCase()),
   );
   const localReaction = connectedParticipants.find((participant) => participant.isLocal)?.reaction || null;
   const raisedHands = connectedParticipants.filter((participant) => participant.handRaised).length;
   const questionsCount = chatMessages.filter((m) => m.text.toLowerCase().includes("[question]")).length;
-  const averageQuality = connectedParticipants.some((participant) => String(participant.connectionQuality || "").toLowerCase().includes("poor"))
+  const averageQuality = connectedParticipants.some((participant) =>
+    String(participant.connectionQuality || "")
+      .toLowerCase()
+      .includes("poor"),
+  )
     ? "À surveiller"
     : "Excellente";
-  const attendanceRows = ((attendanceReport as { attendances?: AttendanceRow[] } | null)?.attendances || []) as AttendanceRow[];
+  const attendanceRows = ((attendanceReport as { attendances?: AttendanceRow[] } | null)?.attendances ||
+    []) as AttendanceRow[];
 
   const shareResource = useCallback(() => {
     if (!resourceTitle.trim() && !resourceUrl.trim()) return;

@@ -1,5 +1,6 @@
 import type { Express, RequestHandler } from "express";
 import express from "express";
+import { getAuthUser } from "../server/route-types";
 import type { RouteContext } from "../server/route-context";
 import type { AppUser } from "../server/route-deps";
 import * as api from "../server/route-deps";
@@ -26,17 +27,14 @@ function buildPersistCoursePaymentEnrollment(ctx: RouteContext) {
     externalId: string;
     auditAction: string;
     reqIp?: string;
-  }) => api.persistCoursePaymentEnrollment(params, {
-    logAudit: d.logAudit,
-    invalidateAuthUserCache: d.invalidateAuthUserCache,
-  });
+  }) =>
+    api.persistCoursePaymentEnrollment(params, {
+      logAudit: d.logAudit,
+      invalidateAuthUserCache: d.invalidateAuthUserCache,
+    });
 }
 
-export function registerPayPalWebhook(
-  app: Express,
-  ctx: RouteContext,
-  rateLimiter?: RequestHandler,
-): void {
+export function registerPayPalWebhook(app: Express, ctx: RouteContext, rateLimiter?: RequestHandler): void {
   const persistCoursePaymentEnrollment = buildPersistCoursePaymentEnrollment(ctx);
 
   app.post(
@@ -99,319 +97,224 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
   const persistCoursePaymentEnrollment = buildPersistCoursePaymentEnrollment(ctx);
 
   registerPayPalConfigRoute(app);
-  
-  
-  
-  // POST /api/paypal/create-order - Create a PayPal checkout order
-  
-  app.post("/api/paypal/create-order", requireAuth, async (req, res) => {
-  
-    const authUser = (req as any).authUser as AppUser;
-  
-    const courseId = Number(req.body?.courseId);
-  
-    if (!courseId || Number.isNaN(courseId)) {
-  
-      res.status(400).json({ error: "courseId requis" });
-  
-      return;
-  
-    }
-  
-  
-  
-    if (!api.isPayPalConfigured()) {
-  
-      res.status(503).json({ error: api.PUBLIC_API_ERRORS.paymentServiceUnavailable });
-  
-      return;
-  
-    }
-  
-  
-  
-    const course = await api.prisma.course.findUnique({ where: { id: courseId } });
-  
-    if (!course) {
-  
-      res.status(404).json({ error: "Module non trouvé" });
-  
-      return;
-  
-    }
-  
-  
-  
-    const existing = await api.prisma.enrollment.findUnique({
-  
-      where: { userId_courseId: { userId: authUser.id, courseId } },
-  
-    });
-  
-    if (existing?.active) {
-  
-      res.status(400).json({ error: "Déjà inscrit à ce module" });
-  
-      return;
-  
-    }
-  
-  
-  
-    const promoCode = String(req.body?.promoCode || "").trim();
-  
-    const chargePricing = api.resolveCourseChargeAmount(course.price, promoCode);
-  
-    if (chargePricing.error) {
-  
-      res.status(400).json({ error: chargePricing.error });
-  
-      return;
-  
-    }
-  
-  
-  
-    try {
-  
-      const order = await api.createPayPalOrder({
-  
-        courseId,
-  
-        courseTitle: course.title,
-  
-        courseDescription: course.description,
-  
-        amountMad: chargePricing.amount,
-  
-        userId: authUser.id,
-  
-      });
-  
-      res.json({
-  
-        id: order.id,
-  
-        currency: order.currency,
-  
-        amount: order.amount,
-  
-        amountMad: order.amountMad,
-  
-      });
-  
-    } catch (err: any) {
-  
-      api.logPayPalError("PayPal create-order route failed", {
-  
-        userId: authUser.id,
-  
-        courseId,
-  
-        error: String(err?.message || err),
-  
-      });
-  
-      res.status(500).json({ error: api.PUBLIC_API_ERRORS.paypalCreateOrderFailed });
-  
-    }
-  
-  });
-  
-  
-  
-  // POST /api/paypal/capture-order - Capture payment and enroll student
-  
-  app.post("/api/paypal/capture-order", requireAuth, async (req, res) => {
-  
-    const authUser = (req as any).authUser as AppUser;
-  
-    const orderId = String(req.body?.orderId || "").trim();
-  
-    const courseId = Number(req.body?.courseId);
-  
-    if (!orderId) {
-  
-      res.status(400).json({ error: "orderId requis" });
-  
-      return;
-  
-    }
-  
-    if (!courseId || Number.isNaN(courseId)) {
-  
-      res.status(400).json({ error: "courseId requis" });
-  
-      return;
-  
-    }
-  
-  
-  
-    if (!api.isPayPalConfigured()) {
-  
-      res.status(503).json({ error: api.PUBLIC_API_ERRORS.paymentServiceUnavailable });
-  
-      return;
-  
-    }
-  
-  
-  
-    try {
-  
-      const captureResult = await api.capturePayPalOrder(orderId);
-  
-      const result = await api.processPayPalCaptureEnrollment(
-  
-        {
-  
-          orderId,
-  
-          captureResult,
-  
-          reqIp: req.ip,
-  
-          auditAction: "PAYMENT_PAYPAL_SUCCESS",
-  
-          expectedUserId: authUser.id,
-  
-          expectedCourseId: courseId,
-  
-        },
-  
-        persistCoursePaymentEnrollment,
-  
-      );
-  
-  
-  
-      if (result.ok === false) {
-  
-        res.status(result.status).json(api.toPayPalCaptureClientResponse(result));
-  
-        return;
-  
-      }
-  
-  
-  
-      if (result.duplicate) {
-  
-        api.logSecurity("INFO", "PayPal capture duplicate ignored", {
-  
-          userId: authUser.id,
-  
-          courseId,
-  
-          invoiceId: result.invoiceId,
-  
-          orderId,
-  
-        });
-  
-      }
-  
-  
-  
-      res.json({
-  
-        ok: true,
-  
-        message: "Paiement confirmé",
-  
-        invoice: result.invoice,
-  
-        user: api.toAppUser(result.user!),
-  
-      });
-  
-    } catch (err: any) {
-  
-      api.logPayPalError("PayPal capture-order route failed", {
-  
-        userId: authUser.id,
-  
-        courseId,
-  
-        orderId,
-  
-        error: String(err?.message || err),
-  
-      });
-  
-      if (err?.message === "USER_NOT_FOUND") {
 
+  // POST /api/paypal/create-order - Create a PayPal checkout order
+
+  app.post("/api/paypal/create-order", requireAuth, async (req, res) => {
+    const authUser = getAuthUser(req);
+
+    const courseId = Number(req.body?.courseId);
+
+    if (!courseId || Number.isNaN(courseId)) {
+      res.status(400).json({ error: "courseId requis" });
+
+      return;
+    }
+
+    if (!api.isPayPalConfigured()) {
+      res.status(503).json({ error: api.PUBLIC_API_ERRORS.paymentServiceUnavailable });
+
+      return;
+    }
+
+    const course = await api.prisma.course.findUnique({ where: { id: courseId } });
+
+    if (!course) {
+      res.status(404).json({ error: "Module non trouvé" });
+
+      return;
+    }
+
+    const existing = await api.prisma.enrollment.findUnique({
+      where: { userId_courseId: { userId: authUser.id, courseId } },
+    });
+
+    if (existing?.active) {
+      res.status(400).json({ error: "Déjà inscrit à ce module" });
+
+      return;
+    }
+
+    const promoCode = String(req.body?.promoCode || "").trim();
+
+    const chargePricing = api.resolveCourseChargeAmount(course.price, promoCode);
+
+    if (chargePricing.error) {
+      res.status(400).json({ error: chargePricing.error });
+
+      return;
+    }
+
+    try {
+      const order = await api.createPayPalOrder({
+        courseId,
+
+        courseTitle: course.title,
+
+        courseDescription: course.description,
+
+        amountMad: chargePricing.amount,
+
+        userId: authUser.id,
+      });
+
+      res.json({
+        id: order.id,
+
+        currency: order.currency,
+
+        amount: order.amount,
+
+        amountMad: order.amountMad,
+      });
+    } catch (err: any) {
+      api.logPayPalError("PayPal create-order route failed", {
+        userId: authUser.id,
+
+        courseId,
+
+        error: String(err?.message || err),
+      });
+
+      res.status(500).json({ error: api.PUBLIC_API_ERRORS.paypalCreateOrderFailed });
+    }
+  });
+
+  // POST /api/paypal/capture-order - Capture payment and enroll student
+
+  app.post("/api/paypal/capture-order", requireAuth, async (req, res) => {
+    const authUser = getAuthUser(req);
+
+    const orderId = String(req.body?.orderId || "").trim();
+
+    const courseId = Number(req.body?.courseId);
+
+    if (!orderId) {
+      res.status(400).json({ error: "orderId requis" });
+
+      return;
+    }
+
+    if (!courseId || Number.isNaN(courseId)) {
+      res.status(400).json({ error: "courseId requis" });
+
+      return;
+    }
+
+    if (!api.isPayPalConfigured()) {
+      res.status(503).json({ error: api.PUBLIC_API_ERRORS.paymentServiceUnavailable });
+
+      return;
+    }
+
+    try {
+      const captureResult = await api.capturePayPalOrder(orderId);
+
+      const result = await api.processPayPalCaptureEnrollment(
+        {
+          orderId,
+
+          captureResult,
+
+          reqIp: req.ip,
+
+          auditAction: "PAYMENT_PAYPAL_SUCCESS",
+
+          expectedUserId: authUser.id,
+
+          expectedCourseId: courseId,
+        },
+
+        persistCoursePaymentEnrollment,
+      );
+
+      if (result.ok === false) {
+        res.status(result.status).json(api.toPayPalCaptureClientResponse(result));
+
+        return;
+      }
+
+      if (result.duplicate) {
+        api.logSecurity("INFO", "PayPal capture duplicate ignored", {
+          userId: authUser.id,
+
+          courseId,
+
+          invoiceId: result.invoiceId,
+
+          orderId,
+        });
+      }
+
+      res.json({
+        ok: true,
+
+        message: "Paiement confirmé",
+
+        invoice: result.invoice,
+
+        user: api.toAppUser(result.user!),
+      });
+    } catch (err: any) {
+      api.logPayPalError("PayPal capture-order route failed", {
+        userId: authUser.id,
+
+        courseId,
+
+        orderId,
+
+        error: String(err?.message || err),
+      });
+
+      if (err?.message === "USER_NOT_FOUND") {
         res.status(500).json({ error: api.PUBLIC_API_ERRORS.paypalCaptureFailed });
 
         return;
-
       }
 
       res.status(500).json({ error: api.PUBLIC_API_ERRORS.paypalCaptureFailed });
-  
     }
-  
   });
-  
-  
-  
+
   // POST /api/payments/enroll-mock - Mock enrollment backend validation
-  
+
   app.post("/api/payments/enroll-mock", requireAuth, async (req, res) => {
-  
     if (process.env.NODE_ENV === "production") {
-  
       res.status(403).json({ error: "Inscription mock indisponible en production" });
-  
+
       return;
-  
     }
-  
-    const authUser = (req as any).authUser as AppUser;
-  
+
+    const authUser = getAuthUser(req);
+
     const courseId = Number(req.body?.courseId);
-  
+
     if (!courseId || isNaN(courseId)) {
-  
       res.status(400).json({ error: "courseId requis" });
-  
+
       return;
-  
     }
-  
-  
-  
+
     const course = await api.prisma.course.findUnique({ where: { id: courseId } });
-  
+
     if (!course) {
-  
       res.status(404).json({ error: "Module non trouvé" });
-  
+
       return;
-  
     }
-  
-  
-  
+
     // Vérifier si déjà inscrit
-  
+
     const existing = await api.prisma.enrollment.findUnique({
-  
-      where: { userId_courseId: { userId: authUser.id, courseId } }
-  
+      where: { userId_courseId: { userId: authUser.id, courseId } },
     });
-  
+
     if (existing && existing.active) {
-  
       res.status(400).json({ error: "Déjà inscrit à ce module" });
-  
+
       return;
-  
     }
-  
-  
-  
+
     const invoiceId = api.buildCourseInvoiceId("MOCK");
     const chargePricing = api.resolveCourseChargeAmount(course.price, "");
 
@@ -449,7 +352,5 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
       }
       res.status(500).json({ error: "Erreur lors de l'inscription" });
     }
-  
   });
-  
 }

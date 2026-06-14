@@ -9,14 +9,16 @@ export const FORBIDDEN_RASTER_IMAGE_EXTENSIONS = [".svg", ".svgz"] as const;
 const AVATAR_URL_MAX_LENGTH = 500;
 
 function normalizeMime(mime: string | null): string {
-  return String(mime || "").trim().toLowerCase();
+  return String(mime || "")
+    .trim()
+    .toLowerCase();
 }
 
 export function isForbiddenRasterImageExtension(filename: string): boolean {
   const dotIndex = filename.lastIndexOf(".");
   if (dotIndex === -1) return false;
   const ext = filename.substring(dotIndex).toLowerCase();
-  return FORBIDDEN_RASTER_IMAGE_EXTENSIONS.includes(ext as typeof FORBIDDEN_RASTER_IMAGE_EXTENSIONS[number]);
+  return FORBIDDEN_RASTER_IMAGE_EXTENSIONS.includes(ext as (typeof FORBIDDEN_RASTER_IMAGE_EXTENSIONS)[number]);
 }
 
 export function isAllowedRasterImageMime(mime: string | null): boolean {

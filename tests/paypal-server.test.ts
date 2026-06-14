@@ -1,4 +1,5 @@
-import assert from "node:assert/strict";import {
+import assert from "node:assert/strict";
+import {
   buildPayPalCustomId,
   formatPayPalAmount,
   getPayPalRuntimeEnv,
@@ -7,45 +8,44 @@ import assert from "node:assert/strict";import {
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("paypal-server", () => {
-const originalEnv = process.env.PAYPAL_ENV;
+  const originalEnv = process.env.PAYPAL_ENV;
 
-try {
-  process.env.PAYPAL_ENV = "Sandbox";
-  assert.equal(getPayPalRuntimeEnv(), "sandbox");
+  try {
+    process.env.PAYPAL_ENV = "Sandbox";
+    assert.equal(getPayPalRuntimeEnv(), "sandbox");
 
-  process.env.PAYPAL_ENV = "live";
-  assert.equal(getPayPalRuntimeEnv(), "live");
+    process.env.PAYPAL_ENV = "live";
+    assert.equal(getPayPalRuntimeEnv(), "live");
 
-  assert.equal(formatPayPalAmount(19.5), "19.50");
+    assert.equal(formatPayPalAmount(19.5), "19.50");
 
-  const customId = buildPayPalCustomId("user-123", 42, 12.8, 128, "USD");
-  assert.deepEqual(parsePayPalCustomId(customId), {
-    userId: "user-123",
-    courseId: 42,
-    expectedAmount: "12.80",
-    payPalCurrency: "USD",
-    amountMad: "128.00",
-  });
-  const uuidCustomId = buildPayPalCustomId(
-    "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-    12,
-    12.8,
-    128,
-    "USD",
-  );
-  assert.ok(uuidCustomId.length <= 127, `custom_id length ${uuidCustomId.length} exceeds PayPal limit`);
-  assert.deepEqual(parsePayPalCustomId('{"userId":"legacy","courseId":1,"expectedAmount":"1.00","payPalCurrency":"USD","amountMad":"10.00"}'), {
-    userId: "legacy",
-    courseId: 1,
-    expectedAmount: "1.00",
-    payPalCurrency: "USD",
-    amountMad: "10.00",
-  });
-  assert.equal(parsePayPalCustomId("invalid"), null);
+    const customId = buildPayPalCustomId("user-123", 42, 12.8, 128, "USD");
+    assert.deepEqual(parsePayPalCustomId(customId), {
+      userId: "user-123",
+      courseId: 42,
+      expectedAmount: "12.80",
+      payPalCurrency: "USD",
+      amountMad: "128.00",
+    });
+    const uuidCustomId = buildPayPalCustomId("a1b2c3d4-e5f6-7890-abcd-ef1234567890", 12, 12.8, 128, "USD");
+    assert.ok(uuidCustomId.length <= 127, `custom_id length ${uuidCustomId.length} exceeds PayPal limit`);
+    assert.deepEqual(
+      parsePayPalCustomId(
+        '{"userId":"legacy","courseId":1,"expectedAmount":"1.00","payPalCurrency":"USD","amountMad":"10.00"}',
+      ),
+      {
+        userId: "legacy",
+        courseId: 1,
+        expectedAmount: "1.00",
+        payPalCurrency: "USD",
+        amountMad: "10.00",
+      },
+    );
+    assert.equal(parsePayPalCustomId("invalid"), null);
 
-  console.log("PayPal server helper tests passed");
-} finally {
-  if (originalEnv === undefined) delete process.env.PAYPAL_ENV;
-  else process.env.PAYPAL_ENV = originalEnv;
-}
+    console.log("PayPal server helper tests passed");
+  } finally {
+    if (originalEnv === undefined) delete process.env.PAYPAL_ENV;
+    else process.env.PAYPAL_ENV = originalEnv;
+  }
 });

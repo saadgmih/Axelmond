@@ -183,27 +183,33 @@ export default function Topbar({
         <div className="hidden md:block w-px h-8 bg-slate-200 dark:bg-slate-800"></div>
 
         {role === "teacher" ? (
-          <div className={`px-4 py-1.5 rounded-xl flex items-center gap-2 border ${
-            getTeacherRoleBadgeTone(currentUser?.role) === "admin"
-              ? "bg-violet-50/70 border-violet-100 dark:border-violet-900/40"
-              : getTeacherRoleBadgeTone(currentUser?.role) === "researcher"
-                ? "bg-amber-50/70 border-amber-100 dark:border-amber-900/40"
-                : "bg-pink-50/70 border-pink-100 dark:border-pink-900/40"
-          }`}>
-            <Sparkles className={`w-4 h-4 ${
+          <div
+            className={`px-4 py-1.5 rounded-xl flex items-center gap-2 border ${
               getTeacherRoleBadgeTone(currentUser?.role) === "admin"
-                ? "text-violet-600 dark:text-violet-400"
+                ? "bg-violet-50/70 border-violet-100 dark:border-violet-900/40"
                 : getTeacherRoleBadgeTone(currentUser?.role) === "researcher"
-                  ? "text-amber-600 dark:text-amber-400"
-                  : "text-pink-600 dark:text-pink-400"
-            }`} />
-            <span className={`text-xs font-extrabold font-mono ${
-              getTeacherRoleBadgeTone(currentUser?.role) === "admin"
-                ? "text-violet-700 dark:text-violet-300"
-                : getTeacherRoleBadgeTone(currentUser?.role) === "researcher"
-                  ? "text-amber-700 dark:text-amber-300"
-                  : "text-pink-700 dark:text-pink-300"
-            }`}>
+                  ? "bg-amber-50/70 border-amber-100 dark:border-amber-900/40"
+                  : "bg-pink-50/70 border-pink-100 dark:border-pink-900/40"
+            }`}
+          >
+            <Sparkles
+              className={`w-4 h-4 ${
+                getTeacherRoleBadgeTone(currentUser?.role) === "admin"
+                  ? "text-violet-600 dark:text-violet-400"
+                  : getTeacherRoleBadgeTone(currentUser?.role) === "researcher"
+                    ? "text-amber-600 dark:text-amber-400"
+                    : "text-pink-600 dark:text-pink-400"
+              }`}
+            />
+            <span
+              className={`text-xs font-extrabold font-mono ${
+                getTeacherRoleBadgeTone(currentUser?.role) === "admin"
+                  ? "text-violet-700 dark:text-violet-300"
+                  : getTeacherRoleBadgeTone(currentUser?.role) === "researcher"
+                    ? "text-amber-700 dark:text-amber-300"
+                    : "text-pink-700 dark:text-pink-300"
+              }`}
+            >
               {getRoleLabel(currentUser?.role)}
             </span>
           </div>
@@ -225,10 +231,14 @@ export default function Topbar({
           className="flex items-center gap-2.5 hover:opacity-80 transition-opacity disabled:opacity-100 cursor-pointer kbd-nav-focus rounded-full"
         >
           {currentUser?.avatarUrl ? (
-            <img src={currentUser.avatarUrl} alt="Photo de profil" className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800" />
+            <img
+              src={currentUser.avatarUrl}
+              alt="Photo de profil"
+              className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800"
+            />
           ) : (
             <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 font-bold text-xs">
-              {currentUser ? getInitials(currentUser.fullName) : (role === "teacher" ? "AR" : "AR")}
+              {currentUser ? getInitials(currentUser.fullName) : role === "teacher" ? "AR" : "AR"}
             </div>
           )}
         </button>

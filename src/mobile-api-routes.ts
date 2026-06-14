@@ -1,4 +1,5 @@
 import type { Express, Request, RequestHandler, Response } from "express";
+import { getAuthUser } from "./server/route-types";
 import { MOBILE_CLIENT_HEADER, MOBILE_CLIENT_VALUE } from "./auth-mobile";
 import { buildStudentObjectiveSummary } from "./student-objectives";
 import { prisma } from "./db";
@@ -89,7 +90,7 @@ export function registerMobileApiRoutes(app: Express, deps: MobileRouteDeps): vo
   });
 
   app.get("/api/mobile/student-profile", deps.requireAuth, async (req, res) => {
-    const authUser = (req as any).authUser as { role: string; id: string };
+    const authUser = getAuthUser(req) as { role: string; id: string };
     if (authUser.role !== "STUDENT") {
       res.status(403).json({ error: "Réservé aux étudiants" });
       return;

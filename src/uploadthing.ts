@@ -20,9 +20,26 @@ const uploadInput = z.object({
 });
 
 const DANGEROUS_EXTENSIONS = [
-  ".exe", ".dll", ".bat", ".cmd", ".sh", ".bash", ".php", ".js", ".ts",
-  ".py", ".pl", ".rb", ".html", ".htm", ".msi", ".jar", ".vbs", ".lnk",
-  ".svg", ".svgz",
+  ".exe",
+  ".dll",
+  ".bat",
+  ".cmd",
+  ".sh",
+  ".bash",
+  ".php",
+  ".js",
+  ".ts",
+  ".py",
+  ".pl",
+  ".rb",
+  ".html",
+  ".htm",
+  ".msi",
+  ".jar",
+  ".vbs",
+  ".lnk",
+  ".svg",
+  ".svgz",
 ];
 
 function isDangerousFile(filename: string): boolean {
@@ -46,7 +63,9 @@ export async function deleteCloudFiles(fileKeys: string | string[]) {
     const keys = Array.isArray(fileKeys) ? fileKeys : [fileKeys];
     if (keys.length === 0) return;
     await utapi.deleteFiles(keys);
-    console.log(`[${new Date().toISOString()}] [INFO] [uploadthing] Cloud files deleted successfully: ${JSON.stringify(keys)}`);
+    console.log(
+      `[${new Date().toISOString()}] [INFO] [uploadthing] Cloud files deleted successfully: ${JSON.stringify(keys)}`,
+    );
   } catch (err) {
     console.error(`[${new Date().toISOString()}] [ERROR] [uploadthing] Cloud deletion failed: ${String(err)}`);
   }
@@ -68,10 +87,11 @@ function detectMessageAttachmentKind(mimeType: string | null): MessageAttachment
   if (mime.startsWith("video/")) return "VIDEO";
   if (mime.startsWith("audio/")) return "AUDIO";
   if (
-    mime === "application/pdf"
-    || mime === "application/msword"
-    || mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-  ) return "DOCUMENT";
+    mime === "application/pdf" ||
+    mime === "application/msword" ||
+    mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  )
+    return "DOCUMENT";
   return null;
 }
 
@@ -154,7 +174,9 @@ export const uploadRouter = {
         });
       }
 
-      console.log(`[${new Date().toISOString()}] [INFO] [uploadthing] Avatar uploaded ${JSON.stringify({ userId: metadata.userId, fileKey: file.key })}`);
+      console.log(
+        `[${new Date().toISOString()}] [INFO] [uploadthing] Avatar uploaded ${JSON.stringify({ userId: metadata.userId, fileKey: file.key })}`,
+      );
       return { url: fileUrl };
     }),
 
@@ -179,7 +201,9 @@ export const uploadRouter = {
         await utapi.deleteFiles(file.key);
         throw new UploadThingError("URL UploadThing introuvable pour la capture d'écran.");
       }
-      console.log(`[${new Date().toISOString()}] [INFO] [uploadthing] Support screenshot uploaded ${JSON.stringify({ userId: metadata.userId, fileKey: file.key })}`);
+      console.log(
+        `[${new Date().toISOString()}] [INFO] [uploadthing] Support screenshot uploaded ${JSON.stringify({ userId: metadata.userId, fileKey: file.key })}`,
+      );
       return { url: fileUrl };
     }),
 
@@ -201,7 +225,9 @@ export const uploadRouter = {
         },
       });
       if (!course) {
-        console.warn(`[${new Date().toISOString()}] [WARN] [uploadthing] Lesson asset upload denied ${JSON.stringify({ userId: user.id, role: user.role, courseId: input.courseId, sectionId: input.sectionId })}`);
+        console.warn(
+          `[${new Date().toISOString()}] [WARN] [uploadthing] Lesson asset upload denied ${JSON.stringify({ userId: user.id, role: user.role, courseId: input.courseId, sectionId: input.sectionId })}`,
+        );
         throw new UploadThingError("Module introuvable ou non autorisé");
       }
 
@@ -213,7 +239,9 @@ export const uploadRouter = {
           },
         });
         if (!section) {
-          console.warn(`[${new Date().toISOString()}] [WARN] [uploadthing] Lesson asset section denied ${JSON.stringify({ userId: user.id, role: user.role, courseId: input.courseId, sectionId: input.sectionId })}`);
+          console.warn(
+            `[${new Date().toISOString()}] [WARN] [uploadthing] Lesson asset section denied ${JSON.stringify({ userId: user.id, role: user.role, courseId: input.courseId, sectionId: input.sectionId })}`,
+          );
           throw new UploadThingError("Section de module introuvable");
         }
       }
@@ -230,9 +258,9 @@ export const uploadRouter = {
     .onUploadComplete(async ({ metadata, file }) => {
       const fileUrl = getFileUrl(file);
       if (
-        isDangerousFile(file.name)
-        || !isValidMimeType(metadata.contentType, file.type)
-        || (metadata.contentType === "IMAGE" && !isAllowedRasterImageUpload(file.name, file.type || null))
+        isDangerousFile(file.name) ||
+        !isValidMimeType(metadata.contentType, file.type) ||
+        (metadata.contentType === "IMAGE" && !isAllowedRasterImageUpload(file.name, file.type || null))
       ) {
         alertSuspectUpload(metadata.userId, file.name, file.type || "unknown");
         await utapi.deleteFiles(file.key);
@@ -267,7 +295,9 @@ export const uploadRouter = {
         include: { attachments: true },
       });
 
-      console.log(`[${new Date().toISOString()}] [INFO] [uploadthing] Lesson asset uploaded ${JSON.stringify({ contentId: content.id, courseId: metadata.courseId, sectionId: metadata.sectionId, fileKey: file.key })}`);
+      console.log(
+        `[${new Date().toISOString()}] [INFO] [uploadthing] Lesson asset uploaded ${JSON.stringify({ contentId: content.id, courseId: metadata.courseId, sectionId: metadata.sectionId, fileKey: file.key })}`,
+      );
       return {
         contentId: content.id,
         attachmentId: content.attachments[0]?.id,
@@ -294,7 +324,11 @@ export const uploadRouter = {
     .onUploadComplete(async ({ metadata, file }) => {
       const fileUrl = getFileUrl(file);
       const kind = detectMessageAttachmentKind(file.type || null);
-      if (isDangerousFile(file.name) || !kind || (kind === "IMAGE" && !isAllowedRasterImageUpload(file.name, file.type || null))) {
+      if (
+        isDangerousFile(file.name) ||
+        !kind ||
+        (kind === "IMAGE" && !isAllowedRasterImageUpload(file.name, file.type || null))
+      ) {
         alertSuspectUpload(metadata.userId, file.name, file.type || "unknown");
         await utapi.deleteFiles(file.key);
         throw new UploadThingError("Type de fichier non autorisé pour la messagerie.");
@@ -312,7 +346,9 @@ export const uploadRouter = {
         if (file.key) await utapi.deleteFiles(file.key);
         throw new UploadThingError(validationError || "URL UploadThing introuvable.");
       }
-      console.log(`[${new Date().toISOString()}] [INFO] [uploadthing] Message attachment uploaded ${JSON.stringify({ userId: metadata.userId, conversationId: metadata.conversationId, fileKey: file.key, kind })}`);
+      console.log(
+        `[${new Date().toISOString()}] [INFO] [uploadthing] Message attachment uploaded ${JSON.stringify({ userId: metadata.userId, conversationId: metadata.conversationId, fileKey: file.key, kind })}`,
+      );
       return {
         kind,
         fileName: file.name,

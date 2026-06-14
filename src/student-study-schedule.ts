@@ -133,7 +133,8 @@ export function serializeStudentStudySession(session: StudentStudySessionRecord)
     startTime: session.startTime,
     endTime: session.endTime,
     sessionType: session.sessionType,
-    sessionTypeLabel: STUDENT_STUDY_SESSION_TYPES.find((type) => type.value === session.sessionType)?.label || session.sessionType,
+    sessionTypeLabel:
+      STUDENT_STUDY_SESSION_TYPES.find((type) => type.value === session.sessionType)?.label || session.sessionType,
     roomOrLink: session.roomOrLink || "",
     description: session.description || "",
   };

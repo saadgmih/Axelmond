@@ -89,8 +89,14 @@ rulesTest("auth-cookies-csrf", () => {
   assert.equal(csrfCookie.options.path, "/");
 
   clearAuthCookies(mockRes as any);
-  assert.equal(mockRes.cleared.some((c) => c.name === REFRESH_COOKIE_NAME), true);
-  assert.equal(mockRes.cleared.some((c) => c.name === CSRF_COOKIE_NAME), true);
+  assert.equal(
+    mockRes.cleared.some((c) => c.name === REFRESH_COOKIE_NAME),
+    true,
+  );
+  assert.equal(
+    mockRes.cleared.some((c) => c.name === CSRF_COOKIE_NAME),
+    true,
+  );
 
   const refreshFromCookie = readRefreshTokenFromRequest({
     cookies: { [REFRESH_COOKIE_NAME]: "abc123" },
@@ -146,7 +152,9 @@ rulesTest("auth-cookies-csrf", () => {
       },
     } as any,
     blockedRes as any,
-    () => { nextCalled = true; },
+    () => {
+      nextCalled = true;
+    },
   );
   assert.equal(nextCalled, false);
   assert.equal(blockedStatus, 403);
@@ -156,7 +164,9 @@ rulesTest("auth-cookies-csrf", () => {
   csrfProtection(
     { method: "POST", path: "/api/courses", cookies: { [CSRF_COOKIE_NAME]: "abc" }, headers: {} } as any,
     blockedRes as any,
-    () => { nextCalled = true; },
+    () => {
+      nextCalled = true;
+    },
   );
   assert.equal(blockedStatus, 403);
   assert.deepEqual(blockedBody, { error: "Jeton CSRF invalide ou manquant", code: "CSRF_TOKEN_INVALID" });
@@ -171,7 +181,9 @@ rulesTest("auth-cookies-csrf", () => {
       headers: { "x-csrf-token": "valid-csrf" },
     } as any,
     blockedRes as any,
-    () => { nextCalled = true; },
+    () => {
+      nextCalled = true;
+    },
   );
   assert.equal(nextCalled, true);
 
@@ -179,7 +191,9 @@ rulesTest("auth-cookies-csrf", () => {
   csrfProtection(
     { method: "POST", path: "/api/uploadthing", cookies: {}, headers: {} } as any,
     blockedRes as any,
-    () => { nextCalled = true; },
+    () => {
+      nextCalled = true;
+    },
   );
   assert.equal(nextCalled, true);
 
@@ -187,7 +201,9 @@ rulesTest("auth-cookies-csrf", () => {
   csrfProtection(
     { method: "POST", path: "/api/paypal/webhook", cookies: {}, headers: {} } as any,
     blockedRes as any,
-    () => { nextCalled = true; },
+    () => {
+      nextCalled = true;
+    },
   );
   assert.equal(nextCalled, true);
 

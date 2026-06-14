@@ -94,9 +94,7 @@ export function focusNextInZone(
 
   const idx = items.indexOf(current);
   const nextIdx =
-    direction === "left" || direction === "up"
-      ? (idx - 1 + items.length) % items.length
-      : (idx + 1) % items.length;
+    direction === "left" || direction === "up" ? (idx - 1 + items.length) % items.length : (idx + 1) % items.length;
   items[nextIdx]?.focus();
   return items[nextIdx] ?? null;
 }

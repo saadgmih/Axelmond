@@ -9,16 +9,11 @@ export function getPayPalRuntimeEnv(): PayPalRuntimeEnv {
 }
 
 export function getPayPalApiBaseUrl(): string {
-  return getPayPalRuntimeEnv() === "live"
-    ? "https://api-m.paypal.com"
-    : "https://api-m.sandbox.paypal.com";
+  return getPayPalRuntimeEnv() === "live" ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com";
 }
 
 export function isPayPalConfigured(): boolean {
-  return Boolean(
-    process.env.PAYPAL_CLIENT_ID?.trim()
-    && process.env.PAYPAL_CLIENT_SECRET?.trim(),
-  );
+  return Boolean(process.env.PAYPAL_CLIENT_ID?.trim() && process.env.PAYPAL_CLIENT_SECRET?.trim());
 }
 
 function getPayPalCredentials(): { clientId: string; clientSecret: string } {
@@ -74,11 +69,7 @@ export async function getPayPalAccessTokenForWebhook(): Promise<string> {
   return getPayPalAccessToken();
 }
 
-async function paypalRequest<T>(
-  method: string,
-  path: string,
-  body?: unknown,
-): Promise<T> {
+async function paypalRequest<T>(method: string, path: string, body?: unknown): Promise<T> {
   const token = await getPayPalAccessToken();
   const response = await fetch(`${getPayPalApiBaseUrl()}${path}`, {
     method,
@@ -177,13 +168,7 @@ export async function createPayPalOrder(params: {
 }): Promise<{ id: string; currency: string; amount: string; amountMad: string }> {
   const payPalCurrency = getPayPalCheckoutCurrency();
   const payPalAmount = convertMadAmountForPayPal(params.amountMad);
-  const customId = buildPayPalCustomId(
-    params.userId,
-    params.courseId,
-    payPalAmount,
-    params.amountMad,
-    payPalCurrency,
-  );
+  const customId = buildPayPalCustomId(params.userId, params.courseId, payPalAmount, params.amountMad, payPalCurrency);
   const payload = await paypalRequest<{ id?: string }>("POST", "/v2/checkout/orders", {
     intent: "CAPTURE",
     purchase_units: [

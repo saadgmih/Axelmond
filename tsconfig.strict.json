@@ -4,10 +4,5 @@
     "strict": true,
     "noImplicitAny": true
   },
-  "exclude": [
-    "server.ts",
-    "tests",
-    "dist",
-    "axelmond-mobile"
-  ]
+  "exclude": ["server.ts", "tests", "dist", "axelmond-mobile"]
 }

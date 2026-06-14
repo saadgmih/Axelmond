@@ -1,16 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import {
-  Captions,
-  Focus,
-  Grid3X3,
-  LayoutGrid,
-  MonitorPlay,
-  Sparkles,
-  UserRound,
-  Video,
-  X,
-} from "lucide-react";
+import { Captions, Focus, Grid3X3, LayoutGrid, MonitorPlay, Sparkles, UserRound, Video, X } from "lucide-react";
 import {
   LIVE_LAYOUT_OPTIONS,
   LIVE_SUBTITLE_OPTIONS,
@@ -86,7 +76,9 @@ export default function LiveSettingsPanel({
         <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-white/10 bg-zinc-950/95 px-5 py-4 backdrop-blur-md">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-indigo-300">Live</p>
-            <h2 id="live-settings-title" className="text-lg font-bold text-white">Paramètres Live</h2>
+            <h2 id="live-settings-title" className="text-lg font-bold text-white">
+              Paramètres Live
+            </h2>
           </div>
           <button
             type="button"
@@ -102,7 +94,9 @@ export default function LiveSettingsPanel({
           <section aria-labelledby="live-quality-heading">
             <div className="mb-3 flex items-center gap-2">
               <Video className="h-4 w-4 text-indigo-400" />
-              <h3 id="live-quality-heading" className="text-sm font-bold text-white">Qualité vidéo</h3>
+              <h3 id="live-quality-heading" className="text-sm font-bold text-white">
+                Qualité vidéo
+              </h3>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {LIVE_VIDEO_QUALITY_OPTIONS.map((option) => {
@@ -132,7 +126,9 @@ export default function LiveSettingsPanel({
           <section aria-labelledby="live-layout-heading">
             <div className="mb-3 flex items-center gap-2">
               <Grid3X3 className="h-4 w-4 text-indigo-400" />
-              <h3 id="live-layout-heading" className="text-sm font-bold text-white">Vue mosaïque</h3>
+              <h3 id="live-layout-heading" className="text-sm font-bold text-white">
+                Vue mosaïque
+              </h3>
             </div>
             <div className="space-y-2">
               {LIVE_LAYOUT_OPTIONS.map((option) => {
@@ -164,7 +160,9 @@ export default function LiveSettingsPanel({
           <section aria-labelledby="live-pip-heading">
             <div className="mb-3 flex items-center gap-2">
               <MonitorPlay className="h-4 w-4 text-indigo-400" />
-              <h3 id="live-pip-heading" className="text-sm font-bold text-white">Picture-in-Picture</h3>
+              <h3 id="live-pip-heading" className="text-sm font-bold text-white">
+                Picture-in-Picture
+              </h3>
             </div>
             <button
               type="button"
@@ -190,7 +188,9 @@ export default function LiveSettingsPanel({
           <section aria-labelledby="live-focus-heading">
             <div className="mb-3 flex items-center gap-2">
               <Focus className="h-4 w-4 text-indigo-400" />
-              <h3 id="live-focus-heading" className="text-sm font-bold text-white">Mode concentration</h3>
+              <h3 id="live-focus-heading" className="text-sm font-bold text-white">
+                Mode concentration
+              </h3>
             </div>
             <button
               type="button"
@@ -225,7 +225,9 @@ export default function LiveSettingsPanel({
           <section aria-labelledby="live-subtitles-heading">
             <div className="mb-3 flex items-center gap-2">
               <Captions className="h-4 w-4 text-indigo-400" />
-              <h3 id="live-subtitles-heading" className="text-sm font-bold text-white">Sous-titres</h3>
+              <h3 id="live-subtitles-heading" className="text-sm font-bold text-white">
+                Sous-titres
+              </h3>
             </div>
             <div className="rounded-xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-amber-100">
               <div className="flex items-center gap-2 text-sm font-bold">
@@ -259,8 +261,13 @@ export default function LiveSettingsPanel({
             </div>
           </section>
 
-          <section aria-labelledby="live-shortcuts-heading" className="rounded-xl border border-white/10 bg-zinc-900/50 px-4 py-3">
-            <h3 id="live-shortcuts-heading" className="text-sm font-bold text-white">Raccourcis clavier</h3>
+          <section
+            aria-labelledby="live-shortcuts-heading"
+            className="rounded-xl border border-white/10 bg-zinc-900/50 px-4 py-3"
+          >
+            <h3 id="live-shortcuts-heading" className="text-sm font-bold text-white">
+              Raccourcis clavier
+            </h3>
             <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-zinc-300">
               {[
                 ["M", "Micro"],

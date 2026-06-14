@@ -67,14 +67,15 @@ export function buildConnectionChangeNotice(
   }
 
   if (
-    (next === "excellent" || next === "good")
-    && (previous === "poor" || previous === "lost" || previous === "unknown")
+    (next === "excellent" || next === "good") &&
+    (previous === "poor" || previous === "lost" || previous === "unknown")
   ) {
     return {
       variant: "success",
-      message: next === "excellent"
-        ? "Connexion excellente. Nous avons augmenté la qualité vidéo."
-        : "Connexion améliorée. Qualité vidéo optimisée.",
+      message:
+        next === "excellent"
+          ? "Connexion excellente. Nous avons augmenté la qualité vidéo."
+          : "Connexion améliorée. Qualité vidéo optimisée.",
     };
   }
 
@@ -120,10 +121,7 @@ export function getAutoDefaultQuality(): LiveVideoQuality {
   return AUTO_DEFAULT_QUALITY;
 }
 
-export function stepAdaptiveQuality(
-  current: LiveVideoQuality,
-  direction: "up" | "down" | "min",
-): LiveVideoQuality {
+export function stepAdaptiveQuality(current: LiveVideoQuality, direction: "up" | "down" | "min"): LiveVideoQuality {
   const index = AUTO_QUALITY_LADDER.indexOf(current);
   const safeIndex = index >= 0 ? index : AUTO_QUALITY_LADDER.indexOf(AUTO_DEFAULT_QUALITY);
 
@@ -149,16 +147,18 @@ export function suggestAdaptiveQualityChange(
   }
   if (connection === "excellent") {
     const next = stepAdaptiveQuality(current, "up");
-    const capped = AUTO_QUALITY_LADDER.indexOf(next) < AUTO_QUALITY_LADDER.indexOf(AUTO_DEFAULT_QUALITY)
-      ? next
-      : AUTO_DEFAULT_QUALITY;
+    const capped =
+      AUTO_QUALITY_LADDER.indexOf(next) < AUTO_QUALITY_LADDER.indexOf(AUTO_DEFAULT_QUALITY)
+        ? next
+        : AUTO_DEFAULT_QUALITY;
     return capped === current ? null : capped;
   }
   if (connection === "good" && current !== AUTO_DEFAULT_QUALITY) {
     const next = stepAdaptiveQuality(current, "up");
-    const capped = AUTO_QUALITY_LADDER.indexOf(next) <= AUTO_QUALITY_LADDER.indexOf(AUTO_DEFAULT_QUALITY)
-      ? next
-      : AUTO_DEFAULT_QUALITY;
+    const capped =
+      AUTO_QUALITY_LADDER.indexOf(next) <= AUTO_QUALITY_LADDER.indexOf(AUTO_DEFAULT_QUALITY)
+        ? next
+        : AUTO_DEFAULT_QUALITY;
     return capped === current ? null : capped;
   }
   return null;

@@ -4,7 +4,8 @@ import * as path from "node:path";
 
 const PORT = 3000;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const LOG_FILE_PATH = process.env.FORGOT_PASSWORD_LOG_PATH || path.join(process.cwd(), "tmp", "forgot-password-task.log");
+const LOG_FILE_PATH =
+  process.env.FORGOT_PASSWORD_LOG_PATH || path.join(process.cwd(), "tmp", "forgot-password-task.log");
 
 async function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -67,7 +68,7 @@ async function main() {
   assert.equal(loginResponse.status, 200);
   assert.ok(loginData.token, "Login did not return token");
   console.log("✅ Successfully logged in with the new password!");
-  
+
   console.log("=== Integration Verification Passed Successfully! ===");
 }
 

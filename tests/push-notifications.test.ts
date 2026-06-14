@@ -1,13 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "vitest";
-import {
-  isValidVapidPublicKey,
-  mapPushSubscribeError,
-  urlBase64ToUint8Array,
-} from "../src/utils/push-notifications";
+import { isValidVapidPublicKey, mapPushSubscribeError, urlBase64ToUint8Array } from "../src/utils/push-notifications";
 
-const samplePublicKey =
-  "BJHdnUNanUxaecJE5pYu9_vWIzZ2f0FLrYFxOmnurkqgP4-EOQpfQ-kyhhnkUaUCw7yQeeDcg5OXDzdyVVqQt9w";
+const samplePublicKey = "BJHdnUNanUxaecJE5pYu9_vWIzZ2f0FLrYFxOmnurkqgP4-EOQpfQ-kyhhnkUaUCw7yQeeDcg5OXDzdyVVqQt9w";
 
 test("isValidVapidPublicKey accepts configured production-style key", () => {
   assert.equal(isValidVapidPublicKey(samplePublicKey), true);

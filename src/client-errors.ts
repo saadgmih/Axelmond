@@ -6,11 +6,7 @@ const UNSAFE_CLIENT_ERROR_PATTERNS = [
   /\b(prisma|paypal|openai|livekit|postgres|sql|stack trace|LIVEKIT_)\b/i,
 ];
 
-export function sanitizeClientErrorMessage(
-  message: unknown,
-  fallback: string,
-  status?: number,
-): string {
+export function sanitizeClientErrorMessage(message: unknown, fallback: string, status?: number): string {
   if (status !== undefined && status >= 500) return fallback;
   if (typeof message !== "string") return fallback;
   const trimmed = message.trim();
@@ -23,10 +19,7 @@ export function getClientErrorMessage(err: unknown, fallback: string): string {
   if (!err || typeof err !== "object") return fallback;
   const record = err as Record<string, unknown>;
   const status = typeof record.status === "number" ? record.status : undefined;
-  const message = typeof record.message === "string"
-    ? record.message
-    : typeof record.error === "string"
-      ? record.error
-      : fallback;
+  const message =
+    typeof record.message === "string" ? record.message : typeof record.error === "string" ? record.error : fallback;
   return sanitizeClientErrorMessage(message, fallback, status);
 }

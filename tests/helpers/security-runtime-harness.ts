@@ -33,6 +33,15 @@ export function isSecurityRuntimeDatabaseAvailable() {
   return Boolean(process.env.DATABASE_URL?.trim());
 }
 
+export const isSecurityRuntimeDatabaseConfigured = isSecurityRuntimeDatabaseAvailable;
+
+/** Return true when runtime integration tests should no-op (missing DATABASE_URL). */
+export function skipSecurityRuntimeTests(reason = "Security runtime tests skipped: DATABASE_URL missing"): boolean {
+  if (isSecurityRuntimeDatabaseAvailable()) return false;
+  console.log(reason);
+  return true;
+}
+
 export async function allocateSecurityRuntimePort(): Promise<number> {
   return new Promise((resolve, reject) => {
     const probe = createServer();

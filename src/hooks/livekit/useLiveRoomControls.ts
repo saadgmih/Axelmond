@@ -41,7 +41,9 @@ export interface UseLiveRoomControlsOptions {
   setIsLiveRecording: Dispatch<SetStateAction<boolean>>;
   setLiveStatusMsg: Dispatch<SetStateAction<string>>;
   setLiveChatDraft: Dispatch<SetStateAction<string>>;
-  setLiveSignals: Dispatch<SetStateAction<Record<string, { handRaised?: boolean; reaction?: string; updatedAt: number }>>>;
+  setLiveSignals: Dispatch<
+    SetStateAction<Record<string, { handRaised?: boolean; reaction?: string; updatedAt: number }>>
+  >;
   setLivePoll: Dispatch<SetStateAction<LivePollState>>;
   setMyPollVote: Dispatch<SetStateAction<string | null>>;
   setWhiteboardStrokes: Dispatch<SetStateAction<LiveWhiteboardStroke[]>>;
@@ -114,7 +116,9 @@ export function useLiveRoomControls({
       if (nextState) {
         const permissionState = await getMicrophonePermissionState();
         if (permissionState === "denied") {
-          setLiveStatusMsg("Microphone bloqué par le navigateur. Autorisez le micro via l'icône cadenas puis réessayez.");
+          setLiveStatusMsg(
+            "Microphone bloqué par le navigateur. Autorisez le micro via l'icône cadenas puis réessayez.",
+          );
           return;
         }
       }
@@ -185,7 +189,9 @@ export function useLiveRoomControls({
         topic: "axelmond-live-chat",
       });
       appendLiveChatMessage(message);
-      api.saveLiveMessage(activeLiveCourse.id, message).catch((err) => console.error("[livekit] Chat persistence failed", err));
+      api
+        .saveLiveMessage(activeLiveCourse.id, message)
+        .catch((err) => console.error("[livekit] Chat persistence failed", err));
       setLiveChatDraft("");
     } catch (err) {
       console.error("[livekit] Chat publish failed", err);
@@ -228,9 +234,9 @@ export function useLiveRoomControls({
           updatedAt: Date.now(),
         },
       }));
-      api.logLiveEvent({ courseId: activeLiveCourse.id, action, details }).catch((err) =>
-        console.warn("[livekit] Event persistence failed", err),
-      );
+      api
+        .logLiveEvent({ courseId: activeLiveCourse.id, action, details })
+        .catch((err) => console.warn("[livekit] Event persistence failed", err));
       refreshLiveAttendanceReport(activeLiveCourse.id);
     } catch (err) {
       console.error("[livekit] Live action publish failed", err);
@@ -310,11 +316,13 @@ export function useLiveRoomControls({
       question: nextPoll.question,
       options: nextPoll.options,
     });
-    api.logLiveEvent({
-      courseId: activeLiveCourse.id,
-      action: "POLL_START",
-      details: { question: nextPoll.question, options: nextPoll.options },
-    }).catch((err) => console.warn("[livekit] Poll event persistence failed", err));
+    api
+      .logLiveEvent({
+        courseId: activeLiveCourse.id,
+        action: "POLL_START",
+        details: { question: nextPoll.question, options: nextPoll.options },
+      })
+      .catch((err) => console.warn("[livekit] Poll event persistence failed", err));
   };
 
   const voteLivePoll = async (option: string) => {
@@ -325,11 +333,13 @@ export function useLiveRoomControls({
     setMyPollVote(option);
     await publishLiveSync(liveRoom, { type: "POLL_VOTE", voterId, option });
     if (activeLiveCourse) {
-      api.logLiveEvent({
-        courseId: activeLiveCourse.id,
-        action: "POLL_VOTE",
-        details: { option, question: livePollRef.current.question },
-      }).catch((err) => console.warn("[livekit] Poll vote persistence failed", err));
+      api
+        .logLiveEvent({
+          courseId: activeLiveCourse.id,
+          action: "POLL_VOTE",
+          details: { option, question: livePollRef.current.question },
+        })
+        .catch((err) => console.warn("[livekit] Poll vote persistence failed", err));
     }
   };
 
@@ -365,11 +375,13 @@ export function useLiveRoomControls({
     if (!resource) return;
     setSharedResource(resource);
     await publishLiveSync(liveRoom, { type: "RESOURCE_SHARE", resource });
-    api.logLiveEvent({
-      courseId: activeLiveCourse.id,
-      action: "RESOURCE_SHARE",
-      details: { title: resource.title, url: resource.url, kind: resource.kind },
-    }).catch((err) => console.warn("[livekit] Resource share persistence failed", err));
+    api
+      .logLiveEvent({
+        courseId: activeLiveCourse.id,
+        action: "RESOURCE_SHARE",
+        details: { title: resource.title, url: resource.url, kind: resource.kind },
+      })
+      .catch((err) => console.warn("[livekit] Resource share persistence failed", err));
   };
 
   const dismissLiveResource = async () => {

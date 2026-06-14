@@ -116,9 +116,7 @@ export default function KeyboardShortcutsHelp({ open, onClose }: KeyboardShortcu
         <div className="space-y-6 p-6">
           {GROUPS.map((group) => (
             <section key={group.title}>
-              <h3 className="mb-3 text-[10px] font-black uppercase tracking-widest text-indigo-300">
-                {group.title}
-              </h3>
+              <h3 className="mb-3 text-[10px] font-black uppercase tracking-widest text-indigo-300">{group.title}</h3>
               <ul className="space-y-2">
                 {group.items.map((item) => (
                   <li

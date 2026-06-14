@@ -16,6 +16,6 @@ export function patchExpressAsyncRoutes(app: express.Application) {
         };
       });
       return original(path, ...wrappedHandlers);
-    }) as typeof app[typeof method];
+    }) as (typeof app)[typeof method];
   }
 }

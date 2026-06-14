@@ -91,7 +91,7 @@ export function logPerformance(): PerformanceSnapshot {
   const cpu = process.cpuUsage(lastCpuUsage);
   lastCpuUsage = process.cpuUsage();
 
-  const toMb = (bytes: number) => Math.round(bytes / 1024 / 1024 * 10) / 10;
+  const toMb = (bytes: number) => Math.round((bytes / 1024 / 1024) * 10) / 10;
   const loadAvg = os.loadavg(); // [1min, 5min, 15min]
   const freeMem = os.freemem();
   const totalMem = os.totalmem();

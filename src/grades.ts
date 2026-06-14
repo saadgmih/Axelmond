@@ -25,7 +25,10 @@ function roundToTwoDecimals(score: number) {
   return Math.round(score * 100) / 100;
 }
 
-export function buildCourseGradeRows(enrollments: GradeEnrollmentInput[], attempts: GradeAttemptInput[]): CourseGradeRow[] {
+export function buildCourseGradeRows(
+  enrollments: GradeEnrollmentInput[],
+  attempts: GradeAttemptInput[],
+): CourseGradeRow[] {
   const latestAttemptByStudentQuiz = new Map<string, GradeAttemptInput>();
 
   for (const attempt of attempts) {
@@ -46,7 +49,9 @@ export function buildCourseGradeRows(enrollments: GradeEnrollmentInput[], attemp
   return enrollments.map((enrollment) => {
     const studentAttempts = attemptsByStudent.get(enrollment.user.id) || [];
     const average = studentAttempts.length
-      ? roundToTwoDecimals(studentAttempts.reduce((sum, attempt) => sum + attempt.scoreOutOf20, 0) / studentAttempts.length)
+      ? roundToTwoDecimals(
+          studentAttempts.reduce((sum, attempt) => sum + attempt.scoreOutOf20, 0) / studentAttempts.length,
+        )
       : null;
 
     return {

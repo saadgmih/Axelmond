@@ -1,11 +1,4 @@
-const BLOCKED_PREFIXES = [
-  "/src/",
-  "/node_modules/",
-  "/prisma/",
-  "/tests/",
-  "/scripts/",
-  "/docs/",
-];
+const BLOCKED_PREFIXES = ["/src/", "/node_modules/", "/prisma/", "/tests/", "/scripts/", "/docs/"];
 
 const BLOCKED_EXACT = new Set([
   "/server.ts",
@@ -16,20 +9,12 @@ const BLOCKED_EXACT = new Set([
   "/.env",
 ]);
 
-const BLOCKED_EXTENSIONS = new Set([
-  ".map",
-  ".ts",
-  ".tsx",
-  ".jsx",
-  ".md",
-  ".sql",
-  ".env",
-  ".cjs",
-  ".mjs",
-]);
+const BLOCKED_EXTENSIONS = new Set([".map", ".ts", ".tsx", ".jsx", ".md", ".sql", ".env", ".cjs", ".mjs"]);
 
 export function isBlockedProductionSourcePath(requestPath: string): boolean {
-  const path = String(requestPath || "").split("?")[0].toLowerCase();
+  const path = String(requestPath || "")
+    .split("?")[0]
+    .toLowerCase();
   if (!path || path === "/") return false;
 
   if (BLOCKED_EXACT.has(path)) return true;
