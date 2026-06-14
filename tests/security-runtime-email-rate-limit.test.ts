@@ -8,9 +8,9 @@ import {
   waitForSecurityRuntimeHealth,
 } from "./helpers/security-runtime-harness.ts";
 import { skipSecurityRuntimeTests } from "./helpers/security-runtime-harness.ts";
-import { rulesTest } from "./helpers/rulesTest.ts";
+import { runtimeTest } from "./helpers/runtimeTest.ts";
 
-rulesTest("security-runtime-email-rate-limit", async () => {
+await runtimeTest("security-runtime-email-rate-limit", async () => {
   const PATHS = {
     verifyEmail: "/api/auth/verify-email",
     resendVerification: "/api/auth/resend-verification-code",

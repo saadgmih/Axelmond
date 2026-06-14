@@ -10,9 +10,9 @@ import { skipSecurityRuntimeTests } from "./helpers/security-runtime-harness.ts"
 import { cleanupChatTutorRuntimeFixtures, seedChatTutorRuntimeFixtures } from "./helpers/security-runtime-fixtures.ts";
 import { SECURITY_RUNTIME_TEST_PASSWORD } from "./helpers/security-runtime-fixtures.ts";
 import { MOBILE_API_SECRET_HEADER, MOBILE_CLIENT_HEADER, MOBILE_CLIENT_VALUE } from "../src/auth-mobile.ts";
-import { rulesTest } from "./helpers/rulesTest.ts";
+import { runtimeTest } from "./helpers/runtimeTest.ts";
 
-rulesTest("mobile-api-runtime", async () => {
+await runtimeTest("mobile-api-runtime", async () => {
   const RUNTIME_PORT = DEFAULT_SECURITY_RUNTIME_PORT + 7;
 
   function mobileHeaders(extra: Record<string, string> = {}) {

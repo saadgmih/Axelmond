@@ -16,9 +16,9 @@ import {
   SECURITY_RUNTIME_TEST_PASSWORD,
   type ChatTutorRuntimeFixture,
 } from "./helpers/security-runtime-fixtures.ts";
-import { rulesTest } from "./helpers/rulesTest.ts";
+import { runtimeTest } from "./helpers/runtimeTest.ts";
 
-rulesTest("security-runtime-chat-tutor", async () => {
+await runtimeTest("security-runtime-chat-tutor", async () => {
   const CHAT_TUTOR_PATH = "/api/chat-tutor";
   const RUNTIME_PORT = DEFAULT_SECURITY_RUNTIME_PORT;
 

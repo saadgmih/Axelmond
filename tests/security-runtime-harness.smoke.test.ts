@@ -7,9 +7,9 @@ import {
   waitForSecurityRuntimeHealth,
 } from "./helpers/security-runtime-harness.ts";
 import { skipSecurityRuntimeTests } from "./helpers/security-runtime-harness.ts";
-import { rulesTest } from "./helpers/rulesTest.ts";
+import { runtimeTest } from "./helpers/runtimeTest.ts";
 
-rulesTest("security-runtime-harness.smoke", async () => {
+await runtimeTest("security-runtime-harness.smoke", async () => {
   if (skipSecurityRuntimeTests()) return;
 
   const handle = startSecurityRuntimeServer(DEFAULT_SECURITY_RUNTIME_PORT);

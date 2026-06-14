@@ -12,6 +12,8 @@ rulesTest("ci-pipeline", () => {
   assert.match(workflow, /npm run lint:eslint/);
   assert.match(workflow, /npm run format:check/);
   assert.match(workflow, /npm test/);
+  assert.match(workflow, /prisma migrate deploy/);
+  assert.match(workflow, /npm run test:security-runtime/);
   assert.match(workflow, /npm run build/);
   assert.match(workflow, /npm audit/);
   assert.match(workflow, /ci:secrets|scan-secrets/);

@@ -34,6 +34,7 @@ jobs:
       NODE_ENV: test
       AUTH_TOKEN_SECRET: ci-auth-secret-32-characters-minimum-value
       EMAIL_VERIFICATION_SECRET: ci-email-secret-32-characters-minimum-value
+      MOBILE_API_SECRET: ci-mobile-api-secret-32-characters-min
 
     steps:
       - name: Checkout
@@ -62,6 +63,12 @@ jobs:
 
       - name: Test
         run: npm test
+
+      - name: Apply database migrations
+        run: npx prisma migrate deploy
+
+      - name: Security runtime tests
+        run: npm run test:security-runtime
 
       - name: Build
         run: npm run build

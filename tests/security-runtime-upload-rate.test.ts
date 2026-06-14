@@ -7,9 +7,9 @@ import {
   waitForSecurityRuntimeHealth,
 } from "./helpers/security-runtime-harness.ts";
 import { skipSecurityRuntimeTests } from "./helpers/security-runtime-harness.ts";
-import { rulesTest } from "./helpers/rulesTest.ts";
+import { runtimeTest } from "./helpers/runtimeTest.ts";
 
-rulesTest("security-runtime-upload-rate", async () => {
+await runtimeTest("security-runtime-upload-rate", async () => {
   const UPLOAD_PATH = "/api/uploadthing";
 
   if (skipSecurityRuntimeTests()) return;
