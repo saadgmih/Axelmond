@@ -7,12 +7,17 @@ import { normalizeRole } from "./rbac";
 
 let messagingIo: Server | null = null;
 
-export function initMessagingSocket(httpServer: HttpServer, allowedOrigins: Set<string>, normalizeOrigin: (value: string) => string) {
+export function initMessagingSocket(
+  httpServer: HttpServer,
+  allowedOrigins: Set<string>,
+  normalizeOrigin: (value: string) => string,
+  isProduction = process.env.NODE_ENV === "production",
+) {
   messagingIo = new Server(httpServer, {
     cors: {
       origin(origin, callback) {
         if (!origin) {
-          callback(null, true);
+          callback(null, !isProduction);
           return;
         }
         callback(null, allowedOrigins.has(normalizeOrigin(origin)));

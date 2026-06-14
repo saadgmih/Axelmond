@@ -20,7 +20,7 @@ import assert from "node:assert/strict";import {
 } from "./helpers/security-runtime-course-content-fixtures.ts";import { SECURITY_RUNTIME_TEST_PASSWORD } from "./helpers/security-runtime-fixtures.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
-rulesTest("security-runtime-course-content", () => {
+rulesTest("security-runtime-course-content", async () => {
 const RUNTIME_PORT = DEFAULT_SECURITY_RUNTIME_PORT;
 
 type ContentTreeNode = {

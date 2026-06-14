@@ -7,7 +7,7 @@ import assert from "node:assert/strict";import {
 } from "./helpers/security-runtime-harness.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
-rulesTest("security-runtime-upload-rate", () => {
+rulesTest("security-runtime-upload-rate", async () => {
 const UPLOAD_PATH = "/api/uploadthing";
 
 if (!isSecurityRuntimeDatabaseAvailable()) {

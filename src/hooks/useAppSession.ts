@@ -102,8 +102,21 @@ export function useAppSession({ setCourses, onAfterLogin, onSessionExpired }: Us
       })
       .finally(() => setIsAuthReady(true));
   }, [clearAuthState]);
+
+  const handleLogout = useCallback(() => {
+    void api.logout().catch((err) => console.warn("[auth] Logout failed", err));
+    clearAuthState();
+  }, [clearAuthState]);
+
+  const handleSessionExpired = useCallback(() => {
+    clearAuthState();
+    onSessionExpired?.();
+  }, [clearAuthState, onSessionExpired]);
+
+  useEffect(() => {
+    window.addEventListener("axelmond:session-expired", handleSessionExpired);
     return () => window.removeEventListener("axelmond:session-expired", handleSessionExpired);
-  }, [onSessionExpired, clearAuthState]);
+  }, [handleSessionExpired]);
 
   return {
     currentUser,

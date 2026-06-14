@@ -25,6 +25,9 @@
   },
   "exclude": [
     "axelmond-mobile",
-    "scripts/archive"
+    "scripts/archive",
+    "vitest.config.ts",
+    "tests/security-runtime-*.test.ts",
+    "tests/mobile-api-runtime.test.ts"
   ]
 }

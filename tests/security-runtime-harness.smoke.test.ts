@@ -7,7 +7,7 @@ import assert from "node:assert/strict";import {
 } from "./helpers/security-runtime-harness.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
-rulesTest("security-runtime-harness.smoke", () => {
+rulesTest("security-runtime-harness.smoke", async () => {
 if (!isSecurityRuntimeDatabaseAvailable()) {
   console.log("Security runtime harness smoke skipped: DATABASE_URL missing");
   process.exit(0);

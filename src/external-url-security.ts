@@ -71,7 +71,7 @@ export function sanitizeAcademicLinkField(
 ): string | undefined {
   const sanitized = sanitizeHttpsUrl(value, {
     maxLength,
-    allowedHosts: field === "website" ? undefined : ACADEMIC_LINK_HOSTS[field],
+    allowedHosts: ACADEMIC_LINK_HOSTS[field],
   });
   return sanitized ?? undefined;
 }

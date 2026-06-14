@@ -13,7 +13,7 @@ import assert from "node:assert/strict";import {
 } from "./helpers/security-runtime-fixtures.ts";import { prisma } from "../src/db.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
-rulesTest("security-runtime-avatar", () => {
+rulesTest("security-runtime-avatar", async () => {
 const AVATAR_PATH = "/api/me/avatar";
 const PROFILE_PATH = "/api/me/profile";
 const VALID_AVATAR_URL = "https://utfs.io/f/security-runtime-avatar.jpg";

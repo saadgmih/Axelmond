@@ -80,7 +80,7 @@ function logEnvironmentStatus(allowedOrigins: Set<string>, isProduction: boolean
     OPENAI_API_KEY: isConfiguredEnv("OPENAI_API_KEY"),
   });
   if (isProduction && allowedOrigins.size === 0) {
-    logSecurity("WARN", "Production CORS has no allowed origins — set APP_URL and/or ALLOWED_ORIGINS", {});
+    throw new Error("Production CORS allowlist is empty — set APP_URL and/or ALLOWED_ORIGINS");
   }
 }
 
@@ -273,7 +273,7 @@ export async function startAxelmondServer() {
 
   const PORT = Number(process.env.PORT) || 3000;
   const httpServer = createServer(app);
-  initMessagingSocket(httpServer, allowedOrigins, normalizeOriginUrl);
+  initMessagingSocket(httpServer, allowedOrigins, normalizeOriginUrl, isProduction);
   httpServer.listen(PORT, "0.0.0.0", () => {
     console.log(`Axelmond Research Labs server running at http://localhost:${PORT}`);
   });

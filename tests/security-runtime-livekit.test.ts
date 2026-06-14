@@ -14,7 +14,7 @@ import assert from "node:assert/strict";import {
 } from "./helpers/security-runtime-livekit-fixtures.ts";import { SECURITY_RUNTIME_TEST_PASSWORD } from "./helpers/security-runtime-fixtures.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
-rulesTest("security-runtime-livekit", () => {
+rulesTest("security-runtime-livekit", async () => {
 const TOKEN_PATH = "/api/livekit/token";
 const MODERATION_PATH = "/api/livekit/moderation";
 const RUNTIME_PORT = DEFAULT_SECURITY_RUNTIME_PORT;

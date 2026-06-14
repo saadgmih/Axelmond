@@ -1189,7 +1189,6 @@ export default function TeacherCurriculumView({
                                 type="file"
                                 required
                                 accept={uploadType === "VIDEO" ? "video/*" : uploadType === "PDF" ? "application/pdf" : RASTER_IMAGE_ACCEPT}
-                                accept={uploadType === "VIDEO" ? "video/*" : uploadType === "PDF" ? "application/pdf" : "image/*"}
                                 onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
                                 className="hidden"
                               />

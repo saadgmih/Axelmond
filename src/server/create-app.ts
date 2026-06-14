@@ -113,6 +113,9 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     || Boolean(uploadThingCallbackUrl?.includes("localhost") || uploadThingCallbackUrl?.includes("127.0.0.1"));
 
   const allowedOrigins = buildAllowedOrigins(PORT, isProduction);
+  if (isProduction && allowedOrigins.size === 0) {
+    throw new Error("Production CORS allowlist is empty — set APP_URL and/or ALLOWED_ORIGINS");
+  }
   const cspNonce = (_req: express.Request, res: express.Response) => `'nonce-${res.locals.cspNonce}'`;
 
   const PAYPAL_CSP_SCRIPT_SRC = [

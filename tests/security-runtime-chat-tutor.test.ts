@@ -15,7 +15,7 @@ import assert from "node:assert/strict";import {
 } from "./helpers/security-runtime-fixtures.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
-rulesTest("security-runtime-chat-tutor", () => {
+rulesTest("security-runtime-chat-tutor", async () => {
 const CHAT_TUTOR_PATH = "/api/chat-tutor";
 const RUNTIME_PORT = DEFAULT_SECURITY_RUNTIME_PORT;
 

@@ -15,7 +15,7 @@ import assert from "node:assert/strict";import {
 } from "./helpers/security-runtime-livekit-fixtures.ts";import { SECURITY_RUNTIME_TEST_PASSWORD } from "./helpers/security-runtime-fixtures.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
-rulesTest("security-runtime-livekit-moderation-rate", () => {
+rulesTest("security-runtime-livekit-moderation-rate", async () => {
 const MODERATION_PATH = "/api/livekit/moderation";
 const TOKEN_PATH = "/api/livekit/token";
 const MODERATION_TARGET_IDENTITY = "axelmond-user-runtime-moderation-rate-target";

@@ -14,7 +14,7 @@ import assert from "node:assert/strict";import { randomUUID } from "node:crypto"
 } from "./helpers/security-runtime-admin-fixtures.ts";import { SECURITY_RUNTIME_TEST_PASSWORD } from "./helpers/security-runtime-fixtures.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
-rulesTest("security-runtime-admin-rate-limit", () => {
+rulesTest("security-runtime-admin-rate-limit", async () => {
 const DIAGNOSTIC_PATH = "/api/test-email";
 const READ_PATH = "/api/admin/email-delivery-summary";
 const MUTATION_PATH = "/api/admin/professor-invites";

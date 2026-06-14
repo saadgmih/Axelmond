@@ -24,6 +24,6 @@ test("addDays shifts calendar dates", () => {
 });
 
 test("buildMonthGrid returns 42 cells", () => {
-  const grid = buildMonthGrid(new Date(2026, 5, 1));
+  const grid = buildMonthGrid(2026, 5);
   assert.equal(grid.length, 42);
 });

@@ -154,18 +154,6 @@ export function useAcademicProfile({
     } catch (err: any) {
       if (!request.isActive()) return;
       setAcademicProfileErrorMsg(getClientErrorMessage(err, "Changement de mot de passe impossible."));
-    e.preventDefault();
-    const request = startRequest();
-    setAcademicProfileStatusMsg("Mise à jour du mot de passe...");
-    setAcademicProfileErrorMsg("");
-    try {
-      const payload = await api.changeAcademicPassword(academicPasswordForm.currentPassword, academicPasswordForm.newPassword);
-      if (!request.isActive()) return;
-      setAcademicPasswordForm({ currentPassword: "", newPassword: "" });
-      setAcademicProfileStatusMsg(payload.message || "Mot de passe mis à jour.");
-    } catch (err: any) {
-      if (!request.isActive()) return;
-      setAcademicProfileErrorMsg(err.message || "Changement de mot de passe impossible.");
       setAcademicProfileStatusMsg("");
     }
   };
