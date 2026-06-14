@@ -21,7 +21,7 @@ export function registerGradesRoutes(app: Express, ctx: RouteContext): void {
   
     });
   
-    if (!course) { res.status(404).json({ error: "Course not found" }); return; }
+    if (!course) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.courseNotFound }); return; }
   
     if (!api.canReadCourseGrades(authUser, course)) {
   

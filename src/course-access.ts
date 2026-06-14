@@ -1,4 +1,5 @@
 import type { UserRole } from "./rbac";
+import { PUBLIC_API_ERRORS } from "./public-api-errors";
 
 export interface CourseLearningAccessUser {
   id: string;
@@ -18,9 +19,9 @@ export type CourseLearningAccessResult =
   | { ok: false; status: 403 | 404; error: string };
 
 export const COURSE_LEARNING_ACCESS_ERRORS = {
-  notFound: "Module introuvable",
-  enrollmentRequired: "Inscription requise pour consulter ce contenu",
-  accessDenied: "Accès refusé pour consulter ce module",
+  notFound: PUBLIC_API_ERRORS.courseNotFound,
+  enrollmentRequired: PUBLIC_API_ERRORS.enrollmentRequiredContent,
+  accessDenied: PUBLIC_API_ERRORS.accessDeniedCourse,
 } as const;
 
 export function canAccessCourseLearning(

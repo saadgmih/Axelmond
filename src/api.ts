@@ -1,4 +1,5 @@
 import { purgeLegacySessionUserStorage } from "./session-storage";
+import { sanitizeClientErrorMessage } from "./client-errors";
 
 const BASE_URL = ((import.meta as any).env?.VITE_API_BASE_URL || "").replace(/\/$/, "");
 const LEGACY_ACCESS_TOKEN_KEY = "axelmond_session_token";
@@ -22,7 +23,8 @@ let accessTokenMemory: string | null = null;
 let csrfTokenMemory: string | null = null;
 
 function buildApiErrorMessage(method: string, path: string, status: number, payload: any, fallback: string) {
-  return payload?.error || payload?.message || fallback;
+  const serverFallback = status >= 500 ? "Une erreur interne est survenue." : fallback;
+  return sanitizeClientErrorMessage(payload?.error || payload?.message, serverFallback, status);
 }
 
 function readCsrfFromCookie(): string | null {
@@ -171,7 +173,8 @@ async function request<T>(method: string, path: string, body?: unknown, allowCsr
     }
 
     const error = new Error(buildApiErrorMessage(method, path, res.status, err, res.statusText)) as Error & Record<string, unknown>;
-    Object.assign(error, err, { status: res.status, method, path, url, response: text });
+    const { details: _details, stack: _stack, cause: _cause, ...safePayload } = err ?? {};
+    Object.assign(error, safePayload, { status: res.status, method, path, url, response: text });
     if (res.status === 429) {
       const retryAfterHeader = res.headers.get("Retry-After");
       const resetHeader = res.headers.get("RateLimit-Reset") || res.headers.get("X-RateLimit-Reset");

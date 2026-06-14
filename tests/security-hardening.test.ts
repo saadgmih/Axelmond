@@ -43,8 +43,8 @@ assert.match(paymentsRoutesSource, /logPayPalError\("PayPal create-order route f
 assert.match(paymentsRoutesSource, /error:\s*"Erreur lors de la création de la commande PayPal"/);
 assert.match(paymentsRoutesSource, /error:\s*"Erreur lors de la capture PayPal"/);
 
+assert.doesNotMatch(liveRoutesSource, /res\.status\([^)]+\)\.json\(\{[^}]*String\(err/);
 assert.doesNotMatch(liveRoutesSource, /details:\s*String\(err\?\.message/);
-assert.doesNotMatch(liveRoutesSource, /error:\s*String\(err\?\.message/);
 assert.match(liveRoutesSource, /error:\s*"Action LiveKit impossible"/);
 assert.match(liveRoutesSource, /error:\s*"Relais LiveKit impossible"/);
 
@@ -62,6 +62,27 @@ assert.doesNotMatch(openaiServiceSource, /Clé OpenAI invalide/);
 
 const routeDepsSource = fs.readFileSync("src/server/route-deps.ts", "utf8");
 assert.match(routeDepsSource, /LIVE_ACCESS_ERRORS/);
+assert.match(routeDepsSource, /PUBLIC_API_ERRORS/);
 assert.doesNotMatch(routeDepsSource, /error:\s*"Course not found"/);
+
+const routeFiles = [
+  "src/routes/courses-routes.ts",
+  "src/routes/content-routes.ts",
+  "src/routes/quiz-routes.ts",
+  "src/routes/grades-routes.ts",
+];
+for (const routeFile of routeFiles) {
+  const source = fs.readFileSync(routeFile, "utf8");
+  assert.doesNotMatch(source, /"Course not found"/);
+  assert.match(source, /PUBLIC_API_ERRORS/);
+}
+
+const messagingRoutesSource = fs.readFileSync("src/messaging-routes.ts", "utf8");
+assert.match(messagingRoutesSource, /toPushSubscribeClientResponse\(err\)/);
+assert.doesNotMatch(messagingRoutesSource, /error:\s*err\.message/);
+
+const apiSource = fs.readFileSync("src/api.ts", "utf8");
+assert.match(apiSource, /sanitizeClientErrorMessage/);
+assert.doesNotMatch(apiSource, /Object\.assign\(error,\s*err,/);
 
 console.log("Security hardening rules passed");

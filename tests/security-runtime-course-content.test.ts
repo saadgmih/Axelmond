@@ -231,7 +231,7 @@ try {
     const contentResponse = await getCourseContent(handle.baseUrl, fixture.missingCourseId, enrolledSession);
     assert.equal(contentResponse.status, 404);
     const contentPayload = await contentResponse.json() as { error?: string };
-    assert.match(contentPayload.error || "", /Course not found/i);
+    assert.match(contentPayload.error || "", /Module introuvable/i);
 
     const moduleResponse = await getModuleContents(handle.baseUrl, fixture.missingCourseId, enrolledSession);
     assert.equal(moduleResponse.status, 404);

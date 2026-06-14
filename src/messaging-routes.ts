@@ -31,6 +31,7 @@ import {
   savePushSubscription,
   serializeNotification,
 } from "./notifications";
+import { toPushSubscribeClientResponse } from "./public-api-errors";
 
 type AuthUser = { id: string; email: string; fullName: string; role: string };
 
@@ -421,12 +422,9 @@ export function registerMessagingRoutes(
       });
       res.json({ ok: true });
     } catch (err: any) {
-      if (err instanceof PushSubscriptionValidationError) {
-        res.status(400).json({ error: err.message });
-        return;
-      }
-      if (err instanceof PushSubscriptionLimitError) {
-        res.status(429).json({ error: err.message });
+      if (err instanceof PushSubscriptionValidationError || err instanceof PushSubscriptionLimitError) {
+        const clientError = toPushSubscribeClientResponse(err);
+        res.status(err instanceof PushSubscriptionLimitError ? 429 : 400).json(clientError);
         return;
       }
       console.error("[push] push-subscribe failed", { userId: authUser.id, message: err?.message || String(err) });

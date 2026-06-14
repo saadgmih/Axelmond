@@ -45,7 +45,7 @@ export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
   
       if (authUser.role === "STUDENT" && !quiz.published) {
   
-        res.status(404).json({ error: "Quiz not found" });
+        res.status(404).json({ error: api.PUBLIC_API_ERRORS.quizNotFound });
   
         return;
   
@@ -81,7 +81,7 @@ export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
   
     const data = api.quizzes[moduleId];
   
-    if (!data) { res.status(404).json({ error: "Quiz not found" }); return; }
+    if (!data) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.quizNotFound }); return; }
   
   
   
@@ -89,7 +89,7 @@ export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
   
     if (!seedCourseId) {
   
-      res.status(404).json({ error: "Quiz not found" });
+      res.status(404).json({ error: api.PUBLIC_API_ERRORS.quizNotFound });
   
       return;
   
@@ -141,7 +141,7 @@ export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
   
     if (!answers || typeof answers !== "object" || Array.isArray(answers)) {
   
-      res.status(400).json({ error: "answers object required" });
+      res.status(400).json({ error: api.PUBLIC_API_ERRORS.answersObjectRequired });
   
       return;
   
@@ -161,11 +161,11 @@ export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
   
     const course = await api.findCourse(courseId);
   
-    if (!course) { res.status(404).json({ error: "Course not found" }); return; }
+    if (!course) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.courseNotFound }); return; }
   
     const module = course.modules.find((item) => item.id === moduleId && item.type === "quiz");
   
-    if (!module) { res.status(404).json({ error: "Module quiz not found" }); return; }
+    if (!module) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.quizModuleNotFound }); return; }
   
   
   
@@ -417,7 +417,7 @@ export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
   
     const course = await api.prisma.course.findUnique({ where: { id: courseId } });
   
-    if (!course) { res.status(404).json({ error: "Course not found" }); return; }
+    if (!course) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.courseNotFound }); return; }
   
     if (authUser.role === "STUDENT" && !authUser.enrolledCourses.includes(courseId)) {
   
@@ -501,7 +501,7 @@ export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
   
     const course = await api.prisma.course.findUnique({ where: { id: courseId } });
   
-    if (!course) { res.status(404).json({ error: "Course not found" }); return; }
+    if (!course) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.courseNotFound }); return; }
   
   
   
@@ -583,7 +583,7 @@ export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
   
     const existingQuiz = await api.prisma.quiz.findUnique({ where: { id: req.params.quizId } });
   
-    if (!existingQuiz) { res.status(404).json({ error: "Quiz not found" }); return; }
+    if (!existingQuiz) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.quizNotFound }); return; }
   
     const quiz = await api.prisma.quiz.update({
   
@@ -601,7 +601,7 @@ export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
   
     }).catch(() => null);
   
-    if (!quiz) { res.status(404).json({ error: "Quiz not found" }); return; }
+    if (!quiz) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.quizNotFound }); return; }
   
     api.logDb("INFO", "Quiz updated", { quizId: quiz.id, published: quiz.published, userId: authUser.id });
   
@@ -647,7 +647,7 @@ export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
   
     const quiz = await api.prisma.quiz.delete({ where: { id: req.params.quizId } }).catch(() => null);
   
-    if (!quiz) { res.status(404).json({ error: "Quiz not found" }); return; }
+    if (!quiz) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.quizNotFound }); return; }
   
     api.logDb("INFO", "Quiz deleted", { quizId: quiz.id, courseId: quiz.courseId, userId: authUser.id });
   
@@ -683,7 +683,7 @@ export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
   
     const quiz = await api.prisma.quiz.findUnique({ where: { id: req.params.quizId } });
   
-    if (!quiz) { res.status(404).json({ error: "Quiz not found" }); return; }
+    if (!quiz) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.quizNotFound }); return; }
   
   
   
@@ -733,7 +733,7 @@ export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
   
     const q = await api.prisma.quizQuestion.findUnique({ where: { id: req.params.id } });
   
-    if (!q) { res.status(404).json({ error: "Question not found" }); return; }
+    if (!q) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.questionNotFound }); return; }
   
   
   

@@ -26,7 +26,7 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
   
     const course = await api.prisma.course.findUnique({ where: { id: courseId } });
   
-    if (!course) { res.status(404).json({ error: "Course not found" }); return; }
+    if (!course) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.courseNotFound }); return; }
   
   
   
@@ -118,7 +118,7 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
   
     const course = await api.prisma.course.findUnique({ where: { id: courseId } });
   
-    if (!course) { res.status(404).json({ error: "Course not found" }); return; }
+    if (!course) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.courseNotFound }); return; }
   
     if (authUser.role === "STUDENT" && !authUser.enrolledCourses.includes(courseId)) {
   
@@ -234,7 +234,7 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
   
   
   
-    if (!result) { res.status(404).json({ error: "Chapter not found" }); return; }
+    if (!result) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.chapterNotFound }); return; }
   
     api.logDb("INFO", "Chapter updated", { chapterId: result.id, data: Object.keys(data) });
   
@@ -284,7 +284,7 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
   
     });
   
-    if (!result) { res.status(404).json({ error: "Chapter not found" }); return; }
+    if (!result) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.chapterNotFound }); return; }
   
     api.logDb("INFO", "Chapter publication updated", { chapterId: result.id, published });
   
@@ -336,7 +336,7 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
   
     });
   
-    if (!chapter) { res.status(404).json({ error: "Chapter not found" }); return; }
+    if (!chapter) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.chapterNotFound }); return; }
   
   
   
@@ -396,7 +396,7 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
   
     const course = await api.prisma.course.findUnique({ where: { id: courseId } });
   
-    if (!course) { res.status(404).json({ error: "Course not found" }); return; }
+    if (!course) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.courseNotFound }); return; }
   
   
   
@@ -406,7 +406,7 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
   
       parent = await api.prisma.contentSection.findFirst({ where: { id: String(parentId), courseId } });
   
-      if (!parent) { res.status(404).json({ error: "Parent section not found" }); return; }
+      if (!parent) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.parentSectionNotFound }); return; }
   
     }
   
@@ -418,7 +418,7 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
   
       const chapter = await api.prisma.chapter.findFirst({ where: { id: resolvedChapterId, courseId } });
   
-      if (!chapter) { res.status(404).json({ error: "Chapter not found" }); return; }
+      if (!chapter) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.chapterNotFound }); return; }
   
     }
   
@@ -498,7 +498,7 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
   
     }).catch(() => null);
   
-    if (!section) { res.status(404).json({ error: "Section not found" }); return; }
+    if (!section) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.sectionNotFound }); return; }
   
   
   
@@ -544,7 +544,7 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
   
     }).catch(() => null);
   
-    if (!section) { res.status(404).json({ error: "Section not found" }); return; }
+    if (!section) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.sectionNotFound }); return; }
   
   
   
@@ -572,7 +572,7 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
   
     const section = await api.prisma.contentSection.findUnique({ where: { id: req.params.id } });
   
-    if (!section) { res.status(404).json({ error: "Section not found" }); return; }
+    if (!section) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.sectionNotFound }); return; }
   
   
   
@@ -622,13 +622,13 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
   
     const section = await api.prisma.contentSection.findUnique({ where: { id: req.params.sectionId } });
   
-    if (!section) { res.status(404).json({ error: "Section not found" }); return; }
+    if (!section) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.sectionNotFound }); return; }
   
   
   
     const { title, body, published } = req.body;
   
-    if (!title || !body) { res.status(400).json({ error: "title, body required" }); return; }
+    if (!title || !body) { res.status(400).json({ error: api.PUBLIC_API_ERRORS.titleBodyRequired }); return; }
   
   
   
@@ -724,7 +724,7 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
   
     }).catch(() => null);
   
-    if (!content) { res.status(404).json({ error: "Content not found" }); return; }
+    if (!content) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.contentNotFound }); return; }
   
   
   
@@ -772,7 +772,7 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
   
     }).catch(() => null);
   
-    if (!content) { res.status(404).json({ error: "Content not found" }); return; }
+    if (!content) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.contentNotFound }); return; }
   
   
   
@@ -800,7 +800,7 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
   
     const content = await api.prisma.lessonContent.findUnique({ where: { id: req.params.id } });
   
-    if (!content) { res.status(404).json({ error: "Content not found" }); return; }
+    if (!content) { res.status(404).json({ error: api.PUBLIC_API_ERRORS.contentNotFound }); return; }
   
   
   

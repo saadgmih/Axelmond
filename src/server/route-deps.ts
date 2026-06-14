@@ -31,6 +31,7 @@ import { sanitizeAcademicProfileInput, sanitizeAvatarUrl, isAvatarUrlFieldInvali
 import { isAllowedAvatarUrl } from "../avatar-security";
 import { CHAT_TUTOR_MAX_HISTORY_MESSAGES, CHAT_TUTOR_MAX_PROMPT_CHARS } from "../security-hardening";
 import { APP_USER_BILLING_INCLUDE, mergeUserInvoices, persistCoursePaymentEnrollment } from "../course-payments";
+import { LIVE_ACCESS_ERRORS } from "../public-api-errors";
 
 
 export function logLiveKit(level: "INFO" | "WARN" | "ERROR", message: string, data?: unknown) {
@@ -713,12 +714,6 @@ export async function recordLiveAttendanceLeave(session: { id: string; roomName:
   return updated;
 }
 
-export const LIVE_ACCESS_ERRORS = {
-  notFound: "Module introuvable",
-  enrollmentRequired: "Inscription requise pour rejoindre ce live",
-  accessDenied: "Accès refusé pour ce live",
-} as const;
-
 export async function assertLiveAccess(authUser: AppUser, courseId: number) {
   const course = await prisma.course.findUnique({
     where: { id: courseId },
@@ -1117,6 +1112,7 @@ export { notifyEnrolledStudentsForCourse } from "../notifications";
 export { buildCourseGradeRows } from "../grades";
 export { assertCourseLearningAccess } from "../course-access";
 export { APP_USER_BILLING_INCLUDE, mergeUserInvoices, persistCoursePaymentEnrollment };
+export { PUBLIC_API_ERRORS, LIVE_ACCESS_ERRORS, toPushSubscribeClientResponse } from "../public-api-errors";
 export { sanitizeAcademicProfileInput, sanitizeAvatarUrl, isAvatarUrlFieldInvalid } from "../academic-profile";
 export { isAllowedAvatarUrl } from "../avatar-security";
 export { setAuthCookies, clearAuthCookies } from "../auth-cookies";
