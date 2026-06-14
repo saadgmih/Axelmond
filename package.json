@@ -7,6 +7,7 @@
     "dev": "tsx server.ts",
     "build": "prisma generate && vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "postinstall": "prisma generate",
+    "prestart": "prisma migrate deploy",
     "start": "node dist/server.cjs",
     "start:cluster": "pm2 start ecosystem.config.cjs",
     "stop:cluster": "pm2 stop axelmond-research-labs",
