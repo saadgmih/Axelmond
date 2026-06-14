@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Award, BookOpen, CheckCircle2, CreditCard, GraduationCap, Mail, ShieldCheck, Sparkles } from "lucide-react";
+import { Award, BookOpen, CheckCircle2, CreditCard, GraduationCap, ShieldCheck, Sparkles } from "lucide-react";
 import ProfileAvatarUpload from "../../components/ProfileAvatarUpload";
 import SecuritySettingsPanel from "../../components/SecuritySettingsPanel";
 import type { AppUser } from "../../components/AuthScreen";
@@ -102,12 +102,6 @@ export default function StudentProfileView({
                     <ShieldCheck className="h-3 w-3" />
                     Compte actif
                   </span>
-                  {currentUser?.emailVerified && (
-                    <span className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-indigo-100">
-                      <Mail className="h-3 w-3" />
-                      Email vérifié
-                    </span>
-                  )}
                 </div>
               </div>
             </div>
