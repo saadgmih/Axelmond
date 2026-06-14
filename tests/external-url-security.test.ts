@@ -1,12 +1,14 @@
 import assert from "node:assert/strict";
 import { sanitizeAcademicLinks } from "../src/academic-profile.ts";
-import { sanitizeHttpsUrl } from "../src/external-url-security.ts";
+import { sanitizeCourseAttachmentUrl, sanitizeHttpsUrl } from "../src/external-url-security.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("external-url-security", () => {
   assert.equal(sanitizeHttpsUrl("javascript:alert(1)"), null);
   assert.equal(sanitizeHttpsUrl("https://linkedin.com/in/demo"), "https://linkedin.com/in/demo");
   assert.equal(sanitizeHttpsUrl("http://example.com"), null);
+  assert.equal(sanitizeCourseAttachmentUrl("https://utfs.io/f/demo.pdf"), "https://utfs.io/f/demo.pdf");
+  assert.equal(sanitizeCourseAttachmentUrl("https://evil.example.com/file.pdf"), null);
 
   const links = sanitizeAcademicLinks({
     linkedIn: "https://linkedin.com/in/demo",

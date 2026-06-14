@@ -4,7 +4,7 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { AccessToken, RoomServiceClient } from "livekit-server-sdk";
 import { Course, DEFAULT_MODULE_CLASSIFICATION, DEFAULT_STUDENT_LABEL } from "../types";
-import { UserRole, canAccessAcademicProfile, canAccessApiRoute, normalizeRole } from "../rbac";
+import { UserRole, canAccessAcademicProfile, canAccessApiRoute, isRbacExemptRoute, normalizeRole } from "../rbac";
 import { verifyAuthToken } from "../auth-token";
 import { DEFAULT_LIVE_SUBJECT, buildLiveKitRoomName, getLiveKitConfig, getLiveKitParticipantIdentity } from "../livekit";
 import { generateProfessorInviteCode, normalizeProfessorInviteCode, parseProfessorInviteCodes } from "../invitations";
@@ -137,6 +137,18 @@ export const requireRbac: express.RequestHandler = (req, res, next) => {
 
   logSecurity("INFO", "Access granted", { userId: user.id, role: user.role, method: req.method, path: req.path });
   next();
+};
+
+export const requireGlobalApiRbac: express.RequestHandler = (req, res, next) => {
+  if (isRbacExemptRoute(req.method, req.path)) {
+    next();
+    return;
+  }
+
+  requireAuth(req, res, () => {
+    if (res.headersSent) return;
+    requireRbac(req, res, next);
+  });
 };
 
 export const requireAdmin: express.RequestHandler = (req, res, next) => {

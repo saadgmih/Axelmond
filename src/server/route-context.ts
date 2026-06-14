@@ -5,6 +5,7 @@ import type * as RouteDeps from "./route-deps";
 export type RouteMiddleware = {
   requireAuth: RequestHandler;
   requireRbac: RequestHandler;
+  requireGlobalApiRbac: RequestHandler;
   requireAdmin: RequestHandler;
   validateBody: (schema: z.ZodTypeAny) => RequestHandler;
 };
@@ -15,9 +16,9 @@ export type RouteContext = {
 };
 
 export function createRouteContext(deps: typeof RouteDeps): RouteContext {
-  const { requireAuth, requireRbac, requireAdmin, validateBody } = deps;
+  const { requireAuth, requireRbac, requireGlobalApiRbac, requireAdmin, validateBody } = deps;
   return {
-    middleware: { requireAuth, requireRbac, requireAdmin, validateBody },
+    middleware: { requireAuth, requireRbac, requireGlobalApiRbac, requireAdmin, validateBody },
     deps,
   };
 }

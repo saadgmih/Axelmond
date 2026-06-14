@@ -130,6 +130,12 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     "https://www.sandbox.paypal.com",
     "https://checkout.paypal.com",
     "https://*.paypal.com",
+    "https://uploadthing.com",
+    "https://*.uploadthing.com",
+    "https://ufs.sh",
+    "https://*.ufs.sh",
+    "https://utfs.io",
+    "https://*.utfs.io",
   ];
 
   const PAYPAL_CSP_IMG_SRC = [
@@ -472,6 +478,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
   );
 
   app.use("/api", requestTimingMiddleware);
+  app.use("/api", routeCtx.middleware.requireGlobalApiRbac);
   registerApiRoutes(app, routeCtx);
   registerMobileApiRoutes(app, { requireAuth: routeCtx.middleware.requireAuth });
   registerMessagingRoutes(app, routeCtx.middleware);

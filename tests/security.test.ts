@@ -59,6 +59,7 @@ assert.match(serverSource, /password:\s*z\.string\(\)\.min\(8/);
 
 // 6c. CORS piloté par APP_URL / ALLOWED_ORIGINS ; localhost uniquement hors production
 assert.match(serverSource, /function buildAllowedOrigins/);
+assert.match(serverSource, /requireGlobalApiRbac/);
 assert.match(serverSource, /process\.env\.APP_URL/);
 assert.match(serverSource, /process\.env\.ALLOWED_ORIGINS/);
 assert.match(serverSource, /if\s*\(!isProduction\)/);

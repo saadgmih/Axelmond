@@ -7,7 +7,7 @@ const originalLines = backup.split(/\r?\n/);
 const importBlockEnd = originalLines.findIndex((line) => line.startsWith("export interface TeacherCurriculumViewProps"));
 const rawImports = originalLines.slice(0, importBlockEnd).join("\n");
 const importLines = rawImports
-  .replace(/import \{[\s\S]*?\} from "\.\/curriculum-theme";\n?/m, "")
+  .replace(/import \{\s*CURRICULUM_STEPS[\s\S]*?\} from "\.\/curriculum-theme";\n?/m, "")
   .split("\n")
   .map((line) =>
     line
@@ -57,7 +57,6 @@ fs.writeFileSync(
   "src/views/teacher/curriculum-steps/CurriculumStepper.tsx",
   `${importLines.join("\n")}
 import { CURRICULUM_STEPS, curriculumUi, getStepTheme } from "../curriculum-theme";
-import { formatCredits } from "../../../utils/morocco-locale";
 import type { TeacherCurriculumViewProps } from "../curriculum-types";
 
 type Props = Pick<TeacherCurriculumViewProps, ${stepperProps.map((p) => `"${p}"`).join(" | ")}>;
@@ -96,7 +95,8 @@ import type { TeacherCurriculumViewProps } from "../curriculum-types";
 
 export default function ${name}(props: TeacherCurriculumViewProps) {
 ${destructureLine}
-  const inputFocus = \`\${curriculumUi.input} \${getStepTheme(activeCurriculumStep).focus}\`;
+  const stepTheme = getStepTheme(activeCurriculumStep);
+  const inputFocus = \`\${curriculumUi.input} \${stepTheme.focus}\`;
   return (
 ${inner}
   );

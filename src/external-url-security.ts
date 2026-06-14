@@ -64,6 +64,10 @@ export const ACADEMIC_LINK_HOSTS = {
   googleScholar: ["scholar.google.com", "scholar.google.fr", "scholar.google.co.uk"],
 } as const;
 
+export function sanitizeCourseAttachmentUrl(value: unknown): string | null {
+  return sanitizeHttpsUrl(value, { maxLength: 2048, allowedHosts: UPLOAD_HOSTS });
+}
+
 export function sanitizeAcademicLinkField(
   value: unknown,
   field: keyof typeof ACADEMIC_LINK_HOSTS,

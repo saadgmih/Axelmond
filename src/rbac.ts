@@ -100,6 +100,49 @@ export function getRedirectPathForRole(role: unknown, pathname: string): string 
   return null;
 }
 
+const RBAC_EXEMPT_AUTH_PATHS = new Set([
+  "/api/auth/register",
+  "/api/auth/login",
+  "/api/auth/refresh",
+  "/api/auth/logout",
+  "/api/auth/verify-email",
+  "/api/auth/resend-verification-code",
+  "/api/auth/forgot-password",
+  "/api/auth/reset-password",
+]);
+
+const RBAC_EXEMPT_PREFIXES = [
+  "/api/uploadthing",
+  "/api/paypal/webhook",
+  "/api/admin/",
+];
+
+export function isRbacExemptRoute(method: string, path: string): boolean {
+  const verb = method.toUpperCase();
+  const cleanPath = path.split("?")[0];
+
+  if (verb === "OPTIONS") return true;
+  if (RBAC_EXEMPT_AUTH_PATHS.has(cleanPath)) return true;
+  if (cleanPath === "/api/test-email") return true;
+
+  if (RBAC_EXEMPT_PREFIXES.some((prefix) => cleanPath === prefix || cleanPath.startsWith(prefix))) {
+    return true;
+  }
+
+  if (verb === "GET" && (
+    cleanPath === "/api/health"
+    || cleanPath === "/api/domains"
+    || cleanPath === "/api/courses"
+    || cleanPath === "/api/mobile/routes"
+    || cleanPath === "/api/paypal/config"
+    || /^\/api\/courses\/\d+$/.test(cleanPath)
+  )) {
+    return true;
+  }
+
+  return false;
+}
+
 export function canAccessApiRoute(role: unknown, method: string, path: string): boolean {
   const normalized = normalizeRole(role);
   if (!normalized) return false;
@@ -248,6 +291,44 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
   }
   if (verb === "DELETE" && /^\/api\/quiz-questions\/[^/]+$/.test(cleanPath)) {
     return teacherSpaceRoles.includes(normalized);
+  }
+
+  if (verb === "GET" && cleanPath === "/api/auth/me") {
+    return true;
+  }
+
+  if (verb === "GET" && (
+    /^\/api\/courses\/\d+\/content$/.test(cleanPath)
+    || /^\/api\/courses\/\d+\/module-contents$/.test(cleanPath)
+    || /^\/api\/courses\/\d+\/chapters$/.test(cleanPath)
+    || /^\/api\/courses\/\d+\/grades$/.test(cleanPath)
+    || /^\/api\/quizzes\/[^/]+$/.test(cleanPath)
+  )) {
+    return true;
+  }
+
+  if (verb === "GET" && /^\/api\/livekit\/messages\/\d+$/.test(cleanPath)) {
+    return true;
+  }
+
+  if (verb === "POST" && (
+    cleanPath === "/api/livekit/token"
+    || cleanPath === "/api/livekit/messages"
+    || cleanPath === "/api/paypal/create-order"
+    || cleanPath === "/api/paypal/capture-order"
+    || cleanPath === "/api/payments/enroll-mock"
+    || cleanPath === "/api/contact"
+    || cleanPath === "/api/support/tickets"
+  )) {
+    return true;
+  }
+
+  if (verb === "POST" && cleanPath === "/api/chat-tutor") {
+    return normalized === "STUDENT";
+  }
+
+  if (verb === "GET" && cleanPath === "/api/mobile/student-profile") {
+    return normalized === "STUDENT";
   }
 
   return false;

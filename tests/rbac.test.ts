@@ -7,6 +7,7 @@ import {
   getAllowedUiRole,
   getRedirectPathForRole,
   normalizeRole,
+  isRbacExemptRoute,
   getRoleLabel,
   getTeacherLoginTabLabel,
   getTeacherLoginSectorLabel,
@@ -99,6 +100,18 @@ assert.equal(canAccessApiRoute("ADMIN", "POST", "/api/livekit/moderation"), true
 assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/livekit/events"), true);
 assert.equal(canAccessApiRoute("STUDENT", "GET", "/api/livekit/attendance/1"), true);
 assert.equal(canAccessApiRoute("STUDENT", "DELETE", "/api/admin/secret-backdoor"), false);
+
+assert.equal(isRbacExemptRoute("GET", "/api/courses"), true);
+assert.equal(isRbacExemptRoute("POST", "/api/auth/login"), true);
+assert.equal(isRbacExemptRoute("GET", "/api/auth/me"), false);
+assert.equal(isRbacExemptRoute("GET", "/api/admin/professor-invites"), true);
+assert.equal(canAccessApiRoute("STUDENT", "GET", "/api/auth/me"), true);
+assert.equal(canAccessApiRoute("PROFESSOR", "GET", "/api/courses/1/content"), true);
+assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/livekit/token"), true);
+assert.equal(canAccessApiRoute("PROFESSOR", "POST", "/api/chat-tutor"), false);
+assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/chat-tutor"), true);
+assert.equal(canAccessApiRoute("STUDENT", "GET", "/api/mobile/student-profile"), true);
+assert.equal(canAccessApiRoute("PROFESSOR", "GET", "/api/mobile/student-profile"), false);
 
 assert.equal(getRoleLabel("STUDENT"), "Étudiant");
 assert.equal(getRoleLabel("PROFESSOR"), "Professeur");

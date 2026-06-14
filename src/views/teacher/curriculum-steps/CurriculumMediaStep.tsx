@@ -1,12 +1,38 @@
-import { Download, FileText } from "lucide-react";
-import PremiumVideoPlayer from "../../../components/PremiumVideoPlayer";
+import {
+  BookOpen,
+  Layers,
+  FolderTree,
+  Video,
+  HelpCircle,
+  Plus,
+  Trash2,
+  Edit3,
+  Save,
+  Check,
+  FilePlus,
+  Eye,
+  EyeOff,
+  FileText,
+  Download,
+  X,
+  Sparkles,
+  DollarSign,
+  Clock,
+  Award,
+  ChevronRight
+} from "lucide-react";
+import type { Dispatch, SetStateAction } from "react";
+import type { Course, ContentSection, FacultyDomain, LessonContent } from "../../../types";
+import { formatCredits, formatMad } from "../../../utils/morocco-locale";
 import { RASTER_IMAGE_ACCEPT } from "../../../avatar-security";
+import PremiumVideoPlayer from "../../../components/PremiumVideoPlayer";
+
 import { curriculumUi, getStepTheme, publishedBadge, publishedLabel } from "../curriculum-theme";
 import type { TeacherCurriculumViewProps } from "../curriculum-types";
 
 export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
   const { domains, activeCurriculumStep, setActiveCurriculumStep, selectedChapterId, setSelectedChapterId, selectedPartieId, setSelectedPartieId, newSectionMode, setNewSectionMode, uploadChapterId, setUploadChapterId, uploadPartId, setUploadPartId, uploadSubpartId, setUploadSubpartId, quizChapterId, setQuizChapterId, quizPartId, setQuizPartId, quizSubpartId, setQuizSubpartId, curriculumSuccessMsg, curriculumErrorMsg, newCourseTitle, setNewCourseTitle, newCourseDescription, setNewCourseDescription, newCourseDisciplineId, setNewCourseDisciplineId, newCourseCredits, setNewCourseCredits, newCourseDuration, setNewCourseDuration, newCoursePrice, setNewCoursePrice, newCoursePublished, setNewCoursePublished, newSectionCourseId, newSectionTitle, setNewSectionTitle, newSectionParentId, setNewSectionParentId, newSectionPublished, setNewSectionPublished, uploadSectionId, setUploadSectionId, uploadTitle, setUploadTitle, uploadType, setUploadType, uploadFile, setUploadFile, uploadPublished, setUploadPublished, uploadStatusMsg, editingCourse, setEditingCourse, editCourseForm, setEditCourseForm, teacherQuizzes, quizCourseId, newQuizTitle, setNewQuizTitle, selectedQuizId, setSelectedQuizId, newQuestionText, setNewQuestionText, newQuestionOptions, setNewQuestionOptions, newQuestionAnswer, setNewQuestionAnswer, newQuestionExplanation, setNewQuestionExplanation, quizManagerMsg, quizManagerError, allDisciplines, managedCourses, managedCourse, managedSections, chapterSections, uploadPartOptions, selectedManagedContents, handleSetUploadSectionId, showCurriculumSuccess, showCurriculumError, handleCreateCourse, handleCreateSection, handleUploadLessonAsset, handleSelectManagedCourse, loadTeacherQuizzes, handleCreateQuiz, handleAddQuestion, handleDeleteQuestion, handleUpdateCourseDetails, handleSaveEditCourse, handleToggleCoursePublished, handleDeleteCourse, handleUpdateSectionTitle, handleToggleSectionPublished, handleDeleteSection, handleAddChildSection, handleToggleContentPublished, handleDeleteLessonContent } = props;
-  const stepTheme = getStepTheme(4);
+  const stepTheme = getStepTheme(activeCurriculumStep);
   const inputFocus = `${curriculumUi.input} ${stepTheme.focus}`;
   return (
 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">

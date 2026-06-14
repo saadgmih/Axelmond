@@ -1,6 +1,33 @@
-import { BookOpen, Check, Eye, Sparkles } from "lucide-react";
+import {
+  BookOpen,
+  Layers,
+  FolderTree,
+  Video,
+  HelpCircle,
+  Plus,
+  Trash2,
+  Edit3,
+  Save,
+  Check,
+  FilePlus,
+  Eye,
+  EyeOff,
+  FileText,
+  Download,
+  X,
+  Sparkles,
+  DollarSign,
+  Clock,
+  Award,
+  ChevronRight
+} from "lucide-react";
+import type { Dispatch, SetStateAction } from "react";
+import type { Course, ContentSection, FacultyDomain, LessonContent } from "../../../types";
+import { formatCredits, formatMad } from "../../../utils/morocco-locale";
+import { RASTER_IMAGE_ACCEPT } from "../../../avatar-security";
+import PremiumVideoPlayer from "../../../components/PremiumVideoPlayer";
+
 import { CURRICULUM_STEPS, curriculumUi, getStepTheme } from "../curriculum-theme";
-import { formatCredits } from "../../../utils/morocco-locale";
 import type { TeacherCurriculumViewProps } from "../curriculum-types";
 
 type Props = Pick<TeacherCurriculumViewProps, "activeCurriculumStep" | "setActiveCurriculumStep" | "curriculumSuccessMsg" | "curriculumErrorMsg" | "managedCourse" | "managedCourses" | "newSectionCourseId" | "showCurriculumSuccess" | "showCurriculumError" | "handleSelectManagedCourse" | "loadTeacherQuizzes">;

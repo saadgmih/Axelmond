@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import AITutorChat from "../../components/AITutorChat";
 import PremiumVideoPlayer from "../../components/PremiumVideoPlayer";
+import { sanitizeCourseAttachmentUrl } from "../../external-url-security";
 import type { ContentSection, Course, CourseModule, LessonContent } from "../../types";
 import { formatCredits } from "../../utils/morocco-locale";
 
@@ -266,7 +267,11 @@ export default function StudentCourseView({
                   
                         {/* Module body (Video / Text / Quiz) */}
                   <div className={`${showAITutor ? "xl:col-span-7" : "xl:col-span-12"} space-y-6`}>
-                    {selectedLessonContent && (
+                    {selectedLessonContent && (() => {
+                      const rawAttachmentUrl = selectedLessonContent.attachments[0]?.url;
+                      const safeAttachmentUrl = sanitizeCourseAttachmentUrl(rawAttachmentUrl);
+
+                      return (
                       <div className="space-y-5">
                         <div className="bg-slate-900 rounded-2xl p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm border border-slate-950">
                           <div className="flex items-center gap-3">
@@ -280,11 +285,11 @@ export default function StudentCourseView({
                             </div>
                           </div>
 
-                          {selectedLessonContent.attachments[0]?.url && (
+                          {safeAttachmentUrl && (
                             <a
-                              href={selectedLessonContent.attachments[0].url}
+                              href={safeAttachmentUrl}
                               target="_blank"
-                              rel="noreferrer"
+                              rel="noopener noreferrer"
                               className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 self-start sm:self-auto"
                             >
                               <Download className="w-4 h-4" /> Ouvrir
@@ -292,31 +297,52 @@ export default function StudentCourseView({
                           )}
                         </div>
 
-                        {selectedLessonContent.type === "VIDEO" && selectedLessonContent.attachments[0]?.url && (
+                        {selectedLessonContent.type === "VIDEO" && safeAttachmentUrl && (
                           <PremiumVideoPlayer
-                            src={selectedLessonContent.attachments[0].url}
+                            src={safeAttachmentUrl}
                             title={selectedLessonContent.title}
                             instructor={selectedCourse.instructor}
                             activeSector="student"
                           />
                         )}
 
-                        {selectedLessonContent.type === "PDF" && selectedLessonContent.attachments[0]?.url && (
-                          <iframe title={selectedLessonContent.title} src={selectedLessonContent.attachments[0].url} className="w-full h-[70vh] bg-slate-50 rounded-2xl border border-slate-200 shadow-sm"></iframe>
+                        {selectedLessonContent.type === "PDF" && safeAttachmentUrl && (
+                          <iframe
+                            title={selectedLessonContent.title}
+                            src={`${safeAttachmentUrl}#toolbar=1&navpanes=0`}
+                            className="w-full h-[70vh] bg-slate-50 rounded-2xl border border-slate-200 shadow-sm"
+                            sandbox="allow-same-origin allow-popups allow-forms"
+                            referrerPolicy="no-referrer"
+                          />
                         )}
 
-                        {selectedLessonContent.type === "IMAGE" && selectedLessonContent.attachments[0]?.url && (
-                          <img src={selectedLessonContent.attachments[0].url} alt={selectedLessonContent.title} className="w-full max-h-[70vh] object-contain bg-slate-50 rounded-2xl border border-slate-200 shadow-sm" />
+                        {selectedLessonContent.type === "PDF" && rawAttachmentUrl && !safeAttachmentUrl && (
+                          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                            Ce document utilise une URL non autorisée.
+                          </div>
+                        )}
+
+                        {selectedLessonContent.type === "IMAGE" && safeAttachmentUrl && (
+                          <img src={safeAttachmentUrl} alt={selectedLessonContent.title} className="w-full max-h-[70vh] object-contain bg-slate-50 rounded-2xl border border-slate-200 shadow-sm" />
+                        )}
+
+                        {selectedLessonContent.type === "IMAGE" && rawAttachmentUrl && !safeAttachmentUrl && (
+                          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                            Cette image utilise une URL non autorisée.
+                          </div>
                         )}
                       </div>
-                    )}
+                      );
+                    })()}
                     
                     {/* CASE A: VIDEO CONTENT */}
-                    {!selectedLessonContent && selectedModule.type === "video" && (
+                    {!selectedLessonContent && selectedModule.type === "video" && (() => {
+                      const safeModuleVideoUrl = sanitizeCourseAttachmentUrl(selectedModule.attachmentUrl);
+                      return (
                       <div className="space-y-5">
-                        {selectedModule.attachmentUrl ? (
+                        {safeModuleVideoUrl ? (
                           <PremiumVideoPlayer
-                            src={selectedModule.attachmentUrl}
+                            src={safeModuleVideoUrl}
                             title={selectedModule.title}
                             instructor={selectedCourse.instructor}
                             activeSector="student"
@@ -366,7 +392,8 @@ export default function StudentCourseView({
                           </p>
                         </div>
                       </div>
-                    )}
+                      );
+                    })()}
 
                     {/* CASE B: DOCUMENT PDF TEXT */}
                     {!selectedLessonContent && selectedModule.type === "pdf" && selectedModule.contentMarkdown && (
