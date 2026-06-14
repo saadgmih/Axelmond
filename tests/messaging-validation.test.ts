@@ -1,11 +1,12 @@
-import assert from "node:assert/strict";
-import {
+import assert from "node:assert/strict";import {
   MESSAGE_ATTACHMENT_LIMITS,
   MESSAGE_BODY_MAX,
   MESSAGE_SEARCH_MIN,
   validateMessageAttachmentInput,
 } from "../src/messaging.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("messaging-validation", () => {
 assert.equal(MESSAGE_BODY_MAX, 4000);
 assert.equal(MESSAGE_SEARCH_MIN, 2);
 
@@ -75,4 +76,4 @@ assert.match(
   /URL/i,
 );
 
-console.log("Messaging validation tests passed");
+});

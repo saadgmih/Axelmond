@@ -1,10 +1,11 @@
-import assert from "node:assert/strict";
-import {
+import assert from "node:assert/strict";import {
   generateProfessorInviteCode,
   normalizeProfessorInviteCode,
   parseProfessorInviteCodes,
 } from "../src/invitations.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("invitations", () => {
 assert.equal(normalizeProfessorInviteCode(" prof-one "), "PROF-ONE");
 assert.equal(normalizeProfessorInviteCode(undefined), "");
 
@@ -13,4 +14,4 @@ assert.deepEqual(parseProfessorInviteCodes(""), []);
 
 assert.match(generateProfessorInviteCode(), /^PROF-[0-9A-F]{8}$/);
 
-console.log("Invitation rules passed");
+});

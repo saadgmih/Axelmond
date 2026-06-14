@@ -1,6 +1,7 @@
-import assert from "node:assert/strict";
-import { ACADEMIC_DOMAINS, getDisciplineIdForCourse } from "../src/academic-taxonomy";
+import assert from "node:assert/strict";import { ACADEMIC_DOMAINS, getDisciplineIdForCourse } from "../src/academic-taxonomy";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("academic-taxonomy", () => {
 assert.equal(ACADEMIC_DOMAINS.length, 10);
 
 const domains = new Map(ACADEMIC_DOMAINS.map((domain) => [domain.name, domain]));
@@ -31,4 +32,4 @@ assert.equal(
   606,
 );
 
-console.log("Academic taxonomy rules passed");
+});

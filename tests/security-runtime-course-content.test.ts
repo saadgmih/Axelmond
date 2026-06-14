@@ -1,5 +1,4 @@
-import assert from "node:assert/strict";
-import {
+import assert from "node:assert/strict";import {
   authedFetch,
   DEFAULT_SECURITY_RUNTIME_PORT,
   isSecurityRuntimeDatabaseAvailable,
@@ -8,8 +7,7 @@ import {
   stopSecurityRuntimeServer,
   waitForSecurityRuntimeHealth,
   type SecurityRuntimeSession,
-} from "./helpers/security-runtime-harness.ts";
-import {
+} from "./helpers/security-runtime-harness.ts";import {
   cleanupCourseContentRuntimeFixtures,
   COURSE_CONTENT_RUNTIME_DRAFT_MODULE_CONTENT_TITLE,
   COURSE_CONTENT_RUNTIME_DRAFT_SECTION_TITLE,
@@ -19,9 +17,10 @@ import {
   COURSE_CONTENT_RUNTIME_PUBLISHED_TREE_CONTENT_TITLE,
   seedCourseContentRuntimeFixtures,
   type CourseContentRuntimeFixture,
-} from "./helpers/security-runtime-course-content-fixtures.ts";
-import { SECURITY_RUNTIME_TEST_PASSWORD } from "./helpers/security-runtime-fixtures.ts";
+} from "./helpers/security-runtime-course-content-fixtures.ts";import { SECURITY_RUNTIME_TEST_PASSWORD } from "./helpers/security-runtime-fixtures.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("security-runtime-course-content", () => {
 const RUNTIME_PORT = DEFAULT_SECURITY_RUNTIME_PORT;
 
 type ContentTreeNode = {
@@ -246,3 +245,4 @@ try {
   }
   await cleanupCourseContentRuntimeFixtures();
 }
+});

@@ -1,8 +1,7 @@
-import assert from "node:assert/strict";
-import fs from "node:fs";
-import { readApiRouteSources } from "./helpers/api-route-sources.ts";
-import { readAppSources } from "./helpers/app-sources.ts";
+import assert from "node:assert/strict";import fs from "node:fs";import { readApiRouteSources } from "./helpers/api-route-sources.ts";import { readAppSources } from "./helpers/app-sources.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("contact", () => {
 const serverSource = readApiRouteSources();
 const appSource = readAppSources();
 const apiSource = fs.readFileSync("src/api.ts", "utf8");
@@ -42,4 +41,4 @@ assert.match(contactViewSource, /\+212\s*634772103/); // Required telephone numb
 assert.match(contactViewSource, /Données Sécurisées/); // Data protection section
 assert.match(contactViewSource, /loi 09-08|loi n° 09-08/i);
 
-console.log("Contact page redesign tests passed successfully!");
+});

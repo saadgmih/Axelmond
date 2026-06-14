@@ -1,7 +1,7 @@
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { readAppSources } from "./helpers/app-sources.ts";
+import assert from "node:assert/strict";import { readFileSync } from "node:fs";import { readAppSources } from "./helpers/app-sources.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("student-course-navigation", () => {
 const appSource = readAppSources();
 const courseContentSource = readFileSync("src/hooks/useCourseContent.ts", "utf8");
 const studentCourseViewSource = readFileSync("src/views/student/StudentCourseView.tsx", "utf8");
@@ -18,4 +18,4 @@ assert.match(studentCourseViewSource, /setSelectedLessonContent\(content\)/);
 assert.match(studentCourseViewSource, /!selectedLessonContent && selectedModule\.type === "video"/);
 assert.match(studentCourseViewSource, /selectedLessonContent &&/);
 
-console.log("Student course navigation rules passed");
+});

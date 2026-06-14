@@ -1,12 +1,13 @@
-import assert from "node:assert/strict";
-import {
+import assert from "node:assert/strict";import {
   isAvatarUrlFieldInvalid,
   sanitizeAcademicLinks,
   sanitizeAcademicProfileInput,
   sanitizeAvatarUrl,
   sanitizeDomainList,
 } from "../src/academic-profile.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("academic-profile", () => {
 assert.deepEqual(sanitizeDomainList("Mathématiques, IA\nData Science"), ["Mathématiques", "IA", "Data Science"]);
 assert.deepEqual(sanitizeDomainList([" Physique ", "", "Chimie"]), ["Physique", "Chimie"]);
 
@@ -56,4 +57,4 @@ assert.equal(isAvatarUrlFieldInvalid(""), false);
 const profileWithoutAvatar = sanitizeAcademicProfileInput({ title: "Professeur" });
 assert.equal(profileWithoutAvatar.avatarUrl, undefined);
 
-console.log("Academic profile rules passed");
+});

@@ -1,12 +1,13 @@
-import assert from "node:assert/strict";
-import {
+import assert from "node:assert/strict";import {
   canAccessProfessorScheduleSession,
   findScheduleOverlap,
   validateScheduleEndAfterStart,
   validateSchedulePayload,
   type ScheduleSessionRecord,
 } from "../src/schedule.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("schedule-validation", () => {
 const professorA = "professor-a-id";
 const professorB = "professor-b-id";
 
@@ -103,4 +104,4 @@ assert.equal(
 
 assert.notEqual(professorASessions[0].professorId, professorBSessions[0].professorId);
 
-console.log("Schedule validation and professor isolation rules passed");
+});

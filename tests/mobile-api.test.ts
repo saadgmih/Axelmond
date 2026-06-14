@@ -1,17 +1,13 @@
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import {
+import assert from "node:assert/strict";import { readFileSync } from "node:fs";import {
   MOBILE_CLIENT_HEADER,
   MOBILE_CLIENT_VALUE,
   isMobileClientRequest,
   isTrustedMobileClientRequest,
   withMobileRefreshToken,
-} from "../src/auth-mobile.ts";
-import { csrfProtection } from "../src/auth-csrf.ts";
-import { applyMobileApiCorsHeaders, MOBILE_API_ROUTE_CATALOG } from "../src/mobile-api-routes.ts";
+} from "../src/auth-mobile.ts";import { csrfProtection } from "../src/auth-csrf.ts";import { applyMobileApiCorsHeaders, MOBILE_API_ROUTE_CATALOG } from "../src/mobile-api-routes.ts";import { readApiRouteSources, readServerBootstrapSources } from "./helpers/api-route-sources.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
-import { readApiRouteSources, readServerBootstrapSources } from "./helpers/api-route-sources.ts";
-
+rulesTest("mobile-api", () => {
 const bootstrapSource = readServerBootstrapSources();
 const serverSource = readApiRouteSources();
 const authCsrfSource = readFileSync("src/auth-csrf.ts", "utf8");
@@ -134,4 +130,4 @@ if (previousNodeEnv === undefined) {
   process.env.NODE_ENV = previousNodeEnv;
 }
 
-console.log("Mobile API rules passed");
+});

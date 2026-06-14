@@ -1,8 +1,7 @@
-import assert from "node:assert/strict";
-import { readApiRouteSources } from "./helpers/api-route-sources.ts";
-import fs from "node:fs";
-import path from "node:path";
+import assert from "node:assert/strict";import { readApiRouteSources } from "./helpers/api-route-sources.ts";import fs from "node:fs";import path from "node:path";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("seo-sitemap", () => {
 const sitemap = fs.readFileSync("public/sitemap.xml", "utf8");
 const robots = fs.readFileSync("public/robots.txt", "utf8");
 const indexHtml = fs.readFileSync("index.html", "utf8");
@@ -39,4 +38,4 @@ if (fs.existsSync("dist/sitemap.xml")) {
   assert.ok(fs.existsSync(publicPath), "public/sitemap.xml must exist for Vite build copy");
 }
 
-console.log("SEO sitemap and robots rules passed");
+});

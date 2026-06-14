@@ -1,6 +1,7 @@
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import assert from "node:assert/strict";import { readFileSync } from "node:fs";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("live-control-ui", () => {
 const liveControlSource = readFileSync("src/views/teacher/TeacherLiveControlView.tsx", "utf8");
 const themeSource = readFileSync("src/views/teacher/live-control-theme.ts", "utf8");
 
@@ -16,4 +17,4 @@ assert.match(liveControlSource, /liveControlUi/);
 assert.match(themeSource, /#070b14/);
 assert.doesNotMatch(liveControlSource, /bg-white border border-slate-200/);
 
-console.log("Live control UI rules passed");
+});

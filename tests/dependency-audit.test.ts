@@ -1,6 +1,7 @@
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import assert from "node:assert/strict";import { readFileSync } from "node:fs";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("dependency-audit", () => {
 const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as {
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
@@ -21,4 +22,4 @@ assert.match(bootstrapSource, /Serving static files in production mode/);
 assert.match(viteConfig, /host:\s*"127\.0\.0\.1"/);
 assert.match(viteConfig, /strictPort:\s*true/);
 
-console.log("Dependency audit guard tests passed");
+});

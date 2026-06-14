@@ -1,12 +1,12 @@
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import assert from "node:assert/strict";import { readFileSync } from "node:fs";import { readAppSources } from "./helpers/app-sources.ts";
+import { readLiveClassroomSources, readLiveKitHookSources } from "./helpers/live-classroom-sources.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
-import { readAppSources } from "./helpers/app-sources.ts";
-
+rulesTest("livekit-ui", () => {
 const appSource = readAppSources();
-const liveKitHookSource = readFileSync(new URL("../src/hooks/useLiveKitRoom.tsx", import.meta.url), "utf8");
-const liveKitSource = appSource + liveKitHookSource;
-const classroomSource = readFileSync(new URL("../src/components/VirtualClassroom.tsx", import.meta.url), "utf8");
+const liveKitHookSource = readLiveKitHookSources();
+const liveKitSource = appSource + readLiveKitHookSources();
+const classroomSource = readLiveClassroomSources();
 
 assert.match(classroomSource, /<ScreenShare\b/);
 assert.match(classroomSource, /<Fullscreen\b/);
@@ -35,4 +35,4 @@ assert.match(classroomSource, /key: "t"/);
 assert.match(readFileSync(new URL("../src/components/live/LiveSettingsPanel.tsx", import.meta.url), "utf8"), /createPortal/);
 assert.match(readFileSync(new URL("../src/components/live/LiveSettingsPanel.tsx", import.meta.url), "utf8"), /Bientôt disponible/);
 
-console.log("LiveKit UI rules passed");
+});

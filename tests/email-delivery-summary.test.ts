@@ -1,6 +1,7 @@
-import assert from "node:assert/strict";
-import { buildEmailDeliverySummary } from "../src/email-delivery-summary.ts";
+import assert from "node:assert/strict";import { buildEmailDeliverySummary } from "../src/email-delivery-summary.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("email-delivery-summary", () => {
 const logs = [
   {
     messageId: "<older@axelmond.com>",
@@ -38,4 +39,4 @@ assert.equal(summary.lastEmailSent?.messageId, "<latest@axelmond.com>");
 assert.equal(summary.emailsSentToday, 1);
 assert.equal(summary.lastSmtpError?.messageId, "<failed@axelmond.com>");
 
-console.log("Email delivery summary rules passed");
+});

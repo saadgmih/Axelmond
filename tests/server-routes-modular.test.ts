@@ -1,7 +1,7 @@
-import assert from "node:assert/strict";
-import fs from "node:fs";
-import path from "node:path";
+import assert from "node:assert/strict";import fs from "node:fs";import path from "node:path";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("server-routes-modular", () => {
 const root = process.cwd();
 const routesDir = path.join(root, "src", "routes");
 const maxRouteModuleLines: Record<string, number> = {
@@ -84,4 +84,4 @@ for (const fileName of expectedModules) {
   }
 }
 
-console.log("Server route modularization structure passed");
+});

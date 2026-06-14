@@ -1,9 +1,7 @@
-import assert from "node:assert/strict";
-import { readApiRouteSources } from "./helpers/api-route-sources.ts";
-import fs from "node:fs";
-import { hashRefreshToken } from "../src/security-hardening.ts";
-import { canAccessApiRoute } from "../src/rbac.ts";
+import assert from "node:assert/strict";import { readApiRouteSources } from "./helpers/api-route-sources.ts";import fs from "node:fs";import { hashRefreshToken } from "../src/security-hardening.ts";import { canAccessApiRoute } from "../src/rbac.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("security-hardening", () => {
 const serverSource = readApiRouteSources();
 const authTokenSource = fs.readFileSync("src/auth-token.ts", "utf8");
 
@@ -117,4 +115,4 @@ assert.doesNotMatch(liveKitUiSource, /LIVEKIT_API_KEY/);
 const paypalEnrollmentSource = fs.readFileSync("src/paypal-enrollment.ts", "utf8");
 assert.doesNotMatch(paypalEnrollmentSource, /Utilisateur non trouvé/);
 
-console.log("Security hardening rules passed");
+});

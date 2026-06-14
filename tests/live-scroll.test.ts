@@ -1,9 +1,10 @@
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { readAppSources } from "./helpers/app-sources.ts";
+import assert from "node:assert/strict";import { readFileSync } from "node:fs";import { readAppSources } from "./helpers/app-sources.ts";
+import { readLiveClassroomSources } from "./helpers/live-classroom-sources.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("live-scroll", () => {
 const appSource = readAppSources();
-const classroomSource = readFileSync("src/components/VirtualClassroom.tsx", "utf8");
+const classroomSource = readLiveClassroomSources();
 const workspaceSource = readFileSync("src/views/teacher/TeacherWorkspace.tsx", "utf8");
 const liveThemeSource = readFileSync("src/views/teacher/live-control-theme.ts", "utf8");
 
@@ -23,8 +24,8 @@ assert.match(liveThemeSource, /roomShell:[\s\S]*overflow-hidden/);
 
 assert.doesNotMatch(liveControlSource, /Entrer dans la salle/);
 assert.doesNotMatch(liveControlSource, /Éteindre le signal/);
-assert.match(classroomSource, /Control Bar — au-dessus de la vidéo/);
+assert.match(classroomSource, /data-tv-zone="live-controls"/);
 assert.match(classroomSource, /Quitter/);
 assert.doesNotMatch(classroomSource, /h-full min-h-0 w-full max-w-full bg-zinc-950/);
 
-console.log("Live scroll accessibility rules passed");
+});

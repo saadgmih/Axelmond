@@ -1,8 +1,9 @@
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { readAppSources } from "./helpers/app-sources.ts";
+import assert from "node:assert/strict";import { readFileSync } from "node:fs";import { readAppSources } from "./helpers/app-sources.ts";
+import { readLiveClassroomSources } from "./helpers/live-classroom-sources.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
-const classroomSource = readFileSync("src/components/VirtualClassroom.tsx", "utf8");
+rulesTest("live-layout-stability", () => {
+const classroomSource = readLiveClassroomSources();
 const tutorSource = readFileSync("src/components/AITutorChat.tsx", "utf8");
 const themeSource = readFileSync("src/views/teacher/live-control-theme.ts", "utf8");
 const appSource = readAppSources();
@@ -25,4 +26,4 @@ assert.match(themeSource, /roomShell:[\s\S]*h-\[min\(78dvh,820px\)\]/);
 assert.match(appSource, /lockMainScroll = currentView === "course" \|\| isStudentLive/);
 assert.match(appSource, /hideGlobalFooter = currentView === "course" \|\| isLiveSessionView/);
 
-console.log("Live layout stability rules passed");
+});

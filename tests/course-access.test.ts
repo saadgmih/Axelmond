@@ -1,5 +1,4 @@
-import assert from "node:assert/strict";
-import {
+import assert from "node:assert/strict";import {
   assertCourseLearningAccess,
   canAccessCourseLearning,
   COURSE_LEARNING_ACCESS_ERRORS,
@@ -7,7 +6,9 @@ import {
   type CourseLearningAccessRecord,
   type CourseLearningAccessUser,
 } from "../src/course-access.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("course-access", async () => {
 const course: CourseLearningAccessRecord = {
   id: 42,
   title: "Algorithmique",
@@ -100,4 +101,4 @@ assert.deepEqual(missing, {
   error: COURSE_LEARNING_ACCESS_ERRORS.notFound,
 });
 
-console.log("Course access rules passed");
+});

@@ -1,10 +1,11 @@
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { readAppSources } from "./helpers/app-sources.ts";
+import assert from "node:assert/strict";import { readFileSync } from "node:fs";import { readAppSources } from "./helpers/app-sources.ts";
+import { readCurriculumViewSources } from "./helpers/live-classroom-sources.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("premium-video-player", () => {
 const appSource = readAppSources();
 const studentCourseViewSource = readFileSync("src/views/student/StudentCourseView.tsx", "utf-8");
-const teacherCurriculumSource = readFileSync("src/views/teacher/TeacherCurriculumView.tsx", "utf-8");
+const teacherCurriculumSource = readCurriculumViewSources();
 const playerSource = readFileSync("src/components/PremiumVideoPlayer.tsx", "utf-8");
 const hookSource = readFileSync("src/hooks/useCourseVideoPlayer.ts", "utf-8");
 
@@ -32,4 +33,4 @@ assert.match(hookSource, /const \[isMuted, setIsMuted\] = useState\(false\)/);
 assert.match(hookSource, /const \[isFullscreen, setIsFullscreen\] = useState\(false\)/);
 assert.match(hookSource, /export function formatCourseVideoTime/);
 
-console.log("Premium video player tests passed successfully!");
+});

@@ -1,7 +1,7 @@
-import assert from "node:assert/strict";
-import fs from "node:fs";
-import { readAppSources } from "./helpers/app-sources.ts";
+import assert from "node:assert/strict";import fs from "node:fs";import { readAppSources } from "./helpers/app-sources.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("scroll-to-top", () => {
 const mainSource = fs.readFileSync("src/main.tsx", "utf8");
 const appSource = readAppSources();
 const scrollSource = fs.readFileSync("src/components/ScrollToTop.tsx", "utf8");
@@ -23,4 +23,4 @@ assert.match(layoutSource, /Global Footer[\s\S]*<AppFooter[\s\S]*<\/main>/);
 assert.match(footerSource, /<footer/);
 assert.doesNotMatch(layoutSource, /<\/main>[\s\S]*<footer/);
 
-console.log("ScrollToTop navigation tests passed");
+});

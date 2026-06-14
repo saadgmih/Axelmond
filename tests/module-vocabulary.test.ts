@@ -1,7 +1,7 @@
-import assert from "node:assert/strict";
-import fs from "node:fs";
-import path from "node:path";
+import assert from "node:assert/strict";import fs from "node:fs";import path from "node:path";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("module-vocabulary", () => {
 const visibleFiles = [
   "src/components/AboutView.tsx",
   "src/components/AuthScreen.tsx",
@@ -30,4 +30,4 @@ for (const file of visibleFiles) {
 
 assert.equal(offenders.length, 0, `Le vocabulaire visible doit utiliser "module" au lieu de "cours":\n${offenders.join("\n")}`);
 
-console.log("Module vocabulary rules passed");
+});

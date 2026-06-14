@@ -1,11 +1,12 @@
-import assert from "node:assert/strict";
-import {
+import assert from "node:assert/strict";import {
   buildPayPalCustomId,
   formatPayPalAmount,
   getPayPalRuntimeEnv,
   parsePayPalCustomId,
 } from "../src/paypal-server.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("paypal-server", () => {
 const originalEnv = process.env.PAYPAL_ENV;
 
 try {
@@ -47,3 +48,4 @@ try {
   if (originalEnv === undefined) delete process.env.PAYPAL_ENV;
   else process.env.PAYPAL_ENV = originalEnv;
 }
+});

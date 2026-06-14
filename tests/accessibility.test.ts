@@ -1,7 +1,7 @@
-import assert from "node:assert/strict";
-import fs from "node:fs";
-import { readAppSources } from "./helpers/app-sources.ts";
+import assert from "node:assert/strict";import fs from "node:fs";import { readAppSources } from "./helpers/app-sources.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("accessibility", () => {
 const appSource = readAppSources();
 const authSource = fs.readFileSync("src/components/AuthScreen.tsx", "utf8");
 const topbarSource = fs.readFileSync("src/components/Topbar.tsx", "utf8");
@@ -46,6 +46,7 @@ assert.match(cssSource, /scrollbar-color:\s*var\(--scroll-thumb\)/);
 assert.match(cssSource, /::-webkit-scrollbar-thumb:hover/);
 assert.match(cssSource, /\.hide-scrollbar/);
 
-assert.match(packageSource, /accessibility\.test\.ts/);
+assert.match(packageSource, /"test":\s*"vitest run"/);
+assert.match(fs.readFileSync("vitest.config.ts", "utf8"), /tests\/\*\*\/\*\.test\.ts/);
 
-console.log("Accessibility WCAG rules passed");
+});

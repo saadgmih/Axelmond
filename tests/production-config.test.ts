@@ -1,6 +1,7 @@
-import assert from "node:assert/strict";
-import { validateProductionConfiguration } from "../src/production-config.ts";
+import assert from "node:assert/strict";import { validateProductionConfiguration } from "../src/production-config.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("production-config", () => {
 const validProductionEnv: NodeJS.ProcessEnv = {
   NODE_ENV: "production",
   APP_URL: "https://axelmond.example",
@@ -59,4 +60,4 @@ assert.match(
   /MOBILE_API_SECRET is required in production/,
 );
 
-console.log("Production configuration guard tests passed");
+});

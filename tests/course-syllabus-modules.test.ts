@@ -1,12 +1,11 @@
-import assert from "node:assert/strict";
-import fs from "node:fs";
-import {
+import assert from "node:assert/strict";import fs from "node:fs";import {
   courseModuleRowFromJsonItem,
   resolveCourseModules,
   shouldReadRelationalCourseModules,
-} from "../src/course-syllabus-modules.ts";
-import type { CourseModule } from "../src/types.ts";
+} from "../src/course-syllabus-modules.ts";import type { CourseModule } from "../src/types.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("course-syllabus-modules", () => {
 assert.equal(shouldReadRelationalCourseModules({ COURSE_MODULES_READ_RELATIONAL: "true" }), true);
 assert.equal(shouldReadRelationalCourseModules({ COURSE_MODULES_READ_RELATIONAL: "false" }), false);
 
@@ -30,4 +29,4 @@ assert.match(fs.readFileSync("docs/MIGRATION-COURSE-MODULES.md", "utf8"), /Cours
 assert.match(fs.readFileSync("prisma/schema.prisma", "utf8"), /model CourseModule/);
 assert.match(fs.readFileSync("src/routes/courses-routes.ts", "utf8"), /courseModule\.upsert/);
 
-console.log("Course syllabus module migration rules passed");
+});

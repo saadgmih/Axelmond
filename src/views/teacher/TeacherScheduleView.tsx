@@ -1,6 +1,7 @@
-import { Plus, X } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useMemo } from "react";
 import AxelCalendarShell from "../../components/calendar/AxelCalendarShell";
+import ScheduleSessionFormModal from "../../components/schedule/ScheduleSessionFormModal";
 import type { UseTeacherScheduleOptions } from "../../hooks/useTeacherSchedule";
 import { useTeacherSchedule } from "../../hooks/useTeacherSchedule";
 import { SCHEDULE_DAYS, SCHEDULE_SESSION_TYPES } from "../../schedule";
@@ -78,132 +79,19 @@ export default function TeacherScheduleView(props: TeacherScheduleViewProps) {
         />
       )}
 
-      {isFormOpen && (
-        <div className={scheduleUi.modalOverlay} role="dialog" aria-modal="true" aria-labelledby="schedule-form-title">
-          <div className={scheduleUi.modalPanel}>
-            <div className={scheduleUi.modalHeader}>
-              <div className="flex items-center justify-between gap-3">
-                <h2 id="schedule-form-title" className={scheduleUi.modalTitle}>
-                  {editingSessionId ? "Modifier la séance" : "Ajouter une séance"}
-                </h2>
-                <button type="button" className={scheduleUi.editBtn} onClick={closeForm} aria-label="Fermer">
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-
-            <div className={scheduleUi.modalBody}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <label className="space-y-2">
-                  <span className={scheduleUi.label}>Jour</span>
-                  <select
-                    className={scheduleUi.input}
-                    value={form.dayOfWeek}
-                    onChange={(e) => setForm((current) => ({ ...current, dayOfWeek: Number(e.target.value) }))}
-                  >
-                    {SCHEDULE_DAYS.map((day) => (
-                      <option key={day.value} value={day.value}>{day.label}</option>
-                    ))}
-                  </select>
-                </label>
-
-                <label className="space-y-2">
-                  <span className={scheduleUi.label}>Type de séance</span>
-                  <select
-                    className={scheduleUi.input}
-                    value={form.sessionType}
-                    onChange={(e) => setForm((current) => ({ ...current, sessionType: e.target.value as typeof form.sessionType }))}
-                  >
-                    {SCHEDULE_SESSION_TYPES.map((type) => (
-                      <option key={type.value} value={type.value}>{type.label}</option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-
-              <label className="space-y-2 block">
-                <span className={scheduleUi.label}>Titre de la séance</span>
-                <input
-                  className={scheduleUi.input}
-                  value={form.title}
-                  onChange={(e) => setForm((current) => ({ ...current, title: e.target.value }))}
-                  placeholder="Introduction à l'algorithmique"
-                />
-              </label>
-
-              <label className="space-y-2 block">
-                <span className={scheduleUi.label}>Module</span>
-                <input
-                  className={scheduleUi.input}
-                  value={form.moduleName}
-                  onChange={(e) => setForm((current) => ({ ...current, moduleName: e.target.value }))}
-                  placeholder="Informatique fondamentale"
-                />
-              </label>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <label className="space-y-2">
-                  <span className={scheduleUi.label}>Heure de début</span>
-                  <input
-                    type="time"
-                    className={scheduleUi.input}
-                    value={form.startTime}
-                    onChange={(e) => setForm((current) => ({ ...current, startTime: e.target.value }))}
-                  />
-                </label>
-                <label className="space-y-2">
-                  <span className={scheduleUi.label}>Heure de fin</span>
-                  <input
-                    type="time"
-                    className={scheduleUi.input}
-                    value={form.endTime}
-                    onChange={(e) => setForm((current) => ({ ...current, endTime: e.target.value }))}
-                  />
-                </label>
-              </div>
-
-              <label className="space-y-2 block">
-                <span className={scheduleUi.label}>Salle ou lien live</span>
-                <input
-                  className={scheduleUi.input}
-                  value={form.roomOrLink || ""}
-                  onChange={(e) => setForm((current) => ({ ...current, roomOrLink: e.target.value }))}
-                  placeholder="Amphi B12 ou https://..."
-                />
-              </label>
-
-              <label className="space-y-2 block">
-                <span className={scheduleUi.label}>Description (optionnelle)</span>
-                <textarea
-                  className={scheduleUi.textarea}
-                  value={form.description || ""}
-                  onChange={(e) => setForm((current) => ({ ...current, description: e.target.value }))}
-                  placeholder="Consignes, objectifs ou notes pour cette séance"
-                />
-              </label>
-            </div>
-
-            <div className={scheduleUi.modalActions}>
-              {editingSessionId && (
-                <button
-                  type="button"
-                  className={`${scheduleUi.deleteBtn} w-full sm:mr-auto sm:w-auto`}
-                  onClick={() => handleDeleteSession(editingSessionId)}
-                  disabled={isSaving}
-                >
-                  Supprimer
-                </button>
-              )}
-              <button type="button" className={scheduleUi.cancelBtn} onClick={closeForm} disabled={isSaving}>
-                Annuler
-              </button>
-              <button type="button" className={scheduleUi.saveBtn} onClick={handleSaveSession} disabled={isSaving}>
-                {isSaving ? "Enregistrement..." : "Enregistrer"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ScheduleSessionFormModal
+        isOpen={isFormOpen}
+        editingSessionId={editingSessionId}
+        form={form}
+        setForm={setForm}
+        isSaving={isSaving}
+        scheduleDays={SCHEDULE_DAYS}
+        sessionTypeOptions={SCHEDULE_SESSION_TYPES}
+        ui={scheduleUi}
+        onClose={closeForm}
+        onSave={handleSaveSession}
+        onDelete={handleDeleteSession}
+      />
     </div>
   );
 }

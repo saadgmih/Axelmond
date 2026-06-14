@@ -1,8 +1,7 @@
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { readApiRouteSources, readServerBootstrapSources } from "./helpers/api-route-sources.ts";
-import { readAppSources } from "./helpers/app-sources.ts";
+import assert from "node:assert/strict";import { readFileSync } from "node:fs";import { readApiRouteSources, readServerBootstrapSources } from "./helpers/api-route-sources.ts";import { readAppSources } from "./helpers/app-sources.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("session-refresh", () => {
 const apiSource = readFileSync("src/api.ts", "utf8");
 const authScreenSource = readFileSync("src/components/AuthScreen.tsx", "utf8");
 const appSource = readAppSources();
@@ -32,4 +31,4 @@ assert.match(serverSource, /api\.setAuthCookies\(res,\s*newRefreshToken\)/);
 assert.match(serverSource, /api\.clearAuthCookies\(res\)/);
 assert.doesNotMatch(serverSource, /refreshToken:\s*newRefreshToken/);
 
-console.log("Session refresh rules passed");
+});

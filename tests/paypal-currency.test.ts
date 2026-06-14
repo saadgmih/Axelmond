@@ -1,11 +1,12 @@
-import assert from "node:assert/strict";
-import {
+import assert from "node:assert/strict";import {
   convertMadAmountForPayPal,
   formatPayPalCheckoutEquivalent,
   getPayPalCheckoutCurrency,
   getPayPalMadConversionRate,
 } from "../src/paypal-currency.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("paypal-currency", () => {
 const previousCurrency = process.env.PAYPAL_CURRENCY_CODE;
 const previousRate = process.env.PAYPAL_MAD_TO_USD_RATE;
 const previousEnv = process.env.PAYPAL_ENV;
@@ -33,4 +34,4 @@ else delete process.env.PAYPAL_MAD_TO_USD_RATE;
 if (previousEnv !== undefined) process.env.PAYPAL_ENV = previousEnv;
 else delete process.env.PAYPAL_ENV;
 
-console.log("PayPal currency conversion tests passed");
+});

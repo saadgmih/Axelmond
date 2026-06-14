@@ -19,6 +19,7 @@ import {
   requestTimingMiddleware,
   getRouteStats,
 } from "../src/performance";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
 let passed = 0;
 let failed = 0;
@@ -144,22 +145,11 @@ function testPerformance() {
 
 // ─── Runner ──────────────────────────────────────────────────────────────────
 
-async function runAll() {
+rulesTest("performance", async () => {
   console.log("=== tests/performance.test.ts ===");
-
   await testCache();
   testPerformance();
-
-  console.log(`\n─── Résultats : ${passed} ✅  ${failed} ❌ ───`);
   if (failed > 0) {
-    console.error(`\n${failed} test(s) ont échoué.`);
-    process.exit(1);
-  } else {
-    console.log("\nTous les tests performance passent.");
+    throw new Error(`${failed} performance assertion(s) failed (${passed} passed)`);
   }
-}
-
-runAll().catch((err) => {
-  console.error("Test runner error:", err);
-  process.exit(1);
 });

@@ -1,12 +1,13 @@
-import assert from "node:assert/strict";
-import {
+import assert from "node:assert/strict";import {
   allocateSecurityRuntimePort,
   isSecurityRuntimeDatabaseAvailable,
   startSecurityRuntimeServer,
   stopSecurityRuntimeServer,
   waitForSecurityRuntimeHealth,
 } from "./helpers/security-runtime-harness.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("security-runtime-upload-rate", () => {
 const UPLOAD_PATH = "/api/uploadthing";
 
 if (!isSecurityRuntimeDatabaseAvailable()) {
@@ -51,3 +52,4 @@ try {
     process.env.UPLOAD_RATE_LIMIT_MAX = previousUploadLimit;
   }
 }
+});

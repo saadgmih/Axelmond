@@ -1,16 +1,11 @@
-import assert from "node:assert/strict";
-import fs from "node:fs";
-import { readServerBootstrapSources } from "./helpers/api-route-sources.ts";
-import {
+import assert from "node:assert/strict";import fs from "node:fs";import { readServerBootstrapSources } from "./helpers/api-route-sources.ts";import {
   buildPayPalCustomId,
   formatPayPalAmount,
-} from "../src/paypal-server.ts";
-import {
+} from "../src/paypal-server.ts";import {
   extractPayPalCaptureContext,
   processPayPalCaptureEnrollment,
   toPayPalCaptureClientResponse,
-} from "../src/paypal-enrollment.ts";
-import {
+} from "../src/paypal-enrollment.ts";import {
   extractPayPalWebhookHeaders,
   getPayPalWebhookId,
   handlePayPalWebhookEvent,
@@ -19,7 +14,9 @@ import {
   parsePayPalWebhookEvent,
   verifyPayPalWebhookSignature,
 } from "../src/paypal-webhook.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("paypal-webhook", async () => {
 const bootstrapSource = readServerBootstrapSources();
 const serverSource = bootstrapSource + fs.readFileSync("src/routes/payments-routes.ts", "utf8");
 const paypalServerSource = fs.readFileSync("src/paypal-server.ts", "utf8");
@@ -196,4 +193,4 @@ if (!enrollmentResult.ok) {
   );
 }
 
-console.log("PayPal webhook tests passed");
+});

@@ -1,8 +1,7 @@
-import assert from "node:assert/strict";
-import { readApiRouteSources } from "./helpers/api-route-sources.ts";
-import fs from "node:fs";
-import { shouldSkipStartupSeed } from "../src/startup-seed.ts";
+import assert from "node:assert/strict";import { readApiRouteSources } from "./helpers/api-route-sources.ts";import fs from "node:fs";import { shouldSkipStartupSeed } from "../src/startup-seed.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("startup-seed", () => {
 const serverSource = readApiRouteSources();
 const dbSource = fs.readFileSync("src/db.ts", "utf8");
 const schemaSource = fs.readFileSync("prisma/schema.prisma", "utf8");
@@ -49,4 +48,4 @@ try {
   else process.env.RUN_STARTUP_SEED = originalFlag;
 }
 
-console.log("Startup seed rules passed");
+});

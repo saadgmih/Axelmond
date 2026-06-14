@@ -1,10 +1,11 @@
-import assert from "node:assert/strict";
-import {
+import assert from "node:assert/strict";import {
   buildLiveKitRoomName,
   getLiveKitConfig,
   getLiveKitParticipantIdentity,
 } from "../src/livekit.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("livekit", () => {
 assert.equal(buildLiveKitRoomName(1), "axelmond-course-1");
 assert.equal(buildLiveKitRoomName(601), "axelmond-course-601");
 
@@ -32,4 +33,4 @@ assert.equal(
   null
 );
 
-console.log("LiveKit rules passed");
+});

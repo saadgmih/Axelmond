@@ -1,8 +1,7 @@
-import assert from "node:assert/strict";
-import type { Request } from "express";
-import { ipKeyGenerator } from "express-rate-limit";
-import { emailRateLimitKey } from "../src/email-rate-limit.ts";
+import assert from "node:assert/strict";import type { Request } from "express";import { ipKeyGenerator } from "express-rate-limit";import { emailRateLimitKey } from "../src/email-rate-limit.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("email-rate-limit", () => {
 function mockRequest(body: Record<string, unknown> = {}, ip = "203.0.113.42"): Request {
   return { body, ip } as Request;
 }
@@ -51,4 +50,4 @@ assert.notEqual(
   "deux emails différents derrière la même IP ont des buckets différents",
 );
 
-console.log("Email rate limit tests passed");
+});

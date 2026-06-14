@@ -1,5 +1,4 @@
-import assert from "node:assert/strict";
-import {
+import assert from "node:assert/strict";import {
   appendWhiteboardStroke,
   applyPollStart,
   buildSharedResource,
@@ -8,7 +7,9 @@ import {
   mergePollVote,
   type LiveWhiteboardStroke,
 } from "../src/live/live-sync.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("live-sync", () => {
 const emptyPoll = createEmptyPoll();
 assert.equal(emptyPoll.active, false);
 assert.equal(emptyPoll.options.length, 3);
@@ -47,4 +48,4 @@ assert.ok(resource);
 assert.equal(resource?.kind, "pdf");
 assert.equal(resource?.title, "Slides");
 
-console.log("Live sync rules passed");
+});

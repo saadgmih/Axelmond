@@ -1,8 +1,7 @@
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { readApiRouteSources } from "./helpers/api-route-sources.ts";
-import { readAppSources } from "./helpers/app-sources.ts";
+import assert from "node:assert/strict";import { readFileSync } from "node:fs";import { readApiRouteSources } from "./helpers/api-route-sources.ts";import { readAppSources } from "./helpers/app-sources.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("professor-course-ownership", () => {
 const serverSource = readApiRouteSources();
 const appSource = readAppSources();
 const projectMap = readFileSync("PROJECT_MAP.md", "utf8");
@@ -19,4 +18,4 @@ assert.match(appSource, /managedCourses\.map\(\(c, idx\) =>/);
 
 assert.match(projectMap, /Professor\/Researcher course ownership/);
 
-console.log("Professor course ownership rules passed");
+});

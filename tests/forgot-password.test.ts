@@ -1,7 +1,7 @@
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { readApiRouteSources } from "./helpers/api-route-sources.ts";
+import assert from "node:assert/strict";import { readFileSync } from "node:fs";import { readApiRouteSources } from "./helpers/api-route-sources.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("forgot-password", () => {
 const serverSource = readApiRouteSources();
 const apiSource = readFileSync("src/api.ts", "utf-8");
 const authScreenSource = readFileSync("src/components/AuthScreen.tsx", "utf-8");
@@ -29,4 +29,4 @@ assert.match(authScreenSource, /handleForgotPassword/);
 assert.match(authScreenSource, /handleResetPassword/);
 assert.match(authScreenSource, /Mot de passe oublié \?/);
 
-console.log("Forgot password tests passed successfully!");
+});

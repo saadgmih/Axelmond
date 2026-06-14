@@ -1,7 +1,7 @@
-import assert from "node:assert/strict";
-import fs from "node:fs";
-import { readApiRouteSources } from "./helpers/api-route-sources.ts";
+import assert from "node:assert/strict";import fs from "node:fs";import { readApiRouteSources } from "./helpers/api-route-sources.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("dead-code-cleanup", () => {
 const apiSource = fs.readFileSync("src/api.ts", "utf8");
 const routeSources = readApiRouteSources();
 
@@ -19,4 +19,4 @@ assert.ok(fs.existsSync("scripts/archive"), "legacy one-shot scripts live under 
 const archivedDestructive = "scripts/archive/delete_modules.cjs";
 assert.ok(fs.existsSync(archivedDestructive), "destructive delete_modules.cjs must stay archived, not at repo root");
 
-console.log("Dead code cleanup guard tests passed");
+});

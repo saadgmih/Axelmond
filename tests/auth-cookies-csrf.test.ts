@@ -1,17 +1,14 @@
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import {
+import assert from "node:assert/strict";import { readFileSync } from "node:fs";import {
   CSRF_COOKIE_NAME,
   REFRESH_COOKIE_NAME,
   REFRESH_COOKIE_PATH,
   clearAuthCookies,
   readRefreshTokenFromRequest,
   setAuthCookies,
-} from "../src/auth-cookies.ts";
-import { csrfProtection } from "../src/auth-csrf.ts";
+} from "../src/auth-cookies.ts";import { csrfProtection } from "../src/auth-csrf.ts";import { readApiRouteSources, readServerBootstrapSources } from "./helpers/api-route-sources.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
-import { readApiRouteSources, readServerBootstrapSources } from "./helpers/api-route-sources.ts";
-
+rulesTest("auth-cookies-csrf", () => {
 const bootstrapSource = readServerBootstrapSources();
 const serverSource = readApiRouteSources();
 const apiSource = readFileSync("src/api.ts", "utf8");
@@ -181,4 +178,4 @@ csrfProtection(
 );
 assert.equal(nextCalled, true);
 
-console.log("Auth cookies + CSRF rules passed");
+});

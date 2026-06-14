@@ -1,12 +1,12 @@
-import assert from "node:assert/strict";
-import {
+import assert from "node:assert/strict";import {
   canAccessStudentStudySession,
   findStudentStudyOverlap,
   validateStudentStudyPayload,
   type StudentStudySessionRecord,
-} from "../src/student-study-schedule.ts";
-import { validateScheduleEndAfterStart } from "../src/schedule.ts";
+} from "../src/student-study-schedule.ts";import { validateScheduleEndAfterStart } from "../src/schedule.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("student-study-schedule-validation", () => {
 const studentA = "student-a-id";
 const studentB = "student-b-id";
 
@@ -101,4 +101,4 @@ assert.equal(
 
 assert.notEqual(studentASessions[0].studentId, studentBSessions[0].studentId);
 
-console.log("Student study schedule validation and isolation rules passed");
+});

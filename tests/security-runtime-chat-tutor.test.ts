@@ -1,5 +1,4 @@
-import assert from "node:assert/strict";
-import {
+import assert from "node:assert/strict";import {
   authedFetch,
   DEFAULT_SECURITY_RUNTIME_PORT,
   isSecurityRuntimeDatabaseAvailable,
@@ -8,14 +7,15 @@ import {
   stopSecurityRuntimeServer,
   waitForSecurityRuntimeHealth,
   type SecurityRuntimeSession,
-} from "./helpers/security-runtime-harness.ts";
-import {
+} from "./helpers/security-runtime-harness.ts";import {
   cleanupChatTutorRuntimeFixtures,
   seedChatTutorRuntimeFixtures,
   SECURITY_RUNTIME_TEST_PASSWORD,
   type ChatTutorRuntimeFixture,
 } from "./helpers/security-runtime-fixtures.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("security-runtime-chat-tutor", () => {
 const CHAT_TUTOR_PATH = "/api/chat-tutor";
 const RUNTIME_PORT = DEFAULT_SECURITY_RUNTIME_PORT;
 
@@ -184,3 +184,4 @@ try {
     delete process.env.OPENAI_API_KEY;
   }
 }
+});

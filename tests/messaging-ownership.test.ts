@@ -1,9 +1,7 @@
-import assert from "node:assert/strict";
-import { readApiRouteSources } from "./helpers/api-route-sources.ts";
-import { readAppSources } from "./helpers/app-sources.ts";
-import fs from "node:fs";
-import { canAccessApiRoute } from "../src/rbac.ts";
+import assert from "node:assert/strict";import { readApiRouteSources } from "./helpers/api-route-sources.ts";import { readAppSources } from "./helpers/app-sources.ts";import fs from "node:fs";import { canAccessApiRoute } from "../src/rbac.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("messaging-ownership", () => {
 const serverSource = readApiRouteSources();
 const schemaSource = fs.readFileSync("prisma/schema.prisma", "utf8");
 const apiSource = fs.readFileSync("src/api.ts", "utf8");
@@ -55,4 +53,4 @@ assert.doesNotMatch(platformPathsSource, /"report-problem"/);
 assert.doesNotMatch(institutionalSwitchSource, /ReportProblemView/);
 assert.doesNotMatch(appSource, /navigateTo\("report-problem"\)/);
 
-console.log("Messaging ownership and wiring tests passed");
+});

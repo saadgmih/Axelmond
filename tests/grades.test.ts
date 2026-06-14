@@ -1,6 +1,7 @@
-import assert from "node:assert/strict";
-import { buildCourseGradeRows } from "../src/grades.ts";
+import assert from "node:assert/strict";import { buildCourseGradeRows } from "../src/grades.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("grades", () => {
 const rows = buildCourseGradeRows(
   [
     {
@@ -50,4 +51,4 @@ assert.equal(rows[1].studentId, "student-2");
 assert.equal(rows[1].completedQuizzesCount, 0);
 assert.equal(rows[1].averageScoreOutOf20, null);
 
-console.log("Grade calculation rules passed");
+});

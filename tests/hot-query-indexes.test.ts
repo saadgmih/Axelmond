@@ -1,6 +1,7 @@
-import assert from "node:assert/strict";
-import fs from "node:fs";
+import assert from "node:assert/strict";import fs from "node:fs";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("hot-query-indexes", () => {
 const schema = fs.readFileSync("prisma/schema.prisma", "utf8");
 const migration = fs.readFileSync(
   "prisma/migrations/20260613200000_hot_query_indexes/migration.sql",
@@ -24,4 +25,4 @@ const enrollmentMigration = fs.readFileSync(
 assert.match(enrollmentMigration, /Enrollment_courseId_idx/);
 assert.match(enrollmentMigration, /Conversation_updatedAt_idx/);
 
-console.log("Hot query index guard tests passed");
+});

@@ -1,8 +1,7 @@
-import assert from "node:assert/strict";
-import { readApiRouteSources } from "./helpers/api-route-sources.ts";
-import { readAppSources } from "./helpers/app-sources.ts";
-import fs from "node:fs";
+import assert from "node:assert/strict";import { readApiRouteSources } from "./helpers/api-route-sources.ts";import { readAppSources } from "./helpers/app-sources.ts";import fs from "node:fs";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("phase0-fixes", () => {
 const serverSource = readApiRouteSources();
 const appSource = readAppSources();
 const navigationSource = fs.readFileSync("src/hooks/usePlatformNavigation.ts", "utf8");
@@ -27,4 +26,4 @@ assert.doesNotMatch(sessionSource, /INV-2026-00/);
 
 assert.match(paymentModalSource, /if \(!result\.user\)/);
 
-console.log("Phase 0 security and UX fixes passed");
+});

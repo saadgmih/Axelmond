@@ -1,16 +1,13 @@
-import assert from "node:assert/strict";
-import { readApiRouteSources } from "./helpers/api-route-sources.ts";
-import fs from "node:fs";
-import {
+import assert from "node:assert/strict";import { readApiRouteSources } from "./helpers/api-route-sources.ts";import fs from "node:fs";import {
   buildDirectConversationKey,
   findDirectConversationId,
-} from "../src/direct-conversations.ts";
-import { mergeUserInvoices, serializeInvoiceRecord } from "../src/course-payments.ts";
-import {
+} from "../src/direct-conversations.ts";import { mergeUserInvoices, serializeInvoiceRecord } from "../src/course-payments.ts";import {
   ProfessorInviteConsumeError,
   reserveProfessorInviteCode,
 } from "../src/professor-invite-consume.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("business-race-guards", () => {
 const schema = fs.readFileSync("prisma/schema.prisma", "utf8");
 const migration = fs.readFileSync("prisma/migrations/20260613180000_business_race_guards/migration.sql", "utf8");
 const serverSource = readApiRouteSources();
@@ -62,4 +59,4 @@ assert.equal(serializeInvoiceRecord({
 
 assert.equal(new ProfessorInviteConsumeError("bad", "INVALID").code, "INVALID");
 
-console.log("Business race guard rules passed");
+});

@@ -1,8 +1,7 @@
-import assert from "node:assert/strict";
-import { readApiRouteSources } from "./helpers/api-route-sources.ts";
-import { readAppSources } from "./helpers/app-sources.ts";
-import fs from "node:fs";
+import assert from "node:assert/strict";import { readApiRouteSources } from "./helpers/api-route-sources.ts";import { readAppSources } from "./helpers/app-sources.ts";import fs from "node:fs";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("paypal-checkout", () => {
 const apiSource = fs.readFileSync("src/api.ts", "utf8");
 const appSource = readAppSources();
 const paymentModalSource = fs.readFileSync("src/components/PaymentModal.tsx", "utf8");
@@ -27,4 +26,4 @@ assert.doesNotMatch(serverSource, /stripe\.checkout\.sessions\.create/);
 assert.doesNotMatch(serverSource, /\/api\/stripe\/webhook/);
 assert.doesNotMatch(apiSource, /createCheckoutSession/);
 
-console.log("PayPal checkout rules passed");
+});

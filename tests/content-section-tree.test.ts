@@ -1,6 +1,7 @@
-import assert from "node:assert/strict";
-import { collectDescendantSectionIds } from "../src/server/route-deps.ts";
+import assert from "node:assert/strict";import { collectDescendantSectionIds } from "../src/server/route-deps.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("content-section-tree", () => {
 const sections = [
   { id: "root", parentId: null },
   { id: "a", parentId: "root" },
@@ -31,4 +32,4 @@ assert.deepEqual(collectDescendantSectionIds("b", sections), ["b"]);
 
 assert.deepEqual(collectDescendantSectionIds("missing", sections), ["missing", "orphan"]);
 
-console.log("Content section tree tests passed");
+});

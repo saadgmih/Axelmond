@@ -1,6 +1,7 @@
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import assert from "node:assert/strict";import { readFileSync } from "node:fs";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("student-video-protection", () => {
 const studentCourseViewSource = readFileSync("src/views/student/StudentCourseView.tsx", "utf8");
 const sessionSource = readFileSync("src/hooks/useStudentCourseSession.ts", "utf8");
 
@@ -18,4 +19,4 @@ assert.doesNotMatch(sessionSource, /isVideoPlaying/);
 assert.doesNotMatch(sessionSource, /videoProgress/);
 assert.doesNotMatch(sessionSource, /videoSpeed/);
 
-console.log("Student video playback protection rules passed");
+});

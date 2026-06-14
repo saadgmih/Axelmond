@@ -1,5 +1,4 @@
-import assert from "node:assert/strict";
-import {
+import assert from "node:assert/strict";import {
   authedFetch,
   DEFAULT_SECURITY_RUNTIME_PORT,
   isSecurityRuntimeDatabaseAvailable,
@@ -8,14 +7,14 @@ import {
   stopSecurityRuntimeServer,
   waitForSecurityRuntimeHealth,
   type SecurityRuntimeSession,
-} from "./helpers/security-runtime-harness.ts";
-import {
+} from "./helpers/security-runtime-harness.ts";import {
   cleanupLiveKitRuntimeFixtures,
   seedLiveKitRuntimeFixtures,
   type LiveKitRuntimeFixture,
-} from "./helpers/security-runtime-livekit-fixtures.ts";
-import { SECURITY_RUNTIME_TEST_PASSWORD } from "./helpers/security-runtime-fixtures.ts";
+} from "./helpers/security-runtime-livekit-fixtures.ts";import { SECURITY_RUNTIME_TEST_PASSWORD } from "./helpers/security-runtime-fixtures.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("security-runtime-livekit", () => {
 const TOKEN_PATH = "/api/livekit/token";
 const MODERATION_PATH = "/api/livekit/moderation";
 const RUNTIME_PORT = DEFAULT_SECURITY_RUNTIME_PORT;
@@ -336,3 +335,4 @@ try {
   }
   await cleanupLiveKitRuntimeFixtures();
 }
+});

@@ -1,7 +1,4 @@
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { readApiRouteSources } from "./helpers/api-route-sources.ts";
-import {
+import assert from "node:assert/strict";import { readFileSync } from "node:fs";import { readApiRouteSources } from "./helpers/api-route-sources.ts";import {
   EMAIL_VERIFICATION_MAX_ATTEMPTS,
   buildEmailVerificationExpiry,
   generateEmailVerificationCode,
@@ -12,7 +9,9 @@ import {
   normalizeEmailVerificationCode,
   canAttemptEmailVerification,
 } from "../src/email-verification.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("email-verification", () => {
 const schemaSource = readFileSync("prisma/schema.prisma", "utf8");
 const serverSource = readApiRouteSources();
 
@@ -49,4 +48,4 @@ assert.match(schemaSource, /EMAIL_VERIFY/);
 assert.match(schemaSource, /PASSWORD_RESET/);
 assert.match(schemaSource, /purpose\s+EmailVerificationPurpose\s+@default\(EMAIL_VERIFY\)/);
 
-console.log("Email verification rules passed");
+});

@@ -1,6 +1,7 @@
-import assert from "node:assert/strict";
-import { buildFixedDatabaseUrl, DEFAULT_PG_SCHEMA, resolvePgSchema } from "../src/db.ts";
+import assert from "node:assert/strict";import { buildFixedDatabaseUrl, DEFAULT_PG_SCHEMA, resolvePgSchema } from "../src/db.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("db-schema", () => {
 assert.equal(
   resolvePgSchema("postgresql://user:pass@host/db?sslmode=require&schema=unicode"),
   DEFAULT_PG_SCHEMA,
@@ -38,4 +39,4 @@ const fixedExisting = buildFixedDatabaseUrl(
 assert.match(fixedExisting.url, /schema=AxelmondResearchLab/);
 assert.equal(fixedExisting.schema, "AxelmondResearchLab");
 
-console.log("Database schema resolver tests passed");
+});

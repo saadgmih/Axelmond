@@ -1,7 +1,7 @@
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { readAppSources } from "./helpers/app-sources.ts";
+import assert from "node:assert/strict";import { readFileSync } from "node:fs";import { readAppSources } from "./helpers/app-sources.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("bundle-lazy-routes", () => {
 const appSource = readAppSources();
 const lazyViewsSource = readFileSync("src/lazyViews.tsx", "utf-8");
 const viteSource = readFileSync("vite.config.ts", "utf-8");
@@ -43,4 +43,4 @@ assert.match(viteSource, /manualChunks/);
 assert.match(viteSource, /livekit-vendor/);
 assert.match(viteSource, /paypal-vendor/);
 
-console.log("Bundle lazy route rules passed");
+});

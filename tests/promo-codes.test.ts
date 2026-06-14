@@ -1,12 +1,11 @@
-import assert from "node:assert/strict";
-import { readApiRouteSources } from "./helpers/api-route-sources.ts";
-import fs from "node:fs";
-import {
+import assert from "node:assert/strict";import { readApiRouteSources } from "./helpers/api-route-sources.ts";import fs from "node:fs";import {
   computeDiscountedPrice,
   resolveCourseChargeAmount,
   resolvePromoDiscountPercent,
 } from "../src/promo-codes.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("promo-codes", () => {
 assert.equal(resolvePromoDiscountPercent(""), 0);
 assert.equal(resolvePromoDiscountPercent(undefined), 0);
 assert.equal(resolvePromoDiscountPercent("AXELMOND20"), 20);
@@ -41,4 +40,4 @@ assert.match(paypalEnrollmentSource, /metadata\.expectedAmount/);
 assert.match(paypalServerSource, /buildPayPalCustomId\([\s\S]*payPalCurrency/);
 assert.match(serverSource, /amountMad: chargePricing\.amount/);
 
-console.log("Promo codes and PayPal pricing rules passed");
+});

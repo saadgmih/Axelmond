@@ -1,7 +1,4 @@
-import assert from "node:assert/strict";
-import fs from "node:fs";
-import { applyPollStart, buildSharedResource, createEmptyPoll } from "../src/live/live-sync.ts";
-import {
+import assert from "node:assert/strict";import fs from "node:fs";import { applyPollStart, buildSharedResource, createEmptyPoll } from "../src/live/live-sync.ts";import {
   extractParticipantRole,
   isModeratorOnlyLiveSyncType,
   isSafeLiveResourceUrl,
@@ -11,7 +8,11 @@ import {
   validateIncomingLiveSyncMessage,
   validateOutgoingLiveSyncMessage,
 } from "../src/live/live-sync-validation.ts";
+import { readApiRouteSources } from "./helpers/api-route-sources.ts";
+import { readLiveKitHookSources } from "./helpers/live-classroom-sources.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("live-sync-validation", () => {
 const poll = applyPollStart("Question ?", ["A", "B"]);
 const baseContext = {
   senderIdentity: "axelmond-user-student-1",
@@ -123,9 +124,7 @@ const timestamps = Array.from({ length: 120 }, (_, index) => 1_000 + index);
 assert.equal(isWhiteboardStrokeRateLimited(timestamps, 61_000), true);
 assert.equal(isWhiteboardStrokeRateLimited(trackWhiteboardStrokeTimestamp(timestamps.slice(0, 10), 61_000), 61_000), false);
 
-import { readApiRouteSources } from "./helpers/api-route-sources.ts";
-
-const hookSource = fs.readFileSync("src/hooks/useLiveKitRoom.tsx", "utf8");
+const hookSource = readLiveKitHookSources();
 const serverSource = readApiRouteSources();
 const resourceStageSource = fs.readFileSync("src/components/live/LiveResourceStage.tsx", "utf8");
 
@@ -138,4 +137,4 @@ assert.match(serverSource, /roomService\.sendData/);
 assert.match(resourceStageSource, /sandbox=/);
 assert.doesNotMatch(resourceStageSource, /resource\.kind === "link" \? `\$\{resource\.url\}`/);
 
-console.log("Live sync validation rules passed");
+});

@@ -1,7 +1,9 @@
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import assert from "node:assert/strict";import { readFileSync } from "node:fs";
+import { readLiveClassroomSources } from "./helpers/live-classroom-sources.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
-const classroomSource = readFileSync("src/components/VirtualClassroom.tsx", "utf8");
+rulesTest("live-video-grid", () => {
+const classroomSource = readLiveClassroomSources();
 const mediaControlSource = readFileSync("src/components/live/LiveMediaControl.tsx", "utf8");
 
 assert.match(classroomSource, /stageParticipants/);
@@ -18,3 +20,4 @@ assert.doesNotMatch(classroomSource, /Panneau interactif/);
 assert.match(classroomSource, /formatLiveStat/);
 assert.match(classroomSource, /isSolo/);
 assert.doesNotMatch(mediaControlSource, /uppercase tracking-wide/);
+});

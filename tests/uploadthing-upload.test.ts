@@ -1,8 +1,7 @@
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { readApiRouteSources } from "./helpers/api-route-sources.ts";
-import { readAppSources } from "./helpers/app-sources.ts";
+import assert from "node:assert/strict";import { readFileSync } from "node:fs";import { readApiRouteSources } from "./helpers/api-route-sources.ts";import { readAppSources } from "./helpers/app-sources.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("uploadthing-upload", () => {
 const clientSource = readFileSync("src/uploadthing-client.ts", "utf-8");
 const serverSource = readApiRouteSources();
 const appSource = readAppSources();
@@ -58,4 +57,4 @@ assert.match(appSource, /validateUploadFile/);
 assert.match(supportSource, /getUploadedFileUrl/);
 assert.match(supportSource, /getUploadErrorMessage/);
 
-console.log("UploadThing upload rules passed");
+});

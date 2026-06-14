@@ -1,5 +1,4 @@
-import assert from "node:assert/strict";
-import {
+import assert from "node:assert/strict";import {
   isAllowedAvatarMime,
   isAllowedAvatarUrl,
   isAllowedRasterImageMime,
@@ -7,7 +6,9 @@ import {
   isForbiddenRasterImageExtension,
   sanitizeAvatarUrl,
 } from "../src/avatar-security.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("avatar-security", () => {
 assert.equal(isAllowedAvatarUrl("https://utfs.io/f/avatar.jpg"), true);
 assert.equal(isAllowedAvatarUrl("https://ufs.sh/f/avatar.webp"), true);
 assert.equal(isAllowedAvatarUrl("https://uploadthing.com/f/abc"), true);
@@ -44,4 +45,4 @@ assert.equal(sanitizeAvatarUrl("https://evil.com/avatar.jpg"), null);
 assert.equal(sanitizeAvatarUrl(""), null);
 assert.equal(sanitizeAvatarUrl(null), null);
 
-console.log("Avatar security tests passed");
+});

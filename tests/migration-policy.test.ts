@@ -1,7 +1,7 @@
-import assert from "node:assert/strict";
-import fs from "node:fs";
-import path from "node:path";
+import assert from "node:assert/strict";import fs from "node:fs";import path from "node:path";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("migration-policy", () => {
 const packageJson = JSON.parse(fs.readFileSync("package.json", "utf8")) as {
   scripts?: Record<string, string>;
 };
@@ -50,4 +50,4 @@ assert.ok(
   "legacy messaging runner must stay archived, not deleted without trace",
 );
 
-console.log("Migration policy guard tests passed");
+});

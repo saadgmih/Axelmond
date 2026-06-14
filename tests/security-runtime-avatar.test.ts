@@ -1,5 +1,4 @@
-import assert from "node:assert/strict";
-import {
+import assert from "node:assert/strict";import {
   allocateSecurityRuntimePort,
   authedFetch,
   isSecurityRuntimeDatabaseAvailable,
@@ -7,14 +6,14 @@ import {
   startSecurityRuntimeServer,
   stopSecurityRuntimeServer,
   waitForSecurityRuntimeHealth,
-} from "./helpers/security-runtime-harness.ts";
-import {
+} from "./helpers/security-runtime-harness.ts";import {
   cleanupChatTutorRuntimeFixtures,
   seedChatTutorRuntimeFixtures,
   SECURITY_RUNTIME_TEST_PASSWORD,
-} from "./helpers/security-runtime-fixtures.ts";
-import { prisma } from "../src/db.ts";
+} from "./helpers/security-runtime-fixtures.ts";import { prisma } from "../src/db.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("security-runtime-avatar", () => {
 const AVATAR_PATH = "/api/me/avatar";
 const PROFILE_PATH = "/api/me/profile";
 const VALID_AVATAR_URL = "https://utfs.io/f/security-runtime-avatar.jpg";
@@ -136,3 +135,4 @@ try {
   }
   await cleanupChatTutorRuntimeFixtures();
 }
+});

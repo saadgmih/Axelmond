@@ -1,12 +1,12 @@
-import assert from "node:assert/strict";
-import fs from "node:fs";
-import {
+import assert from "node:assert/strict";import fs from "node:fs";import {
   isAllowedPushEndpointUrl,
   isAllowedPushProviderHost,
   isPrivateOrBlockedHost,
   validatePushSubscriptionInput,
 } from "../src/push-endpoint-security.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("push-endpoint-security", () => {
 const validKeys = {
   p256dh: "BNcRdskM_twdnP9Z8ZnwKNBFsONNbStHYxK23TyDCk9hjWKZuebglPp2n6c1c0JYtH_uaHUSMXZOa8d6oh4MX2U",
   auth: "tBHItJI5svbpez7KI4CCXg",
@@ -73,4 +73,4 @@ assert.match(notificationsSource, /PushSubscriptionLimitError/);
 assert.match(messagingRoutesSource, /PushSubscriptionValidationError/);
 assert.match(messagingRoutesSource, /PushSubscriptionLimitError/);
 
-console.log("Push endpoint security rules passed");
+});

@@ -1,12 +1,12 @@
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import assert from "node:assert/strict";import { readFileSync } from "node:fs";import { readAppSources } from "./helpers/app-sources.ts";
+import { readLiveClassroomSources, readLiveKitHookSources } from "./helpers/live-classroom-sources.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
-import { readAppSources } from "./helpers/app-sources.ts";
-
+rulesTest("livekit-microphone", () => {
 const appSource = readAppSources();
-const liveKitHookSource = readFileSync(new URL("../src/hooks/useLiveKitRoom.tsx", import.meta.url), "utf8");
-const liveKitSource = appSource + liveKitHookSource;
-const classroomSource = readFileSync(new URL("../src/components/VirtualClassroom.tsx", import.meta.url), "utf8");
+const liveKitHookSource = readLiveKitHookSources();
+const liveKitSource = appSource + readLiveKitHookSources();
+const classroomSource = readLiveClassroomSources();
 
 assert.match(liveKitSource, /getMicrophonePermissionState/);
 assert.match(liveKitSource, /Microphone bloqué par le navigateur/);
@@ -15,4 +15,4 @@ assert.doesNotMatch(liveKitSource, /navigator\.mediaDevices\.getUserMedia\(\{\s*
 assert.match(classroomSource, /Autoriser le micro/);
 assert.match(classroomSource, /icône cadenas/);
 
-console.log("LiveKit microphone rules passed");
+});

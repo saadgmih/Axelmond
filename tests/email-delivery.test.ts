@@ -1,6 +1,7 @@
-import assert from "node:assert/strict";
-import { buildMailDeliveryDetails } from "../src/email.ts";
+import assert from "node:assert/strict";import { buildMailDeliveryDetails } from "../src/email.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("email-delivery", () => {
 const details = buildMailDeliveryDetails({
   messageId: "<test@axelmond.com>",
   accepted: ["user@gmail.com"],
@@ -22,4 +23,4 @@ assert.deepEqual(details.envelope, {
 assert.equal(details.response, "250 2.0.0 Ok: queued as abc123");
 assert.equal(details.providerStatus, "QUEUED");
 
-console.log("Email delivery rules passed");
+});

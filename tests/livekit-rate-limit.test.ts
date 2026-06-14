@@ -1,9 +1,7 @@
-import assert from "node:assert/strict";
-import type { Request } from "express";
-import { ipKeyGenerator } from "express-rate-limit";
-import { signAuthToken } from "../src/auth-token.ts";
-import { liveKitRateLimitKey } from "../src/livekit-rate-limit.ts";
+import assert from "node:assert/strict";import type { Request } from "express";import { ipKeyGenerator } from "express-rate-limit";import { signAuthToken } from "../src/auth-token.ts";import { liveKitRateLimitKey } from "../src/livekit-rate-limit.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("livekit-rate-limit", () => {
 function mockRequest(options: { ip?: string; authorization?: string } = {}): Request {
   return {
     ip: options.ip ?? "203.0.113.42",
@@ -51,4 +49,4 @@ assert.equal(
   "utilise l'IP quand le JWT est invalide",
 );
 
-console.log("LiveKit rate limit tests passed");
+});

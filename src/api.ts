@@ -129,10 +129,6 @@ export async function getFreshSessionToken(): Promise<string | null> {
   return refreshSessionToken();
 }
 
-export function getStoredRefreshToken(): string | null {
-  return null;
-}
-
 async function request<T>(method: string, path: string, body?: unknown, allowCsrfRetry = true): Promise<T> {
   let token = accessTokenMemory;
   const url = `${BASE_URL}${path}`;
@@ -212,9 +208,7 @@ export const api = {
     const query = params.toString();
     return request<any[]>("GET", `/api/courses${query ? `?${query}` : ""}`);
   },
-  getCourse: (id: number) => request<any>("GET", `/api/courses/${id}`),
   getCourseContent: (id: number) => request<any[]>("GET", `/api/courses/${id}/content`),
-  getModuleContents: (id: number) => request<any[]>("GET", `/api/courses/${id}/module-contents`),
   createCourse: (data: { title: string; level: string; credits: number; duration: string; category?: string; disciplineId: number; price: number; instructor?: string; description: string; published: boolean }) =>
     request<any>("POST", "/api/courses", data),
   updateCourseDetails: (courseId: number, data: { title?: string; description?: string; level?: string; credits?: number; duration?: string; disciplineId?: number; price?: number; published?: boolean }) =>
@@ -233,16 +227,12 @@ export const api = {
     request<any>("DELETE", `/api/chapters/${chapterId}`),
   createSection: (courseId: number, data: { title: string; description?: string; parentId?: string; chapterId?: string; published: boolean }) =>
     request<any>("POST", `/api/courses/${courseId}/sections`, data),
-  createTextContent: (sectionId: string, data: { title: string; body: string; published: boolean }) =>
-    request<any>("POST", `/api/content-sections/${sectionId}/contents`, data),
   putContentSection: (sectionId: string, data: { title?: string; description?: string | null; published?: boolean; order?: number }) =>
     request<any>("PUT", `/api/content-sections/${sectionId}`, data),
   updateContentSection: (sectionId: string, data: { title?: string; description?: string | null; published?: boolean }) =>
     request<any>("PATCH", `/api/content-sections/${sectionId}`, data),
   deleteContentSection: (sectionId: string) =>
     request<any>("DELETE", `/api/content-sections/${sectionId}`),
-  putLessonContent: (contentId: string, data: { title?: string; body?: string | null; published?: boolean }) =>
-    request<any>("PUT", `/api/lesson-contents/${contentId}`, data),
   updateLessonContent: (contentId: string, data: { title?: string; body?: string | null; published?: boolean }) =>
     request<any>("PATCH", `/api/lesson-contents/${contentId}`, data),
   deleteLessonContent: (contentId: string) =>
@@ -254,8 +244,6 @@ export const api = {
     request<any[]>("GET", `/api/courses/${courseId}/grades`),
   completeModule: (courseId: number, moduleId: number) =>
     request<any>("POST", `/api/courses/${courseId}/modules/${moduleId}/complete`),
-  addModule: (courseId: number, data: { title: string; type: string; duration: string; contentMarkdown?: string }) =>
-    request<any>("POST", `/api/courses/${courseId}/modules`, data),
   updateCourse: (courseId: number, data: { price?: number; isLiveNow?: boolean; liveSubject?: string | null; published?: boolean }) =>
     request<any>("PATCH", `/api/courses/${courseId}`, data),
   getPayPalConfig: () =>
@@ -280,14 +268,6 @@ export const api = {
     request<any>("POST", "/api/test-email", { to }),
   getEmailDeliverySummary: () =>
     request<any>("GET", "/api/admin/email-delivery-summary"),
-  getEmailDeliveryLogs: () =>
-    request<any[]>("GET", "/api/admin/email-delivery-logs"),
-  getProfessorInvites: () =>
-    request<any[]>("GET", "/api/admin/professor-invites"),
-  createProfessorInvite: (data?: { code?: string }) =>
-    request<any>("POST", "/api/admin/professor-invites", data),
-  deleteProfessorInvite: (code: string) =>
-    request<any>("DELETE", `/api/admin/professor-invites/${code}`),
   getAcademicProfile: () =>
     request<any>("GET", "/api/me/profile"),
   updateAcademicProfile: (data: { title?: string; department?: string; lab?: string; speciality?: string; teachingDomains?: string[]; researchDomains?: string[]; bio?: string; avatarUrl?: string; links?: Record<string, string> }) =>
@@ -300,8 +280,6 @@ export const api = {
     request<any>("POST", "/api/me/password", { currentPassword, newPassword }),
   logout: () =>
     request<any>("POST", "/api/auth/logout"),
-  getAdminAcademicProfiles: () =>
-    request<any[]>("GET", "/api/admin/academic-profiles"),
   me: () => request<any>("GET", "/api/auth/me"),
   getLiveKitToken: (courseId: number) =>
     request<any>("POST", "/api/livekit/token", { courseId }),
@@ -323,12 +301,6 @@ export const api = {
     request<any[]>("GET", `/api/courses/${courseId}/quizzes`),
   createCourseQuiz: (courseId: number, data: { moduleId?: number | null; sectionId?: string | null; title: string; published: boolean }) =>
     request<any>("POST", `/api/courses/${courseId}/quizzes`, data),
-  updateQuiz: (quizId: string, data: { title?: string; published?: boolean }) =>
-    request<any>("PATCH", `/api/quizzes/${quizId}`, data),
-  deleteQuiz: (quizId: string) =>
-    request<any>("DELETE", `/api/quizzes/${quizId}`),
-  submitQuizAttemptById: (quizId: string, answers: Record<string, string>) =>
-    request<any>("POST", `/api/quizzes/${quizId}/attempts`, { answers }),
   addQuizQuestion: (quizId: string, data: { question: string; options: string[]; answer: string; explanation: string }) =>
     request<any>("POST", `/api/quizzes/${quizId}/questions`, data),
   deleteQuizQuestion: (questionId: string) =>
@@ -444,15 +416,4 @@ export function setSessionToken(token: string | undefined, csrfToken?: string) {
   } else {
     clearSessionTokens();
   }
-}
-
-export async function fetchWithAuth(path: string, method: string, body?: unknown): Promise<Response> {
-  let token = accessTokenMemory;
-  const url = path.startsWith("http") ? path : `${BASE_URL}${path}`;
-  let res = await fetch(url, buildRequestOptions(method, body, token));
-  if (res.status === 401 && !AUTH_PATHS_WITHOUT_REFRESH.has(path)) {
-    token = await refreshSessionToken();
-    if (token) res = await fetch(url, buildRequestOptions(method, body, token));
-  }
-  return res;
 }

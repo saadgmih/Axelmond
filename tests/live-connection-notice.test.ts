@@ -1,12 +1,13 @@
-import assert from "node:assert/strict";
-import {
+import assert from "node:assert/strict";import {
   buildAdaptiveQualityNotice,
   buildConnectionChangeNotice,
   buildManualQualityNotice,
   normalizeConnectionQuality,
   suggestAdaptiveQualityChange,
 } from "../src/live/live-connection-notice.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("live-connection-notice", () => {
 assert.equal(normalizeConnectionQuality("excellent"), "excellent");
 assert.equal(normalizeConnectionQuality("poor"), "poor");
 
@@ -28,4 +29,4 @@ assert.match(adaptiveDown!.message, /réduite/i);
 assert.equal(suggestAdaptiveQualityChange("poor", "720p"), "480p");
 assert.equal(suggestAdaptiveQualityChange("excellent", "480p"), "720p");
 
-console.log("Live connection notice rules passed");
+});

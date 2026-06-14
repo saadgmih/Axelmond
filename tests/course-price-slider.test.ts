@@ -1,12 +1,11 @@
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { readAppSources } from "./helpers/app-sources.ts";
-import {
+import assert from "node:assert/strict";import { readFileSync } from "node:fs";import { readAppSources } from "./helpers/app-sources.ts";import {
   clampCoursePrice,
   getCoursePriceSliderPct,
   getCoursePriceSliderPercentage,
 } from "../src/components/CoursePriceSlider.tsx";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("course-price-slider", () => {
 const appSource = readAppSources();
 const teacherDashboardSource = readFileSync("src/views/teacher/TeacherDashboardView.tsx", "utf8");
 const sliderSource = readFileSync("src/components/CoursePriceSlider.tsx", "utf8");
@@ -36,4 +35,4 @@ assert.equal(getCoursePriceSliderPercentage(249.5), 50);
 assert.equal(clampCoursePrice(500), 499);
 assert.equal(clampCoursePrice(-10), 0);
 
-console.log("Course price slider rules passed");
+});

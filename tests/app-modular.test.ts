@@ -1,8 +1,7 @@
-import assert from "node:assert/strict";
-import fs from "node:fs";
-import path from "node:path";
-import { readAppSources } from "./helpers/app-sources.ts";
+import assert from "node:assert/strict";import fs from "node:fs";import path from "node:path";import { readAppSources } from "./helpers/app-sources.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("app-modular", () => {
 const root = process.cwd();
 const appSource = readAppSources();
 const appEntry = fs.readFileSync(path.join(root, "src/App.tsx"), "utf8");
@@ -27,4 +26,4 @@ for (const fileName of ["StudentRouteSwitch.tsx", "TeacherRouteSwitch.tsx"]) {
   assert.ok(source.split("\n").length <= maxRouteSwitchLines, `${fileName} should stay focused on role routes`);
 }
 
-console.log("App modularization structure passed");
+});

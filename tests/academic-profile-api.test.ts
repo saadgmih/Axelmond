@@ -1,8 +1,7 @@
-import assert from "node:assert/strict";
-import fs from "node:fs";
-import { readApiRouteSources } from "./helpers/api-route-sources.ts";
-import { readAppSources } from "./helpers/app-sources.ts";
+import assert from "node:assert/strict";import fs from "node:fs";import { readApiRouteSources } from "./helpers/api-route-sources.ts";import { readAppSources } from "./helpers/app-sources.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("academic-profile-api", () => {
 const serverSource = readApiRouteSources();
 const appSource = readAppSources();
 const academicProfileHookSource = fs.readFileSync("src/hooks/useAcademicProfile.ts", "utf8");
@@ -23,4 +22,4 @@ assert.match(appProfileBundle, /api\.updateAcademicProfile\(\{/);
 assert.doesNotMatch(appProfileBundle, /api\.updateAcademicProfile\(\{[^}]*role/s);
 assert.match(sidebarSource, /Mon Profil Académique/);
 
-console.log("Academic profile API contract passed");
+});

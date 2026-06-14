@@ -1,5 +1,4 @@
-import assert from "node:assert/strict";
-import {
+import assert from "node:assert/strict";import {
   canManageContent,
   canAccessAcademicProfile,
   canAccessApiRoute,
@@ -13,7 +12,9 @@ import {
   getTeacherSpaceTitle,
   getTeacherRoleBadgeTone,
 } from "../src/rbac.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("rbac", () => {
 assert.equal(normalizeRole("student"), "STUDENT");
 assert.equal(normalizeRole("teacher"), "PROFESSOR");
 assert.equal(normalizeRole("researcher"), "RESEARCHER");
@@ -109,4 +110,4 @@ assert.equal(getTeacherRoleBadgeTone("ADMIN"), "admin");
 assert.equal(getTeacherRoleBadgeTone("RESEARCHER"), "researcher");
 assert.equal(getTeacherRoleBadgeTone("PROFESSOR"), "professor");
 
-console.log("RBAC rules passed");
+});

@@ -1,7 +1,7 @@
-import assert from "node:assert/strict";
-import fs from "node:fs";
-import { getClientErrorMessage, sanitizeClientErrorMessage } from "../src/client-errors.ts";
+import assert from "node:assert/strict";import fs from "node:fs";import { getClientErrorMessage, sanitizeClientErrorMessage } from "../src/client-errors.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("client-errors", () => {
 assert.equal(
   sanitizeClientErrorMessage("Module introuvable", "Erreur", 404),
   "Module introuvable",
@@ -29,4 +29,4 @@ assert.match(
   /sanitizeClientErrorMessage/,
 );
 
-console.log("Client error sanitization tests passed");
+});

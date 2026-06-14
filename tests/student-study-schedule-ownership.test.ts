@@ -1,9 +1,7 @@
-import assert from "node:assert/strict";
-import { readApiRouteSources } from "./helpers/api-route-sources.ts";
-import { readAppSources } from "./helpers/app-sources.ts";
-import fs from "node:fs";
-import { canAccessApiRoute } from "../src/rbac.ts";
+import assert from "node:assert/strict";import { readApiRouteSources } from "./helpers/api-route-sources.ts";import { readAppSources } from "./helpers/app-sources.ts";import fs from "node:fs";import { canAccessApiRoute } from "../src/rbac.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("student-study-schedule-ownership", () => {
 const serverSource = readApiRouteSources();
 const schemaSource = fs.readFileSync("prisma/schema.prisma", "utf8");
 const apiSource = fs.readFileSync("src/api.ts", "utf8");
@@ -42,4 +40,4 @@ assert.match(appSource, /currentView === "study-schedule"/);
 assert.match(sidebarSource, /Mon Emploi du Temps d/);
 assert.match(platformPathsSource, /"study-schedule"/);
 
-console.log("Student study schedule ownership rules passed");
+});

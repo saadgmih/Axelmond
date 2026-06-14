@@ -1,6 +1,7 @@
-import assert from "node:assert/strict";
-import fs from "node:fs";
+import assert from "node:assert/strict";import fs from "node:fs";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("notifications-api", () => {
 const apiSource = fs.readFileSync("src/api.ts", "utf8");
 const notificationsHookSource = fs.readFileSync("src/hooks/useNotifications.ts", "utf8");
 const pushHookSource = fs.readFileSync("src/hooks/usePushNotifications.ts", "utf8");
@@ -23,4 +24,4 @@ assert.match(messagingRoutesSource, /\/api\/notifications\/read-all/);
 assert.match(messagingRoutesSource, /\/api\/notifications\/push-subscribe/);
 assert.match(messagingRoutesSource, /isWebPushConfigured\(\)/);
 
-console.log("Notifications API wiring tests passed");
+});

@@ -1,12 +1,13 @@
-import assert from "node:assert/strict";
-import {
+import assert from "node:assert/strict";import {
   DEFAULT_SECURITY_RUNTIME_PORT,
   isSecurityRuntimeDatabaseAvailable,
   startSecurityRuntimeServer,
   stopSecurityRuntimeServer,
   waitForSecurityRuntimeHealth,
 } from "./helpers/security-runtime-harness.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("security-runtime-harness.smoke", () => {
 if (!isSecurityRuntimeDatabaseAvailable()) {
   console.log("Security runtime harness smoke skipped: DATABASE_URL missing");
   process.exit(0);
@@ -25,3 +26,4 @@ try {
 } finally {
   await stopSecurityRuntimeServer(handle);
 }
+});

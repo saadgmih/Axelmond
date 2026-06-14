@@ -1,8 +1,7 @@
-import assert from "node:assert/strict";
-import fs from "node:fs";
-import { canAccessApiRoute } from "../src/rbac.ts";
-import { readApiRouteSources } from "./helpers/api-route-sources.ts";
+import assert from "node:assert/strict";import fs from "node:fs";import { canAccessApiRoute } from "../src/rbac.ts";import { readApiRouteSources } from "./helpers/api-route-sources.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("security", () => {
 const serverSource = readApiRouteSources();
 const uploadthingSource = fs.readFileSync("src/uploadthing.ts", "utf8");
 
@@ -110,4 +109,4 @@ assert.match(serverSource, /app\.use\("\/api\/test-email",\s*adminDiagnosticRate
 assert.match(serverSource, /if\s*\(req\.method === "GET"\)[\s\S]*?adminReadRateLimiter/);
 assert.match(serverSource, /ADMIN_MUTATION_METHODS[\s\S]*?adminMutationRateLimiter/);
 
-console.log("Security automated tests passed");
+});

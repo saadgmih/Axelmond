@@ -1,7 +1,4 @@
-import assert from "node:assert/strict";
-import { readApiRouteSources } from "./helpers/api-route-sources.ts";
-import fs from "node:fs";
-import {
+import assert from "node:assert/strict";import { readApiRouteSources } from "./helpers/api-route-sources.ts";import fs from "node:fs";import {
   buildChatTutorSystemInstruction,
   ChatTutorServiceError,
   DEFAULT_OPENAI_MODEL,
@@ -12,9 +9,10 @@ import {
   isOpenAIConfigured,
   shouldUseLocalChatTutorFallback,
   toChatTutorClientResponse,
-} from "../src/openai-service.ts";
-import { trimChatTutorHistory } from "../src/chat-tutor-limits.ts";
+} from "../src/openai-service.ts";import { trimChatTutorHistory } from "../src/chat-tutor-limits.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("openai-service", async () => {
 const previousOpenAIKey = process.env.OPENAI_API_KEY;
 delete process.env.OPENAI_API_KEY;
 delete process.env.OPENAI_MODEL;
@@ -82,4 +80,4 @@ if (previousOpenAIKey !== undefined) {
   delete process.env.OPENAI_API_KEY;
 }
 
-console.log("OpenAI service tests passed");
+});

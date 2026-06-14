@@ -1,7 +1,7 @@
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { readApiRouteSources, readServerBootstrapSources } from "./helpers/api-route-sources.ts";
+import assert from "node:assert/strict";import { readFileSync } from "node:fs";import { readApiRouteSources, readServerBootstrapSources } from "./helpers/api-route-sources.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("auth-attempts", () => {
 const bootstrapSource = readServerBootstrapSources();
 const apiSource = readApiRouteSources();
 const authScreenSource = readFileSync("src/components/AuthScreen.tsx", "utf-8");
@@ -16,4 +16,4 @@ assert.match(authScreenSource, /maxAttempts = 20/);
 assert.match(authScreenSource, /maxAttempts=\{20\}/);
 assert.match(authScreenSource, /1 minute/);
 
-console.log("auth-attempts tests passed");
+});

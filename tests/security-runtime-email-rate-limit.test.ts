@@ -1,13 +1,13 @@
-import assert from "node:assert/strict";
-import { randomUUID } from "node:crypto";
-import {
+import assert from "node:assert/strict";import { randomUUID } from "node:crypto";import {
   allocateSecurityRuntimePort,
   isSecurityRuntimeDatabaseAvailable,
   startSecurityRuntimeServer,
   stopSecurityRuntimeServer,
   waitForSecurityRuntimeHealth,
 } from "./helpers/security-runtime-harness.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("security-runtime-email-rate-limit", () => {
 const PATHS = {
   verifyEmail: "/api/auth/verify-email",
   resendVerification: "/api/auth/resend-verification-code",
@@ -232,3 +232,4 @@ try {
     await stopSecurityRuntimeServer(handle);
   }
 }
+});

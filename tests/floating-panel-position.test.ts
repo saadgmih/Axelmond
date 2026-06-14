@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "vitest";
 import { computeFloatingPanelPosition } from "../src/utils/floating-panel-position";
 
 const viewport = { viewportWidth: 390, viewportHeight: 844, padding: 16, gap: 8 };

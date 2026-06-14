@@ -1,9 +1,10 @@
-import assert from "node:assert/strict";
-import fs from "node:fs";
-import { readAppSources } from "./helpers/app-sources.ts";
+import assert from "node:assert/strict";import fs from "node:fs";import { readAppSources } from "./helpers/app-sources.ts";
+import { readLiveClassroomSources } from "./helpers/live-classroom-sources.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("keyboard-navigation", () => {
 const appSource = readAppSources();
-const classroomSource = fs.readFileSync("src/components/VirtualClassroom.tsx", "utf8");
+const classroomSource = readLiveClassroomSources();
 const paymentSource = fs.readFileSync("src/components/PaymentModal.tsx", "utf8");
 const catalogSource = fs.readFileSync("src/views/student/StudentCatalogView.tsx", "utf8");
 const dashboardSource = fs.readFileSync("src/views/student/StudentDashboardView.tsx", "utf8");
@@ -34,4 +35,4 @@ assert.match(dashboardSource, /data-tv-zone="student-dashboard"/);
 assert.match(cssSource, /focus-visible/);
 assert.match(cssSource, /data-tv-focusable/);
 
-console.log("Keyboard and TV navigation rules passed");
+});

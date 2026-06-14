@@ -1,9 +1,7 @@
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { canAccessApiRoute } from "../src/rbac.ts";
+import assert from "node:assert/strict";import { readFileSync } from "node:fs";import { canAccessApiRoute } from "../src/rbac.ts";import { readApiRouteSources } from "./helpers/api-route-sources.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
-import { readApiRouteSources } from "./helpers/api-route-sources.ts";
-
+rulesTest("module-progress-ownership", () => {
 const schemaSource = readFileSync("prisma/schema.prisma", "utf8");
 const serverSource = readApiRouteSources();
 const migrationSource = readFileSync("prisma/migrations/20260613174000_module_progress/migration.sql", "utf8");
@@ -30,4 +28,4 @@ assert.doesNotMatch(completeRouteSource, /progress:\s*course\.progress/);
 assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/courses/1/modules/101/complete"), true);
 assert.equal(canAccessApiRoute("PROFESSOR", "POST", "/api/courses/1/modules/101/complete"), false);
 
-console.log("Module progress ownership rules passed");
+});

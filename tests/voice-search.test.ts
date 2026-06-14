@@ -1,6 +1,4 @@
-import assert from "node:assert/strict";
-import fs from "node:fs";
-import {
+import assert from "node:assert/strict";import fs from "node:fs";import {
   VOICE_SEARCH_BRAVE_FALLBACK_MSG,
   VOICE_SEARCH_MICROPHONE_DENIED_MSG,
   VOICE_SEARCH_NETWORK_ERROR_MSG,
@@ -11,7 +9,9 @@ import {
   extractLatestTranscript,
   mapSpeechRecognitionError,
 } from "../src/utils/voiceSearch.ts";
+import { rulesTest } from "./helpers/rulesTest.ts";
 
+rulesTest("voice-search", () => {
 const topbarSource = fs.readFileSync("src/components/Topbar.tsx", "utf8");
 const hookSource = fs.readFileSync("src/hooks/useVoiceSearch.ts", "utf8");
 const utilsSource = fs.readFileSync("src/utils/voiceSearch.ts", "utf8");
@@ -48,7 +48,7 @@ assert.match(topbarSource, /Rechercher dans le catalogue/);
 assert.match(cssSource, /voice-search-mic-active/);
 assert.match(cssSource, /voice-search-mic-pulse/);
 
-assert.match(packageSource, /voice-search\.test\.ts/);
+assert.match(packageSource, /"test":\s*"vitest run"/);
 
 assert.equal(mapSpeechRecognitionError("not-allowed"), VOICE_SEARCH_MICROPHONE_DENIED_MSG);
 assert.equal(mapSpeechRecognitionError("service-not-allowed"), VOICE_SEARCH_SERVICE_UNAVAILABLE_MSG);
@@ -114,4 +114,4 @@ assert.deepEqual(extractLatestTranscript(mockEvent), {
   isFinal: true,
 });
 
-console.log("Voice search rules passed");
+});
