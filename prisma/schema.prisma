@@ -43,7 +43,6 @@ model User {
   levelOrTitle           String?
   filiere                String?
   avatarUrl              String?
-  invoices               Json                    @default("[]")
   failedLoginAttempts    Int                     @default(0)
   lockoutUntil           DateTime?
   createdAt              DateTime                @default(now())

@@ -46,7 +46,7 @@ assert.doesNotMatch(apiSource, /localStorage\.setItem\(LEGACY_REFRESH_TOKEN_KEY/
 assert.match(authCsrfSource, /CSRF_TOKEN_INVALID/);
 assert.match(authCsrfSource, /\/api\/uploadthing/);
 assert.match(authCsrfSource, /\/api\/paypal\/webhook/);
-assert.match(authCsrfSource, /\/api\/stripe\/webhook/);
+assert.doesNotMatch(authCsrfSource, /\/api\/stripe\/webhook/);
 assert.match(authCsrfSource, /\/api\/auth\/login/);
 
 function createMockRes() {

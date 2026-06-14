@@ -16,7 +16,6 @@ const CSRF_EXEMPT_PATHS = new Set([
 const CSRF_EXEMPT_PREFIXES = [
   "/api/uploadthing",
   "/api/paypal/webhook",
-  "/api/stripe/webhook",
 ];
 
 function isCsrfExempt(req: Request): boolean {

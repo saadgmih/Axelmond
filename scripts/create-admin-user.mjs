@@ -39,7 +39,6 @@ async function main() {
         role: "ADMIN",
         emailVerified: true,
         levelOrTitle,
-        invoices: [],
       },
     });
 

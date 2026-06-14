@@ -16,6 +16,7 @@ const messagingRoutesSource = fs.readFileSync("src/messaging-routes.ts", "utf8")
 assert.match(schema, /directKey\s+String\?\s+@unique/);
 assert.match(schema, /model Payment/);
 assert.match(schema, /model Invoice/);
+assert.doesNotMatch(schema, /invoices\s+Json/);
 assert.match(schema, /@@unique\(\[provider, externalId\]\)/);
 assert.match(migration, /LiveAttendance_active_session_user_key/);
 assert.match(migration, /Conversation_directKey_key/);
@@ -26,6 +27,8 @@ const paypalEnrollmentSource = fs.readFileSync("src/paypal-enrollment.ts", "utf8
 assert.match(serverSource, /reserveProfessorInviteCode/);
 assert.match(coursePaymentsSource, /persistCoursePaymentEnrollment/);
 assert.match(coursePaymentsSource, /externalId/);
+assert.doesNotMatch(coursePaymentsSource, /user\.invoices/);
+assert.doesNotMatch(coursePaymentsSource, /data:\s*\{\s*invoices:/);
 assert.match(serverSource, /persistCoursePaymentWithAudit/);
 assert.match(serverSource, /REGISTRATION_SEED_ENROLLMENT/);
 assert.match(serverSource, /buildPersistCoursePaymentEnrollment/);
@@ -39,7 +42,6 @@ assert.equal(buildDirectConversationKey("user-a", "user-b"), "user-a:user-b");
 assert.equal(typeof findDirectConversationId, "function");
 
 const merged = mergeUserInvoices({
-  invoices: [{ id: "LEG-1", date: "01/01/2026", courseTitle: "Legacy", amount: 10, status: "Payé" }],
   invoiceRecords: [{
     id: "INV-1",
     courseTitle: "DB",
@@ -48,7 +50,8 @@ const merged = mergeUserInvoices({
     issuedAt: new Date("2026-01-02T00:00:00.000Z"),
   }],
 });
-assert.equal(merged.length, 2);
+assert.equal(merged.length, 1);
+assert.equal(merged[0]?.id, "INV-1");
 assert.equal(serializeInvoiceRecord({
   id: "INV-1",
   courseTitle: "DB",

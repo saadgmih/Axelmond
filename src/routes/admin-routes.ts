@@ -2,6 +2,13 @@ import type { Express } from "express";
 import type { RouteContext } from "../server/route-context";
 import type { AppUser } from "../server/route-deps";
 import * as api from "../server/route-deps";
+import {
+  auditLogSnapshot,
+  buildAuditLogCsv,
+  fetchAuditLogsForExport,
+  listAuditLogs,
+  parseAuditLogDate,
+} from "../audit-log-service";
 
 export function registerAdminRoutes(app: Express, ctx: RouteContext): void {
   const { requireAuth, requireRbac, requireAdmin, validateBody } = ctx.middleware;
@@ -254,6 +261,117 @@ export function registerAdminRoutes(app: Express, ctx: RouteContext): void {
   
   });
   
+  
+  
+  app.get("/api/admin/audit-logs", requireAuth, requireAdmin, async (req, res) => {
+  
+    const limit = Number(req.query.limit) || 50;
+  
+    const cursor = typeof req.query.cursor === "string" ? req.query.cursor : undefined;
+  
+    const action = typeof req.query.action === "string" ? req.query.action.trim() : undefined;
+  
+    const userId = typeof req.query.userId === "string" ? req.query.userId.trim() : undefined;
+  
+    const since = parseAuditLogDate(req.query.since);
+  
+    const until = parseAuditLogDate(req.query.until);
+  
+    if ((req.query.since && !since) || (req.query.until && !until)) {
+  
+      res.status(400).json({ error: "Plage de dates invalide" });
+  
+      return;
+  
+    }
+  
+  
+  
+    const page = await listAuditLogs({ limit, cursor, action, userId, since, until });
+  
+    api.logSecurity("INFO", "Admin listed audit logs", { count: page.items.length, action, userId });
+  
+    res.json({
+  
+      items: page.items.map(auditLogSnapshot),
+  
+      nextCursor: page.nextCursor,
+  
+    });
+  
+  });
+  
+  
+  
+  app.get("/api/admin/audit-logs/export", requireAuth, requireAdmin, async (req, res) => {
+  
+    const authUser = (req as any).authUser as AppUser;
+  
+    const format = req.query.format === "json" ? "json" : "csv";
+  
+    const action = typeof req.query.action === "string" ? req.query.action.trim() : undefined;
+  
+    const userId = typeof req.query.userId === "string" ? req.query.userId.trim() : undefined;
+  
+    const since = parseAuditLogDate(req.query.since);
+  
+    const until = parseAuditLogDate(req.query.until);
+  
+    if ((req.query.since && !since) || (req.query.until && !until)) {
+  
+      res.status(400).json({ error: "Plage de dates invalide" });
+  
+      return;
+  
+    }
+  
+  
+  
+    const logs = await fetchAuditLogsForExport({ action, userId, since, until });
+  
+    const items = logs.map(auditLogSnapshot);
+  
+    await api.logAudit(
+  
+      authUser.id,
+  
+      authUser.email,
+  
+      "AUDIT_LOG_EXPORT",
+  
+      "AuditLog",
+  
+      null,
+  
+      { format, count: items.length, action, userId, since: since?.toISOString(), until: until?.toISOString() },
+  
+      req.ip,
+  
+    );
+  
+  
+  
+    if (format === "json") {
+  
+      res.setHeader("Content-Type", "application/json; charset=utf-8");
+  
+      res.setHeader("Content-Disposition", 'attachment; filename="audit-logs.json"');
+  
+      res.json(items);
+  
+      return;
+  
+    }
+  
+  
+  
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  
+    res.setHeader("Content-Disposition", 'attachment; filename="audit-logs.csv"');
+  
+    res.send(buildAuditLogCsv(items));
+  
+  });
   
   
   

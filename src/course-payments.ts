@@ -39,7 +39,6 @@ export function serializeInvoiceRecord(invoice: {
 }
 
 export function mergeUserInvoices(user: {
-  invoices?: unknown;
   invoiceRecords?: Array<{
     id: string;
     courseTitle: string;
@@ -48,24 +47,9 @@ export function mergeUserInvoices(user: {
     issuedAt: Date;
   }>;
 }) {
-  const fromDb = Array.isArray(user.invoiceRecords)
+  return Array.isArray(user.invoiceRecords)
     ? user.invoiceRecords.map(serializeInvoiceRecord)
     : [];
-  const legacy = Array.isArray(user.invoices) ? user.invoices as Array<Record<string, unknown>> : [];
-  const merged = [...fromDb];
-  for (const invoice of legacy) {
-    const id = typeof invoice?.id === "string" ? invoice.id : "";
-    if (id && !merged.some((entry) => entry.id === id)) {
-      merged.push({
-        id,
-        date: typeof invoice.date === "string" ? invoice.date : "",
-        courseTitle: typeof invoice.courseTitle === "string" ? invoice.courseTitle : "",
-        amount: typeof invoice.amount === "number" ? invoice.amount : 0,
-        status: typeof invoice.status === "string" ? invoice.status : "",
-      });
-    }
-  }
-  return merged;
 }
 
 export async function persistCoursePaymentEnrollment(
@@ -152,25 +136,6 @@ export async function persistCoursePaymentEnrollment(
         update: { active: true },
         create: { userId: params.userId, courseId: params.courseId, active: true },
       });
-
-      const legacyInvoices = Array.isArray(user.invoices) ? (user.invoices as any[]) : [];
-      if (!legacyInvoices.some((invoice) => invoice?.id === params.invoiceId)) {
-        await tx.user.update({
-          where: { id: params.userId },
-          data: {
-            invoices: [
-              ...legacyInvoices,
-              {
-                id: params.invoiceId,
-                date: payment.invoice!.issuedAt.toLocaleDateString("fr-FR"),
-                courseTitle: params.courseTitle,
-                amount: params.coursePrice,
-                status: "Payé",
-              },
-            ],
-          },
-        });
-      }
 
       return tx.user.findUnique({
         where: { id: params.userId },

@@ -12,6 +12,7 @@ import { prisma, verifyDatabaseConnection } from "../db";
 import { getPayPalRuntimeEnv } from "../paypal-server";
 import { startPerformanceMonitor } from "../performance";
 import { startCachePruner } from "../cache";
+import { startAuditLogRetention } from "../audit-log-service";
 import { logSecurity } from "../security-logger";
 import { verifySmtpConnection, readSmtpBanner } from "../email";
 import { seedDatabase, synchronizePostgresSequences } from "./startup-db";
@@ -237,6 +238,7 @@ export async function startAxelmondServer() {
     }
 
     startCachePruner();
+    startAuditLogRetention();
     startPerformanceMonitor(Number(process.env.PERF_MONITOR_INTERVAL_MS) || 30_000);
   } else {
     logDb("INFO", "Security runtime test mode: skipping SMTP checks and background monitors");

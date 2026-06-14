@@ -419,16 +419,6 @@ export async function deleteContentSectionTree(tx: any, sectionId: string) {
   return { sectionCount: sectionIds.length, contentCount: contentIds.length, fileKeys };
 }
 
-export function createDefaultStudentInvoices() {
-  return [{
-    id: buildCourseInvoiceId("REG"),
-    date: new Date().toLocaleDateString("fr-FR"),
-    courseTitle: "Algorithmique et Structures de Données",
-    amount: 15.99,
-    status: "Payé"
-  }];
-}
-
 export async function persistCoursePaymentWithAudit(params: CoursePaymentEnrollmentInput) {
   return persistCoursePaymentEnrollment(params, {
     logAudit,

@@ -27,7 +27,6 @@ async function main() {
         levelOrTitle,
         failedLoginAttempts: 0,
         lockoutUntil: null,
-        invoices: [],
       },
       create: {
         email,
@@ -36,7 +35,6 @@ async function main() {
         role: "PROFESSOR",
         emailVerified: true,
         levelOrTitle,
-        invoices: [],
       },
     });
 
