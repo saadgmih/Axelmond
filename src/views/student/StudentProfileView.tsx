@@ -374,20 +374,7 @@ export default function StudentProfileView({
         </aside>
       </div>
 
-      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5 md:px-8">
-          <div>
-            <h2 className="text-lg font-black text-slate-900">Sécurité avancée</h2>
-            <p className="mt-0.5 text-xs text-slate-500">TOTP et Passkeys WebAuthn — authentification à deux facteurs</p>
-          </div>
-          <div className="rounded-xl bg-indigo-50 p-2.5 text-indigo-600">
-            <ShieldCheck className="h-5 w-5" />
-          </div>
-        </div>
-        <div className="p-6 md:p-8">
-          <SecuritySettingsPanel layout="wide" />
-        </div>
-      </section>
+      <SecuritySettingsPanel layout="wide" emailVerified={Boolean(currentUser?.emailVerified)} />
     </div>
   );
 }
