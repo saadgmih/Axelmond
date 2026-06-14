@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import { getClientErrorMessage, sanitizeClientErrorMessage } from "../src/client-errors.ts";
 
 assert.equal(
@@ -21,6 +22,11 @@ assert.equal(
 assert.equal(
   getClientErrorMessage({ message: "Prisma P2021 table missing", status: 400 }, "Erreur"),
   "Erreur",
+);
+
+assert.match(
+  fs.readFileSync("src/uploadthing-client.ts", "utf8"),
+  /sanitizeClientErrorMessage/,
 );
 
 console.log("Client error sanitization tests passed");

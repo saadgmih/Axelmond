@@ -9,6 +9,7 @@ import {
   loadImageElement,
   type AvatarCropState,
 } from "../utils/avatar-crop";
+import { getClientErrorMessage } from "../client-errors";
 
 interface AvatarPhotoEditorProps {
   file: File;
@@ -40,7 +41,7 @@ export default function AvatarPhotoEditor({
     setErrorMsg("");
     loadImageElement(url)
       .then((img) => setImageSize({ width: img.width, height: img.height }))
-      .catch((err) => setErrorMsg(err.message || "Image invalide."));
+      .catch((err) => setErrorMsg(getClientErrorMessage(err, "Image invalide.")));
 
     return () => URL.revokeObjectURL(url);
   }, [file, isOpen]);
@@ -94,7 +95,7 @@ export default function AvatarPhotoEditor({
       const cropped = await createCroppedAvatarFile(image, crop, file.name);
       await onConfirm(cropped);
     } catch (err: any) {
-      setErrorMsg(err.message || "Recadrage impossible.");
+      setErrorMsg(getClientErrorMessage(err, "Recadrage impossible."));
     } finally {
       setIsSaving(false);
     }

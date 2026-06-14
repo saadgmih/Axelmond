@@ -82,7 +82,13 @@ assert.match(messagingRoutesSource, /toPushSubscribeClientResponse\(err\)/);
 assert.doesNotMatch(messagingRoutesSource, /error:\s*err\.message/);
 
 const apiSource = fs.readFileSync("src/api.ts", "utf8");
+const authRoutesSource = fs.readFileSync("src/routes/auth-routes.ts", "utf8");
+const adminRoutesSource = fs.readFileSync("src/routes/admin-routes.ts", "utf8");
 assert.match(apiSource, /sanitizeClientErrorMessage/);
+assert.doesNotMatch(apiSource, /response:\s*text/);
 assert.doesNotMatch(apiSource, /Object\.assign\(error,\s*err,/);
+assert.doesNotMatch(authRoutesSource, /role must be STUDENT/);
+assert.match(authRoutesSource, /PUBLIC_API_ERRORS\.invalidRole/);
+assert.doesNotMatch(adminRoutesSource, /details:\s*api\.getSmtpPublicConfig/);
 
 console.log("Security hardening rules passed");

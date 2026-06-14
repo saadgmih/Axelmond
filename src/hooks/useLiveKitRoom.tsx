@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { getClientErrorMessage } from "../client-errors";
 import { Room, RoomEvent, Track } from "livekit-client";
 import VirtualClassroom, {
   type LiveParticipantCard,
@@ -477,7 +478,7 @@ export function useLiveKitRoom({
           );
           return;
         }
-        setLiveStatusMsg(message || "Connexion LiveKit impossible");
+        setLiveStatusMsg(getClientErrorMessage(err, "Connexion LiveKit impossible"));
       });
 
     return () => {
@@ -813,7 +814,7 @@ export function useLiveKitRoom({
       refreshLiveAttendanceReport(activeLiveCourse.id);
     } catch (err: any) {
       console.error("[livekit] Moderation failed", err);
-      setLiveStatusMsg(err.message || "Action de modération impossible");
+      setLiveStatusMsg(getClientErrorMessage(err, "Action de modération impossible"));
     }
   };
 

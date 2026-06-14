@@ -675,7 +675,7 @@ export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
   
     if (!question || !Array.isArray(options) || options.length < 2 || !answer || !explanation) {
   
-      res.status(400).json({ error: "question, options (min 2), answer, explanation sont requis" }); return;
+      res.status(400).json({ error: api.PUBLIC_API_ERRORS.quizQuestionFieldsRequired }); return;
   
     }
   

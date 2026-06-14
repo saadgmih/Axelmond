@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { getClientErrorMessage } from "../client-errors";
 import { motion } from "motion/react";
 import { 
   GraduationCap, 
@@ -158,7 +159,7 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
         setErrorMsg("");
         return;
       }
-      setErrorMsg(err.message || "Email ou mot de passe incorrect.");
+      setErrorMsg(getClientErrorMessage(err, "Email ou mot de passe incorrect."));
     }
   };
 
@@ -193,7 +194,7 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
       setSuccessMsg(response.message || "Code envoyé");
       setIsLoading(false);
     } catch (err: any) {
-      setErrorMsg(err.message || "Erreur lors de la création du compte.");
+      setErrorMsg(getClientErrorMessage(err, "Erreur lors de la création du compte."));
       setIsLoading(false);
     }
   };
@@ -215,7 +216,7 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
       setSuccessMsg(user.message || "E-mail vérifié avec succès");
       setTimeout(() => onLoginSuccess(user), 800);
     } catch (err: any) {
-      setErrorMsg(err.message || "Code incorrect");
+      setErrorMsg(getClientErrorMessage(err, "Code incorrect"));
       setIsLoading(false);
     }
   };
@@ -230,7 +231,7 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
       setVerificationCode("");
       setIsLoading(false);
     } catch (err: any) {
-      setErrorMsg(err.message || "Renvoi du code impossible.");
+      setErrorMsg(getClientErrorMessage(err, "Renvoi du code impossible."));
       setIsLoading(false);
     }
   };
@@ -253,7 +254,7 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
       setAuthMode("reset");
       setIsLoading(false);
     } catch (err: any) {
-      setErrorMsg(err.message || "Impossible de traiter la demande.");
+      setErrorMsg(getClientErrorMessage(err, "Impossible de traiter la demande."));
       setIsLoading(false);
     }
   };
@@ -277,7 +278,7 @@ export default function AuthScreen({ onLoginSuccess, courses }: AuthScreenProps)
       setAuthMode("login");
       setIsLoading(false);
     } catch (err: any) {
-      setErrorMsg(err.message || "Erreur de réinitialisation.");
+      setErrorMsg(getClientErrorMessage(err, "Erreur de réinitialisation."));
       setIsLoading(false);
     }
   };

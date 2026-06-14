@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { getClientErrorMessage } from "../client-errors";
 import { api } from "../api";
 import type { AppUser } from "../components/AuthScreen";
 import type { AcademicProfilePayload } from "../types";
@@ -74,7 +75,7 @@ export function useAcademicProfile({
     } catch (err: any) {
       if (!request.isActive()) return;
       setAcademicProfileData(null);
-      setAcademicProfileErrorMsg(err.message || "Profil académique indisponible.");
+      setAcademicProfileErrorMsg(getClientErrorMessage(err, "Profil académique indisponible."));
       setAcademicProfileStatusMsg("");
     }
   }, [role, startRequest]);
@@ -112,7 +113,7 @@ export function useAcademicProfile({
       setAcademicProfileStatusMsg(payload.message || "Profil académique mis à jour.");
     } catch (err: any) {
       if (!request.isActive()) return;
-      setAcademicProfileErrorMsg(err.message || "Mise à jour du profil impossible.");
+      setAcademicProfileErrorMsg(getClientErrorMessage(err, "Mise à jour du profil impossible."));
       setAcademicProfileStatusMsg("");
     }
   };
@@ -135,7 +136,7 @@ export function useAcademicProfile({
       setAcademicProfileStatusMsg(payload.message || "Photo de profil mise à jour.");
     } catch (err: any) {
       if (!request.isActive()) return;
-      setAcademicProfileErrorMsg(err.message || "Mise à jour de la photo impossible.");
+      setAcademicProfileErrorMsg(getClientErrorMessage(err, "Mise à jour de la photo impossible."));
       setAcademicProfileStatusMsg("");
     }
   };
@@ -152,7 +153,7 @@ export function useAcademicProfile({
       setAcademicProfileStatusMsg(payload.message || "Mot de passe mis à jour.");
     } catch (err: any) {
       if (!request.isActive()) return;
-      setAcademicProfileErrorMsg(err.message || "Changement de mot de passe impossible.");
+      setAcademicProfileErrorMsg(getClientErrorMessage(err, "Changement de mot de passe impossible."));
       setAcademicProfileStatusMsg("");
     }
   };

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { getClientErrorMessage } from "../client-errors";
 import { api } from "../api";
 import {
   sortStudentObjectives,
@@ -157,7 +158,7 @@ export function useStudentObjectives({ role, currentView }: UseStudentObjectives
       setObjectives(sortStudentObjectives(Array.isArray(data) ? data : []));
       setSummary(summaryData || emptySummary);
     } catch (err: any) {
-      setErrorMsg(err.message || "Impossible de charger vos objectifs");
+      setErrorMsg(getClientErrorMessage(err, "Impossible de charger vos objectifs"));
       setObjectives([]);
       setSummary(emptySummary);
     } finally {
@@ -223,7 +224,7 @@ export function useStudentObjectives({ role, currentView }: UseStudentObjectives
       closeForm();
       loadObjectives().catch(() => undefined);
     } catch (err: any) {
-      setErrorMsg(err.message || "Enregistrement impossible");
+      setErrorMsg(getClientErrorMessage(err, "Enregistrement impossible"));
     } finally {
       setIsSaving(false);
     }
@@ -243,7 +244,7 @@ export function useStudentObjectives({ role, currentView }: UseStudentObjectives
       setStatusMsg("Objectif marqué comme terminé");
       loadObjectives().catch(() => undefined);
     } catch (err: any) {
-      setErrorMsg(err.message || "Impossible de terminer cet objectif");
+      setErrorMsg(getClientErrorMessage(err, "Impossible de terminer cet objectif"));
     }
   }, []);
 
@@ -257,7 +258,7 @@ export function useStudentObjectives({ role, currentView }: UseStudentObjectives
       if (editingObjectiveId === objectiveId) closeForm();
       loadObjectives().catch(() => undefined);
     } catch (err: any) {
-      setErrorMsg(err.message || "Suppression impossible");
+      setErrorMsg(getClientErrorMessage(err, "Suppression impossible"));
     }
   }, [closeForm, editingObjectiveId]);
 

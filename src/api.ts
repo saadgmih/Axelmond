@@ -1,6 +1,8 @@
 import { purgeLegacySessionUserStorage } from "./session-storage";
 import { sanitizeClientErrorMessage } from "./client-errors";
 
+export { getClientErrorMessage, sanitizeClientErrorMessage } from "./client-errors";
+
 const BASE_URL = ((import.meta as any).env?.VITE_API_BASE_URL || "").replace(/\/$/, "");
 const LEGACY_ACCESS_TOKEN_KEY = "axelmond_session_token";
 const LEGACY_REFRESH_TOKEN_KEY = "axelmond_refresh_token";
@@ -145,7 +147,7 @@ async function request<T>(method: string, path: string, body?: unknown, allowCsr
     const error = new Error(
       `Erreur de connexion au serveur. Veuillez vérifier votre connexion internet et réessayer.`
     ) as Error & Record<string, unknown>;
-    Object.assign(error, { status: 0, method, path, url, cause: err });
+    Object.assign(error, { status: 0, method, path });
     throw error;
   }
 
@@ -173,8 +175,15 @@ async function request<T>(method: string, path: string, body?: unknown, allowCsr
     }
 
     const error = new Error(buildApiErrorMessage(method, path, res.status, err, res.statusText)) as Error & Record<string, unknown>;
-    const { details: _details, stack: _stack, cause: _cause, ...safePayload } = err ?? {};
-    Object.assign(error, safePayload, { status: res.status, method, path, url, response: text });
+    const {
+      details: _details,
+      stack: _stack,
+      cause: _cause,
+      response: _response,
+      url: _url,
+      ...safePayload
+    } = err ?? {};
+    Object.assign(error, safePayload, { status: res.status, method, path });
     if (res.status === 429) {
       const retryAfterHeader = res.headers.get("Retry-After");
       const resetHeader = res.headers.get("RateLimit-Reset") || res.headers.get("X-RateLimit-Reset");

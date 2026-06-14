@@ -1,4 +1,5 @@
 import { useEffect, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
+import { getClientErrorMessage } from "../client-errors";
 import { api } from "../api";
 import type { AppUser } from "../components/AuthScreen";
 import type { Course, CourseGrade } from "../types";
@@ -50,7 +51,7 @@ export function useTeacherDashboard({
         if (disposed) return;
         console.error("Failed to fetch course grades:", err);
         setCourseGrades([]);
-        setGradesStatusMsg(err.message || "Notes indisponibles.");
+        setGradesStatusMsg(getClientErrorMessage(err, "Notes indisponibles."));
       });
     return () => {
       disposed = true;
@@ -64,7 +65,7 @@ export function useTeacherDashboard({
       setEmailDeliverySummary(summary);
       setEmailDeliveryStatusMsg("");
     } catch (err: any) {
-      setEmailDeliveryStatusMsg(err.message || "Diagnostic SMTP indisponible");
+      setEmailDeliveryStatusMsg(getClientErrorMessage(err, "Diagnostic SMTP indisponible"));
     }
   };
 
@@ -136,7 +137,7 @@ export function useTeacherDashboard({
       setTestEmailStatusMsg(response.message || "E-mail de diagnostic envoyé");
       refreshEmailDeliverySummary();
     } catch (err: any) {
-      setTestEmailStatusMsg(err.message || "Échec d'envoi SMTP");
+      setTestEmailStatusMsg(getClientErrorMessage(err, "Échec d'envoi SMTP"));
       refreshEmailDeliverySummary();
     } finally {
       setIsSendingTestEmail(false);

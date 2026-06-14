@@ -15,6 +15,15 @@ export const PUBLIC_API_ERRORS = {
   titleTypeDurationRequired: "Le titre, le type et la durée sont requis.",
   titleBodyRequired: "Le titre et le contenu sont requis.",
   answersObjectRequired: "Les réponses du quiz sont requises.",
+  invalidRole: "Le rôle doit être étudiant, professeur, chercheur ou administrateur.",
+  refreshTokenRequired: "Jeton de rafraîchissement requis.",
+  refreshTokenInvalid: "Jeton de rafraîchissement invalide ou expiré.",
+  refreshTokenReused: "Jeton de rafraîchissement invalide ou déjà utilisé.",
+  avatarUrlRequired: "URL de photo de profil requise.",
+  liveSyncPayloadRequired: "Identifiants de cours et message requis.",
+  smtpNotConfigured: "SMTP non configuré.",
+  smtpSendFailed: "Échec d'envoi SMTP.",
+  quizQuestionFieldsRequired: "La question, les options (min. 2), la réponse et l'explication sont requis.",
 } as const;
 
 export const LIVE_ACCESS_ERRORS = {

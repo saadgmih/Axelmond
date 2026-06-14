@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { getClientErrorMessage } from "../client-errors";
 import { api } from "../api";
 import type { StudentStudySessionPayload, StudentStudySessionTypeValue } from "../student-study-schedule";
 import { SCHEDULE_DAYS, sortStudentStudySessions } from "../student-study-schedule";
@@ -51,7 +52,7 @@ export function useStudentStudySchedule({ role, currentView }: UseStudentStudySc
       const data = await api.getStudySchedule();
       setSessions(sortStudentStudySessions(Array.isArray(data) ? data : []));
     } catch (err: any) {
-      setErrorMsg(err.message || "Impossible de charger votre emploi du temps d'étude");
+      setErrorMsg(getClientErrorMessage(err, "Impossible de charger votre emploi du temps d'étude"));
       setSessions([]);
     } finally {
       setIsLoading(false);
@@ -131,7 +132,7 @@ export function useStudentStudySchedule({ role, currentView }: UseStudentStudySc
       setStatusMsg(editingSessionId ? "Séance modifiée avec succès" : "Séance ajoutée avec succès");
       closeForm();
     } catch (err: any) {
-      setErrorMsg(err.message || "Enregistrement impossible");
+      setErrorMsg(getClientErrorMessage(err, "Enregistrement impossible"));
     } finally {
       setIsSaving(false);
     }
@@ -146,7 +147,7 @@ export function useStudentStudySchedule({ role, currentView }: UseStudentStudySc
       setStatusMsg("Séance supprimée");
       if (editingSessionId === sessionId) closeForm();
     } catch (err: any) {
-      setErrorMsg(err.message || "Suppression impossible");
+      setErrorMsg(getClientErrorMessage(err, "Suppression impossible"));
     }
   }, [closeForm, editingSessionId]);
 

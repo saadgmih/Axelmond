@@ -238,7 +238,7 @@ export function registerProfileRoutes(app: Express, ctx: RouteContext): void {
         res.status(400).json({ error: "URL de photo de profil non autorisée", code: "AVATAR_URL_INVALID" });  
         return;  
       }  
-      res.status(400).json({ error: "avatarUrl requis" });  
+      res.status(400).json({ error: api.PUBLIC_API_ERRORS.avatarUrlRequired });  
       return;  
     }  
     

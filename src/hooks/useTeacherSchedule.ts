@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { getClientErrorMessage } from "../client-errors";
 import { api } from "../api";
 import type { ScheduleSessionPayload, ScheduleSessionTypeValue } from "../schedule";
 import { SCHEDULE_DAYS, sortScheduleSessions } from "../schedule";
@@ -51,7 +52,7 @@ export function useTeacherSchedule({ role, teacherView }: UseTeacherScheduleOpti
       const data = await api.getSchedule();
       setSessions(sortScheduleSessions(Array.isArray(data) ? data : []));
     } catch (err: any) {
-      setErrorMsg(err.message || "Impossible de charger l'emploi du temps");
+      setErrorMsg(getClientErrorMessage(err, "Impossible de charger l'emploi du temps"));
       setSessions([]);
     } finally {
       setIsLoading(false);
@@ -131,7 +132,7 @@ export function useTeacherSchedule({ role, teacherView }: UseTeacherScheduleOpti
       setStatusMsg(editingSessionId ? "Séance modifiée avec succès" : "Séance ajoutée avec succès");
       closeForm();
     } catch (err: any) {
-      setErrorMsg(err.message || "Enregistrement impossible");
+      setErrorMsg(getClientErrorMessage(err, "Enregistrement impossible"));
     } finally {
       setIsSaving(false);
     }
@@ -146,7 +147,7 @@ export function useTeacherSchedule({ role, teacherView }: UseTeacherScheduleOpti
       setStatusMsg("Séance supprimée");
       if (editingSessionId === sessionId) closeForm();
     } catch (err: any) {
-      setErrorMsg(err.message || "Suppression impossible");
+      setErrorMsg(getClientErrorMessage(err, "Suppression impossible"));
     }
   }, [closeForm, editingSessionId]);
 

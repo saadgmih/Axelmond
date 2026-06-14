@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { getClientErrorMessage } from "../client-errors";
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 import {
   ArrowRight,
@@ -61,7 +62,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
         if (active) setPaypalConfig(config);
       })
       .catch((err: any) => {
-        if (active) setConfigError(err?.message || "PayPal indisponible pour le moment.");
+        if (active) setConfigError(getClientErrorMessage(err, "PayPal indisponible pour le moment."));
       });
     return () => {
       active = false;
@@ -115,7 +116,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
       await onSuccess(course.id, result.invoice?.amount ?? finalPrice, result.user);
       setStep("success");
     } catch (err: any) {
-      setPaymentError(err?.message || "Impossible de finaliser le paiement PayPal.");
+      setPaymentError(getClientErrorMessage(err, "Impossible de finaliser le paiement PayPal."));
       setStep("form");
     } finally {
       setIsProcessing(false);
@@ -138,7 +139,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
     try {
       return await handleCreatePayPalOrder();
     } catch (err: any) {
-      const message = err?.message || "Impossible de créer la commande PayPal.";
+      const message = getClientErrorMessage(err, "Impossible de créer la commande PayPal.");
       setPaymentError(message);
       throw err;
     }

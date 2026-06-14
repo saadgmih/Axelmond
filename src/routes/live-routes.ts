@@ -625,7 +625,7 @@ export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
     const courseId = Number(req.body?.courseId);
     const message = req.body?.message;
     if (!courseId || Number.isNaN(courseId) || !message || typeof message !== "object") {
-      res.status(400).json({ error: "courseId and message requis" });
+      res.status(400).json({ error: api.PUBLIC_API_ERRORS.liveSyncPayloadRequired });
       return;
     }
 

@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import { getClientErrorMessage } from "../client-errors";
 import {
   AlertCircle,
   CheckCircle2,
@@ -116,7 +117,7 @@ export default function SupportTicketForm({
       setSelectedFile(null);
       setValidationErrors({});
     } catch (err: any) {
-      setErrorMsg(err.message || "Une erreur est survenue lors de la création de votre ticket.");
+      setErrorMsg(getClientErrorMessage(err, "Une erreur est survenue lors de la création de votre ticket."));
     } finally {
       setIsSubmitting(false);
     }

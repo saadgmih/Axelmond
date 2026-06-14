@@ -18,21 +18,27 @@ export function getUploadedFileUrl(file: any): string {
     || "";
 }
 
-export function getUploadErrorMessage(err: any): string {
-  const message = err?.message || err?.cause?.message || "";
-  if (message.includes("Failed to report event")) {
-    return "Le serveur d'upload ne répond pas. Vérifiez que localhost:3000 est lancé et que /api/uploadthing est accessible.";
+import { sanitizeClientErrorMessage } from "./client-errors";
+
+export function getUploadErrorMessage(err: unknown): string {
+  const rawMessage = err && typeof err === "object"
+    ? String((err as { message?: string; cause?: { message?: string } }).message
+      || (err as { cause?: { message?: string } }).cause?.message
+      || "")
+    : "";
+  if (rawMessage.includes("Failed to report event")) {
+    return "Le serveur d'upload ne répond pas. Vérifiez votre connexion et réessayez.";
   }
-  if (message.includes("callback") || message.includes("callbackUrl")) {
-    return "Callback UploadThing inaccessible. En local, utilisez le mode dev UploadThing ou un tunnel public.";
+  if (rawMessage.includes("callback") || rawMessage.includes("callbackUrl")) {
+    return "Service d'upload temporairement indisponible. Réessayez dans quelques instants.";
   }
-  if (message.includes("Unauthorized") || message.includes("Authentification") || message.includes("Session")) {
+  if (rawMessage.includes("Unauthorized") || rawMessage.includes("Authentification") || rawMessage.includes("Session")) {
     return "Session expirée ou non autorisée. Reconnectez-vous puis réessayez l'upload.";
   }
-  if (message.includes("FileSizeMismatch") || message.includes("too large") || message.includes("exceeds")) {
+  if (rawMessage.includes("FileSizeMismatch") || rawMessage.includes("too large") || rawMessage.includes("exceeds")) {
     return "Fichier trop volumineux pour cette catégorie.";
   }
-  return message || "Upload impossible. Vérifiez le fichier, la session et la configuration UploadThing.";
+  return sanitizeClientErrorMessage(rawMessage, "Upload impossible. Vérifiez le fichier et réessayez.");
 }
 
 export function validateUploadFile(file: File, type: "VIDEO" | "PDF" | "IMAGE" | "AVATAR" | "SUPPORT_IMAGE" | "MESSAGE"): string {

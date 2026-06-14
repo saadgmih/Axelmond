@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
+import { getClientErrorMessage } from "../client-errors";
 import { uploadFiles, getUploadErrorMessage, validateUploadFile } from "../uploadthing-client";
 import { api, getFreshSessionToken } from "../api";
 import type { AppUser } from "../components/AuthScreen";
@@ -212,7 +213,7 @@ export function useTeacherCurriculum({
       showCurriculumSuccess(`Module créé : ID ${course.id} — "${course.title}".`);
     } catch (err: any) {
       console.error("Failed to create course:", err);
-      showCurriculumError(err.message || "Création du module impossible.");
+      showCurriculumError(getClientErrorMessage(err, "Création du module impossible."));
     }
   };
 
@@ -239,7 +240,7 @@ export function useTeacherCurriculum({
       if (!uploadSectionId && sections[0]) setUploadSectionId(sections[0].id);
     } catch (err: any) {
       console.error("Failed to create content section:", err);
-      showCurriculumError(err.message || "Création de section impossible.");
+      showCurriculumError(getClientErrorMessage(err, "Création de section impossible."));
     }
   };
 
@@ -317,7 +318,7 @@ export function useTeacherCurriculum({
       setQuizManagerMsg(`Quiz créé : "${quiz.title}"`);
       scheduleClear(() => setQuizManagerMsg(""), 5000);
     } catch (err: any) {
-      setQuizManagerError(err.message || "Création du quiz impossible.");
+      setQuizManagerError(getClientErrorMessage(err, "Création du quiz impossible."));
     }
   };
 
@@ -352,7 +353,7 @@ export function useTeacherCurriculum({
       setQuizManagerMsg("Question ajoutée avec succès.");
       scheduleClear(() => setQuizManagerMsg(""), 4000);
     } catch (err: any) {
-      setQuizManagerError(err.message || "Ajout de la question impossible.");
+      setQuizManagerError(getClientErrorMessage(err, "Ajout de la question impossible."));
     }
   };
 
@@ -364,7 +365,7 @@ export function useTeacherCurriculum({
       setQuizManagerMsg("Question supprimée.");
       scheduleClear(() => setQuizManagerMsg(""), 3000);
     } catch (err: any) {
-      setQuizManagerError(err.message || "Suppression impossible.");
+      setQuizManagerError(getClientErrorMessage(err, "Suppression impossible."));
     }
   };
 
@@ -402,7 +403,7 @@ export function useTeacherCurriculum({
       setEditingCourse(null);
       showCurriculumSuccess(`Module modifié : "${updatedCourse.title}" (ID ${updatedCourse.id}).`);
     } catch (err: any) {
-      showCurriculumError(err.message || "Modification du module impossible.");
+      showCurriculumError(getClientErrorMessage(err, "Modification du module impossible."));
     }
   };
 
@@ -412,7 +413,7 @@ export function useTeacherCurriculum({
       setCourses((prev) => prev.map((item) => item.id === updatedCourse.id ? updatedCourse : item));
       showCurriculumSuccess(`Module ${updatedCourse.published ? "publié" : "dépublié"} : ID ${updatedCourse.id}.`);
     } catch (err: any) {
-      showCurriculumError(err.message || "Changement de publication impossible.");
+      showCurriculumError(getClientErrorMessage(err, "Changement de publication impossible."));
     }
   };
 
@@ -430,7 +431,7 @@ export function useTeacherCurriculum({
       }
       showCurriculumSuccess(`Module supprimé : ID ${course.id}.`);
     } catch (err: any) {
-      showCurriculumError(err.message || "Suppression du module impossible.");
+      showCurriculumError(getClientErrorMessage(err, "Suppression du module impossible."));
     }
   };
 
@@ -446,7 +447,7 @@ export function useTeacherCurriculum({
       await refreshCourseContent(section.courseId);
       showCurriculumSuccess(`${section.parentId ? "Section" : "Chapitre"} modifié : ID ${section.parentId ? section.id : section.chapterId}.`);
     } catch (err: any) {
-      showCurriculumError(err.message || "Modification impossible.");
+      showCurriculumError(getClientErrorMessage(err, "Modification impossible."));
     }
   };
 
@@ -460,7 +461,7 @@ export function useTeacherCurriculum({
       await refreshCourseContent(section.courseId);
       showCurriculumSuccess(`${section.parentId ? "Section" : "Chapitre"} ${!section.published ? "publié" : "dépublié"} : ID ${section.parentId ? section.id : section.chapterId}.`);
     } catch (err: any) {
-      showCurriculumError(err.message || "Publication impossible.");
+      showCurriculumError(getClientErrorMessage(err, "Publication impossible."));
     }
   };
 
@@ -476,7 +477,7 @@ export function useTeacherCurriculum({
       if (uploadSectionId === section.id) setUploadSectionId("");
       showCurriculumSuccess(`${section.parentId ? "Section" : "Chapitre"} supprimé : ID ${section.parentId ? section.id : section.chapterId}.`);
     } catch (err: any) {
-      showCurriculumError(err.message || "Suppression impossible.");
+      showCurriculumError(getClientErrorMessage(err, "Suppression impossible."));
     }
   };
 
@@ -495,7 +496,7 @@ export function useTeacherCurriculum({
       await refreshCourseContent(content.courseId);
       showCurriculumSuccess(`Média ${!content.published ? "publié" : "dépublié"} : ID ${content.id}.`);
     } catch (err: any) {
-      showCurriculumError(err.message || "Publication du média impossible.");
+      showCurriculumError(getClientErrorMessage(err, "Publication du média impossible."));
     }
   };
 
@@ -506,7 +507,7 @@ export function useTeacherCurriculum({
       await refreshCourseContent(content.courseId);
       showCurriculumSuccess(`Média supprimé : ID ${content.id}.`);
     } catch (err: any) {
-      showCurriculumError(err.message || "Suppression du média impossible.");
+      showCurriculumError(getClientErrorMessage(err, "Suppression du média impossible."));
     }
   };
 

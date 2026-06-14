@@ -1,4 +1,5 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import { getClientErrorMessage } from "../client-errors";
 import { api } from "../api";
 import type { AppUser } from "../components/AuthScreen";
 import type { Course, CourseModule, Invoice } from "../types";
@@ -123,7 +124,7 @@ export function useStudentCourseSession({
       correctCount = Number(attempt.score);
     } catch (err) {
       console.error("Failed to persist quiz attempt:", err);
-      setQuizSubmitError(err instanceof Error ? err.message : "Enregistrement du quiz impossible.");
+      setQuizSubmitError(getClientErrorMessage(err, "Enregistrement du quiz impossible."));
       return;
     }
 
@@ -148,7 +149,7 @@ export function useStudentCourseSession({
       if (activeMod) setSelectedModule(activeMod);
     } catch (err) {
       console.error("Failed to synchronize module completion:", err);
-      setQuizSubmitError(err instanceof Error ? err.message : "Quiz enregistré, mais synchronisation de la progression impossible.");
+      setQuizSubmitError(getClientErrorMessage(err, "Quiz enregistré, mais synchronisation de la progression impossible."));
     }
   };
 

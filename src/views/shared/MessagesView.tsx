@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { getClientErrorMessage } from "../../client-errors";
 import {
   ArrowLeft,
   Check,
@@ -101,7 +102,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
       const rows = await api.getConversations();
       setConversations(Array.isArray(rows) ? rows : []);
     } catch (err: any) {
-      setError(err?.message || "Impossible de charger les conversations");
+      setError(getClientErrorMessage(err, "Impossible de charger les conversations"));
     } finally {
       setLoadingConversations(false);
     }
@@ -116,7 +117,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
       await api.markConversationRead(conversationId);
       setConversations((prev) => prev.map((item) => (item.id === conversationId ? { ...item, unreadCount: 0 } : item)));
     } catch (err: any) {
-      setError(err?.message || "Impossible de charger les messages");
+      setError(getClientErrorMessage(err, "Impossible de charger les messages"));
     } finally {
       setLoadingMessages(false);
     }
@@ -231,7 +232,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
       emitTypingStop(selectedId);
       setMessages((prev) => (prev.some((item) => item.id === payload.id) ? prev : [...prev, payload]));
     } catch (err: any) {
-      setError(err?.message || "Envoi impossible");
+      setError(getClientErrorMessage(err, "Envoi impossible"));
     } finally {
       setSending(false);
     }
@@ -249,7 +250,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
       });
       setSelectedId(summary.id);
     } catch (err: any) {
-      setError(err?.message || "Impossible de démarrer la conversation");
+      setError(getClientErrorMessage(err, "Impossible de démarrer la conversation"));
     }
   };
 
@@ -283,7 +284,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
         url: getUploadedFileUrl(uploaded[0]) || meta.url,
       });
     } catch (err: any) {
-      setError(err?.message || getUploadErrorMessage(err));
+      setError(getClientErrorMessage(err, getUploadErrorMessage(err)));
     } finally {
       setUploading(false);
     }

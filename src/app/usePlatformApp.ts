@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { getClientErrorMessage } from "../client-errors";
 import { useLocation } from "react-router-dom";
 import { api, getFreshSessionToken } from "../api";
 import type { AppUser } from "../components/AuthScreen";
@@ -428,7 +429,7 @@ export function usePlatformApp() {
       setAcademicProfileForm((prev) => ({ ...prev, avatarUrl: "" }));
       setAvatarStatusMsg(response.message || "Photo de profil supprimée.");
     } catch (err: any) {
-      setAvatarStatusMsg(err.message || "Suppression de la photo impossible.");
+      setAvatarStatusMsg(getClientErrorMessage(err, "Suppression de la photo impossible."));
     }
   };
 

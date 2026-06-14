@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useId } from "react";
+import { getClientErrorMessage } from "../client-errors";
 import { Send, Sparkles, Brain, GraduationCap, ArrowRight, RefreshCw, X } from "lucide-react";
 import { api } from "../api";
 
@@ -73,11 +74,11 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
       const data = await api.chatTutor(requestBody);
       setMessages((prev) => [...prev, { role: "model", text: data.text }]);
     } catch (err: any) {
-      let message = err?.message || err?.error || "Erreur de connexion";
+      let message = getClientErrorMessage(err, "Erreur de connexion");
       if (err?.code === "QUOTA_EXCEEDED") {
-        message = "Quota OpenAI épuisé. Ajoutez des crédits sur platform.openai.com (Billing), puis redémarrez le serveur.";
+        message = "Assistant temporairement indisponible.";
       } else if (err?.code === "AUTH_ERROR") {
-        message = "Clé OpenAI invalide ou expirée. Vérifiez OPENAI_API_KEY sur le serveur.";
+        message = "Assistant temporairement indisponible.";
       }
       setMessages((prev) => [
         ...prev,

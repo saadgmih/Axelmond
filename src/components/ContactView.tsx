@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { getClientErrorMessage } from "../client-errors";
 import { 
   Mail, 
   Phone, 
@@ -117,7 +118,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
       setValidationErrors({});
     } catch (err: any) {
       console.error("Submission failed:", err);
-      setErrorMsg(err.message || "Une erreur est survenue lors de l'envoi de votre message.");
+      setErrorMsg(getClientErrorMessage(err, "Une erreur est survenue lors de l'envoi de votre message."));
     } finally {
       setIsLoading(false);
     }

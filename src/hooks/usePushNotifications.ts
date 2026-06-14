@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { getClientErrorMessage } from "../client-errors";
 import { api } from "../api";
 import {
   ensurePushServiceWorker,
@@ -80,7 +81,7 @@ export function usePushNotifications(enabled: boolean) {
         stack: err?.stack,
       });
       setStatusKind("error");
-      setStatus(mapPushSubscribeError(err?.message || ""));
+      setStatus(mapPushSubscribeError(getClientErrorMessage(err, "")));
       return false;
     }
   }, [enabled]);

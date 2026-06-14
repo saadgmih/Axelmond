@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { getClientErrorMessage } from "../client-errors";
 import { api, getFreshSessionToken } from "../api";
 import type { AppNotification } from "../types/messaging";
 
@@ -29,7 +30,7 @@ export function useNotifications(enabled: boolean) {
       setNotifications(Array.isArray(rows) ? rows : []);
       await refreshUnreadCount();
     } catch (err: any) {
-      setError(err?.message || "Impossible de charger les notifications");
+      setError(getClientErrorMessage(err, "Impossible de charger les notifications"));
     } finally {
       setLoading(false);
     }
@@ -42,7 +43,7 @@ export function useNotifications(enabled: boolean) {
       setNotifications((prev) => prev.map((item) => (item.id === id ? { ...item, isRead: true, readAt: new Date().toISOString() } : item)));
       setUnreadCount((count) => Math.max(0, count - 1));
     } catch (err: any) {
-      setError(err?.message || "Impossible de marquer la notification comme lue");
+      setError(getClientErrorMessage(err, "Impossible de marquer la notification comme lue"));
     }
   }, []);
 
@@ -53,7 +54,7 @@ export function useNotifications(enabled: boolean) {
       setNotifications((prev) => prev.map((item) => ({ ...item, isRead: true, readAt: item.readAt || new Date().toISOString() })));
       setUnreadCount(0);
     } catch (err: any) {
-      setError(err?.message || "Impossible de marquer toutes les notifications comme lues");
+      setError(getClientErrorMessage(err, "Impossible de marquer toutes les notifications comme lues"));
     }
   }, []);
 
