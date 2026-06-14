@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { UserRole, normalizeRole } from "./rbac";
 import { prisma } from "./db";
 import { hashRefreshToken } from "./security-hardening";
+import { APP_USER_BILLING_INCLUDE } from "./course-payments";
 
 const DEFAULT_AUTH_TOKEN_SECRET = "axelmond-dev-secret";
 
@@ -62,7 +63,7 @@ export async function createRefreshToken(userId: string) {
 export async function findValidRefreshToken(rawToken: string) {
   return prisma.refreshToken.findUnique({
     where: { token: hashRefreshToken(rawToken) },
-    include: { user: { include: { enrollments: true } } },
+    include: { user: { include: APP_USER_BILLING_INCLUDE } },
   });
 }
 

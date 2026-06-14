@@ -30,6 +30,7 @@ import { assertCourseLearningAccess } from "../course-access";
 import { sanitizeAcademicProfileInput, sanitizeAvatarUrl, isAvatarUrlFieldInvalid } from "../academic-profile";
 import { isAllowedAvatarUrl } from "../avatar-security";
 import { CHAT_TUTOR_MAX_HISTORY_MESSAGES, CHAT_TUTOR_MAX_PROMPT_CHARS } from "../security-hardening";
+import { APP_USER_BILLING_INCLUDE, mergeUserInvoices, persistCoursePaymentEnrollment } from "../course-payments";
 
 
 export function logLiveKit(level: "INFO" | "WARN" | "ERROR", message: string, data?: unknown) {
@@ -78,7 +79,7 @@ export const requireAuth: express.RequestHandler = async (req, res, next) => {
     try {
       dbUser = await prisma.user.findUnique({
         where: { id: session.userId },
-        include: { enrollments: true },
+        include: APP_USER_BILLING_INCLUDE,
       });
       if (dbUser) {
         authUserCache.set(session.userId, {
@@ -338,7 +339,7 @@ export async function getOptionalAuthUser(req: express.Request) {
   if (!session) return null;
   const user = await prisma.user.findUnique({
     where: { id: session.userId },
-    include: { enrollments: true },
+    include: APP_USER_BILLING_INCLUDE,
   });
   const actualRole = normalizeRole(user?.role);
   if (!user || actualRole !== session.role) return null;
@@ -403,7 +404,7 @@ export function toAppUser(user: any): AppUser {
     filiere: user.filiere || undefined,
     avatarUrl: user.avatarUrl || undefined,
     enrolledCourses: Array.isArray(user.enrollments) ? user.enrollments.filter((enrollment: any) => enrollment.active).map((enrollment: any) => enrollment.courseId) : [],
-    invoices: Array.isArray(user.invoices) ? user.invoices : [],
+    invoices: mergeUserInvoices(user),
   };
 }
 
@@ -1109,7 +1110,7 @@ export { deleteCloudFiles } from "../uploadthing";
 export { notifyEnrolledStudentsForCourse } from "../notifications";
 export { buildCourseGradeRows } from "../grades";
 export { assertCourseLearningAccess } from "../course-access";
-export { APP_USER_BILLING_INCLUDE, mergeUserInvoices, persistCoursePaymentEnrollment } from "../course-payments";
+export { APP_USER_BILLING_INCLUDE, mergeUserInvoices, persistCoursePaymentEnrollment };
 export { sanitizeAcademicProfileInput, sanitizeAvatarUrl, isAvatarUrlFieldInvalid } from "../academic-profile";
 export { isAllowedAvatarUrl } from "../avatar-security";
 export { setAuthCookies, clearAuthCookies } from "../auth-cookies";

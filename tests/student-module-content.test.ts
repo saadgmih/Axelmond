@@ -10,7 +10,8 @@ const studentCourseViewSource = readFileSync("src/views/student/StudentCourseVie
 const serverSource = readApiRouteSources();
 
 assert.match(serverSource, /export function invalidateAuthUserCache\(userId: string\)/);
-assert.match(serverSource, /api\.invalidateAuthUserCache\(authUser\.id\);\s*await api\.logAudit\(authUser\.id, authUser\.email, "ENROLL_MOCK"/);
+assert.match(serverSource, /persistCoursePaymentEnrollment\(\{[\s\S]*auditAction:\s*"ENROLL_MOCK"/);
+assert.match(serverSource, /provider:\s*"MOCK"/);
 
 assert.match(studentCourseBundle, /refreshCourseContent\(selectedCourse\.id\)/);
 assert.match(appSource, /currentView === "course" && selectedCourse && selectedModule/);

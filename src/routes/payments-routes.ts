@@ -16,70 +16,20 @@ import { registerPayPalConfigRoute } from "../paypal-routes";
 
 function buildPersistCoursePaymentEnrollment(ctx: RouteContext) {
   const d = ctx.deps;
-  return async (params: {
+  return (params: {
     userId: string;
     courseId: number;
     courseTitle: string;
     coursePrice: number;
     invoiceId: string;
+    provider: "PAYPAL" | "MOCK";
+    externalId: string;
     auditAction: string;
     reqIp?: string;
-  }) => {
-    const user = await d.prisma.user.findUnique({ where: { id: params.userId } });
-    if (!user) throw new Error("USER_NOT_FOUND");
-
-    const currentInvoices = Array.isArray(user.invoices) ? (user.invoices as any[]) : [];
-    if (currentInvoices.some((invoice) => invoice?.id === params.invoiceId)) {
-      const existingUser = await d.prisma.user.findUnique({
-        where: { id: params.userId },
-        include: { enrollments: true },
-      });
-      return {
-        duplicate: true as const,
-        user: existingUser,
-        invoice: currentInvoices.find((invoice) => invoice?.id === params.invoiceId),
-      };
-    }
-
-    const newInvoice = {
-      id: params.invoiceId,
-      date: new Date().toLocaleDateString("fr-FR"),
-      courseTitle: params.courseTitle,
-      amount: params.coursePrice,
-      status: "Payé",
-    };
-
-    const [, , updatedUser] = await d.prisma.$transaction([
-      d.prisma.enrollment.upsert({
-        where: { userId_courseId: { userId: params.userId, courseId: params.courseId } },
-        update: { active: true },
-        create: { userId: params.userId, courseId: params.courseId, active: true },
-      }),
-      d.prisma.user.update({
-        where: { id: params.userId },
-        data: { invoices: [...currentInvoices, newInvoice] },
-      }),
-      d.prisma.user.findUnique({
-        where: { id: params.userId },
-        include: { enrollments: true },
-      }),
-    ]);
-
-    if (!updatedUser) throw new Error("USER_NOT_FOUND");
-
-    d.invalidateAuthUserCache(params.userId);
-    await d.logAudit(
-      params.userId,
-      user.email,
-      params.auditAction,
-      "Course",
-      String(params.courseId),
-      { price: params.coursePrice, invoiceId: params.invoiceId },
-      params.reqIp,
-    );
-
-    return { duplicate: false as const, user: updatedUser, invoice: newInvoice };
-  };
+  }) => api.persistCoursePaymentEnrollment(params, {
+    logAudit: d.logAudit,
+    invalidateAuthUserCache: d.invalidateAuthUserCache,
+  });
 }
 
 export function registerPayPalWebhook(app: Express, ctx: RouteContext): void {
@@ -257,7 +207,7 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
   
       });
   
-      res.status(500).json({ error: err?.message || "Erreur lors de la création de la commande PayPal" });
+      res.status(500).json({ error: "Erreur lors de la création de la commande PayPal" });
   
     }
   
@@ -393,7 +343,7 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
   
       }
   
-      res.status(500).json({ error: err?.message || "Erreur lors de la capture PayPal" });
+      res.status(500).json({ error: "Erreur lors de la capture PayPal" });
   
     }
   
@@ -458,95 +408,40 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
   
   
     const invoiceId = `INV-MOCK-${Math.floor(Math.random() * 90000 + 10000)}`;
-  
-    const newInvoice = {
-  
-      id: invoiceId,
-  
-      date: new Date().toLocaleDateString("fr-FR"),
-  
-      courseTitle: course.title,
-  
-      amount: course.price,
-  
-      status: "Payé"
-  
-    };
-  
-  
-  
+
     try {
-  
-      const user = await api.prisma.user.findUnique({ where: { id: authUser.id } });
-  
-      if (!user) {
-  
-        res.status(404).json({ error: "Utilisateur non trouvé" });
-  
-        return;
-  
-      }
-  
-      const currentInvoices = Array.isArray(user.invoices) ? (user.invoices as any[]) : [];
-  
-      const updatedInvoices = [...currentInvoices, newInvoice];
-  
-  
-  
-      const [, , updatedUser] = await api.prisma.$transaction([
-  
-        api.prisma.enrollment.upsert({
-  
-          where: { userId_courseId: { userId: authUser.id, courseId } },
-  
-          update: { active: true },
-  
-          create: { userId: authUser.id, courseId, active: true }
-  
-        }),
-  
-        api.prisma.user.update({
-  
-          where: { id: authUser.id },
-  
-          data: { invoices: updatedInvoices }
-  
-        }),
-  
-        api.prisma.user.findUnique({
-  
-          where: { id: authUser.id },
-  
-          include: { enrollments: true },
-  
-        }),
-  
-      ]);
-  
-      if (!updatedUser) {
-  
-        res.status(404).json({ error: "Utilisateur non trouvé" });
-  
-        return;
-  
-      }
-  
-  
-  
-      api.invalidateAuthUserCache(authUser.id);
-  
-      await api.logAudit(authUser.id, authUser.email, "ENROLL_MOCK", "Course", String(courseId), { price: course.price, invoiceId }, req.ip);
-  
-      api.logDb("INFO", "Student enrollment synchronized", { userId: authUser.id, courseId, invoiceId });
-  
-      res.json({ ok: true, message: "Inscription réussie", invoice: newInvoice, user: api.toAppUser(updatedUser) });
-  
+      const result = await persistCoursePaymentEnrollment({
+        userId: authUser.id,
+        courseId,
+        courseTitle: course.title,
+        coursePrice: course.price,
+        invoiceId,
+        provider: "MOCK",
+        externalId: `mock-${authUser.id}-${courseId}`,
+        auditAction: "ENROLL_MOCK",
+        reqIp: req.ip,
+      });
+
+      api.logDb("INFO", "Student enrollment synchronized", {
+        userId: authUser.id,
+        courseId,
+        invoiceId,
+        duplicate: result.duplicate,
+      });
+
+      res.json({
+        ok: true,
+        message: "Inscription réussie",
+        invoice: result.invoice,
+        user: api.toAppUser(result.user),
+      });
     } catch (err) {
-  
       api.logDb("ERROR", "Mock enrollment failed", { userId: authUser.id, courseId, error: String(err) });
-  
+      if ((err as Error)?.message === "USER_NOT_FOUND") {
+        res.status(404).json({ error: "Utilisateur non trouvé" });
+        return;
+      }
       res.status(500).json({ error: "Erreur lors de l'inscription" });
-  
     }
   
   });

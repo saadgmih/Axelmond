@@ -24,6 +24,8 @@ assert.match(liveKitSource, /if\s*\(\(err as any\)\?\.status === 403 && currentU
 assert.match(liveKitSource, /const syncedUser = await api\.me\(\)/);
 assert.match(liveKitSource, /setCourseToPurchase\(activeLiveCourse\)/);
 
-assert.match(serverSource, /res\.json\(\{\s*ok:\s*true,\s*message:\s*"Inscription réussie",\s*invoice:\s*newInvoice,\s*user:\s*api\.toAppUser\(updatedUser\)\s*\}\)/);
+assert.match(serverSource, /api\.persistCoursePaymentEnrollment\(/);
+assert.match(serverSource, /provider:\s*"MOCK"/);
+assert.match(serverSource, /user:\s*api\.toAppUser\(result\.user\)/);
 
 console.log("Student live synchronization rules passed");
