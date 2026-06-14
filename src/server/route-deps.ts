@@ -4,9 +4,14 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { AccessToken, RoomServiceClient } from "livekit-server-sdk";
 import { Course, DEFAULT_MODULE_CLASSIFICATION, DEFAULT_STUDENT_LABEL } from "../types";
-import { UserRole, canAccessAcademicProfile, canAccessApiRoute, isRbacExemptRoute, normalizeRole } from "../rbac";
+import { UserRole, canAccessAcademicProfile, canAccessApiRoute, isRbacExemptRoute, normalizeApiRoutePath, normalizeRole } from "../rbac";
 import { verifyAuthToken } from "../auth-token";
-import { DEFAULT_LIVE_SUBJECT, buildLiveKitRoomName, getLiveKitConfig, getLiveKitParticipantIdentity } from "../livekit";
+import {
+  DEFAULT_LIVE_SUBJECT,
+  buildLiveKitRoomName,
+  getLiveKitConfig,
+  getLiveKitParticipantIdentity,
+} from "../livekit";
 import { generateProfessorInviteCode, normalizeProfessorInviteCode, parseProfessorInviteCodes } from "../invitations";
 import {
   EMAIL_VERIFICATION_TTL_MINUTES,
@@ -31,8 +36,18 @@ import { buildCourseGradeRows } from "../grades";
 import { assertCourseLearningAccess } from "../course-access";
 import { sanitizeAcademicProfileInput, sanitizeAvatarUrl, isAvatarUrlFieldInvalid } from "../academic-profile";
 import { isAllowedAvatarUrl } from "../avatar-security";
-import { CHAT_TUTOR_MAX_HISTORY_CHARS, CHAT_TUTOR_MAX_HISTORY_MESSAGES, CHAT_TUTOR_MAX_PROMPT_CHARS, trimChatTutorHistory } from "../security-hardening";
-import { APP_USER_BILLING_INCLUDE, buildCourseInvoiceId, mergeUserInvoices, persistCoursePaymentEnrollment } from "../course-payments";
+import {
+  CHAT_TUTOR_MAX_HISTORY_CHARS,
+  CHAT_TUTOR_MAX_HISTORY_MESSAGES,
+  CHAT_TUTOR_MAX_PROMPT_CHARS,
+  trimChatTutorHistory,
+} from "../security-hardening";
+import {
+  APP_USER_BILLING_INCLUDE,
+  buildCourseInvoiceId,
+  mergeUserInvoices,
+  persistCoursePaymentEnrollment,
+} from "../course-payments";
 import type { CoursePaymentEnrollmentInput } from "../course-payments";
 import {
   courseModuleRowFromJsonItem,
@@ -43,7 +58,9 @@ import {
 import { LIVE_ACCESS_ERRORS } from "../public-api-errors";
 import { logDb, logEmail, logInvitation, logLiveKit } from "./route-loggers";
 import type { AppUser } from "./route-types";
-export type { AppUser } from "./route-types";
+import { setAuthUser, tryGetAuthUser } from "./route-types";
+export type { AppUser, AuthenticatedRequest } from "./route-types";
+export { getAuthUser, setAuthUser, tryGetAuthUser } from "./route-types";
 import {
   invalidatePublicCatalogCache,
   verifyChapterAccess,
@@ -62,7 +79,6 @@ export {
   verifyQuizQuestionAccess,
   verifySectionAccess,
 } from "./route-ownership";
-
 
 export { logLiveKit, logInvitation, logEmail, logDb } from "./route-loggers";
 
@@ -113,34 +129,44 @@ export const requireAuth: express.RequestHandler = async (req, res, next) => {
 
   const actualRole = normalizeRole(dbUser?.role);
   if (!dbUser || actualRole !== session.role) {
-    logSecurity("WARN", "Token user not found or role changed", { userId: session.userId, tokenRole: session.role, actualRole });
+    logSecurity("WARN", "Token user not found or role changed", {
+      userId: session.userId,
+      tokenRole: session.role,
+      actualRole,
+    });
     res.status(401).json({ error: "Session invalide" });
     return;
   }
   if (!dbUser.emailVerified) {
     logSecurity("WARN", "Unverified email access denied", { userId: dbUser.id, method: req.method, path: req.path });
-    res.status(403).json({ error: "Veuillez vérifier votre e-mail avant d'accéder à l'application", verificationRequired: true, email: dbUser.email });
+    res.status(403).json({
+      error: "Veuillez vérifier votre e-mail avant d'accéder à l'application",
+      verificationRequired: true,
+      email: dbUser.email,
+    });
     return;
   }
 
-  (req as any).authUser = toAppUser(dbUser);
+  setAuthUser(req, toAppUser(dbUser));
   next();
 };
 
 export const requireRbac: express.RequestHandler = (req, res, next) => {
-  const user = (req as any).authUser as AppUser | undefined;
-  if (!user || !canAccessApiRoute(user.role, req.method, req.path)) {
-    logSecurity("WARN", "Access denied", { userId: user?.id, role: user?.role, method: req.method, path: req.path });
+  const apiPath = normalizeApiRoutePath(req);
+  const user = tryGetAuthUser(req);
+  if (!user || !canAccessApiRoute(user.role, req.method, apiPath)) {
+    logSecurity("WARN", "Access denied", { userId: user?.id, role: user?.role, method: req.method, path: apiPath });
     res.status(403).json({ error: "Accès refusé pour ce rôle" });
     return;
   }
 
-  logSecurity("INFO", "Access granted", { userId: user.id, role: user.role, method: req.method, path: req.path });
+  logSecurity("INFO", "Access granted", { userId: user.id, role: user.role, method: req.method, path: apiPath });
   next();
 };
 
 export const requireGlobalApiRbac: express.RequestHandler = (req, res, next) => {
-  if (isRbacExemptRoute(req.method, req.path)) {
+  const apiPath = normalizeApiRoutePath(req);
+  if (isRbacExemptRoute(req.method, apiPath)) {
     next();
     return;
   }
@@ -152,9 +178,14 @@ export const requireGlobalApiRbac: express.RequestHandler = (req, res, next) => 
 };
 
 export const requireAdmin: express.RequestHandler = (req, res, next) => {
-  const user = (req as any).authUser as AppUser | undefined;
+  const user = tryGetAuthUser(req);
   if (!user || user.role !== "ADMIN") {
-    logSecurity("WARN", "Admin access denied", { userId: user?.id, role: user?.role, method: req.method, path: req.path });
+    logSecurity("WARN", "Admin access denied", {
+      userId: user?.id,
+      role: user?.role,
+      method: req.method,
+      path: req.path,
+    });
     res.status(403).json({ error: "Accès administrateur requis" });
     return;
   }
@@ -186,15 +217,17 @@ export function toDiscipline(discipline: any) {
     slug: discipline.slug,
     order: discipline.order,
     courseCount: discipline.courseCount,
-    domain: discipline.domain ? {
-      id: discipline.domain.id,
-      name: decodeStoredText(discipline.domain.name),
-      slug: discipline.domain.slug,
-      iconName: discipline.domain.iconName,
-      color: discipline.domain.color,
-      description: decodeStoredText(discipline.domain.description),
-      order: discipline.domain.order,
-    } : undefined,
+    domain: discipline.domain
+      ? {
+          id: discipline.domain.id,
+          name: decodeStoredText(discipline.domain.name),
+          slug: discipline.domain.slug,
+          iconName: discipline.domain.iconName,
+          color: discipline.domain.color,
+          description: decodeStoredText(discipline.domain.description),
+          order: discipline.domain.order,
+        }
+      : undefined,
   };
 }
 
@@ -296,7 +329,7 @@ export async function toCourseForUser(
   completedModuleIds?: Set<number>,
 ): Promise<Course> {
   if (authUser.role !== "STUDENT") return toCourse(course);
-  const moduleIds = completedModuleIds ?? await getStudentCompletedModuleIds(authUser.id, course.id);
+  const moduleIds = completedModuleIds ?? (await getStudentCompletedModuleIds(authUser.id, course.id));
   return toCourse(course, moduleIds);
 }
 
@@ -441,7 +474,7 @@ export async function deleteContentSectionTree(tx: any, sectionId: string) {
   if (contentIds.length > 0) {
     const attachments = await tx.attachment.findMany({
       where: { contentId: { in: contentIds } },
-      select: { fileKey: true }
+      select: { fileKey: true },
     });
     fileKeys = attachments.map((a: any) => a.fileKey);
     await tx.attachment.deleteMany({ where: { contentId: { in: contentIds } } });
@@ -468,12 +501,17 @@ export function toAppUser(user: any): AppUser {
     levelOrTitle: user.levelOrTitle || (user.role === "STUDENT" ? DEFAULT_STUDENT_LABEL : "Enseignant Docteur"),
     filiere: user.filiere || undefined,
     avatarUrl: user.avatarUrl || undefined,
-    enrolledCourses: Array.isArray(user.enrollments) ? user.enrollments.filter((enrollment: any) => enrollment.active).map((enrollment: any) => enrollment.courseId) : [],
+    enrolledCourses: Array.isArray(user.enrollments)
+      ? user.enrollments.filter((enrollment: any) => enrollment.active).map((enrollment: any) => enrollment.courseId)
+      : [],
     invoices: mergeUserInvoices(user),
   };
 }
 
-export async function ensureAcademicProfileForUser(client: any, user: { id: string; role: UserRole; levelOrTitle?: string | null }) {
+export async function ensureAcademicProfileForUser(
+  client: any,
+  user: { id: string; role: UserRole; levelOrTitle?: string | null },
+) {
   if (!canAccessAcademicProfile(user.role)) return null;
   return client.academicProfile.upsert({
     where: { userId: user.id },
@@ -512,21 +550,26 @@ export async function getAcademicProfileResponse(authUser: AppUser) {
     include: { academicProfile: true },
   });
   if (!dbUser) return null;
-  const profile = dbUser.academicProfile || await ensureAcademicProfileForUser(prisma, dbUser);
+  const profile = dbUser.academicProfile || (await ensureAcademicProfileForUser(prisma, dbUser));
   const [courses, lives, publishedContentsCount] = await Promise.all([
     prisma.course.findMany({
       where: {
-        OR: [
-          { createdById: authUser.id },
-          { instructor: dbUser.fullName },
-        ],
+        OR: [{ createdById: authUser.id }, { instructor: dbUser.fullName }],
       },
       select: { id: true, title: true, published: true, liveSubject: true },
       orderBy: { id: "asc" },
     }),
     prisma.liveSession.findMany({
       where: { professorId: authUser.id },
-      select: { id: true, roomName: true, courseId: true, isActive: true, startTime: true, endTime: true, course: { select: { title: true } } },
+      select: {
+        id: true,
+        roomName: true,
+        courseId: true,
+        isActive: true,
+        startTime: true,
+        endTime: true,
+        course: { select: { title: true } },
+      },
       orderBy: { startTime: "desc" },
       take: 12,
     }),
@@ -628,13 +671,22 @@ export async function sendEmailVerificationCode(user: { id: string; email: strin
       code,
       expiresInMinutes: EMAIL_VERIFICATION_TTL_MINUTES,
     });
-    logEmail(delivery.sent ? "INFO" : "WARN", delivery.sent ? "Verification email sent" : "SMTP not configured for verification email", {
-      userId: user.id,
-      emailDomain: getEmailDomain(user.email),
-      delivery: delivery.sent ? delivery.delivery : undefined,
-    });
+    logEmail(
+      delivery.sent ? "INFO" : "WARN",
+      delivery.sent ? "Verification email sent" : "SMTP not configured for verification email",
+      {
+        userId: user.id,
+        emailDomain: getEmailDomain(user.email),
+        delivery: delivery.sent ? delivery.delivery : undefined,
+      },
+    );
     if (!delivery.sent) {
-      await recordEmailDeliveryLog("email_verification", user.id, user.email, buildFailedEmailDelivery(user.email, delivery.reason));
+      await recordEmailDeliveryLog(
+        "email_verification",
+        user.id,
+        user.email,
+        buildFailedEmailDelivery(user.email, delivery.reason),
+      );
     }
     if (delivery.sent) {
       await recordEmailDeliveryLog("email_verification", user.id, user.email, delivery.delivery);
@@ -647,7 +699,12 @@ export async function sendEmailVerificationCode(user: { id: string; email: strin
       smtp: getSmtpPublicConfig(),
       error: getEmailErrorDetails(err),
     });
-    await recordEmailDeliveryLog("email_verification", user.id, user.email, buildFailedEmailDelivery(user.email, getEmailErrorDetails(err)));
+    await recordEmailDeliveryLog(
+      "email_verification",
+      user.id,
+      user.email,
+      buildFailedEmailDelivery(user.email, getEmailErrorDetails(err)),
+    );
     return { sent: false, reason: "SMTP_SEND_FAILED" as const };
   }
 }
@@ -701,12 +758,20 @@ export async function ensureLiveSession(course: Course, authUser: AppUser) {
       professorId: authUser.role === "STUDENT" ? undefined : authUser.id,
     },
   });
-  logLiveKit("INFO", "Live session ensured", { courseId: course.id, roomName, startedAt: session.startTime.toISOString(), isActive: session.isActive });
+  logLiveKit("INFO", "Live session ensured", {
+    courseId: course.id,
+    roomName,
+    startedAt: session.startTime.toISOString(),
+    isActive: session.isActive,
+  });
   return session;
 }
 
 export function getLiveKitApiUrl(url: string) {
-  return url.trim().replace(/^wss:\/\//, "https://").replace(/^ws:\/\//, "http://");
+  return url
+    .trim()
+    .replace(/^wss:\/\//, "https://")
+    .replace(/^ws:\/\//, "http://");
 }
 
 export function getLiveKitRoomService(config: { url: string; apiKey: string; apiSecret: string }) {
@@ -757,7 +822,11 @@ export async function recordLiveAttendanceJoin(session: { id: string; roomName: 
     },
   });
   await recordLiveAction({ sessionId: session.id, roomName: session.roomName, actor: authUser, action: "JOIN" });
-  logLiveKit("INFO", "Attendance join recorded", { roomName: session.roomName, userId: authUser.id, role: authUser.role });
+  logLiveKit("INFO", "Attendance join recorded", {
+    roomName: session.roomName,
+    userId: authUser.id,
+    role: authUser.role,
+  });
   return attendance;
 }
 
@@ -773,7 +842,13 @@ export async function recordLiveAttendanceLeave(session: { id: string; roomName:
     where: { id: active.id },
     data: { leftAt, lastSeenAt: leftAt, durationSeconds },
   });
-  await recordLiveAction({ sessionId: session.id, roomName: session.roomName, actor: authUser, action: "LEAVE", details: { durationSeconds } });
+  await recordLiveAction({
+    sessionId: session.id,
+    roomName: session.roomName,
+    actor: authUser,
+    action: "LEAVE",
+    details: { durationSeconds },
+  });
   logLiveKit("INFO", "Attendance leave recorded", { roomName: session.roomName, userId: authUser.id, durationSeconds });
   return updated;
 }
@@ -781,7 +856,7 @@ export async function recordLiveAttendanceLeave(session: { id: string; roomName:
 export async function assertLiveAccess(authUser: AppUser, courseId: number) {
   const course = await prisma.course.findUnique({
     where: { id: courseId },
-    select: { id: true, createdById: true }
+    select: { id: true, createdById: true },
   });
   if (!course) return { ok: false as const, status: 404, error: LIVE_ACCESS_ERRORS.notFound };
   if (authUser.role === "STUDENT" && !authUser.enrolledCourses.includes(course.id)) {
@@ -858,7 +933,7 @@ export function validateBody(schema: z.ZodType<any>) {
     if (!result.success) {
       res.status(400).json({
         error: "Données d'entrée invalides",
-        details: result.error.issues.map(e => ({ field: e.path.join("."), message: e.message })),
+        details: result.error.issues.map((e) => ({ field: e.path.join("."), message: e.message })),
         code: "VALIDATION_ERROR",
       });
       return;
@@ -934,7 +1009,10 @@ export const studentObjectiveSchema = z.object({
   objectiveType: z.enum(["CHAPITRE", "TD", "RESUME", "REVISION", "AUTRE"]).optional().nullable(),
   focusContentTitle: z.string().max(160).trim().optional().nullable(),
   focusContentUrl: z.string().max(500).trim().optional().nullable(),
-  focusContentType: z.enum(["PODCAST", "VIDEO", "AUDIO_REMINDER", "EDUCATIONAL_RESOURCE", "OTHER"]).optional().nullable(),
+  focusContentType: z
+    .enum(["PODCAST", "VIDEO", "AUDIO_REMINDER", "EDUCATIONAL_RESOURCE", "OTHER"])
+    .optional()
+    .nullable(),
   recurrence: z.enum(["NONE", "DAILY", "WEEKLY", "MONTHLY"]).optional().nullable(),
 });
 
@@ -942,15 +1020,20 @@ export const chatTutorSchema = z.object({
   courseId: z.number().int().positive(),
   moduleId: z.number().int().positive().optional(),
   prompt: z.string().min(1, "Question requise").max(CHAT_TUTOR_MAX_PROMPT_CHARS).trim(),
-  chatHistory: z.array(z.object({
-    role: z.enum(["user", "model", "assistant"]),
-    text: z.string().max(CHAT_TUTOR_MAX_PROMPT_CHARS),
-  })).max(CHAT_TUTOR_MAX_HISTORY_MESSAGES).optional().transform((history) => (
-    history ? trimChatTutorHistory(history) : history
-  )),
+  chatHistory: z
+    .array(
+      z.object({
+        role: z.enum(["user", "model", "assistant"]),
+        text: z.string().max(CHAT_TUTOR_MAX_PROMPT_CHARS),
+      }),
+    )
+    .max(CHAT_TUTOR_MAX_HISTORY_MESSAGES)
+    .optional()
+    .transform((history) => (history ? trimChatTutorHistory(history) : history)),
 });
 
-export const PASSWORD_RESET_GENERIC_MESSAGE = "Si un compte Axelmond Research Labs existe pour cette adresse, un code de réinitialisation a été envoyé.";
+export const PASSWORD_RESET_GENERIC_MESSAGE =
+  "Si un compte Axelmond Research Labs existe pour cette adresse, un code de réinitialisation a été envoyé.";
 
 export const courseSchema = z.object({
   title: z.string().min(2, "Le titre est requis").max(200).trim(),
@@ -1073,7 +1156,16 @@ export const liveMessageSchema = z.object({
 
 export const liveEventSchema = z.object({
   courseId: z.number().int().positive(),
-  action: z.enum(["RAISE_HAND", "LOWER_HAND", "REACTION", "QUESTION", "RESOURCE_SHARE", "WHITEBOARD_UPDATE", "RECORDING_REQUESTED", "RECORDING_STOPPED"]),
+  action: z.enum([
+    "RAISE_HAND",
+    "LOWER_HAND",
+    "REACTION",
+    "QUESTION",
+    "RESOURCE_SHARE",
+    "WHITEBOARD_UPDATE",
+    "RECORDING_REQUESTED",
+    "RECORDING_STOPPED",
+  ]),
   targetIdentity: z.string().max(200).trim().optional().nullable(),
   targetName: z.string().max(200).trim().optional().nullable(),
   details: z.record(z.string(), z.any()).optional(),
@@ -1136,24 +1228,86 @@ export { setAuthCookies, clearAuthCookies } from "../auth-cookies";
 export { withMobileRefreshToken, isMobileClientRequest, MOBILE_CLIENT_HEADER } from "../auth-mobile";
 export { readRefreshTokenFromRequest } from "../auth-cookies";
 export { parsePositiveInt } from "../route-params";
-export { generateChatTutorResponse, ChatTutorServiceError, toChatTutorClientResponse, initializeOpenAIService } from "../openai-service";
+export {
+  generateChatTutorResponse,
+  ChatTutorServiceError,
+  toChatTutorClientResponse,
+  initializeOpenAIService,
+} from "../openai-service";
 export type { CourseModule } from "../types";
-export { createRefreshToken, rotateRefreshToken, revokeRefreshToken, revokeAllUserRefreshTokens, signAuthToken, verifyAuthToken, findValidRefreshToken } from "../auth-token";
+export {
+  createRefreshToken,
+  rotateRefreshToken,
+  revokeRefreshToken,
+  revokeAllUserRefreshTokens,
+  signAuthToken,
+  verifyAuthToken,
+  findValidRefreshToken,
+} from "../auth-token";
 export { normalizeRole, canLoginToRequestedRole, canAccessAcademicProfile, isTeacherSpaceRole } from "../rbac";
 export { DEFAULT_STUDENT_LABEL, DEFAULT_MODULE_CLASSIFICATION } from "../types";
-export { DEFAULT_LIVE_SUBJECT, buildLiveKitRoomName, getLiveKitConfig, getLiveKitParticipantIdentity } from "../livekit";
+export {
+  DEFAULT_LIVE_SUBJECT,
+  buildLiveKitRoomName,
+  getLiveKitConfig,
+  getLiveKitParticipantIdentity,
+} from "../livekit";
 export { normalizeProfessorInviteCode, generateProfessorInviteCode, parseProfessorInviteCodes } from "../invitations";
-export { ProfessorInviteConsumeError, attachProfessorInviteUsage, reserveProfessorInviteCode } from "../professor-invite-consume";
+export {
+  ProfessorInviteConsumeError,
+  attachProfessorInviteUsage,
+  reserveProfessorInviteCode,
+} from "../professor-invite-consume";
 export { buildEmailDeliverySummary } from "../email-delivery-summary";
 export { sendVerificationEmail, sendAdminTestEmail, getEmailErrorDetails, getSmtpPublicConfig } from "../email";
-export { generateEmailVerificationCode, hashEmailVerificationCode, buildEmailVerificationExpiry, canAttemptEmailVerification, isDevVerificationCodeLogEnabled, isEmailVerificationExpired, maskEmailForDevLog, normalizeEmailVerificationCode, EMAIL_VERIFICATION_MAX_ATTEMPTS, EMAIL_VERIFICATION_TTL_MINUTES } from "../email-verification";
-export { validateSchedulePayload, serializeScheduleSession, sortScheduleSessions, canAccessProfessorScheduleSession } from "../schedule";
-export { validateStudentStudyPayload, serializeStudentStudySession, sortStudentStudySessions, canAccessStudentStudySession } from "../student-study-schedule";
-export { validateStudentObjectivePayload, normalizeStudentObjectivePayload, serializeStudentObjective, sortStudentObjectives, canAccessStudentObjective, buildStudentObjectiveSummary, buildNextRecurringObjectiveData } from "../student-objectives";
+export {
+  generateEmailVerificationCode,
+  hashEmailVerificationCode,
+  buildEmailVerificationExpiry,
+  canAttemptEmailVerification,
+  isDevVerificationCodeLogEnabled,
+  isEmailVerificationExpired,
+  maskEmailForDevLog,
+  normalizeEmailVerificationCode,
+  EMAIL_VERIFICATION_MAX_ATTEMPTS,
+  EMAIL_VERIFICATION_TTL_MINUTES,
+} from "../email-verification";
+export {
+  validateSchedulePayload,
+  serializeScheduleSession,
+  sortScheduleSessions,
+  canAccessProfessorScheduleSession,
+} from "../schedule";
+export {
+  validateStudentStudyPayload,
+  serializeStudentStudySession,
+  sortStudentStudySessions,
+  canAccessStudentStudySession,
+} from "../student-study-schedule";
+export {
+  validateStudentObjectivePayload,
+  normalizeStudentObjectivePayload,
+  serializeStudentObjective,
+  sortStudentObjectives,
+  canAccessStudentObjective,
+  buildStudentObjectiveSummary,
+  buildNextRecurringObjectiveData,
+} from "../student-objectives";
 export { validateIncomingLiveSyncMessage, isModeratorOnlyLiveSyncType } from "../live/live-sync-validation";
 export { LIVE_SYNC_TOPIC, createEmptyPoll } from "../live/live-sync";
-export { hashRefreshToken, CHAT_TUTOR_MAX_HISTORY_CHARS, CHAT_TUTOR_MAX_HISTORY_MESSAGES, CHAT_TUTOR_MAX_PROMPT_CHARS, trimChatTutorHistory } from "../security-hardening";
-export { courseModuleRowFromJsonItem, getNextCourseModuleId, resolveCourseModules, shouldReadRelationalCourseModules } from "../course-syllabus-modules";
+export {
+  hashRefreshToken,
+  CHAT_TUTOR_MAX_HISTORY_CHARS,
+  CHAT_TUTOR_MAX_HISTORY_MESSAGES,
+  CHAT_TUTOR_MAX_PROMPT_CHARS,
+  trimChatTutorHistory,
+} from "../security-hardening";
+export {
+  courseModuleRowFromJsonItem,
+  getNextCourseModuleId,
+  resolveCourseModules,
+  shouldReadRelationalCourseModules,
+} from "../course-syllabus-modules";
 export { createPayPalOrder, capturePayPalOrder, isPayPalConfigured, logPayPalError } from "../paypal-server";
 export { processPayPalCaptureEnrollment, toPayPalCaptureClientResponse } from "../paypal-enrollment";
 export { resolveCourseChargeAmount } from "../promo-codes";

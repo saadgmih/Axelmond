@@ -93,7 +93,12 @@ export function getRedirectPathForRole(role: unknown, pathname: string): string 
 
   const path = pathname.toLowerCase();
   const isTeacherPath = path.startsWith("/teacher") || path.startsWith("/professor") || path.startsWith("/admin");
-  const isStudentPath = path.startsWith("/student") || path.startsWith("/catalog") || path.startsWith("/course") || path.startsWith("/profile") || path.startsWith("/dashboard");
+  const isStudentPath =
+    path.startsWith("/student") ||
+    path.startsWith("/catalog") ||
+    path.startsWith("/course") ||
+    path.startsWith("/profile") ||
+    path.startsWith("/dashboard");
 
   if (normalized === "STUDENT" && isTeacherPath) return "/student";
   if (teacherSpaceRoles.includes(normalized) && isStudentPath) return "/teacher";
@@ -111,11 +116,7 @@ const RBAC_EXEMPT_AUTH_PATHS = new Set([
   "/api/auth/reset-password",
 ]);
 
-const RBAC_EXEMPT_PREFIXES = [
-  "/api/uploadthing",
-  "/api/paypal/webhook",
-  "/api/admin/",
-];
+const RBAC_EXEMPT_PREFIXES = ["/api/uploadthing", "/api/paypal/webhook", "/api/admin/"];
 
 export function isRbacExemptRoute(method: string, path: string): boolean {
   const verb = method.toUpperCase();
@@ -129,18 +130,26 @@ export function isRbacExemptRoute(method: string, path: string): boolean {
     return true;
   }
 
-  if (verb === "GET" && (
-    cleanPath === "/api/health"
-    || cleanPath === "/api/domains"
-    || cleanPath === "/api/courses"
-    || cleanPath === "/api/mobile/routes"
-    || cleanPath === "/api/paypal/config"
-    || /^\/api\/courses\/\d+$/.test(cleanPath)
-  )) {
+  if (
+    verb === "GET" &&
+    (cleanPath === "/api/health" ||
+      cleanPath === "/api/domains" ||
+      cleanPath === "/api/courses" ||
+      cleanPath === "/api/mobile/routes" ||
+      cleanPath === "/api/paypal/config" ||
+      /^\/api\/courses\/\d+$/.test(cleanPath))
+  ) {
     return true;
   }
 
   return false;
+}
+
+/** Rebuild /api/... path when middleware is mounted on app.use("/api", ...). */
+export function normalizeApiRoutePath(req: { baseUrl?: string; path: string }): string {
+  const joined = `${req.baseUrl || ""}${req.path || ""}`.split("?")[0];
+  if (joined.startsWith("/api")) return joined;
+  return `/api${joined.startsWith("/") ? joined : `/${joined}`}`;
 }
 
 export function canAccessApiRoute(role: unknown, method: string, path: string): boolean {
@@ -190,7 +199,7 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
     return teacherSpaceRoles.includes(normalized);
   }
 
-  if ((verb === "POST") && /^\/api\/content-sections\/[^/]+\/contents$/.test(cleanPath)) {
+  if (verb === "POST" && /^\/api\/content-sections\/[^/]+\/contents$/.test(cleanPath)) {
     return teacherSpaceRoles.includes(normalized);
   }
 
@@ -246,10 +255,22 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
     return normalized === "STUDENT";
   }
 
-  if (verb === "GET" && (cleanPath === "/api/conversations" || cleanPath === "/api/messaging/users/search" || cleanPath === "/api/notifications" || cleanPath === "/api/notifications/unread-count" || cleanPath === "/api/notifications/vapid-public-key")) {
+  if (
+    verb === "GET" &&
+    (cleanPath === "/api/conversations" ||
+      cleanPath === "/api/messaging/users/search" ||
+      cleanPath === "/api/notifications" ||
+      cleanPath === "/api/notifications/unread-count" ||
+      cleanPath === "/api/notifications/vapid-public-key")
+  ) {
     return true;
   }
-  if (verb === "POST" && (cleanPath === "/api/conversations" || cleanPath === "/api/notifications/read-all" || cleanPath === "/api/notifications/push-subscribe")) {
+  if (
+    verb === "POST" &&
+    (cleanPath === "/api/conversations" ||
+      cleanPath === "/api/notifications/read-all" ||
+      cleanPath === "/api/notifications/push-subscribe")
+  ) {
     return true;
   }
   if (verb === "PATCH" && /^\/api\/notifications\/[^/]+\/read$/.test(cleanPath)) {
@@ -271,8 +292,10 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
     return true;
   }
 
-  if ((verb === "POST" && (cleanPath === "/api/livekit/events" || cleanPath === "/api/livekit/attendance/leave"))
-    || (verb === "GET" && /^\/api\/livekit\/attendance\/\d+$/.test(cleanPath))) {
+  if (
+    (verb === "POST" && (cleanPath === "/api/livekit/events" || cleanPath === "/api/livekit/attendance/leave")) ||
+    (verb === "GET" && /^\/api\/livekit\/attendance\/\d+$/.test(cleanPath))
+  ) {
     return true;
   }
 
@@ -297,13 +320,14 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
     return true;
   }
 
-  if (verb === "GET" && (
-    /^\/api\/courses\/\d+\/content$/.test(cleanPath)
-    || /^\/api\/courses\/\d+\/module-contents$/.test(cleanPath)
-    || /^\/api\/courses\/\d+\/chapters$/.test(cleanPath)
-    || /^\/api\/courses\/\d+\/grades$/.test(cleanPath)
-    || /^\/api\/quizzes\/[^/]+$/.test(cleanPath)
-  )) {
+  if (
+    verb === "GET" &&
+    (/^\/api\/courses\/\d+\/content$/.test(cleanPath) ||
+      /^\/api\/courses\/\d+\/module-contents$/.test(cleanPath) ||
+      /^\/api\/courses\/\d+\/chapters$/.test(cleanPath) ||
+      /^\/api\/courses\/\d+\/grades$/.test(cleanPath) ||
+      /^\/api\/quizzes\/[^/]+$/.test(cleanPath))
+  ) {
     return true;
   }
 
@@ -311,15 +335,16 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
     return true;
   }
 
-  if (verb === "POST" && (
-    cleanPath === "/api/livekit/token"
-    || cleanPath === "/api/livekit/messages"
-    || cleanPath === "/api/paypal/create-order"
-    || cleanPath === "/api/paypal/capture-order"
-    || cleanPath === "/api/payments/enroll-mock"
-    || cleanPath === "/api/contact"
-    || cleanPath === "/api/support/tickets"
-  )) {
+  if (
+    verb === "POST" &&
+    (cleanPath === "/api/livekit/token" ||
+      cleanPath === "/api/livekit/messages" ||
+      cleanPath === "/api/paypal/create-order" ||
+      cleanPath === "/api/paypal/capture-order" ||
+      cleanPath === "/api/payments/enroll-mock" ||
+      cleanPath === "/api/contact" ||
+      cleanPath === "/api/support/tickets")
+  ) {
     return true;
   }
 
