@@ -104,7 +104,10 @@ rulesTest("rbac", () => {
   assert.equal(isRbacExemptRoute("GET", "/api/courses"), true);
   assert.equal(isRbacExemptRoute("POST", "/api/auth/login"), true);
   assert.equal(isRbacExemptRoute("GET", "/api/auth/me"), false);
-assert.equal(isRbacExemptRoute("GET", "/api/admin/professor-invites"), true);
+  assert.equal(isRbacExemptRoute("GET", "/api/auth/mfa/status"), true);
+  assert.equal(isRbacExemptRoute("POST", "/api/auth/mfa/totp/setup"), true);
+  assert.equal(isRbacExemptRoute("POST", "/api/auth/mfa/passkey/login/verify"), true);
+  assert.equal(isRbacExemptRoute("GET", "/api/admin/professor-invites"), true);
 
 assert.equal(normalizeApiRoutePath({ baseUrl: "/api", path: "/health" }), "/api/health");
 assert.equal(normalizeApiRoutePath({ baseUrl: "", path: "/api/courses" }), "/api/courses");

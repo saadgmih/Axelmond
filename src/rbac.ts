@@ -116,7 +116,7 @@ const RBAC_EXEMPT_AUTH_PATHS = new Set([
   "/api/auth/reset-password",
 ]);
 
-const RBAC_EXEMPT_PREFIXES = ["/api/uploadthing", "/api/paypal/webhook", "/api/admin/"];
+const RBAC_EXEMPT_PREFIXES = ["/api/uploadthing", "/api/paypal/webhook", "/api/admin/", "/api/auth/mfa"];
 
 export function isRbacExemptRoute(method: string, path: string): boolean {
   const verb = method.toUpperCase();
