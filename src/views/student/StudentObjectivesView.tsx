@@ -1,6 +1,6 @@
+import { useMemo } from "react";
 import {
   AlertTriangle,
-  CalendarDays,
   CheckCircle2,
   Clock3,
   ExternalLink,
@@ -10,11 +10,12 @@ import {
   Plus,
   RotateCcw,
   Target,
-  TrendingUp,
   Trash2,
   X,
 } from "lucide-react";
 import type { ReactNode } from "react";
+import AxelCalendarShell from "../../components/calendar/AxelCalendarShell";
+import { dateToScheduleDayOfWeek, formatDateKey, formatTimeShort } from "../../components/calendar/calendar-utils";
 import type { UseStudentObjectivesOptions } from "../../hooks/useStudentObjectives";
 import { type StudentObjectiveView, useStudentObjectives } from "../../hooks/useStudentObjectives";
 import { FOCUS_CONTENT_TYPES, STUDENT_OBJECTIVE_RECURRENCES, STUDENT_OBJECTIVE_TYPES } from "../../student-objectives";
@@ -29,9 +30,21 @@ function formatDateTime(value: string) {
   }).format(new Date(value));
 }
 
-function formatMonthLabel(value: string) {
-  if (!value) return "Mois courant";
-  return new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric" }).format(new Date(`${value}-01T00:00:00`));
+function toObjectiveCalendarMarkers(objectives: StudentObjectiveView[]) {
+  return objectives.map((objective) => {
+    const endAt = new Date(objective.endAt);
+    const startAt = new Date(objective.startAt);
+    return {
+      id: objective.id,
+      title: objective.title,
+      startTime: formatTimeShort(startAt),
+      endTime: formatTimeShort(endAt),
+      dayOfWeek: dateToScheduleDayOfWeek(endAt),
+      occursOnDate: formatDateKey(endAt),
+      moduleName: objective.objectiveTypeLabel || undefined,
+      sessionTypeLabel: objective.statusLabel,
+    };
+  });
 }
 
 function ProductivityStatCard({
@@ -173,17 +186,24 @@ export default function StudentObjectivesView(props: StudentObjectivesViewProps)
     isSaving,
     weeklyProgress,
     stats,
-    calendarDays,
     streak,
     dueSoonObjectives,
     overdueObjectives,
+    objectives,
     openCreateForm,
+    openCreateFormForDate,
     openEditForm,
     closeForm,
     handleSaveObjective,
     handleCompleteObjective,
     handleDeleteObjective,
   } = useStudentObjectives(props);
+
+  const calendarObjectives = useMemo(() => toObjectiveCalendarMarkers(objectives), [objectives]);
+  const objectivesById = useMemo(
+    () => new Map(objectives.map((objective) => [objective.id, objective])),
+    [objectives],
+  );
 
   return (
     <div className={scheduleUi.page} data-tv-zone="student-objectives">
@@ -308,58 +328,30 @@ export default function StudentObjectivesView(props: StudentObjectivesViewProps)
         </div>
       </section>
 
-      <section className="rounded-2xl border border-white/[0.08] bg-[#0f172a]/70 p-4 sm:p-5">
-        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="inline-flex items-center gap-2 text-base font-black text-white">
-              <CalendarDays className="h-4 w-4 text-cyan-300" />
-              Calendrier des objectifs
-            </h2>
-            <p className="mt-1 text-xs font-semibold text-slate-500">
-              {formatMonthLabel(calendarDays[0]?.date?.slice(0, 7) || "")}
-            </p>
-          </div>
-          <p className="inline-flex items-center gap-1 text-xs font-bold text-slate-400">
-            <TrendingUp className="h-3.5 w-3.5 text-emerald-300" />
-            Série productive : {streak.days} jour(s)
-          </p>
-        </div>
-        <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
-          {calendarDays.map((day) => (
-            <div
-              key={day.date}
-              className={`min-h-[56px] rounded-xl border p-2 text-[10px] ${
-                day.overdueCount > 0
-                  ? "border-red-500/20 bg-red-950/20 text-red-100"
-                  : day.dueSoonCount > 0
-                    ? "border-amber-400/20 bg-amber-950/20 text-amber-100"
-                    : day.objectiveCount > 0
-                      ? "border-cyan-400/20 bg-cyan-950/20 text-cyan-100"
-                      : "border-white/[0.06] bg-[#020617]/60 text-slate-500"
-              }`}
-              title={`${day.objectiveCount} objectif(s)`}
-            >
-              <span className="font-black">{day.dayOfMonth}</span>
-              {day.objectiveCount > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1">
-                  <span className="rounded-full bg-white/10 px-1.5 py-0.5 font-bold">{day.objectiveCount}</span>
-                  {day.completedCount > 0 && (
-                    <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.5 font-bold">
-                      {day.completedCount} OK
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
-
       {isLoading ? (
         <div className="rounded-2xl border border-white/[0.08] bg-[#0f172a]/70 px-6 py-10 text-center text-sm font-semibold text-slate-400">
           Chargement de vos objectifs...
         </div>
       ) : (
+        <AxelCalendarShell
+          sessions={calendarObjectives}
+          matchBy="date"
+          accent="indigo"
+          labels={{
+            emptyDay: "Aucun objectif prévu ce jour",
+            emptyWeekDay: "Aucun objectif",
+            add: "Ajouter un objectif",
+          }}
+          onAddSession={openCreateForm}
+          onDayAction={(date) => openCreateFormForDate(date)}
+          onSessionClick={(objectiveId) => {
+            const objective = objectivesById.get(objectiveId);
+            if (objective) openEditForm(objective);
+          }}
+        />
+      )}
+
+      {!isLoading && (
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
           <section className="space-y-4">
             <div>

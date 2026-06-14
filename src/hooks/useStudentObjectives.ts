@@ -186,6 +186,20 @@ export function useStudentObjectives({ role, currentView }: UseStudentObjectives
     setIsFormOpen(true);
   }, []);
 
+  const openCreateFormForDate = useCallback((date: Date) => {
+    const start = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 9, 0, 0, 0);
+    const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+    setEditingObjectiveId(null);
+    setForm({
+      ...defaultObjectiveForm(),
+      startAt: toDateTimeLocalValue(start),
+      endAt: toDateTimeLocalValue(end),
+    });
+    setStatusMsg("");
+    setErrorMsg("");
+    setIsFormOpen(true);
+  }, []);
+
   const openEditForm = useCallback((objective: StudentObjectiveView) => {
     setEditingObjectiveId(objective.id);
     setForm(toFormState(objective));
@@ -281,6 +295,7 @@ export function useStudentObjectives({ role, currentView }: UseStudentObjectives
     setForm,
     isSaving,
     openCreateForm,
+    openCreateFormForDate,
     openEditForm,
     closeForm,
     handleSaveObjective,

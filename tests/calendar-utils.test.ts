@@ -4,6 +4,7 @@ import {
   addDays,
   buildMonthGrid,
   dateToScheduleDayOfWeek,
+  formatDateKey,
   startOfWeekMonday,
 } from "../src/components/calendar/calendar-utils";
 
@@ -26,4 +27,8 @@ test("addDays shifts calendar dates", () => {
 test("buildMonthGrid returns 42 cells", () => {
   const grid = buildMonthGrid(2026, 5);
   assert.equal(grid.length, 42);
+});
+
+test("formatDateKey returns YYYY-MM-DD", () => {
+  assert.equal(formatDateKey(new Date(2026, 5, 15)), "2026-06-15");
 });

@@ -7,6 +7,7 @@ import {
   addDays,
   buildMonthGrid,
   dateToScheduleDayOfWeek,
+  formatDateKey,
   formatFrenchDate,
   formatWeekRange,
   isSameDay,
@@ -20,6 +21,7 @@ export interface CalendarSessionMarker {
   startTime: string;
   endTime: string;
   dayOfWeek: number;
+  occursOnDate?: string;
   moduleName?: string;
   sessionTypeLabel?: string;
 }
@@ -27,6 +29,12 @@ export interface CalendarSessionMarker {
 interface AxelCalendarShellProps {
   sessions: CalendarSessionMarker[];
   accent?: "indigo" | "pink";
+  matchBy?: "weekday" | "date";
+  labels?: {
+    emptyDay?: string;
+    emptyWeekDay?: string;
+    add?: string;
+  };
   onAddSession?: () => void;
   onDayAction?: (date: Date, dayOfWeek: number) => void;
   onSessionClick?: (sessionId: string) => void;
@@ -39,20 +47,30 @@ const viewIcons: Record<CalendarViewMode, typeof Grid3X3> = {
   day: CalendarDays,
 };
 
-function sessionsForDay(sessions: CalendarSessionMarker[], date: Date): CalendarSessionMarker[] {
+function sessionsForDay(
+  sessions: CalendarSessionMarker[],
+  date: Date,
+  matchBy: "weekday" | "date",
+): CalendarSessionMarker[] {
   const dayOfWeek = dateToScheduleDayOfWeek(date);
+  const dateKey = formatDateKey(date);
   return sessions
-    .filter((session) => session.dayOfWeek === dayOfWeek)
+    .filter((session) => (matchBy === "date" ? session.occursOnDate === dateKey : session.dayOfWeek === dayOfWeek))
     .sort((a, b) => a.startTime.localeCompare(b.startTime));
 }
 
 export default function AxelCalendarShell({
   sessions,
   accent = "indigo",
+  matchBy = "weekday",
+  labels,
   onAddSession,
   onDayAction,
   onSessionClick,
 }: AxelCalendarShellProps) {
+  const emptyDayLabel = labels?.emptyDay ?? "Aucune séance planifiée ce jour";
+  const emptyWeekDayLabel = labels?.emptyWeekDay ?? "Aucune séance";
+  const addLabel = labels?.add ?? "Ajouter";
   const today = useMemo(() => new Date(), []);
   const [viewMode, setViewMode] = useState<CalendarViewMode>("year");
   const [focusDate, setFocusDate] = useState(() => new Date(today.getFullYear(), today.getMonth(), today.getDate()));
@@ -110,7 +128,7 @@ export default function AxelCalendarShell({
             </span>
           ))}
           {cells.map((cell) => {
-            const daySessions = sessionsForDay(sessions, cell.date);
+            const daySessions = sessionsForDay(sessions, cell.date, matchBy);
             const visible = cell.inCurrentMonth;
             return (
               <span
@@ -152,7 +170,7 @@ export default function AxelCalendarShell({
         </div>
       ))}
       {cells.map((cell) => {
-        const daySessions = sessionsForDay(sessions, cell.date);
+        const daySessions = sessionsForDay(sessions, cell.date, matchBy);
         const selected = isSameDay(cell.date, focusDate);
         return (
           <button
@@ -244,7 +262,7 @@ export default function AxelCalendarShell({
             onClick={onAddSession}
           >
             <Plus className="h-4 w-4" />
-            Ajouter
+            {addLabel}
           </button>
         )}
       </div>
@@ -262,7 +280,7 @@ export default function AxelCalendarShell({
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-7">
             {Array.from({ length: 7 }, (_, offset) => {
               const date = addDays(weekStart, offset);
-              const daySessions = sessionsForDay(sessions, date);
+              const daySessions = sessionsForDay(sessions, date, matchBy);
               const scheduleDay = dateToScheduleDayOfWeek(date);
               return (
                 <button
@@ -283,7 +301,7 @@ export default function AxelCalendarShell({
                   </p>
                   <div className="mt-2 space-y-2">
                     {daySessions.length === 0 ? (
-                      <p className="text-[11px] text-slate-500">Aucune séance</p>
+                      <p className="text-[11px] text-slate-500">{emptyWeekDayLabel}</p>
                     ) : (
                       daySessions.map((session) => (
                         <div key={session.id} className="rounded-lg border border-white/[0.06] bg-black/20 px-2 py-1.5">
@@ -304,12 +322,12 @@ export default function AxelCalendarShell({
         {viewMode === "day" && (
           <div className="space-y-3">
             <p className="text-sm font-semibold capitalize text-slate-300">{formatFrenchDate(focusDate)}</p>
-            {sessionsForDay(sessions, focusDate).length === 0 ? (
+            {sessionsForDay(sessions, focusDate, matchBy).length === 0 ? (
               <div className="rounded-xl border border-dashed border-white/[0.08] px-4 py-8 text-center text-sm text-slate-500">
-                Aucune séance planifiée ce jour
+                {emptyDayLabel}
               </div>
             ) : (
-              sessionsForDay(sessions, focusDate).map((session) => (
+              sessionsForDay(sessions, focusDate, matchBy).map((session) => (
                 <button
                   type="button"
                   key={session.id}
