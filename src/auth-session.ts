@@ -1,21 +1,27 @@
 import type { Request, Response } from "express";
 import type { AppUser } from "./server/route-types";
+import type { prisma } from "./db";
+import type { createRefreshToken, signAuthToken } from "./auth-token";
+import type { setAuthCookies } from "./auth-cookies";
+import type { withMobileRefreshToken } from "./auth-mobile";
+import type { logSecurity } from "./security-logger";
+import type { toAppUser } from "./server/route-mappers";
 
-type AuthApi = {
-  prisma: { user: { update: (args: unknown) => Promise<unknown> } };
-  toAppUser: (user: unknown) => AppUser;
-  createRefreshToken: (userId: string) => Promise<string>;
-  setAuthCookies: (res: Response, refreshToken: string) => string;
-  signAuthToken: (user: AppUser) => string;
-  withMobileRefreshToken: (req: Request, body: Record<string, unknown>, refreshToken: string) => Record<string, unknown>;
-  logSecurity: (level: string, message: string, meta?: Record<string, unknown>) => void;
+export type AuthSessionApi = {
+  prisma: typeof prisma;
+  toAppUser: typeof toAppUser;
+  createRefreshToken: typeof createRefreshToken;
+  setAuthCookies: typeof setAuthCookies;
+  signAuthToken: typeof signAuthToken;
+  withMobileRefreshToken: typeof withMobileRefreshToken;
+  logSecurity: typeof logSecurity;
 };
 
 export async function issueAuthenticatedSession(
   req: Request,
   res: Response,
-  api: AuthApi,
-  user: Parameters<AuthApi["toAppUser"]>[0],
+  api: AuthSessionApi,
+  user: Parameters<typeof toAppUser>[0],
   logMessage = "User logged in",
 ) {
   await api.prisma.user.update({
@@ -36,8 +42,8 @@ export async function issueAuthenticatedSession(
 }
 
 export async function userRequiresTotpAfterPassword(userId: string): Promise<boolean> {
-  const { prisma } = await import("./db");
-  const user = await prisma.user.findUnique({
+  const { prisma: db } = await import("./db");
+  const user = await db.user.findUnique({
     where: { id: userId },
     select: { totpEnabled: true },
   });

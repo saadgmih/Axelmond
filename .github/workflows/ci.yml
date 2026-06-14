@@ -51,6 +51,9 @@ jobs:
       - name: Lint (TypeScript)
         run: npm run lint
 
+      - name: Lint (TypeScript strict, src/)
+        run: npm run lint:strict
+
       - name: Lint (ESLint)
         run: npm run lint:eslint
 

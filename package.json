@@ -24,7 +24,7 @@
     "ci:secrets": "node scan-secrets.js",
     "ci:migrations": "node scripts/check-migrations-ci.mjs",
     "ci:audit": "npm audit --audit-level=high",
-    "ci": "npm run lint && npm run lint:eslint && npm run format:check && npm test && npm run build && npm run ci:audit && npm run ci:secrets && npm run ci:migrations",
+    "ci": "npm run lint && npm run lint:strict && npm run lint:eslint && npm run format:check && npm test && npm run build && npm run ci:audit && npm run ci:secrets && npm run ci:migrations",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:push": "prisma db push",

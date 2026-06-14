@@ -4,5 +4,6 @@
     "strict": true,
     "noImplicitAny": true
   },
-  "exclude": ["server.ts", "tests", "dist", "axelmond-mobile"]
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["axelmond-mobile", "dist"]
 }

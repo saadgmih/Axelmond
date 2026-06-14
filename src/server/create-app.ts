@@ -1,5 +1,6 @@
 import express from "express";
 import crypto from "node:crypto";
+import type { IncomingMessage, ServerResponse } from "node:http";
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
@@ -114,7 +115,8 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
   if (isProduction && allowedOrigins.size === 0) {
     throw new Error("Production CORS allowlist is empty — set APP_URL and/or ALLOWED_ORIGINS");
   }
-  const cspNonce = (_req: express.Request, res: express.Response) => `'nonce-${res.locals.cspNonce}'`;
+  const cspNonce = (_req: IncomingMessage, res: ServerResponse) =>
+    `'nonce-${(res as express.Response).locals.cspNonce}'`;
 
   const PAYPAL_CSP_SCRIPT_SRC = [
     "https://www.paypal.com",

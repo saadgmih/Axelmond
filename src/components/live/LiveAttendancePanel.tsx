@@ -33,6 +33,12 @@ export default function LiveAttendancePanel({
 }: LiveAttendancePanelProps) {
   const rows = attendanceRows.length ? attendanceRows : connectedParticipants;
 
+  const rowKey = (row: AttendanceRow | LiveParticipantCard) =>
+    ("id" in row && row.id) || ("identity" in row && row.identity) || row.name;
+
+  const rowDurationSeconds = (row: AttendanceRow | LiveParticipantCard) =>
+    "durationSeconds" in row && row.durationSeconds != null ? row.durationSeconds : elapsedSeconds;
+
   return (
     <div className="space-y-4 animate-in fade-in duration-300">
       <div className="grid grid-cols-2 gap-3">
@@ -58,7 +64,7 @@ export default function LiveAttendancePanel({
         <div className="divide-y divide-white/5 max-h-[300px] overflow-y-auto custom-scrollbar">
           {rows.map((row) => (
             <div
-              key={row.id || row.identity}
+              key={rowKey(row)}
               className="flex justify-between items-center px-4 py-3 hover:bg-zinc-800/50 transition-colors"
             >
               <div>
@@ -66,7 +72,7 @@ export default function LiveAttendancePanel({
                 <p className="text-[10px] text-zinc-500 font-medium">{liveRoleLabel(row.role)}</p>
               </div>
               <span className="text-[10px] font-mono font-bold text-indigo-300 bg-indigo-500/10 px-2 py-1 rounded">
-                {formatLiveDuration(row.durationSeconds || elapsedSeconds)}
+                {formatLiveDuration(rowDurationSeconds(row))}
               </span>
             </div>
           ))}

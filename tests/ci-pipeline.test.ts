@@ -8,6 +8,7 @@ rulesTest("ci-pipeline", () => {
 
   assert.match(workflow, /npm ci/);
   assert.match(workflow, /npm run lint/);
+  assert.match(workflow, /npm run lint:strict/);
   assert.match(workflow, /npm run lint:eslint/);
   assert.match(workflow, /npm run format:check/);
   assert.match(workflow, /npm test/);

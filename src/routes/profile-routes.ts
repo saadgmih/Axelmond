@@ -86,10 +86,8 @@ export function registerProfileRoutes(app: Express, ctx: RouteContext): void {
 
       create: {
         userId: authUser.id,
-
-        title: input.title || authUser.levelOrTitle,
-
         ...profileData,
+        title: input.title || authUser.levelOrTitle,
       },
     });
 

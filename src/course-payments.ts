@@ -117,7 +117,6 @@ export async function persistCoursePaymentEnrollment(
           amountMad: params.coursePrice,
           invoice: {
             create: {
-              id: params.invoiceId,
               userId: params.userId,
               ...newInvoicePayload,
             },

@@ -424,7 +424,7 @@ export async function getAcademicProfileResponse(authUser: AppUser) {
 }
 
 export function getEmailDomain(email: string) {
-  return email.includes("@") ? email.split("@").pop() : "unknown";
+  return email.includes("@") ? (email.split("@").pop() ?? "unknown") : "unknown";
 }
 
 export async function createEmailVerificationCode(client: any, userId: string, code: string) {
