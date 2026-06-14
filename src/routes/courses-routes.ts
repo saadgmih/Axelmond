@@ -425,15 +425,20 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
   
   
     course.modules.push(newModule);
-  
-    const updatedCourse = await api.prisma.course.update({
-  
-      where: { id: course.id },
-  
-      data: { modules: course.modules as unknown as api.Prisma.InputJsonValue },
-  
+
+    const updatedCourse = await api.prisma.$transaction(async (tx) => {
+      await tx.courseModule.upsert({
+        where: { courseId_id: { courseId: course.id, id: newModule.id } },
+        create: api.courseModuleRowFromJsonItem(course.id, newModule, course.modules.length - 1),
+        update: api.courseModuleRowFromJsonItem(course.id, newModule, course.modules.length - 1),
+      });
+      return tx.course.update({
+        where: { id: course.id },
+        data: { modules: course.modules as unknown as api.Prisma.InputJsonValue },
+        include: api.courseResponseInclude,
+      });
     });
-  
+
     res.json(api.toCourse(updatedCourse));
   
   });

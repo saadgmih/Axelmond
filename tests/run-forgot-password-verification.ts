@@ -26,30 +26,13 @@ async function main() {
   assert.equal(forgotResponse.status, 200);
   assert.match(forgotData.message, /Si un compte Axelmond Research Labs existe/);
 
-  // 2. Read the dev server log file to extract the verification code
-  console.log("Step 2: Reading dev server log file to retrieve verification code...");
-  let code: string | null = null;
-  
-  // Try to find the code in the logs (poll up to 5 times)
-  for (let i = 0; i < 5; i++) {
-    await delay(1000);
-    try {
-      const logs = readFileSync(LOG_FILE_PATH, "utf-8");
-      // Find: [DEV] Code de réinitialisation pour verification@gmail.com : \d{6}
-      const match = logs.match(/Code de réinitialisation pour verification@gmail\.com\s*:\s*(\d{6})/);
-      if (match) {
-        code = match[1];
-        break;
-      }
-    } catch (err: any) {
-      console.warn("Could not read logs yet:", err.message);
-    }
-  }
-
+  // 2. Provide the reset code via TEST_RESET_CODE (plaintext codes are no longer logged)
+  console.log("Step 2: Reading reset code from TEST_RESET_CODE...");
+  const code = process.env.TEST_RESET_CODE?.trim() || null;
   if (!code) {
-    throw new Error("Failed to find verification code in dev server logs.");
+    throw new Error("Set TEST_RESET_CODE to the emailed reset code — plaintext codes are no longer written to logs.");
   }
-  console.log(`✅ Extracted Verification Code: ${code}`);
+  console.log("✅ Using verification code from TEST_RESET_CODE");
 
   // 3. Reset the password using the code
   console.log("Step 3: Resetting password with the verification code...");

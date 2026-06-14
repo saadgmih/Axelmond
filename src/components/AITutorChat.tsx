@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useId } from "react";
 import { getClientErrorMessage } from "../client-errors";
+import { CHAT_TUTOR_MAX_HISTORY_MESSAGES } from "../chat-tutor-limits";
 import { Send, Sparkles, Brain, GraduationCap, ArrowRight, RefreshCw, X } from "lucide-react";
 import { api } from "../api";
 
@@ -65,7 +66,7 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
       } = {
         courseId,
         prompt: messageText,
-        chatHistory: messages,
+        chatHistory: messages.slice(-CHAT_TUTOR_MAX_HISTORY_MESSAGES),
       };
       if (moduleId !== undefined) {
         requestBody.moduleId = moduleId;

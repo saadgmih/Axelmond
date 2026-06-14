@@ -7,8 +7,12 @@ export function hashRefreshToken(token: string): string {
 
 export const JSON_BODY_LIMIT = "256kb";
 
-export const CHAT_TUTOR_MAX_PROMPT_CHARS = 4000;
-export const CHAT_TUTOR_MAX_HISTORY_MESSAGES = 20;
+export {
+  CHAT_TUTOR_MAX_HISTORY_CHARS,
+  CHAT_TUTOR_MAX_HISTORY_MESSAGES,
+  CHAT_TUTOR_MAX_PROMPT_CHARS,
+  trimChatTutorHistory,
+} from "./chat-tutor-limits";
 
 export const REFRESH_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 export const REFRESH_RATE_LIMIT_MAX = 30;

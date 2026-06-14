@@ -22,6 +22,7 @@ import {
 import { readRefreshTokenFromRequest } from "../auth-cookies";
 import { csrfProtection } from "../auth-csrf";
 import { isMobileClientRequest, MOBILE_CLIENT_HEADER } from "../auth-mobile";
+import { verifyAuthToken } from "../auth-token";
 import { applyMobileApiCorsHeaders } from "../mobile-api-routes";
 import { emailRateLimitKey } from "../email-rate-limit";
 import { liveKitRateLimitKey } from "../livekit-rate-limit";
@@ -340,6 +341,12 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     max: Number(process.env.CHAT_TUTOR_RATE_LIMIT_MAX) || 30,
     standardHeaders: true,
     legacyHeaders: false,
+    keyGenerator: (req) => {
+      const token = req.headers.authorization?.replace(/^Bearer\s+/i, "");
+      const session = verifyAuthToken(token);
+      if (session?.userId) return `chat-tutor:user:${session.userId}`;
+      return ipKeyGenerator(req.ip || "");
+    },
     message: { error: "Trop de questions à l'assistant. Veuillez patienter 15 minutes.", code: "CHAT_TUTOR_RATE_LIMIT_EXCEEDED" },
   });
 

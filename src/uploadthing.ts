@@ -281,7 +281,6 @@ export const uploadRouter = {
       video: { maxFileSize: "64MB", maxFileCount: 1 },
       audio: { maxFileSize: "16MB", maxFileCount: 1 },
       pdf: { maxFileSize: "16MB", maxFileCount: 1 },
-      blob: { maxFileSize: "16MB", maxFileCount: 1 },
     },
     { awaitServerData: true },
   )

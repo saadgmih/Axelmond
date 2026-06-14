@@ -36,7 +36,8 @@ assert.match(uploadthingSource, /createdById:\s*user\.id/);
 assert.match(uploadthingSource, /sectionId:\s*z\.string\(\)\.min\(1\)\.optional\(\)\.nullable\(\)/);
 assert.match(uploadthingSource, /Lesson asset upload denied/);
 
-assert.match(uploadthingSource, /avatarImage:\s*f\(/);
+assert.match(uploadthingSource, /messageAttachment:\s*f\(/);
+assert.doesNotMatch(uploadthingSource, /blob:\s*\{\s*maxFileSize/);
 assert.match(uploadthingSource, /image:\s*\{\s*maxFileSize:\s*["']2MB["'],\s*maxFileCount:\s*1\s*\}/);
 assert.match(uploadthingSource, /isAllowedRasterImageUpload\(file\.name, file\.type/);
 assert.match(uploadthingSource, /isAllowedAvatarUrl\(fileUrl\)/);

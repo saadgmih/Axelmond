@@ -30,3 +30,14 @@ export function isEmailVerificationExpired(expiresAt: Date, now = new Date()) {
 export function canAttemptEmailVerification(attempts: number) {
   return attempts < EMAIL_VERIFICATION_MAX_ATTEMPTS;
 }
+
+export function isDevVerificationCodeLogEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
+  return String(env.ALLOW_DEV_VERIFICATION_CODE_LOG || "").trim().toLowerCase() === "true";
+}
+
+export function maskEmailForDevLog(email: string): string {
+  const normalized = String(email || "").trim();
+  const atIndex = normalized.indexOf("@");
+  if (atIndex <= 0) return "utilisateur";
+  return `${normalized.slice(0, 1)}***${normalized.slice(atIndex)}`;
+}

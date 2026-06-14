@@ -763,11 +763,11 @@ export function registerAuthRoutes(app: Express, ctx: RouteContext): void {
   
   
     const code = api.generateEmailVerificationCode();
-  
-    if (process.env.NODE_ENV !== "production") {
-  
-      console.log(`[DEV] Code de réinitialisation pour ${user.email} : ${code}`);
-  
+
+    if (api.isDevVerificationCodeLogEnabled()) {
+
+      console.log(`[DEV] Code de réinitialisation envoyé à ${api.maskEmailForDevLog(user.email)} (userId=${user.id})`);
+
     }
   
     await api.createEmailVerificationCode(api.prisma, user.id, code);

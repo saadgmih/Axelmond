@@ -15,6 +15,8 @@ import {
   buildEmailVerificationExpiry,
   canAttemptEmailVerification,
   isEmailVerificationExpired,
+  isDevVerificationCodeLogEnabled,
+  maskEmailForDevLog,
   normalizeEmailVerificationCode,
   EMAIL_VERIFICATION_MAX_ATTEMPTS,
 } from "../email-verification";
@@ -29,9 +31,14 @@ import { buildCourseGradeRows } from "../grades";
 import { assertCourseLearningAccess } from "../course-access";
 import { sanitizeAcademicProfileInput, sanitizeAvatarUrl, isAvatarUrlFieldInvalid } from "../academic-profile";
 import { isAllowedAvatarUrl } from "../avatar-security";
-import { CHAT_TUTOR_MAX_HISTORY_MESSAGES, CHAT_TUTOR_MAX_PROMPT_CHARS } from "../security-hardening";
+import { CHAT_TUTOR_MAX_HISTORY_CHARS, CHAT_TUTOR_MAX_HISTORY_MESSAGES, CHAT_TUTOR_MAX_PROMPT_CHARS, trimChatTutorHistory } from "../security-hardening";
 import { APP_USER_BILLING_INCLUDE, buildCourseInvoiceId, mergeUserInvoices, persistCoursePaymentEnrollment } from "../course-payments";
 import type { CoursePaymentEnrollmentInput } from "../course-payments";
+import {
+  courseModuleRowFromJsonItem,
+  resolveCourseModules,
+  shouldReadRelationalCourseModules,
+} from "../course-syllabus-modules";
 import { LIVE_ACCESS_ERRORS } from "../public-api-errors";
 
 
@@ -194,6 +201,7 @@ export const activeLiveSessionInclude = {
 export const courseResponseInclude = {
   discipline: { include: { domain: true } },
   liveSessions: activeLiveSessionInclude,
+  courseModules: { orderBy: { sortOrder: "asc" as const } },
 } as const;
 
 export function getLiveStartedAt(course: any) {
@@ -236,7 +244,10 @@ export function toCourse(course: any, completedModuleIds?: Set<number>): Course 
     isLiveNow: course.isLiveNow,
     liveSubject: course.liveSubject ? decodeStoredText(course.liveSubject) : undefined,
     liveStartedAt: getLiveStartedAt(course),
-    modules: Array.isArray(course.modules) ? decodeStoredValue(course.modules) : [],
+    modules: resolveCourseModules({
+      modules: Array.isArray(course.modules) ? decodeStoredValue(course.modules) : course.modules,
+      courseModules: shouldReadRelationalCourseModules() ? course.courseModules : undefined,
+    }),
     published: course.published,
     createdById: course.createdById || undefined,
   };
@@ -561,8 +572,8 @@ export function buildFailedEmailDelivery(recipient: string, response: unknown) {
 
 export async function sendEmailVerificationCode(user: { id: string; email: string; fullName: string }) {
   const code = generateEmailVerificationCode();
-  if (process.env.NODE_ENV !== "production") {
-    console.log(`[DEV] Code de vérification pour ${user.email} : ${code}`);
+  if (isDevVerificationCodeLogEnabled()) {
+    console.log(`[DEV] Code de vérification envoyé à ${maskEmailForDevLog(user.email)} (userId=${user.id})`);
   }
   await createEmailVerificationCode(prisma, user.id, code);
   try {
@@ -889,7 +900,9 @@ export const chatTutorSchema = z.object({
   chatHistory: z.array(z.object({
     role: z.enum(["user", "model", "assistant"]),
     text: z.string().max(CHAT_TUTOR_MAX_PROMPT_CHARS),
-  })).max(CHAT_TUTOR_MAX_HISTORY_MESSAGES).optional(),
+  })).max(CHAT_TUTOR_MAX_HISTORY_MESSAGES).optional().transform((history) => (
+    history ? trimChatTutorHistory(history) : history
+  )),
 });
 
 export const PASSWORD_RESET_GENERIC_MESSAGE = "Si un compte Axelmond Research Labs existe pour cette adresse, un code de réinitialisation a été envoyé.";
@@ -1137,13 +1150,14 @@ export { normalizeProfessorInviteCode, generateProfessorInviteCode, parseProfess
 export { ProfessorInviteConsumeError, attachProfessorInviteUsage, reserveProfessorInviteCode } from "../professor-invite-consume";
 export { buildEmailDeliverySummary } from "../email-delivery-summary";
 export { sendVerificationEmail, sendAdminTestEmail, getEmailErrorDetails, getSmtpPublicConfig } from "../email";
-export { generateEmailVerificationCode, hashEmailVerificationCode, buildEmailVerificationExpiry, canAttemptEmailVerification, isEmailVerificationExpired, normalizeEmailVerificationCode, EMAIL_VERIFICATION_MAX_ATTEMPTS, EMAIL_VERIFICATION_TTL_MINUTES } from "../email-verification";
+export { generateEmailVerificationCode, hashEmailVerificationCode, buildEmailVerificationExpiry, canAttemptEmailVerification, isDevVerificationCodeLogEnabled, isEmailVerificationExpired, maskEmailForDevLog, normalizeEmailVerificationCode, EMAIL_VERIFICATION_MAX_ATTEMPTS, EMAIL_VERIFICATION_TTL_MINUTES } from "../email-verification";
 export { validateSchedulePayload, serializeScheduleSession, sortScheduleSessions, canAccessProfessorScheduleSession } from "../schedule";
 export { validateStudentStudyPayload, serializeStudentStudySession, sortStudentStudySessions, canAccessStudentStudySession } from "../student-study-schedule";
 export { validateStudentObjectivePayload, normalizeStudentObjectivePayload, serializeStudentObjective, sortStudentObjectives, canAccessStudentObjective, buildStudentObjectiveSummary, buildNextRecurringObjectiveData } from "../student-objectives";
 export { validateIncomingLiveSyncMessage, isModeratorOnlyLiveSyncType } from "../live/live-sync-validation";
 export { LIVE_SYNC_TOPIC, createEmptyPoll } from "../live/live-sync";
-export { hashRefreshToken, CHAT_TUTOR_MAX_HISTORY_MESSAGES, CHAT_TUTOR_MAX_PROMPT_CHARS } from "../security-hardening";
+export { hashRefreshToken, CHAT_TUTOR_MAX_HISTORY_CHARS, CHAT_TUTOR_MAX_HISTORY_MESSAGES, CHAT_TUTOR_MAX_PROMPT_CHARS, trimChatTutorHistory } from "../security-hardening";
+export { courseModuleRowFromJsonItem, resolveCourseModules, shouldReadRelationalCourseModules } from "../course-syllabus-modules";
 export { createPayPalOrder, capturePayPalOrder, isPayPalConfigured, logPayPalError } from "../paypal-server";
 export { processPayPalCaptureEnrollment, toPayPalCaptureClientResponse } from "../paypal-enrollment";
 export { resolveCourseChargeAmount } from "../promo-codes";

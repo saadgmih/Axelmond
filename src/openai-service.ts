@@ -1,9 +1,10 @@
 import OpenAI from "openai";
 import { logSecurity } from "./security-logger";
+import { trimChatTutorHistory } from "./chat-tutor-limits";
 
 export const DEFAULT_OPENAI_MODEL = "gpt-4o-mini";
 export const OPENAI_REQUEST_TIMEOUT_MS = Number(process.env.OPENAI_TIMEOUT_MS) || 60_000;
-export const OPENAI_MAX_OUTPUT_TOKENS = Number(process.env.OPENAI_MAX_OUTPUT_TOKENS) || 4096;
+export const OPENAI_MAX_OUTPUT_TOKENS = Number(process.env.OPENAI_MAX_OUTPUT_TOKENS) || 2048;
 
 export type ChatTutorHistoryMessage = {
   role: "user" | "model" | "assistant";
@@ -205,6 +206,7 @@ export async function generateChatTutorResponse(options: {
   chatHistory?: ChatTutorHistoryMessage[];
 }): Promise<string> {
   const { courseName, moduleName, prompt, chatHistory = [] } = options;
+  const trimmedHistory = trimChatTutorHistory(chatHistory) as ChatTutorHistoryMessage[];
 
   if (!isOpenAIConfigured()) {
     return getLocalChatTutorFallback(prompt, courseName, moduleName);
@@ -217,7 +219,7 @@ export async function generateChatTutorResponse(options: {
     const openai = getOpenAIClient();
     const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
       { role: "system", content: systemInstruction },
-      ...toOpenAIMessages(chatHistory),
+      ...toOpenAIMessages(trimmedHistory),
       { role: "user", content: prompt },
     ];
 

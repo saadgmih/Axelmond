@@ -22,6 +22,7 @@ const validProductionEnv: NodeJS.ProcessEnv = {
   EMAIL_VERIFICATION_URL: "https://axelmond.example",
   VAPID_PUBLIC_KEY: "vapid-public-key",
   VAPID_PRIVATE_KEY: "vapid-private-key-32-characters-minimum",
+  MOBILE_API_SECRET: "mobile-api-secret-32-characters-minimum",
 };
 
 assert.deepEqual(validateProductionConfiguration(validProductionEnv), []);
@@ -48,6 +49,14 @@ assert.match(
     APP_URL: "http://localhost:3000",
   }).join("\n"),
   /APP_URL must be a public HTTPS URL/,
+);
+
+assert.match(
+  validateProductionConfiguration({
+    ...validProductionEnv,
+    MOBILE_API_SECRET: "",
+  }).join("\n"),
+  /MOBILE_API_SECRET is required in production/,
 );
 
 console.log("Production configuration guard tests passed");

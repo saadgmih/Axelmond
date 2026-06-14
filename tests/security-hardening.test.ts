@@ -60,7 +60,7 @@ assert.match(miscRoutesSource, /toChatTutorClientResponse\(err\)/);
 assert.doesNotMatch(miscRoutesSource, /details:\s*err\.cause/);
 
 const openaiServiceSource = fs.readFileSync("src/openai-service.ts", "utf8");
-assert.match(openaiServiceSource, /toChatTutorClientResponse/);
+assert.match(openaiServiceSource, /trimChatTutorHistory/);
 assert.doesNotMatch(openaiServiceSource, /Quota OpenAI épuisé/);
 assert.doesNotMatch(openaiServiceSource, /Clé OpenAI invalide/);
 
@@ -105,6 +105,11 @@ assert.doesNotMatch(adminRoutesSource, /details:\s*api\.getSmtpPublicConfig/);
 const createAppSource = fs.readFileSync("src/server/create-app.ts", "utf8");
 assert.match(createAppSource, /RATE_LIMIT_MAX_REQUESTS\) \|\| 500/);
 assert.match(createAppSource, /app\.use\("\/api\/livekit\/sync", liveKitSyncRateLimiter\)/);
+assert.match(createAppSource, /chat-tutor:user:/);
+
+const securityHardeningSource = fs.readFileSync("src/chat-tutor-limits.ts", "utf8");
+assert.match(securityHardeningSource, /trimChatTutorHistory/);
+assert.match(securityHardeningSource, /CHAT_TUTOR_MAX_HISTORY_CHARS/);
 
 const liveKitUiSource = fs.readFileSync("src/hooks/useLiveKitRoom.tsx", "utf8");
 assert.doesNotMatch(liveKitUiSource, /LIVEKIT_API_KEY/);

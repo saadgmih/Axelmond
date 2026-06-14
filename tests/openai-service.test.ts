@@ -13,6 +13,7 @@ import {
   shouldUseLocalChatTutorFallback,
   toChatTutorClientResponse,
 } from "../src/openai-service.ts";
+import { trimChatTutorHistory } from "../src/chat-tutor-limits.ts";
 
 const previousOpenAIKey = process.env.OPENAI_API_KEY;
 delete process.env.OPENAI_API_KEY;
@@ -52,6 +53,14 @@ assert.doesNotMatch(
   toChatTutorClientResponse(new ChatTutorServiceError("internal", "QUOTA_EXCEEDED", 503)).error,
   /OpenAI/i,
 );
+
+const trimmedHistory = trimChatTutorHistory([
+  { role: "user", text: "a".repeat(8000) },
+  { role: "model", text: "b".repeat(8000) },
+]);
+assert.equal(trimmedHistory.length, 1);
+assert.ok(trimmedHistory[0]?.text.startsWith("b"));
+
 assert.equal(
   shouldUseLocalChatTutorFallback(new ChatTutorServiceError("quota", "QUOTA_EXCEEDED", 503)),
   true,

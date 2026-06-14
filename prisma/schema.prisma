@@ -216,9 +216,29 @@ model Course {
   quizAttempts QuizAttempt[]
   moduleProgress ModuleProgress[]
   payments       Payment[]
+  courseModules  CourseModule[]
 
   @@index([disciplineId])
   @@index([createdById])
+  @@schema("AxelmondResearchLab")
+}
+
+model CourseModule {
+  courseId        Int
+  id              Int
+  sortOrder       Int      @default(0)
+  title           String
+  type            String
+  duration        String   @default("")
+  contentMarkdown String?
+  attachmentUrl   String?
+  attachmentName  String?
+  sectionId       String?
+  published       Boolean  @default(true)
+  course          Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@id([courseId, id])
+  @@index([courseId, sortOrder])
   @@schema("AxelmondResearchLab")
 }
 
