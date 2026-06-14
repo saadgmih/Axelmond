@@ -37,10 +37,15 @@ Sans ces variables, le build peut réussir mais l’app crash au démarrage → 
 
 ## En cas de 503
 
-1. Ouvrir **Runtime logs** (pas seulement les build logs).
-2. Erreur fréquente : `Invalid production configuration` → variable manquante dans hPanel.
-3. Erreur Prisma → vérifier `DATABASE_URL` et que `prestart` / migrate s’est bien exécuté.
-4. **Settings → Redeploy** après correction des variables.
+Les **Runtime logs** montrent parfois `server running` et des requêtes API (200) alors que le domaine public renvoie 503. Dans ce cas, **Node fonctionne** — c’est le **proxy Hostinger** ou le **domaine** qui ne route pas correctement.
+
+1. Ouvrir **Deployments** → cliquer l’**URL de preview** Hostinger (pas seulement axelmond.com).
+   - Preview OK + domaine en 503 → problème de liaison domaine / `.htaccess` dans `public_html`.
+2. **Settings** → Framework : **Express.js** (pas Vite seul). Entry file : `dist/server.cjs`. Start : `npm start`.
+3. Bouton **Restart** sur le dashboard Node.js (sans rebuild).
+4. Vérifier que le site `axelmond.com` est bien un **Node.js Web App**, pas un ancien hébergement PHP/statique en parallèle.
+
+Dans les logs, `injected env (0) from .env` est **normal** : Hostinger injecte les variables via hPanel, pas via un fichier `.env`.
 
 ## PM2 / SSH
 

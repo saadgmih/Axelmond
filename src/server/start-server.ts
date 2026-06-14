@@ -278,7 +278,13 @@ export async function startAxelmondServer() {
   const PORT = Number(process.env.PORT) || 3000;
   const httpServer = createServer(app);
   initMessagingSocket(httpServer, allowedOrigins, normalizeOriginUrl, isProduction);
+  httpServer.on("error", (err: NodeJS.ErrnoException) => {
+    logDb("ERROR", "HTTP server failed to bind", { port: PORT, code: err.code, error: String(err) });
+    process.exit(1);
+  });
   httpServer.listen(PORT, "0.0.0.0", () => {
-    console.log(`Axelmond Research Labs server running at http://localhost:${PORT}`);
+    console.log(
+      `Axelmond Research Labs server running (pid=${process.pid}, port=${PORT}, host=0.0.0.0, NODE_ENV=${process.env.NODE_ENV || "development"})`,
+    );
   });
 }
