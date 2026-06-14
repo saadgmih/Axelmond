@@ -11,7 +11,7 @@ type PasskeyRow = {
   lastUsedAt: string | null;
 };
 
-export default function SecuritySettingsPanel() {
+export default function SecuritySettingsPanel({ layout = "compact" }: { layout?: "compact" | "wide" }) {
   const [status, setStatus] = useState<{ totpEnabled: boolean; passkeyCount: number; passkeys: PasskeyRow[] } | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -126,6 +126,8 @@ export default function SecuritySettingsPanel() {
     return <p className="text-sm text-slate-500">Chargement des options de sécurité…</p>;
   }
 
+  const isWide = layout === "wide";
+
   return (
     <div className="space-y-6">
       {(message || error) && (
@@ -134,7 +136,19 @@ export default function SecuritySettingsPanel() {
         </div>
       )}
 
-      <section className="space-y-3">
+      {recoveryCodes && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900">
+          <p className="font-bold">Codes de secours — enregistrez-les maintenant :</p>
+          <ul className="mt-2 grid grid-cols-2 gap-1 font-mono sm:grid-cols-4">
+            {recoveryCodes.map((code) => (
+              <li key={code}>{code}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className={isWide ? "grid gap-6 lg:grid-cols-2 lg:items-start" : "space-y-6"}>
+      <section className={`space-y-3 ${isWide ? "rounded-2xl border border-slate-100 bg-slate-50/40 p-5 md:p-6" : ""}`}>
         <div className="flex items-center gap-2">
           <Smartphone className="h-4 w-4 text-indigo-600" />
           <h4 className="text-sm font-black text-slate-900">Authenticator (TOTP)</h4>
@@ -142,17 +156,6 @@ export default function SecuritySettingsPanel() {
         <p className="text-xs text-slate-500">
           Compatible Google Authenticator, Microsoft Authenticator et Authy. Aucun service externe.
         </p>
-
-        {recoveryCodes && (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900">
-            <p className="font-bold">Codes de secours — enregistrez-les maintenant :</p>
-            <ul className="mt-2 grid grid-cols-2 gap-1 font-mono">
-              {recoveryCodes.map((code) => (
-                <li key={code}>{code}</li>
-              ))}
-            </ul>
-          </div>
-        )}
 
         {!status?.totpEnabled && !totpSetup && (
           <button type="button" onClick={() => void handleSetupTotp()} className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white">
@@ -199,7 +202,7 @@ export default function SecuritySettingsPanel() {
         )}
       </section>
 
-      <section className="space-y-3 border-t border-slate-100 pt-6">
+      <section className={`space-y-3 ${isWide ? "rounded-2xl border border-slate-100 bg-slate-50/40 p-5 md:p-6" : "border-t border-slate-100 pt-6"}`}>
         <div className="flex items-center gap-2">
           <KeyRound className="h-4 w-4 text-indigo-600" />
           <h4 className="text-sm font-black text-slate-900">Passkeys (WebAuthn)</h4>
@@ -242,6 +245,7 @@ export default function SecuritySettingsPanel() {
           )}
         </ul>
       </section>
+      </div>
 
       <div className="flex items-start gap-2 rounded-xl border border-slate-100 bg-slate-50 p-3 text-[11px] text-slate-500">
         <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-indigo-500" />
