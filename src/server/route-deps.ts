@@ -3,7 +3,9 @@ import { canAccessApiRoute, isRbacExemptRoute, normalizeApiRoutePath, normalizeR
 import {
   bumpAuthTokenVersion,
   createRefreshToken,
+  findRefreshTokenRecord,
   findValidRefreshToken,
+  logoutRefreshSession,
   revokeAllUserRefreshTokens,
   revokeRefreshToken,
   rotateRefreshToken,
@@ -199,7 +201,7 @@ export { PUBLIC_API_ERRORS, LIVE_ACCESS_ERRORS, toPushSubscribeClientResponse } 
 export { sanitizeAcademicProfileInput, sanitizeAvatarUrl, isAvatarUrlFieldInvalid } from "../academic-profile";
 export { isAllowedAvatarUrl } from "../avatar-security";
 export { setAuthCookies, clearAuthCookies, persistCsrfTokenForRefreshSession } from "../auth-cookies";
-export { withMobileRefreshToken, isMobileClientRequest, MOBILE_CLIENT_HEADER } from "../auth-mobile";
+export { withMobileRefreshToken, isMobileClientRequest, MOBILE_CLIENT_HEADER, MOBILE_CLIENT_KEY_HEADER } from "../auth-mobile";
 export { readRefreshTokenFromRequest } from "../auth-cookies";
 export { parsePositiveInt } from "../route-params";
 export {
@@ -212,7 +214,9 @@ export type { CourseModule } from "../types";
 export {
   bumpAuthTokenVersion,
   createRefreshToken,
+  findRefreshTokenRecord,
   findValidRefreshToken,
+  logoutRefreshSession,
   revokeAllUserRefreshTokens,
   revokeRefreshToken,
   rotateRefreshToken,
@@ -281,6 +285,7 @@ export {
   CHAT_TUTOR_MAX_HISTORY_MESSAGES,
   CHAT_TUTOR_MAX_PROMPT_CHARS,
   trimChatTutorHistory,
+  getBcryptRounds,
 } from "../security-hardening";
 export {
   courseModuleRowFromJsonItem,

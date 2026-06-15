@@ -28,6 +28,7 @@ const HIGH_ENTROPY_SECRET_ENV = [
   "LIVEKIT_API_SECRET",
   "UPLOADTHING_TOKEN",
   "VAPID_PRIVATE_KEY",
+  "MOBILE_CLIENT_SECRET",
 ] as const;
 
 const DISTINCT_SECRET_ENV = [
@@ -38,6 +39,7 @@ const DISTINCT_SECRET_ENV = [
   "UPLOADTHING_TOKEN",
   "SMTP_PASS",
   "VAPID_PRIVATE_KEY",
+  "MOBILE_CLIENT_SECRET",
 ] as const;
 
 function readEnv(env: NodeJS.ProcessEnv, key: string): string {
@@ -107,6 +109,10 @@ export function validateProductionConfiguration(env: NodeJS.ProcessEnv = process
 
   if (readEnv(env, "UPLOADTHING_IS_DEV").toLowerCase() === "true") {
     issues.push("UPLOADTHING_IS_DEV must be false in production");
+  }
+
+  if (!readEnv(env, "MOBILE_CLIENT_SECRET")) {
+    issues.push("MOBILE_CLIENT_SECRET is required in production for native mobile API authentication");
   }
 
   const appUrl = readEnv(env, "APP_URL");

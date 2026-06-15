@@ -18,6 +18,7 @@ import { AppUser } from "./AuthScreen";
 import { getRoleLabel, getTeacherRoleBadgeTone, getTeacherSpaceTitle } from "../rbac";
 import LogoSymbol from "./LogoSymbol";
 import { useTvNavigation } from "../hooks/useTvNavigation";
+import { prefetchStudentView, prefetchTeacherView } from "../utils/prefetch";
 
 interface SidebarProps {
   currentView: string;
@@ -124,6 +125,7 @@ export default function Sidebar({
               type="button"
               data-tv-focusable
               tabIndex={0}
+              onMouseEnter={() => prefetchStudentView("dashboard")}
               onClick={() => navigateTo("dashboard")}
               className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 currentView === "dashboard"
@@ -140,6 +142,7 @@ export default function Sidebar({
               type="button"
               data-tv-focusable
               tabIndex={0}
+              onMouseEnter={() => prefetchStudentView("profile")}
               onClick={() => navigateTo("profile")}
               className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 currentView === "profile"
@@ -156,6 +159,7 @@ export default function Sidebar({
               type="button"
               data-tv-focusable
               tabIndex={0}
+              onMouseEnter={() => prefetchStudentView("catalog")}
               onClick={() => navigateTo("catalog")}
               className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 currentView === "catalog"
@@ -172,6 +176,7 @@ export default function Sidebar({
               type="button"
               data-tv-focusable
               tabIndex={0}
+              onMouseEnter={() => prefetchStudentView("study-schedule")}
               onClick={() => navigateTo("study-schedule")}
               className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 currentView === "study-schedule"
@@ -188,6 +193,7 @@ export default function Sidebar({
               type="button"
               data-tv-focusable
               tabIndex={0}
+              onMouseEnter={() => prefetchStudentView("objectives")}
               onClick={() => navigateTo("objectives")}
               className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 currentView === "objectives"
@@ -204,6 +210,7 @@ export default function Sidebar({
               type="button"
               data-tv-focusable
               tabIndex={0}
+              onMouseEnter={() => prefetchStudentView("messages")}
               onClick={() => navigateTo("messages")}
               className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 currentView === "messages"
@@ -220,6 +227,7 @@ export default function Sidebar({
               type="button"
               data-tv-focusable
               tabIndex={0}
+              onMouseEnter={() => prefetchStudentView("notifications")}
               onClick={() => navigateTo("notifications")}
               className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 currentView === "notifications"
@@ -243,6 +251,7 @@ export default function Sidebar({
               data-tv-focusable
               tabIndex={0}
               aria-current={teacherView === "dashboard" ? "page" : undefined}
+              onMouseEnter={() => prefetchTeacherView("dashboard")}
               onClick={() => setTeacherView("dashboard")}
               className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 teacherView === "dashboard"
@@ -259,6 +268,7 @@ export default function Sidebar({
               data-tv-focusable
               tabIndex={0}
               aria-current={teacherView === "academic-profile" ? "page" : undefined}
+              onMouseEnter={() => prefetchTeacherView("academic-profile")}
               onClick={() => setTeacherView("academic-profile")}
               className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 teacherView === "academic-profile"
@@ -275,6 +285,7 @@ export default function Sidebar({
               data-tv-focusable
               tabIndex={0}
               aria-current={teacherView === "schedule" ? "page" : undefined}
+              onMouseEnter={() => prefetchTeacherView("schedule")}
               onClick={() => setTeacherView("schedule")}
               className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 teacherView === "schedule"
@@ -291,6 +302,7 @@ export default function Sidebar({
               data-tv-focusable
               tabIndex={0}
               aria-current={teacherView === "curriculum" ? "page" : undefined}
+              onMouseEnter={() => prefetchTeacherView("curriculum")}
               onClick={() => setTeacherView("curriculum")}
               className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 teacherView === "curriculum"
@@ -307,6 +319,7 @@ export default function Sidebar({
               data-tv-focusable
               tabIndex={0}
               aria-current={teacherView === "live-control" ? "page" : undefined}
+              onMouseEnter={() => prefetchTeacherView("live-control")}
               onClick={() => setTeacherView("live-control")}
               className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 teacherView === "live-control"
@@ -323,6 +336,7 @@ export default function Sidebar({
               data-tv-focusable
               tabIndex={0}
               aria-current={teacherView === "messages" ? "page" : undefined}
+              onMouseEnter={() => prefetchTeacherView("messages")}
               onClick={() => setTeacherView("messages")}
               className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 teacherView === "messages"
@@ -339,6 +353,7 @@ export default function Sidebar({
               data-tv-focusable
               tabIndex={0}
               aria-current={teacherView === "notifications" ? "page" : undefined}
+              onMouseEnter={() => prefetchTeacherView("notifications")}
               onClick={() => setTeacherView("notifications")}
               className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
                 teacherView === "notifications"

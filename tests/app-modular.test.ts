@@ -17,6 +17,7 @@ rulesTest("app-modular", () => {
   assert.doesNotMatch(appEntry, /StudentDashboardView/);
 
   assert.match(appSource, /PlatformAppProvider/);
+  assert.match(appSource, /platform-app-slices/);
   assert.match(appSource, /usePlatformApp/);
   assert.match(appSource, /StudentRouteSwitch/);
   assert.match(appSource, /TeacherRouteSwitch/);

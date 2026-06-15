@@ -51,4 +51,18 @@ rulesTest("grades", () => {
   assert.equal(rows[1].studentId, "student-2");
   assert.equal(rows[1].completedQuizzesCount, 0);
   assert.equal(rows[1].averageScoreOutOf20, null);
+
+  const rowsWithCount = buildCourseGradeRows(
+    [
+      {
+        user: {
+          id: "student-3",
+          fullName: "Compteur direct",
+          enrolledCoursesCount: 5,
+        },
+      },
+    ],
+    [],
+  );
+  assert.equal(rowsWithCount[0].enrolledCoursesCount, 5);
 });

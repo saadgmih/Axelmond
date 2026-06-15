@@ -144,6 +144,15 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
       return;
     }
 
+    if (chargePricing.discountPercent > 0) {
+      api.logSecurity("INFO", "PayPal order promo applied", {
+        userId: authUser.id,
+        courseId,
+        discountPercent: chargePricing.discountPercent,
+        amountMad: chargePricing.amount,
+      });
+    }
+
     try {
       const order = await api.createPayPalOrder({
         courseId,

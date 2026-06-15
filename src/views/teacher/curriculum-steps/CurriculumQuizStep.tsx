@@ -69,6 +69,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
     editCourseForm: _editCourseForm,
     setEditCourseForm: _setEditCourseForm,
     teacherQuizzes,
+    selectedQuizDetail,
     quizCourseId,
     newQuizTitle,
     setNewQuizTitle,
@@ -258,7 +259,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                       <span
                         className={`rounded border px-1.5 py-0.5 text-[8px] font-black uppercase ${getStepTheme(5).chip}`}
                       >
-                        {quiz.questions?.length || 0} question(s)
+                        {quiz.questionCount ?? quiz.questions?.length ?? 0} question(s)
                       </span>
                       <h4 className="text-xs font-black text-white mt-2">{quiz.title}</h4>
                     </div>
@@ -374,11 +375,11 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
             {/* Current Question List */}
             <div className="space-y-4">
               <h3 className={curriculumUi.sectionTitle}>
-                Questions du Quiz ({(teacherQuizzes.find((q) => q.id === selectedQuizId)?.questions || []).length})
+                Questions du Quiz ({(selectedQuizDetail?.questions || []).length})
               </h3>
 
               <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
-                {(teacherQuizzes.find((q) => q.id === selectedQuizId)?.questions || []).map((q: any, idx: number) => (
+                {(selectedQuizDetail?.questions || []).map((q: any, idx: number) => (
                   <div key={q.id} className={`${curriculumUi.card} space-y-3 relative`}>
                     <div className="flex items-start justify-between gap-4">
                       <p className="flex-1 text-xs font-black text-slate-100">
@@ -425,7 +426,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                   </div>
                 ))}
 
-                {teacherQuizzes.find((q) => q.id === selectedQuizId)?.questions?.length === 0 && (
+                {(selectedQuizDetail?.questions?.length ?? 0) === 0 && (
                   <div className={`${curriculumUi.empty} p-6`}>
                     <p className="text-xs text-slate-400 font-semibold">
                       Aucune question dans ce quiz. Ajoutez-en avec le formulaire.

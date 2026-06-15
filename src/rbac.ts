@@ -216,7 +216,7 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
   }
 
   if (verb === "POST" && cleanPath === "/api/me/password") {
-    return teacherSpaceRoles.includes(normalized);
+    return true;
   }
 
   if (verb === "GET" && cleanPath === "/api/me/schedule") {
@@ -303,6 +303,9 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
   if (verb === "GET" && /^\/api\/courses\/\d+\/quizzes$/.test(cleanPath)) {
     return true;
   }
+  if (verb === "GET" && /^\/api\/quizzes\/[^/]+$/.test(cleanPath)) {
+    return true;
+  }
   if (verb === "POST" && /^\/api\/courses\/\d+\/quizzes$/.test(cleanPath)) {
     return teacherSpaceRoles.includes(normalized);
   }
@@ -317,6 +320,10 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
   }
 
   if (verb === "GET" && cleanPath === "/api/auth/me") {
+    return true;
+  }
+
+  if (verb === "POST" && cleanPath === "/api/auth/sessions/revoke-all") {
     return true;
   }
 

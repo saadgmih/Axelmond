@@ -1,4 +1,4 @@
-import { API_BASE_URL, MOBILE_CLIENT_HEADER, MOBILE_CLIENT_VALUE } from "../../config";
+import { API_BASE_URL, MOBILE_CLIENT_HEADER, MOBILE_CLIENT_VALUE, MOBILE_CLIENT_KEY, MOBILE_CLIENT_KEY_HEADER } from "../../config";
 import type { ApiError } from "../../types";
 import {
   clearAuthSession,
@@ -53,6 +53,7 @@ async function buildRequestOptions(method: string, body: unknown, token: string 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     [MOBILE_CLIENT_HEADER]: MOBILE_CLIENT_VALUE,
+    ...(MOBILE_CLIENT_KEY ? { [MOBILE_CLIENT_KEY_HEADER]: MOBILE_CLIENT_KEY } : {}),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 

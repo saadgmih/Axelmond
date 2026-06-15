@@ -28,7 +28,7 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
 
     const normalizedEmail = email;
 
-    const passwordHash = await api.bcrypt.hash(password, 10);
+    const passwordHash = await api.bcrypt.hash(password, api.getBcryptRounds());
 
     const existing = await api.prisma.user.findUnique({ where: { email: normalizedEmail } });
 
@@ -50,40 +50,10 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
 
     const finalLevel = normalizedRole === "STUDENT" ? api.DEFAULT_STUDENT_LABEL : levelOrTitle || "Enseignant Docteur";
 
-    const availableCourses = await api.prisma.course.findMany({ select: { id: true } });
-
-    const enrolledCourseIds =
-      normalizedRole === "STUDENT" ? (availableCourses.length > 0 ? [availableCourses[0].id] : []) : [];
-
     try {
       const user = await api.prisma.$transaction(async (tx) => {
         if (normalizedRole !== "STUDENT") {
-          const invite = await tx.professorInviteCode.findUnique({
-            where: { code: inviteCode },
-          });
-
-          if (!invite || invite.usedAt || invite.revokedAt) {
-            api.logInvitation("WARN", "Professor registration denied", {
-              email: normalizedEmail,
-              reason: "invalid_or_used",
-            });
-
-            throw new Error("INVALID_PROFESSOR_INVITE");
-          }
-
-          const isExpired = Date.now() - new Date(invite.createdAt).getTime() > 5 * 60 * 1000;
-
-          if (isExpired) {
-            api.logInvitation("WARN", "Professor registration denied", { email: normalizedEmail, reason: "expired" });
-
-            throw new Error("EXPIRED_PROFESSOR_INVITE");
-          }
-
-          await tx.professorInviteCode.update({
-            where: { code: inviteCode },
-
-            data: { usedAt: new Date() },
-          });
+          await api.reserveProfessorInviteCode(tx, inviteCode!);
         }
 
         const createdUser = await tx.user.create({
@@ -115,11 +85,7 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
             levelOrTitle: finalLevel,
           });
 
-          await tx.professorInviteCode.update({
-            where: { code: inviteCode },
-
-            data: { usedById: createdUser.id },
-          });
+          await api.attachProfessorInviteUsage(tx, inviteCode!, createdUser.id);
 
           api.logInvitation("INFO", "Professor invitation consumed", {
             email: normalizedEmail,
@@ -135,43 +101,7 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
         return createdUser;
       });
 
-      let registeredUser = user;
-
-      if (normalizedRole === "STUDENT" && enrolledCourseIds.length > 0) {
-        const seedCourse = await api.prisma.course.findUnique({ where: { id: enrolledCourseIds[0] } });
-
-        if (seedCourse) {
-          try {
-            const seedResult = await api.persistCoursePaymentWithAudit({
-              userId: user.id,
-
-              courseId: seedCourse.id,
-
-              courseTitle: seedCourse.title,
-
-              coursePrice: seedCourse.price,
-
-              invoiceId: api.buildCourseInvoiceId("REG"),
-
-              provider: "MOCK",
-
-              externalId: `REG-SEED-${user.id}-${seedCourse.id}`,
-
-              auditAction: "REGISTRATION_SEED_ENROLLMENT",
-
-              reqIp: req.ip,
-            });
-
-            if (seedResult.user) {
-              registeredUser = seedResult.user;
-            }
-          } catch (seedErr: any) {
-            api.logDb("ERROR", "Registration seed billing failed", { userId: user.id, error: String(seedErr) });
-          }
-        }
-      }
-
-      const safeUser = api.toAppUser(registeredUser);
+      const safeUser = api.toAppUser(user);
 
       const delivery = await api.sendEmailVerificationCode(safeUser);
 
@@ -190,15 +120,13 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
           : "Compte créé. Le service e-mail n'est pas configuré, utilisez la route de renvoi après configuration SMTP.",
       });
     } catch (err: any) {
-      if (err?.message === "INVALID_PROFESSOR_INVITE") {
+      if (err instanceof api.ProfessorInviteConsumeError) {
+        if (err.code === "EXPIRED") {
+          res.status(403).json({ error: "Le code d'accès professeur a expiré (validité de 5 minutes)" });
+          return;
+        }
+
         res.status(403).json({ error: "Code d'invitation professeur absent, invalide ou déjà utilisé" });
-
-        return;
-      }
-
-      if (err?.message === "EXPIRED_PROFESSOR_INVITE") {
-        res.status(403).json({ error: "Le code d'accès professeur a expiré (validité de 5 minutes)" });
-
         return;
       }
 

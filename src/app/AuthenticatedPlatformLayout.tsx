@@ -6,112 +6,112 @@ import KeyboardShortcutsHelp from "../components/KeyboardShortcutsHelp";
 import { INSTITUTIONAL_VIEWS } from "../navigation/platformPaths";
 import InstitutionalViewSwitch from "../views/InstitutionalViewSwitch";
 import { LazyLiveKitSessionHost, LazyPaymentModal } from "../lazyViews";
-import { usePlatformAppContext } from "./platform-app-context";
+import { usePlatformBindings, usePlatformCatalog, usePlatformLive, usePlatformNavigation, usePlatformSession, usePlatformUi } from "./platform-app-slices";
 import { StudentRouteSwitch } from "./StudentRouteSwitch";
 import { TeacherRouteSwitch } from "./TeacherRouteSwitch";
 import { AppFooter } from "./AppFooter";
 
 export function AuthenticatedPlatformLayout() {
-  const platform = usePlatformAppContext();
+  const session = usePlatformSession();
+  const catalog = usePlatformCatalog();
+  const navigation = usePlatformNavigation();
+  const live = usePlatformLive();
+  const ui = usePlatformUi();
+  const bindings = usePlatformBindings();
 
   return (
     <div className="flex h-[100dvh] max-h-[100dvh] bg-slate-50 font-sans overflow-hidden">
-      {platform.needsLiveKitSession && platform.currentUser && (
+      {live.needsLiveKitSession && session.currentUser && (
         <Suspense fallback={null}>
           <LazyLiveKitSessionHost
-            activeLiveCourse={platform.activeLiveCourse}
-            setActiveLiveCourse={platform.setActiveLiveCourse}
-            currentUser={platform.currentUser}
-            courses={platform.courses}
-            liveCourseId={platform.liveCourseId}
-            setSelectedCourse={platform.setSelectedCourse}
-            setTeacherView={platform.setTeacherView}
-            setCurrentView={platform.setCurrentView}
-            setCourseToPurchase={platform.setCourseToPurchase}
-            updateSessionUser={platform.updateSessionUser}
-            setEnrolledCourses={platform.setEnrolledCourses}
-            setInvoices={platform.setInvoices}
-            getInitials={platform.getInitials}
-            navigateTo={platform.navigateTo}
-            currentView={platform.currentView}
-            teacherView={platform.teacherView}
-            handleToggleCourseLive={platform.handleToggleCourseLive}
+            activeLiveCourse={live.activeLiveCourse}
+            setActiveLiveCourse={live.setActiveLiveCourse}
+            currentUser={session.currentUser}
+            courses={catalog.courses}
+            liveCourseId={live.liveCourseId}
+            setSelectedCourse={navigation.setSelectedCourse}
+            setTeacherView={navigation.setTeacherView}
+            setCurrentView={navigation.setCurrentView}
+            setCourseToPurchase={ui.setCourseToPurchase}
+            updateSessionUser={session.updateSessionUser}
+            setEnrolledCourses={session.setEnrolledCourses}
+            setInvoices={session.setInvoices}
+            getInitials={catalog.getInitials}
+            navigateTo={navigation.navigateTo}
+            currentView={navigation.currentView}
+            teacherView={navigation.teacherView}
+            handleToggleCourseLive={live.handleToggleCourseLive}
           />
         </Suspense>
       )}
 
       <SkipLink />
 
-      {platform.isMobileMenuOpen && (
+      {ui.isMobileMenuOpen && (
         <button
           type="button"
           aria-label="Fermer le menu de navigation"
           className="fixed inset-0 z-40 bg-black/50 backdrop-blur-[1px] md:hidden"
-          onClick={() => platform.setIsMobileMenuOpen(false)}
+          onClick={() => ui.setIsMobileMenuOpen(false)}
         />
       )}
 
       <Sidebar
-        currentView={platform.currentView}
-        enrolledCourses={platform.enrolledCourses}
-        isMobileMenuOpen={platform.isMobileMenuOpen}
-        courses={platform.courses}
-        setIsMobileMenuOpen={platform.setIsMobileMenuOpen}
-        navigateTo={platform.navigateTo}
-        role={platform.role}
-        teacherView={platform.teacherView}
-        setTeacherView={platform.handleTeacherViewChange}
-        currentUser={platform.currentUser!}
-        onLogout={platform.handleLogout}
-        notificationUnreadCount={platform.notificationUnreadCount}
+        currentView={navigation.currentView}
+        enrolledCourses={session.enrolledCourses}
+        isMobileMenuOpen={ui.isMobileMenuOpen}
+        courses={catalog.courses}
+        setIsMobileMenuOpen={ui.setIsMobileMenuOpen}
+        navigateTo={navigation.navigateTo}
+        role={session.role}
+        teacherView={navigation.teacherView}
+        setTeacherView={navigation.handleTeacherViewChange}
+        currentUser={session.currentUser!}
+        onLogout={session.handleLogout}
+        notificationUnreadCount={session.notificationUnreadCount}
       />
 
       <div className="flex-1 flex flex-col overflow-hidden relative">
-        {!platform.isStudentLive && (
+        {!live.isStudentLive && (
           <Topbar
-            currentView={platform.currentView}
-            searchQuery={platform.searchQuery}
-            setSearchQuery={platform.setSearchQuery}
-            enrolledCourses={platform.enrolledCourses}
-            courses={platform.courses}
-            navigateTo={platform.navigateTo}
-            role={platform.role}
-            currentUser={platform.currentUser!}
-            onToggleMobileMenu={() => platform.setIsMobileMenuOpen(!platform.isMobileMenuOpen)}
-            catalogSearchRef={platform.catalogSearchRef}
-            notificationUnreadCount={platform.notificationUnreadCount}
-            onOpenNotifications={platform.openNotificationsView}
-            activeView={platform.role === "teacher" ? platform.teacherView : platform.currentView}
+            currentView={navigation.currentView}
+            searchQuery={catalog.searchQuery}
+            setSearchQuery={catalog.setSearchQuery}
+            enrolledCourses={session.enrolledCourses}
+            courses={catalog.courses}
+            navigateTo={navigation.navigateTo}
+            role={session.role}
+            currentUser={session.currentUser!}
+            onToggleMobileMenu={() => ui.setIsMobileMenuOpen(!ui.isMobileMenuOpen)}
+            catalogSearchRef={catalog.catalogSearchRef}
+            notificationUnreadCount={session.notificationUnreadCount}
+            onOpenNotifications={session.openNotificationsView}
+            activeView={session.role === "teacher" ? navigation.teacherView : navigation.currentView}
           />
         )}
 
         <main
           id="main-content"
           tabIndex={-1}
-          className={`flex-1 relative bg-slate-50 outline-none min-h-0 ${platform.lockMainScroll ? "overflow-hidden" : "overflow-y-auto"}`}
+          className={`flex-1 relative bg-slate-50 outline-none min-h-0 ${ui.lockMainScroll ? "overflow-hidden" : "overflow-y-auto"}`}
         >
-          {INSTITUTIONAL_VIEWS.has(platform.currentView) ? (
+          {INSTITUTIONAL_VIEWS.has(navigation.currentView) ? (
             <InstitutionalViewSwitch
-              currentView={platform.currentView}
-              currentUser={platform.currentUser!}
-              navigateTo={platform.navigateTo}
+              currentView={navigation.currentView}
+              currentUser={session.currentUser!}
+              navigateTo={navigation.navigateTo}
             />
-          ) : platform.role === "teacher" ? (
+          ) : session.role === "teacher" ? (
             <TeacherRouteSwitch />
           ) : (
             <StudentRouteSwitch />
           )}
 
-          {!platform.hideGlobalFooter && (
-            <>
-              {/* Global Footer — scroll avec le contenu de la page */}
-              <AppFooter />
-            </>
-          )}
+          {!ui.hideGlobalFooter && <AppFooter />}
         </main>
       </div>
 
-      {platform.courseToPurchase && (
+      {ui.courseToPurchase && (
         <Suspense
           fallback={
             <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm">
@@ -120,30 +120,30 @@ export function AuthenticatedPlatformLayout() {
           }
         >
           <LazyPaymentModal
-            course={platform.courseToPurchase}
-            onClose={() => platform.setCourseToPurchase(null)}
-            onSuccess={platform.handlePaymentSuccess}
+            course={ui.courseToPurchase}
+            onClose={() => ui.setCourseToPurchase(null)}
+            onSuccess={bindings.handlePaymentSuccess}
           />
         </Suspense>
       )}
 
-      {platform.activeLiveCourse &&
+      {live.activeLiveCourse &&
         !(
-          (platform.role === "student" && platform.currentView === "live") ||
-          (platform.role === "teacher" && platform.teacherView === "live-control")
+          (session.role === "student" && navigation.currentView === "live") ||
+          (session.role === "teacher" && navigation.teacherView === "live-control")
         ) && (
           <button
             type="button"
-            aria-label={`Rejoindre le live actif : ${platform.activeLiveCourse.title}`}
+            aria-label={`Rejoindre le live actif : ${live.activeLiveCourse.title}`}
             onClick={() => {
-              platform.setSelectedCourse(platform.activeLiveCourse);
-              platform.setLiveCourseId(platform.activeLiveCourse!.id);
-              if (platform.role === "student") {
-                platform.setCurrentView("live");
+              navigation.setSelectedCourse(live.activeLiveCourse);
+              live.setLiveCourseId(live.activeLiveCourse!.id);
+              if (session.role === "student") {
+                navigation.setCurrentView("live");
               } else {
-                platform.setTeacherView("live-control");
+                navigation.setTeacherView("live-control");
               }
-              platform.setIsMobileMenuOpen(false);
+              ui.setIsMobileMenuOpen(false);
             }}
             className="fixed right-4 bottom-4 sm:right-5 sm:bottom-5 z-50 bg-slate-950 border border-indigo-500/50 text-white rounded-2xl px-4 py-3 shadow-2xl flex items-center gap-3 max-w-[min(280px,calc(100vw-2rem))] text-left cursor-pointer hover:bg-slate-900 transition-colors touch-target kbd-nav-focus"
           >
@@ -153,12 +153,12 @@ export function AuthenticatedPlatformLayout() {
             </span>
             <span className="min-w-0">
               <span className="block text-[10px] font-black uppercase tracking-widest text-indigo-300">Live actif</span>
-              <span className="block text-xs font-bold truncate">{platform.activeLiveCourse.title}</span>
+              <span className="block text-xs font-bold truncate">{live.activeLiveCourse.title}</span>
             </span>
           </button>
         )}
 
-      <KeyboardShortcutsHelp open={platform.showKeyboardHelp} onClose={() => platform.setShowKeyboardHelp(false)} />
+      <KeyboardShortcutsHelp open={ui.showKeyboardHelp} onClose={() => ui.setShowKeyboardHelp(false)} />
     </div>
   );
 }

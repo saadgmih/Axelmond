@@ -56,6 +56,16 @@ rulesTest("owasp-pen-test-guards", () => {
       category: "CSRF",
     },
     { id: "xss-academic-links-https", ok: /sanitizeAcademicLinkField/.test(academicProfile), category: "XSS" },
+    {
+      id: "phishing-internal-url-sanitizer",
+      ok: /sanitizeInternalAppPath/.test(fs.readFileSync("src/notifications.ts", "utf8")),
+      category: "Phishing",
+    },
+    {
+      id: "jwt-logout-invalidation",
+      ok: /logoutRefreshSession/.test(fs.readFileSync("src/routes/auth/session-routes.ts", "utf8")),
+      category: "A07",
+    },
     { id: "paypal-webhook-signature", ok: /verifyPayPalWebhookSignature/.test(apiSource), category: "Webhook" },
     { id: "http-test-supertest", ok: packageJson.devDependencies?.supertest !== undefined, category: "Testing" },
     {

@@ -1,16 +1,15 @@
-import { createContext, useContext, type ReactNode } from "react";
-import type { PlatformAppContextValue } from "./platform-app-types";
+import { usePlatformBindings, usePlatformCatalog, usePlatformLive, usePlatformNavigation, usePlatformSession, usePlatformUi } from "./platform-app-slices";
 
-const PlatformAppContext = createContext<PlatformAppContextValue | null>(null);
-
-export function PlatformAppProvider({ value, children }: { value: PlatformAppContextValue; children: ReactNode }) {
-  return <PlatformAppContext.Provider value={value}>{children}</PlatformAppContext.Provider>;
+/** @deprecated Prefer domain hooks: usePlatformSession, usePlatformCatalog, etc. */
+export function usePlatformAppContext() {
+  return {
+    ...usePlatformSession(),
+    ...usePlatformCatalog(),
+    ...usePlatformNavigation(),
+    ...usePlatformLive(),
+    ...usePlatformBindings(),
+    ...usePlatformUi(),
+  };
 }
 
-export function usePlatformAppContext(): PlatformAppContextValue {
-  const value = useContext(PlatformAppContext);
-  if (!value) {
-    throw new Error("usePlatformAppContext must be used within PlatformAppProvider");
-  }
-  return value;
-}
+export { PlatformAppSlicesProvider as PlatformAppProvider } from "./platform-app-slices";

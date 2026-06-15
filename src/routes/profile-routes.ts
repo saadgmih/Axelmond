@@ -453,7 +453,7 @@ export function registerProfileRoutes(app: Express, ctx: RouteContext): void {
     await api.prisma.user.update({
       where: { id: authUser.id },
 
-      data: { passwordHash: await api.bcrypt.hash(newPassword, 10) },
+      data: { passwordHash: await api.bcrypt.hash(newPassword, api.getBcryptRounds()) },
     });
 
     await api.revokeAllUserSessions(authUser.id);

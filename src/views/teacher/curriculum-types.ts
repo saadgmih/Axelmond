@@ -81,6 +81,7 @@ export interface TeacherCurriculumViewProps {
   >;
 
   teacherQuizzes: any[];
+  selectedQuizDetail: any | null;
   quizCourseId: number;
   newQuizTitle: string;
   setNewQuizTitle: (value: string) => void;

@@ -1,3 +1,6 @@
+const STATIC_CACHE = "axelmond-static-v1";
+const STATIC_ASSETS = ["/favicon.svg", "/logo-symbol.svg", "/manifest.json"];
+
 function sanitizeNotificationUrl(raw) {
   try {
     const url = new URL(raw || "/", self.location.origin);
@@ -9,12 +12,50 @@ function sanitizeNotificationUrl(raw) {
   }
 }
 
+function isCacheableStaticRequest(request, url) {
+  if (request.method !== "GET") return false;
+  if (url.origin !== self.location.origin) return false;
+  if (url.pathname === "/sw.js") return false;
+  if (url.pathname.startsWith("/api/")) return false;
+  if (STATIC_ASSETS.includes(url.pathname)) return true;
+  if (url.pathname.startsWith("/assets/")) return true;
+  return /\.(svg|png|jpg|jpeg|webp|ico|woff2?)$/i.test(url.pathname);
+}
+
 self.addEventListener("install", (event) => {
-  event.waitUntil(self.skipWaiting());
+  event.waitUntil(
+    caches
+      .open(STATIC_CACHE)
+      .then((cache) => cache.addAll(STATIC_ASSETS))
+      .then(() => self.skipWaiting()),
+  );
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches
+      .keys()
+      .then((keys) => Promise.all(keys.filter((key) => key !== STATIC_CACHE).map((key) => caches.delete(key))))
+      .then(() => self.clients.claim()),
+  );
+});
+
+self.addEventListener("fetch", (event) => {
+  const url = new URL(event.request.url);
+  if (!isCacheableStaticRequest(event.request, url)) return;
+
+  event.respondWith(
+    caches.open(STATIC_CACHE).then(async (cache) => {
+      const cached = await cache.match(event.request);
+      if (cached) return cached;
+
+      const response = await fetch(event.request);
+      if (response.ok) {
+        await cache.put(event.request, response.clone());
+      }
+      return response;
+    }),
+  );
 });
 
 self.addEventListener("push", (event) => {

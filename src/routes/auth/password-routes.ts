@@ -163,7 +163,7 @@ export function registerPasswordRoutes(app: Express, ctx: RouteContext): void {
       return;
     }
 
-    const passwordHash = await api.bcrypt.hash(newPassword, 10);
+    const passwordHash = await api.bcrypt.hash(newPassword, api.getBcryptRounds());
 
     await api.prisma.$transaction(async (tx) => {
       await tx.emailVerificationCode.update({

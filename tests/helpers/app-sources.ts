@@ -10,6 +10,7 @@ export function readAppSources(): string {
   const appFiles = [
     "platform-app-types.ts",
     "platform-app-context.tsx",
+    "platform-app-slices.tsx",
     "catalogIcons.tsx",
     "usePlatformApp.ts",
     "PlatformAppRoot.tsx",

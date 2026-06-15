@@ -98,15 +98,6 @@ export interface ContentSection {
   children: ContentSection[];
 }
 
-export interface ChatMessage {
-  id: string | number;
-  user: string;
-  text: string;
-  time: string;
-  isInstructor?: boolean;
-  isMe?: boolean;
-}
-
 export interface Invoice {
   id: string;
   date: string;

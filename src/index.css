@@ -489,3 +489,9 @@ body {
 .axelmond-paypal-shell iframe.component-frame {
   border-radius: 0.75rem !important;
 }
+
+/* Off-screen list rows skip layout/paint until near viewport */
+.virtual-list-item {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 72px;
+}

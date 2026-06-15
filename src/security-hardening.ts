@@ -21,3 +21,10 @@ export {
 
 export const REFRESH_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 export const REFRESH_RATE_LIMIT_MAX = 30;
+
+/** Bcrypt cost factor — 12 is the project default (override via BCRYPT_ROUNDS). */
+export function getBcryptRounds(env: NodeJS.ProcessEnv = process.env): number {
+  const parsed = Number(env.BCRYPT_ROUNDS);
+  if (Number.isInteger(parsed) && parsed >= 10 && parsed <= 15) return parsed;
+  return 12;
+}

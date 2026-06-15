@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readApiRouteSources } from "./helpers/api-route-sources.ts";
 import fs from "node:fs";
-import { computeDiscountedPrice, resolveCourseChargeAmount, resolvePromoDiscountPercent } from "../src/promo-codes.ts";
+import { computeDiscountedPrice, isPromoCodesEnabled, resolveCourseChargeAmount, resolvePromoDiscountPercent } from "../src/promo-codes.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("promo-codes", () => {
@@ -10,6 +10,10 @@ rulesTest("promo-codes", () => {
   assert.equal(resolvePromoDiscountPercent("AXELMOND20"), 20);
   assert.equal(resolvePromoDiscountPercent("axelmond20"), 20);
   assert.equal(resolvePromoDiscountPercent("INVALID"), null);
+  assert.equal(resolvePromoDiscountPercent("AXELMOND20", { NODE_ENV: "production" }), null);
+  assert.equal(resolvePromoDiscountPercent("AXELMOND20", { NODE_ENV: "production", PROMO_CODES_ENABLED: "true" }), 20);
+  assert.equal(isPromoCodesEnabled({ NODE_ENV: "production" }), false);
+  assert.equal(isPromoCodesEnabled({ NODE_ENV: "production", PROMO_CODES_ENABLED: "true" }), true);
 
   assert.equal(computeDiscountedPrice(160, 20), 128);
   assert.equal(computeDiscountedPrice(125, 20), 100);

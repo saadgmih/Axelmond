@@ -1,4 +1,5 @@
 import { decodeStoredText } from "./text";
+import { isBlockedUrlScheme } from "./external-url-security";
 
 export const STUDENT_OBJECTIVE_STATUSES = [
   { value: "IN_PROGRESS", label: "En cours" },
@@ -84,9 +85,11 @@ export function parseObjectiveDate(value: unknown): Date | null {
 export function isAllowedFocusContentUrl(rawUrl: string): boolean {
   const candidate = decodeStoredText(rawUrl).trim();
   if (!candidate) return true;
+  if (isBlockedUrlScheme(candidate)) return false;
+  if (candidate.startsWith("//")) return false;
   try {
     const url = new URL(candidate);
-    return url.protocol === "https:" || url.protocol === "http:";
+    return url.protocol === "https:";
   } catch {
     return false;
   }

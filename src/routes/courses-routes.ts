@@ -9,76 +9,80 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
 
   // GET /api/courses
 
-  app.get("/api/courses", async (req, res) => {
-    const authUser = await api.getOptionalAuthUser(req);
+  app.get("/api/courses", async (req, res, next) => {
+    try {
+      const authUser = await api.getOptionalAuthUser(req);
 
-    const domainId = Number(req.query.domainId) || 0;
+      const domainId = Number(req.query.domainId) || 0;
 
-    const disciplineId = Number(req.query.disciplineId) || 0;
+      const disciplineId = Number(req.query.disciplineId) || 0;
 
-    // Cache uniquement pour visiteurs anonymes, clé incluant les filtres
-    const cacheKey = authUser ? null : `api:courses:public:d=${domainId}:dis=${disciplineId}`;
-    if (cacheKey) {
-      const cached = await api.cacheGet(cacheKey);
+      // Cache uniquement pour visiteurs anonymes, clé incluant les filtres
+      const cacheKey = authUser ? null : `api:courses:public:d=${domainId}:dis=${disciplineId}`;
+      if (cacheKey) {
+        const cached = await api.cacheGet(cacheKey);
 
-      if (cached) {
-        res.json(JSON.parse(cached));
-        return;
+        if (cached) {
+          res.json(JSON.parse(cached));
+          return;
+        }
       }
-    }
 
-    const where: any =
-      authUser?.role === "ADMIN"
-        ? {}
-        : authUser && (authUser.role === "PROFESSOR" || authUser.role === "RESEARCHER")
-          ? { createdById: authUser.id }
-          : { published: true };
+      const where: any =
+        authUser?.role === "ADMIN"
+          ? {}
+          : authUser && (authUser.role === "PROFESSOR" || authUser.role === "RESEARCHER")
+            ? { createdById: authUser.id }
+            : { published: true };
 
-    if (Number.isInteger(disciplineId) && disciplineId > 0) {
-      where.disciplineId = disciplineId;
-    } else if (Number.isInteger(domainId) && domainId > 0) {
-      const disciplineIds = await api.prisma.discipline.findMany({
-        where: { domainId },
+      if (Number.isInteger(disciplineId) && disciplineId > 0) {
+        where.disciplineId = disciplineId;
+      } else if (Number.isInteger(domainId) && domainId > 0) {
+        const disciplineIds = await api.prisma.discipline.findMany({
+          where: { domainId },
 
-        select: { id: true },
+          select: { id: true },
+        });
+
+        where.disciplineId = { in: disciplineIds.map((discipline) => discipline.id) };
+      }
+
+      const courses = await api.prisma.course.findMany({
+        where,
+
+        include: api.courseResponseInclude,
+
+        orderBy: { id: "asc" },
       });
 
-      where.disciplineId = { in: disciplineIds.map((discipline) => discipline.id) };
+      let payload;
+      if (authUser?.role === "STUDENT") {
+        const progressByCourse = await api.getStudentCompletedModuleIdsByCourseIds(
+          authUser.id,
+          courses.map((course) => course.id),
+        );
+        payload = courses.map((course) => api.toCourse(course, progressByCourse.get(course.id) ?? new Set()));
+      } else {
+        payload = courses.map((course) => api.toCourse(course));
+      }
+
+      api.logDb("INFO", "Academic modules listed", {
+        userId: authUser?.id,
+
+        role: authUser?.role || "PUBLIC",
+
+        ownershipScope:
+          authUser && (authUser.role === "PROFESSOR" || authUser.role === "RESEARCHER") ? "OWN_MODULES_ONLY" : "DEFAULT",
+
+        count: payload.length,
+      });
+
+      if (cacheKey) await api.cacheSet(cacheKey, JSON.stringify(payload), Number(process.env.CACHE_TTL_SECONDS) || 60);
+
+      res.json(payload);
+    } catch (err) {
+      next(err);
     }
-
-    const courses = await api.prisma.course.findMany({
-      where,
-
-      include: api.courseResponseInclude,
-
-      orderBy: { id: "asc" },
-    });
-
-    let payload;
-    if (authUser?.role === "STUDENT") {
-      const progressByCourse = await api.getStudentCompletedModuleIdsByCourseIds(
-        authUser.id,
-        courses.map((course) => course.id),
-      );
-      payload = courses.map((course) => api.toCourse(course, progressByCourse.get(course.id) ?? new Set()));
-    } else {
-      payload = courses.map((course) => api.toCourse(course));
-    }
-
-    api.logDb("INFO", "Academic modules listed", {
-      userId: authUser?.id,
-
-      role: authUser?.role || "PUBLIC",
-
-      ownershipScope:
-        authUser && (authUser.role === "PROFESSOR" || authUser.role === "RESEARCHER") ? "OWN_MODULES_ONLY" : "DEFAULT",
-
-      count: payload.length,
-    });
-
-    if (cacheKey) await api.cacheSet(cacheKey, JSON.stringify(payload), Number(process.env.CACHE_TTL_SECONDS) || 60);
-
-    res.json(payload);
   });
 
   // POST /api/courses (Teacher creates a real persisted course)
@@ -123,8 +127,6 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
         progress: 0,
 
         isLiveNow: false,
-
-        modules: [],
 
         published,
 

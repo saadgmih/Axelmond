@@ -31,6 +31,8 @@ rulesTest("server-routes-modular", () => {
     "payments-routes.ts",
     "profile-routes.ts",
     "quiz-routes.ts",
+    "messaging-routes.ts",
+    "mobile-api-routes.ts",
   ];
 
   for (const fileName of expectedModules) {
@@ -55,6 +57,8 @@ rulesTest("server-routes-modular", () => {
     "registerMiscRoutes",
     "registerObjectivesRoutes",
     "registerPaymentsRoutes",
+    "registerMessagingRoutes",
+    "registerMobileApiRoutes",
   ]) {
     assert.match(registerSource, new RegExp(registerFn));
   }
@@ -68,9 +72,10 @@ rulesTest("server-routes-modular", () => {
   assert.ok(serverSource.split("\n").length <= 15, "server.ts must remain a thin entrypoint");
 
   assert.match(createAppSource, /registerApiRoutes\(app,\s*routeCtx\)/);
+  assert.match(registerSource, /registerMessagingRoutes/);
+  assert.match(registerSource, /registerMobileApiRoutes/);
   assert.match(createAppSource, /registerPayPalWebhook\(app,\s*routeCtx,\s*paypalWebhookRateLimiter\)/);
-  assert.match(createAppSource, /registerMobileApiRoutes/);
-  assert.match(createAppSource, /registerMessagingRoutes/);
+  assert.doesNotMatch(createAppSource, /registerMessagingRoutes/);
   assert.doesNotMatch(createAppSource, /app\.get\("\/api\/domains"/);
   assert.ok(
     createAppSource.split("\n").length <= maxBootstrapLines,

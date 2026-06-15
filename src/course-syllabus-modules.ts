@@ -15,18 +15,6 @@ export type CourseModuleRow = {
   published: boolean;
 };
 
-export function shouldReadRelationalCourseModules(env: NodeJS.ProcessEnv = process.env): boolean {
-  const flag = String(env.COURSE_MODULES_READ_RELATIONAL ?? "true")
-    .trim()
-    .toLowerCase();
-  return flag !== "false";
-}
-
-export function parseCourseModulesJson(raw: unknown): CourseModule[] {
-  if (!Array.isArray(raw)) return [];
-  return raw as CourseModule[];
-}
-
 export function serializeCourseModuleRow(row: CourseModuleRow, completed = false): CourseModule {
   return {
     id: row.id,
@@ -72,33 +60,16 @@ export async function getNextCourseModuleId(
 
 export function resolveCourseModules(
   course: {
-    modules?: unknown;
     courseModules?: CourseModuleRow[];
   },
   completedModuleIds?: Set<number>,
-  env: NodeJS.ProcessEnv = process.env,
 ): CourseModule[] {
-  if (
-    shouldReadRelationalCourseModules(env) &&
-    Array.isArray(course.courseModules) &&
-    course.courseModules.length > 0
-  ) {
-    return course.courseModules
-      .slice()
-      .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
-      .map((row) => serializeCourseModuleRow(row, completedModuleIds?.has(row.id) ?? false));
+  if (!Array.isArray(course.courseModules) || course.courseModules.length === 0) {
+    return [];
   }
-  const modules = parseCourseModulesJson(course.modules);
-  if (!completedModuleIds) return modules;
-  return modules.map((module) => ({
-    ...module,
-    completed: completedModuleIds.has(module.id),
-  }));
-}
 
-export function serializeCourseModulesForJsonMirror(rows: CourseModuleRow[]): CourseModule[] {
-  return rows
+  return course.courseModules
     .slice()
     .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
-    .map((row) => serializeCourseModuleRow(row));
+    .map((row) => serializeCourseModuleRow(row, completedModuleIds?.has(row.id) ?? false));
 }

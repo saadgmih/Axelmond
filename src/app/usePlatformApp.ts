@@ -1,39 +1,31 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { getClientErrorMessage } from "../client-errors";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { api, getFreshSessionToken } from "../api";
-import type { AppUser } from "../components/AuthScreen";
-import { uploadFiles, getUploadedFileUrl, getUploadErrorMessage, validateUploadFile } from "../uploadthing-client";
 import { useLiveKitSession } from "../context/livekit-session-context";
 import { useNotifications } from "../hooks/useNotifications";
 import { usePushNotifications } from "../hooks/usePushNotifications";
 import { useMessagingSocket } from "../hooks/useMessagingSocket";
 import { scrollAppToTopDeferred } from "../utils/scroll-app-to-top";
 import { useCourseContent } from "../hooks/useCourseContent";
-import { useTeacherCurriculum } from "../hooks/useTeacherCurriculum";
 import { useAppSession } from "../hooks/useAppSession";
 import { usePlatformNavigation } from "../hooks/usePlatformNavigation";
 import { useAcademicProfile } from "../hooks/useAcademicProfile";
-import { useAsyncEffectGuard } from "../hooks/useAsyncEffectGuard";
-import { useTeacherDashboard } from "../hooks/useTeacherDashboard";
 import { useStudentCourseSession } from "../hooks/useStudentCourseSession";
 import { isStudentRole } from "../rbac";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import type { AppNotification } from "../types/messaging";
 import type { Course, CourseModule, FacultyDomain } from "../types";
 import { getInitials } from "./catalogIcons";
+import { usePlatformCatalogData } from "./hooks/usePlatformCatalogData";
+import { usePlatformAvatarActions } from "./hooks/usePlatformAvatarActions";
+import { usePlatformNotificationHandlers } from "./hooks/usePlatformNotificationHandlers";
+import { usePlatformTeacherWorkspace } from "./hooks/usePlatformTeacherWorkspace";
 
 export function usePlatformApp() {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [domains, setDomains] = useState<FacultyDomain[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [currentView, setCurrentView] = useState<string>("dashboard"); // 'dashboard', 'catalog', 'course', 'profile', 'live'
+  const [currentView, setCurrentView] = useState<string>("dashboard");
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-  const [selectedDomainId, setSelectedDomainId] = useState<number | null>(null);
-  const [selectedDisciplineId, setSelectedDisciplineId] = useState<number | null>(null);
   const [activeLiveCourse, setActiveLiveCourse] = useState<Course | null>(null);
   const [selectedModule, setSelectedModule] = useState<CourseModule | null>(null);
-  const [teacherView, setTeacherView] = useState<string>("dashboard"); // 'dashboard', 'curriculum', 'live-control'
+  const [teacherView, setTeacherView] = useState<string>("dashboard");
 
   const {
     courseContentSections,
@@ -45,6 +37,10 @@ export function usePlatformApp() {
   } = useCourseContent();
 
   const onSessionExpiredRef = useRef<() => void>(() => {});
+
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [domains, setDomains] = useState<FacultyDomain[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const {
     currentUser,
@@ -69,37 +65,28 @@ export function usePlatformApp() {
     onSessionExpired: () => onSessionExpiredRef.current(),
   });
 
-  // Fetch courses from API on mount
-  const { startRequest: startCatalogRequest } = useAsyncEffectGuard();
-
-  useEffect(() => {
-    const request = startCatalogRequest();
-    Promise.all([api.getCourses(), api.getDomains()])
-      .then(([courseData, domainData]) => {
-        if (!request.isActive()) return;
-        setCourses(courseData);
-        setDomains(domainData);
-        setIsLoading(false);
-      })
-      .catch((err) => {
-        if (!request.isActive()) return;
-        console.error("Failed to fetch academic catalog:", err);
-        setIsLoading(false);
-      });
-  }, [startCatalogRequest]);
+  const {
+    searchQuery,
+    setSearchQuery,
+    selectedDomainId,
+    setSelectedDomainId,
+    selectedDisciplineId,
+    setSelectedDisciplineId,
+    allDisciplines,
+    selectedDomain,
+    selectedDiscipline,
+    catalogCourses,
+    catalogError,
+    retryCatalogLoad,
+  } = usePlatformCatalogData(isAuthReady, courses, domains, setCourses, setDomains, setIsLoading);
 
   useEffect(() => {
     document.documentElement.classList.add("dark");
     localStorage.removeItem("axelmond_theme");
   }, []);
 
-  const [avatarStatusMsg, setAvatarStatusMsg] = useState("");
-
-  // Live broadcast controls (Teacher side — course selection stays in App)
   const [liveCourseId, setLiveCourseId] = useState<number>(1);
-
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [courseToPurchase, setCourseToPurchase] = useState<Course | null>(null);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const catalogSearchRef = useRef<HTMLInputElement>(null);
@@ -113,61 +100,27 @@ export function usePlatformApp() {
     };
   }, [isMobileMenuOpen]);
 
-  const allDisciplines = domains.flatMap((domain) => domain.disciplines);
-  const selectedDomain = domains.find((domain) => domain.id === selectedDomainId) || null;
-  const selectedDiscipline = allDisciplines.find((discipline) => discipline.id === selectedDisciplineId) || null;
-  const managedCourses =
-    role === "teacher" && currentUser?.role !== "ADMIN"
-      ? courses.filter((course) => course.createdById === currentUser?.id)
-      : courses;
-  const managedCourseIds = managedCourses.map((course) => course.id).join(",");
-
-  const curriculumBindings = {
-    ...useTeacherCurriculum({
-      courses,
-      setCourses,
-      managedCourses,
-      managedCourseIds,
-      allDisciplines,
-      currentUser,
-      role,
-      courseContent: {
-        courseContentSections,
-        setCourseContentSections,
-        flattenSections,
-        refreshCourseContent,
-      },
-    }),
-    allDisciplines,
-    managedCourses,
-  };
-
-  const { newSectionCourseId, quizCourseId } = curriculumBindings;
-
-  const teacherDashboardBindings = {
-    ...useTeacherDashboard({
-      role,
-      courses,
-      setCourses,
-      managedCourses,
-      currentUser,
-      setActiveLiveCourse,
-    }),
-    managedCourses,
+  const {
+    curriculumBindings,
+    quizCourseId,
+    teacherDashboardBindings,
+    handleToggleCourseLive,
+    handleUpdateCourseLiveSubject,
+  } = usePlatformTeacherWorkspace({
+    role,
     courses,
-  };
-
-  const { setGradesCourseId, handleToggleCourseLive, handleUpdateCourseLiveSubject } = teacherDashboardBindings;
-
-  useEffect(() => {
-    if (role !== "teacher") return;
-    if (managedCourses.length === 0) return;
-    if (!managedCourses.some((course) => course.id === newSectionCourseId)) {
-      const firstManagedCourseId = managedCourses[0].id;
-      setLiveCourseId(firstManagedCourseId);
-      setGradesCourseId(firstManagedCourseId);
-    }
-  }, [role, managedCourseIds, newSectionCourseId, managedCourses]);
+    setCourses,
+    allDisciplines,
+    currentUser,
+    courseContent: {
+      courseContentSections,
+      setCourseContentSections,
+      flattenSections,
+      refreshCourseContent,
+    },
+    setActiveLiveCourse,
+    setLiveCourseId,
+  });
 
   const studentCourseSession = useStudentCourseSession({
     courses,
@@ -190,13 +143,16 @@ export function usePlatformApp() {
   const { setQuizAnswers, setQuizSubmitted, setQuizScore, setQuizSubmitError, handlePaymentSuccess } =
     studentCourseSession;
 
-  const studentCourseBindings = {
-    ...studentCourseSession,
-    courseContentSections,
-    flattenSections,
-    selectedLessonContent,
-    setSelectedLessonContent,
-  };
+  const studentCourseBindings = useMemo(
+    () => ({
+      ...studentCourseSession,
+      courseContentSections,
+      flattenSections,
+      selectedLessonContent,
+      setSelectedLessonContent,
+    }),
+    [studentCourseSession, courseContentSections, flattenSections, selectedLessonContent, setSelectedLessonContent],
+  );
 
   useEffect(() => {
     if (!isAuthReady || !currentUser || !isStudentRole(currentUser.role)) return;
@@ -258,52 +214,13 @@ export function usePlatformApp() {
     },
   });
 
-  const openNotificationsView = () => {
-    if (role === "teacher") handleTeacherViewChange("notifications");
-    else navigateTo("notifications");
-  };
-
-  const handleNotificationNavigate = (notification: AppNotification) => {
-    const { actionUrl, metadata } = notification;
-
-    if (actionUrl.includes("messages")) {
-      const conversationId =
-        typeof metadata.conversationId === "string"
-          ? metadata.conversationId
-          : new URL(actionUrl, window.location.origin).searchParams.get("conversation");
-      const messagesPath = role === "teacher" ? "/teacher/messages" : "/student/messages";
-      if (conversationId) {
-        window.history.replaceState(null, "", `${messagesPath}?conversation=${encodeURIComponent(conversationId)}`);
-      }
-      if (role === "teacher") handleTeacherViewChange("messages");
-      else navigateTo("messages");
-      return;
-    }
-
-    if (actionUrl.includes("live")) {
-      const courseId = Number(metadata.courseId);
-      const liveCourse =
-        (Number.isFinite(courseId)
-          ? courses.find((course) => course.id === courseId && enrolledCourses.includes(course.id))
-          : null) ??
-        courses.find((course) => enrolledCourses.includes(course.id) && course.isLiveNow) ??
-        null;
-      if (liveCourse) navigateTo("live", liveCourse);
-      return;
-    }
-
-    if (actionUrl.includes("course")) {
-      const courseId = Number(metadata.courseId);
-      const targetCourse =
-        (Number.isFinite(courseId)
-          ? courses.find((course) => course.id === courseId && enrolledCourses.includes(course.id))
-          : null) ??
-        courses.find((course) => enrolledCourses.includes(course.id)) ??
-        null;
-      if (targetCourse) navigateTo("course", targetCourse);
-      else navigateTo("catalog");
-    }
-  };
+  const { openNotificationsView, handleNotificationNavigate } = usePlatformNotificationHandlers({
+    role,
+    courses,
+    enrolledCourses,
+    navigateTo,
+    handleTeacherViewChange,
+  });
 
   const academicProfileBindings = useAcademicProfile({
     role,
@@ -313,6 +230,12 @@ export function usePlatformApp() {
   });
 
   const { setAcademicProfileForm } = academicProfileBindings;
+
+  const { avatarStatusMsg, handleUploadAvatarFile, handleDeleteAvatar } = usePlatformAvatarActions(
+    currentUser,
+    updateSessionUser,
+    setAcademicProfileForm,
+  );
 
   const { toggleTeacherLiveSession, disconnectLiveSession, renderLiveRoomInterface, classroomBindings } =
     useLiveKitSession();
@@ -383,147 +306,217 @@ export function usePlatformApp() {
     ],
   );
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     logoutAuth();
     disconnectLiveSession();
-  };
+  }, [logoutAuth, disconnectLiveSession]);
 
-  const handleUploadAvatarFile = async (file: File) => {
-    const token = await getFreshSessionToken();
-    if (!currentUser || !token) {
-      setAvatarStatusMsg("Session expirée. Reconnectez-vous.");
-      return;
-    }
+  const notificationsValue = useMemo(
+    () => ({
+      notifications,
+      notificationUnreadCount,
+      notificationsLoading,
+      notificationsError,
+      loadNotifications,
+      markNotificationRead,
+      markAllNotificationsRead: markAllNotificationsRead,
+      handleNotificationNavigate,
+      pushStatus,
+      pushStatusKind,
+      subscribePushNotifications,
+    }),
+    [
+      notifications,
+      notificationUnreadCount,
+      notificationsLoading,
+      notificationsError,
+      loadNotifications,
+      markNotificationRead,
+      markAllNotificationsRead,
+      handleNotificationNavigate,
+      pushStatus,
+      pushStatusKind,
+      subscribePushNotifications,
+    ],
+  );
 
-    const validationError = validateUploadFile(file, "AVATAR");
-    if (validationError) {
-      setAvatarStatusMsg(validationError);
-      return;
-    }
+  const session = useMemo(
+    () => ({
+      isLoading,
+      isAuthReady,
+      catalogError,
+      retryCatalogLoad,
+      currentUser,
+      role,
+      enrolledCourses,
+      invoices,
+      handleLoginSuccess,
+      handleLogout,
+      updateSessionUser,
+      setEnrolledCourses,
+      setInvoices,
+      notificationUnreadCount,
+      openNotificationsView,
+    }),
+    [
+      isLoading,
+      isAuthReady,
+      catalogError,
+      retryCatalogLoad,
+      currentUser,
+      role,
+      enrolledCourses,
+      invoices,
+      handleLoginSuccess,
+      handleLogout,
+      updateSessionUser,
+      setEnrolledCourses,
+      setInvoices,
+      notificationUnreadCount,
+      openNotificationsView,
+    ],
+  );
 
-    try {
-      setAvatarStatusMsg("Téléversement de la photo...");
-      const result = await (uploadFiles as any)("avatarImage", {
-        files: [file],
-        headers: { Authorization: `Bearer ${token}` },
-        onUploadProgress: ({ progress }: { progress: number }) =>
-          setAvatarStatusMsg(`Téléversement de la photo : ${progress}%`),
-      });
-      const avatarUrl = getUploadedFileUrl(result?.[0]);
-      if (!avatarUrl) throw new Error("URL de photo introuvable après téléversement");
-      const updatedUser = { ...currentUser, avatarUrl };
-      updateSessionUser(updatedUser);
-      setAcademicProfileForm((prev) => ({ ...prev, avatarUrl }));
-      setAvatarStatusMsg("Photo de profil mise à jour.");
-    } catch (err: any) {
-      console.error("Failed to upload avatar:", err);
-      setAvatarStatusMsg(getUploadErrorMessage(err));
-      throw err;
-    }
-  };
+  const catalog = useMemo(
+    () => ({
+      courses,
+      setCourses,
+      domains,
+      catalogCourses,
+      selectedDomain,
+      selectedDiscipline,
+      setSelectedDomainId,
+      setSelectedDisciplineId,
+      searchQuery,
+      setSearchQuery,
+      catalogSearchRef,
+      getInitials,
+    }),
+    [
+      courses,
+      setCourses,
+      domains,
+      catalogCourses,
+      selectedDomain,
+      selectedDiscipline,
+      setSelectedDomainId,
+      setSelectedDisciplineId,
+      searchQuery,
+      setSearchQuery,
+      catalogSearchRef,
+      getInitials,
+    ],
+  );
 
-  const handleDeleteAvatar = async () => {
-    if (!currentUser) return;
-    try {
-      const response = await api.deleteAvatar();
-      const updatedUser = response.user ? (response.user as AppUser) : { ...currentUser, avatarUrl: undefined };
-      updateSessionUser(updatedUser);
-      setAcademicProfileForm((prev) => ({ ...prev, avatarUrl: "" }));
-      setAvatarStatusMsg(response.message || "Photo de profil supprimée.");
-    } catch (err: any) {
-      setAvatarStatusMsg(getClientErrorMessage(err, "Suppression de la photo impossible."));
-    }
-  };
+  const navigation = useMemo(
+    () => ({
+      currentView,
+      teacherView,
+      selectedCourse,
+      setSelectedCourse,
+      selectedModule,
+      setSelectedModule,
+      setSelectedLessonContent,
+      navigateTo,
+      handleTeacherViewChange,
+      setTeacherView,
+      setCurrentView,
+    }),
+    [
+      currentView,
+      teacherView,
+      selectedCourse,
+      setSelectedCourse,
+      selectedModule,
+      setSelectedModule,
+      setSelectedLessonContent,
+      navigateTo,
+      handleTeacherViewChange,
+      setTeacherView,
+      setCurrentView,
+    ],
+  );
 
-  const catalogCourses = courses.filter((c) => {
-    const searchLower = searchQuery.toLowerCase();
-    const matchesSearch =
-      c.title.toLowerCase().includes(searchLower) ||
-      c.category.toLowerCase().includes(searchLower) ||
-      c.level.toLowerCase().includes(searchLower) ||
-      c.discipline?.name.toLowerCase().includes(searchLower) ||
-      c.discipline?.domain?.name.toLowerCase().includes(searchLower);
-    if (!matchesSearch) return false;
-    if (selectedDisciplineId) return c.disciplineId === selectedDisciplineId;
-    if (selectedDomainId) return c.discipline?.domainId === selectedDomainId;
-    return true;
-  });
-  return {
-    courses,
-    setCourses,
-    domains,
-    isLoading,
-    isAuthReady,
-    currentUser,
-    role,
-    enrolledCourses,
-    invoices,
-    handleLoginSuccess,
-    currentView,
-    teacherView,
-    selectedCourse,
-    setSelectedCourse,
-    selectedModule,
-    setSelectedModule,
-    setSelectedLessonContent,
-    activeLiveCourse,
-    setActiveLiveCourse,
-    liveCourseId,
-    setLiveCourseId,
-    isMobileMenuOpen,
-    setIsMobileMenuOpen,
-    searchQuery,
-    setSearchQuery,
-    courseToPurchase,
-    setCourseToPurchase,
-    showKeyboardHelp,
-    setShowKeyboardHelp,
-    catalogSearchRef,
-    selectedDomain,
-    selectedDiscipline,
-    setSelectedDomainId,
-    setSelectedDisciplineId,
-    catalogCourses,
-    curriculumBindings,
-    quizCourseId,
-    teacherDashboardBindings,
-    handleToggleCourseLive,
-    handleUpdateCourseLiveSubject,
-    studentCourseBindings,
-    handlePaymentSuccess,
-    navigateTo,
-    handleTeacherViewChange,
-    notifications,
-    notificationUnreadCount,
-    notificationsLoading,
-    notificationsError,
-    loadNotifications,
-    markNotificationRead,
-    markAllNotificationsRead,
-    openNotificationsView,
-    handleNotificationNavigate,
-    pushStatus,
-    pushStatusKind,
-    subscribePushNotifications,
-    academicProfileBindings,
-    avatarStatusMsg,
-    handleUploadAvatarFile,
-    handleDeleteAvatar,
-    toggleTeacherLiveSession,
-    renderLiveRoomInterface,
-    classroomBindings,
-    needsLiveKitSession,
-    isStudentLive,
-    isTeacherLiveRoom,
-    isLiveSessionView,
-    lockMainScroll,
-    hideGlobalFooter,
-    handleLogout,
-    updateSessionUser,
-    setEnrolledCourses,
-    setInvoices,
-    setTeacherView,
-    setCurrentView,
-    getInitials,
-  };
+  const live = useMemo(
+    () => ({
+      activeLiveCourse,
+      setActiveLiveCourse,
+      liveCourseId,
+      setLiveCourseId,
+      toggleTeacherLiveSession,
+      renderLiveRoomInterface,
+      classroomBindings,
+      needsLiveKitSession,
+      isStudentLive,
+      isTeacherLiveRoom,
+      isLiveSessionView,
+      handleToggleCourseLive,
+      handleUpdateCourseLiveSubject,
+    }),
+    [
+      activeLiveCourse,
+      setActiveLiveCourse,
+      liveCourseId,
+      setLiveCourseId,
+      toggleTeacherLiveSession,
+      renderLiveRoomInterface,
+      classroomBindings,
+      needsLiveKitSession,
+      isStudentLive,
+      isTeacherLiveRoom,
+      isLiveSessionView,
+      handleToggleCourseLive,
+      handleUpdateCourseLiveSubject,
+    ],
+  );
+
+  const bindings = useMemo(
+    () => ({
+      curriculumBindings,
+      quizCourseId,
+      teacherDashboardBindings,
+      studentCourseBindings,
+      academicProfileBindings,
+      handlePaymentSuccess,
+    }),
+    [
+      curriculumBindings,
+      quizCourseId,
+      teacherDashboardBindings,
+      studentCourseBindings,
+      academicProfileBindings,
+      handlePaymentSuccess,
+    ],
+  );
+
+  const ui = useMemo(
+    () => ({
+      isMobileMenuOpen,
+      setIsMobileMenuOpen,
+      courseToPurchase,
+      setCourseToPurchase,
+      showKeyboardHelp,
+      setShowKeyboardHelp,
+      lockMainScroll,
+      hideGlobalFooter,
+      avatarStatusMsg,
+      handleUploadAvatarFile,
+      handleDeleteAvatar,
+    }),
+    [
+      isMobileMenuOpen,
+      setIsMobileMenuOpen,
+      courseToPurchase,
+      setCourseToPurchase,
+      showKeyboardHelp,
+      setShowKeyboardHelp,
+      lockMainScroll,
+      hideGlobalFooter,
+      avatarStatusMsg,
+      handleUploadAvatarFile,
+      handleDeleteAvatar,
+    ],
+  );
+
+  return { session, catalog, navigation, live, bindings, ui, notifications: notificationsValue };
 }

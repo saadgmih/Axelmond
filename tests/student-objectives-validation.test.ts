@@ -48,7 +48,8 @@ rulesTest("student-objectives-validation", () => {
   );
 
   assert.equal(isAllowedFocusContentUrl("https://example.com/podcast"), true);
-  assert.equal(isAllowedFocusContentUrl("http://example.com/audio"), true);
+  assert.equal(isAllowedFocusContentUrl("http://example.com/audio"), false);
+  assert.equal(isAllowedFocusContentUrl("javascript:alert(1)"), false);
   assert.equal(isAllowedFocusContentUrl("notaurl"), false);
 
   assert.equal(canAccessStudentObjective(studentA, studentA), true);

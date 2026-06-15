@@ -81,6 +81,7 @@ export function useTeacherCurriculum({
     price: 0,
   });
   const [teacherQuizzes, setTeacherQuizzes] = useState<any[]>([]);
+  const [selectedQuizDetail, setSelectedQuizDetail] = useState<any | null>(null);
   const [quizCourseId, setQuizCourseId] = useState<number>(1);
   const [newQuizTitle, setNewQuizTitle] = useState("");
   const [selectedQuizId, setSelectedQuizId] = useState<string>("");
@@ -134,6 +135,36 @@ export function useTeacherCurriculum({
     },
     [selectedQuizId, quizCourseId, startRequest],
   );
+
+  const loadSelectedQuizDetail = useCallback(
+    async (quizId?: string, request?: AsyncRequestToken) => {
+      const active = request ?? startRequest();
+      const targetQuizId = quizId ?? selectedQuizId;
+      if (!targetQuizId) {
+        setSelectedQuizDetail(null);
+        return;
+      }
+      try {
+        const quiz = await api.getQuizById(targetQuizId);
+        if (!active.isActive()) return;
+        setSelectedQuizDetail(quiz);
+      } catch (err: any) {
+        if (!active.isActive()) return;
+        console.error("Failed to load quiz detail:", err);
+        setSelectedQuizDetail(null);
+      }
+    },
+    [selectedQuizId, startRequest],
+  );
+
+  useEffect(() => {
+    if (role !== "teacher" || activeCurriculumStep !== 5 || !selectedQuizId) {
+      setSelectedQuizDetail(null);
+      return;
+    }
+    const request = startRequest();
+    void loadSelectedQuizDetail(selectedQuizId, request);
+  }, [role, activeCurriculumStep, selectedQuizId, loadSelectedQuizDetail, startRequest]);
 
   useEffect(() => {
     if (allDisciplines.length > 0 && !allDisciplines.some((discipline) => discipline.id === newCourseDisciplineId)) {
@@ -364,6 +395,7 @@ export function useTeacherCurriculum({
       setNewQuestionAnswer("");
       setNewQuestionExplanation("");
       await loadTeacherQuizzes(quizCourseId);
+      await loadSelectedQuizDetail(selectedQuizId);
       setQuizManagerMsg("Question ajoutée avec succès.");
       scheduleClear(() => setQuizManagerMsg(""), 4000);
     } catch (err: any) {
@@ -376,6 +408,7 @@ export function useTeacherCurriculum({
     try {
       await api.deleteQuizQuestion(questionId);
       await loadTeacherQuizzes(quizCourseId);
+      await loadSelectedQuizDetail(selectedQuizId);
       setQuizManagerMsg("Question supprimée.");
       scheduleClear(() => setQuizManagerMsg(""), 3000);
     } catch (err: any) {
@@ -631,6 +664,7 @@ export function useTeacherCurriculum({
     editCourseForm,
     setEditCourseForm,
     teacherQuizzes,
+    selectedQuizDetail,
     quizCourseId,
     newQuizTitle,
     setNewQuizTitle,

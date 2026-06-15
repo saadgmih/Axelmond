@@ -1,8 +1,8 @@
 import type { Express, Request, Response, NextFunction } from "express";
-import { getAuthUser } from "./server/route-types";
+import { getAuthUser } from "../server/route-types";
 import { z } from "zod";
-import { prisma } from "./db";
-import { isStudentRole, isTeacherSpaceRole, normalizeRole } from "./rbac";
+import { prisma } from "../db";
+import { isStudentRole, isTeacherSpaceRole, normalizeRole } from "../rbac";
 import {
   canUsersDirectMessage,
   findDirectConversationId,
@@ -17,9 +17,9 @@ import {
   verifyMessageAttachmentOwnership,
   consumeMessageAttachmentUpload,
   type MessageAttachmentInput,
-} from "./messaging";
-import { findOrCreateDirectConversation } from "./direct-conversations";
-import { emitToConversation } from "./messaging-socket";
+} from "../messaging";
+import { findOrCreateDirectConversation } from "../direct-conversations";
+import { emitToConversation } from "../messaging-socket";
 import {
   configureWebPush,
   createNotificationsForUsers,
@@ -33,8 +33,8 @@ import {
   PushSubscriptionValidationError,
   savePushSubscription,
   serializeNotification,
-} from "./notifications";
-import { toPushSubscribeClientResponse } from "./public-api-errors";
+} from "../notifications";
+import { toPushSubscribeClientResponse } from "../public-api-errors";
 
 type AuthUser = { id: string; email: string; fullName: string; role: string };
 

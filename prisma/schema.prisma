@@ -156,6 +156,8 @@ model ProfessorInviteCode {
   createdById String?
   usedBy      User?     @relation("UsedInviteCodes", fields: [usedById], references: [id])
   createdBy   User?     @relation("CreatedInviteCodes", fields: [createdById], references: [id])
+
+  @@index([usedAt, revokedAt])
   @@schema("AxelmondResearchLab")
 }
 
@@ -203,7 +205,6 @@ model Course {
   progress     Int              @default(0)
   isLiveNow    Boolean          @default(false)
   liveSubject  String?
-  modules      Json
   published    Boolean          @default(true)
   disciplineId Int
   createdById  String?
@@ -352,6 +353,8 @@ model Enrollment {
   @@unique([userId, courseId])
   @@index([courseId])
   @@index([courseId, active])
+  @@index([userId])
+  @@index([userId, active])
   @@schema("AxelmondResearchLab")
 }
 
@@ -518,6 +521,7 @@ model RefreshToken {
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([userId, revokedAt, expiresAt])
   @@schema("AxelmondResearchLab")
 }
 

@@ -27,11 +27,23 @@ export default defineConfig(({ mode }) => {
             if (id.includes("node_modules/react-dom") || id.includes("node_modules/react/")) {
               return "react-vendor";
             }
+            if (id.includes("node_modules/react-router") || id.includes("node_modules/@remix-run/router")) {
+              return "router-vendor";
+            }
             if (id.includes("node_modules/livekit-client") || id.includes("node_modules/@livekit")) {
               return "livekit-vendor";
             }
             if (id.includes("node_modules/@paypal")) {
               return "paypal-vendor";
+            }
+            if (id.includes("node_modules/socket.io-client")) {
+              return "socket-vendor";
+            }
+            if (id.includes("node_modules/motion") || id.includes("node_modules/framer-motion")) {
+              return "motion-vendor";
+            }
+            if (id.includes("node_modules/lucide-react")) {
+              return "icons-vendor";
             }
           },
         },

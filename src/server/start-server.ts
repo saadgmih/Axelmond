@@ -13,6 +13,7 @@ import { getPayPalRuntimeEnv } from "../paypal-server";
 import { startPerformanceMonitor } from "../performance";
 import { initCache, startCachePruner } from "../cache";
 import { startAuditLogRetention } from "../audit-log-service";
+import { startRefreshTokenCleanup } from "../auth-token-cleanup";
 import { verifySmtpConnection, readSmtpBanner } from "../email";
 import { seedDatabase, synchronizePostgresSequences } from "./startup-db";
 import { apiErrorStatus, apiErrorMessage } from "./api-errors";
@@ -137,6 +138,10 @@ async function attachStaticOrVite(app: express.Express, isSecurityRuntimeTest: b
         }
         if (filePath.endsWith(".html")) {
           res.setHeader("Cache-Control", "no-store");
+          return;
+        }
+        if (filePath.endsWith("sw.js")) {
+          res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
           return;
         }
         if (/\.(js|css|woff2?|png|svg|jpg|jpeg|webp|ico)$/i.test(filePath)) {
@@ -296,5 +301,6 @@ async function runDeferredStartupTasks(securityTest: boolean) {
   await initCache();
   startCachePruner();
   startAuditLogRetention();
+  startRefreshTokenCleanup();
   startPerformanceMonitor(Number(process.env.PERF_MONITOR_INTERVAL_MS) || 30_000);
 }

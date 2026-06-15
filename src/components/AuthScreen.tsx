@@ -7,6 +7,9 @@ import { Invoice } from "../types";
 import { api, setSessionToken } from "../api";
 import AuthMfaStep from "./AuthMfaStep";
 import { UserRole, getTeacherLoginSectorLabel, getTeacherLoginTabLabel } from "../rbac";
+import type { AppUser } from "../shared/app-user";
+
+export type { AppUser };
 import LogoSymbol from "./LogoSymbol";
 import SkipLink from "./SkipLink";
 import { useAccessibilityPreferences } from "../hooks/useAccessibilityPreferences";
@@ -84,21 +87,6 @@ function RateLimitBanner({ initialSeconds, maxAttempts = 20, onExpire }: RateLim
   );
 }
 
-export interface AppUser {
-  id: string;
-  email: string;
-  password?: string;
-  fullName: string;
-  role: UserRole;
-  emailVerified?: boolean;
-  token?: string;
-  csrfToken?: string;
-  levelOrTitle: string;
-  filiere?: string;
-  avatarUrl?: string;
-  enrolledCourses: number[];
-  invoices: Invoice[];
-}
 
 interface AuthScreenProps {
   onLoginSuccess: (user: AppUser) => void;

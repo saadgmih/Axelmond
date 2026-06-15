@@ -56,7 +56,7 @@ rulesTest("push-endpoint-security", () => {
   );
 
   const notificationsSource = fs.readFileSync("src/notifications.ts", "utf8");
-  const messagingRoutesSource = fs.readFileSync("src/messaging-routes.ts", "utf8");
+  const messagingRoutesSource = fs.readFileSync("src/routes/messaging-routes.ts", "utf8");
 
   assert.match(notificationsSource, /validatePushSubscriptionInput/);
   assert.match(notificationsSource, /isAllowedPushEndpointUrl/);

@@ -1,8 +1,8 @@
 import type { Express, Request, RequestHandler, Response } from "express";
-import { getAuthUser } from "./server/route-types";
-import { MOBILE_CLIENT_HEADER, MOBILE_CLIENT_VALUE } from "./auth-mobile";
-import { buildStudentObjectiveSummary } from "./student-objectives";
-import { prisma } from "./db";
+import { getAuthUser } from "../server/route-types";
+import { MOBILE_CLIENT_HEADER, MOBILE_CLIENT_VALUE } from "../auth-mobile";
+import { buildStudentObjectiveSummary } from "../student-objectives";
+import { prisma } from "../db";
 
 export const MOBILE_API_ROUTE_CATALOG = {
   auth: {
@@ -63,7 +63,7 @@ export function applyMobileApiCorsHeaders(
   if (req.path.startsWith("/api/")) {
     res.setHeader(
       "Access-Control-Allow-Headers",
-      "Content-Type, Authorization, X-CSRF-Token, X-Axelmond-Client",
+      "Content-Type, Authorization, X-CSRF-Token, X-Axelmond-Client, X-Axelmond-Client-Key",
     );
     res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
   }

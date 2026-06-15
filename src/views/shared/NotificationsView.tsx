@@ -1,6 +1,7 @@
-import React, { useEffect } from "react";
+import React, { memo, useEffect } from "react";
 import { Bell, CheckCheck, Loader2, Radio } from "lucide-react";
 import type { AppNotification } from "../../types/messaging";
+import { VirtualList } from "../../components/VirtualList";
 import { scheduleUi } from "../teacher/schedule-theme";
 
 interface NotificationsViewProps {
@@ -34,6 +35,46 @@ function typeLabel(type: string) {
       return "Alerte";
   }
 }
+
+const NotificationListItem = memo(function NotificationListItem({
+  notification,
+  onMarkRead,
+  onNavigate,
+}: {
+  notification: AppNotification;
+  onMarkRead: (id: string) => void;
+  onNavigate?: (notification: AppNotification) => void;
+}) {
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => {
+          if (!notification.isRead) onMarkRead(notification.id);
+          if (notification.actionUrl && onNavigate) onNavigate(notification);
+        }}
+        className={`flex w-full items-start gap-4 px-5 py-4 text-left transition hover:bg-white/[0.03] ${notification.isRead ? "opacity-70" : "bg-indigo-500/5"}`}
+      >
+        <div
+          className={`mt-1 flex h-10 w-10 items-center justify-center rounded-2xl ${notification.isRead ? "bg-slate-800" : "bg-indigo-600/20"}`}
+        >
+          <Bell className={`h-4 w-4 ${notification.isRead ? "text-slate-400" : "text-indigo-300"}`} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm font-black text-white">{notification.title}</p>
+            <span className={scheduleUi.typeBadge}>{typeLabel(notification.type)}</span>
+            {!notification.isRead && <span className="h-2 w-2 rounded-full bg-red-500" aria-label="Non lue" />}
+          </div>
+          <p className="mt-1 text-sm text-slate-400">{notification.body}</p>
+          <p className="mt-2 text-[11px] font-semibold text-slate-500">
+            {new Date(notification.createdAt).toLocaleString("fr-FR")}
+          </p>
+        </div>
+      </button>
+    </div>
+  );
+});
 
 export default function NotificationsView({
   notifications,
@@ -93,39 +134,19 @@ export default function NotificationsView({
             <p className="text-sm font-semibold">Aucune notification pour le moment.</p>
           </div>
         ) : (
-          <ul className="divide-y divide-white/[0.06]">
-            {notifications.map((notification) => (
-              <li key={notification.id}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!notification.isRead) onMarkRead(notification.id);
-                    if (notification.actionUrl && onNavigate) onNavigate(notification);
-                  }}
-                  className={`flex w-full items-start gap-4 px-5 py-4 text-left transition hover:bg-white/[0.03] ${notification.isRead ? "opacity-70" : "bg-indigo-500/5"}`}
-                >
-                  <div
-                    className={`mt-1 flex h-10 w-10 items-center justify-center rounded-2xl ${notification.isRead ? "bg-slate-800" : "bg-indigo-600/20"}`}
-                  >
-                    <Bell className={`h-4 w-4 ${notification.isRead ? "text-slate-400" : "text-indigo-300"}`} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-black text-white">{notification.title}</p>
-                      <span className={scheduleUi.typeBadge}>{typeLabel(notification.type)}</span>
-                      {!notification.isRead && (
-                        <span className="h-2 w-2 rounded-full bg-red-500" aria-label="Non lue" />
-                      )}
-                    </div>
-                    <p className="mt-1 text-sm text-slate-400">{notification.body}</p>
-                    <p className="mt-2 text-[11px] font-semibold text-slate-500">
-                      {new Date(notification.createdAt).toLocaleString("fr-FR")}
-                    </p>
-                  </div>
-                </button>
-              </li>
-            ))}
-          </ul>
+          <VirtualList
+            items={notifications}
+            estimateSize={96}
+            minItemsToVirtualize={18}
+            getKey={(notification) => notification.id}
+            renderItem={(notification) => (
+              <NotificationListItem
+                notification={notification}
+                onMarkRead={onMarkRead}
+                onNavigate={onNavigate}
+              />
+            )}
+          />
         )}
       </div>
     </div>

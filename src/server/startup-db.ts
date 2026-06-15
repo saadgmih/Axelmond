@@ -466,9 +466,39 @@ export async function seedDatabase() {
         progress: course.progress,
         isLiveNow: course.isLiveNow,
         liveSubject: course.liveSubject,
-        modules: course.modules as unknown as Prisma.InputJsonValue,
       },
     });
+
+    for (let index = 0; index < course.modules.length; index += 1) {
+      const module = course.modules[index];
+      await prisma.courseModule.upsert({
+        where: { courseId_id: { courseId: course.id, id: module.id } },
+        update: {
+          sortOrder: index,
+          title: module.title,
+          type: module.type,
+          duration: module.duration || "",
+          contentMarkdown: module.contentMarkdown || null,
+          attachmentUrl: module.attachmentUrl || null,
+          attachmentName: module.attachmentName || null,
+          sectionId: module.sectionId || null,
+          published: module.published ?? true,
+        },
+        create: {
+          courseId: course.id,
+          id: module.id,
+          sortOrder: index,
+          title: module.title,
+          type: module.type,
+          duration: module.duration || "",
+          contentMarkdown: module.contentMarkdown || null,
+          attachmentUrl: module.attachmentUrl || null,
+          attachmentName: module.attachmentName || null,
+          sectionId: module.sectionId || null,
+          published: module.published ?? true,
+        },
+      });
+    }
   }
 
   for (const course of seedCourses) {

@@ -10,8 +10,6 @@ import * as routeDeps from "./route-deps";
 import { createRouteContext, type RouteContext } from "./route-context";
 import { registerApiRoutes } from "../routes/register-api-routes";
 import { registerPayPalWebhook } from "../routes/payments-routes";
-import { registerMobileApiRoutes } from "../mobile-api-routes";
-import { registerMessagingRoutes } from "../messaging-routes";
 import { uploadRouter } from "../uploadthing";
 import { requestTimingMiddleware } from "../performance";
 import {
@@ -22,9 +20,9 @@ import {
 } from "../security-hardening";
 import { readRefreshTokenFromRequest } from "../auth-cookies";
 import { csrfProtection } from "../auth-csrf";
-import { isMobileClientRequest, MOBILE_CLIENT_HEADER } from "../auth-mobile";
+import { isMobileClientRequest, MOBILE_CLIENT_HEADER, MOBILE_CLIENT_KEY_HEADER } from "../auth-mobile";
 import { verifyAuthToken } from "../auth-token";
-import { applyMobileApiCorsHeaders } from "../mobile-api-routes";
+import { applyMobileApiCorsHeaders } from "../routes/mobile-api-routes";
 import { emailRateLimitKey } from "../email-rate-limit";
 import { liveKitRateLimitKey } from "../livekit-rate-limit";
 import { adminRateLimitKey } from "../admin-rate-limit";
@@ -243,7 +241,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
       res.setHeader("Access-Control-Allow-Origin", origin);
       res.setHeader("Vary", "Origin");
       res.setHeader("Access-Control-Allow-Credentials", "true");
-      res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-CSRF-Token, X-Axelmond-Client");
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-CSRF-Token, X-Axelmond-Client, X-Axelmond-Client-Key");
       res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
     }
     if (req.method === "OPTIONS") {
@@ -578,8 +576,6 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
   app.use("/api", requestTimingMiddleware);
   app.use("/api", routeCtx.middleware.requireGlobalApiRbac);
   registerApiRoutes(app, routeCtx);
-  registerMobileApiRoutes(app, { requireAuth: routeCtx.middleware.requireAuth });
-  registerMessagingRoutes(app, routeCtx.middleware);
 
   return { app, routeCtx, allowedOrigins, isProduction, isSecurityRuntimeTest };
 }

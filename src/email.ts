@@ -1,6 +1,7 @@
 import net from "node:net";
 import tls from "node:tls";
 import nodemailer from "nodemailer";
+import { buildAbsoluteAppUrl, sanitizeInternalAppPath } from "./internal-url-security";
 
 interface VerificationEmailInput {
   to: string;
@@ -604,10 +605,13 @@ export function buildNotificationEmailContent(input: {
   const name = escapeHtml(firstName(input.fullName));
   const title = escapeHtml(input.messageTitle);
   const body = escapeHtml(input.messageBody);
-  const actionButton = input.actionUrl
+  const safeActionUrl = input.actionUrl
+    ? buildAbsoluteAppUrl(sanitizeInternalAppPath(input.actionUrl))
+    : undefined;
+  const actionButton = safeActionUrl
     ? `
       <div style="margin:24px 0;">
-        <a href="${escapeHtml(input.actionUrl)}" style="display:inline-block;background:#ec4899;color:#ffffff;text-decoration:none;font-size:13px;font-weight:800;padding:14px 22px;border-radius:12px;">Accéder à la notification</a>
+        <a href="${escapeHtml(safeActionUrl)}" style="display:inline-block;background:#ec4899;color:#ffffff;text-decoration:none;font-size:13px;font-weight:800;padding:14px 22px;border-radius:12px;">Accéder à la notification</a>
       </div>
     `
     : "";
@@ -617,7 +621,7 @@ export function buildNotificationEmailContent(input: {
     `Nouvelle notification de Axelmond Research Labs : ${input.messageTitle}`,
     "",
     input.messageBody,
-    ...(input.actionUrl ? ["", `Lien d'action : ${input.actionUrl}`] : []),
+    ...(safeActionUrl ? ["", `Lien d'action : ${safeActionUrl}`] : []),
     "",
     "---",
     "Axelmond Research Labs",

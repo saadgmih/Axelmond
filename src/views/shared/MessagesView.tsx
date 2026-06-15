@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { api, getFreshSessionToken } from "../../api";
 import { uploadFiles, getUploadedFileUrl, getUploadErrorMessage, validateUploadFile } from "../../uploadthing-client";
+import { VirtualList } from "../../components/VirtualList";
 import { useMessagingSocket } from "../../hooks/useMessagingSocket";
 import type { ChatMessage, ConversationSummary, MessagingUser } from "../../types/messaging";
 import { scheduleUi } from "../teacher/schedule-theme";
@@ -170,6 +171,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
   const [error, setError] = useState("");
   const [peerTyping, setPeerTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const messagesScrollRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const typingTimerRef = useRef<number | null>(null);
 
@@ -273,6 +275,11 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
   }, [selectedId, loadMessages, joinConversation, leaveConversation]);
 
   useEffect(() => {
+    const container = messagesScrollRef.current;
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+      return;
+    }
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, peerTyping]);
 
@@ -445,23 +452,29 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
             )}
           </div>
 
-          <div className="flex-1 overflow-y-auto">
+          <div className="relative flex min-h-0 flex-1 flex-col">
             {loadingConversations ? (
-              <div className="flex items-center justify-center p-8 text-slate-400">
+              <div className="flex flex-1 items-center justify-center p-8 text-slate-400">
                 <Loader2 className="h-5 w-5 animate-spin" />
               </div>
             ) : conversations.length === 0 ? (
               <p className="p-6 text-center text-sm text-slate-500">Aucune conversation pour le moment.</p>
             ) : (
-              conversations.map((conversation) => (
-                <ConversationListItem
-                  key={conversation.id}
-                  conversation={conversation}
-                  active={conversation.id === selectedId}
-                  role={role}
-                  onSelect={handleSelectConversation}
-                />
-              ))
+              <VirtualList
+                className="flex-1"
+                items={conversations}
+                estimateSize={76}
+                minItemsToVirtualize={20}
+                getKey={(conversation) => conversation.id}
+                renderItem={(conversation) => (
+                  <ConversationListItem
+                    conversation={conversation}
+                    active={conversation.id === selectedId}
+                    role={role}
+                    onSelect={handleSelectConversation}
+                  />
+                )}
+              />
             )}
           </div>
         </aside>
@@ -492,15 +505,24 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
                 </div>
               </header>
 
-              <div className="flex-1 space-y-3 overflow-y-auto p-4 sm:p-6">
+              <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-6">
                 {loadingMessages ? (
-                  <div className="flex justify-center py-8">
+                  <div className="flex flex-1 justify-center py-8">
                     <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
                   </div>
                 ) : (
-                  messages.map((message) => (
-                    <MessageBubble key={message.id} message={message} mine={message.senderId === currentUserId} />
-                  ))
+                  <VirtualList
+                    className="flex-1"
+                    containerRef={messagesScrollRef}
+                    items={messages}
+                    estimateSize={96}
+                    minItemsToVirtualize={15}
+                    variableHeight
+                    getKey={(message) => message.id}
+                    renderItem={(message) => (
+                      <MessageBubble message={message} mine={message.senderId === currentUserId} />
+                    )}
+                  />
                 )}
                 <div ref={messagesEndRef} />
               </div>

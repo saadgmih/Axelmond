@@ -3,6 +3,7 @@ export interface GradeEnrollmentInput {
     id: string;
     fullName: string;
     enrollments?: { courseId: number }[];
+    enrolledCoursesCount?: number;
   };
 }
 
@@ -57,7 +58,8 @@ export function buildCourseGradeRows(
     return {
       studentId: enrollment.user.id,
       studentName: enrollment.user.fullName,
-      enrolledCoursesCount: enrollment.user.enrollments?.length || 0,
+      enrolledCoursesCount:
+        enrollment.user.enrolledCoursesCount ?? enrollment.user.enrollments?.length ?? 0,
       completedQuizzesCount: studentAttempts.length,
       averageScoreOutOf20: average,
     };

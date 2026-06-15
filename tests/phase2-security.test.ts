@@ -1,12 +1,14 @@
 import assert from "node:assert/strict";
 import { hasBlockedChatTutorPattern } from "../src/chat-tutor-moderation.ts";
-import { shouldSkipHibpCheck, strongPasswordField } from "../src/password-policy.ts";
+import { shouldFailClosedOnHibpError, shouldSkipHibpCheck, strongPasswordField } from "../src/password-policy.ts";
 import { isMfaSetupExemptRoute, isPrivilegedAccountRole } from "../src/mfa-requirement.ts";
 import { signAuthToken, verifyAuthToken } from "../src/auth-token.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("password-policy", async () => {
   assert.equal(shouldSkipHibpCheck({ NODE_ENV: "test" }), true);
+  assert.equal(shouldFailClosedOnHibpError({ NODE_ENV: "production" }), true);
+  assert.equal(shouldFailClosedOnHibpError({ NODE_ENV: "production", HIBP_FAIL_OPEN: "true" }), false);
 
   const weak = await strongPasswordField.safeParseAsync("short");
   assert.equal(weak.success, false);

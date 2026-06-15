@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, memo, type FormEvent } from "react";
 import {
   Activity,
   ArrowUpRight,
@@ -59,6 +59,130 @@ function formatActivityDate(value?: string | null) {
   if (!Number.isFinite(parsed)) return "—";
   return new Date(parsed).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
 }
+
+const TeacherKpiCard = memo(function TeacherKpiCard({
+  label,
+  value,
+  hint,
+  icon: Icon,
+  accent,
+  id,
+}: {
+  label: string;
+  value: string;
+  hint: string;
+  icon: typeof Users;
+  accent: string;
+  id?: string;
+}) {
+  return (
+    <div id={id} className="rounded-2xl border border-white/5 bg-slate-900/70 p-4 space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">{label}</span>
+        <Icon className={`w-4 h-4 shrink-0 ${accent}`} />
+      </div>
+      <p className="text-lg sm:text-xl font-black text-white truncate">{value}</p>
+      <p className="text-[11px] text-slate-400 leading-snug">{hint}</p>
+    </div>
+  );
+});
+
+const TeacherModuleProgressRow = memo(function TeacherModuleProgressRow({
+  row,
+  onNavigate,
+}: {
+  row: {
+    course: Course;
+    students: number;
+    publishedCount: number;
+    totalModules: number;
+    contentProgress: number;
+    status: string;
+  };
+  onNavigate?: (view: string) => void;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/5 bg-slate-900/60 p-4 flex flex-col lg:flex-row lg:items-center gap-4">
+      <div className="min-w-0 flex-1 space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-sm font-bold text-white truncate">{row.course.title}</p>
+          <span
+            className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border ${
+              row.status === "Live actif"
+                ? "border-red-500/30 bg-red-500/10 text-red-300"
+                : row.status === "Publié"
+                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                  : "border-slate-600 bg-slate-800 text-slate-400"
+            }`}
+          >
+            {row.status}
+          </span>
+        </div>
+        <p className="text-[11px] text-slate-400">
+          {row.students} étudiant{row.students !== 1 ? "s" : ""} · {row.publishedCount}/{row.totalModules} chapitres
+          publiés · {formatMad(row.course.price)}
+        </p>
+        <div className="flex items-center gap-2">
+          <div className="h-1.5 flex-1 max-w-xs rounded-full bg-slate-800 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-pink-500 to-indigo-500"
+              style={{ width: `${row.contentProgress}%` }}
+            />
+          </div>
+          <span className="text-[11px] font-bold text-pink-200 font-mono">{row.contentProgress}%</span>
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={() => onNavigate?.("curriculum")}
+        className="self-start lg:self-center inline-flex items-center gap-1.5 rounded-xl border border-pink-500/30 bg-pink-500/10 hover:bg-pink-500/20 text-pink-100 text-xs font-bold px-4 py-2.5 min-h-[44px] transition-colors"
+      >
+        Gérer
+        <ChevronRight className="w-4 h-4" />
+      </button>
+    </div>
+  );
+});
+
+const TeacherTariffCard = memo(function TeacherTariffCard({
+  course,
+  displayPrice,
+  onDraftChange,
+  onSave,
+}: {
+  course: Course;
+  displayPrice: number;
+  onDraftChange: (courseId: number, price: number) => void;
+  onSave: (courseId: number, price: number) => void | Promise<void>;
+}) {
+  return (
+    <div className="space-y-4 rounded-2xl border border-white/[0.08] bg-[#020617]/70 p-5 transition-colors hover:border-white/[0.12]">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-start gap-3">
+          <div className="shrink-0 rounded-xl border border-violet-500/25 bg-violet-600/15 p-2">
+            <Code2 className="h-4 w-4 text-violet-400" />
+          </div>
+          <div className="min-w-0">
+            <h4 className="truncate text-sm font-extrabold leading-snug text-white">{course.title}</h4>
+            <p className="mt-0.5 text-xs text-slate-500">
+              {formatCredits(course.credits)} • {course.duration}
+            </p>
+          </div>
+        </div>
+        <span className="shrink-0 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-2.5 py-1 font-mono text-xs font-black text-white">
+          {formatMad(displayPrice)}
+        </span>
+      </div>
+      <CoursePriceSlider
+        courseId={course.id}
+        price={course.price}
+        courseTitle={course.title}
+        onCommit={onSave}
+        onDraftChange={(nextPrice) => onDraftChange(course.id, nextPrice)}
+      />
+    </div>
+  );
+});
 
 export default function TeacherDashboardView({
   currentUser,
@@ -442,18 +566,11 @@ export default function TeacherDashboardView({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
           {kpiCards.map((card) => (
-            <div
+            <TeacherKpiCard
               key={card.label}
+              {...card}
               id={card.label === "Revenus estimés" ? "teacher-revenue" : undefined}
-              className="rounded-2xl border border-white/5 bg-slate-900/70 p-4 space-y-2"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">{card.label}</span>
-                <card.icon className={`w-4 h-4 shrink-0 ${card.accent}`} />
-              </div>
-              <p className="text-lg sm:text-xl font-black text-white truncate">{card.value}</p>
-              <p className="text-[11px] text-slate-400 leading-snug">{card.hint}</p>
-            </div>
+            />
           ))}
         </div>
 
@@ -615,48 +732,7 @@ export default function TeacherDashboardView({
           ) : (
             <div className="space-y-2">
               {dashboard.moduleRows.map((row) => (
-                <div
-                  key={row.course.id}
-                  className="rounded-2xl border border-white/5 bg-slate-900/60 p-4 flex flex-col lg:flex-row lg:items-center gap-4"
-                >
-                  <div className="min-w-0 flex-1 space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-bold text-white truncate">{row.course.title}</p>
-                      <span
-                        className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border ${
-                          row.status === "Live actif"
-                            ? "border-red-500/30 bg-red-500/10 text-red-300"
-                            : row.status === "Publié"
-                              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-                              : "border-slate-600 bg-slate-800 text-slate-400"
-                        }`}
-                      >
-                        {row.status}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-slate-400">
-                      {row.students} étudiant{row.students !== 1 ? "s" : ""} · {row.publishedCount}/{row.totalModules}{" "}
-                      chapitres publiés · {formatMad(row.course.price)}
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <div className="h-1.5 flex-1 max-w-xs rounded-full bg-slate-800 overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-gradient-to-r from-pink-500 to-indigo-500"
-                          style={{ width: `${row.contentProgress}%` }}
-                        />
-                      </div>
-                      <span className="text-[11px] font-bold text-pink-200 font-mono">{row.contentProgress}%</span>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => onTeacherNavigate?.("curriculum")}
-                    className="self-start lg:self-center inline-flex items-center gap-1.5 rounded-xl border border-pink-500/30 bg-pink-500/10 hover:bg-pink-500/20 text-pink-100 text-xs font-bold px-4 py-2.5 min-h-[44px] transition-colors"
-                  >
-                    Gérer
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
+                <TeacherModuleProgressRow key={row.course.id} row={row} onNavigate={onTeacherNavigate} />
               ))}
             </div>
           )}
@@ -698,40 +774,17 @@ export default function TeacherDashboardView({
                 </p>
               </div>
             ) : (
-              managedCourses.map((course) => {
-                const displayPrice = draftPrices[course.id] ?? course.price;
-                return (
-                  <div
-                    key={course.id}
-                    className="space-y-4 rounded-2xl border border-white/[0.08] bg-[#020617]/70 p-5 transition-colors hover:border-white/[0.12]"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex min-w-0 items-start gap-3">
-                        <div className="shrink-0 rounded-xl border border-violet-500/25 bg-violet-600/15 p-2">
-                          <Code2 className="h-4 w-4 text-violet-400" />
-                        </div>
-                        <div className="min-w-0">
-                          <h4 className="truncate text-sm font-extrabold leading-snug text-white">{course.title}</h4>
-                          <p className="mt-0.5 text-xs text-slate-500">
-                            {formatCredits(course.credits)} • {course.duration}
-                          </p>
-                        </div>
-                      </div>
-                      <span className="shrink-0 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-2.5 py-1 font-mono text-xs font-black text-white">
-                        {formatMad(displayPrice)}
-                      </span>
-                    </div>
-
-                    <CoursePriceSlider
-                      courseId={course.id}
-                      price={course.price}
-                      courseTitle={course.title}
-                      onCommit={handleUpdateCoursePrice}
-                      onDraftChange={(nextPrice) => setDraftPrices((prev) => ({ ...prev, [course.id]: nextPrice }))}
-                    />
-                  </div>
-                );
-              })
+              managedCourses.map((course) => (
+                <TeacherTariffCard
+                  key={course.id}
+                  course={course}
+                  displayPrice={draftPrices[course.id] ?? course.price}
+                  onDraftChange={(courseId, nextPrice) =>
+                    setDraftPrices((prev) => ({ ...prev, [courseId]: nextPrice }))
+                  }
+                  onSave={handleUpdateCoursePrice}
+                />
+              ))
             )}
           </div>
         </div>

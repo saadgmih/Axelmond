@@ -1,7 +1,6 @@
 import type { Express } from "express";
 import { getAuthUser } from "../server/route-types";
 import rateLimit from "express-rate-limit";
-import type { CourseModule } from "../server/route-deps";
 import type { RouteContext } from "../server/route-context";
 import * as api from "../server/route-deps";
 
@@ -125,17 +124,23 @@ export function registerMiscRoutes(app: Express, ctx: RouteContext): void {
     return api.prisma.course.findUnique({
       where: { id: courseId },
 
-      select: { id: true, title: true, createdById: true, modules: true, liveSubject: true },
+      select: {
+        id: true,
+        title: true,
+        createdById: true,
+        liveSubject: true,
+        courseModules: { select: { id: true, title: true }, orderBy: { sortOrder: "asc" } },
+      },
     });
   }
 
   function resolveChatTutorModuleTitle(
-    course: { modules?: unknown; liveSubject?: string | null },
+    course: { courseModules?: Array<{ id: number; title: string }>; liveSubject?: string | null },
 
     moduleId?: number,
   ): string | null {
     if (moduleId !== undefined) {
-      const modules = Array.isArray(course.modules) ? (course.modules as CourseModule[]) : [];
+      const modules = Array.isArray(course.courseModules) ? course.courseModules : [];
 
       const module = modules.find((item) => item.id === moduleId);
 

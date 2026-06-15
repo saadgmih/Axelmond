@@ -12,7 +12,7 @@ rulesTest("quality-score-guards", () => {
   const resourceStage = fs.readFileSync("src/components/live/LiveResourceStage.tsx", "utf8");
   const lazyViews = fs.readFileSync("src/lazyViews.tsx", "utf8");
   const institutionalSwitch = fs.readFileSync("src/views/InstitutionalViewSwitch.tsx", "utf8");
-  const messagingRoutes = fs.readFileSync("src/messaging-routes.ts", "utf8");
+  const messagingRoutes = fs.readFileSync("src/routes/messaging-routes.ts", "utf8");
   const viteConfig = fs.readFileSync("vite.config.ts", "utf8");
   const packageJson = JSON.parse(fs.readFileSync("package.json", "utf8")) as {
     dependencies?: Record<string, string>;

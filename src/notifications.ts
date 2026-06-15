@@ -1,6 +1,7 @@
 import webpush from "web-push";
 import { prisma } from "./db";
 import { emitToUser } from "./messaging-socket";
+import { sanitizeInternalAppPath } from "./internal-url-security";
 import {
   getMaxPushSubscriptionsPerUser,
   isAllowedPushEndpointUrl,
@@ -85,13 +86,15 @@ export function getVapidPublicKey() {
 }
 
 export async function createUserNotification(input: CreateNotificationInput) {
+  const safeActionPath = input.actionUrl ? sanitizeInternalAppPath(input.actionUrl) : null;
+
   const notification = await prisma.notification.create({
     data: {
       userId: input.userId,
       type: String(input.type),
       title: input.title,
       body: input.body,
-      actionUrl: input.actionUrl || null,
+      actionUrl: safeActionPath,
       metadata: (input.metadata || {}) as any,
     },
   });
@@ -100,7 +103,7 @@ export async function createUserNotification(input: CreateNotificationInput) {
     await sendPushForNotification(input.userId, {
       title: input.title,
       body: input.body,
-      url: input.actionUrl || "/",
+      url: safeActionPath || "/",
       notificationId: notification.id,
     }).catch(() => undefined);
   }

@@ -11,6 +11,7 @@ export function RouteChunkFallback({ label }: { label: string }): ReactNode {
   );
 }
 
+export const LazyAuthScreen = lazy(() => import("./components/AuthScreen"));
 export const LazyTeacherWorkspace = lazy(() => import("./views/teacher/TeacherWorkspace"));
 export const LazyTeacherDashboardView = lazy(() => import("./views/teacher/TeacherDashboardView"));
 export const LazyTeacherAcademicProfileView = lazy(() => import("./views/teacher/TeacherAcademicProfileView"));

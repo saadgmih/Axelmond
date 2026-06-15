@@ -5,8 +5,31 @@ function parseModules(raw) {
   return raw;
 }
 
+async function loadLegacyCourseModules() {
+  const column = await prisma.$queryRaw`
+    SELECT EXISTS (
+      SELECT 1
+      FROM information_schema.columns
+      WHERE table_schema = 'AxelmondResearchLab'
+        AND table_name = 'Course'
+        AND column_name = 'modules'
+    ) AS exists
+  `;
+  const hasModulesColumn = Boolean(column?.[0]?.exists);
+  if (!hasModulesColumn) {
+    console.log("[migrate-course-modules] Course.modules column absent — nothing to backfill");
+    return [];
+  }
+
+  return prisma.$queryRaw`
+    SELECT id, modules
+    FROM "AxelmondResearchLab"."Course"
+    WHERE modules IS NOT NULL
+  `;
+}
+
 async function main() {
-  const courses = await prisma.course.findMany({ select: { id: true, modules: true } });
+  const courses = await loadLegacyCourseModules();
   let inserted = 0;
   let skipped = 0;
 

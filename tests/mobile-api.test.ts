@@ -48,8 +48,10 @@ rulesTest("mobile-api", () => {
   assert.match(bootstrapSource, /registerMobileApiRoutes\(app, \{ requireAuth: routeCtx\.middleware\.requireAuth \}\)/);
   assert.match(authCsrfSource, /isMobileCsrfExempt/);
   assert.match(authCsrfSource, /hasValidMobileSessionCsrf/);
+  assert.match(authMobileSource, /MOBILE_CLIENT_SECRET/);
+  assert.match(authMobileSource, /MOBILE_CLIENT_KEY_HEADER/);
+  assert.match(authMobileSource, /timingSafeEqual/);
   assert.doesNotMatch(authMobileSource, /isTrustedMobileClientRequest/);
-  assert.doesNotMatch(authMobileSource, /MOBILE_API_SECRET/);
   assert.match(mobileRoutesSource, /\/api\/mobile\/student-profile/);
   assert.match(mobileRoutesSource, /\/api\/mobile\/routes/);
   assert.doesNotMatch(mobileRoutesSource, /X-Axelmond-Mobile-Secret/);

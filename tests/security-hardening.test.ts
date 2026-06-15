@@ -14,7 +14,19 @@ rulesTest("security-hardening", () => {
 
   assert.match(authTokenSource, /hashRefreshToken\(token\)/);
   assert.match(authTokenSource, /findValidRefreshToken/);
+  assert.match(authTokenSource, /findRefreshTokenRecord/);
+  assert.match(authTokenSource, /logoutRefreshSession/);
   assert.match(authTokenSource, /revokeAllUserRefreshTokens/);
+
+  const sessionRoutesSource = fs.readFileSync("src/routes/auth/session-routes.ts", "utf8");
+  assert.match(sessionRoutesSource, /logoutRefreshSession/);
+  assert.match(sessionRoutesSource, /sessions\/revoke-all/);
+
+  const notificationsSource = fs.readFileSync("src/notifications.ts", "utf8");
+  assert.match(notificationsSource, /sanitizeInternalAppPath/);
+
+  const emailSource = fs.readFileSync("src/email.ts", "utf8");
+  assert.match(emailSource, /buildAbsoluteAppUrl/);
 
   assert.equal(canAccessApiRoute("STUDENT", "DELETE", "/api/admin/unknown-hacker-route"), false);
   assert.equal(canAccessApiRoute("PROFESSOR", "POST", "/api/unknown-route"), false);
@@ -103,7 +115,7 @@ rulesTest("security-hardening", () => {
     assert.match(source, /PUBLIC_API_ERRORS/);
   }
 
-  const messagingRoutesSource = fs.readFileSync("src/messaging-routes.ts", "utf8");
+  const messagingRoutesSource = fs.readFileSync("src/routes/messaging-routes.ts", "utf8");
   assert.match(messagingRoutesSource, /toPushSubscribeClientResponse\(err\)/);
   assert.doesNotMatch(messagingRoutesSource, /error:\s*err\.message/);
 
@@ -118,8 +130,10 @@ rulesTest("security-hardening", () => {
   assert.doesNotMatch(authRoutesSource, /Un compte avec cet email existe déjà/);
   assert.match(authRoutesSource, /PUBLIC_API_ERRORS\.registrationConflict/);
   assert.match(emailVerificationRoutesSource, /PUBLIC_API_ERRORS\.resendVerificationGeneric/);
-  assert.match(authRoutesSource, /persistCoursePaymentWithAudit/);
-  assert.match(authRoutesSource, /REGISTRATION_SEED_ENROLLMENT/);
+  assert.match(authRoutesSource, /reserveProfessorInviteCode/);
+  assert.match(authRoutesSource, /attachProfessorInviteUsage/);
+  assert.doesNotMatch(authRoutesSource, /REGISTRATION_SEED_ENROLLMENT/);
+  assert.match(authRoutesSource, /getBcryptRounds/);
   assert.doesNotMatch(emailVerificationRoutesSource, /E-mail déjà vérifié/);
   assert.match(adminRoutesSource, /PUBLIC_API_ERRORS/);
   assert.doesNotMatch(adminRoutesSource, /details:\s*api\.getSmtpPublicConfig/);

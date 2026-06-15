@@ -83,11 +83,40 @@ export async function createRefreshToken(userId: string) {
   return token;
 }
 
-export async function findValidRefreshToken(rawToken: string) {
+export async function findRefreshTokenRecord(rawToken: string) {
   return prisma.refreshToken.findUnique({
     where: { token: hashRefreshToken(rawToken) },
     include: { user: { include: APP_USER_BILLING_INCLUDE } },
   });
+}
+
+export async function findValidRefreshToken(rawToken: string) {
+  const record = await findRefreshTokenRecord(rawToken);
+  if (!record) return null;
+  if (record.revokedAt) return null;
+  if (record.expiresAt < new Date()) return null;
+  return record;
+}
+
+export async function logoutRefreshSession(rawToken: string): Promise<string | null> {
+  const stored = await findRefreshTokenRecord(rawToken);
+  if (!stored) {
+    await revokeRefreshToken(rawToken);
+    return null;
+  }
+
+  await prisma.$transaction([
+    prisma.refreshToken.updateMany({
+      where: { token: hashRefreshToken(rawToken), revokedAt: null },
+      data: { revokedAt: new Date() },
+    }),
+    prisma.user.update({
+      where: { id: stored.userId },
+      data: { authTokenVersion: { increment: 1 } },
+    }),
+  ]);
+
+  return stored.userId;
 }
 
 export async function revokeRefreshToken(rawToken: string) {

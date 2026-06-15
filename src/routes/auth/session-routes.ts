@@ -17,7 +17,7 @@ export function registerSessionRoutes(app: Express, ctx: RouteContext): void {
       return;
     }
 
-    const storedToken = await api.findValidRefreshToken(refreshToken);
+    const storedToken = await api.findRefreshTokenRecord(refreshToken);
 
     if (!storedToken) {
       api.logSecurity("WARN", "Invalid refresh token attempt", { ip: req.ip });
@@ -89,10 +89,26 @@ export function registerSessionRoutes(app: Express, ctx: RouteContext): void {
     const refreshToken = api.readRefreshTokenFromRequest(req);
 
     if (refreshToken) {
-      await api.revokeRefreshToken(refreshToken);
+      const userId = await api.logoutRefreshSession(refreshToken);
+      if (userId) {
+        api.invalidateAuthUserCache(userId);
+        api.logSecurity("INFO", "User logged out — access tokens invalidated", { userId });
+      }
     }
 
     api.clearAuthCookies(res);
+
+    res.json({ ok: true });
+  });
+
+  // POST /api/auth/sessions/revoke-all
+
+  app.post("/api/auth/sessions/revoke-all", requireAuth, async (req, res) => {
+    const authUser = getAuthUser(req);
+
+    await api.revokeAllUserSessions(authUser.id);
+    api.clearAuthCookies(res);
+    api.logSecurity("INFO", "All user sessions revoked", { userId: authUser.id });
 
     res.json({ ok: true });
   });

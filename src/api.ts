@@ -368,6 +368,7 @@ export const api = {
   publishLiveSync: (courseId: number, message: Record<string, unknown>) =>
     request<any>("POST", "/api/livekit/sync", { courseId, message }),
   getCourseQuizzes: (courseId: number) => request<any[]>("GET", `/api/courses/${courseId}/quizzes`),
+  getQuizById: (quizId: string) => request<any>("GET", `/api/quizzes/${quizId}`),
   createCourseQuiz: (
     courseId: number,
     data: { moduleId?: number | null; sectionId?: string | null; title: string; published: boolean },

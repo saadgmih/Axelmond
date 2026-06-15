@@ -6,7 +6,7 @@ rulesTest("notifications-api", () => {
   const apiSource = fs.readFileSync("src/api.ts", "utf8");
   const notificationsHookSource = fs.readFileSync("src/hooks/useNotifications.ts", "utf8");
   const pushHookSource = fs.readFileSync("src/hooks/usePushNotifications.ts", "utf8");
-  const messagingRoutesSource = fs.readFileSync("src/messaging-routes.ts", "utf8");
+  const messagingRoutesSource = fs.readFileSync("src/routes/messaging-routes.ts", "utf8");
 
   assert.match(apiSource, /markAllNotificationsRead/);
   assert.match(apiSource, /subscribePushNotifications/);

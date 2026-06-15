@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { memo, useMemo, useRef } from "react";
 
 import {
   Activity,
@@ -24,6 +24,7 @@ import type { AppUser } from "../../components/AuthScreen";
 
 import type { Course, CourseModule } from "../../types";
 import { formatCredits } from "../../utils/morocco-locale";
+import { prefetchCourseContent } from "../../utils/prefetch";
 import { useTvNavigation } from "../../hooks/useTvNavigation";
 
 type NavigateTo = (view: string, targetCourse?: Course | null) => void;
@@ -93,6 +94,102 @@ function findLastActivity(enrolledList: Course[]): { courseTitle: string; module
 
   return last;
 }
+
+const DashboardStatCard = memo(function DashboardStatCard({
+  label,
+  value,
+  hint,
+  icon: Icon,
+  accent,
+  wide,
+}: {
+  label: string;
+  value: string;
+  hint: string;
+  icon: typeof BookOpen;
+  accent: string;
+  wide?: boolean;
+}) {
+  return (
+    <div
+      className={`rounded-2xl border border-white/5 bg-slate-900/70 p-4 space-y-2 ${
+        wide ? "md:col-span-2 xl:col-span-2" : ""
+      }`}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">{label}</span>
+        <Icon className={`w-4 h-4 shrink-0 ${accent}`} />
+      </div>
+      <p className="text-lg sm:text-xl font-black text-white truncate">{value}</p>
+      <p className="text-[11px] text-slate-400 leading-snug line-clamp-2">{hint}</p>
+    </div>
+  );
+});
+
+const DashboardCourseCard = memo(function DashboardCourseCard({
+  course,
+  getCourseIcon,
+  navigateTo,
+}: {
+  course: Course;
+  getCourseIcon: CourseIconRenderer;
+  navigateTo: NavigateTo;
+}) {
+  const completedChapters = course.modules.filter((m) => m.completed).length;
+  const totalChapters = course.modules.length;
+
+  return (
+    <div
+      className="rounded-2xl border border-slate-800 bg-slate-900/60 shadow-sm hover:shadow-lg hover:border-slate-700 transition-all flex flex-col overflow-hidden"
+      onMouseEnter={() => prefetchCourseContent(course.id)}
+    >
+      <div className="p-5 sm:p-6 flex-1 space-y-4">
+        <div className="flex items-center justify-between gap-2">
+          <div className={`p-3 rounded-xl ${course.color}`}>
+            {getCourseIcon(course.iconName, "w-6 h-6 text-slate-800")}
+          </div>
+          <span className="bg-slate-800 text-slate-300 text-[10px] font-extrabold uppercase tracking-wide px-2.5 py-1 rounded-full border border-slate-700">
+            {course.level}
+          </span>
+        </div>
+
+        <div className="space-y-1">
+          <h3 className="font-extrabold text-base text-white leading-tight truncate">{course.title}</h3>
+          <p className="text-xs text-slate-400 font-medium truncate">Par {course.instructor}</p>
+        </div>
+
+        <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">{course.description}</p>
+
+        <div className="pt-2 space-y-1.5">
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-slate-400 font-semibold">
+              {completedChapters} / {totalChapters} chapitres
+            </span>
+            <span className="text-indigo-300 font-bold font-mono">{course.progress}%</span>
+          </div>
+          <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-300 ${
+                course.progress === 100 ? "bg-emerald-500" : "bg-indigo-500"
+              }`}
+              style={{ width: `${course.progress}%` }}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-slate-950/50 px-5 sm:px-6 py-4 border-t border-slate-800 flex items-center justify-between gap-2">
+        <span className="text-[11px] font-bold text-slate-500 uppercase">{formatCredits(course.credits)}</span>
+        <button
+          onClick={() => navigateTo("course", course)}
+          className="text-xs font-bold text-indigo-300 hover:text-indigo-200 flex items-center gap-1 cursor-pointer min-h-[44px]"
+        >
+          Étudier le syllabus <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+});
 
 export default function StudentDashboardView({
   currentUser,
@@ -391,22 +488,7 @@ export default function StudentDashboardView({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
             {statCards.map((card) => (
-              <div
-                key={card.label}
-                className={`rounded-2xl border border-white/5 bg-slate-900/70 p-4 space-y-2 ${
-                  card.wide ? "md:col-span-2 xl:col-span-2" : ""
-                }`}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">{card.label}</span>
-
-                  <card.icon className={`w-4 h-4 shrink-0 ${card.accent}`} />
-                </div>
-
-                <p className="text-lg sm:text-xl font-black text-white truncate">{card.value}</p>
-
-                <p className="text-[11px] text-slate-400 leading-snug line-clamp-2">{card.hint}</p>
-              </div>
+              <DashboardStatCard key={card.label} {...card} />
             ))}
           </div>
 
@@ -558,70 +640,9 @@ export default function StudentDashboardView({
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {enrolledList.map((course) => {
-                const completedChapters = course.modules.filter((m) => m.completed).length;
-
-                const totalChapters = course.modules.length;
-
-                return (
-                  <div
-                    key={course.id}
-                    className="rounded-2xl border border-slate-800 bg-slate-900/60 shadow-sm hover:shadow-lg hover:border-slate-700 transition-all flex flex-col overflow-hidden"
-                  >
-                    <div className="p-5 sm:p-6 flex-1 space-y-4">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className={`p-3 rounded-xl ${course.color}`}>
-                          {getCourseIcon(course.iconName, "w-6 h-6 text-slate-800")}
-                        </div>
-
-                        <span className="bg-slate-800 text-slate-300 text-[10px] font-extrabold uppercase tracking-wide px-2.5 py-1 rounded-full border border-slate-700">
-                          {course.level}
-                        </span>
-                      </div>
-
-                      <div className="space-y-1">
-                        <h3 className="font-extrabold text-base text-white leading-tight truncate">{course.title}</h3>
-
-                        <p className="text-xs text-slate-400 font-medium truncate">Par {course.instructor}</p>
-                      </div>
-
-                      <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">{course.description}</p>
-
-                      <div className="pt-2 space-y-1.5">
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-slate-400 font-semibold">
-                            {completedChapters} / {totalChapters} chapitres
-                          </span>
-
-                          <span className="text-indigo-300 font-bold font-mono">{course.progress}%</span>
-                        </div>
-
-                        <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                          <div
-                            className={`h-full rounded-full transition-all duration-300 ${
-                              course.progress === 100 ? "bg-emerald-500" : "bg-indigo-500"
-                            }`}
-                            style={{ width: `${course.progress}%` }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-slate-950/50 px-5 sm:px-6 py-4 border-t border-slate-800 flex items-center justify-between gap-2">
-                      <span className="text-[11px] font-bold text-slate-500 uppercase">
-                        {formatCredits(course.credits)}
-                      </span>
-
-                      <button
-                        onClick={() => navigateTo("course", course)}
-                        className="text-xs font-bold text-indigo-300 hover:text-indigo-200 flex items-center gap-1 cursor-pointer min-h-[44px]"
-                      >
-                        Étudier le syllabus <ChevronRight className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+              {enrolledList.map((course) => (
+                <DashboardCourseCard key={course.id} course={course} getCourseIcon={getCourseIcon} navigateTo={navigateTo} />
+              ))}
             </div>
           )}
         </div>

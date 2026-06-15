@@ -10,7 +10,7 @@ rulesTest("business-race-guards", () => {
   const schema = fs.readFileSync("prisma/schema.prisma", "utf8");
   const migration = fs.readFileSync("prisma/migrations/20260613180000_business_race_guards/migration.sql", "utf8");
   const serverSource = readApiRouteSources();
-  const messagingRoutesSource = fs.readFileSync("src/messaging-routes.ts", "utf8");
+  const messagingRoutesSource = fs.readFileSync("src/routes/messaging-routes.ts", "utf8");
 
   assert.match(schema, /directKey\s+String\?\s+@unique/);
   assert.match(schema, /model Payment/);

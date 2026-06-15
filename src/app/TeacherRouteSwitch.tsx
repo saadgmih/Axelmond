@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import {
   LazyMessagesView,
-  LazyNotificationsView,
   LazyTeacherAcademicProfileView,
   LazyTeacherCurriculumView,
   LazyTeacherDashboardView,
@@ -10,44 +9,39 @@ import {
   LazyTeacherWorkspace,
   RouteChunkFallback,
 } from "../lazyViews";
-import { usePlatformAppContext } from "./platform-app-context";
+import { NotificationsRoutePanel } from "./NotificationsRoutePanel";
+import {
+  usePlatformBindings,
+  usePlatformCatalog,
+  usePlatformLive,
+  usePlatformNavigation,
+  usePlatformSession,
+  usePlatformUi,
+} from "./platform-app-slices";
 
 export function TeacherRouteSwitch() {
-  const platform = usePlatformAppContext();
+  const session = usePlatformSession();
+  const catalog = usePlatformCatalog();
+  const navigation = usePlatformNavigation();
+  const live = usePlatformLive();
+  const bindings = usePlatformBindings();
+  const ui = usePlatformUi();
+
+  const { currentUser, role } = session;
+  const { teacherView, handleTeacherViewChange } = navigation;
+  const { domains, courses, setCourses, getInitials } = catalog;
   const {
-    teacherView,
-    currentUser,
-    getInitials,
-    handleTeacherViewChange,
-    teacherDashboardBindings,
-    academicProfileBindings,
-    handleUploadAvatarFile,
-    handleDeleteAvatar,
-    avatarStatusMsg,
-    domains,
-    curriculumBindings,
-    role,
-    notifications,
-    notificationsLoading,
-    notificationsError,
-    loadNotifications,
-    markNotificationRead,
-    markAllNotificationsRead,
-    handleNotificationNavigate,
-    pushStatus,
-    pushStatusKind,
-    subscribePushNotifications,
-    courses,
     liveCourseId,
     setLiveCourseId,
-    setCourses,
     handleUpdateCourseLiveSubject,
     handleToggleCourseLive,
     toggleTeacherLiveSession,
     activeLiveCourse,
     renderLiveRoomInterface,
     isTeacherLiveRoom,
-  } = platform;
+  } = live;
+  const { teacherDashboardBindings, academicProfileBindings, curriculumBindings } = bindings;
+  const { handleUploadAvatarFile, handleDeleteAvatar, avatarStatusMsg } = ui;
 
   if (!currentUser) return null;
 
@@ -92,24 +86,7 @@ export function TeacherRouteSwitch() {
             </div>
           </Suspense>
         )}
-        {teacherView === "notifications" && (
-          <Suspense fallback={<RouteChunkFallback label="Chargement des notifications…" />}>
-            <div className="p-4 md:p-8">
-              <LazyNotificationsView
-                notifications={notifications}
-                loading={notificationsLoading}
-                error={notificationsError}
-                onReload={loadNotifications}
-                onMarkRead={markNotificationRead}
-                onMarkAllRead={markAllNotificationsRead}
-                onNavigate={handleNotificationNavigate}
-                pushStatus={pushStatus}
-                pushStatusKind={pushStatusKind}
-                onEnablePush={subscribePushNotifications}
-              />
-            </div>
-          </Suspense>
-        )}
+        {teacherView === "notifications" && <NotificationsRoutePanel />}
         {teacherView === "live-control" && (
           <Suspense fallback={<RouteChunkFallback label="Chargement du studio live…" />}>
             <LazyTeacherLiveControlView

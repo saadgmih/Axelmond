@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import {
   LazyMessagesView,
-  LazyNotificationsView,
   LazyStudentCatalogView,
   LazyStudentCourseView,
   LazyStudentDashboardView,
@@ -12,46 +11,40 @@ import {
   RouteChunkFallback,
 } from "../lazyViews";
 import { getCourseIcon, getDomainIcon } from "./catalogIcons";
-import { usePlatformAppContext } from "./platform-app-context";
+import { NotificationsRoutePanel } from "./NotificationsRoutePanel";
+import {
+  usePlatformBindings,
+  usePlatformCatalog,
+  usePlatformLive,
+  usePlatformNavigation,
+  usePlatformSession,
+  usePlatformUi,
+} from "./platform-app-slices";
 
 export function StudentRouteSwitch() {
-  const platform = usePlatformAppContext();
+  const session = usePlatformSession();
+  const catalog = usePlatformCatalog();
+  const navigation = usePlatformNavigation();
+  const live = usePlatformLive();
+  const bindings = usePlatformBindings();
+  const ui = usePlatformUi();
+
+  const { currentUser, enrolledCourses, role, invoices } = session;
+  const { currentView, navigateTo, selectedCourse, selectedModule, setSelectedModule, setSelectedLessonContent } =
+    navigation;
   const {
-    currentView,
-    currentUser,
-    navigateTo,
-    enrolledCourses,
-    courses,
     domains,
     selectedDomain,
     selectedDiscipline,
     catalogCourses,
-    setCourseToPurchase,
+    courses,
     setSelectedDomainId,
     setSelectedDisciplineId,
     setSearchQuery,
-    selectedCourse,
-    selectedModule,
-    setSelectedModule,
-    setSelectedLessonContent,
-    avatarStatusMsg,
-    handleUploadAvatarFile,
-    handleDeleteAvatar,
-    role,
-    notifications,
-    notificationsLoading,
-    notificationsError,
-    loadNotifications,
-    markNotificationRead,
-    markAllNotificationsRead,
-    handleNotificationNavigate,
-    pushStatus,
-    pushStatusKind,
-    subscribePushNotifications,
-    activeLiveCourse,
-    classroomBindings,
-    studentCourseBindings,
-  } = platform;
+  } = catalog;
+  const { studentCourseBindings } = bindings;
+  const { activeLiveCourse, classroomBindings } = live;
+  const { avatarStatusMsg, handleUploadAvatarFile, handleDeleteAvatar } = ui;
 
   if (!currentUser) return null;
 
@@ -79,7 +72,7 @@ export function StudentRouteSwitch() {
             getCourseIcon={getCourseIcon}
             getDomainIcon={getDomainIcon}
             navigateTo={navigateTo}
-            setCourseToPurchase={setCourseToPurchase}
+            setCourseToPurchase={ui.setCourseToPurchase}
             setSelectedDomainId={setSelectedDomainId}
             setSelectedDisciplineId={setSelectedDisciplineId}
             setSearchQuery={setSearchQuery}
@@ -132,7 +125,7 @@ export function StudentRouteSwitch() {
             currentUser={currentUser}
             enrolledCourses={enrolledCourses}
             courses={courses}
-            invoices={platform.invoices}
+            invoices={invoices}
             avatarStatusMsg={avatarStatusMsg}
             handleUploadAvatarFile={handleUploadAvatarFile}
             handleDeleteAvatar={handleDeleteAvatar}
@@ -156,24 +149,7 @@ export function StudentRouteSwitch() {
           </div>
         </Suspense>
       )}
-      {currentView === "notifications" && (
-        <Suspense fallback={<RouteChunkFallback label="Chargement des notifications…" />}>
-          <div className="p-4 md:p-8">
-            <LazyNotificationsView
-              notifications={notifications}
-              loading={notificationsLoading}
-              error={notificationsError}
-              onReload={loadNotifications}
-              onMarkRead={markNotificationRead}
-              onMarkAllRead={markAllNotificationsRead}
-              onNavigate={handleNotificationNavigate}
-              pushStatus={pushStatus}
-              pushStatusKind={pushStatusKind}
-              onEnablePush={subscribePushNotifications}
-            />
-          </div>
-        </Suspense>
-      )}
+      {currentView === "notifications" && <NotificationsRoutePanel />}
       {currentView === "live" && !activeLiveCourse && (
         <div className="mx-auto max-w-xl p-8 text-center text-slate-300">
           <p className="text-sm font-semibold">Aucune session live disponible pour le moment.</p>

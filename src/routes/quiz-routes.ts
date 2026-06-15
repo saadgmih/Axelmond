@@ -345,6 +345,45 @@ export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
     });
   });
 
+  // GET /api/quizzes/:quizId — détail d'un quiz (questions incluses)
+
+  app.get("/api/quizzes/:quizId", requireAuth, async (req, res) => {
+    const authUser = getAuthUser(req);
+
+    if (!(await api.verifyQuizAccess(authUser, req.params.quizId))) {
+      res.status(403).json({ error: "Accès refusé pour consulter ce quiz" });
+      return;
+    }
+
+    const quiz = await api.prisma.quiz.findUnique({
+      where: { id: req.params.quizId },
+      include: {
+        section: { select: { id: true, title: true, parentId: true, chapterId: true } },
+        questions: { orderBy: { order: "asc" } },
+      },
+    });
+
+    if (!quiz) {
+      res.status(404).json({ error: api.PUBLIC_API_ERRORS.quizNotFound });
+      return;
+    }
+
+    if (authUser.role === "STUDENT" && !quiz.published) {
+      res.status(404).json({ error: api.PUBLIC_API_ERRORS.quizNotFound });
+      return;
+    }
+
+    if (authUser.role === "STUDENT") {
+      res.json({
+        ...quiz,
+        questions: quiz.questions.map(({ answer, explanation, ...question }) => question),
+      });
+      return;
+    }
+
+    res.json(quiz);
+  });
+
   // GET /api/courses/:courseId/quizzes — liste les quiz du module
 
   app.get("/api/courses/:courseId/quizzes", requireAuth, async (req, res) => {
@@ -374,18 +413,23 @@ export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
     const quizList = await api.prisma.quiz.findMany({
       where: {
         courseId,
-
         ...(authUser.role === "STUDENT" ? { published: true } : {}),
       },
-
       include: {
         section: { select: { id: true, title: true, parentId: true, chapterId: true } },
-
-        questions: { orderBy: { order: "asc" } },
+        _count: { select: { questions: true } },
       },
-
       orderBy: { createdAt: "asc" },
     });
+
+    const summarizeQuiz = (quiz: (typeof quizList)[number]) => {
+      const { _count, ...rest } = quiz;
+      return {
+        ...rest,
+        questionCount: _count.questions,
+        questions: [] as never[],
+      };
+    };
 
     api.logDb("INFO", "Quiz list fetched", {
       courseId,
@@ -395,18 +439,11 @@ export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
     });
 
     if (authUser.role === "STUDENT") {
-      res.json(
-        quizList.map((quiz) => ({
-          ...quiz,
-
-          questions: quiz.questions.map(({ answer, explanation, ...question }) => question),
-        })),
-      );
-
+      res.json(quizList.map(summarizeQuiz));
       return;
     }
 
-    res.json(quizList);
+    res.json(quizList.map(summarizeQuiz));
   });
 
   // POST /api/courses/:courseId/quizzes — créer un quiz sur le module ou une section
