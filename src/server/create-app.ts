@@ -41,17 +41,41 @@ function normalizeOriginUrl(value: string): string {
   return value.trim().replace(/\/+$/, "");
 }
 
+function canonicalSiteHostname(appUrl: string): string | null {
+  try {
+    return new URL(appUrl).hostname.toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+function addOriginPair(origins: Set<string>, origin: string) {
+  const normalized = normalizeOriginUrl(origin);
+  if (!normalized) return;
+  origins.add(normalized);
+  try {
+    const url = new URL(normalized);
+    const host = url.hostname.toLowerCase();
+    if (host.startsWith("www.")) {
+      origins.add(`${url.protocol}//${host.slice(4)}`);
+    } else {
+      origins.add(`${url.protocol}//www.${host}`);
+    }
+  } catch {
+    // ignore malformed origin
+  }
+}
+
 function buildAllowedOrigins(port: number, isProduction: boolean): Set<string> {
   const origins = new Set<string>();
 
   if (process.env.APP_URL?.trim()) {
-    origins.add(normalizeOriginUrl(process.env.APP_URL));
+    addOriginPair(origins, process.env.APP_URL);
   }
 
   if (process.env.ALLOWED_ORIGINS?.trim()) {
     for (const part of process.env.ALLOWED_ORIGINS.split(",")) {
-      const normalized = normalizeOriginUrl(part);
-      if (normalized) origins.add(normalized);
+      addOriginPair(origins, part);
     }
   }
 
@@ -144,6 +168,25 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     res.locals.cspNonce = crypto.randomBytes(16).toString("base64");
     next();
   });
+
+  if (isProduction && process.env.APP_URL?.trim()) {
+    const canonicalHost = canonicalSiteHostname(process.env.APP_URL);
+    app.use((req, res, next) => {
+      if (!canonicalHost) {
+        next();
+        return;
+      }
+      const host = String(req.headers.host || "")
+        .split(":")[0]
+        .toLowerCase();
+      if (host === `www.${canonicalHost}`) {
+        const target = `${process.env.APP_URL!.trim().replace(/\/+$/, "")}${req.originalUrl}`;
+        res.redirect(301, target);
+        return;
+      }
+      next();
+    });
+  }
 
   app.use(
     helmet({
