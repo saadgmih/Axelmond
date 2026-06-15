@@ -12,7 +12,8 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Windows, X64]
     steps:
       - name: Verify runner
-        run: echo "bare runner ok"
+        shell: pwsh
+        run: Write-Output "bare runner ok on self-hosted Windows"

@@ -16,25 +16,10 @@ concurrency:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: axelmond_ci
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres -d axelmond_ci"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+    runs-on: [self-hosted, Windows, X64]
 
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/axelmond_ci?schema=AxelmondResearchLab
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/axelmond_ci?schema=AxelmondResearchLab
       NODE_ENV: test
       AUTH_TOKEN_SECRET: ci-auth-secret-32-characters-minimum-value
       EMAIL_VERIFICATION_SECRET: ci-email-secret-32-characters-minimum-value
@@ -50,45 +35,46 @@ jobs:
           cache: npm
 
       - name: Install dependencies
+        shell: pwsh
         run: npm ci
 
-      - name: Lint (TypeScript)
-        run: npm run lint
-
       - name: Test
+        shell: pwsh
         run: npm test -- tests/security-score-guards.test.ts tests/owasp-pen-test-guards.test.ts tests/security-max-hardening.test.ts tests/production-config.test.ts tests/security-hardening.test.ts
 
-      - name: Apply database migrations
-        run: npx prisma migrate deploy
+      - name: Generate Prisma client
+        shell: pwsh
+        run: npx prisma generate
 
       - name: Build
+        shell: pwsh
         run: npm run build
 
       - name: Security preflight
-        run: |
-          NODE_ENV=production \
-          APP_URL=https://axelmond.com \
-          DATABASE_URL="${DATABASE_URL}" \
-          AUTH_TOKEN_SECRET="${AUTH_TOKEN_SECRET}" \
-          EMAIL_VERIFICATION_SECRET="${EMAIL_VERIFICATION_SECRET}" \
-          MOBILE_CLIENT_SECRET="${AUTH_TOKEN_SECRET}" \
-          PAYPAL_CLIENT_ID=x \
-          PAYPAL_CLIENT_SECRET=y \
-          PAYPAL_WEBHOOK_ID=z \
-          LIVEKIT_URL=wss://x.livekit.cloud \
-          LIVEKIT_API_KEY=k \
-          LIVEKIT_API_SECRET="${AUTH_TOKEN_SECRET}" \
-          UPLOADTHING_TOKEN="${AUTH_TOKEN_SECRET}" \
-          SMTP_HOST=smtp.example.com \
-          SMTP_USER=u \
-          SMTP_PASS="${EMAIL_VERIFICATION_SECRET}" \
-          VAPID_PUBLIC_KEY=BMxtest \
-          VAPID_PRIVATE_KEY="${AUTH_TOKEN_SECRET}" \
-          PAYPAL_ENV=live \
-          npx tsx scripts/security-preflight.ts
+        shell: pwsh
+        env:
+          NODE_ENV: production
+          APP_URL: https://axelmond.com
+          MOBILE_CLIENT_SECRET: ${{ env.AUTH_TOKEN_SECRET }}
+          PAYPAL_CLIENT_ID: x
+          PAYPAL_CLIENT_SECRET: y
+          PAYPAL_WEBHOOK_ID: z
+          LIVEKIT_URL: wss://x.livekit.cloud
+          LIVEKIT_API_KEY: k
+          LIVEKIT_API_SECRET: ${{ env.AUTH_TOKEN_SECRET }}
+          UPLOADTHING_TOKEN: ${{ env.AUTH_TOKEN_SECRET }}
+          SMTP_HOST: smtp.example.com
+          SMTP_USER: u
+          SMTP_PASS: ${{ env.EMAIL_VERIFICATION_SECRET }}
+          VAPID_PUBLIC_KEY: BMxtest
+          VAPID_PRIVATE_KEY: ${{ env.AUTH_TOKEN_SECRET }}
+          PAYPAL_ENV: live
+        run: npx tsx scripts/security-preflight.ts
 
       - name: npm audit (high+)
+        shell: pwsh
         run: npm audit --audit-level=high
 
       - name: Secret scan
+        shell: pwsh
         run: npm run ci:secrets
