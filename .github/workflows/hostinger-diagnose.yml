@@ -19,9 +19,9 @@ jobs:
         run: |
           $sshDir = Join-Path $env:USERPROFILE '.ssh'
           New-Item -ItemType Directory -Force -Path $sshDir | Out-Null
-          Set-Content -Path (Join-Path $sshDir 'id_ed25519') -Value $env:SSH_KEY -NoNewline
+          Set-Content -Path (Join-Path $sshDir 'id_ed25519') -Value $env:SSH_KEY
           icacls (Join-Path $sshDir 'id_ed25519') /inheritance:r /grant:r "$($env:USERNAME):(R)" | Out-Null
-          ssh-keyscan -p $env:SSH_PORT -H $env:SSH_HOST 2>$null | Out-File -Append -Encoding ascii (Join-Path $sshDir 'known_hosts')
+          cmd /c "ssh-keyscan -p $env:SSH_PORT -H $env:SSH_HOST 2>nul" | Out-File -Append -Encoding ascii (Join-Path $sshDir 'known_hosts')
 
       - name: SSH diagnostic
         shell: powershell
@@ -68,4 +68,4 @@ jobs:
             npx pm2 logs axelmond-research-labs --lines 40 --nostream 2>/dev/null || echo "no pm2 logs"
           fi
           '@
-          ssh -i "$env:USERPROFILE\.ssh\id_ed25519" -p $env:SSH_PORT -o BatchMode=yes -o ConnectTimeout=20 "$($env:SSH_USER)@$($env:SSH_HOST)" $remote
+          $remote | ssh -i "$env:USERPROFILE\.ssh\id_ed25519" -p $env:SSH_PORT -o BatchMode=yes -o ConnectTimeout=20 "$($env:SSH_USER)@$($env:SSH_HOST)" "bash -s"
