@@ -209,45 +209,6 @@ export async function startAxelmondServer() {
     });
   }
 
-  try {
-    await seedDatabase();
-  } catch (err) {
-    logDb("ERROR", "Startup seed failed — server continuing", { error: String(err) });
-  }
-
-  try {
-    await synchronizePostgresSequences();
-  } catch (err) {
-    logDb("WARN", "PostgreSQL sequence sync skipped", { error: String(err) });
-  }
-
-  if (!securityTest) {
-    const smtpCheck = await verifySmtpConnection();
-    if (smtpCheck.ok) {
-      logEmail("INFO", "SMTP connection verified at startup", { smtp: smtpCheck.details });
-    } else {
-      logEmail(smtpCheck.configured ? "ERROR" : "WARN", "SMTP connection verification failed at startup", {
-        smtp: smtpCheck.details,
-        error: smtpCheck.error,
-      });
-    }
-    const smtpBanner = await readSmtpBanner();
-    if (smtpBanner.ok) {
-      logEmail("INFO", "SMTP banner received at startup", { smtp: smtpBanner.details, banner: smtpBanner.banner });
-    } else {
-      logEmail("WARN", "SMTP banner check failed at startup", {
-        smtp: smtpBanner.details,
-        error: "error" in smtpBanner ? smtpBanner.error : undefined,
-      });
-    }
-
-    startCachePruner();
-    startAuditLogRetention();
-    startPerformanceMonitor(Number(process.env.PERF_MONITOR_INTERVAL_MS) || 30_000);
-  } else {
-    logDb("INFO", "Security runtime test mode: skipping SMTP checks and background monitors");
-  }
-
   app.use("/api", (err: unknown, req: express.Request, res: express.Response, next: express.NextFunction) => {
     const status = apiErrorStatus(err);
     const code = (err as { code?: string; name?: string })?.code || (err as { name?: string })?.name || "API_ERROR";
@@ -282,9 +243,57 @@ export async function startAxelmondServer() {
     logDb("ERROR", "HTTP server failed to bind", { port: PORT, code: err.code, error: String(err) });
     process.exit(1);
   });
-  httpServer.listen(PORT, "0.0.0.0", () => {
-    console.log(
-      `Axelmond Research Labs server running (pid=${process.pid}, port=${PORT}, host=0.0.0.0, NODE_ENV=${process.env.NODE_ENV || "development"})`,
-    );
+  await new Promise<void>((resolve, reject) => {
+    httpServer.listen(PORT, "0.0.0.0", () => {
+      console.log(
+        `Axelmond Research Labs server running (pid=${process.pid}, port=${PORT}, host=0.0.0.0, NODE_ENV=${process.env.NODE_ENV || "development"})`,
+      );
+      resolve();
+    });
+    httpServer.once("error", reject);
   });
+
+  void runDeferredStartupTasks(securityTest);
+}
+
+async function runDeferredStartupTasks(securityTest: boolean) {
+  try {
+    await seedDatabase();
+  } catch (err) {
+    logDb("ERROR", "Startup seed failed — server continuing", { error: String(err) });
+  }
+
+  try {
+    await synchronizePostgresSequences();
+  } catch (err) {
+    logDb("WARN", "PostgreSQL sequence sync skipped", { error: String(err) });
+  }
+
+  if (securityTest) {
+    logDb("INFO", "Security runtime test mode: skipping SMTP checks and background monitors");
+    return;
+  }
+
+  const smtpCheck = await verifySmtpConnection();
+  if (smtpCheck.ok) {
+    logEmail("INFO", "SMTP connection verified at startup", { smtp: smtpCheck.details });
+  } else {
+    logEmail(smtpCheck.configured ? "ERROR" : "WARN", "SMTP connection verification failed at startup", {
+      smtp: smtpCheck.details,
+      error: smtpCheck.error,
+    });
+  }
+  const smtpBanner = await readSmtpBanner();
+  if (smtpBanner.ok) {
+    logEmail("INFO", "SMTP banner received at startup", { smtp: smtpBanner.details, banner: smtpBanner.banner });
+  } else {
+    logEmail("WARN", "SMTP banner check failed at startup", {
+      smtp: smtpBanner.details,
+      error: "error" in smtpBanner ? smtpBanner.error : undefined,
+    });
+  }
+
+  startCachePruner();
+  startAuditLogRetention();
+  startPerformanceMonitor(Number(process.env.PERF_MONITOR_INTERVAL_MS) || 30_000);
 }

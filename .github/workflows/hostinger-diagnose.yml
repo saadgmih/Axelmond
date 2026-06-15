@@ -1,0 +1,39 @@
+name: Hostinger diagnose
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ssh-diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH diagnostic
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.HOSTINGER_SSH_HOST }}
+          username: ${{ secrets.HOSTINGER_SSH_USER }}
+          key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          port: ${{ secrets.HOSTINGER_SSH_PORT }}
+          script: |
+            set -e
+            echo "==> whoami / pwd"
+            whoami
+            pwd
+            echo "==> node processes"
+            ps aux | grep -E '[n]ode' || true
+            echo "==> app dirs"
+            ls -la ~/domains/axelmond.com/ 2>/dev/null || ls -la ~/domains/ 2>/dev/null || true
+            APP_DIR="$HOME/domains/axelmond.com/nodejs"
+            if [ ! -d "$APP_DIR" ]; then APP_DIR="$HOME/domains/axelmond.com/public_html"; fi
+            echo "APP_DIR=$APP_DIR"
+            ls -la "$APP_DIR" 2>/dev/null | head -20 || true
+            echo "==> local health"
+            curl -sS -m 5 "http://127.0.0.1:3000/api/health" || echo "curl failed"
+            echo ""
+            echo "==> .htaccess"
+            cat "$HOME/domains/axelmond.com/public_html/.htaccess" 2>/dev/null || echo "no .htaccess"
+            echo "==> recent stderr"
+            find "$HOME/domains/axelmond.com" -maxdepth 3 -name 'stderr.log' -o -name '*.log' 2>/dev/null | head -5 | while read -r f; do
+              echo "--- $f ---"
+              tail -n 30 "$f" || true
+            done
