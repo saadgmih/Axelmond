@@ -154,7 +154,7 @@ export { APP_USER_BILLING_INCLUDE, buildCourseInvoiceId, mergeUserInvoices, pers
 export { PUBLIC_API_ERRORS, LIVE_ACCESS_ERRORS, toPushSubscribeClientResponse } from "../public-api-errors";
 export { sanitizeAcademicProfileInput, sanitizeAvatarUrl, isAvatarUrlFieldInvalid } from "../academic-profile";
 export { isAllowedAvatarUrl } from "../avatar-security";
-export { setAuthCookies, clearAuthCookies } from "../auth-cookies";
+export { setAuthCookies, clearAuthCookies, persistCsrfTokenForRefreshSession } from "../auth-cookies";
 export { withMobileRefreshToken, isMobileClientRequest, MOBILE_CLIENT_HEADER } from "../auth-mobile";
 export { readRefreshTokenFromRequest } from "../auth-cookies";
 export { parsePositiveInt } from "../route-params";

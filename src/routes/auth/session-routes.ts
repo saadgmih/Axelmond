@@ -66,6 +66,8 @@ export function registerSessionRoutes(app: Express, ctx: RouteContext): void {
 
     const csrfToken = api.setAuthCookies(res, newRefreshToken);
 
+    await api.persistCsrfTokenForRefreshSession(newRefreshToken, csrfToken);
+
     api.logSecurity("INFO", "Session token refreshed", { userId: safeUser.id, role: safeUser.role });
 
     res.json(api.withMobileRefreshToken(req, { token, csrfToken }, newRefreshToken));

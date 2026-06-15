@@ -1,6 +1,9 @@
 import type { NextFunction, Request, Response } from "express";
 import { CSRF_COOKIE_NAME } from "./auth-cookies";
-import { isTrustedMobileClientRequest } from "./auth-mobile";
+import { isMobileClientRequest } from "./auth-mobile";
+import { verifyAuthToken } from "./auth-token";
+import { prisma } from "./db";
+import { hashCsrfToken } from "./security-hardening";
 
 const UNSAFE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
@@ -28,23 +31,37 @@ function isCsrfExempt(req: Request): boolean {
 }
 
 function isMobileCsrfExempt(req: Request): boolean {
-  if (!isTrustedMobileClientRequest(req)) return false;
-
-  const authHeader = req.headers.authorization;
-  if (typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
-    return true;
-  }
+  if (!isMobileClientRequest(req)) return false;
 
   const refreshToken = req.body?.refreshToken;
-  if (
+  return (
     typeof refreshToken === "string" &&
     refreshToken.length > 0 &&
     (req.path === "/api/auth/refresh" || req.path === "/api/auth/logout")
-  ) {
-    return true;
-  }
+  );
+}
 
-  return false;
+function hasMatchingCookieCsrf(req: Request, headerToken: string): boolean {
+  const cookieToken = req.cookies?.[CSRF_COOKIE_NAME];
+  return typeof cookieToken === "string" && cookieToken.length > 0 && headerToken === cookieToken;
+}
+
+async function hasValidMobileSessionCsrf(req: Request, headerToken: string): Promise<boolean> {
+  const bearer = req.headers.authorization?.replace(/^Bearer\s+/i, "");
+  const session = verifyAuthToken(bearer);
+  if (!session) return false;
+
+  const csrfHash = hashCsrfToken(headerToken);
+  const activeSession = await prisma.refreshToken.findFirst({
+    where: {
+      userId: session.userId,
+      revokedAt: null,
+      expiresAt: { gt: new Date() },
+      csrfTokenHash: csrfHash,
+    },
+    select: { id: true },
+  });
+  return Boolean(activeSession);
 }
 
 export function csrfProtection(req: Request, res: Response, next: NextFunction): void {
@@ -59,14 +76,7 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction):
   }
 
   const headerToken = req.headers["x-csrf-token"];
-  const cookieToken = req.cookies?.[CSRF_COOKIE_NAME];
-
-  if (
-    typeof headerToken !== "string" ||
-    typeof cookieToken !== "string" ||
-    headerToken.length === 0 ||
-    headerToken !== cookieToken
-  ) {
+  if (typeof headerToken !== "string" || headerToken.length === 0) {
     res.status(403).json({
       error: "Jeton CSRF invalide ou manquant",
       code: "CSRF_TOKEN_INVALID",
@@ -74,5 +84,31 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction):
     return;
   }
 
-  next();
+  if (hasMatchingCookieCsrf(req, headerToken)) {
+    next();
+    return;
+  }
+
+  if (isMobileClientRequest(req)) {
+    void hasValidMobileSessionCsrf(req, headerToken)
+      .then((valid) => {
+        if (valid) {
+          next();
+          return;
+        }
+        res.status(403).json({
+          error: "Jeton CSRF invalide ou manquant",
+          code: "CSRF_TOKEN_INVALID",
+        });
+      })
+      .catch(() => {
+        res.status(503).json({ error: "Base de données indisponible" });
+      });
+    return;
+  }
+
+  res.status(403).json({
+    error: "Jeton CSRF invalide ou manquant",
+    code: "CSRF_TOKEN_INVALID",
+  });
 }

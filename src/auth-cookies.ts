@@ -1,7 +1,9 @@
 import crypto from "node:crypto";
 import type { CookieOptions, Request, Response } from "express";
 import { REFRESH_TOKEN_TTL_MS } from "./auth-token";
-import { isTrustedMobileClientRequest } from "./auth-mobile";
+import { isMobileClientRequest } from "./auth-mobile";
+import { prisma } from "./db";
+import { hashCsrfToken, hashRefreshToken } from "./security-hardening";
 
 export const REFRESH_COOKIE_NAME = "refresh_token";
 export const CSRF_COOKIE_NAME = "csrf_token";
@@ -62,6 +64,14 @@ export function setAuthCookies(res: Response, rawRefreshToken: string): string {
   return csrfToken;
 }
 
+/** Persist CSRF hash on the active refresh session (native mobile relies on header + DB lookup). */
+export async function persistCsrfTokenForRefreshSession(rawRefreshToken: string, csrfToken: string): Promise<void> {
+  await prisma.refreshToken.updateMany({
+    where: { token: hashRefreshToken(rawRefreshToken) },
+    data: { csrfTokenHash: hashCsrfToken(csrfToken) },
+  });
+}
+
 export function readRefreshTokenFromRequest(req: Request): string | null {
   const fromCookie = req.cookies?.[REFRESH_COOKIE_NAME];
   if (typeof fromCookie === "string" && fromCookie.length > 0 && fromCookie.length <= 128) {
@@ -70,7 +80,7 @@ export function readRefreshTokenFromRequest(req: Request): string | null {
 
   const fromBody = req.body?.refreshToken;
   if (
-    isTrustedMobileClientRequest(req) &&
+    isMobileClientRequest(req) &&
     typeof fromBody === "string" &&
     fromBody.length > 0 &&
     fromBody.length <= 128

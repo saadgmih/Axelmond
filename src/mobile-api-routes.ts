@@ -63,7 +63,7 @@ export function applyMobileApiCorsHeaders(
   if (req.path.startsWith("/api/")) {
     res.setHeader(
       "Access-Control-Allow-Headers",
-      "Content-Type, Authorization, X-CSRF-Token, X-Axelmond-Client, X-Axelmond-Mobile-Secret",
+      "Content-Type, Authorization, X-CSRF-Token, X-Axelmond-Client",
     );
     res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
   }

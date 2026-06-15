@@ -16,6 +16,7 @@ rulesTest("mobile-api", () => {
   const serverSource = readApiRouteSources();
   const authCsrfSource = readFileSync("src/auth-csrf.ts", "utf8");
   const mobileRoutesSource = readFileSync("src/mobile-api-routes.ts", "utf8");
+  const authMobileSource = readFileSync("src/auth-mobile.ts", "utf8");
 
   assert.equal(MOBILE_CLIENT_HEADER, "x-axelmond-client");
   assert.equal(MOBILE_CLIENT_VALUE, "mobile");
@@ -30,22 +31,8 @@ rulesTest("mobile-api", () => {
   );
   assert.deepEqual(webPayload, { token: "access", csrfToken: "csrf" });
 
-  const previousMobileSecret = process.env.MOBILE_API_SECRET;
-  const previousNodeEnv = process.env.NODE_ENV;
-  process.env.NODE_ENV = "production";
-  process.env.MOBILE_API_SECRET = "trusted-mobile-secret-32-characters";
-
-  const untrustedMobilePayload = withMobileRefreshToken(
-    { headers: { [MOBILE_CLIENT_HEADER]: "mobile" } } as any,
-    { token: "access", csrfToken: "csrf" },
-    "refresh-secret",
-  );
-  assert.deepEqual(untrustedMobilePayload, { token: "access", csrfToken: "csrf" });
-
   const mobilePayload = withMobileRefreshToken(
-    {
-      headers: { [MOBILE_CLIENT_HEADER]: "mobile", "x-axelmond-mobile-secret": "trusted-mobile-secret-32-characters" },
-    } as any,
+    { headers: { [MOBILE_CLIENT_HEADER]: "mobile" } } as any,
     { token: "access", csrfToken: "csrf" },
     "refresh-secret",
   );
@@ -56,11 +43,16 @@ rulesTest("mobile-api", () => {
   });
 
   assert.match(serverSource, /api\.withMobileRefreshToken\(req/);
+  assert.match(serverSource, /persistCsrfTokenForRefreshSession/);
   assert.match(bootstrapSource, /applyMobileApiCorsHeaders\(req, res, \{ originAllowed \}\)/);
   assert.match(bootstrapSource, /registerMobileApiRoutes\(app, \{ requireAuth: routeCtx\.middleware\.requireAuth \}\)/);
-  assert.match(authCsrfSource, /isTrustedMobileClientRequest/);
+  assert.match(authCsrfSource, /isMobileCsrfExempt/);
+  assert.match(authCsrfSource, /hasValidMobileSessionCsrf/);
+  assert.doesNotMatch(authMobileSource, /isTrustedMobileClientRequest/);
+  assert.doesNotMatch(authMobileSource, /MOBILE_API_SECRET/);
   assert.match(mobileRoutesSource, /\/api\/mobile\/student-profile/);
   assert.match(mobileRoutesSource, /\/api\/mobile\/routes/);
+  assert.doesNotMatch(mobileRoutesSource, /X-Axelmond-Mobile-Secret/);
 
   assert.ok(MOBILE_API_ROUTE_CATALOG.auth.login.includes("/api/auth/login"));
   assert.ok(MOBILE_API_ROUTE_CATALOG.student.liveToken.includes("/api/livekit/token"));
@@ -88,10 +80,7 @@ rulesTest("mobile-api", () => {
   assert.match(corsRes.headers["access-control-allow-headers"], /X-Axelmond-Client/);
   assert.equal(corsRes.headers["access-control-allow-origin"], "http://localhost:8081");
 
-  process.env.NODE_ENV = "development";
-  delete process.env.MOBILE_API_SECRET;
-
-  let mobileCsrfPassed = false;
+  let mobileCsrfBlocked = false;
   csrfProtection(
     {
       method: "POST",
@@ -108,14 +97,15 @@ rulesTest("mobile-api", () => {
         return this;
       },
       json() {
+        mobileCsrfBlocked = true;
         return this;
       },
     } as any,
     () => {
-      mobileCsrfPassed = true;
+      assert.fail("mobile Bearer must not bypass CSRF without a valid token");
     },
   );
-  assert.equal(mobileCsrfPassed, true);
+  assert.equal(mobileCsrfBlocked, true);
 
   let mobileRefreshPassed = false;
   csrfProtection(
@@ -139,15 +129,4 @@ rulesTest("mobile-api", () => {
     },
   );
   assert.equal(mobileRefreshPassed, true);
-
-  if (previousMobileSecret === undefined) {
-    delete process.env.MOBILE_API_SECRET;
-  } else {
-    process.env.MOBILE_API_SECRET = previousMobileSecret;
-  }
-  if (previousNodeEnv === undefined) {
-    delete process.env.NODE_ENV;
-  } else {
-    process.env.NODE_ENV = previousNodeEnv;
-  }
 });

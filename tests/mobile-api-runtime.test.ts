@@ -8,7 +8,7 @@ import {
 import { skipSecurityRuntimeTests } from "./helpers/security-runtime-harness.ts";
 import { cleanupChatTutorRuntimeFixtures, seedChatTutorRuntimeFixtures } from "./helpers/security-runtime-fixtures.ts";
 import { SECURITY_RUNTIME_TEST_PASSWORD } from "./helpers/security-runtime-fixtures.ts";
-import { MOBILE_API_SECRET_HEADER, MOBILE_CLIENT_HEADER, MOBILE_CLIENT_VALUE } from "../src/auth-mobile.ts";
+import { MOBILE_CLIENT_HEADER, MOBILE_CLIENT_VALUE } from "../src/auth-mobile.ts";
 import { runtimeTest } from "./helpers/runtimeTest.ts";
 
 await runtimeTest("mobile-api-runtime", async () => {
@@ -18,7 +18,6 @@ await runtimeTest("mobile-api-runtime", async () => {
     return {
       "Content-Type": "application/json",
       [MOBILE_CLIENT_HEADER]: MOBILE_CLIENT_VALUE,
-      [MOBILE_API_SECRET_HEADER]: process.env.MOBILE_API_SECRET || "runtime-mobile-secret-32-characters",
       ...extra,
     };
   }
@@ -29,7 +28,6 @@ await runtimeTest("mobile-api-runtime", async () => {
   process.env.LIVEKIT_API_KEY ??= "runtime-test-key";
   process.env.LIVEKIT_API_SECRET ??= "runtime-test-secret";
   process.env.LIVEKIT_RATE_LIMIT_MAX ??= "99999";
-  process.env.MOBILE_API_SECRET ??= "runtime-mobile-secret-32-characters";
 
   const runtime = startSecurityRuntimeServer(RUNTIME_PORT);
   const baseUrl = runtime.baseUrl;
@@ -107,7 +105,10 @@ await runtimeTest("mobile-api-runtime", async () => {
 
     const liveRes = await fetch(`${baseUrl}/api/livekit/token`, {
       method: "POST",
-      headers: mobileHeaders({ Authorization: `Bearer ${refreshPayload.token}` }),
+      headers: mobileHeaders({
+        Authorization: `Bearer ${refreshPayload.token}`,
+        "X-CSRF-Token": refreshPayload.csrfToken,
+      }),
       body: JSON.stringify({ courseId: fixture.courseId }),
     });
     assert.notEqual(liveRes.status, 401, "live token must accept mobile Bearer auth");

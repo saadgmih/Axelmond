@@ -24,7 +24,7 @@ Dans **Websites → axelmond.com → Environment variables**, reprenez toutes le
 - `NODE_ENV=production`
 - `DATABASE_URL` (avec `?schema=AxelmondResearchLab`)
 - `APP_URL=https://axelmond.com`
-- `AUTH_TOKEN_SECRET`, `EMAIL_VERIFICATION_SECRET`, `MOBILE_API_SECRET`
+- `AUTH_TOKEN_SECRET`, `EMAIL_VERIFICATION_SECRET`
 - PayPal, LiveKit, UploadThing, SMTP, VAPID, OpenAI, etc.
 
 Sans ces variables, le build peut réussir mais l’app crash au démarrage → **503**.

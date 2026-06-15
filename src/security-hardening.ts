@@ -5,6 +5,11 @@ export function hashRefreshToken(token: string): string {
   return crypto.createHash("sha256").update(String(token).trim()).digest("hex");
 }
 
+/** SHA-256 hash for CSRF tokens bound to refresh sessions (mobile native clients). */
+export function hashCsrfToken(token: string): string {
+  return crypto.createHash("sha256").update(String(token).trim()).digest("hex");
+}
+
 export const JSON_BODY_LIMIT = "256kb";
 
 export {

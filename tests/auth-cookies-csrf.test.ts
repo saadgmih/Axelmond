@@ -12,7 +12,7 @@ import { csrfProtection } from "../src/auth-csrf.ts";
 import { readApiRouteSources, readServerBootstrapSources } from "./helpers/api-route-sources.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
-rulesTest("auth-cookies-csrf", () => {
+rulesTest("auth-cookies-csrf", async () => {
   const bootstrapSource = readServerBootstrapSources();
   const serverSource = readApiRouteSources();
   const apiSource = readFileSync("src/api.ts", "utf8");
@@ -104,27 +104,19 @@ rulesTest("auth-cookies-csrf", () => {
   } as any);
   assert.equal(refreshFromCookie, "abc123");
 
-  const previousNodeEnv = process.env.NODE_ENV;
-  const previousMobileSecret = process.env.MOBILE_API_SECRET;
-  process.env.NODE_ENV = "production";
-  process.env.MOBILE_API_SECRET = "trusted-mobile-secret-32-characters";
-
-  const untrustedRefreshFromBody = readRefreshTokenFromRequest({
+  const mobileRefreshFromBody = readRefreshTokenFromRequest({
     cookies: {},
     headers: { "x-axelmond-client": "mobile" },
     body: { refreshToken: "legacy-body-token" },
   } as any);
-  assert.equal(untrustedRefreshFromBody, null);
+  assert.equal(mobileRefreshFromBody, "legacy-body-token");
 
-  const trustedRefreshFromBody = readRefreshTokenFromRequest({
+  const webRefreshFromBody = readRefreshTokenFromRequest({
     cookies: {},
-    headers: {
-      "x-axelmond-client": "mobile",
-      "x-axelmond-mobile-secret": "trusted-mobile-secret-32-characters",
-    },
+    headers: {},
     body: { refreshToken: "legacy-body-token" },
   } as any);
-  assert.equal(trustedRefreshFromBody, "legacy-body-token");
+  assert.equal(webRefreshFromBody, null);
 
   let nextCalled = false;
   let blockedStatus = 0;
@@ -140,22 +132,34 @@ rulesTest("auth-cookies-csrf", () => {
     },
   };
 
-  csrfProtection(
-    {
-      method: "POST",
-      path: "/api/courses",
-      cookies: {},
-      headers: {
-        "x-axelmond-client": "mobile",
-        "x-axelmond-mobile-secret": "trusted-mobile-secret-32-characters",
-        "x-csrf-token": "fake-token",
+  await new Promise<void>((resolve) => {
+    csrfProtection(
+      {
+        method: "POST",
+        path: "/api/courses",
+        cookies: {},
+        headers: {
+          "x-axelmond-client": "mobile",
+          "x-csrf-token": "fake-token",
+        },
+      } as any,
+      {
+        status(code: number) {
+          blockedStatus = code;
+          return this;
+        },
+        json(payload: unknown) {
+          blockedBody = payload;
+          resolve();
+          return this;
+        },
+      } as any,
+      () => {
+        nextCalled = true;
+        resolve();
       },
-    } as any,
-    blockedRes as any,
-    () => {
-      nextCalled = true;
-    },
-  );
+    );
+  });
   assert.equal(nextCalled, false);
   assert.equal(blockedStatus, 403);
 
@@ -206,9 +210,4 @@ rulesTest("auth-cookies-csrf", () => {
     },
   );
   assert.equal(nextCalled, true);
-
-  if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
-  else process.env.NODE_ENV = previousNodeEnv;
-  if (previousMobileSecret === undefined) delete process.env.MOBILE_API_SECRET;
-  else process.env.MOBILE_API_SECRET = previousMobileSecret;
 });

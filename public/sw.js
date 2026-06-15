@@ -1,3 +1,14 @@
+function sanitizeNotificationUrl(raw) {
+  try {
+    const url = new URL(raw || "/", self.location.origin);
+    if (url.origin !== self.location.origin) return "/";
+    if (!url.pathname.startsWith("/")) return "/";
+    return `${url.pathname}${url.search}`;
+  } catch {
+    return "/";
+  }
+}
+
 self.addEventListener("install", (event) => {
   event.waitUntil(self.skipWaiting());
 });
@@ -14,12 +25,14 @@ self.addEventListener("push", (event) => {
     /* ignore malformed payloads */
   }
 
+  const safeUrl = sanitizeNotificationUrl(payload.url);
+
   event.waitUntil(
     self.registration.showNotification(payload.title || "Axelmond", {
       body: payload.body || "",
       icon: "/favicon.svg",
       badge: "/favicon.svg",
-      data: { url: payload.url || "/" },
+      data: { url: safeUrl },
       tag: payload.notificationId || undefined,
       renotify: false,
     }),
@@ -28,7 +41,7 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const targetUrl = event.notification.data?.url || "/";
+  const targetUrl = sanitizeNotificationUrl(event.notification.data?.url || "/");
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
       for (const client of windowClients) {
