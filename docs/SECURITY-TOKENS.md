@@ -28,6 +28,7 @@ Any XSS vulnerability can still act as the current user while the page is open, 
 - Serve the app over **HTTPS** only.
 - Set strong `AUTH_TOKEN_SECRET`.
 - Set a distinct strong `EMAIL_VERIFICATION_SECRET`.
+- Set `MOBILE_CLIENT_SECRET` (32+ chars, distinct; shared with mobile `EXPO_PUBLIC_MOBILE_CLIENT_KEY`). Never use the legacy name `MOBILE_API_SECRET`.
 - Use `PAYPAL_ENV=live` with live PayPal credentials and webhook ID.
 - Review third-party scripts and avoid injecting untrusted HTML.
 - Monitor `security-logger` for auth anomalies.

@@ -34,9 +34,12 @@ Image Docker : `docker build -t axelmond-research-lab .` puis `docker run --env-
 
 ## Déploiement et infra
 
-| Script | Usage |
-|--------|-------|
-| `deploy-hostinger.sh` | Déploiement Hostinger (build, migrate, PM2) |
+| Script | Commande npm | Usage |
+|--------|--------------|-------|
+| `build-hostinger-env.mjs` | `npm run hostinger:env` | Génère `.hostinger-import.env` pour hPanel (prod, sans `MOBILE_API_SECRET`) |
+| `deploy-hostinger.sh` | — | Déploiement VPS/SSH (build, migrate, PM2) — pas l’offre Node.js Web App |
+
+Voir [`docs/HOSTINGER-HPANEL.md`](../docs/HOSTINGER-HPANEL.md).
 
 ## Migrations et schéma
 

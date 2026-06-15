@@ -37,7 +37,8 @@
     "create:admin": "tsx scripts/create-admin-user.mjs",
     "create:professor": "tsx scripts/create-professor-user.mjs",
     "generate:vapid-keys": "tsx scripts/generate-vapid-keys.mjs",
-    "validate:vapid-keys": "tsx scripts/validate-vapid-keys.mjs"
+    "validate:vapid-keys": "tsx scripts/validate-vapid-keys.mjs",
+    "hostinger:env": "node scripts/build-hostinger-env.mjs"
   },
   "dependencies": {
     "@paypal/react-paypal-js": "^8.9.2",
