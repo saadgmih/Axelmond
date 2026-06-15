@@ -13,7 +13,7 @@ jobs:
       - name: Configure SSH
         shell: powershell
         env:
-          SSH_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
+          SSH_KEY_B64: ${{ secrets.HOSTINGER_SSH_KEY_B64 }}
           SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
           SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
         run: |
@@ -21,10 +21,10 @@ jobs:
           New-Item -ItemType Directory -Force -Path $sshDir | Out-Null
           $keyPath = Join-Path $sshDir 'id_ed25519'
           $knownHosts = Join-Path $sshDir 'known_hosts'
-          $key = ($env:SSH_KEY -replace '\\n', "`n").Replace("`r`n", "`n").Replace("`r", "`n").Trim()
+          $key = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($env:SSH_KEY_B64))
           if (-not $key.EndsWith("`n")) { $key += "`n" }
           [System.IO.File]::WriteAllText($keyPath, $key, [System.Text.UTF8Encoding]::new($false))
-          icacls $keyPath /inheritance:r /grant:r "$($env:USERNAME):(R)" | Out-Null
+          icacls $keyPath /inheritance:r /grant:r "$($env:USERNAME):(F)" | Out-Null
           cmd /c "ssh-keyscan -p $env:SSH_PORT -H $env:SSH_HOST 2>nul" | Out-File -Append -Encoding ascii $knownHosts
           "SSH_KEY_PATH=$keyPath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "SSH_KNOWN_HOSTS=$knownHosts" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8

@@ -13,6 +13,6 @@ Puis dans **GitHub → repo Axelmond → Settings → Secrets → Actions**, ajo
 | `HOSTINGER_SSH_HOST` | `82.198.227.4` |
 | `HOSTINGER_SSH_PORT` | `65002` |
 | `HOSTINGER_SSH_USER` | `u425027223` |
-| `HOSTINGER_SSH_KEY` | contenu de `~/.ssh/id_ed25519_axelmond_ci` (clé privée générée pour CI) |
+| `HOSTINGER_SSH_KEY_B64` | clé privée `~/.ssh/id_ed25519_axelmond_ci` encodée en base64 (évite la corruption multiligne sur Windows Actions) |
 
 Lancer : **Actions → Hostinger diagnose → Run workflow**.
