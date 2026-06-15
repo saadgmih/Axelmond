@@ -3,19 +3,23 @@ name: Hostinger diagnose
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   ssh-diagnose:
     runs-on: ubuntu-latest
     steps:
       - name: SSH diagnostic
-        uses: appleboy/ssh-action@v1.2.0
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOSTINGER_SSH_HOST }}
           username: ${{ secrets.HOSTINGER_SSH_USER }}
           key: ${{ secrets.HOSTINGER_SSH_KEY }}
           port: ${{ secrets.HOSTINGER_SSH_PORT }}
+          script_stop: true
+          command_timeout: 2m
           script: |
-            set -e
             echo "==> whoami / pwd"
             whoami
             pwd
@@ -32,8 +36,3 @@ jobs:
             echo ""
             echo "==> .htaccess"
             cat "$HOME/domains/axelmond.com/public_html/.htaccess" 2>/dev/null || echo "no .htaccess"
-            echo "==> recent stderr"
-            find "$HOME/domains/axelmond.com" -maxdepth 3 -name 'stderr.log' -o -name '*.log' 2>/dev/null | head -5 | while read -r f; do
-              echo "--- $f ---"
-              tail -n 30 "$f" || true
-            done
