@@ -11,7 +11,7 @@ jobs:
     runs-on: [self-hosted, Windows, X64]
     steps:
       - name: Configure SSH
-        shell: pwsh
+        shell: powershell
         env:
           SSH_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
           SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
@@ -24,7 +24,7 @@ jobs:
           ssh-keyscan -p $env:SSH_PORT -H $env:SSH_HOST 2>$null | Out-File -Append -Encoding ascii (Join-Path $sshDir 'known_hosts')
 
       - name: SSH diagnostic
-        shell: pwsh
+        shell: powershell
         env:
           SSH_USER: ${{ secrets.HOSTINGER_SSH_USER }}
           SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}

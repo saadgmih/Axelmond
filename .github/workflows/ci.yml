@@ -35,23 +35,23 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        shell: pwsh
+        shell: powershell
         run: npm ci
 
       - name: Test
-        shell: pwsh
+        shell: powershell
         run: npm test -- tests/security-score-guards.test.ts tests/owasp-pen-test-guards.test.ts tests/security-max-hardening.test.ts tests/production-config.test.ts tests/security-hardening.test.ts
 
       - name: Generate Prisma client
-        shell: pwsh
+        shell: powershell
         run: npx prisma generate
 
       - name: Build
-        shell: pwsh
+        shell: powershell
         run: npm run build
 
       - name: Security preflight
-        shell: pwsh
+        shell: powershell
         env:
           NODE_ENV: production
           APP_URL: https://axelmond.com
@@ -72,9 +72,9 @@ jobs:
         run: npx tsx scripts/security-preflight.ts
 
       - name: npm audit (high+)
-        shell: pwsh
+        shell: powershell
         run: npm audit --audit-level=high
 
       - name: Secret scan
-        shell: pwsh
+        shell: powershell
         run: npm run ci:secrets
