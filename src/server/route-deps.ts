@@ -132,6 +132,8 @@ export const requireAuth: express.RequestHandler = async (req, res, next) => {
   next();
 };
 
+const RBAC_VERBOSE_LOGGING = process.env.RBAC_VERBOSE_LOGGING === "true";
+
 export const requireRbac: express.RequestHandler = (req, res, next) => {
   const apiPath = normalizeApiRoutePath(req);
   const user = tryGetAuthUser(req);
@@ -141,7 +143,9 @@ export const requireRbac: express.RequestHandler = (req, res, next) => {
     return;
   }
 
-  logSecurity("INFO", "Access granted", { userId: user.id, role: user.role, method: req.method, path: apiPath });
+  if (RBAC_VERBOSE_LOGGING) {
+    logSecurity("INFO", "Access granted", { userId: user.id, role: user.role, method: req.method, path: apiPath });
+  }
   next();
 };
 

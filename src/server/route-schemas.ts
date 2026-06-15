@@ -8,49 +8,10 @@ import {
 } from "../security-hardening";
 import { strongPasswordField } from "../password-policy";
 
-// ─── Input Validation & Sanitization ─────────────────────────────────────────
-
-
-export function sanitizeInputText(text: string): string {
-  if (typeof text !== "string") return text;
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#x27;")
-    .replace(/\//g, "&#x2F;");
-}
-
-export function sanitizeObject(obj: any): any {
-  if (obj === null || obj === undefined) return obj;
-  if (typeof obj === "string") return sanitizeInputText(obj);
-  if (Array.isArray(obj)) return obj.map(sanitizeObject);
-  if (typeof obj === "object") {
-    const res: any = {};
-    for (const key of Object.keys(obj)) {
-      if (
-        key === "password" ||
-        key === "newPassword" ||
-        key === "currentPassword" ||
-        key === "answers" ||
-        key === "token" ||
-        key === "avatarUrl" ||
-        key === "url"
-      ) {
-        res[key] = obj[key];
-      } else {
-        res[key] = sanitizeObject(obj[key]);
-      }
-    }
-    return res;
-  }
-  return obj;
-}
+// ─── Input Validation (Zod only — no global HTML entity encoding on req.body) ─
 
 export function validateBody(schema: z.ZodType<any>) {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    req.body = sanitizeObject(req.body);
     const result = await schema.safeParseAsync(req.body);
     if (!result.success) {
       res.status(400).json({

@@ -11,7 +11,7 @@ import { initMessagingSocket } from "../messaging-socket";
 import { verifyDatabaseConnection } from "../db";
 import { getPayPalRuntimeEnv } from "../paypal-server";
 import { startPerformanceMonitor } from "../performance";
-import { startCachePruner } from "../cache";
+import { initCache, startCachePruner } from "../cache";
 import { startAuditLogRetention } from "../audit-log-service";
 import { verifySmtpConnection, readSmtpBanner } from "../email";
 import { seedDatabase, synchronizePostgresSequences } from "./startup-db";
@@ -293,6 +293,7 @@ async function runDeferredStartupTasks(securityTest: boolean) {
     });
   }
 
+  await initCache();
   startCachePruner();
   startAuditLogRetention();
   startPerformanceMonitor(Number(process.env.PERF_MONITOR_INTERVAL_MS) || 30_000);
