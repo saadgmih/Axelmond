@@ -1,12 +1,27 @@
 import express from "express";
 import { canAccessApiRoute, isRbacExemptRoute, normalizeApiRoutePath, normalizeRole } from "../rbac";
-import { verifyAuthToken } from "../auth-token";
+import {
+  bumpAuthTokenVersion,
+  createRefreshToken,
+  findValidRefreshToken,
+  revokeAllUserRefreshTokens,
+  revokeRefreshToken,
+  rotateRefreshToken,
+  signAuthToken,
+  verifyAuthToken,
+} from "../auth-token";
 import { APP_USER_BILLING_INCLUDE, persistCoursePaymentEnrollment } from "../course-payments";
 import type { CoursePaymentEnrollmentInput } from "../course-payments";
 import { prisma } from "../db";
 import { logSecurity, logAudit } from "../security-logger";
 import { setAuthUser, tryGetAuthUser } from "./route-types";
 import { toAppUser } from "./route-mappers";
+import {
+  isMfaSetupExemptRoute,
+  isPrivilegedAccountRole,
+  isPrivilegedMfaEnforced,
+  privilegedUserRequiresMfaSetup,
+} from "../mfa-requirement";
 
 export type { AppUser, AuthenticatedRequest } from "./route-types";
 export { getAuthUser, setAuthUser, tryGetAuthUser } from "./route-types";
@@ -23,9 +38,12 @@ export { logLiveKit, logInvitation, logEmail, logDb } from "./route-loggers";
 export * from "./route-mappers";
 export * from "./route-schemas";
 
+const AUTH_USER_CACHE_MS = Number(process.env.AUTH_USER_CACHE_MS) || 5000;
+
 interface CachedUser {
   dbUser: any;
   expiresAt: number;
+  authTokenVersion: number;
 }
 const authUserCache = new Map<string, CachedUser>();
 
@@ -47,7 +65,7 @@ export const requireAuth: express.RequestHandler = async (req, res, next) => {
   const now = Date.now();
   let dbUser: any = null;
   const cached = authUserCache.get(session.userId);
-  if (cached && cached.expiresAt > now) {
+  if (cached && cached.expiresAt > now && cached.authTokenVersion === session.authTokenVersion) {
     dbUser = cached.dbUser;
   } else {
     try {
@@ -58,7 +76,8 @@ export const requireAuth: express.RequestHandler = async (req, res, next) => {
       if (dbUser) {
         authUserCache.set(session.userId, {
           dbUser,
-          expiresAt: now + 15000, // cache for 15 seconds
+          expiresAt: now + AUTH_USER_CACHE_MS,
+          authTokenVersion: Number(dbUser.authTokenVersion) || 0,
         });
       }
     } catch (err) {
@@ -69,11 +88,15 @@ export const requireAuth: express.RequestHandler = async (req, res, next) => {
   }
 
   const actualRole = normalizeRole(dbUser?.role);
-  if (!dbUser || actualRole !== session.role) {
-    logSecurity("WARN", "Token user not found or role changed", {
+  const currentAuthTokenVersion = Number(dbUser?.authTokenVersion) || 0;
+  if (!dbUser || actualRole !== session.role || currentAuthTokenVersion !== session.authTokenVersion) {
+    authUserCache.delete(session.userId);
+    logSecurity("WARN", "Token user not found, role changed, or token version revoked", {
       userId: session.userId,
       tokenRole: session.role,
       actualRole,
+      tokenVersion: session.authTokenVersion,
+      currentVersion: currentAuthTokenVersion,
     });
     res.status(401).json({ error: "Session invalide" });
     return;
@@ -86,6 +109,23 @@ export const requireAuth: express.RequestHandler = async (req, res, next) => {
       email: dbUser.email,
     });
     return;
+  }
+
+  if (isPrivilegedMfaEnforced() && isPrivilegedAccountRole(actualRole) && !isMfaSetupExemptRoute(req)) {
+    const needsMfaSetup = await privilegedUserRequiresMfaSetup(dbUser);
+    if (needsMfaSetup) {
+      logSecurity("WARN", "Privileged account blocked until MFA setup", {
+        userId: dbUser.id,
+        role: actualRole,
+        path: normalizeApiRoutePath(req),
+      });
+      res.status(403).json({
+        error: "L'authentification multi-facteurs est obligatoire pour ce compte.",
+        mfaSetupRequired: true,
+        code: "MFA_SETUP_REQUIRED",
+      });
+      return;
+    }
   }
 
   setAuthUser(req, toAppUser(dbUser));
@@ -166,14 +206,20 @@ export {
 } from "../openai-service";
 export type { CourseModule } from "../types";
 export {
+  bumpAuthTokenVersion,
   createRefreshToken,
-  rotateRefreshToken,
-  revokeRefreshToken,
+  findValidRefreshToken,
   revokeAllUserRefreshTokens,
+  revokeRefreshToken,
+  rotateRefreshToken,
   signAuthToken,
   verifyAuthToken,
-  findValidRefreshToken,
-} from "../auth-token";
+};
+
+export async function revokeAllUserSessions(userId: string) {
+  await revokeAllUserRefreshTokens(userId);
+  invalidateAuthUserCache(userId);
+}
 export { normalizeRole, canLoginToRequestedRole, canAccessAcademicProfile, isTeacherSpaceRole } from "../rbac";
 export { DEFAULT_STUDENT_LABEL, DEFAULT_MODULE_CLASSIFICATION } from "../types";
 export {

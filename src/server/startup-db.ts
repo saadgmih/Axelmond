@@ -553,8 +553,14 @@ export async function synchronizePostgresSequences() {
   const quotedSchema = `"${tableSchema.replace(/"/g, '""')}"`;
   const qualifiedCourseTable = `${quotedSchema}."Course"`;
   const sequenceLookup = qualifiedCourseTable.replace(/'/g, "''");
-  const result = await prisma.$queryRawUnsafe<Array<{ last_value: bigint | number }>>(
-    `SELECT setval(pg_get_serial_sequence('${sequenceLookup}', 'id'), COALESCE((SELECT MAX("id") FROM ${qualifiedCourseTable}), 1), true) AS last_value`,
+  const result = await prisma.$queryRaw<Array<{ last_value: bigint | number }>>(
+    Prisma.sql`
+      SELECT setval(
+        pg_get_serial_sequence(${sequenceLookup}, 'id'),
+        COALESCE((SELECT MAX("id") FROM ${Prisma.raw(qualifiedCourseTable)}), 1),
+        true
+      ) AS last_value
+    `,
   );
   logDb("INFO", "PostgreSQL sequences synchronized", { courseIdSequence: String(result[0]?.last_value || "") });
 }

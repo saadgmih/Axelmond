@@ -69,11 +69,11 @@ rulesTest("security", () => {
   assert.match(serverSource, /failedLoginAttempts:\s*attempts/);
   assert.ok(matchAppUse(serverSource, "/api/auth/login", "authRateLimiter"));
 
-  // 6b. Inscription publique validée par Zod (mot de passe 8+, email normalisé)
+  // 6b. Inscription publique validée par Zod (mot de passe fort + email normalisé)
   assert.ok(
     matchAppRouteWithMiddleware(serverSource, "post", "/api/auth/register", ["validateBody", "registerSchema"]),
   );
-  assert.match(serverSource, /password:\s*z\.string\(\)\.min\(8/);
+  assert.match(serverSource, /strongPasswordField/);
 
   // 6c. CORS piloté par APP_URL / ALLOWED_ORIGINS ; localhost uniquement hors production
   assert.match(serverSource, /function buildAllowedOrigins/);

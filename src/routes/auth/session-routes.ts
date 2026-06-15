@@ -28,7 +28,7 @@ export function registerSessionRoutes(app: Express, ctx: RouteContext): void {
     }
 
     if (storedToken.revokedAt) {
-      await api.revokeAllUserRefreshTokens(storedToken.userId);
+      await api.revokeAllUserSessions(storedToken.userId);
 
       api.logSecurity("ERROR", "Refresh token reuse detected — all sessions revoked", {
         userId: storedToken.userId,
@@ -62,11 +62,21 @@ export function registerSessionRoutes(app: Express, ctx: RouteContext): void {
       return;
     }
 
-    const token = api.signAuthToken(safeUser);
+    const freshUser = await api.prisma.user.findUnique({
+      where: { id: safeUser.id },
+      select: { authTokenVersion: true },
+    });
+
+    const token = api.signAuthToken({
+      id: safeUser.id,
+      role: safeUser.role,
+      authTokenVersion: freshUser?.authTokenVersion,
+    });
 
     const csrfToken = api.setAuthCookies(res, newRefreshToken);
 
     await api.persistCsrfTokenForRefreshSession(newRefreshToken, csrfToken);
+    api.invalidateAuthUserCache(safeUser.id);
 
     api.logSecurity("INFO", "Session token refreshed", { userId: safeUser.id, role: safeUser.role });
 

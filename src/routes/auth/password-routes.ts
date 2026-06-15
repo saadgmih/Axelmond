@@ -185,7 +185,7 @@ export function registerPasswordRoutes(app: Express, ctx: RouteContext): void {
       });
     });
 
-    await api.revokeAllUserRefreshTokens(user.id);
+    await api.revokeAllUserSessions(user.id);
 
     await api.logAudit(
       user.id,

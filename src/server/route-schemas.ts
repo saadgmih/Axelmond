@@ -6,6 +6,7 @@ import {
   CHAT_TUTOR_MAX_PROMPT_CHARS,
   trimChatTutorHistory,
 } from "../security-hardening";
+import { strongPasswordField } from "../password-policy";
 
 // ─── Input Validation & Sanitization ─────────────────────────────────────────
 
@@ -48,9 +49,9 @@ export function sanitizeObject(obj: any): any {
 }
 
 export function validateBody(schema: z.ZodType<any>) {
-  return (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     req.body = sanitizeObject(req.body);
-    const result = schema.safeParse(req.body);
+    const result = await schema.safeParseAsync(req.body);
     if (!result.success) {
       res.status(400).json({
         error: "Données d'entrée invalides",
@@ -66,7 +67,7 @@ export function validateBody(schema: z.ZodType<any>) {
 
 export const registerSchema = z.object({
   email: z.string().email("Adresse email invalide").trim().toLowerCase().max(255),
-  password: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères").max(128),
+  password: strongPasswordField,
   fullName: z.string().min(2, "Le nom complet doit contenir au moins 2 caractères").max(100).trim(),
   role: z.enum(["STUDENT", "PROFESSOR", "RESEARCHER", "ADMIN"]),
   levelOrTitle: z.string().max(100).trim().optional().nullable(),
@@ -96,7 +97,7 @@ export const forgotPasswordSchema = z.object({
 export const resetPasswordSchema = z.object({
   email: z.string().email("Adresse email invalide").trim().toLowerCase(),
   code: z.string().length(6, "Le code doit contenir 6 chiffres").regex(/^\d+$/, "Le code doit être numérique"),
-  newPassword: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères"),
+  newPassword: strongPasswordField,
 });
 
 export const scheduleSessionSchema = z.object({
@@ -254,7 +255,7 @@ export const quizAttemptSchema = z.object({
 
 export const passwordChangeSchema = z.object({
   currentPassword: z.string().min(1, "Mot de passe actuel requis"),
-  newPassword: z.string().min(8, "Le nouveau mot de passe doit contenir au moins 8 caractères"),
+  newPassword: strongPasswordField,
 });
 
 export const academicProfileSchema = z.object({

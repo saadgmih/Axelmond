@@ -51,7 +51,7 @@ rulesTest("quality-score-guards", () => {
     },
     {
       id: "csrf-mobile-no-fake-header",
-      ok: /isMobileCsrfExempt/.test(authCsrf) && !/headerToken\.length > 0/.test(authCsrf),
+      ok: /isMobileCsrfExempt/.test(authCsrf) && /hasValidMobileSessionCsrf/.test(authCsrf),
       weight: 4,
     },
     {

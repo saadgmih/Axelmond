@@ -7,6 +7,7 @@ import { issueAuthenticatedSession } from "../../auth-session";
 import { createSecurityChallenge, consumeSecurityChallenge } from "../../mfa-challenge";
 import { encryptMfaSecret, decryptMfaSecret } from "../../mfa-crypto";
 import { signMfaPendingToken, verifyMfaPendingToken } from "../../mfa-pending-token";
+import { strongPasswordField } from "../../password-policy";
 import {
   buildTotpQrDataUrl,
   disableTotpForUser,
@@ -37,7 +38,7 @@ const totpEnableSchema = z.object({
 });
 
 const totpDisableSchema = z.object({
-  password: z.string().min(8),
+  password: strongPasswordField,
   code: z.string().min(6).max(16),
 });
 
@@ -58,7 +59,7 @@ const passkeyLoginVerifySchema = z.object({
 });
 
 const passkeyDeleteSchema = z.object({
-  password: z.string().min(8),
+  password: strongPasswordField,
 });
 
 async function loadAuthUser(req: Request): Promise<AppUser | null> {
@@ -133,7 +134,7 @@ export function registerMfaRoutes(app: Express, ctx: RouteContext): void {
     }
 
     const recoveryCodes = await enableTotpForUser(authUser.id, secret);
-    await api.revokeAllUserRefreshTokens(authUser.id);
+    await api.revokeAllUserSessions(authUser.id);
     api.logAudit(authUser.id, authUser.email, "MFA_TOTP_ENABLED", "User", authUser.id, {}, req.ip);
 
     res.json({
@@ -163,7 +164,7 @@ export function registerMfaRoutes(app: Express, ctx: RouteContext): void {
     }
 
     await disableTotpForUser(authUser.id);
-    await api.revokeAllUserRefreshTokens(authUser.id);
+    await api.revokeAllUserSessions(authUser.id);
     api.logAudit(authUser.id, authUser.email, "MFA_TOTP_DISABLED", "User", authUser.id, {}, req.ip);
     res.json({ ok: true, message: "Authentification TOTP désactivée." });
   });

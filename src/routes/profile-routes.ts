@@ -474,7 +474,7 @@ export function registerProfileRoutes(app: Express, ctx: RouteContext): void {
       data: { passwordHash: await api.bcrypt.hash(newPassword, 10) },
     });
 
-    await api.revokeAllUserRefreshTokens(authUser.id);
+    await api.revokeAllUserSessions(authUser.id);
 
     api.logSecurity("INFO", "Academic password updated", { userId: authUser.id, role: authUser.role });
 

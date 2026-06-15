@@ -1,6 +1,10 @@
 import OpenAI from "openai";
 import { logSecurity } from "./security-logger";
 import { trimChatTutorHistory } from "./chat-tutor-limits";
+import {
+  assertChatTutorPromptAllowed,
+  moderateChatTutorInput,
+} from "./chat-tutor-moderation";
 
 export const DEFAULT_OPENAI_MODEL = "gpt-4o-mini";
 export const OPENAI_REQUEST_TIMEOUT_MS = Number(process.env.OPENAI_TIMEOUT_MS) || 60_000;
@@ -182,6 +186,8 @@ export async function generateChatTutorResponse(options: {
   const { courseName, moduleName, prompt, chatHistory = [] } = options;
   const trimmedHistory = trimChatTutorHistory(chatHistory) as ChatTutorHistoryMessage[];
 
+  assertChatTutorPromptAllowed(prompt, trimmedHistory);
+
   if (!isOpenAIConfigured()) {
     return getLocalChatTutorFallback(prompt, courseName, moduleName);
   }
@@ -191,6 +197,7 @@ export async function generateChatTutorResponse(options: {
 
   try {
     const openai = getOpenAIClient();
+    await moderateChatTutorInput(openai, [prompt, ...trimmedHistory.map((entry) => entry.text)]);
     const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
       { role: "system", content: systemInstruction },
       ...toOpenAIMessages(trimmedHistory),

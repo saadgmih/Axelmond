@@ -25,7 +25,7 @@ rulesTest("owasp-pen-test-guards", () => {
     { id: "A01-ownership-verify-course", ok: /verifyCourseAccess/.test(apiSource), category: "A01" },
     {
       id: "A02-crypto-auth-token",
-      ok: /verifyAuthToken/.test(apiSource) && /hashRefreshToken/.test(bootstrap),
+      ok: /verifyAuthToken/.test(apiSource) && /authTokenVersion/.test(apiSource) && /hashRefreshToken/.test(bootstrap),
       category: "A02",
     },
     { id: "A03-injection-prisma-only", ok: !/prisma\.\$queryRawUnsafe\(/.test(apiSource), category: "A03" },
@@ -38,6 +38,7 @@ rulesTest("owasp-pen-test-guards", () => {
     { id: "A05-security-misconfig-helmet", ok: /helmet\(/.test(bootstrap), category: "A05" },
     { id: "A05-production-config-guard", ok: /assertProductionConfiguration/.test(productionConfig), category: "A05" },
     { id: "A07-auth-fail-closed", ok: /Authentification requise/.test(apiSource), category: "A07" },
+    { id: "A07-privileged-mfa-required", ok: /mfaSetupRequired/.test(apiSource) && /MFA_SETUP_REQUIRED/.test(apiSource), category: "A07" },
     {
       id: "A08-integrity-upload-validation",
       ok: /isDangerousFile/.test(uploadthing) && /isValidMimeType/.test(uploadthing),
@@ -51,7 +52,7 @@ rulesTest("owasp-pen-test-guards", () => {
     },
     {
       id: "csrf-double-submit",
-      ok: /CSRF_TOKEN_INVALID/.test(authCsrf) && /headerToken !== cookieToken/.test(authCsrf.replace(/\s+/g, " ")),
+      ok: /CSRF_TOKEN_INVALID/.test(authCsrf) && /hasMatchingCookieCsrf/.test(authCsrf.replace(/\s+/g, " ")),
       category: "CSRF",
     },
     { id: "xss-academic-links-https", ok: /sanitizeAcademicLinkField/.test(academicProfile), category: "XSS" },

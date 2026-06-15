@@ -10,6 +10,12 @@ const DEFAULT_AUTH_TOKEN_SECRET = "axelmond-dev-secret";
 export const REFRESH_TOKEN_TTL_DAYS = 7;
 export const REFRESH_TOKEN_TTL_MS = REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000;
 
+export type AuthTokenSession = {
+  userId: string;
+  role: UserRole;
+  authTokenVersion: number;
+};
+
 export function getAuthTokenSecret(env: NodeJS.ProcessEnv = process.env) {
   const secret = env.AUTH_TOKEN_SECRET?.trim();
   if (!secret) {
@@ -24,20 +30,41 @@ export function getAuthTokenSecret(env: NodeJS.ProcessEnv = process.env) {
   return secret;
 }
 
-export function signAuthToken(user: { id: string; role: UserRole }, secret = getAuthTokenSecret()) {
-  return jwt.sign({ userId: user.id, role: user.role }, secret, { expiresIn: "15m", algorithm: "HS256" });
+export function signAuthToken(
+  user: { id: string; role: UserRole; authTokenVersion?: number | null },
+  secret = getAuthTokenSecret(),
+) {
+  const authTokenVersion = Number.isInteger(user.authTokenVersion) ? Number(user.authTokenVersion) : 0;
+  return jwt.sign(
+    { userId: user.id, role: user.role, tv: authTokenVersion },
+    secret,
+    { expiresIn: "15m", algorithm: "HS256" },
+  );
 }
 
-export function verifyAuthToken(token: string | undefined, secret = getAuthTokenSecret()) {
+export function verifyAuthToken(token: string | undefined, secret = getAuthTokenSecret()): AuthTokenSession | null {
   if (!token) return null;
   try {
-    const decoded = jwt.verify(token, secret, { algorithms: ["HS256"] }) as { userId: string; role: string };
+    const decoded = jwt.verify(token, secret, { algorithms: ["HS256"] }) as {
+      userId: string;
+      role: string;
+      tv?: number;
+    };
     const role = normalizeRole(decoded.role);
-    if (!decoded.userId || !role) return null;
-    return { userId: String(decoded.userId), role };
+    if (!decoded.userId || !role || typeof decoded.tv !== "number" || !Number.isInteger(decoded.tv) || decoded.tv < 0) {
+      return null;
+    }
+    return { userId: String(decoded.userId), role, authTokenVersion: decoded.tv };
   } catch (_err) {
     return null;
   }
+}
+
+export async function bumpAuthTokenVersion(userId: string): Promise<void> {
+  await prisma.user.update({
+    where: { id: userId },
+    data: { authTokenVersion: { increment: 1 } },
+  });
 }
 
 export async function createRefreshToken(userId: string) {
@@ -71,10 +98,16 @@ export async function revokeRefreshToken(rawToken: string) {
 }
 
 export async function revokeAllUserRefreshTokens(userId: string) {
-  return prisma.refreshToken.updateMany({
-    where: { userId, revokedAt: null },
-    data: { revokedAt: new Date() },
-  });
+  await prisma.$transaction([
+    prisma.refreshToken.updateMany({
+      where: { userId, revokedAt: null },
+      data: { revokedAt: new Date() },
+    }),
+    prisma.user.update({
+      where: { id: userId },
+      data: { authTokenVersion: { increment: 1 } },
+    }),
+  ]);
 }
 
 export async function rotateRefreshToken(id: string, userId: string) {
@@ -94,6 +127,10 @@ export async function rotateRefreshToken(id: string, userId: string) {
         token: hashRefreshToken(token),
         expiresAt,
       },
+    });
+    await tx.user.update({
+      where: { id: userId },
+      data: { authTokenVersion: { increment: 1 } },
     });
   });
 

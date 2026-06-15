@@ -37,7 +37,15 @@ export async function issueAuthenticatedSession(
 
   return api.withMobileRefreshToken(
     req,
-    { ...safeUser, token: api.signAuthToken(safeUser), csrfToken },
+    {
+      ...safeUser,
+      token: api.signAuthToken({
+        id: safeUser.id,
+        role: safeUser.role,
+        authTokenVersion: (user as { authTokenVersion?: number }).authTokenVersion,
+      }),
+      csrfToken,
+    },
     refreshToken,
   );
 }
