@@ -92,7 +92,7 @@ export function registerPayPalWebhook(app: Express, ctx: RouteContext, rateLimit
 }
 
 export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
-  const { requireAuth, requireRbac: _requireRbac, requireAdmin: _requireAdmin, validateBody: _validateBody } = ctx.middleware;
+  const { requireAuth } = ctx.middleware;
   const persistCoursePaymentEnrollment = buildPersistCoursePaymentEnrollment(ctx);
 
   registerPayPalConfigRoute(app);

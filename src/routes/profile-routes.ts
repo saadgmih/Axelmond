@@ -335,24 +335,6 @@ export function registerProfileRoutes(app: Express, ctx: RouteContext): void {
     res.json({ ok: true });
   });
 
-  async function _listStudentStudyScheduleSessions(studentId: string) {
-    const sessions = await api.prisma.studentStudyScheduleSession.findMany({
-      where: { studentId },
-
-      orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
-    });
-
-    return api.sortStudentStudySessions(sessions).map(api.serializeStudentStudySession);
-  }
-
-  async function _getOwnedStudentStudyScheduleSession(sessionId: string, authUserId: string) {
-    const session = await api.prisma.studentStudyScheduleSession.findUnique({ where: { id: sessionId } });
-
-    if (!session || !api.canAccessStudentStudySession(session.studentId, authUserId)) return null;
-
-    return session;
-  }
-
   app.post("/api/me/avatar", requireAuth, requireRbac, async (req, res) => {
     const authUser = getAuthUser(req);
 

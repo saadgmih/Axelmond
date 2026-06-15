@@ -57,14 +57,14 @@ export function useLiveMediaAttach({
 
     const audioContainer = liveAudioContainerRef.current;
     if (audioContainer) {
-      audioContainer.innerHTML = "";
-      liveParticipants
+      const audioElements = liveParticipants
         .filter((participant) => !participant.isLocal && participant.audioTrack)
-        .forEach((participant) => {
-          const audioElement = participant.audioTrack.attach();
+        .map((participant) => {
+          const audioElement = participant.audioTrack!.attach();
           audioElement.autoplay = true;
-          audioContainer.appendChild(audioElement);
+          return audioElement;
         });
+      audioContainer.replaceChildren(...audioElements);
     }
 
     return () => {
@@ -77,6 +77,7 @@ export function useLiveMediaAttach({
           participant.audioTrack.detach();
         }
       });
+      audioContainer?.replaceChildren();
     };
   }, [liveMediaSignature, currentView, teacherView, activeLiveCourseId, activeSpeakerIdentity]);
 }

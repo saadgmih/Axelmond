@@ -4,7 +4,7 @@ import type { RouteContext } from "../server/route-context";
 import * as api from "../server/route-deps";
 
 export function registerContentRoutes(app: Express, ctx: RouteContext): void {
-  const { requireAuth, requireRbac, requireAdmin: _requireAdmin, validateBody } = ctx.middleware;
+  const { requireAuth, requireRbac, validateBody } = ctx.middleware;
 
   app.post(
     "/api/courses/:courseId/chapters",
