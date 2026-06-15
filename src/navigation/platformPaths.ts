@@ -16,6 +16,7 @@ export const STUDENT_VIEWS = new Set([
   "course",
   "profile",
   "live",
+  "study-plan",
   "study-schedule",
   "objectives",
   "messages",
@@ -56,7 +57,10 @@ export function parsePlatformPath(pathname: string) {
 
   if (segments[0] === "student") {
     const view = segments[1] || "dashboard";
-    const studentView = STUDENT_VIEWS.has(view) ? view : "dashboard";
+    let studentView = STUDENT_VIEWS.has(view) ? view : "dashboard";
+    if (view === "study-schedule" || view === "objectives") {
+      studentView = "study-plan";
+    }
     return { studentView, teacherView: "dashboard" as const, institutionalView: null as string | null };
   }
 

@@ -65,6 +65,17 @@ export function usePlatformNavigation({
   }, [currentUser, location.pathname, navigate, setCurrentView, setTeacherView]);
 
   useEffect(() => {
+    if (!currentUser || !isStudentRole(currentUser.role)) return;
+    if (location.pathname === "/student/study-schedule") {
+      navigate("/student/study-plan?tab=sessions", { replace: true });
+      return;
+    }
+    if (location.pathname === "/student/objectives") {
+      navigate("/student/study-plan?tab=objectives", { replace: true });
+    }
+  }, [currentUser, location.pathname, navigate]);
+
+  useEffect(() => {
     if (!currentUser) return;
     const parsed = parsePlatformPath(location.pathname);
     if (parsed.institutionalView) {

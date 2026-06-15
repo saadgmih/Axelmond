@@ -48,7 +48,7 @@ export function useStudentStudySchedule({ role, currentView }: UseStudentStudySc
   const deleteSession = useCallback((sessionId: string) => api.deleteStudyScheduleSession(sessionId), []);
 
   return useScheduleSessions<StudentStudySessionView, StudentStudySessionPayload>({
-    shouldLoad: role === "student" && currentView === "study-schedule",
+    shouldLoad: role === "student" && (currentView === "study-plan" || currentView === "study-schedule"),
     emptyForm: emptyStudentStudyForm,
     loadErrorMessage: "Impossible de charger votre emploi du temps d'étude",
     fetchSessions,

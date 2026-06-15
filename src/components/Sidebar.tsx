@@ -8,10 +8,10 @@ import {
   Sliders,
   Video,
   CalendarDays,
+  CalendarRange,
   LogOut,
   MessageSquare,
   Bell,
-  Target,
 } from "lucide-react";
 import { Course, DEFAULT_STUDENT_LABEL } from "../types";
 import { AppUser } from "./AuthScreen";
@@ -172,37 +172,22 @@ export default function Sidebar({
             </button>
 
             <button
-              id="nav-study-schedule"
+              id="nav-study-plan"
               type="button"
               data-tv-focusable
               tabIndex={0}
-              onMouseEnter={() => prefetchStudentView("study-schedule")}
-              onClick={() => navigateTo("study-schedule")}
+              onMouseEnter={() => prefetchStudentView("study-plan")}
+              onClick={() => navigateTo("study-plan")}
               className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
-                currentView === "study-schedule"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-950/40"
-                  : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
-              }`}
-            >
-              <CalendarDays className="w-5 h-5 text-amber-300" />
-              Mon Emploi du Temps d&apos;Étude
-            </button>
-
-            <button
-              id="nav-objectives"
-              type="button"
-              data-tv-focusable
-              tabIndex={0}
-              onMouseEnter={() => prefetchStudentView("objectives")}
-              onClick={() => navigateTo("objectives")}
-              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
+                currentView === "study-plan" ||
+                currentView === "study-schedule" ||
                 currentView === "objectives"
                   ? "bg-indigo-600 text-white shadow-md shadow-indigo-950/40"
                   : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
               }`}
             >
-              <Target className="w-5 h-5 text-cyan-300" />
-              Objectifs
+              <CalendarRange className="w-5 h-5 text-amber-300" />
+              Plan d&apos;étude &amp; Objectifs
             </button>
 
             <button

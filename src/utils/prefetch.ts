@@ -45,6 +45,7 @@ const STUDENT_VIEW_CHUNKS: Record<string, () => Promise<unknown>> = {
   dashboard: () => import("../views/student/StudentDashboardView"),
   catalog: () => import("../views/student/StudentCatalogView"),
   profile: () => import("../views/student/StudentProfileView"),
+  "study-plan": () => import("../views/student/StudentStudyPlanView"),
   "study-schedule": () => import("../views/student/StudentStudyScheduleView"),
   objectives: () => import("../views/student/StudentObjectivesView"),
   messages: () => import("../views/shared/MessagesView"),

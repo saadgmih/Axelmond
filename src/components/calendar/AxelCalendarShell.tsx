@@ -29,7 +29,7 @@ export interface CalendarSessionMarker {
 interface AxelCalendarShellProps {
   sessions: CalendarSessionMarker[];
   accent?: "indigo" | "pink";
-  matchBy?: "weekday" | "date";
+  matchBy?: "weekday" | "date" | "auto";
   labels?: {
     emptyDay?: string;
     emptyWeekDay?: string;
@@ -50,12 +50,17 @@ const viewIcons: Record<CalendarViewMode, typeof Grid3X3> = {
 function sessionsForDay(
   sessions: CalendarSessionMarker[],
   date: Date,
-  matchBy: "weekday" | "date",
+  matchBy: "weekday" | "date" | "auto",
 ): CalendarSessionMarker[] {
   const dayOfWeek = dateToScheduleDayOfWeek(date);
   const dateKey = formatDateKey(date);
   return sessions
-    .filter((session) => (matchBy === "date" ? session.occursOnDate === dateKey : session.dayOfWeek === dayOfWeek))
+    .filter((session) => {
+      if (matchBy === "date") return session.occursOnDate === dateKey;
+      if (matchBy === "weekday") return session.dayOfWeek === dayOfWeek;
+      if (session.occursOnDate) return session.occursOnDate === dateKey;
+      return session.dayOfWeek === dayOfWeek;
+    })
     .sort((a, b) => a.startTime.localeCompare(b.startTime));
 }
 

@@ -5,9 +5,8 @@ import {
   LazyStudentCourseView,
   LazyStudentDashboardView,
   LazyStudentLiveView,
-  LazyStudentObjectivesView,
   LazyStudentProfileView,
-  LazyStudentStudyScheduleView,
+  LazyStudentStudyPlanView,
   RouteChunkFallback,
 } from "../lazyViews";
 import { getCourseIcon, getDomainIcon } from "./catalogIcons";
@@ -132,14 +131,11 @@ export function StudentRouteSwitch() {
           />
         </Suspense>
       )}
-      {currentView === "study-schedule" && (
-        <Suspense fallback={<RouteChunkFallback label="Chargement du planning…" />}>
-          <LazyStudentStudyScheduleView role={role} currentView={currentView} />
-        </Suspense>
-      )}
-      {currentView === "objectives" && (
-        <Suspense fallback={<RouteChunkFallback label="Chargement des objectifs…" />}>
-          <LazyStudentObjectivesView role={role} currentView={currentView} />
+      {(currentView === "study-plan" ||
+        currentView === "study-schedule" ||
+        currentView === "objectives") && (
+        <Suspense fallback={<RouteChunkFallback label="Chargement du plan d'étude…" />}>
+          <LazyStudentStudyPlanView role={role} currentView={currentView} />
         </Suspense>
       )}
       {currentView === "messages" && (

@@ -16,6 +16,7 @@ rulesTest("bundle-lazy-routes", () => {
   assert.match(lazyViewsSource, /lazy\(\(\) => import\("\.\/views\/student\/StudentDashboardView"\)\)/);
   assert.match(lazyViewsSource, /lazy\(\(\) => import\("\.\/views\/student\/StudentCatalogView"\)\)/);
   assert.match(lazyViewsSource, /lazy\(\(\) => import\("\.\/views\/student\/StudentProfileView"\)\)/);
+  assert.match(lazyViewsSource, /lazy\(\(\) => import\("\.\/views\/student\/StudentStudyPlanView"\)\)/);
   assert.match(lazyViewsSource, /lazy\(\(\) => import\("\.\/views\/student\/StudentStudyScheduleView"\)\)/);
   assert.match(lazyViewsSource, /lazy\(\(\) => import\("\.\/views\/student\/StudentObjectivesView"\)\)/);
   assert.match(lazyViewsSource, /lazy\(\(\) => import\("\.\/views\/shared\/NotificationsView"\)\)/);

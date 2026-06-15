@@ -43,8 +43,10 @@ rulesTest("student-study-schedule-ownership", () => {
   assert.match(apiSource, /updateStudyScheduleSession/);
   assert.match(apiSource, /deleteStudyScheduleSession/);
 
-  assert.match(appSource, /StudentStudyScheduleView/);
-  assert.match(appSource, /currentView === "study-schedule"/);
-  assert.match(sidebarSource, /Mon Emploi du Temps d/);
+  assert.match(appSource, /StudentStudyPlanView/);
+  assert.match(appSource, /currentView === "study-plan"/);
+  assert.match(sidebarSource, /nav-study-plan/);
+  assert.match(sidebarSource, /Plan d/);
+  assert.match(platformPathsSource, /"study-plan"/);
   assert.match(platformPathsSource, /"study-schedule"/);
 });

@@ -15,7 +15,10 @@ rulesTest("student-objectives-ownership", () => {
   const appSource = readAppSources();
   const sidebarSource = fs.readFileSync("src/components/Sidebar.tsx", "utf8");
   const platformPathsSource = fs.readFileSync("src/navigation/platformPaths.ts", "utf8");
-  const objectiveViewSource = fs.readFileSync("src/views/student/StudentObjectivesView.tsx", "utf8");
+  const studyPlanViewSource = fs.readFileSync("src/views/student/StudentStudyPlanView.tsx", "utf8");
+  const objectiveCardSource = fs.readFileSync("src/views/student/study-plan/ObjectiveCard.tsx", "utf8");
+  const statsSectionSource = fs.readFileSync("src/views/student/study-plan/ObjectivesStatsSection.tsx", "utf8");
+  const objectiveFormSource = fs.readFileSync("src/views/student/study-plan/ObjectivesFormModal.tsx", "utf8");
   const objectiveHookSource = fs.readFileSync("src/hooks/useStudentObjectives.ts", "utf8");
   const migrationSource = fs.readFileSync("prisma/migrations/20260611013000_student_objectives/migration.sql", "utf8");
   const v2MigrationSource = fs.readFileSync(
@@ -65,10 +68,11 @@ rulesTest("student-objectives-ownership", () => {
   assert.match(apiSource, /completeStudentObjective/);
   assert.match(apiSource, /deleteStudentObjective/);
 
-  assert.match(appSource, /StudentObjectivesView/);
-  assert.match(appSource, /currentView === "objectives"/);
-  assert.match(sidebarSource, /nav-objectives/);
-  assert.match(sidebarSource, /Objectifs/);
+  assert.match(appSource, /StudentStudyPlanView/);
+  assert.match(appSource, /currentView === "study-plan"/);
+  assert.match(sidebarSource, /nav-study-plan/);
+  assert.match(sidebarSource, /Plan d/);
+  assert.match(platformPathsSource, /"study-plan"/);
   assert.match(platformPathsSource, /"objectives"/);
 
   assert.match(objectiveHookSource, /inProgressObjectives/);
@@ -79,28 +83,28 @@ rulesTest("student-objectives-ownership", () => {
   assert.match(objectiveHookSource, /dueSoonObjectives/);
   assert.match(objectiveHookSource, /overdueObjectives/);
 
-  assert.match(objectiveViewSource, /Progression hebdomadaire/);
-  assert.match(objectiveViewSource, /Objectifs au total/);
-  assert.match(objectiveViewSource, /Objectifs validés/);
-  assert.match(objectiveViewSource, /Objectifs en retard/);
-  assert.match(objectiveViewSource, /Proches de la date limite/);
-  assert.match(objectiveViewSource, /AxelCalendarShell/);
-  assert.match(objectiveViewSource, /Streak/);
-  assert.match(objectiveViewSource, /Récurrence/);
-  assert.match(objectiveViewSource, /Objectifs en cours/);
-  assert.match(objectiveViewSource, /Objectifs terminés/);
-  assert.match(objectiveViewSource, /Écoute \/ concentration/);
-  assert.match(objectiveViewSource, /Le choix du contenu appartient à l'étudiant/);
-  assert.match(objectiveViewSource, /Modifier/);
-  assert.match(objectiveViewSource, /Supprimer/);
-  assert.match(objectiveViewSource, /Terminer/);
-  assert.match(objectiveViewSource, /grid-cols-1/);
-  assert.match(objectiveViewSource, /sm:/);
-  assert.match(objectiveViewSource, /md:/);
-  assert.match(objectiveViewSource, /xl:/);
-  assert.match(objectiveViewSource, /role="dialog"/);
-  assert.match(objectiveViewSource, /data-tv-zone="student-objectives"/);
-  assert.match(objectiveViewSource, /data-tv-focusable/);
+  assert.match(statsSectionSource, /Progression hebdomadaire/);
+  assert.match(statsSectionSource, /Objectifs au total/);
+  assert.match(statsSectionSource, /Objectifs validés/);
+  assert.match(statsSectionSource, /Objectifs en retard/);
+  assert.match(statsSectionSource, /Proches de la date limite/);
+  assert.match(studyPlanViewSource, /AxelCalendarShell/);
+  assert.match(statsSectionSource, /Streak/);
+  assert.match(objectiveFormSource, /Récurrence/);
+  assert.match(studyPlanViewSource, /Objectifs en cours/);
+  assert.match(studyPlanViewSource, /Objectifs terminés/);
+  assert.match(statsSectionSource, /Écoute \/ concentration/);
+  assert.match(statsSectionSource, /Le choix du contenu appartient à l'étudiant/);
+  assert.match(objectiveCardSource, /Modifier/);
+  assert.match(objectiveCardSource, /Supprimer/);
+  assert.match(objectiveCardSource, /Terminer/);
+  assert.match(studyPlanViewSource, /grid-cols-1/);
+  assert.match(statsSectionSource, /sm:/);
+  assert.match(studyPlanViewSource, /md:/);
+  assert.match(studyPlanViewSource, /xl:/);
+  assert.match(objectiveFormSource, /role="dialog"/);
+  assert.match(studyPlanViewSource, /data-tv-zone="student-study-plan"/);
+  assert.match(objectiveCardSource, /data-tv-focusable/);
 
   console.log("Student objectives ownership and UI rules passed");
 });

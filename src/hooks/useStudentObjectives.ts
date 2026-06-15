@@ -163,7 +163,7 @@ export function useStudentObjectives({ role, currentView }: UseStudentObjectives
   }, []);
 
   useEffect(() => {
-    if (role === "student" && currentView === "objectives") {
+    if (role === "student" && (currentView === "study-plan" || currentView === "objectives")) {
       loadObjectives();
     }
   }, [role, currentView, loadObjectives]);
