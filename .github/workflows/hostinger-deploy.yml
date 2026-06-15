@@ -20,9 +20,15 @@ jobs:
       - name: Verify production health
         shell: powershell
         run: |
-          $health = curl.exe -sS -m 20 -w "`nHTTP:%{http_code}`n" "https://axelmond.com/api/health"
-          Write-Output $health
-          if ($health -notmatch 'HTTP:200') { throw "Production health check failed" }
+          $ok = $false
+          for ($i = 1; $i -le 12; $i++) {
+            $health = curl.exe -sS -m 20 -w "`nHTTP:%{http_code}`n" "https://axelmond.com/api/health"
+            Write-Output "attempt $i"
+            Write-Output $health
+            if ($health -match 'HTTP:200') { $ok = $true; break }
+            Start-Sleep -Seconds 15
+          }
+          if (-not $ok) { throw "Production health check failed after retries" }
 
       - name: Verify production catalog
         shell: powershell
