@@ -19,7 +19,7 @@ jobs:
     runs-on: [self-hosted, Windows, X64]
 
     env:
-      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/axelmond_ci?schema=AxelmondResearchLab
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/axelmond_ci?schema=AxelmondResearchLab&sslmode=require
       NODE_ENV: test
       AUTH_TOKEN_SECRET: ci-auth-secret-32-characters-minimum-value
       EMAIL_VERIFICATION_SECRET: ci-email-secret-32-characters-minimum-value
@@ -55,19 +55,19 @@ jobs:
         env:
           NODE_ENV: production
           APP_URL: https://axelmond.com
-          MOBILE_CLIENT_SECRET: ${{ env.AUTH_TOKEN_SECRET }}
+          MOBILE_CLIENT_SECRET: ci-mobile-secret-32-characters-minimum-value
           PAYPAL_CLIENT_ID: x
           PAYPAL_CLIENT_SECRET: y
           PAYPAL_WEBHOOK_ID: z
           LIVEKIT_URL: wss://x.livekit.cloud
           LIVEKIT_API_KEY: k
-          LIVEKIT_API_SECRET: ${{ env.AUTH_TOKEN_SECRET }}
-          UPLOADTHING_TOKEN: ${{ env.AUTH_TOKEN_SECRET }}
+          LIVEKIT_API_SECRET: ci-livekit-secret-32-characters-minimum
+          UPLOADTHING_TOKEN: ci-uploadthing-secret-32-characters-min
           SMTP_HOST: smtp.example.com
           SMTP_USER: u
-          SMTP_PASS: ${{ env.EMAIL_VERIFICATION_SECRET }}
+          SMTP_PASS: ci-smtp-pass-32-characters-minimum-value
           VAPID_PUBLIC_KEY: BMxtest
-          VAPID_PRIVATE_KEY: ${{ env.AUTH_TOKEN_SECRET }}
+          VAPID_PRIVATE_KEY: ci-vapid-private-32-characters-minimum
           PAYPAL_ENV: live
         run: npx tsx scripts/security-preflight.ts
 
