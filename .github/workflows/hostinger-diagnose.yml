@@ -21,7 +21,9 @@ jobs:
           New-Item -ItemType Directory -Force -Path $sshDir | Out-Null
           $keyPath = Join-Path $sshDir 'id_ed25519'
           $knownHosts = Join-Path $sshDir 'known_hosts'
-          Set-Content -Path $keyPath -Value $env:SSH_KEY
+          $key = ($env:SSH_KEY -replace '\\n', "`n").Replace("`r`n", "`n").Replace("`r", "`n").Trim()
+          if (-not $key.EndsWith("`n")) { $key += "`n" }
+          [System.IO.File]::WriteAllText($keyPath, $key, [System.Text.UTF8Encoding]::new($false))
           icacls $keyPath /inheritance:r /grant:r "$($env:USERNAME):(R)" | Out-Null
           cmd /c "ssh-keyscan -p $env:SSH_PORT -H $env:SSH_HOST 2>nul" | Out-File -Append -Encoding ascii $knownHosts
           "SSH_KEY_PATH=$keyPath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
