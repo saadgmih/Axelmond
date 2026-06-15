@@ -9,8 +9,8 @@ set -euo pipefail
 echo "==> git pull"
 git pull origin main
 
-echo "==> npm install"
-npm install
+echo "==> npm ci"
+npm ci
 
 echo "==> prisma migrate deploy"
 npx prisma migrate deploy

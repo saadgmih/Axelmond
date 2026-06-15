@@ -32,7 +32,7 @@ rulesTest("security-hardening", () => {
   assert.match(serverSource, /courseId:\s*z\.number\(\)\.int\(\)\.positive\(\)/);
   assert.match(serverSource, /api\.assertCourseLearningAccess\(/);
   assert.doesNotMatch(serverSource, /courseContext:\s*z\.string\(\)/);
-  assert.match(serverSource, /newPassword:\s*z\.string\(\)\.min\(8/);
+  assert.match(serverSource, /strongPasswordField/);
   assert.match(serverSource, /Refresh token reuse detected/);
   assert.match(serverSource, /Permissions-Policy/);
   assert.match(serverSource, /express\.json\(\{\s*limit:\s*JSON_BODY_LIMIT/);
@@ -55,7 +55,24 @@ rulesTest("security-hardening", () => {
   assert.doesNotMatch(liveRoutesSource, /Configuration LiveKit/);
   assert.match(liveRoutesSource, /PUBLIC_API_ERRORS\.liveActionFailed/);
   assert.match(liveRoutesSource, /PUBLIC_API_ERRORS\.liveRelayFailed/);
-  assert.match(liveRoutesSource, /PUBLIC_API_ERRORS\.liveServiceUnavailable/);
+  assert.match(liveRoutesSource, /liveTokenSchema/);
+  assert.match(liveRoutesSource, /sessionResult\.ok/);
+
+  const routeMappersSource = fs.readFileSync("src/server/route-mappers.ts", "utf8");
+  assert.match(routeMappersSource, /sessionNotActive/);
+  assert.match(routeMappersSource, /canPublishLiveMedia/);
+
+  const quizRoutesSource = fs.readFileSync("src/routes/quiz-routes.ts", "utf8");
+  assert.match(quizRoutesSource, /\/api\/courses\/:courseId\/quizzes\/:moduleId/);
+  assert.match(quizRoutesSource, /where:\s*\{\s*courseId,\s*moduleId\s*\}/);
+
+  const messagingSource = fs.readFileSync("src/messaging.ts", "utf8");
+  assert.match(messagingSource, /verifyMessageAttachmentOwnership/);
+  assert.match(messagingSource, /registerMessageAttachmentUpload/);
+
+  const mfaChallengeSource = fs.readFileSync("src/mfa-challenge.ts", "utf8");
+  assert.match(mfaChallengeSource, /updateMany/);
+  assert.match(mfaChallengeSource, /consumed\.count !== 1/);
 
   assert.match(paymentsRoutesSource, /toPayPalCaptureClientResponse\(result\)/);
   assert.doesNotMatch(paymentsRoutesSource, /error:\s*result\.error/);

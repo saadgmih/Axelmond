@@ -6,22 +6,26 @@ import * as api from "../server/route-deps";
 export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
   const { requireAuth, requireRbac, validateBody } = ctx.middleware;
 
-  // GET /api/quizzes/:moduleId
+  // GET /api/courses/:courseId/quizzes/:moduleId
 
-  app.get("/api/quizzes/:moduleId", requireAuth, async (req, res) => {
+  app.get("/api/courses/:courseId/quizzes/:moduleId", requireAuth, async (req, res) => {
     const authUser = getAuthUser(req);
 
+    const courseId = parseInt(req.params.courseId);
     const moduleId = parseInt(req.params.moduleId);
 
+    if (!Number.isFinite(courseId) || !Number.isFinite(moduleId)) {
+      res.status(400).json({ error: api.PUBLIC_API_ERRORS.quizNotFound });
+      return;
+    }
+
     const quiz = await api.prisma.quiz.findFirst({
-      where: { moduleId },
+      where: { courseId, moduleId },
 
       include: { questions: { orderBy: { order: "asc" } } },
     });
 
     if (quiz) {
-      const courseId = quiz.courseId;
-
       if (authUser.role === "STUDENT" && !authUser.enrolledCourses.includes(courseId)) {
         res.status(403).json({ error: "Inscription requise pour consulter ce quiz" });
 
@@ -72,7 +76,7 @@ export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
 
     const seedCourseId = api.seedQuizModuleCourseMap[moduleId];
 
-    if (!seedCourseId) {
+    if (!seedCourseId || seedCourseId !== courseId) {
       res.status(404).json({ error: api.PUBLIC_API_ERRORS.quizNotFound });
 
       return;
@@ -141,6 +145,11 @@ export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
     if (!quiz || quiz.questions.length === 0) {
       res.status(404).json({ error: "Aucun quiz n'est modélisé pour ce module" });
 
+      return;
+    }
+
+    if (authUser.role === "STUDENT" && !quiz.published) {
+      res.status(404).json({ error: api.PUBLIC_API_ERRORS.quizNotFound });
       return;
     }
 

@@ -41,6 +41,7 @@ export const LIVE_ACCESS_ERRORS = {
   notFound: PUBLIC_API_ERRORS.courseNotFound,
   enrollmentRequired: PUBLIC_API_ERRORS.enrollmentRequiredLive,
   accessDenied: PUBLIC_API_ERRORS.accessDeniedLive,
+  sessionNotActive: "La session live n'est pas active",
 } as const;
 
 export const PUSH_SUBSCRIBE_CLIENT_MESSAGES = {

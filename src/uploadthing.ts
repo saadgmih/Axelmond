@@ -6,7 +6,7 @@ import { verifyAuthToken } from "./auth-token";
 import { canManageContent, isTeacherSpaceRole, normalizeRole } from "./rbac";
 import { isAllowedAvatarUrl, isAllowedRasterImageMime, isAllowedRasterImageUpload } from "./avatar-security";
 import { alertSuspectUpload } from "./security-logger";
-import { isConversationParticipant, validateMessageAttachmentInput, type MessageAttachmentInput } from "./messaging";
+import { isConversationParticipant, validateMessageAttachmentInput, registerMessageAttachmentUpload, type MessageAttachmentInput } from "./messaging";
 
 const f = createUploadthing();
 export const utapi = new UTApi();
@@ -349,6 +349,11 @@ export const uploadRouter = {
       console.log(
         `[${new Date().toISOString()}] [INFO] [uploadthing] Message attachment uploaded ${JSON.stringify({ userId: metadata.userId, conversationId: metadata.conversationId, fileKey: file.key, kind })}`,
       );
+      await registerMessageAttachmentUpload({
+        storageKey: file.key,
+        userId: metadata.userId,
+        conversationId: metadata.conversationId,
+      });
       return {
         kind,
         fileName: file.name,

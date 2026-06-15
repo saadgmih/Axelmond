@@ -29,7 +29,7 @@ export function registerEmailVerificationRoutes(app: Express, ctx: RouteContext)
     }
 
     const verification = await api.prisma.emailVerificationCode.findFirst({
-      where: { userId: user.id, usedAt: null },
+      where: { userId: user.id, purpose: "EMAIL_VERIFY", usedAt: null },
 
       orderBy: { createdAt: "desc" },
     });

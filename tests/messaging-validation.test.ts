@@ -18,6 +18,7 @@ rulesTest("messaging-validation", () => {
       mimeType: "image/jpeg",
       sizeBytes: 1024,
       url: "https://uploadthing.com/f/abc",
+      storageKey: "abc-key",
     }),
     null,
   );
@@ -29,6 +30,7 @@ rulesTest("messaging-validation", () => {
       mimeType: "image/gif",
       sizeBytes: 1024,
       url: "https://uploadthing.com/f/abc",
+      storageKey: "gif-key",
     }) || "",
     /non autoris/i,
   );
@@ -40,6 +42,7 @@ rulesTest("messaging-validation", () => {
       mimeType: "video/mp4",
       sizeBytes: MESSAGE_ATTACHMENT_LIMITS.VIDEO + 1,
       url: "https://uploadthing.com/f/abc",
+      storageKey: "video-key",
     }) || "",
     /Taille/i,
   );
@@ -51,8 +54,20 @@ rulesTest("messaging-validation", () => {
       mimeType: "application/pdf",
       sizeBytes: 5000,
       url: "https://uploadthing.com/f/abc",
+      storageKey: "doc-key",
     }),
     null,
+  );
+
+  assert.match(
+    validateMessageAttachmentInput({
+      kind: "IMAGE",
+      fileName: "photo.jpg",
+      mimeType: "image/jpeg",
+      sizeBytes: 1024,
+      url: "https://uploadthing.com/f/abc",
+    }) || "",
+    /stockage/i,
   );
 
   assert.match(
@@ -62,6 +77,7 @@ rulesTest("messaging-validation", () => {
       mimeType: "image/jpeg",
       sizeBytes: 1024,
       url: "https://evil.example/tracker.jpg",
+      storageKey: "evil-key",
     }) || "",
     /URL/i,
   );
@@ -73,6 +89,7 @@ rulesTest("messaging-validation", () => {
       mimeType: "image/jpeg",
       sizeBytes: 1024,
       url: "http://uploadthing.com/f/abc",
+      storageKey: "http-key",
     }) || "",
     /URL/i,
   );

@@ -1,5 +1,5 @@
 import express from "express";
-import { Prisma } from "@prisma/client";
+import { Prisma, type LiveSession } from "@prisma/client";
 import { RoomServiceClient } from "livekit-server-sdk";
 import { Course, DEFAULT_STUDENT_LABEL } from "../types";
 import { UserRole, canAccessAcademicProfile, normalizeRole } from "../rbac";
@@ -427,9 +427,14 @@ export function getEmailDomain(email: string) {
   return email.includes("@") ? (email.split("@").pop() ?? "unknown") : "unknown";
 }
 
-export async function createEmailVerificationCode(client: any, userId: string, code: string) {
+export async function createEmailVerificationCode(
+  client: any,
+  userId: string,
+  code: string,
+  purpose: "EMAIL_VERIFY" | "PASSWORD_RESET" = "EMAIL_VERIFY",
+) {
   await client.emailVerificationCode.updateMany({
-    where: { userId, usedAt: null },
+    where: { userId, purpose, usedAt: null },
     data: { usedAt: new Date() },
   });
   return client.emailVerificationCode.create({
@@ -437,6 +442,7 @@ export async function createEmailVerificationCode(client: any, userId: string, c
       userId,
       codeHash: hashEmailVerificationCode(code),
       expiresAt: buildEmailVerificationExpiry(),
+      purpose,
     },
   });
 }
@@ -565,21 +571,48 @@ export async function findCourse(courseId: number) {
   return course ? toCourse(course) : null;
 }
 
-export async function ensureLiveSession(course: Course, authUser: AppUser) {
+export function canPublishLiveMedia(role: AppUser["role"]): boolean {
+  return role !== "STUDENT";
+}
+
+export type LiveSessionResolveResult =
+  | { ok: true; session: LiveSession }
+  | { ok: false; status: number; error: string };
+
+export async function ensureLiveSession(course: Course, authUser: AppUser): Promise<LiveSessionResolveResult> {
   const roomName = buildLiveKitRoomName(course.id);
+
+  if (!course.isLiveNow) {
+    return { ok: false, status: 403, error: LIVE_ACCESS_ERRORS.sessionNotActive };
+  }
+
+  if (authUser.role === "STUDENT") {
+    const session = await prisma.liveSession.findUnique({ where: { roomName } });
+    if (!session?.isActive) {
+      return { ok: false, status: 403, error: LIVE_ACCESS_ERRORS.sessionNotActive };
+    }
+    logLiveKit("INFO", "Live session joined", {
+      courseId: course.id,
+      roomName,
+      userId: authUser.id,
+      role: authUser.role,
+    });
+    return { ok: true, session };
+  }
+
   const session = await prisma.liveSession.upsert({
     where: { roomName },
     update: {
       title: course.liveSubject || null,
       isActive: true,
       endTime: null,
-      professorId: authUser.role === "STUDENT" ? undefined : authUser.id,
+      professorId: authUser.id,
     },
     create: {
       roomName,
       title: course.liveSubject || null,
       courseId: course.id,
-      professorId: authUser.role === "STUDENT" ? undefined : authUser.id,
+      professorId: authUser.id,
     },
   });
   logLiveKit("INFO", "Live session ensured", {
@@ -588,7 +621,7 @@ export async function ensureLiveSession(course: Course, authUser: AppUser) {
     startedAt: session.startTime.toISOString(),
     isActive: session.isActive,
   });
-  return session;
+  return { ok: true, session };
 }
 
 export function getLiveKitApiUrl(url: string) {

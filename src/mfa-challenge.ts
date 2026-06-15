@@ -33,15 +33,24 @@ export async function consumeSecurityChallenge<T extends Record<string, unknown>
   id: string,
   kind: SecurityChallengeKind,
 ): Promise<T | null> {
-  const row = await prisma.securityChallenge.findUnique({ where: { id } });
-  if (!row || row.kind !== kind || row.consumedAt || row.expiresAt.getTime() < Date.now()) {
+  const now = new Date();
+  const consumed = await prisma.securityChallenge.updateMany({
+    where: {
+      id,
+      kind,
+      consumedAt: null,
+      expiresAt: { gt: now },
+    },
+    data: { consumedAt: now },
+  });
+  if (consumed.count !== 1) {
     return null;
   }
 
-  await prisma.securityChallenge.update({
-    where: { id },
-    data: { consumedAt: new Date() },
-  });
+  const row = await prisma.securityChallenge.findUnique({ where: { id } });
+  if (!row || row.kind !== kind) {
+    return null;
+  }
 
   return row.payload as T;
 }

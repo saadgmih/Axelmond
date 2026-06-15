@@ -43,5 +43,12 @@ rulesTest("email-verification", () => {
   assert.match(schemaSource, /PASSWORD_RESET/);
   assert.match(schemaSource, /purpose\s+EmailVerificationPurpose\s+@default\(EMAIL_VERIFY\)/);
 
+  const passwordRoutes = readFileSync("src/routes/auth/password-routes.ts", "utf8");
+  const emailRoutes = readFileSync("src/routes/auth/email-verification-routes.ts", "utf8");
+  const routeMappers = readFileSync("src/server/route-mappers.ts", "utf8");
+  assert.match(passwordRoutes, /PASSWORD_RESET/);
+  assert.match(emailRoutes, /purpose:\s*"EMAIL_VERIFY"/);
+  assert.match(routeMappers, /purpose:\s*"EMAIL_VERIFY"\s*\|\s*"PASSWORD_RESET"/);
+
   console.log("Email verification rules passed");
 });

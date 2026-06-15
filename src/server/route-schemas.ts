@@ -231,6 +231,10 @@ export const academicProfileSchema = z.object({
   links: z.record(z.string(), z.string().url().or(z.literal(""))).optional(),
 });
 
+export const liveTokenSchema = z.object({
+  courseId: z.number().int().positive(),
+});
+
 export const liveMessageSchema = z.object({
   courseId: z.number().int().positive(),
   messageId: z.string().trim().optional(),

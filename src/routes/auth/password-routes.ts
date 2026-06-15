@@ -26,7 +26,7 @@ export function registerPasswordRoutes(app: Express, ctx: RouteContext): void {
       console.log(`[DEV] Code de réinitialisation envoyé à ${api.maskEmailForDevLog(user.email)} (userId=${user.id})`);
     }
 
-    await api.createEmailVerificationCode(api.prisma, user.id, code);
+    await api.createEmailVerificationCode(api.prisma, user.id, code, "PASSWORD_RESET");
 
     try {
       const delivery = await api.sendVerificationEmail({
@@ -107,7 +107,7 @@ export function registerPasswordRoutes(app: Express, ctx: RouteContext): void {
     }
 
     const verification = await api.prisma.emailVerificationCode.findFirst({
-      where: { userId: user.id, usedAt: null },
+      where: { userId: user.id, purpose: "PASSWORD_RESET", usedAt: null },
 
       orderBy: { createdAt: "desc" },
     });

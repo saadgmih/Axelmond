@@ -260,7 +260,8 @@ export const api = {
   updateLessonContent: (contentId: string, data: { title?: string; body?: string | null; published?: boolean }) =>
     request<any>("PATCH", `/api/lesson-contents/${contentId}`, data),
   deleteLessonContent: (contentId: string) => request<any>("DELETE", `/api/lesson-contents/${contentId}`),
-  getQuiz: (moduleId: number) => request<any[]>("GET", `/api/quizzes/${moduleId}`),
+  getQuiz: (courseId: number, moduleId: number) =>
+    request<any[]>("GET", `/api/courses/${courseId}/quizzes/${moduleId}`),
   submitQuizAttempt: (courseId: number, moduleId: number, answers: Record<string, string>) =>
     request<any>("POST", `/api/courses/${courseId}/modules/${moduleId}/quiz-attempts`, { answers }),
   getCourseGrades: (courseId: number) => request<any[]>("GET", `/api/courses/${courseId}/grades`),
@@ -504,15 +505,4 @@ export function setSessionToken(token: string | undefined, csrfToken?: string) {
   } else {
     clearSessionTokens();
   }
-}
-
-export async function fetchWithAuth(path: string, method: string, body?: unknown): Promise<Response> {
-  let token = accessTokenMemory;
-  const url = path.startsWith("http") ? path : `${BASE_URL}${path}`;
-  let res = await fetch(url, buildRequestOptions(method, body, token));
-  if (res.status === 401 && !AUTH_PATHS_WITHOUT_REFRESH.has(path)) {
-    token = await refreshSessionToken();
-    if (token) res = await fetch(url, buildRequestOptions(method, body, token));
-  }
-  return res;
 }

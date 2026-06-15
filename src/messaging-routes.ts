@@ -14,6 +14,8 @@ import {
   serializeMessage,
   serializeMessagingUser,
   validateMessageAttachmentInput,
+  verifyMessageAttachmentOwnership,
+  consumeMessageAttachmentUpload,
   type MessageAttachmentInput,
 } from "./messaging";
 import { findOrCreateDirectConversation } from "./direct-conversations";
@@ -285,6 +287,11 @@ export function registerMessagingRoutes(
           res.status(400).json({ error: attachmentError });
           return;
         }
+        const ownershipError = await verifyMessageAttachmentOwnership(authUser.id, conversationId, attachment);
+        if (ownershipError) {
+          res.status(403).json({ error: ownershipError });
+          return;
+        }
       }
 
       const message = await prisma.message.create({
@@ -321,6 +328,10 @@ export function registerMessagingRoutes(
 
       const payload = serializeMessage(message as any, authUser.id);
       emitToConversation(conversationId, "message:new", payload);
+
+      if (attachment?.storageKey) {
+        await consumeMessageAttachmentUpload(attachment.storageKey);
+      }
 
       const participants = await prisma.conversationParticipant.findMany({
         where: { conversationId },

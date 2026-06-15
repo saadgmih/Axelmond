@@ -3,12 +3,16 @@ import {
   buildDirectConversationKey,
   findDirectConversationId as lookupDirectConversationId,
 } from "./direct-conversations";
+import { cacheDel, cacheGet, cacheSet } from "./cache";
 
 export { buildDirectConversationKey };
 import { isStudentRole, isTeacherSpaceRole, type UserRole } from "./rbac";
 
 export const MESSAGE_BODY_MAX = 4000;
 export const MESSAGE_SEARCH_MIN = 2;
+
+const MESSAGE_UPLOAD_CACHE_PREFIX = "message-upload:";
+const MESSAGE_UPLOAD_CACHE_TTL_SECONDS = 3600;
 
 export const MESSAGE_ATTACHMENT_LIMITS = {
   IMAGE: 8 * 1024 * 1024,
@@ -54,6 +58,52 @@ export interface MessageAttachmentInput {
   storageKey?: string;
 }
 
+export function messageUploadCacheKey(storageKey: string): string {
+  return `${MESSAGE_UPLOAD_CACHE_PREFIX}${storageKey}`;
+}
+
+export async function registerMessageAttachmentUpload(params: {
+  storageKey: string;
+  userId: string;
+  conversationId: string;
+}): Promise<void> {
+  await cacheSet(
+    messageUploadCacheKey(params.storageKey),
+    JSON.stringify({ userId: params.userId, conversationId: params.conversationId }),
+    MESSAGE_UPLOAD_CACHE_TTL_SECONDS,
+  );
+}
+
+export async function verifyMessageAttachmentOwnership(
+  userId: string,
+  conversationId: string,
+  attachment: MessageAttachmentInput,
+): Promise<string | null> {
+  const storageKey = String(attachment.storageKey || "").trim();
+  if (!storageKey) {
+    return "Clé de stockage requise pour la pièce jointe";
+  }
+
+  const raw = await cacheGet(messageUploadCacheKey(storageKey));
+  if (!raw) {
+    return "Pièce jointe expirée ou non autorisée";
+  }
+
+  try {
+    const meta = JSON.parse(raw) as { userId?: string; conversationId?: string };
+    if (meta.userId !== userId || meta.conversationId !== conversationId) {
+      return "Pièce jointe non autorisée pour cette conversation";
+    }
+    return null;
+  } catch {
+    return "Pièce jointe non autorisée";
+  }
+}
+
+export async function consumeMessageAttachmentUpload(storageKey: string): Promise<void> {
+  await cacheDel(messageUploadCacheKey(storageKey));
+}
+
 export function validateMessageAttachmentInput(input: MessageAttachmentInput): string | null {
   const kind = input.kind;
   const allowed = ALLOWED_MIME_BY_KIND[kind] || [];
@@ -61,6 +111,7 @@ export function validateMessageAttachmentInput(input: MessageAttachmentInput): s
   if (!allowed.includes(mime)) return "Type de fichier non autorisé";
   if (!input.url || !isAllowedAttachmentUrl(String(input.url))) return "URL de pièce jointe invalide";
   if (!input.fileName?.trim()) return "Nom de fichier requis";
+  if (!input.storageKey?.trim()) return "Clé de stockage requise pour la pièce jointe";
   const limit = MESSAGE_ATTACHMENT_LIMITS[kind];
   if (input.sizeBytes <= 0 || input.sizeBytes > limit) return "Taille de fichier non autorisée";
   return null;

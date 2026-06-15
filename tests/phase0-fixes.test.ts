@@ -11,8 +11,8 @@ rulesTest("phase0-fixes", () => {
   const sessionSource = fs.readFileSync("src/hooks/useStudentCourseSession.ts", "utf8");
   const paymentModalSource = fs.readFileSync("src/components/PaymentModal.tsx", "utf8");
 
-  assert.match(serverSource, /await api\.revokeAllUserRefreshTokens\(user\.id\)/);
-  assert.match(serverSource, /await api\.revokeAllUserRefreshTokens\(authUser\.id\)/);
+  assert.match(serverSource, /await api\.revokeAllUserSessions\(user\.id\)/);
+  assert.match(serverSource, /await api\.revokeAllUserSessions\(authUser\.id\)/);
   assert.match(serverSource, /api\.seedQuizModuleCourseMap\[moduleId\]/);
   assert.match(serverSource, /err instanceof api\.ChatTutorServiceError/);
   assert.match(serverSource, /toChatTutorClientResponse\(err\)/);

@@ -49,7 +49,7 @@ export function useStudentCourseSession({
   useEffect(() => {
     if (selectedModule && selectedModule.type === "quiz") {
       api
-        .getQuiz(selectedModule.id)
+        .getQuiz(selectedCourse.id, selectedModule.id)
         .then((data) => setQuizQuestions(data))
         .catch((err) => {
           console.error("Failed to fetch quiz:", err);
@@ -58,7 +58,7 @@ export function useStudentCourseSession({
     } else {
       setQuizQuestions(null);
     }
-  }, [selectedModule]);
+  }, [selectedModule, selectedCourse?.id]);
 
   useEffect(() => {
     if (!currentUser || currentView !== "course" || !selectedCourse) return;

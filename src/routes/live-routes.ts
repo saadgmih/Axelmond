@@ -6,7 +6,7 @@ import * as api from "../server/route-deps";
 export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
   const { requireAuth, requireRbac, validateBody } = ctx.middleware;
 
-  app.post("/api/livekit/token", requireAuth, async (req, res) => {
+  app.post("/api/livekit/token", requireAuth, validateBody(api.liveTokenSchema), async (req, res) => {
     const { courseId } = req.body;
 
     const authUser = getAuthUser(req);
@@ -39,13 +39,22 @@ export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
 
     const roomName = api.buildLiveKitRoomName(course.id);
 
-    const session = await api.ensureLiveSession(course, authUser);
+    const sessionResult = await api.ensureLiveSession(course, authUser);
+
+    if (!sessionResult.ok) {
+      res.status(sessionResult.status).json({ error: sessionResult.error });
+      return;
+    }
+
+    const session = sessionResult.session;
 
     await api.recordLiveAttendanceJoin(session, authUser);
 
     const participantName = authUser.fullName;
 
     const participantIdentity = api.getLiveKitParticipantIdentity(authUser.id);
+
+    const canPublish = api.canPublishLiveMedia(authUser.role);
 
     const token = new api.AccessToken(liveKitConfig.apiKey, liveKitConfig.apiSecret, {
       identity: participantIdentity,
@@ -74,14 +83,19 @@ export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
 
       roomJoin: true,
 
-      canPublish: true,
+      canPublish,
 
       canSubscribe: true,
 
       canPublishData: true,
     });
 
-    api.logLiveKit("INFO", "Token issued", { roomName, identity: participantIdentity, role: authUser.role });
+    api.logLiveKit("INFO", "Token issued", {
+      roomName,
+      identity: participantIdentity,
+      role: authUser.role,
+      canPublish,
+    });
 
     res.json({
       url: liveKitConfig.url,
@@ -155,16 +169,29 @@ export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
       return;
     }
 
-    const session = await api.ensureLiveSession(access.course, authUser);
+    const sessionResult = await api.ensureLiveSession(access.course, authUser);
+
+    if (!sessionResult.ok) {
+      res.status(sessionResult.status).json({ error: sessionResult.error });
+      return;
+    }
+
+    const session = sessionResult.session;
 
     const clientId = String(messageId || `${Date.now()}-${authUser.id}`);
 
-    const message = await api.prisma.liveMessage.upsert({
-      where: { clientId },
+    const existing = await api.prisma.liveMessage.findUnique({ where: { clientId } });
+    if (existing) {
+      if (existing.userId !== authUser.id) {
+        res.status(403).json({ error: "Identifiant de message invalide" });
+        return;
+      }
+      res.status(201).json({ id: existing.clientId || existing.id });
+      return;
+    }
 
-      update: {},
-
-      create: {
+    const message = await api.prisma.liveMessage.create({
+      data: {
         clientId,
 
         roomName: session.roomName,
@@ -357,7 +384,14 @@ export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
       return;
     }
 
-    const session = await api.ensureLiveSession(access.course, authUser);
+    const sessionResult = await api.ensureLiveSession(access.course, authUser);
+
+    if (!sessionResult.ok) {
+      res.status(sessionResult.status).json({ error: sessionResult.error });
+      return;
+    }
+
+    const session = sessionResult.session;
 
     await api.recordLiveAction({
       sessionId: session.id,
@@ -436,7 +470,14 @@ export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
         return;
       }
 
-      const session = await api.ensureLiveSession(access.course, authUser);
+      const sessionResult = await api.ensureLiveSession(access.course, authUser);
+
+      if (!sessionResult.ok) {
+        res.status(sessionResult.status).json({ error: sessionResult.error });
+        return;
+      }
+
+      const session = sessionResult.session;
 
       const roomService = api.getLiveKitRoomService(liveKitConfig);
 
@@ -547,7 +588,12 @@ export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
       return;
     }
 
-    const session = await api.ensureLiveSession(access.course, authUser);
+    const sessionResult = await api.ensureLiveSession(access.course, authUser);
+    if (!sessionResult.ok) {
+      res.status(sessionResult.status).json({ error: sessionResult.error });
+      return;
+    }
+    const session = sessionResult.session;
     const roomService = api.getLiveKitRoomService(liveKitConfig);
     try {
       await roomService.sendData(

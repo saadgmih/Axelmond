@@ -84,8 +84,8 @@ rulesTest("student-objectives-ownership", () => {
   assert.match(objectiveViewSource, /Objectifs validés/);
   assert.match(objectiveViewSource, /Objectifs en retard/);
   assert.match(objectiveViewSource, /Proches de la date limite/);
-  assert.match(objectiveViewSource, /Calendrier des objectifs/);
-  assert.match(objectiveViewSource, /Série productive/);
+  assert.match(objectiveViewSource, /AxelCalendarShell/);
+  assert.match(objectiveViewSource, /Streak/);
   assert.match(objectiveViewSource, /Récurrence/);
   assert.match(objectiveViewSource, /Objectifs en cours/);
   assert.match(objectiveViewSource, /Objectifs terminés/);

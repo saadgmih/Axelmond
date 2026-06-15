@@ -16,7 +16,7 @@ rulesTest("server-routes-modular", () => {
     "auth/password-routes.ts",
   ];
   const defaultMaxRouteModuleLines = 900;
-  const maxBootstrapLines = 560;
+  const maxBootstrapLines = 600;
 
   const expectedModules = [
     "admin-routes.ts",

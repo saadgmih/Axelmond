@@ -3,7 +3,7 @@ import { getClientErrorMessage } from "../client-errors";
 import { motion } from "motion/react";
 import { User, ShieldAlert, Mail, Lock, LogIn, UserPlus, KeyRound } from "lucide-react";
 import { startAuthentication } from "@simplewebauthn/browser";
-import { Course, Invoice } from "../types";
+import { Invoice } from "../types";
 import { api, setSessionToken } from "../api";
 import AuthMfaStep from "./AuthMfaStep";
 import { UserRole, getTeacherLoginSectorLabel, getTeacherLoginTabLabel } from "../rbac";
@@ -102,10 +102,9 @@ export interface AppUser {
 
 interface AuthScreenProps {
   onLoginSuccess: (user: AppUser) => void;
-  courses: Course[];
 }
 
-export default function AuthScreen({ onLoginSuccess, courses: _courses }: AuthScreenProps) {
+export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
   const { preferences } = useAccessibilityPreferences();
   const [activeSector, setActiveSector] = useState<"student" | "teacher">("student");
   const [authMode, setAuthMode] = useState<"login" | "register" | "forgot" | "reset">("register");

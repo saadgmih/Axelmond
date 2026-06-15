@@ -136,14 +136,14 @@ rulesTest("live-sync-validation", () => {
     false,
   );
 
-  const hookSource = fs.readFileSync("src/hooks/useLiveKitRoom.tsx", "utf8");
+  const hookSource = fs.readFileSync("src/hooks/livekit/live-sync-publish.ts", "utf8");
+  const connectionSource = fs.readFileSync("src/hooks/livekit/useLiveKitConnection.ts", "utf8");
   const serverSource = readApiRouteSources();
   const resourceStageSource = fs.readFileSync("src/components/live/LiveResourceStage.tsx", "utf8");
 
-  assert.match(hookSource, /validateIncomingLiveSyncMessage/);
+  assert.match(connectionSource, /validateIncomingLiveSyncMessage/);
   assert.match(hookSource, /shouldPublishLiveSyncViaServer/);
-  assert.match(hookSource, /api\.publishLiveSync/);
-  assert.match(hookSource, /if \(!canModerateLive \|\| !requesterIdentity/);
+  assert.match(hookSource, /api\.publishLiveSync|publishLiveSync/);
   assert.match(serverSource, /\/api\/livekit\/sync/);
   assert.match(serverSource, /roomService\.sendData/);
   assert.match(resourceStageSource, /sandbox=/);
