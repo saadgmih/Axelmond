@@ -20,27 +20,13 @@ import {
   Database,
   RefreshCw,
 } from "lucide-react";
+import {
+  InstitutionalPageRoot,
+  InstitutionalHero,
+  InstitutionalFade,
+  InstitutionalSectionHeading,
+} from "./legal/InstitutionalPageShell";
 
-// ─── Fade-in wrapper ──────────────────────────────────────────────────────────
-const FadeIn: React.FC<{ inView: boolean; delay?: number; children: React.ReactNode; className?: string }> = ({
-  inView,
-  delay = 0,
-  children,
-  className = "",
-}) => (
-  <div
-    className={className}
-    style={{
-      opacity: inView ? 1 : 0,
-      transform: inView ? "translateY(0)" : "translateY(22px)",
-      transition: `opacity 0.55s ease ${delay}ms, transform 0.55s ease ${delay}ms`,
-    }}
-  >
-    {children}
-  </div>
-);
-
-// ─── Cookie type card ─────────────────────────────────────────────────────────
 const CookieTypeCard: React.FC<{
   icon: React.ReactNode;
   emoji: string;
@@ -70,11 +56,10 @@ const CookieTypeCard: React.FC<{
   delay,
   inView,
 }) => (
-  <FadeIn inView={inView} delay={delay}>
+  <InstitutionalFade inView={inView} delay={delay}>
     <div
       className={`h-full rounded-2xl border p-6 space-y-4 ${border} ${bg} hover:-translate-y-0.5 transition-transform duration-200`}
     >
-      {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-slate-900/70 flex items-center justify-center text-xl flex-shrink-0">
@@ -94,7 +79,6 @@ const CookieTypeCard: React.FC<{
         )}
       </div>
       <p className="text-[12px] text-slate-400 leading-relaxed">{description}</p>
-      {/* Items */}
       <ul className="space-y-2">
         {items.map((item) => (
           <li key={item} className="flex items-center gap-2 text-[12px] text-slate-300">
@@ -104,21 +88,7 @@ const CookieTypeCard: React.FC<{
         ))}
       </ul>
     </div>
-  </FadeIn>
-);
-
-// ─── Section header ───────────────────────────────────────────────────────────
-const SectionHeader: React.FC<{
-  number: string;
-  icon: React.ReactNode;
-  title: string;
-  accentClass: string;
-}> = ({ number, icon, title, accentClass }) => (
-  <div className="flex items-center gap-3 mb-6">
-    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 ${accentClass}`}>{icon}</div>
-    <span className="text-[10px] font-black text-slate-600 tabular-nums">{number}</span>
-    <h2 className="text-xl font-black text-white">{title}</h2>
-  </div>
+  </InstitutionalFade>
 );
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
@@ -294,23 +264,13 @@ export default function CookiesView() {
   ];
 
   return (
-    <div className="min-h-full bg-slate-950 text-white">
-      {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <div
-        ref={heroRef.ref}
-        className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-orange-950/10 to-slate-950 border-b border-slate-800/50"
+    <InstitutionalPageRoot>
+      <InstitutionalHero
+        heroRef={heroRef}
+        gradientClass="via-orange-950/10"
+        topBlobClass="top-0 right-0 w-[480px] h-[480px] bg-orange-600/5 rounded-full translate-x-60 -translate-y-60"
+        bottomBlobClass="bottom-0 left-0 w-80 h-80 bg-amber-600/5 rounded-full -translate-x-40 translate-y-40"
       >
-        <div className="absolute top-0 right-0 w-[480px] h-[480px] bg-orange-600/5 rounded-full translate-x-60 -translate-y-60 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-amber-600/5 rounded-full -translate-x-40 translate-y-40 blur-3xl pointer-events-none" />
-
-        <div
-          className="relative max-w-5xl mx-auto px-6 md:px-10 py-12 md:py-16"
-          style={{
-            opacity: heroRef.inView ? 1 : 0,
-            transform: heroRef.inView ? "translateY(0)" : "translateY(24px)",
-            transition: "opacity 0.7s ease, transform 0.7s ease",
-          }}
-        >
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
             {/* Left */}
             <div className="space-y-5 max-w-2xl">
@@ -386,15 +346,14 @@ export default function CookiesView() {
               social n'est connecté à vos données de navigation sur Axelmond Research Labs.
             </p>
           </div>
-        </div>
-      </div>
+      </InstitutionalHero>
 
       <div className="max-w-5xl mx-auto px-6 md:px-10 py-10 space-y-10">
         {/* ── 1. Introduction ──────────────────────────────────────────────── */}
         <div ref={s1.ref}>
-          <FadeIn inView={s1.inView}>
+          <InstitutionalFade inView={s1.inView}>
             <div className="bg-slate-900 border border-slate-800 rounded-3xl p-7 md:p-9">
-              <SectionHeader
+              <InstitutionalSectionHeading
                 number="01"
                 title="Introduction"
                 icon={<Info className="w-5 h-5 text-amber-300" />}
@@ -429,14 +388,14 @@ export default function CookiesView() {
                 ))}
               </div>
             </div>
-          </FadeIn>
+          </InstitutionalFade>
         </div>
 
         {/* ── 2. Qu'est-ce qu'un cookie ? ──────────────────────────────────── */}
         <div ref={s2.ref}>
-          <FadeIn inView={s2.inView}>
+          <InstitutionalFade inView={s2.inView}>
             <div className="bg-slate-900 border border-slate-800 rounded-3xl p-7 md:p-9">
-              <SectionHeader
+              <InstitutionalSectionHeading
                 number="02"
                 title="Qu'est-ce qu'un cookie ?"
                 icon={<Cookie className="w-5 h-5 text-orange-300" />}
@@ -496,14 +455,14 @@ export default function CookiesView() {
                 </div>
               </div>
             </div>
-          </FadeIn>
+          </InstitutionalFade>
         </div>
 
         {/* ── 3. Types de cookies ───────────────────────────────────────────── */}
         <div ref={s3.ref}>
-          <FadeIn inView={s3.inView}>
+          <InstitutionalFade inView={s3.inView}>
             <div className="bg-slate-900 border border-slate-800 rounded-3xl p-7 md:p-9">
-              <SectionHeader
+              <InstitutionalSectionHeading
                 number="03"
                 title="Types de cookies utilisés"
                 icon={<Settings className="w-5 h-5 text-violet-300" />}
@@ -515,14 +474,14 @@ export default function CookiesView() {
                 ))}
               </div>
             </div>
-          </FadeIn>
+          </InstitutionalFade>
         </div>
 
         {/* ── 4. Finalités ─────────────────────────────────────────────────── */}
         <div ref={s4.ref}>
-          <FadeIn inView={s4.inView}>
+          <InstitutionalFade inView={s4.inView}>
             <div className="bg-slate-900 border border-slate-800 rounded-3xl p-7 md:p-9">
-              <SectionHeader
+              <InstitutionalSectionHeading
                 number="04"
                 title="Finalités des cookies"
                 icon={<Globe className="w-5 h-5 text-sky-300" />}
@@ -546,14 +505,14 @@ export default function CookiesView() {
                 ))}
               </div>
             </div>
-          </FadeIn>
+          </InstitutionalFade>
         </div>
 
         {/* ── 5. Gestion ───────────────────────────────────────────────────── */}
         <div ref={s5.ref}>
-          <FadeIn inView={s5.inView}>
+          <InstitutionalFade inView={s5.inView}>
             <div className="bg-slate-900 border border-slate-800 rounded-3xl p-7 md:p-9">
-              <SectionHeader
+              <InstitutionalSectionHeading
                 number="05"
                 title="Gestion des cookies"
                 icon={<Sliders className="w-5 h-5 text-teal-300" />}
@@ -603,16 +562,16 @@ export default function CookiesView() {
                 </p>
               </div>
             </div>
-          </FadeIn>
+          </InstitutionalFade>
         </div>
 
         {/* ── 6. Protection des données ────────────────────────────────────── */}
         <div ref={s6.ref}>
-          <FadeIn inView={s6.inView}>
+          <InstitutionalFade inView={s6.inView}>
             <div className="relative overflow-hidden bg-slate-900 border border-emerald-900/40 rounded-3xl p-7 md:p-9">
               <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-600/4 rounded-full translate-x-32 -translate-y-32 blur-2xl pointer-events-none" />
               <div className="relative">
-                <SectionHeader
+                <InstitutionalSectionHeading
                   number="06"
                   title="Protection des données"
                   icon={<Shield className="w-5 h-5 text-emerald-300" />}
@@ -672,14 +631,14 @@ export default function CookiesView() {
                 </div>
               </div>
             </div>
-          </FadeIn>
+          </InstitutionalFade>
         </div>
 
         {/* ── 7. Durée de conservation ──────────────────────────────────────── */}
         <div ref={s7.ref}>
-          <FadeIn inView={s7.inView}>
+          <InstitutionalFade inView={s7.inView}>
             <div className="bg-slate-900 border border-slate-800 rounded-3xl p-7 md:p-9">
-              <SectionHeader
+              <InstitutionalSectionHeading
                 number="07"
                 title="Durée de conservation"
                 icon={<Clock className="w-5 h-5 text-pink-300" />}
@@ -768,14 +727,14 @@ export default function CookiesView() {
                 </table>
               </div>
             </div>
-          </FadeIn>
+          </InstitutionalFade>
         </div>
 
         {/* ── 8. Contact ────────────────────────────────────────────────────── */}
         <div ref={s8.ref}>
-          <FadeIn inView={s8.inView}>
+          <InstitutionalFade inView={s8.inView}>
             <div className="bg-slate-900 border border-slate-800 rounded-3xl p-7 md:p-9">
-              <SectionHeader
+              <InstitutionalSectionHeading
                 number="08"
                 title="Contact"
                 icon={<Mail className="w-5 h-5 text-rose-300" />}
@@ -834,9 +793,9 @@ export default function CookiesView() {
                 </div>
               </div>
             </div>
-          </FadeIn>
+          </InstitutionalFade>
         </div>
       </div>
-    </div>
+    </InstitutionalPageRoot>
   );
 }

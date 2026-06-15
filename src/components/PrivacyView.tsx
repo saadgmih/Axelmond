@@ -20,85 +20,14 @@ import {
   Server,
   Key,
 } from "lucide-react";
-
-// ─── Section wrapper ──────────────────────────────────────────────────────────
-interface SectionProps {
-  id: string;
-  number: string;
-  icon: React.ReactNode;
-  title: string;
-  accent: string; // Tailwind border/icon colour classes
-  bgAccent: string; // Tailwind bg tint class
-  children: React.ReactNode;
-  delay?: number;
-  inView: boolean;
-}
-const Section: React.FC<SectionProps> = ({
-  id,
-  number,
-  icon,
-  title,
-  accent,
-  bgAccent,
-  children,
-  delay = 0,
-  inView,
-}) => (
-  <div
-    id={id}
-    className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden"
-    style={{
-      opacity: inView ? 1 : 0,
-      transform: inView ? "translateY(0)" : "translateY(24px)",
-      transition: `opacity 0.55s ease ${delay}ms, transform 0.55s ease ${delay}ms`,
-    }}
-  >
-    {/* Section header */}
-    <div className={`flex items-center gap-4 px-7 py-5 border-b border-slate-800 ${bgAccent}`}>
-      <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${accent} bg-slate-900/60`}>
-        {icon}
-      </div>
-      <div className="flex items-center gap-3 min-w-0">
-        <span className="text-[10px] font-black text-slate-500 tabular-nums flex-shrink-0">{number}</span>
-        <h2 className="text-base font-black text-white">{title}</h2>
-      </div>
-    </div>
-    {/* Section body */}
-    <div className="px-7 py-6 space-y-4 text-sm text-slate-300 leading-relaxed">{children}</div>
-  </div>
-);
-
-// ─── Info row (label + value) ─────────────────────────────────────────────────
-const InfoRow: React.FC<{ label: string; value: string; icon?: React.ReactNode }> = ({ label, value, icon }) => (
-  <div className="flex items-start gap-3 bg-slate-950/50 border border-slate-800/60 rounded-xl px-4 py-3">
-    {icon && <span className="text-slate-500 flex-shrink-0 mt-0.5">{icon}</span>}
-    <div className="min-w-0">
-      <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">{label}</div>
-      <div className="text-slate-200 text-sm font-semibold mt-0.5">{value}</div>
-    </div>
-  </div>
-);
-
-// ─── Bullet list ──────────────────────────────────────────────────────────────
-const BulletList: React.FC<{ items: string[]; color?: string }> = ({ items, color = "text-indigo-400" }) => (
-  <ul className="space-y-2">
-    {items.map((item) => (
-      <li key={item} className="flex items-start gap-2.5">
-        <CheckCircle className={`w-4 h-4 flex-shrink-0 mt-0.5 ${color}`} />
-        <span>{item}</span>
-      </li>
-    ))}
-  </ul>
-);
-
-// ─── Right chip ───────────────────────────────────────────────────────────────
-const Chip: React.FC<{ label: string; color: string }> = ({ label, color }) => (
-  <span
-    className={`inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest border px-2.5 py-1 rounded-full ${color}`}
-  >
-    {label}
-  </span>
-);
+import {
+  InstitutionalPageRoot,
+  InstitutionalHero,
+  InstitutionalSection,
+  InstitutionalInfoRow,
+  InstitutionalBulletList,
+  InstitutionalChip,
+} from "./legal/InstitutionalPageShell";
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function PrivacyView() {
@@ -128,23 +57,15 @@ export default function PrivacyView() {
   ];
 
   return (
-    <div className="min-h-full bg-slate-950 text-white">
-      {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <div
-        ref={heroRef.ref}
-        className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950/20 to-slate-950 border-b border-slate-800/50"
+    <InstitutionalPageRoot>
+      <InstitutionalHero
+        heroRef={heroRef}
+        gradientClass="via-indigo-950/20"
+        topBlobClass="top-0 right-0 w-96 h-96 bg-indigo-600/8 rounded-full translate-x-48 -translate-y-48"
+        bottomBlobClass="bottom-0 left-0 w-64 h-64 bg-violet-600/8 rounded-full -translate-x-32 translate-y-32"
+        translateY="20px"
+        transition="opacity 0.65s ease, transform 0.65s ease"
       >
-        <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-600/8 rounded-full translate-x-48 -translate-y-48 pointer-events-none blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-violet-600/8 rounded-full -translate-x-32 translate-y-32 pointer-events-none blur-3xl" />
-
-        <div
-          className="relative max-w-5xl mx-auto px-6 md:px-10 py-12 md:py-16"
-          style={{
-            opacity: heroRef.inView ? 1 : 0,
-            transform: heroRef.inView ? "translateY(0)" : "translateY(20px)",
-            transition: "opacity 0.65s ease, transform 0.65s ease",
-          }}
-        >
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
             <div className="space-y-4">
               <span className="text-[10px] font-black uppercase tracking-widest text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full inline-block">
@@ -171,8 +92,8 @@ export default function PrivacyView() {
                 </div>
                 <div className="text-white font-black text-sm">{lastUpdate}</div>
                 <div className="flex items-center justify-end gap-2">
-                  <Chip label={version} color="text-indigo-300 border-indigo-500/30 bg-indigo-500/10" />
-                  <Chip label="Loi 09-08" color="text-emerald-300 border-emerald-500/30 bg-emerald-500/10" />
+                  <InstitutionalChip label={version} color="text-indigo-300 border-indigo-500/30 bg-indigo-500/10" />
+                  <InstitutionalChip label="Loi 09-08" color="text-emerald-300 border-emerald-500/30 bg-emerald-500/10" />
                 </div>
               </div>
             </div>
@@ -199,8 +120,7 @@ export default function PrivacyView() {
               pratiques en matière de protection des données personnelles des utilisateurs de la plateforme.
             </div>
           </div>
-        </div>
-      </div>
+      </InstitutionalHero>
 
       <div className="max-w-5xl mx-auto px-6 md:px-10 py-10 space-y-8">
         {/* ── TABLE OF CONTENTS ──────────────────────────────────────────── */}
@@ -239,7 +159,7 @@ export default function PrivacyView() {
 
         {/* ── SECTION 1 — Données collectées ─────────────────────────────── */}
         <div ref={s1Ref.ref}>
-          <Section
+          <InstitutionalSection
             id="s1"
             number="01"
             title="Données collectées"
@@ -293,7 +213,7 @@ export default function PrivacyView() {
                 },
               ].map(({ category, items, color, badge }) => (
                 <div key={category} className={`rounded-2xl border p-4 space-y-2.5 ${color}`}>
-                  <Chip label={category} color={badge} />
+                  <InstitutionalChip label={category} color={badge} />
                   <ul className="space-y-1.5">
                     {items.map((item) => (
                       <li key={item} className="flex items-start gap-2 text-[12px] text-slate-400">
@@ -314,12 +234,12 @@ export default function PrivacyView() {
                 paiements sont traités exclusivement par PayPal.
               </p>
             </div>
-          </Section>
+          </InstitutionalSection>
         </div>
 
         {/* ── SECTION 2 — Utilisation ─────────────────────────────────────── */}
         <div ref={s2Ref.ref}>
-          <Section
+          <InstitutionalSection
             id="s2"
             number="02"
             title="Utilisation des données"
@@ -358,7 +278,7 @@ export default function PrivacyView() {
                 </div>
               ))}
             </div>
-            <BulletList
+            <InstitutionalBulletList
               color="text-violet-400"
               items={[
                 "Envoi d'e-mails de vérification et de notifications de service (aucun e-mail marketing sans consentement explicite)",
@@ -367,12 +287,12 @@ export default function PrivacyView() {
                 "Personnalisation de l'expérience pédagogique (recommandations de modules basées sur votre filière)",
               ]}
             />
-          </Section>
+          </InstitutionalSection>
         </div>
 
         {/* ── SECTION 3 — Protection ─────────────────────────────────────── */}
         <div ref={s3Ref.ref}>
-          <Section
+          <InstitutionalSection
             id="s3"
             number="03"
             title="Protection des données"
@@ -439,18 +359,18 @@ export default function PrivacyView() {
                       </div>
                       <span className="text-white text-sm font-bold">{title}</span>
                     </div>
-                    <Chip label={badgeLabel} color={badge} />
+                    <InstitutionalChip label={badgeLabel} color={badge} />
                   </div>
                   <p className="text-[12px] text-slate-400 leading-relaxed">{desc}</p>
                 </div>
               ))}
             </div>
-          </Section>
+          </InstitutionalSection>
         </div>
 
         {/* ── SECTION 4 — Partage ────────────────────────────────────────── */}
         <div ref={s4Ref.ref}>
-          <Section
+          <InstitutionalSection
             id="s4"
             number="04"
             title="Partage des informations"
@@ -507,7 +427,7 @@ export default function PrivacyView() {
                 <div key={name} className={`rounded-2xl border p-4 ${color}`}>
                   <div className="flex flex-wrap items-center gap-2 mb-2">
                     <span className="text-white font-bold text-sm">{name}</span>
-                    <Chip label={role} color={chip} />
+                    <InstitutionalChip label={role} color={chip} />
                   </div>
                   <p className="text-[12px] text-slate-400 leading-relaxed">{data}</p>
                   <p className="text-[10px] text-slate-600 mt-1.5">Politique de confidentialité : {url}</p>
@@ -519,12 +439,12 @@ export default function PrivacyView() {
               être tenu de communiquer certaines données aux autorités compétentes. Nous notifions les utilisateurs
               concernés dans les limites permises par la loi.
             </p>
-          </Section>
+          </InstitutionalSection>
         </div>
 
         {/* ── SECTION 5 — Conservation ───────────────────────────────────── */}
         <div ref={s5Ref.ref}>
-          <Section
+          <InstitutionalSection
             id="s5"
             number="05"
             title="Conservation des données"
@@ -571,19 +491,19 @@ export default function PrivacyView() {
                   detail: "Expiration courte (15 min à 24h selon le type). Révocation immédiate à la déconnexion.",
                 },
               ].map(({ type, duration, detail: _detail }) => (
-                <InfoRow key={type} label={type} value={duration} icon={<Clock className="w-3.5 h-3.5" />} />
+                <InstitutionalInfoRow key={type} label={type} value={duration} icon={<Clock className="w-3.5 h-3.5" />} />
               ))}
             </div>
             <p className="text-[12px] text-slate-500">
               À l'issue de la période de conservation, les données sont soit supprimées de manière sécurisée, soit
               anonymisées pour des fins statistiques agrégées.
             </p>
-          </Section>
+          </InstitutionalSection>
         </div>
 
         {/* ── SECTION 6 — Droits ─────────────────────────────────────────── */}
         <div ref={s6Ref.ref}>
-          <Section
+          <InstitutionalSection
             id="s6"
             number="06"
             title="Droits des utilisateurs"
@@ -661,12 +581,12 @@ export default function PrivacyView() {
                 contrôle de la protection des Données à caractère Personnel) — cndp.ma.
               </p>
             </div>
-          </Section>
+          </InstitutionalSection>
         </div>
 
         {/* ── SECTION 7 — Cookies ────────────────────────────────────────── */}
         <div ref={s7Ref.ref}>
-          <Section
+          <InstitutionalSection
             id="s7"
             number="07"
             title="Cookies &amp; Stockage local"
@@ -722,9 +642,9 @@ export default function PrivacyView() {
                     <code className="text-xs text-orange-300 bg-orange-900/20 border border-orange-800/30 px-2.5 py-0.5 rounded-lg font-mono">
                       {name}
                     </code>
-                    <Chip label={type} color="text-slate-400 border-slate-700 bg-slate-800/50" />
+                    <InstitutionalChip label={type} color="text-slate-400 border-slate-700 bg-slate-800/50" />
                     {necessary && (
-                      <Chip label="Nécessaire" color="text-emerald-300 border-emerald-500/30 bg-emerald-500/10" />
+                      <InstitutionalChip label="Nécessaire" color="text-emerald-300 border-emerald-500/30 bg-emerald-500/10" />
                     )}
                   </div>
                   <p className="text-[12px] text-slate-400 leading-relaxed">{purpose}</p>
@@ -743,12 +663,12 @@ export default function PrivacyView() {
                 portail académique et ne nécessitent pas de consentement préalable selon la directive ePrivacy.
               </p>
             </div>
-          </Section>
+          </InstitutionalSection>
         </div>
 
         {/* ── SECTION 8 — Contact DPO ────────────────────────────────────── */}
         <div ref={s8Ref.ref}>
-          <Section
+          <InstitutionalSection
             id="s8"
             number="08"
             title="Contact &amp; DPO"
@@ -763,18 +683,18 @@ export default function PrivacyView() {
               contacter notre équipe à l'adresse suivante.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <InfoRow
+              <InstitutionalInfoRow
                 label="Responsable du traitement"
                 value="Axelmond Research Labs"
                 icon={<Shield className="w-3.5 h-3.5" />}
               />
-              <InfoRow
+              <InstitutionalInfoRow
                 label="Contact DPO / Confidentialité"
                 value="verification@axelmond.com"
                 icon={<Mail className="w-3.5 h-3.5" />}
               />
-              <InfoRow label="Domaine officiel" value="axelmond.com" icon={<Globe className="w-3.5 h-3.5" />} />
-              <InfoRow
+              <InstitutionalInfoRow label="Domaine officiel" value="axelmond.com" icon={<Globe className="w-3.5 h-3.5" />} />
+              <InstitutionalInfoRow
                 label="Délai de réponse"
                 value="30 jours calendaires maximum"
                 icon={<Clock className="w-3.5 h-3.5" />}
@@ -796,7 +716,7 @@ export default function PrivacyView() {
                 <div className="text-slate-500 text-[11px]">Délai de traitement d'une réclamation : environ 3 mois</div>
               </div>
             </div>
-          </Section>
+          </InstitutionalSection>
         </div>
 
         {/* ── FOOTER NOTE ────────────────────────────────────────────────── */}
@@ -808,11 +728,11 @@ export default function PrivacyView() {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Chip label="Loi 09-08" color="text-emerald-300 border-emerald-500/30 bg-emerald-500/10" />
-            <Chip label={version} color="text-indigo-300 border-indigo-500/30 bg-indigo-500/10" />
+            <InstitutionalChip label="Loi 09-08" color="text-emerald-300 border-emerald-500/30 bg-emerald-500/10" />
+            <InstitutionalChip label={version} color="text-indigo-300 border-indigo-500/30 bg-indigo-500/10" />
           </div>
         </div>
       </div>
-    </div>
+    </InstitutionalPageRoot>
   );
 }

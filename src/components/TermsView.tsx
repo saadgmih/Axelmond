@@ -22,22 +22,14 @@ import {
   ExternalLink,
   Mail,
 } from "lucide-react";
-
-// ─── Section heading ──────────────────────────────────────────────────────────
-const SectionHeading: React.FC<{
-  number: string;
-  icon: React.ReactNode;
-  title: string;
-  accentClass: string;
-}> = ({ number, icon, title, accentClass }) => (
-  <div className="flex items-center gap-3 mb-6">
-    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 ${accentClass}`}>{icon}</div>
-    <div className="flex items-center gap-3">
-      <span className="text-[10px] font-black text-slate-600 tabular-nums">{number}</span>
-      <h2 className="text-xl font-black text-white">{title}</h2>
-    </div>
-  </div>
-);
+import {
+  InstitutionalPageRoot,
+  InstitutionalHero,
+  InstitutionalSectionHeading,
+  InstitutionalCheckList,
+  InstitutionalForbidList,
+  InstitutionalSectionBlock,
+} from "./legal/InstitutionalPageShell";
 
 // ─── Rule card (icon + title + desc) ─────────────────────────────────────────
 const RuleCard: React.FC<{
@@ -56,53 +48,6 @@ const RuleCard: React.FC<{
   </div>
 );
 
-// ─── Check list ───────────────────────────────────────────────────────────────
-const CheckList: React.FC<{ items: string[]; color?: string }> = ({ items, color = "text-indigo-400" }) => (
-  <ul className="space-y-2.5">
-    {items.map((item) => (
-      <li key={item} className="flex items-start gap-2.5">
-        <CheckCircle className={`w-4 h-4 flex-shrink-0 mt-0.5 ${color}`} />
-        <span className="text-[13px] text-slate-300">{item}</span>
-      </li>
-    ))}
-  </ul>
-);
-
-// ─── Forbidden list ───────────────────────────────────────────────────────────
-const ForbidList: React.FC<{ items: string[] }> = ({ items }) => (
-  <ul className="space-y-2.5">
-    {items.map((item) => (
-      <li key={item} className="flex items-start gap-2.5">
-        <XCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
-        <span className="text-[13px] text-slate-300">{item}</span>
-      </li>
-    ))}
-  </ul>
-);
-
-// ─── Section block ────────────────────────────────────────────────────────────
-const SectionBlock: React.FC<{
-  number: string;
-  icon: React.ReactNode;
-  title: string;
-  accentClass: string;
-  children: React.ReactNode;
-  delay?: number;
-  inView: boolean;
-}> = ({ number, icon, title, accentClass, children, delay = 0, inView }) => (
-  <div
-    className="bg-slate-900 border border-slate-800 rounded-3xl p-7 md:p-9"
-    style={{
-      opacity: inView ? 1 : 0,
-      transform: inView ? "translateY(0)" : "translateY(24px)",
-      transition: `opacity 0.55s ease ${delay}ms, transform 0.55s ease ${delay}ms`,
-    }}
-  >
-    <SectionHeading number={number} icon={icon} title={title} accentClass={accentClass} />
-    {children}
-  </div>
-);
-
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function TermsView() {
   const heroRef = useInView(0.1);
@@ -118,23 +63,13 @@ export default function TermsView() {
   const s10 = useInView();
 
   return (
-    <div className="min-h-full bg-slate-950 text-white">
-      {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <div
-        ref={heroRef.ref}
-        className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-violet-950/15 to-slate-950 border-b border-slate-800/50"
+    <InstitutionalPageRoot>
+      <InstitutionalHero
+        heroRef={heroRef}
+        gradientClass="via-violet-950/15"
+        topBlobClass="top-0 right-0 w-[500px] h-[500px] bg-violet-600/6 rounded-full translate-x-60 -translate-y-60"
+        bottomBlobClass="bottom-0 left-0 w-80 h-80 bg-indigo-600/6 rounded-full -translate-x-40 translate-y-40"
       >
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-violet-600/6 rounded-full translate-x-60 -translate-y-60 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-indigo-600/6 rounded-full -translate-x-40 translate-y-40 blur-3xl pointer-events-none" />
-
-        <div
-          className="relative max-w-5xl mx-auto px-6 md:px-10 py-12 md:py-16"
-          style={{
-            opacity: heroRef.inView ? 1 : 0,
-            transform: heroRef.inView ? "translateY(0)" : "translateY(24px)",
-            transition: "opacity 0.7s ease, transform 0.7s ease",
-          }}
-        >
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
             {/* Left */}
             <div className="space-y-5 max-w-2xl">
@@ -201,14 +136,13 @@ export default function TermsView() {
               <strong className="text-white">verification@axelmond.com</strong>.
             </p>
           </div>
-        </div>
-      </div>
+      </InstitutionalHero>
 
       {/* ── CONTENT ──────────────────────────────────────────────────────── */}
       <div className="max-w-5xl mx-auto px-6 md:px-10 py-10 space-y-8">
         {/* ── 1. Règles générales ─────────────────────────────────────────── */}
         <div ref={s1.ref}>
-          <SectionBlock
+          <InstitutionalSectionBlock
             number="01"
             title="Règles générales"
             icon={<FileText className="w-5 h-5 text-indigo-300" />}
@@ -238,12 +172,12 @@ export default function TermsView() {
                 bg="bg-emerald-950/20"
               />
             </div>
-          </SectionBlock>
+          </InstitutionalSectionBlock>
         </div>
 
         {/* ── 2. Responsabilité du compte ─────────────────────────────────── */}
         <div ref={s2.ref}>
-          <SectionBlock
+          <InstitutionalSectionBlock
             number="02"
             title="Responsabilité du compte"
             icon={<Lock className="w-5 h-5 text-violet-300" />}
@@ -252,7 +186,7 @@ export default function TermsView() {
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
-                <CheckList
+                <InstitutionalCheckList
                   color="text-violet-400"
                   items={[
                     "Vous êtes entièrement responsable de la confidentialité de vos identifiants de connexion (email et mot de passe).",
@@ -284,12 +218,12 @@ export default function TermsView() {
                 </div>
               </div>
             </div>
-          </SectionBlock>
+          </InstitutionalSectionBlock>
         </div>
 
         {/* ── 3. Intégrité académique ─────────────────────────────────────── */}
         <div ref={s3.ref}>
-          <SectionBlock
+          <InstitutionalSectionBlock
             number="03"
             title="Intégrité académique"
             icon={<GraduationCap className="w-5 h-5 text-pink-300" />}
@@ -343,12 +277,12 @@ export default function TermsView() {
                 </div>
               ))}
             </div>
-          </SectionBlock>
+          </InstitutionalSectionBlock>
         </div>
 
         {/* ── 4. Utilisation acceptable ───────────────────────────────────── */}
         <div ref={s4.ref}>
-          <SectionBlock
+          <InstitutionalSectionBlock
             number="04"
             title="Utilisation acceptable"
             icon={<AlertOctagon className="w-5 h-5 text-red-300" />}
@@ -364,7 +298,7 @@ export default function TermsView() {
                 <div className="text-[10px] uppercase tracking-widest text-red-400 font-black mb-1">
                   Infrastructure & Sécurité
                 </div>
-                <ForbidList
+                <InstitutionalForbidList
                   items={[
                     "Perturber intentionnellement le fonctionnement de la plateforme",
                     "Contourner les mécanismes d'authentification ou de contrôle d'accès",
@@ -378,7 +312,7 @@ export default function TermsView() {
                 <div className="text-[10px] uppercase tracking-widest text-red-400 font-black mb-1">
                   Contenu & Comportement
                 </div>
-                <ForbidList
+                <InstitutionalForbidList
                   items={[
                     "Accéder à des données ou ressources non autorisées par votre rôle",
                     "Diffuser du contenu malveillant, diffamatoire ou illégal",
@@ -389,12 +323,12 @@ export default function TermsView() {
                 />
               </div>
             </div>
-          </SectionBlock>
+          </InstitutionalSectionBlock>
         </div>
 
         {/* ── 5. Sécurité et protection ───────────────────────────────────── */}
         <div ref={s5.ref}>
-          <SectionBlock
+          <InstitutionalSectionBlock
             number="05"
             title="Sécurité et protection"
             icon={<Shield className="w-5 h-5 text-emerald-300" />}
@@ -442,7 +376,7 @@ export default function TermsView() {
                 </div>
               ))}
             </div>
-          </SectionBlock>
+          </InstitutionalSectionBlock>
         </div>
 
         {/* ── 6. Sanctions ────────────────────────────────────────────────── */}
@@ -539,7 +473,7 @@ export default function TermsView() {
 
         {/* ── 7. Propriété intellectuelle ─────────────────────────────────── */}
         <div ref={s7.ref}>
-          <SectionBlock
+          <InstitutionalSectionBlock
             number="07"
             title="Propriété intellectuelle"
             icon={<Copyright className="w-5 h-5 text-amber-300" />}
@@ -553,7 +487,7 @@ export default function TermsView() {
                   pédagogiques, interfaces et code source — est protégé par le droit de la propriété intellectuelle
                   applicable.
                 </p>
-                <CheckList
+                <InstitutionalCheckList
                   color="text-amber-400"
                   items={[
                     "Les modules et supports pédagogiques restent la propriété de leurs auteurs (professeurs/ARL).",
@@ -571,7 +505,7 @@ export default function TermsView() {
                       Strictement interdits
                     </span>
                   </div>
-                  <ForbidList
+                  <InstitutionalForbidList
                     items={[
                       "Copier ou reproduire les contenus pédagogiques sans autorisation écrite",
                       "Redistribuer ou republier des modules sur d'autres plateformes",
@@ -582,12 +516,12 @@ export default function TermsView() {
                 </div>
               </div>
             </div>
-          </SectionBlock>
+          </InstitutionalSectionBlock>
         </div>
 
         {/* ── 8. Disponibilité ────────────────────────────────────────────── */}
         <div ref={s8.ref}>
-          <SectionBlock
+          <InstitutionalSectionBlock
             number="08"
             title="Disponibilité du service"
             icon={<Server className="w-5 h-5 text-sky-300" />}
@@ -626,12 +560,12 @@ export default function TermsView() {
                 </div>
               ))}
             </div>
-          </SectionBlock>
+          </InstitutionalSectionBlock>
         </div>
 
         {/* ── 9. Modifications ────────────────────────────────────────────── */}
         <div ref={s9.ref}>
-          <SectionBlock
+          <InstitutionalSectionBlock
             number="09"
             title="Modifications des conditions"
             icon={<RefreshCw className="w-5 h-5 text-teal-300" />}
@@ -677,7 +611,7 @@ export default function TermsView() {
               La version en vigueur des conditions est toujours accessible depuis le pied de page du portail. En cas de
               contradiction entre une version antérieure et la version actuelle, la version actuelle prévaut.
             </p>
-          </SectionBlock>
+          </InstitutionalSectionBlock>
         </div>
 
         {/* ── 10. Informations légales ────────────────────────────────────── */}
@@ -691,7 +625,7 @@ export default function TermsView() {
             }}
           >
             <div className="p-7 md:p-9">
-              <SectionHeading
+              <InstitutionalSectionHeading
                 number="10"
                 title="Informations légales"
                 icon={<BookOpen className="w-5 h-5 text-rose-300" />}
@@ -762,6 +696,6 @@ export default function TermsView() {
           </div>
         </div>
       </div>
-    </div>
+    </InstitutionalPageRoot>
   );
 }

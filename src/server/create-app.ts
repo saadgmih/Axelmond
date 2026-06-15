@@ -28,6 +28,12 @@ import { applyMobileApiCorsHeaders } from "../mobile-api-routes";
 import { emailRateLimitKey } from "../email-rate-limit";
 import { liveKitRateLimitKey } from "../livekit-rate-limit";
 import { adminRateLimitKey } from "../admin-rate-limit";
+import {
+  PAYPAL_CSP_SCRIPT_SRC,
+  PAYPAL_CSP_IMG_SRC,
+  PAYPAL_CSP_FORM_ACTION,
+  buildCspFrameSrc,
+} from "../paypal-csp";
 
 export type AxelmondApp = {
   app: express.Express;
@@ -142,27 +148,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
   const cspNonce = (_req: IncomingMessage, res: ServerResponse) =>
     `'nonce-${(res as express.Response).locals.cspNonce}'`;
 
-  const PAYPAL_CSP_SCRIPT_SRC = [
-    "https://www.paypal.com",
-    "https://www.sandbox.paypal.com",
-    "https://www.paypalobjects.com",
-  ];
-
-  const PAYPAL_CSP_FRAME_SRC = [
-    "'self'",
-    "https://www.paypal.com",
-    "https://www.sandbox.paypal.com",
-    "https://checkout.paypal.com",
-    "https://*.paypal.com",
-    "https://uploadthing.com",
-    "https://*.uploadthing.com",
-    "https://ufs.sh",
-    "https://*.ufs.sh",
-    "https://utfs.io",
-    "https://*.utfs.io",
-  ];
-
-  const PAYPAL_CSP_IMG_SRC = ["https://www.paypal.com", "https://www.paypalobjects.com"];
+  const cspFrameSrc = buildCspFrameSrc();
 
   app.use((_req, res, next) => {
     res.locals.cspNonce = crypto.randomBytes(16).toString("base64");
@@ -197,8 +183,8 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
             ? ["'self'", cspNonce, ...PAYPAL_CSP_SCRIPT_SRC]
             : ["'self'", "'unsafe-inline'", "'unsafe-eval'", ...PAYPAL_CSP_SCRIPT_SRC],
           scriptSrcAttr: ["'none'"],
-          frameSrc: PAYPAL_CSP_FRAME_SRC,
-          childSrc: PAYPAL_CSP_FRAME_SRC,
+          frameSrc: cspFrameSrc,
+          childSrc: cspFrameSrc,
           styleSrc: isProduction ? ["'self'", cspNonce] : ["'self'", "'unsafe-inline'"],
           styleSrcAttr: ["'unsafe-inline'"],
           imgSrc: [
@@ -225,7 +211,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
           connectSrc: buildCspConnectSrc(allowedOrigins, isProduction),
           objectSrc: ["'none'"],
           baseUri: ["'self'"],
-          formAction: ["'self'", "https://www.paypal.com", "https://www.sandbox.paypal.com"],
+          formAction: ["'self'", ...PAYPAL_CSP_FORM_ACTION],
           frameAncestors: ["'self'"],
         },
       },

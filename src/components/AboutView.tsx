@@ -22,6 +22,7 @@ import {
   TrendingUp,
   BarChart,
 } from "lucide-react";
+import { InstitutionalPageRoot, InstitutionalHero } from "./legal/InstitutionalPageShell";
 
 // ─── Animated Counter hook ───────────────────────────────────────────────────
 function useCountUp(target: number, duration = 1800, start = false) {
@@ -311,18 +312,19 @@ export default function AboutView() {
   ];
 
   return (
-    <div className="min-h-full bg-slate-950 text-white">
-      {/* ── HERO SECTION ────────────────────────────────────────────────── */}
-      <div
-        ref={heroRef.ref}
-        className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950/30 to-slate-950 border-b border-slate-800/50"
+    <InstitutionalPageRoot>
+      <InstitutionalHero
+        heroRef={heroRef}
+        gradientClass="via-indigo-950/30"
+        maxWidthClass="max-w-6xl"
+        contentClassName="px-6 md:px-10 py-16 md:py-24"
+        translateY="30px"
+        extraBlobs={
+          <div className="absolute top-1/2 left-0 w-64 h-64 bg-pink-600/5 rounded-full blur-3xl pointer-events-none" aria-hidden />
+        }
+        topBlobClass="top-0 left-1/4 w-96 h-96 bg-indigo-600/10 rounded-full"
+        bottomBlobClass="bottom-0 right-1/4 w-80 h-80 bg-violet-600/10 rounded-full"
       >
-        {/* Decorative blurs */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-violet-600/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-1/2 left-0 w-64 h-64 bg-pink-600/5 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative max-w-6xl mx-auto px-6 md:px-10 py-16 md:py-24">
           <div
             style={{
               opacity: heroRef.inView ? 1 : 0,
@@ -439,8 +441,7 @@ export default function AboutView() {
               </div>
             </div>
           </div>
-        </div>
-      </div>
+      </InstitutionalHero>
 
       <div className="max-w-6xl mx-auto px-6 md:px-10 py-12 space-y-20">
         {/* ── MISSION & VISION ─────────────────────────────────────────────── */}
@@ -766,6 +767,6 @@ export default function AboutView() {
           </div>
         </div>
       </div>
-    </div>
+    </InstitutionalPageRoot>
   );
 }

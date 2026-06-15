@@ -18,79 +18,15 @@ import {
   Cpu,
   PhoneCall,
 } from "lucide-react";
-
-// ─── Fade wrapper ─────────────────────────────────────────────────────────────
-const Fade: React.FC<{ inView: boolean; delay?: number; children: React.ReactNode; className?: string }> = ({
-  inView,
-  delay = 0,
-  children,
-  className = "",
-}) => (
-  <div
-    className={className}
-    style={{
-      opacity: inView ? 1 : 0,
-      transform: inView ? "translateY(0)" : "translateY(22px)",
-      transition: `opacity 0.55s ease ${delay}ms, transform 0.55s ease ${delay}ms`,
-    }}
-  >
-    {children}
-  </div>
-);
-
-// ─── Card ─────────────────────────────────────────────────────────────────────
-const Card: React.FC<{ className?: string; children: React.ReactNode }> = ({ className = "", children }) => (
-  <div className={`bg-slate-900 border border-slate-800 rounded-3xl ${className}`}>{children}</div>
-);
-
-// ─── Section header ───────────────────────────────────────────────────────────
-const SectionHeader: React.FC<{
-  number: string;
-  emoji: string;
-  icon: React.ReactNode;
-  title: string;
-  accentClass: string;
-}> = ({ number, emoji, icon: _icon, title, accentClass }) => (
-  <div className="flex items-center gap-3 mb-6">
-    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 text-xl ${accentClass}`}>
-      {emoji}
-    </div>
-    <span className="text-[10px] font-black text-slate-600 tabular-nums">{number}</span>
-    <h2 className="text-xl font-black text-white">{title}</h2>
-  </div>
-);
-
-// ─── Info row ─────────────────────────────────────────────────────────────────
-const InfoRow: React.FC<{ label: string; value: string; icon: React.ReactNode; mono?: boolean }> = ({
-  label,
-  value,
-  icon,
-  mono,
-}) => (
-  <div className="flex items-start gap-3 bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-3">
-    <span className="text-slate-500 flex-shrink-0 mt-0.5">{icon}</span>
-    <div className="min-w-0">
-      <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">{label}</div>
-      <div
-        className={`text-slate-200 text-sm font-semibold mt-0.5 break-all ${mono ? "font-mono text-indigo-300" : ""}`}
-      >
-        {value}
-      </div>
-    </div>
-  </div>
-);
-
-// ─── Check list ───────────────────────────────────────────────────────────────
-const CheckList: React.FC<{ items: string[]; color?: string }> = ({ items, color = "text-indigo-400" }) => (
-  <ul className="space-y-2.5">
-    {items.map((item) => (
-      <li key={item} className="flex items-start gap-2.5">
-        <CheckCircle className={`w-4 h-4 flex-shrink-0 mt-0.5 ${color}`} />
-        <span className="text-[13px] text-slate-300 leading-relaxed">{item}</span>
-      </li>
-    ))}
-  </ul>
-);
+import {
+  InstitutionalPageRoot,
+  InstitutionalHero,
+  InstitutionalFade,
+  InstitutionalCard,
+  InstitutionalSectionHeader,
+  InstitutionalInfoRow,
+  InstitutionalCheckList,
+} from "./legal/InstitutionalPageShell";
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function LegalView() {
@@ -105,23 +41,13 @@ export default function LegalView() {
   const s8 = useInView();
 
   return (
-    <div className="min-h-full bg-slate-950 text-white">
-      {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <div
-        ref={heroRef.ref}
-        className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900/50 to-slate-950 border-b border-slate-800/50"
+    <InstitutionalPageRoot>
+      <InstitutionalHero
+        heroRef={heroRef}
+        gradientClass="via-slate-900/50"
+        topBlobClass="top-0 right-0 w-[480px] h-[480px] bg-indigo-600/5 rounded-full translate-x-60 -translate-y-60"
+        bottomBlobClass="bottom-0 left-0 w-80 h-80 bg-violet-600/5 rounded-full -translate-x-40 translate-y-40"
       >
-        <div className="absolute top-0 right-0 w-[480px] h-[480px] bg-indigo-600/5 rounded-full translate-x-60 -translate-y-60 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-violet-600/5 rounded-full -translate-x-40 translate-y-40 blur-3xl pointer-events-none" />
-
-        <div
-          className="relative max-w-5xl mx-auto px-6 md:px-10 py-12 md:py-16"
-          style={{
-            opacity: heroRef.inView ? 1 : 0,
-            transform: heroRef.inView ? "translateY(0)" : "translateY(24px)",
-            transition: "opacity 0.7s ease, transform 0.7s ease",
-          }}
-        >
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
             {/* Left */}
             <div className="space-y-5 max-w-2xl">
@@ -189,15 +115,14 @@ export default function LegalView() {
               permettent à tout utilisateur d'identifier l'éditeur responsable de la plateforme Axelmond Research Labs.
             </p>
           </div>
-        </div>
-      </div>
+      </InstitutionalHero>
 
       <div className="max-w-5xl mx-auto px-6 md:px-10 py-10 space-y-8">
         {/* ── 1. Éditeur ───────────────────────────────────────────────────── */}
         <div ref={s1.ref}>
-          <Fade inView={s1.inView}>
-            <Card className="p-7 md:p-9">
-              <SectionHeader
+          <InstitutionalFade inView={s1.inView}>
+            <InstitutionalCard className="p-7 md:p-9">
+              <InstitutionalSectionHeader
                 number="01"
                 emoji="🏢"
                 icon={<Building2 className="w-5 h-5" />}
@@ -205,18 +130,18 @@ export default function LegalView() {
                 accentClass="bg-indigo-500/15 border border-indigo-500/20"
               />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <InfoRow
+                <InstitutionalInfoRow
                   label="Nom officiel"
                   value="Axelmond Research Labs"
                   icon={<Building2 className="w-3.5 h-3.5" />}
                 />
-                <InfoRow
+                <InstitutionalInfoRow
                   label="Type"
                   value="Plateforme académique de recherche, formation et innovation"
                   icon={<BookOpen className="w-3.5 h-3.5" />}
                 />
-                <InfoRow label="Site web" value="axelmond.com" icon={<Globe className="w-3.5 h-3.5" />} mono />
-                <InfoRow
+                <InstitutionalInfoRow label="Site web" value="axelmond.com" icon={<Globe className="w-3.5 h-3.5" />} mono />
+                <InstitutionalInfoRow
                   label="Contact général"
                   value="verification@axelmond.com"
                   icon={<Mail className="w-3.5 h-3.5" />}
@@ -240,15 +165,15 @@ export default function LegalView() {
                   </div>
                 ))}
               </div>
-            </Card>
-          </Fade>
+            </InstitutionalCard>
+          </InstitutionalFade>
         </div>
 
         {/* ── 2. Responsable de publication ────────────────────────────────── */}
         <div ref={s2.ref}>
-          <Fade inView={s2.inView}>
-            <Card className="p-7 md:p-9">
-              <SectionHeader
+          <InstitutionalFade inView={s2.inView}>
+            <InstitutionalCard className="p-7 md:p-9">
+              <InstitutionalSectionHeader
                 number="02"
                 emoji="👤"
                 icon={<User className="w-5 h-5" />}
@@ -267,7 +192,7 @@ export default function LegalView() {
                     Le responsable de publication veille à la conformité des contenus publiés avec les réglementations
                     en vigueur, les règles académiques et les standards de qualité de la plateforme.
                   </p>
-                  <CheckList
+                  <InstitutionalCheckList
                     color="text-violet-400"
                     items={[
                       "Supervision de la qualité des contenus pédagogiques publiés",
@@ -278,17 +203,17 @@ export default function LegalView() {
                   />
                 </div>
                 <div className="space-y-3">
-                  <InfoRow
+                  <InstitutionalInfoRow
                     label="Entité responsable"
                     value="Administration Axelmond Research Labs"
                     icon={<User className="w-3.5 h-3.5" />}
                   />
-                  <InfoRow
+                  <InstitutionalInfoRow
                     label="Rôle"
                     value="Direction éditoriale et supervision des contenus académiques"
                     icon={<BookOpen className="w-3.5 h-3.5" />}
                   />
-                  <InfoRow
+                  <InstitutionalInfoRow
                     label="Contact éditorial"
                     value="verification@axelmond.com"
                     icon={<Mail className="w-3.5 h-3.5" />}
@@ -303,15 +228,15 @@ export default function LegalView() {
                   </div>
                 </div>
               </div>
-            </Card>
-          </Fade>
+            </InstitutionalCard>
+          </InstitutionalFade>
         </div>
 
         {/* ── 3. Hébergement ───────────────────────────────────────────────── */}
         <div ref={s3.ref}>
-          <Fade inView={s3.inView}>
-            <Card className="p-7 md:p-9">
-              <SectionHeader
+          <InstitutionalFade inView={s3.inView}>
+            <InstitutionalCard className="p-7 md:p-9">
+              <InstitutionalSectionHeader
                 number="03"
                 emoji="🌐"
                 icon={<Server className="w-5 h-5" />}
@@ -367,15 +292,15 @@ export default function LegalView() {
                   contactez <strong className="text-white">verification@axelmond.com</strong>.
                 </p>
               </div>
-            </Card>
-          </Fade>
+            </InstitutionalCard>
+          </InstitutionalFade>
         </div>
 
         {/* ── 4. Propriété intellectuelle ──────────────────────────────────── */}
         <div ref={s4.ref}>
-          <Fade inView={s4.inView}>
-            <Card className="p-7 md:p-9">
-              <SectionHeader
+          <InstitutionalFade inView={s4.inView}>
+            <InstitutionalCard className="p-7 md:p-9">
+              <InstitutionalSectionHeader
                 number="04"
                 emoji="©️"
                 icon={<Copyright className="w-5 h-5" />}
@@ -390,7 +315,7 @@ export default function LegalView() {
                     est protégé par le <strong className="text-white">droit de la propriété intellectuelle</strong>{" "}
                     applicable.
                   </p>
-                  <CheckList
+                  <InstitutionalCheckList
                     color="text-amber-400"
                     items={[
                       "Les modules et supports pédagogiques sont protégés par le droit d'auteur",
@@ -433,15 +358,15 @@ export default function LegalView() {
                   </div>
                 </div>
               </div>
-            </Card>
-          </Fade>
+            </InstitutionalCard>
+          </InstitutionalFade>
         </div>
 
         {/* ── 5. Limitation de responsabilité ─────────────────────────────── */}
         <div ref={s5.ref}>
-          <Fade inView={s5.inView}>
-            <Card className="p-7 md:p-9">
-              <SectionHeader
+          <InstitutionalFade inView={s5.inView}>
+            <InstitutionalCard className="p-7 md:p-9">
+              <InstitutionalSectionHeader
                 number="05"
                 emoji="⚖️"
                 icon={<Scale className="w-5 h-5" />}
@@ -455,7 +380,7 @@ export default function LegalView() {
                     la mise à jour régulière des informations publiées sur la plateforme. Néanmoins, des erreurs
                     ponctuelles ne peuvent être totalement exclues.
                   </p>
-                  <CheckList
+                  <InstitutionalCheckList
                     color="text-slate-400"
                     items={[
                       "Contrôle éditorial régulier de l'exactitude des contenus académiques",
@@ -499,17 +424,17 @@ export default function LegalView() {
                   mentions légales respectives avant tout usage.
                 </p>
               </div>
-            </Card>
-          </Fade>
+            </InstitutionalCard>
+          </InstitutionalFade>
         </div>
 
         {/* ── 6. Protection des données personnelles ───────────────────────── */}
         <div ref={s6.ref}>
-          <Fade inView={s6.inView}>
+          <InstitutionalFade inView={s6.inView}>
             <div className="relative overflow-hidden bg-slate-900 border border-emerald-900/40 rounded-3xl p-7 md:p-9">
               <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-600/4 rounded-full translate-x-32 -translate-y-32 blur-2xl pointer-events-none" />
               <div className="relative">
-                <SectionHeader
+                <InstitutionalSectionHeader
                   number="06"
                   emoji="🔒"
                   icon={<Shield className="w-5 h-5" />}
@@ -567,12 +492,12 @@ export default function LegalView() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <InfoRow
+                  <InstitutionalInfoRow
                     label="Autorité de contrôle"
                     value="CNDP — cndp.ma"
                     icon={<Scale className="w-3.5 h-3.5" />}
                   />
-                  <InfoRow
+                  <InstitutionalInfoRow
                     label="Contact DPO / Confidentialité"
                     value="verification@axelmond.com"
                     icon={<Mail className="w-3.5 h-3.5" />}
@@ -581,14 +506,14 @@ export default function LegalView() {
                 </div>
               </div>
             </div>
-          </Fade>
+          </InstitutionalFade>
         </div>
 
         {/* ── 7. Contact légal ─────────────────────────────────────────────── */}
         <div ref={s7.ref}>
-          <Fade inView={s7.inView}>
-            <Card className="p-7 md:p-9">
-              <SectionHeader
+          <InstitutionalFade inView={s7.inView}>
+            <InstitutionalCard className="p-7 md:p-9">
+              <InstitutionalSectionHeader
                 number="07"
                 emoji="📧"
                 icon={<Mail className="w-5 h-5" />}
@@ -673,15 +598,15 @@ export default function LegalView() {
                   tribunaux marocains sont seuls compétents en cas de litige persistant.
                 </p>
               </div>
-            </Card>
-          </Fade>
+            </InstitutionalCard>
+          </InstitutionalFade>
         </div>
 
         {/* ── 8. Informations complémentaires ─────────────────────────────── */}
         <div ref={s8.ref}>
-          <Fade inView={s8.inView}>
+          <InstitutionalFade inView={s8.inView}>
             <div className="relative overflow-hidden bg-slate-900 border border-slate-800 rounded-3xl p-7 md:p-9">
-              <SectionHeader
+              <InstitutionalSectionHeader
                 number="08"
                 emoji="ℹ️"
                 icon={<Info className="w-5 h-5" />}
@@ -763,9 +688,9 @@ export default function LegalView() {
                 </div>
               </div>
             </div>
-          </Fade>
+          </InstitutionalFade>
         </div>
       </div>
-    </div>
+    </InstitutionalPageRoot>
   );
 }
