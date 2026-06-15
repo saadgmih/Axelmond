@@ -38,7 +38,10 @@
     "create:professor": "tsx scripts/create-professor-user.mjs",
     "generate:vapid-keys": "tsx scripts/generate-vapid-keys.mjs",
     "validate:vapid-keys": "tsx scripts/validate-vapid-keys.mjs",
-    "hostinger:env": "node scripts/build-hostinger-env.mjs"
+    "hostinger:env": "node scripts/build-hostinger-env.mjs",
+    "security:preflight": "tsx scripts/security-preflight.ts",
+    "security:mobile-secret": "node scripts/generate-mobile-client-secret.mjs",
+    "security:probe": "node scripts/security-probe.mjs"
   },
   "dependencies": {
     "@paypal/react-paypal-js": "^8.9.2",
@@ -111,6 +114,10 @@
   },
   "overrides": {
     "effect": "^3.21.0",
-    "esbuild": "^0.28.1"
+    "esbuild": "^0.28.1",
+    "ws": "^8.21.0",
+    "form-data": "^4.0.4",
+    "js-yaml": "^4.1.1",
+    "uuid": "^11.1.0"
   }
 }

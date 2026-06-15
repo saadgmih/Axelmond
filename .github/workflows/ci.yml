@@ -76,6 +76,29 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Security preflight (production config shape)
+        run: |
+          NODE_ENV=production \
+          APP_URL=https://axelmond.com \
+          DATABASE_URL="${DATABASE_URL}" \
+          AUTH_TOKEN_SECRET="${AUTH_TOKEN_SECRET}" \
+          EMAIL_VERIFICATION_SECRET="${EMAIL_VERIFICATION_SECRET}" \
+          MOBILE_CLIENT_SECRET="${AUTH_TOKEN_SECRET}" \
+          PAYPAL_CLIENT_ID=x \
+          PAYPAL_CLIENT_SECRET=y \
+          PAYPAL_WEBHOOK_ID=z \
+          LIVEKIT_URL=wss://x.livekit.cloud \
+          LIVEKIT_API_KEY=k \
+          LIVEKIT_API_SECRET="${AUTH_TOKEN_SECRET}" \
+          UPLOADTHING_TOKEN="${AUTH_TOKEN_SECRET}" \
+          SMTP_HOST=smtp.example.com \
+          SMTP_USER=u \
+          SMTP_PASS="${EMAIL_VERIFICATION_SECRET}" \
+          VAPID_PUBLIC_KEY=BMxtest \
+          VAPID_PRIVATE_KEY="${AUTH_TOKEN_SECRET}" \
+          PAYPAL_ENV=live \
+          npx tsx scripts/security-preflight.ts
+
       - name: npm audit (high+)
         run: npm audit --audit-level=high
 

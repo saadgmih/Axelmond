@@ -1,5 +1,16 @@
 # Sécurité Axelmond Research Labs — durcissement anti-intrusion
 
+## Score cible
+
+| Périmètre | Cible | Commande |
+|-----------|-------|----------|
+| Code source | **95+/100** | `npm test -- tests/security-score-guards.test.ts` |
+| Dépendances (high) | **0** | `npm run ci:audit` |
+| Preflight prod | **PASS** | `npm run security:preflight` |
+| Site production | **90+/100** | `npm run security:probe` |
+
+Générer un secret mobile : `npm run security:mobile-secret`
+
 ## Mesures serveur actives
 
 | Couche | Protection |

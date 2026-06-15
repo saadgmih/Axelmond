@@ -15,6 +15,16 @@ npm ci
 echo "==> prisma migrate deploy"
 npx prisma migrate deploy
 
+echo "==> security preflight (.env production)"
+if [ -f .env ]; then
+  npx tsx scripts/security-preflight.ts || {
+    echo "ERROR: security preflight failed — fix .env before deploying"
+    exit 1
+  }
+else
+  echo "WARN: no .env file — skip local preflight (hPanel env must still be valid)"
+fi
+
 echo "==> npm run build"
 npm run build
 

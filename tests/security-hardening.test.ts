@@ -70,7 +70,11 @@ rulesTest("security-hardening", () => {
   assert.match(liveRoutesSource, /liveTokenSchema/);
   assert.match(liveRoutesSource, /sessionResult\.ok/);
 
-  const routeMappersSource = fs.readFileSync("src/server/route-mappers.ts", "utf8");
+  const routeMappersSource = [
+    fs.readFileSync("src/server/route-mappers.ts", "utf8"),
+    fs.readFileSync("src/server/mappers/live-mappers.ts", "utf8"),
+    fs.readFileSync("src/public-api-errors.ts", "utf8"),
+  ].join("\n");
   assert.match(routeMappersSource, /sessionNotActive/);
   assert.match(routeMappersSource, /canPublishLiveMedia/);
 
