@@ -2,13 +2,14 @@ name: Hostinger deploy
 
 on:
   workflow_run:
-    workflows: [CI]
+    workflows: [CI, Actions smoke]
     types: [completed]
     branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   deploy:
@@ -16,18 +17,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
+          SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
+          SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
+        run: |
+          set -euo pipefail
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+
       - name: Deploy to Hostinger
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.HOSTINGER_SSH_HOST }}
-          username: ${{ secrets.HOSTINGER_SSH_USER }}
-          key: ${{ secrets.HOSTINGER_SSH_KEY }}
-          port: ${{ secrets.HOSTINGER_SSH_PORT }}
-          script_stop: true
-          command_timeout: 15m
-          script: |
-            set -euo pipefail
-            APP_DIR="$HOME/domains/axelmond.com/nodejs"
-            if [ ! -d "$APP_DIR" ]; then APP_DIR="$HOME/domains/axelmond.com/public_html"; fi
-            cd "$APP_DIR"
-            bash scripts/deploy-hostinger.sh
+        env:
+          SSH_USER: ${{ secrets.HOSTINGER_SSH_USER }}
+          SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
+          SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/id_ed25519 -p "$SSH_PORT" -o BatchMode=yes -o ConnectTimeout=20 \
+            "${SSH_USER}@${SSH_HOST}" 'bash -s' <<'REMOTE'
+          set -euo pipefail
+          APP_DIR="$HOME/domains/axelmond.com/nodejs"
+          if [ ! -d "$APP_DIR" ]; then APP_DIR="$HOME/domains/axelmond.com/public_html"; fi
+          cd "$APP_DIR"
+          bash scripts/deploy-hostinger.sh
+          echo "==> post-deploy catalog probe"
+          curl -sS -m 20 -w "\nHTTP:%{http_code} TIME:%{time_total}s\n" \
+            "http://127.0.0.1:3000/api/courses" | head -c 400 || echo "courses probe failed"
+          REMOTE

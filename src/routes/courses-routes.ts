@@ -4,6 +4,24 @@ import type { CourseModule } from "../server/route-deps";
 import type { RouteContext } from "../server/route-context";
 import * as api from "../server/route-deps";
 
+const CATALOG_QUERY_TIMEOUT_MS = Number(process.env.CATALOG_QUERY_TIMEOUT_MS) || 15000;
+
+async function withCatalogTimeout<T>(promise: Promise<T>, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => {
+          reject(new Error(`${label} timed out after ${CATALOG_QUERY_TIMEOUT_MS}ms`));
+        }, CATALOG_QUERY_TIMEOUT_MS);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
   const { requireAuth, requireRbac, validateBody } = ctx.middleware;
 
@@ -38,22 +56,25 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
       if (Number.isInteger(disciplineId) && disciplineId > 0) {
         where.disciplineId = disciplineId;
       } else if (Number.isInteger(domainId) && domainId > 0) {
-        const disciplineIds = await api.prisma.discipline.findMany({
-          where: { domainId },
-
-          select: { id: true },
-        });
+        const disciplineIds = await withCatalogTimeout(
+          api.prisma.discipline.findMany({
+            where: { domainId },
+            select: { id: true },
+          }),
+          "discipline lookup",
+        );
 
         where.disciplineId = { in: disciplineIds.map((discipline) => discipline.id) };
       }
 
-      const courses = await api.prisma.course.findMany({
-        where,
-
-        include: api.courseResponseInclude,
-
-        orderBy: { id: "asc" },
-      });
+      const courses = await withCatalogTimeout(
+        api.prisma.course.findMany({
+          where,
+          include: api.courseResponseInclude,
+          orderBy: { id: "asc" },
+        }),
+        "course catalog query",
+      );
 
       let payload;
       if (authUser?.role === "STUDENT") {
@@ -81,6 +102,14 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
 
       res.json(payload);
     } catch (err) {
+      api.logDb("ERROR", "Academic modules listing failed", {
+        error: String(err),
+        path: req.path,
+      });
+      if (String(err).includes("timed out")) {
+        res.status(503).json({ error: "Catalogue temporairement indisponible", code: "CATALOG_TIMEOUT" });
+        return;
+      }
       next(err);
     }
   });

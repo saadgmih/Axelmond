@@ -1,7 +1,7 @@
-import { Course } from "../types";
-import { prisma } from "../db";
-import { decodeStoredText } from "../text";
-import { resolveCourseModules } from "../course-syllabus-modules";
+import { Course } from "../../types";
+import { prisma } from "../../db";
+import { decodeStoredText } from "../../text";
+import { resolveCourseModules } from "../../course-syllabus-modules";
 import type { AppUser } from "../route-types";
 
 export function toDomain(domain: any) {

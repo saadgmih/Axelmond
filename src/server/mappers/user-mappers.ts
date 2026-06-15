@@ -1,8 +1,8 @@
 import express from "express";
 import { Prisma } from "@prisma/client";
-import { DEFAULT_STUDENT_LABEL } from "../types";
-import { UserRole, canAccessAcademicProfile, normalizeRole } from "../rbac";
-import { verifyAuthToken } from "../auth-token";
+import { DEFAULT_STUDENT_LABEL } from "../../types";
+import { UserRole, canAccessAcademicProfile, normalizeRole } from "../../rbac";
+import { verifyAuthToken } from "../../auth-token";
 import {
   EMAIL_VERIFICATION_TTL_MINUTES,
   generateEmailVerificationCode,
@@ -10,10 +10,10 @@ import {
   buildEmailVerificationExpiry,
   isDevVerificationCodeLogEnabled,
   maskEmailForDevLog,
-} from "../email-verification";
-import { sendVerificationEmail, getEmailErrorDetails, getSmtpPublicConfig } from "../email";
-import { prisma } from "../db";
-import { APP_USER_BILLING_INCLUDE, mergeUserInvoices } from "../course-payments";
+} from "../../email-verification";
+import { sendVerificationEmail, getEmailErrorDetails, getSmtpPublicConfig } from "../../email";
+import { prisma } from "../../db";
+import { APP_USER_BILLING_INCLUDE, mergeUserInvoices } from "../../course-payments";
 import { logEmail } from "../route-loggers";
 import type { AppUser } from "../route-types";
 import { toCourse, courseResponseInclude } from "./catalog-mappers";

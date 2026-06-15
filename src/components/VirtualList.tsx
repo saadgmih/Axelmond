@@ -11,7 +11,9 @@ interface VirtualListProps<T> {
   getKey: (item: T, index: number) => string;
   renderItem: (item: T, index: number) => ReactNode;
   containerRef?: RefObject<HTMLDivElement | null>;
-}(sizes: number[]) {
+}
+
+function buildOffsets(sizes: number[]) {
   let totalHeight = 0;
   const offsets = sizes.map((size) => {
     const top = totalHeight;

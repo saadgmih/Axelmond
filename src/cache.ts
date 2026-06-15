@@ -26,6 +26,29 @@ const configuredMaxEntries = Number(process.env.CACHE_MAX_ENTRIES);
 const DEFAULT_MAX_ENTRIES =
   Number.isInteger(configuredMaxEntries) && configuredMaxEntries > 0 ? configuredMaxEntries : 1000;
 const REDIS_KEY_PREFIX = (process.env.REDIS_KEY_PREFIX || "axelmond:cache:").trim();
+const REDIS_CONNECT_TIMEOUT_MS = Number(process.env.REDIS_CONNECT_TIMEOUT_MS) || 5000;
+const REDIS_COMMAND_TIMEOUT_MS = Number(process.env.REDIS_COMMAND_TIMEOUT_MS) || 3000;
+const CACHE_OPERATION_TIMEOUT_MS = Number(process.env.CACHE_OPERATION_TIMEOUT_MS) || 3000;
+
+async function withCacheTimeout<T>(promise: Promise<T>, label: string): Promise<T | null> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise.catch((err) => {
+        logCache("WARN", `${label} failed`, { error: String(err) });
+        return null;
+      }),
+      new Promise<null>((resolve) => {
+        timer = setTimeout(() => {
+          logCache("WARN", `${label} timed out`, { timeoutMs: CACHE_OPERATION_TIMEOUT_MS });
+          resolve(null);
+        }, CACHE_OPERATION_TIMEOUT_MS);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
 
 function logCache(level: "INFO" | "WARN", message: string, data?: unknown) {
   console.log(`[${new Date().toISOString()}] [${level}] [cache] ${message}${data ? " " + JSON.stringify(data) : ""}`);
@@ -103,7 +126,9 @@ function createMemoryBackend(): CacheBackend {
 
 function createRedisBackend(redisUrl: string): CacheBackend {
   const client = new Redis(redisUrl, {
-    maxRetriesPerRequest: 2,
+    maxRetriesPerRequest: 1,
+    connectTimeout: REDIS_CONNECT_TIMEOUT_MS,
+    commandTimeout: REDIS_COMMAND_TIMEOUT_MS,
     lazyConnect: true,
     enableOfflineQueue: false,
   });
@@ -224,11 +249,12 @@ export async function disconnectCache(): Promise<void> {
 }
 
 export async function cacheGet(key: string): Promise<string | null> {
-  return backend.get(key);
+  const value = await withCacheTimeout(backend.get(key), "cacheGet");
+  return value ?? null;
 }
 
 export async function cacheSet(key: string, value: string, ttlSeconds: number = DEFAULT_TTL_SECONDS): Promise<void> {
-  await backend.set(key, value, ttlSeconds);
+  await withCacheTimeout(backend.set(key, value, ttlSeconds), "cacheSet");
 }
 
 export async function cacheDel(key: string): Promise<void> {

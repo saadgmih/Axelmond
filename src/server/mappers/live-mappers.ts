@@ -1,10 +1,10 @@
 import { Prisma, type LiveSession } from "@prisma/client";
 import { RoomServiceClient } from "livekit-server-sdk";
-import { Course } from "../types";
-import { canAccessAcademicProfile } from "../rbac";
-import { buildLiveKitRoomName } from "../livekit";
-import { prisma } from "../db";
-import { LIVE_ACCESS_ERRORS } from "../public-api-errors";
+import { Course } from "../../types";
+import { canAccessAcademicProfile } from "../../rbac";
+import { buildLiveKitRoomName } from "../../livekit";
+import { prisma } from "../../db";
+import { LIVE_ACCESS_ERRORS } from "../../public-api-errors";
 import { logLiveKit } from "../route-loggers";
 import type { AppUser } from "../route-types";
 import { findCourse } from "./user-mappers";

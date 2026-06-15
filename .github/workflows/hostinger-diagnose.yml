@@ -10,29 +10,61 @@ jobs:
   ssh-diagnose:
     runs-on: ubuntu-latest
     steps:
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
+          SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
+          SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
+        run: |
+          set -euo pipefail
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+
       - name: SSH diagnostic
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.HOSTINGER_SSH_HOST }}
-          username: ${{ secrets.HOSTINGER_SSH_USER }}
-          key: ${{ secrets.HOSTINGER_SSH_KEY }}
-          port: ${{ secrets.HOSTINGER_SSH_PORT }}
-          script_stop: true
-          command_timeout: 2m
-          script: |
-            echo "==> whoami / pwd"
-            whoami
-            pwd
-            echo "==> node processes"
-            ps aux | grep -E '[n]ode' || true
-            echo "==> app dirs"
-            ls -la ~/domains/axelmond.com/ 2>/dev/null || ls -la ~/domains/ 2>/dev/null || true
-            APP_DIR="$HOME/domains/axelmond.com/nodejs"
-            if [ ! -d "$APP_DIR" ]; then APP_DIR="$HOME/domains/axelmond.com/public_html"; fi
-            echo "APP_DIR=$APP_DIR"
-            ls -la "$APP_DIR" 2>/dev/null | head -20 || true
-            echo "==> local health"
-            curl -sS -m 5 "http://127.0.0.1:3000/api/health" || echo "curl failed"
-            echo ""
-            echo "==> .htaccess"
-            cat "$HOME/domains/axelmond.com/public_html/.htaccess" 2>/dev/null || echo "no .htaccess"
+        env:
+          SSH_USER: ${{ secrets.HOSTINGER_SSH_USER }}
+          SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
+          SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/id_ed25519 -p "$SSH_PORT" -o BatchMode=yes -o ConnectTimeout=20 \
+            "${SSH_USER}@${SSH_HOST}" 'bash -s' <<'REMOTE'
+          set -euo pipefail
+          echo "==> whoami / pwd"
+          whoami
+          pwd
+          echo "==> node processes"
+          ps aux | grep -E '[n]ode' || true
+          echo "==> app dirs"
+          ls -la ~/domains/axelmond.com/ 2>/dev/null || ls -la ~/domains/ 2>/dev/null || true
+          APP_DIR="$HOME/domains/axelmond.com/nodejs"
+          if [ ! -d "$APP_DIR" ]; then APP_DIR="$HOME/domains/axelmond.com/public_html"; fi
+          echo "APP_DIR=$APP_DIR"
+          ls -la "$APP_DIR" 2>/dev/null | head -20 || true
+          if [ -d "$APP_DIR/.git" ]; then
+            cd "$APP_DIR"
+            echo "==> git"
+            git log -1 --oneline || true
+          fi
+          echo "==> env flags (redacted)"
+          if [ -f "$APP_DIR/.env" ]; then
+            grep -E '^(NODE_ENV|MOBILE_CLIENT_SECRET|REDIS_URL|DATABASE_URL)=' "$APP_DIR/.env" \
+              | sed -E 's/=(.*)$/=<set>/' || true
+          else
+            echo "no .env in APP_DIR"
+          fi
+          echo "==> local health"
+          curl -sS -m 5 "http://127.0.0.1:3000/api/health" || echo "health curl failed"
+          echo ""
+          echo "==> local catalog"
+          curl -sS -m 15 -w "\nHTTP:%{http_code} TIME:%{time_total}s\n" \
+            "http://127.0.0.1:3000/api/courses" | head -c 400 || echo "courses curl failed"
+          echo ""
+          echo "==> pm2 logs tail"
+          if [ -d "$APP_DIR" ]; then
+            cd "$APP_DIR"
+            npx pm2 logs axelmond-research-labs --lines 40 --nostream 2>/dev/null || echo "no pm2 logs"
+          fi
+          REMOTE

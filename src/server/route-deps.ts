@@ -291,7 +291,6 @@ export {
   courseModuleRowFromJsonItem,
   getNextCourseModuleId,
   resolveCourseModules,
-  shouldReadRelationalCourseModules,
 } from "../course-syllabus-modules";
 export { createPayPalOrder, capturePayPalOrder, isPayPalConfigured, logPayPalError } from "../paypal-server";
 export { processPayPalCaptureEnrollment, toPayPalCaptureClientResponse } from "../paypal-enrollment";
