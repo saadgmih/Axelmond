@@ -12,43 +12,27 @@ permissions:
   actions: read
 
 jobs:
-  deploy:
+  verify-production:
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: [self-hosted, Windows, X64]
 
     steps:
-      - name: Configure SSH
+      - name: Verify production health
         shell: powershell
-        env:
-          SSH_KEY_B64: ${{ secrets.HOSTINGER_SSH_KEY_B64 }}
-          SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
-          SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
         run: |
-          $sshDir = Join-Path $env:RUNNER_TEMP 'ci-ssh'
-          New-Item -ItemType Directory -Force -Path $sshDir | Out-Null
-          $keyPath = Join-Path $sshDir 'id_ed25519'
-          $knownHosts = Join-Path $sshDir 'known_hosts'
-          $key = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($env:SSH_KEY_B64))
-          if (-not $key.EndsWith("`n")) { $key += "`n" }
-          [System.IO.File]::WriteAllText($keyPath, $key, [System.Text.UTF8Encoding]::new($false))
-          icacls $keyPath /inheritance:r /grant:r "$($env:USERNAME):(F)" | Out-Null
-          cmd /c "ssh-keyscan -p $env:SSH_PORT -H $env:SSH_HOST 2>nul" | Out-File -Append -Encoding ascii $knownHosts
-          "SSH_KEY_PATH=$keyPath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          "SSH_KNOWN_HOSTS=$knownHosts" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          $health = curl.exe -sS -m 20 -w "`nHTTP:%{http_code}`n" "https://axelmond.com/api/health"
+          Write-Output $health
+          if ($health -notmatch 'HTTP:200') { throw "Production health check failed" }
 
-      - name: Deploy to Hostinger
+      - name: Verify production catalog
         shell: powershell
-        env:
-          SSH_USER: ${{ secrets.HOSTINGER_SSH_USER }}
-          SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
-          SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
         run: |
-          $remote = @'
-          set -euo pipefail
-          APP_DIR="$HOME/domains/axelmond.com/nodejs"
-          if [ ! -d "$APP_DIR" ]; then APP_DIR="$HOME/domains/axelmond.com/public_html"; fi
-          cd "$APP_DIR"
-          bash scripts/deploy-hostinger.sh
-          curl -sS -m 20 -w "\nHTTP:%{http_code}\n" "http://127.0.0.1:3000/api/health" || true
-          '@
-          $remote | ssh -i $env:SSH_KEY_PATH -p $env:SSH_PORT -o UserKnownHostsFile=$env:SSH_KNOWN_HOSTS -o BatchMode=yes -o ConnectTimeout=20 "$($env:SSH_USER)@$($env:SSH_HOST)" "bash -s"
+          $catalog = curl.exe -sS -m 20 -w "`nHTTP:%{http_code} TIME:%{time_total}s`n" "https://axelmond.com/api/courses"
+          Write-Output ($catalog.Substring(0, [Math]::Min(400, $catalog.Length)))
+          if ($catalog -notmatch 'HTTP:200') { throw "Production catalog check failed" }
+
+      - name: Production deploy note
+        shell: powershell
+        run: |
+          Write-Output "Hostinger Node.js auto-deployment handles pushes to main."
+          Write-Output "SSH remote exec is disabled on shared hosting; use hPanel Deployments for manual redeploy."

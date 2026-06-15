@@ -21,7 +21,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path $sshDir | Out-Null
           $keyPath = Join-Path $sshDir 'id_ed25519'
           $knownHosts = Join-Path $sshDir 'known_hosts'
-          $key = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($env:SSH_KEY_B64))
+          $key = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($env:SSH_KEY_B64.Trim()))
           if (-not $key.EndsWith("`n")) { $key += "`n" }
           [System.IO.File]::WriteAllText($keyPath, $key, [System.Text.UTF8Encoding]::new($false))
           icacls $keyPath /inheritance:r /grant:r "$($env:USERNAME):(F)" | Out-Null
@@ -29,49 +29,18 @@ jobs:
           "SSH_KEY_PATH=$keyPath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "SSH_KNOWN_HOSTS=$knownHosts" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
-      - name: SSH diagnostic
+      - name: Validate SSH key material
         shell: powershell
-        env:
-          SSH_USER: ${{ secrets.HOSTINGER_SSH_USER }}
-          SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
-          SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
         run: |
-          $remote = @'
-          set -euo pipefail
-          echo "==> whoami / pwd"
-          whoami
-          pwd
-          echo "==> node processes"
-          ps aux | grep -E '[n]ode' || true
-          echo "==> app dirs"
-          ls -la ~/domains/axelmond.com/ 2>/dev/null || ls -la ~/domains/ 2>/dev/null || true
-          APP_DIR="$HOME/domains/axelmond.com/nodejs"
-          if [ ! -d "$APP_DIR" ]; then APP_DIR="$HOME/domains/axelmond.com/public_html"; fi
-          echo "APP_DIR=$APP_DIR"
-          ls -la "$APP_DIR" 2>/dev/null | head -20 || true
-          if [ -d "$APP_DIR/.git" ]; then
-            cd "$APP_DIR"
-            echo "==> git"
-            git log -1 --oneline || true
-          fi
-          echo "==> env flags (redacted)"
-          if [ -f "$APP_DIR/.env" ]; then
-            grep -E '^(NODE_ENV|MOBILE_CLIENT_SECRET|REDIS_URL|DATABASE_URL)=' "$APP_DIR/.env" \
-              | sed -E 's/=(.*)$/=<set>/' || true
-          else
-            echo "no .env in APP_DIR"
-          fi
-          echo "==> local health"
-          curl -sS -m 5 "http://127.0.0.1:3000/api/health" || echo "health curl failed"
-          echo ""
-          echo "==> local catalog"
-          curl -sS -m 15 -w "\nHTTP:%{http_code} TIME:%{time_total}s\n" \
-            "http://127.0.0.1:3000/api/courses" | head -c 400 || echo "courses curl failed"
-          echo ""
-          echo "==> pm2 logs tail"
-          if [ -d "$APP_DIR" ]; then
-            cd "$APP_DIR"
-            npx pm2 logs axelmond-research-labs --lines 40 --nostream 2>/dev/null || echo "no pm2 logs"
-          fi
-          '@
-          $remote | ssh -i $env:SSH_KEY_PATH -p $env:SSH_PORT -o UserKnownHostsFile=$env:SSH_KNOWN_HOSTS -o BatchMode=yes -o ConnectTimeout=20 "$($env:SSH_USER)@$($env:SSH_HOST)" "bash -s"
+          ssh-keygen -y -f $env:SSH_KEY_PATH | Out-String | Write-Output
+
+      - name: Production diagnostic
+        shell: powershell
+        run: |
+          Write-Output "==> public health"
+          curl.exe -sS -m 20 -w "`nHTTP:%{http_code}`n" "https://axelmond.com/api/health"
+          Write-Output ""
+          Write-Output "==> public catalog"
+          curl.exe -sS -m 20 -w "`nHTTP:%{http_code} TIME:%{time_total}s`n" "https://axelmond.com/api/courses" | Select-Object -First 3
+          Write-Output ""
+          Write-Output "Note: Hostinger shared Node.js hosting blocks SSH remote exec; use hPanel Deployments + GitHub auto-deploy."
