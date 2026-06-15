@@ -17,11 +17,15 @@ jobs:
           SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
           SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
         run: |
-          $sshDir = Join-Path $env:USERPROFILE '.ssh'
+          $sshDir = Join-Path $env:RUNNER_TEMP 'ci-ssh'
           New-Item -ItemType Directory -Force -Path $sshDir | Out-Null
-          Set-Content -Path (Join-Path $sshDir 'id_ed25519') -Value $env:SSH_KEY
-          icacls (Join-Path $sshDir 'id_ed25519') /inheritance:r /grant:r "$($env:USERNAME):(R)" | Out-Null
-          cmd /c "ssh-keyscan -p $env:SSH_PORT -H $env:SSH_HOST 2>nul" | Out-File -Append -Encoding ascii (Join-Path $sshDir 'known_hosts')
+          $keyPath = Join-Path $sshDir 'id_ed25519'
+          $knownHosts = Join-Path $sshDir 'known_hosts'
+          Set-Content -Path $keyPath -Value $env:SSH_KEY
+          icacls $keyPath /inheritance:r /grant:r "$($env:USERNAME):(R)" | Out-Null
+          cmd /c "ssh-keyscan -p $env:SSH_PORT -H $env:SSH_HOST 2>nul" | Out-File -Append -Encoding ascii $knownHosts
+          "SSH_KEY_PATH=$keyPath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "SSH_KNOWN_HOSTS=$knownHosts" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
       - name: SSH diagnostic
         shell: powershell
@@ -68,4 +72,4 @@ jobs:
             npx pm2 logs axelmond-research-labs --lines 40 --nostream 2>/dev/null || echo "no pm2 logs"
           fi
           '@
-          $remote | ssh -i "$env:USERPROFILE\.ssh\id_ed25519" -p $env:SSH_PORT -o BatchMode=yes -o ConnectTimeout=20 "$($env:SSH_USER)@$($env:SSH_HOST)" "bash -s"
+          $remote | ssh -i $env:SSH_KEY_PATH -p $env:SSH_PORT -o UserKnownHostsFile=$env:SSH_KNOWN_HOSTS -o BatchMode=yes -o ConnectTimeout=20 "$($env:SSH_USER)@$($env:SSH_HOST)" "bash -s"
