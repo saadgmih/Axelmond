@@ -36,6 +36,7 @@ rulesTest("owasp-pen-test-guards", () => {
       category: "A04",
     },
     { id: "A05-security-misconfig-helmet", ok: /helmet\(/.test(bootstrap), category: "A05" },
+    { id: "A05-mobile-spoof-guard", ok: /mobileClientSpoofGuard/.test(bootstrap), category: "A05" },
     { id: "A05-production-config-guard", ok: /assertProductionConfiguration/.test(productionConfig), category: "A05" },
     { id: "A07-auth-fail-closed", ok: /Authentification requise/.test(apiSource), category: "A07" },
     { id: "A07-privileged-mfa-required", ok: /mfaSetupRequired/.test(apiSource) && /MFA_SETUP_REQUIRED/.test(apiSource), category: "A07" },

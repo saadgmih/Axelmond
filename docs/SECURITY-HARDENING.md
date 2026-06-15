@@ -4,32 +4,53 @@
 
 | Couche | Protection |
 |--------|------------|
-| **Authentification** | JWT 15 min, refresh 7 jours, rotation à chaque refresh, bcrypt cost 10 |
-| **Refresh tokens** | Stockés **hashés SHA-256** en base (jamais en clair) |
+| **Authentification** | JWT 15 min, refresh 7 jours, rotation à chaque refresh, bcrypt cost **12** |
+| **Refresh tokens** | Stockés **hashés SHA-256** en base (jamais en clair) + détection de réutilisation |
 | **Brute force** | Lockout compte + rate limit login/register (20/min par email) |
-| **Refresh abuse** | Rate limit 30/15 min par IP sur `/api/auth/refresh` |
+| **Refresh abuse** | Rate limit 30/15 min par refresh token / IP sur `/api/auth/refresh` |
 | **RBAC** | Refus par défaut sur routes `requireRbac` (whitelist explicite) |
 | **Ownership** | Vérification `createdById` sur modules, chapitres, contenus, live |
-| **Headers** | Helmet, CSP, HSTS (prod), Permissions-Policy, Referrer-Policy |
+| **Headers** | Helmet, CSP, HSTS, COOP, CORP, Permissions-Policy, Referrer-Policy |
 | **CORS** | Allowlist `APP_URL` + `ALLOWED_ORIGINS` uniquement |
-| **Rate limits** | Global, auth, email, upload, LiveKit, chat IA |
-| **Validation** | Zod + sanitization HTML sur entrées sensibles |
+| **Mobile API** | `X-Axelmond-Client` + `X-Axelmond-Client-Key` (secret 32+ chars, prod) |
+| **Anti-spoof mobile** | Rejet 403 + log si en-tête mobile sans clé valide |
+| **Rate limits** | Global, auth, email, upload, LiveKit, chat IA, PayPal, admin |
+| **Validation** | Zod + sanitization URL (avatars, pièces jointes, notifications) |
+| **Mots de passe** | 12+ chars, HIBP fail-closed en production |
 | **Uploads** | MIME, extensions dangereuses, suppression immédiate si rejet |
 | **LiveKit** | Token 15 min, enrollment/ownership, modération staff only |
-| **Secrets prod** | `AUTH_TOKEN_SECRET` obligatoire, pas de secret dev en prod |
+| **Paiements** | PayPal webhook signé, promo désactivés en prod par défaut |
+| **Mock enrollment** | `ALLOW_MOCK_ENROLLMENT=true` requis, **jamais** en production |
+| **Invitations prof** | Réservation atomique `reserveProfessorInviteCode` (anti race) |
+| **Secrets prod** | `assertProductionConfiguration()` au boot |
 
 ## Variables d'environnement obligatoires (production)
 
 ```env
 NODE_ENV=production
 AUTH_TOKEN_SECRET=<64+ caractères aléatoires>
-DATABASE_URL=postgresql://...?sslmode=require
+EMAIL_VERIFICATION_SECRET=<64+ caractères, distinct>
+MOBILE_CLIENT_SECRET=<64+ caractères, distinct>
+DATABASE_URL=postgresql://...?sslmode=require&schema=AxelmondResearchLab
 APP_URL=https://votre-domaine.com
 ALLOWED_ORIGINS=https://votre-domaine.com
 LIVEKIT_API_KEY=...
 LIVEKIT_API_SECRET=...
 UPLOADTHING_TOKEN=...
 UPLOADTHING_IS_DEV=false
+PAYPAL_ENV=live
+```
+
+**Interdits en production :** `ALLOW_MOCK_ENROLLMENT`, `HIBP_FAIL_OPEN`, `REGISTRATION_SEED_ENROLLMENT`, `UPLOADTHING_IS_DEV=true`.
+
+## Mobile (Expo)
+
+```env
+# Serveur
+MOBILE_CLIENT_SECRET=<même valeur que ci-dessus>
+
+# App Expo
+EXPO_PUBLIC_MOBILE_CLIENT_KEY=<même valeur>
 ```
 
 ## Déploiement Hostinger / PM2
@@ -42,10 +63,7 @@ npm run build
 pm2 reload axelmond-research-labs
 ```
 
-Migrations : voir [`docs/MIGRATIONS-RUNBOOK.md`](docs/MIGRATIONS-RUNBOOK.md) (baselining, interdiction SQL manuel).
-```
-
-Migrations : voir [`docs/MIGRATIONS-RUNBOOK.md`](docs/MIGRATIONS-RUNBOOK.md) (baselining, interdiction SQL manuel).
+Migrations : voir [`docs/MIGRATIONS-RUNBOOK.md`](MIGRATIONS-RUNBOOK.md).
 
 Vérifier HTTPS actif, firewall (ports 80/443 seulement), PostgreSQL non exposé publiquement.
 
@@ -56,7 +74,7 @@ Vérifier HTTPS actif, firewall (ports 80/443 seulement), PostgreSQL non exposé
 3. **Sauvegardes DB** chiffrées quotidiennes
 4. **Rotation secrets** trimestrielle (`AUTH_TOKEN_SECRET`, LiveKit, DB)
 5. **Monitoring** : alertes sur `logSecurity` WARN/CRITICAL
-6. **Scan CI** : `node scan-secrets.js` avant chaque release
+6. **Scan CI** : `npm run ci:secrets` avant chaque release
 
 ## Protection du code client (production)
 
@@ -65,12 +83,9 @@ Vérifier HTTPS actif, firewall (ports 80/443 seulement), PostgreSQL non exposé
 | Build Vite | Minification, pas de source maps, suppression `console`/`debugger` |
 | Noms de fichiers | Assets hashés (`assets/[hash].js`) |
 | Serveur | Blocage `/src/`, `*.ts`, `*.map`, `package.json`, etc. |
-| Navigateur | Console neutralisée, raccourcis DevTools limités |
 
-**Limite technique :** le navigateur doit télécharger JS/CSS pour afficher le site. Un utilisateur avancé peut toujours inspecter le réseau ou désactiver ces protections. L'objectif est de rendre le code illisible et d'éviter l'exposition des sources TypeScript.
+**Limite technique :** le navigateur doit télécharger JS/CSS pour afficher le site. L'objectif est de rendre le code illisible et d'éviter l'exposition des sources TypeScript.
 
-## Limitation connue (tokens client)
+## Tokens client
 
 L'access token JWT reste en **mémoire JavaScript** (15 min). Le refresh token est en cookie **HttpOnly** (`refresh_token`, path `/api/auth`) avec protection **CSRF** (`csrf_token` + header `X-CSRF-Token`).
-
-Migration depuis l'ancien modèle localStorage : les clés legacy sont purgées au login/logout ; reconnexion requise si seule l'ancienne session localStorage subsiste.

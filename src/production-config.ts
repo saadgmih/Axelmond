@@ -59,6 +59,16 @@ function isHttpsPublicUrl(rawUrl: string): boolean {
   }
 }
 
+function isInsecureDatabaseHostAllowed(databaseUrl: string): boolean {
+  try {
+    const normalized = databaseUrl.replace(/^postgresql:\/\//i, "http://");
+    const host = new URL(normalized).hostname.toLowerCase();
+    return host === "localhost" || host === "127.0.0.1" || host === "postgres" || host === "db";
+  } catch {
+    return false;
+  }
+}
+
 export function validateProductionConfiguration(env: NodeJS.ProcessEnv = process.env): string[] {
   if (env.NODE_ENV !== "production") return [];
 
@@ -113,6 +123,27 @@ export function validateProductionConfiguration(env: NodeJS.ProcessEnv = process
 
   if (!readEnv(env, "MOBILE_CLIENT_SECRET")) {
     issues.push("MOBILE_CLIENT_SECRET is required in production for native mobile API authentication");
+  }
+
+  const databaseUrl = readEnv(env, "DATABASE_URL");
+  if (
+    databaseUrl &&
+    !/sslmode=(require|verify-full|verify-ca)/i.test(databaseUrl) &&
+    !isInsecureDatabaseHostAllowed(databaseUrl)
+  ) {
+    issues.push("DATABASE_URL must include sslmode=require (or verify-full) in production");
+  }
+
+  if (readEnv(env, "ALLOW_MOCK_ENROLLMENT").toLowerCase() === "true") {
+    issues.push("ALLOW_MOCK_ENROLLMENT must not be enabled in production");
+  }
+
+  if (readEnv(env, "HIBP_FAIL_OPEN").toLowerCase() === "true") {
+    issues.push("HIBP_FAIL_OPEN must not be enabled in production");
+  }
+
+  if (readEnv(env, "REGISTRATION_SEED_ENROLLMENT").toLowerCase() === "true") {
+    issues.push("REGISTRATION_SEED_ENROLLMENT must not be enabled in production");
   }
 
   const appUrl = readEnv(env, "APP_URL");

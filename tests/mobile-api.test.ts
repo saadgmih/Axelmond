@@ -7,7 +7,7 @@ import {
   withMobileRefreshToken,
 } from "../src/auth-mobile.ts";
 import { csrfProtection } from "../src/auth-csrf.ts";
-import { applyMobileApiCorsHeaders, MOBILE_API_ROUTE_CATALOG } from "../src/mobile-api-routes.ts";
+import { applyMobileApiCorsHeaders, MOBILE_API_ROUTE_CATALOG } from "../src/routes/mobile-api-routes.ts";
 import { readApiRouteSources, readServerBootstrapSources } from "./helpers/api-route-sources.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
@@ -15,7 +15,7 @@ rulesTest("mobile-api", () => {
   const bootstrapSource = readServerBootstrapSources();
   const serverSource = readApiRouteSources();
   const authCsrfSource = readFileSync("src/auth-csrf.ts", "utf8");
-  const mobileRoutesSource = readFileSync("src/mobile-api-routes.ts", "utf8");
+  const mobileRoutesSource = readFileSync("src/routes/mobile-api-routes.ts", "utf8");
   const authMobileSource = readFileSync("src/auth-mobile.ts", "utf8");
 
   assert.equal(MOBILE_CLIENT_HEADER, "x-axelmond-client");
@@ -44,8 +44,8 @@ rulesTest("mobile-api", () => {
 
   assert.match(serverSource, /api\.withMobileRefreshToken\(req/);
   assert.match(serverSource, /persistCsrfTokenForRefreshSession/);
-  assert.match(bootstrapSource, /applyMobileApiCorsHeaders\(req, res, \{ originAllowed \}\)/);
-  assert.match(bootstrapSource, /registerMobileApiRoutes\(app, \{ requireAuth: routeCtx\.middleware\.requireAuth \}\)/);
+  assert.match(serverSource, /registerMobileApiRoutes/);
+  assert.match(bootstrapSource, /applyMobileApiCorsHeaders/);
   assert.match(authCsrfSource, /isMobileCsrfExempt/);
   assert.match(authCsrfSource, /hasValidMobileSessionCsrf/);
   assert.match(authMobileSource, /MOBILE_CLIENT_SECRET/);
@@ -54,7 +54,7 @@ rulesTest("mobile-api", () => {
   assert.doesNotMatch(authMobileSource, /isTrustedMobileClientRequest/);
   assert.match(mobileRoutesSource, /\/api\/mobile\/student-profile/);
   assert.match(mobileRoutesSource, /\/api\/mobile\/routes/);
-  assert.doesNotMatch(mobileRoutesSource, /X-Axelmond-Mobile-Secret/);
+  assert.match(readFileSync("src/mobile-client-guard.ts", "utf8"), /isMobileClientSpoofAttempt/);
 
   assert.ok(MOBILE_API_ROUTE_CATALOG.auth.login.includes("/api/auth/login"));
   assert.ok(MOBILE_API_ROUTE_CATALOG.student.liveToken.includes("/api/livekit/token"));

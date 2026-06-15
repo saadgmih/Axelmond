@@ -29,9 +29,13 @@ function verifyMobileClientKey(req: Pick<Request, "headers">, env: NodeJS.Proces
   return crypto.timingSafeEqual(expectedBuf, providedBuf);
 }
 
-export function isMobileClientRequest(req: Pick<Request, "headers">, env: NodeJS.ProcessEnv = process.env): boolean {
+export function hasMobileClientHeader(req: Pick<Request, "headers">): boolean {
   const raw = req.headers[MOBILE_CLIENT_HEADER];
-  if (typeof raw !== "string" || raw.toLowerCase() !== MOBILE_CLIENT_VALUE) return false;
+  return typeof raw === "string" && raw.toLowerCase() === MOBILE_CLIENT_VALUE;
+}
+
+export function isMobileClientRequest(req: Pick<Request, "headers">, env: NodeJS.ProcessEnv = process.env): boolean {
+  if (!hasMobileClientHeader(req)) return false;
   return verifyMobileClientKey(req, env);
 }
 

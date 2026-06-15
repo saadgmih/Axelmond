@@ -3,7 +3,7 @@ import express from "express";
 import { getAuthUser } from "../server/route-types";
 import type { RouteContext } from "../server/route-context";
 import * as api from "../server/route-deps";
-import { JSON_BODY_LIMIT } from "../security-hardening";
+import { isMockEnrollmentAllowed, JSON_BODY_LIMIT } from "../security-hardening";
 import {
   extractPayPalWebhookHeaders,
   handlePayPalWebhookEvent,
@@ -287,8 +287,12 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
   // POST /api/payments/enroll-mock - Mock enrollment backend validation
 
   app.post("/api/payments/enroll-mock", requireAuth, async (req, res) => {
-    if (process.env.NODE_ENV === "production") {
-      res.status(403).json({ error: "Inscription mock indisponible en production" });
+    if (!isMockEnrollmentAllowed()) {
+      api.logSecurity("WARN", "Mock enrollment blocked", {
+        userId: getAuthUser(req).id,
+        nodeEnv: process.env.NODE_ENV || "development",
+      });
+      res.status(403).json({ error: "Inscription mock indisponible" });
 
       return;
     }

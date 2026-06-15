@@ -28,3 +28,15 @@ export function getBcryptRounds(env: NodeJS.ProcessEnv = process.env): number {
   if (Number.isInteger(parsed) && parsed >= 10 && parsed <= 15) return parsed;
   return 12;
 }
+
+/** Mock enrollment is never allowed in production and requires an explicit dev flag. */
+export function isMockEnrollmentAllowed(env: NodeJS.ProcessEnv = process.env): boolean {
+  if (String(env.NODE_ENV || "").toLowerCase() === "production") return false;
+  return env.ALLOW_MOCK_ENROLLMENT === "true";
+}
+
+const PRODUCTION_DATABASE_SSL_PATTERN = /sslmode=(require|verify-full|verify-ca)/i;
+
+export function isProductionDatabaseUrlSecure(databaseUrl: string): boolean {
+  return PRODUCTION_DATABASE_SSL_PATTERN.test(databaseUrl);
+}

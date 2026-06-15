@@ -7,7 +7,7 @@ rulesTest("production-config", () => {
   const validProductionEnv: NodeJS.ProcessEnv = {
     NODE_ENV: "production",
     APP_URL: "https://axelmond.example",
-    DATABASE_URL: "postgresql://user:password@db.example:5432/app?schema=AxelmondResearchLab",
+    DATABASE_URL: "postgresql://user:password@db.example:5432/app?schema=AxelmondResearchLab&sslmode=require",
     AUTH_TOKEN_SECRET: "auth-secret-32-characters-minimum-value",
     EMAIL_VERIFICATION_SECRET: "email-secret-32-characters-minimum-value",
     PAYPAL_CLIENT_ID: "live-client-id",

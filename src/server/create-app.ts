@@ -21,6 +21,7 @@ import {
 import { readRefreshTokenFromRequest } from "../auth-cookies";
 import { csrfProtection } from "../auth-csrf";
 import { isMobileClientRequest, MOBILE_CLIENT_HEADER, MOBILE_CLIENT_KEY_HEADER } from "../auth-mobile";
+import { mobileClientSpoofGuard } from "../mobile-client-guard";
 import { verifyAuthToken } from "../auth-token";
 import { applyMobileApiCorsHeaders } from "../routes/mobile-api-routes";
 import { emailRateLimitKey } from "../email-rate-limit";
@@ -214,6 +215,9 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
         },
       },
       crossOriginEmbedderPolicy: false,
+      crossOriginOpenerPolicy: { policy: "same-origin" },
+      crossOriginResourcePolicy: { policy: "same-site" },
+      originAgentCluster: true,
       hsts: isProduction ? { maxAge: 31536000, includeSubDomains: true, preload: true } : false,
       referrerPolicy: { policy: "strict-origin-when-cross-origin" },
     }),
@@ -252,6 +256,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
   });
 
   app.use(cookieParser());
+  app.use(mobileClientSpoofGuard);
   const routeCtx = createRouteContext(routeDeps);
 
   const paypalWebhookRateLimiter = rateLimit({

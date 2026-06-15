@@ -7,6 +7,15 @@ const PROMO_CODES: Record<string, PromoCodeEntry> = {
   AXELMOND20: { discountPercent: 20, validUntil: "2026-12-31" },
 };
 
+export const PROMO_CODE_MAX_LENGTH = 32;
+
+export function normalizePromoCodeInput(promoCode: string | undefined | null): string {
+  return String(promoCode || "")
+    .trim()
+    .toUpperCase()
+    .slice(0, PROMO_CODE_MAX_LENGTH);
+}
+
 export function isPromoCodesEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
   if (env.PROMO_CODES_DISABLED === "true") return false;
   if (String(env.NODE_ENV || "").toLowerCase() === "production") {
@@ -26,9 +35,7 @@ export function resolvePromoDiscountPercent(
   promoCode: string | undefined | null,
   env: NodeJS.ProcessEnv = process.env,
 ): number | null {
-  const normalized = String(promoCode || "")
-    .trim()
-    .toUpperCase();
+  const normalized = normalizePromoCodeInput(promoCode);
   if (!normalized) return 0;
   if (!isPromoCodesEnabled(env)) return null;
 
