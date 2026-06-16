@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import path from "node:path";
 import fs from "node:fs";
 import express from "express";
-import dotenv from "dotenv";
+import { loadEnv } from "../load-env";
 import { createServer as createViteServer } from "vite";
 import { patchExpressAsyncRoutes } from "../express-async";
 import { isBlockedProductionSourcePath } from "../static-source-guard";
@@ -14,14 +14,15 @@ import { startPerformanceMonitor } from "../performance";
 import { initCache, startCachePruner, stopCachePruner, disconnectCache } from "../cache";
 import { startAuditLogRetention } from "../audit-log-service";
 import { startRefreshTokenCleanup } from "../auth-token-cleanup";
-import { verifySmtpConnection, readSmtpBanner } from "../email";
+import { verifySmtpConnection, readSmtpBanner, getSmtpStartupSummary } from "../email";
 import { seedDatabase, synchronizePostgresSequences } from "./startup-db";
 import { apiErrorStatus, apiErrorMessage } from "./api-errors";
 import { createAxelmondApp } from "./create-app";
 import { logDb, logEmail, startAuthUserCachePruner, stopAuthUserCachePruner } from "./route-deps";
 import { stopPerformanceMonitor } from "../performance";
+import { isVerboseStartup } from "./startup-logging";
 
-dotenv.config();
+loadEnv();
 
 function normalizeOriginUrl(value: string): string {
   return value.trim().replace(/\/+$/, "");
@@ -59,27 +60,51 @@ function isConfiguredEnv(name: string) {
 }
 
 function logEnvironmentStatus(allowedOrigins: Set<string>, isProduction: boolean) {
-  logDb("INFO", "Environment configuration loaded", {
-    NODE_ENV: process.env.NODE_ENV || "development",
-    APP_URL: isConfiguredEnv("APP_URL"),
-    ALLOWED_ORIGINS: isConfiguredEnv("ALLOWED_ORIGINS"),
-    corsOriginCount: allowedOrigins.size,
-    DATABASE_URL: isConfiguredEnv("DATABASE_URL"),
-    AUTH_TOKEN_SECRET: isConfiguredEnv("AUTH_TOKEN_SECRET"),
-    PAYPAL_CLIENT_ID: isConfiguredEnv("PAYPAL_CLIENT_ID"),
-    PAYPAL_CLIENT_SECRET: isConfiguredEnv("PAYPAL_CLIENT_SECRET"),
-    PAYPAL_WEBHOOK_ID: isConfiguredEnv("PAYPAL_WEBHOOK_ID"),
-    PAYPAL_ENV: getPayPalRuntimeEnv(),
-    LIVEKIT_URL: isConfiguredEnv("LIVEKIT_URL"),
-    LIVEKIT_API_KEY: isConfiguredEnv("LIVEKIT_API_KEY"),
-    LIVEKIT_API_SECRET: isConfiguredEnv("LIVEKIT_API_SECRET"),
-    UPLOADTHING_TOKEN: isConfiguredEnv("UPLOADTHING_TOKEN"),
-    UPLOADTHING_IS_DEV: process.env.UPLOADTHING_IS_DEV === "true",
-    SMTP_HOST: isConfiguredEnv("SMTP_HOST"),
-    SMTP_USER: isConfiguredEnv("SMTP_USER"),
-    SMTP_PASS: isConfiguredEnv("SMTP_PASS"),
-    OPENAI_API_KEY: isConfiguredEnv("OPENAI_API_KEY"),
-  });
+  if (isProduction && !isVerboseStartup()) {
+    const integrationKeys = [
+      "DATABASE_URL",
+      "AUTH_TOKEN_SECRET",
+      "PAYPAL_CLIENT_ID",
+      "PAYPAL_CLIENT_SECRET",
+      "PAYPAL_WEBHOOK_ID",
+      "LIVEKIT_URL",
+      "LIVEKIT_API_KEY",
+      "LIVEKIT_API_SECRET",
+      "UPLOADTHING_TOKEN",
+      "SMTP_HOST",
+      "SMTP_USER",
+      "SMTP_PASS",
+      "OPENAI_API_KEY",
+    ] as const;
+    const configuredCount = integrationKeys.filter((key) => isConfiguredEnv(key).configured).length;
+    logDb("INFO", "Production environment loaded", {
+      corsOriginCount: allowedOrigins.size,
+      integrationsConfigured: configuredCount,
+      integrationsTotal: integrationKeys.length,
+    });
+  } else {
+    logDb("INFO", "Environment configuration loaded", {
+      NODE_ENV: process.env.NODE_ENV || "development",
+      APP_URL: isConfiguredEnv("APP_URL"),
+      ALLOWED_ORIGINS: isConfiguredEnv("ALLOWED_ORIGINS"),
+      corsOriginCount: allowedOrigins.size,
+      DATABASE_URL: isConfiguredEnv("DATABASE_URL"),
+      AUTH_TOKEN_SECRET: isConfiguredEnv("AUTH_TOKEN_SECRET"),
+      PAYPAL_CLIENT_ID: isConfiguredEnv("PAYPAL_CLIENT_ID"),
+      PAYPAL_CLIENT_SECRET: isConfiguredEnv("PAYPAL_CLIENT_SECRET"),
+      PAYPAL_WEBHOOK_ID: isConfiguredEnv("PAYPAL_WEBHOOK_ID"),
+      PAYPAL_ENV: getPayPalRuntimeEnv(),
+      LIVEKIT_URL: isConfiguredEnv("LIVEKIT_URL"),
+      LIVEKIT_API_KEY: isConfiguredEnv("LIVEKIT_API_KEY"),
+      LIVEKIT_API_SECRET: isConfiguredEnv("LIVEKIT_API_SECRET"),
+      UPLOADTHING_TOKEN: isConfiguredEnv("UPLOADTHING_TOKEN"),
+      UPLOADTHING_IS_DEV: process.env.UPLOADTHING_IS_DEV === "true",
+      SMTP_HOST: isConfiguredEnv("SMTP_HOST"),
+      SMTP_USER: isConfiguredEnv("SMTP_USER"),
+      SMTP_PASS: isConfiguredEnv("SMTP_PASS"),
+      OPENAI_API_KEY: isConfiguredEnv("OPENAI_API_KEY"),
+    });
+  }
   if (isProduction && allowedOrigins.size === 0) {
     throw new Error("Production CORS allowlist is empty — set APP_URL and/or ALLOWED_ORIGINS");
   }
@@ -176,7 +201,7 @@ async function attachStaticOrVite(app: express.Express, isSecurityRuntimeTest: b
     }
     res.sendFile(path.join(distPath, "index.html"));
   });
-  console.log("Serving static files in production mode.");
+  console.log(isVerboseStartup() ? "Serving static files in production mode." : "Static assets enabled.");
 }
 
 export async function startAxelmondServer() {
@@ -207,7 +232,11 @@ export async function startAxelmondServer() {
 
   const dbCheck = await verifyDatabaseConnection();
   if (dbCheck.ok) {
-    logDb("INFO", "Database schema verified at startup", { schema: dbCheck.schema });
+    logDb(
+      "INFO",
+      isVerboseStartup() ? "Database schema verified at startup" : "Database connection verified at startup",
+      isVerboseStartup() ? { schema: dbCheck.schema } : undefined,
+    );
   } else {
     logDb("ERROR", "Database schema verification failed at startup", {
       schema: dbCheck.schema,
@@ -256,9 +285,13 @@ export async function startAxelmondServer() {
   });
   await new Promise<void>((resolve, reject) => {
     httpServer.listen(PORT, "0.0.0.0", () => {
-      console.log(
-        `Axelmond Research Labs server running (pid=${process.pid}, port=${PORT}, host=0.0.0.0, NODE_ENV=${process.env.NODE_ENV || "development"})`,
-      );
+      if (isVerboseStartup()) {
+        console.log(
+          `Axelmond Research Labs server running (pid=${process.pid}, port=${PORT}, host=0.0.0.0, NODE_ENV=${process.env.NODE_ENV || "development"})`,
+        );
+      } else {
+        console.log(`Axelmond server running on port ${PORT}`);
+      }
       resolve();
     });
     httpServer.once("error", reject);
@@ -287,21 +320,27 @@ async function runDeferredStartupTasks(securityTest: boolean) {
 
   const smtpCheck = await verifySmtpConnection();
   if (smtpCheck.ok) {
-    logEmail("INFO", "SMTP connection verified at startup", { smtp: smtpCheck.details });
+    logEmail(
+      "INFO",
+      isVerboseStartup() ? "SMTP connection verified at startup" : "Email service verified at startup",
+      isVerboseStartup() ? { smtp: smtpCheck.details } : getSmtpStartupSummary(),
+    );
   } else {
     logEmail(smtpCheck.configured ? "ERROR" : "WARN", "SMTP connection verification failed at startup", {
-      smtp: smtpCheck.details,
+      ...(isVerboseStartup() ? { smtp: smtpCheck.details } : getSmtpStartupSummary()),
       error: smtpCheck.error,
     });
   }
-  const smtpBanner = await readSmtpBanner();
-  if (smtpBanner.ok) {
-    logEmail("INFO", "SMTP banner received at startup", { smtp: smtpBanner.details, banner: smtpBanner.banner });
-  } else {
-    logEmail("WARN", "SMTP banner check failed at startup", {
-      smtp: smtpBanner.details,
-      error: "error" in smtpBanner ? smtpBanner.error : undefined,
-    });
+  if (isVerboseStartup()) {
+    const smtpBanner = await readSmtpBanner();
+    if (smtpBanner.ok) {
+      logEmail("INFO", "SMTP banner received at startup", { smtp: smtpBanner.details, banner: smtpBanner.banner });
+    } else {
+      logEmail("WARN", "SMTP banner check failed at startup", {
+        smtp: smtpBanner.details,
+        error: "error" in smtpBanner ? smtpBanner.error : undefined,
+      });
+    }
   }
 
   await initCache();

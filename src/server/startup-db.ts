@@ -7,6 +7,7 @@ import { parseProfessorInviteCodes } from "../invitations";
 import { canAccessAcademicProfile } from "../rbac";
 
 import { DEFAULT_LIVE_SUBJECT } from "../livekit";
+import { isVerboseStartup } from "./startup-logging";
 
 function logDb(level: "INFO" | "WARN" | "ERROR", message: string, data?: unknown) {
   console.log(`[${new Date().toISOString()}] [${level}] [db] ${message}${data ? " " + JSON.stringify(data) : ""}`);
@@ -592,5 +593,9 @@ export async function synchronizePostgresSequences() {
       ) AS last_value
     `,
   );
-  logDb("INFO", "PostgreSQL sequences synchronized", { courseIdSequence: String(result[0]?.last_value || "") });
+  logDb(
+    "INFO",
+    isVerboseStartup() ? "PostgreSQL sequences synchronized" : "Database sequences synchronized",
+    isVerboseStartup() ? { courseIdSequence: String(result[0]?.last_value || "") } : undefined,
+  );
 }

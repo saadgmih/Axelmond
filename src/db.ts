@@ -1,9 +1,10 @@
-import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
+import { loadEnv } from "./load-env";
+import { isVerboseStartup } from "./server/startup-logging";
 
-dotenv.config();
+loadEnv();
 
 const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;
@@ -51,15 +52,18 @@ export function buildFixedDatabaseUrl(connectionString: string): { url: string; 
   const rawSchema = url.searchParams.get("schema")?.trim() || "";
   const schema = resolvePgSchema(connectionString);
 
-  if (!url.searchParams.get("sslmode")) {
-    url.searchParams.set("sslmode", "require");
+  const sslMode = url.searchParams.get("sslmode");
+  if (!sslMode) {
+    url.searchParams.set("sslmode", "verify-full");
+  } else if (/^(prefer|require|verify-ca)$/i.test(sslMode)) {
+    url.searchParams.set("sslmode", "verify-full");
   }
   url.searchParams.set("schema", schema);
 
   const protocol = connectionString.startsWith("postgres://") ? "postgres:" : "postgresql:";
   const fixedUrl = `${protocol}${url.toString().slice("http:".length)}`;
 
-  if (rawSchema && rawSchema !== schema) {
+  if (rawSchema && rawSchema !== schema && isVerboseStartup()) {
     console.info(`[db] Legacy schema alias applied: ${rawSchema} -> ${schema}`);
   }
 
@@ -77,7 +81,9 @@ function ensureFixedDatabaseConfig(): { url: string; schema: string } {
   globalForPrisma.pgSchema = fixed.schema;
   globalForPrisma.databaseUrl = fixed.url;
 
-  console.info(`[db] Prisma datasource schema forced: ${fixed.schema}`);
+  if (isVerboseStartup()) {
+    console.info(`[db] Prisma datasource schema forced: ${fixed.schema}`);
+  }
   return fixed;
 }
 
@@ -90,7 +96,9 @@ function createPgPool(fixedDatabaseUrl: string, schema: string): Pool {
     options: `-c search_path=${quotePgIdentifier(schema)}`,
   });
 
-  console.info(`[db] PostgreSQL active schema: ${schema} (search_path=${schema})`);
+  if (isVerboseStartup()) {
+    console.info(`[db] PostgreSQL active schema: ${schema} (search_path=${schema})`);
+  }
   return pool;
 }
 

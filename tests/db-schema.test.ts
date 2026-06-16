@@ -13,10 +13,11 @@ rulesTest("db-schema", () => {
 
   const fixed = buildFixedDatabaseUrl("postgresql://user:pass@host/neondb");
   assert.match(fixed.url, /schema=AxelmondResearchLab/);
-  assert.match(fixed.url, /sslmode=require/);
+  assert.match(fixed.url, /sslmode=verify-full/);
   assert.equal(fixed.schema, DEFAULT_PG_SCHEMA);
 
   const fixedLegacy = buildFixedDatabaseUrl("postgresql://user:pass@host/neondb?sslmode=require&schema=unicode");
+  assert.match(fixedLegacy.url, /sslmode=verify-full/);
   assert.match(fixedLegacy.url, /schema=AxelmondResearchLab/);
   assert.equal(fixedLegacy.schema, DEFAULT_PG_SCHEMA);
 

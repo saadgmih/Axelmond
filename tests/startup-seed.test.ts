@@ -16,6 +16,7 @@ rulesTest("startup-seed", () => {
   assert.match(dbSource, /PrismaPg/);
   assert.match(dbSource, /quotePgIdentifier\(schema\)/);
   assert.match(dbSource, /PostgreSQL active schema/);
+  assert.match(dbSource, /isVerboseStartup\(\)/);
   assert.match(dbSource, /Prisma datasource schema forced/);
   assert.match(dbSource, /process\.env\.DATABASE_URL = fixed\.url/);
   assert.match(dbSource, /connectionString:\s*fixedDatabaseUrl/);

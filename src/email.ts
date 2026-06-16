@@ -75,6 +75,14 @@ export function getSmtpPublicConfig(env: NodeJS.ProcessEnv = process.env) {
   };
 }
 
+/** Minimal SMTP status for production startup logs (no host/user). */
+export function getSmtpStartupSummary(env: NodeJS.ProcessEnv = process.env) {
+  return {
+    configured: isSmtpConfigured(env),
+    secure: Number(env.SMTP_PORT) === 465,
+  };
+}
+
 function getTransporterPublicOptions(transporter: any, env: NodeJS.ProcessEnv = process.env) {
   const options = transporter?.options || {};
   return {

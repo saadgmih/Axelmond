@@ -242,9 +242,12 @@ export async function generateChatTutorResponse(options: {
 
 export function initializeOpenAIService(): void {
   if (isOpenAIConfigured()) {
-    logSecurity("INFO", "OpenAI chat-tutor service configured", {
-      model: getOpenAIModelName(),
-    });
+    const verbose = process.env.NODE_ENV !== "production" || process.env.STARTUP_VERBOSE === "true";
+    logSecurity(
+      "INFO",
+      verbose ? "OpenAI chat-tutor service configured" : "Chat-tutor service configured",
+      verbose ? { model: getOpenAIModelName() } : undefined,
+    );
   } else {
     console.log("Assistant IA: service externe non configuré, réponses pédagogiques locales activées.");
   }
