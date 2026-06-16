@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "tsx server.ts",
     "build": "prisma generate && vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
-    "postinstall": "prisma generate",
-    "prestart": "prisma migrate deploy",
-    "start": "node dist/server.cjs",
+    "hostinger:build": "prisma migrate deploy && npm run build",
+    "postinstall": "node scripts/prisma-postinstall.mjs",
+    "start": "node scripts/hostinger-preflight.mjs && node dist/server.cjs",
     "start:cluster": "pm2 start ecosystem.config.cjs",
     "stop:cluster": "pm2 stop axelmond-research-labs",
     "reload:cluster": "pm2 reload ecosystem.config.cjs --update-env",

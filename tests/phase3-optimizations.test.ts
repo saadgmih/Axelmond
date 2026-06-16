@@ -48,6 +48,7 @@ rulesTest("phase3-optimizations", async () => {
   // P18 — PM2 cluster gated on REDIS_URL
   const ecosystem = fs.readFileSync("ecosystem.config.cjs", "utf8");
   assert.match(ecosystem, /REDIS_URL/);
+  assert.match(ecosystem, /HOSTINGER_WEBAPP/);
   assert.match(ecosystem, /exec_mode: useCluster \? "cluster" : "fork"/);
 
   console.log("Phase 3 optimization guards passed");

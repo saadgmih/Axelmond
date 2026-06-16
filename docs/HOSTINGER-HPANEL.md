@@ -8,14 +8,29 @@ Quand vous poussez sur `main`, Hostinger rebuild et redémarre l’app automatiq
 | Champ | Valeur |
 |--------|--------|
 | Branche | `main` |
-| Install | `npm ci` ou `npm install` |
-| Build | `npm run build` |
+| Install | `npm ci` |
+| Build | `npm run hostinger:build` |
 | Start | `npm start` |
 | Entry file | `dist/server.cjs` |
 | Output directory | `dist` |
 | Node.js | 20 ou 22 (selon `engines` dans `package.json`) |
 
-`npm start` exécute automatiquement `prestart` → `prisma migrate deploy`, puis `node dist/server.cjs`.
+**Important :** ne pas utiliser `npm run start:cluster`, PM2, ni `prestart` — un seul process Node doit tourner.
+
+- `hostinger:build` = `prisma migrate deploy` + build Vite/esbuild (migrations **pendant le build**, pas au démarrage).
+- `npm start` = contrôle anti-PM2 + `node dist/server.cjs` (un seul process long-lived).
+
+### Variables hPanel obligatoires (anti Max Processes)
+
+Ajouter dans **Environment variables** :
+
+| Variable | Valeur | Rôle |
+|----------|--------|------|
+| `HOSTINGER_WEBAPP` | `1` | Bloque PM2 / cluster si mal configuré |
+| `SKIP_PRISMA_POSTINSTALL` | `1` | Évite un 2ᵉ `prisma generate` pendant `npm ci` (le build le fait déjà) |
+| `GRACEFUL_SHUTDOWN_MS` | `5000` | Arrêt plus rapide à la fin d’un déploiement (moins de chevauchement) |
+
+Générer le fichier d’import : `npm run hostinger:env` (inclut ces clés si le script est à jour).
 
 ## Variables d’environnement (checklist complète)
 
@@ -48,7 +63,7 @@ Cela produit **`.hostinger-import.env`** (gitignored) : variables triées, sans 
 
 | Groupe | Clés |
 |--------|------|
-| Runtime | `NODE_ENV`, `APP_URL`, `PORT`, `LOG_LEVEL`, `RUN_STARTUP_SEED`, `ALLOWED_ORIGINS`, `VITE_API_BASE_URL` |
+| Runtime | `NODE_ENV`, `APP_URL`, `PORT`, `LOG_LEVEL`, `RUN_STARTUP_SEED`, `ALLOWED_ORIGINS`, `VITE_API_BASE_URL`, **`HOSTINGER_WEBAPP`**, **`SKIP_PRISMA_POSTINSTALL`**, **`GRACEFUL_SHUTDOWN_MS`** |
 | Auth | `AUTH_TOKEN_SECRET`, `EMAIL_VERIFICATION_SECRET`, **`MOBILE_CLIENT_SECRET`**, `AUTH_MAX_ATTEMPTS`, `AUTH_LOCKOUT_WINDOW_MS` |
 | WebAuthn | `WEBAUTHN_RP_ID` (ex. `axelmond.com`), optionnel `WEBAUTHN_RP_NAME` |
 | Base | `DATABASE_URL` (Neon + `?schema=AxelmondResearchLab&sslmode=require`) |
@@ -124,7 +139,8 @@ Les logs `Graceful shutdown initiated {"signal":"SIGTERM"}` répétés (comme lo
 
 | Champ | Valeur correcte | À éviter |
 |--------|-----------------|----------|
-| **Start command** | `npm start` | `pm2 start`, `npm run start:cluster`, `node dist/server.cjs` lancé manuellement en SSH |
+| **Start command** | `npm start` | `pm2 start`, `npm run start:cluster` |
+| **Build command** | `npm run hostinger:build` | `npm run build` seul (sans migrate) |
 | **Instances / workers** | **1** (défaut Hostinger) | PM2 cluster, `instances: max` |
 | **Entry file** | `dist/server.cjs` | — |
 

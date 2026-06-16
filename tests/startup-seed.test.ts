@@ -25,7 +25,7 @@ rulesTest("startup-seed", () => {
   assert.match(generatedSchema, /schemas\s*=\s*\["AxelmondResearchLab"\]/);
   assert.match(generatedSchema, /model Course[\s\S]*@@schema\("AxelmondResearchLab"\)/);
   assert.match(schemaSource, /engineType = "client"/);
-  assert.match(packageJsonSource, /"postinstall": "prisma generate"/);
+  assert.match(packageJsonSource, /prisma-postinstall/);
   assert.match(packageJsonSource, /"build": "prisma generate && vite build/);
 
   const originalNodeEnv = process.env.NODE_ENV;

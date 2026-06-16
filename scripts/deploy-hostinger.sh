@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Déploiement production Hostinger — Axelmond Research Labs
-# Usage (SSH Hostinger) :
-#   cd ~/domains/axelmond.com/public_html   # adapter si besoin
-#   bash scripts/deploy-hostinger.sh
+# Déploiement production Hostinger VPS (SSH) — PAS pour Node.js Web App hPanel.
+# Sur Node.js Web App : auto-deploy GitHub + npm run hostinger:build + npm start.
+# Ne jamais lancer PM2 en parallèle du gestionnaire Hostinger hPanel.
 
 echo "==> git pull"
 git pull origin main

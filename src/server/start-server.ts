@@ -278,7 +278,7 @@ export async function startAxelmondServer() {
       logDb("ERROR", "Messaging socket initialization failed", { error: String(err) });
     });
   });
-  registerGracefulShutdown(httpServer);
+  registerGracefulShutdown(httpServer, isProduction);
   httpServer.on("error", (err: NodeJS.ErrnoException) => {
     logDb("ERROR", "HTTP server failed to bind", { port: PORT, code: err.code, error: String(err) });
     process.exit(1);
@@ -355,12 +355,15 @@ async function verifySmtpAtStartup() {
   }
 }
 
-function registerGracefulShutdown(httpServer: ReturnType<typeof createServer>) {
+function registerGracefulShutdown(httpServer: ReturnType<typeof createServer>, isProduction: boolean) {
   let shuttingDown = false;
+  const shutdownTimeoutMs =
+    Number(process.env.GRACEFUL_SHUTDOWN_MS) || (isProduction ? 5_000 : 15_000);
+
   const shutdown = async (signal: string) => {
     if (shuttingDown) return;
     shuttingDown = true;
-    logDb("INFO", "Graceful shutdown initiated", { signal, pid: process.pid });
+    logDb("INFO", "Graceful shutdown initiated", { signal, pid: process.pid, shutdownTimeoutMs });
     stopPerformanceMonitor();
     stopCachePruner();
     stopAuthUserCachePruner();
@@ -369,14 +372,15 @@ function registerGracefulShutdown(httpServer: ReturnType<typeof createServer>) {
     } catch (err) {
       logDb("WARN", "Cache disconnect failed during shutdown", { error: String(err) });
     }
+    httpServer.closeAllConnections?.();
     httpServer.close(() => {
       logDb("INFO", "HTTP server closed", { signal });
       process.exit(0);
     });
     setTimeout(() => {
-      logDb("ERROR", "Forced shutdown after timeout", { signal });
+      logDb("ERROR", "Forced shutdown after timeout", { signal, shutdownTimeoutMs });
       process.exit(1);
-    }, 15_000).unref();
+    }, shutdownTimeoutMs).unref();
   };
   process.on("SIGTERM", () => void shutdown("SIGTERM"));
   process.on("SIGINT", () => void shutdown("SIGINT"));
