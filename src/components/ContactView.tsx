@@ -52,7 +52,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
     {
       question: "Comment participer aux sessions Live ?",
       answer:
-        "Lorsqu'une session en direct est lancée par un enseignant, une notification 'En direct' s'affiche sur votre tableau de bord et dans l'espace module. Cliquez simplement sur 'Rejoindre le live' pour vous connecter à la salle de visioconférence sécurisée LiveKit.",
+        "Lorsqu'une session en direct est lancée par un enseignant, une notification « En direct » s'affiche sur votre tableau de bord et dans l'espace module. Cliquez sur « Rejoindre le live » pour accéder à la visioconférence sécurisée.",
     },
     {
       question: "Mes notes et progrès de quiz sont-ils enregistrés ?",

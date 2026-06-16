@@ -14,9 +14,9 @@ export function apiErrorMessage(err: any): string {
   if (dbUnavailableCodes.has(err?.code)) {
     return "Service temporairement indisponible. Réessayez dans quelques minutes.";
   }
-  if (err?.code === "P2002") return "Conflit en base de données";
+  if (err?.code === "P2002") return "Cette action entre en conflit avec une donnée existante";
   if (err?.code === "P2025") return "Ressource introuvable";
-  if (err instanceof Prisma.PrismaClientValidationError) return "Requête invalide pour la base de données";
+  if (err instanceof Prisma.PrismaClientValidationError) return "Requête invalide";
 
   const status = apiErrorStatus(err);
   if (status >= 500) {

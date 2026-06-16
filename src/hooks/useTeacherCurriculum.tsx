@@ -257,7 +257,7 @@ export function useTeacherCurriculum({
       setNewCourseTitle("");
       setNewCourseDescription("");
       setCourseContentSections([]);
-      showCurriculumSuccess(`Module créé : ID ${course.id} — "${course.title}".`);
+      showCurriculumSuccess(`Module « ${course.title} » créé avec succès.`);
     } catch (err: any) {
       console.error("Failed to create course:", err);
       showCurriculumError(getClientErrorMessage(err, "Création du module impossible."));
@@ -283,11 +283,7 @@ export function useTeacherCurriculum({
       setUploadCourseId(newSectionCourseId);
       setUploadSectionId(newSectionParentId ? result.id : result.section?.id || "");
       setNewSectionTitle("");
-      showCurriculumSuccess(
-        newSectionParentId
-          ? `Partie créée : ID ${result.id}.`
-          : `Chapitre créé : ID ${result.chapter?.id} — section racine ${result.section?.id}.`,
-      );
+      showCurriculumSuccess(newSectionParentId ? "Partie créée avec succès." : "Chapitre créé avec succès.");
       if (!uploadSectionId && sections[0]) setUploadSectionId(sections[0].id);
     } catch (err: any) {
       console.error("Failed to create content section:", err);
@@ -311,7 +307,7 @@ export function useTeacherCurriculum({
     }
 
     try {
-      setUploadStatusMsg("Téléversement UploadThing en cours...");
+      setUploadStatusMsg("Téléversement en cours...");
       await (uploadFiles as any)("lessonAsset", {
         files: [uploadFile],
         input: {
@@ -323,14 +319,14 @@ export function useTeacherCurriculum({
         },
         headers: { Authorization: `Bearer ${token}` },
         onUploadProgress: bindUploadProgress((progress) =>
-          setUploadStatusMsg(`Téléversement UploadThing : ${formatUploadProgressLabel(progress)}`),
+          setUploadStatusMsg(`Téléversement : ${formatUploadProgressLabel(progress)}`),
         ),
       });
       await refreshCourseContent(uploadCourseId);
       setUploadFile(null);
       setUploadTitle("");
-      setUploadStatusMsg("Fichier envoyé et contenu enregistré en base.");
-      showCurriculumSuccess("Média envoyé et enregistré en base.");
+      setUploadStatusMsg("Média enregistré avec succès.");
+      showCurriculumSuccess("Média enregistré avec succès.");
     } catch (err: any) {
       console.error("Failed to upload lesson asset:", err);
       const message = getUploadErrorMessage(err);
@@ -456,7 +452,7 @@ export function useTeacherCurriculum({
       });
       setCourses((prev) => prev.map((item) => (item.id === updatedCourse.id ? updatedCourse : item)));
       setEditingCourse(null);
-      showCurriculumSuccess(`Module modifié : "${updatedCourse.title}" (ID ${updatedCourse.id}).`);
+      showCurriculumSuccess(`Module « ${updatedCourse.title} » modifié.`);
     } catch (err: any) {
       showCurriculumError(getClientErrorMessage(err, "Modification du module impossible."));
     }
@@ -466,7 +462,7 @@ export function useTeacherCurriculum({
     try {
       const updatedCourse = await api.updateCourse(course.id, { published: !course.published });
       setCourses((prev) => prev.map((item) => (item.id === updatedCourse.id ? updatedCourse : item)));
-      showCurriculumSuccess(`Module ${updatedCourse.published ? "publié" : "dépublié"} : ID ${updatedCourse.id}.`);
+      showCurriculumSuccess(`Module ${updatedCourse.published ? "publié" : "dépublié"}.`);
     } catch (err: any) {
       showCurriculumError(getClientErrorMessage(err, "Changement de publication impossible."));
     }
@@ -484,7 +480,7 @@ export function useTeacherCurriculum({
         setCourseContentSections([]);
         setUploadSectionId("");
       }
-      showCurriculumSuccess(`Module supprimé : ID ${course.id}.`);
+      showCurriculumSuccess("Module supprimé.");
     } catch (err: any) {
       showCurriculumError(getClientErrorMessage(err, "Suppression du module impossible."));
     }
@@ -503,9 +499,7 @@ export function useTeacherCurriculum({
         await api.putContentSection(section.id, { title: title.trim() });
       }
       await refreshCourseContent(section.courseId);
-      showCurriculumSuccess(
-        `${section.parentId ? "Section" : "Chapitre"} modifié : ID ${section.parentId ? section.id : section.chapterId}.`,
-      );
+      showCurriculumSuccess(`${section.parentId ? "Partie" : "Chapitre"} « ${section.title} » modifié.`);
     } catch (err: any) {
       showCurriculumError(getClientErrorMessage(err, "Modification impossible."));
     }
@@ -520,7 +514,7 @@ export function useTeacherCurriculum({
       }
       await refreshCourseContent(section.courseId);
       showCurriculumSuccess(
-        `${section.parentId ? "Section" : "Chapitre"} ${!section.published ? "publié" : "dépublié"} : ID ${section.parentId ? section.id : section.chapterId}.`,
+        `${section.parentId ? "Partie" : "Chapitre"} ${!section.published ? "publié" : "dépublié"}.`,
       );
     } catch (err: any) {
       showCurriculumError(getClientErrorMessage(err, "Publication impossible."));
@@ -537,9 +531,7 @@ export function useTeacherCurriculum({
       }
       await refreshCourseContent(section.courseId);
       if (uploadSectionId === section.id) setUploadSectionId("");
-      showCurriculumSuccess(
-        `${section.parentId ? "Section" : "Chapitre"} supprimé : ID ${section.parentId ? section.id : section.chapterId}.`,
-      );
+      showCurriculumSuccess(`${section.parentId ? "Partie" : "Chapitre"} « ${section.title} » supprimé.`);
     } catch (err: any) {
       showCurriculumError(getClientErrorMessage(err, "Suppression impossible."));
     }
@@ -551,14 +543,14 @@ export function useTeacherCurriculum({
     setNewSectionParentId(section.id);
     setNewSectionTitle("");
     setUploadSectionId(section.id);
-    showCurriculumSuccess(`Parent sélectionné : ${section.title} (${section.id}).`);
+    showCurriculumSuccess(`Section sélectionnée : ${section.title}.`);
   };
 
   const handleToggleContentPublished = async (content: LessonContent) => {
     try {
       await api.updateLessonContent(content.id, { published: !content.published });
       await refreshCourseContent(content.courseId);
-      showCurriculumSuccess(`Média ${!content.published ? "publié" : "dépublié"} : ID ${content.id}.`);
+      showCurriculumSuccess(`Média ${!content.published ? "publié" : "dépublié"}.`);
     } catch (err: any) {
       showCurriculumError(getClientErrorMessage(err, "Publication du média impossible."));
     }
@@ -569,7 +561,7 @@ export function useTeacherCurriculum({
     try {
       await api.deleteLessonContent(content.id);
       await refreshCourseContent(content.courseId);
-      showCurriculumSuccess(`Média supprimé : ID ${content.id}.`);
+      showCurriculumSuccess("Média supprimé.");
     } catch (err: any) {
       showCurriculumError(getClientErrorMessage(err, "Suppression du média impossible."));
     }

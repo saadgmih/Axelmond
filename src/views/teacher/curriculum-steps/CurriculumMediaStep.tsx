@@ -4,6 +4,7 @@ import {
 } from "lucide-react";
 import { RASTER_IMAGE_ACCEPT } from "../../../avatar-security";
 import PremiumVideoPlayer from "../../../components/PremiumVideoPlayer";
+import { formatLessonContentTypeLabel } from "../../../utils/user-facing-labels";
 
 import { curriculumUi, getStepTheme, publishedBadge, publishedLabel } from "../curriculum-theme";
 import type { TeacherCurriculumViewProps } from "../curriculum-types";
@@ -310,9 +311,8 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
                                 : curriculumUi.mediaImage
                           }`}
                         >
-                          {content.type}
+                          {formatLessonContentTypeLabel(content.type)}
                         </span>
-                        <span className="text-[9px] text-slate-400 font-bold">ID: {content.id}</span>
                       </div>
                       <h4 className="text-sm font-black text-white leading-snug">{content.title}</h4>
                       {attachment?.fileName && (

@@ -145,7 +145,7 @@ export default function TeacherAcademicProfileView({
               <h3 className="text-sm font-black text-violet-100">Espace administrateur</h3>
               <p className="mt-1 text-xs leading-relaxed text-violet-300/80">
                 Votre profil académique est partagé avec les enseignants. Utilisez le tableau de bord pour la
-                configuration SMTP, la gestion des modules et les diagnostics système.
+                gestion des modules, le suivi des étudiants et la configuration de la plateforme.
               </p>
             </div>
           </div>
@@ -344,7 +344,7 @@ export default function TeacherAcademicProfileView({
                   <div key={live.id} className={profileUi.listItem}>
                     <div className="min-w-0">
                       <p className={`truncate ${profileUi.listItemTitle}`}>
-                        {live.course?.title || `Module ${live.courseId}`}
+                        {live.course?.title || "Module sans titre"}
                       </p>
                       <p className={`mt-0.5 ${profileUi.listItemMeta}`}>
                         {live.active ? "En direct" : "Terminé"} ·{" "}

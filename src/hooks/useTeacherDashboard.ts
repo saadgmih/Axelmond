@@ -66,7 +66,7 @@ export function useTeacherDashboard({
       setEmailDeliverySummary(summary);
       setEmailDeliveryStatusMsg("");
     } catch (err: any) {
-      setEmailDeliveryStatusMsg(getClientErrorMessage(err, "Diagnostic SMTP indisponible"));
+      setEmailDeliveryStatusMsg(getClientErrorMessage(err, "Résumé e-mail indisponible"));
     }
   };
 
@@ -125,13 +125,13 @@ export function useTeacherDashboard({
     e.preventDefault();
     if (!testEmailTo.trim()) return;
     setIsSendingTestEmail(true);
-    setTestEmailStatusMsg("Envoi du diagnostic SMTP...");
+    setTestEmailStatusMsg("Envoi de l'e-mail de test...");
     try {
       const response = await api.sendTestEmail(testEmailTo.trim());
-      setTestEmailStatusMsg(response.message || "E-mail de diagnostic envoyé");
+      setTestEmailStatusMsg(response.message || "E-mail de test envoyé");
       refreshEmailDeliverySummary();
     } catch (err: any) {
-      setTestEmailStatusMsg(getClientErrorMessage(err, "Échec d'envoi SMTP"));
+      setTestEmailStatusMsg(getClientErrorMessage(err, "Échec d'envoi de l'e-mail de test"));
       refreshEmailDeliverySummary();
     } finally {
       setIsSendingTestEmail(false);

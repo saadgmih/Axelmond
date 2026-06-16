@@ -172,7 +172,7 @@ export function useLiveKitConnection({
       .on(RoomEvent.ConnectionQualityChanged, refreshParticipants)
       .on(RoomEvent.DataReceived, handleDataReceived);
 
-    setLiveStatusMsg("Connexion à la salle LiveKit...");
+    setLiveStatusMsg("Connexion à la session en direct...");
     setLiveChatMessages([]);
     api
       .getLiveMessages(activeLiveCourse.id)
@@ -190,7 +190,7 @@ export function useLiveKitConnection({
           return;
         }
         setLiveRoom(room);
-        setLiveStatusMsg("Connecté à la salle LiveKit");
+        setLiveStatusMsg("Connecté à la session en direct");
         syncLiveParticipants(room);
         refreshLiveAttendanceReport(activeLiveCourse.id);
         await publishLiveSync(room, { type: "SYNC_REQUEST" });
@@ -209,7 +209,7 @@ export function useLiveKitConnection({
             } catch (syncErr) {
               console.warn("[student] Enrollment resync failed after LiveKit denial", syncErr);
             }
-            setLiveStatusMsg("Inscription backend requise pour rejoindre ce live. Activez l'abonnement au module.");
+            setLiveStatusMsg("Inscription au module requise pour rejoindre ce live. Activez votre accès depuis le catalogue.");
             setCourseToPurchase(activeLiveCourse);
           })();
           return;
@@ -218,7 +218,7 @@ export function useLiveKitConnection({
           setLiveStatusMsg("Connexion live impossible. Réessayez ou contactez le support.");
           return;
         }
-        setLiveStatusMsg(getClientErrorMessage(err, "Connexion LiveKit impossible"));
+        setLiveStatusMsg(getClientErrorMessage(err, "Connexion à la session en direct impossible"));
       });
 
     return () => {

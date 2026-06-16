@@ -631,7 +631,7 @@ export default function PrivacyView() {
                   name: "Données de progression des modules",
                   type: "API serveur",
                   purpose:
-                    "Progression dans les modules, scores de quiz et statuts de complétion stockés en base de données.",
+                    "Progression dans les modules, scores de quiz et statuts de complétion conservés de manière sécurisée.",
                   duration: "Durée de vie du compte (voir §05)",
                   necessary: true,
                   color: "border-violet-800/30 bg-violet-950/20",

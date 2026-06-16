@@ -117,7 +117,7 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
 
         message: delivery.sent
           ? "Code envoyé"
-          : "Compte créé. Le service e-mail n'est pas configuré, utilisez la route de renvoi après configuration SMTP.",
+          : "Compte créé. Le service e-mail n'est pas encore disponible ; utilisez « Renvoyer le code » une fois l'envoi activé.",
       });
     } catch (err: any) {
       if (err instanceof api.ProfessorInviteConsumeError) {

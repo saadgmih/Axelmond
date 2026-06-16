@@ -45,7 +45,7 @@ export async function processFreeCourseEnrollment(params: {
     return {
       ok: false,
       status: 400,
-      error: "Ce module n'est pas gratuit. Utilisez le paiement PayPal.",
+      error: "Ce module n'est pas gratuit. Utilisez le paiement en ligne.",
       code: "FREE_ENROLL_NOT_FREE",
     };
   }

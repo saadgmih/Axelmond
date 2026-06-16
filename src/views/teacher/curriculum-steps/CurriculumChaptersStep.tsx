@@ -189,9 +189,7 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-1">
-                    <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">
-                      Chapitre ID: {section.chapterId} • Section ID: {section.id}
-                    </span>
+                    <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">Chapitre</span>
                     <h4 className="text-sm font-black text-white">{section.title}</h4>
                   </div>
                   <span className={publishedBadge(section.published)}>

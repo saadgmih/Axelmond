@@ -448,9 +448,9 @@ export default function TeacherDashboardView({
             <div>
               <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
                 <Mail className="w-5 h-5 text-pink-600" />
-                Diagnostic SMTP Hostinger
+                Vérification e-mail
               </h3>
-              <p className="text-xs text-slate-400">Contrôlez la délivrabilité depuis verification@axelmond.com</p>
+              <p className="text-xs text-slate-400">Contrôlez l&apos;envoi des messages de vérification</p>
             </div>
             <span className="text-[10px] uppercase font-black tracking-widest text-pink-700 bg-pink-50 border border-pink-100 px-3 py-1 rounded-full">
               Administrateur
@@ -459,7 +459,7 @@ export default function TeacherDashboardView({
 
           <div className="grid grid-cols-1 md:grid-cols-4 border-y border-slate-100 divide-y md:divide-y-0 md:divide-x divide-slate-100">
             <div className="py-4 md:px-4 first:md:pl-0 space-y-1">
-              <p className="text-[10px] uppercase font-black tracking-widest text-slate-400">SMTP</p>
+              <p className="text-[10px] uppercase font-black tracking-widest text-slate-400">Service e-mail</p>
               <div className="flex items-center gap-2">
                 <span
                   className={`w-2 h-2 rounded-full ${emailDeliverySummary?.smtpConfigured ? "bg-emerald-500" : "bg-red-500"}`}
@@ -477,7 +477,9 @@ export default function TeacherDashboardView({
                 {formatEmailLogDate(emailDeliverySummary?.lastEmailSent?.createdAt)}
               </p>
               <p className="text-[10px] font-semibold text-slate-400 truncate">
-                {emailDeliverySummary?.lastEmailSent?.response || "Aucun message enregistré"}
+                {emailDeliverySummary?.lastEmailSent
+                  ? "Dernier envoi réussi"
+                  : "Aucun message envoyé récemment"}
               </p>
             </div>
             <div className="py-4 md:px-4 space-y-1">
@@ -489,12 +491,10 @@ export default function TeacherDashboardView({
               <p
                 className={`text-sm font-black ${emailDeliverySummary?.lastSmtpError ? "text-red-700" : "text-emerald-700"}`}
               >
-                {emailDeliverySummary?.lastSmtpError
-                  ? emailDeliverySummary.lastSmtpError.providerStatus
-                  : "Aucune erreur"}
+                {emailDeliverySummary?.lastSmtpError ? "Anomalie détectée" : "Aucune erreur"}
               </p>
               <p className="text-[10px] font-semibold text-slate-400 truncate">
-                {emailDeliverySummary?.lastSmtpError?.response || "Aucun reject/deferred/bounce enregistré"}
+                {emailDeliverySummary?.lastSmtpError ? "Consultez les journaux techniques" : "Aucune anomalie récente"}
               </p>
             </div>
           </div>
@@ -515,7 +515,7 @@ export default function TeacherDashboardView({
               disabled={isSendingTestEmail}
               className="bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white font-bold py-3 px-6 rounded-xl text-xs transition-colors shadow-sm cursor-pointer"
             >
-              {isSendingTestEmail ? "Envoi..." : "Envoyer le diagnostic"}
+              {isSendingTestEmail ? "Envoi..." : "Envoyer un e-mail de test"}
             </button>
           </form>
 
@@ -691,7 +691,7 @@ export default function TeacherDashboardView({
                     <div key={live.id} className="rounded-xl border border-white/5 bg-slate-950/60 px-3 py-2.5">
                       <div className="flex items-center justify-between gap-2">
                         <p className="text-xs font-bold text-white truncate">
-                          {live.course?.title || `Module #${live.courseId}`}
+                          {live.course?.title || "Module sans titre"}
                         </p>
                         <span
                           className={`text-[10px] font-bold uppercase ${live.active ? "text-red-300" : "text-slate-500"}`}
@@ -813,7 +813,7 @@ export default function TeacherDashboardView({
             </select>
             {selectedGradesCourse && (
               <p className="text-[10px] text-slate-400 font-semibold">
-                Module #{selectedGradesCourse.id} · {selectedGradesCourse.instructor}
+                {selectedGradesCourse.title} · {selectedGradesCourse.instructor}
               </p>
             )}
           </div>
@@ -852,7 +852,7 @@ export default function TeacherDashboardView({
           </div>
 
           <div className="p-4 bg-slate-50 rounded-2xl text-slate-500 text-[11px] leading-relaxed">
-            Les notes proviennent des tentatives de quiz enregistrées en base. Un étudiant sans tentative terminée reste
+            Les notes proviennent des tentatives de quiz complétées par vos étudiants. Un étudiant sans tentative terminée reste
             affiché avec "Aucune note".
           </div>
         </div>

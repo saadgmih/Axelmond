@@ -497,12 +497,12 @@ export default function SecuritySettingsPanel({ layout = "compact", emailVerifie
                 <div>
                   <h3 className="text-sm font-black text-white">Données sécurisées</h3>
                   <p className="mt-1 max-w-2xl text-xs leading-relaxed text-slate-400">
-                    Secrets TOTP chiffrés et clés publiques WebAuthn stockés uniquement dans PostgreSQL — sans API externe ni
+                    Secrets TOTP chiffrés et clés publiques WebAuthn stockés de façon sécurisée sur nos serveurs — sans API externe ni
                     abonnement.
                   </p>
                   {showLearnMore && (
                     <p className="mt-2 text-xs leading-relaxed text-slate-500">
-                      Vos codes TOTP ne quittent jamais notre base de données chiffrée. Les Passkeys utilisent le standard WebAuthn
+                      Vos codes TOTP restent chiffrés sur nos serveurs. Les Passkeys utilisent le standard WebAuthn
                       : seules les clés publiques sont conservées côté serveur.
                     </p>
                   )}
@@ -640,7 +640,7 @@ export default function SecuritySettingsPanel({ layout = "compact", emailVerifie
 
       <div className="flex items-start gap-2 rounded-xl border border-slate-100 bg-slate-50 p-3 text-[11px] text-slate-500">
         <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-indigo-500" />
-        Secrets TOTP chiffrés et clés publiques WebAuthn stockés uniquement dans PostgreSQL — sans API externe ni abonnement.
+        Secrets TOTP chiffrés et clés publiques WebAuthn stockés de façon sécurisée sur nos serveurs — sans API externe ni abonnement.
       </div>
     </div>
   );

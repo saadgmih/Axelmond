@@ -4,6 +4,7 @@ import ProfileAvatarUpload from "../../components/ProfileAvatarUpload";
 import type { AppUser } from "../../components/AuthScreen";
 import type { Course, Invoice } from "../../types";
 import { formatCredits, formatMad } from "../../utils/morocco-locale";
+import { formatInvoiceReference } from "../../utils/user-facing-labels";
 
 interface StudentProfileViewProps {
   currentUser: AppUser | null;
@@ -106,10 +107,8 @@ export default function StudentProfileView({
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm lg:min-w-[220px]">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-300/80">Identifiant</p>
-              <p className="mt-1 font-mono text-sm font-bold text-white">
-                {currentUser ? `ID-${currentUser.id.slice(0, 8).toUpperCase()}` : "—"}
-              </p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-300/80">Compte</p>
+              <p className="mt-1 text-sm font-bold text-white">{currentUser?.fullName || "—"}</p>
               <p className="mt-2 truncate text-xs font-medium text-indigo-200/80">{currentUser?.email}</p>
             </div>
           </div>
@@ -271,7 +270,7 @@ export default function StudentProfileView({
                           key={inv.id}
                           className="border-b border-slate-50 transition-colors last:border-none hover:bg-slate-50/80"
                         >
-                          <td className="px-6 py-4 font-mono font-semibold text-slate-800">{inv.id}</td>
+                          <td className="px-6 py-4 font-semibold text-slate-800">{formatInvoiceReference(inv.id)}</td>
                           <td className="px-4 py-4">{inv.date}</td>
                           <td className="px-4 py-4 font-semibold text-slate-900">{inv.courseTitle}</td>
                           <td className="px-4 py-4 text-right font-mono font-bold text-indigo-700">
@@ -294,7 +293,7 @@ export default function StudentProfileView({
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="text-sm font-bold text-slate-900">{inv.courseTitle}</p>
-                          <p className="mt-0.5 font-mono text-[10px] text-slate-400">{inv.id}</p>
+                          <p className="mt-0.5 text-[10px] text-slate-400">{formatInvoiceReference(inv.id)}</p>
                         </div>
                         <span className="rounded-lg border border-emerald-100 bg-emerald-50 px-2 py-0.5 text-[9px] font-bold uppercase text-emerald-700">
                           {inv.status}

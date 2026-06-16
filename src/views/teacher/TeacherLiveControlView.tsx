@@ -137,7 +137,7 @@ export default function TeacherLiveControlView({
                 <div>
                   <h2 className={liveControlUi.sectionTitle}>État de la diffusion en direct</h2>
                   <p className={liveControlUi.sectionDesc}>
-                    {isLive ? "Transmission active sur le flux WebRTC" : "Aucune diffusion en cours pour ce module"}
+                    {isLive ? "Diffusion en cours pour ce module" : "Aucune diffusion en cours pour ce module"}
                   </p>
                 </div>
               </div>

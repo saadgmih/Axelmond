@@ -148,7 +148,7 @@ export const uploadRouter = {
       }
       if (!fileUrl) {
         await utapi.deleteFiles(file.key);
-        throw new UploadThingError("URL UploadThing introuvable pour la photo de profil.");
+        throw new UploadThingError("URL de fichier introuvable pour la photo de profil.");
       }
       if (!isAllowedAvatarUrl(fileUrl)) {
         alertSuspectUpload(metadata.userId, file.name, file.type || "unknown");
@@ -200,7 +200,7 @@ export const uploadRouter = {
       }
       if (!fileUrl) {
         await utapi.deleteFiles(file.key);
-        throw new UploadThingError("URL UploadThing introuvable pour la capture d'écran.");
+        throw new UploadThingError("URL de fichier introuvable pour la capture d'écran.");
       }
       console.log(
         `[${new Date().toISOString()}] [INFO] [uploadthing] Support screenshot uploaded ${JSON.stringify({ userId: metadata.userId, fileKey: file.key })}`,
@@ -269,7 +269,7 @@ export const uploadRouter = {
       }
       if (!fileUrl) {
         await utapi.deleteFiles(file.key);
-        throw new UploadThingError("URL UploadThing introuvable pour le média pédagogique.");
+        throw new UploadThingError("URL du média pédagogique introuvable.");
       }
 
       const content = await prisma.lessonContent.create({
@@ -348,7 +348,7 @@ export const uploadRouter = {
       const validationError = validateMessageAttachmentInput(attachment);
       if (validationError || !fileUrl) {
         if (file.key) await utapi.deleteFiles(file.key);
-        throw new UploadThingError(validationError || "URL UploadThing introuvable.");
+        throw new UploadThingError(validationError || "URL du fichier introuvable.");
       }
       console.log(
         `[${new Date().toISOString()}] [INFO] [uploadthing] Message attachment uploaded ${JSON.stringify({ userId: metadata.userId, conversationId: metadata.conversationId, fileKey: file.key, kind })}`,

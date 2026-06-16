@@ -138,7 +138,7 @@ export function registerAdminRoutes(app: Express, ctx: RouteContext): void {
         recipientDomain: api.getEmailDomain(to),
         delivery: delivery.delivery,
       });
-      res.json({ ok: true, message: "E-mail de diagnostic envoyé", delivery: delivery.delivery });
+      res.json({ ok: true, message: "E-mail de test envoyé", delivery: delivery.delivery });
     } catch (err: unknown) {
       const details = api.getEmailErrorDetails(err);
       api.logEmail("ERROR", "Admin SMTP test failed", {

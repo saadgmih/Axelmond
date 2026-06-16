@@ -268,8 +268,8 @@ export function useLiveRoomControls({
     });
     setLiveStatusMsg(
       nextState
-        ? "Demande d'enregistrement journalisée. L'archivage vidéo nécessite une configuration LiveKit Egress côté infrastructure."
-        : "Arrêt d'enregistrement journalisé.",
+        ? "Demande d'enregistrement enregistrée. L'archivage vidéo sera disponible prochainement."
+        : "Arrêt d'enregistrement enregistré.",
     );
   };
 
@@ -299,7 +299,7 @@ export function useLiveRoomControls({
 
   const reconnectLiveSession = () => {
     if (!activeLiveCourse) return;
-    setLiveStatusMsg("Reconnexion à la salle LiveKit...");
+    setLiveStatusMsg("Reconnexion à la session en direct...");
     liveRoom?.disconnect();
     setLiveRoom(null);
     setLiveParticipants([]);

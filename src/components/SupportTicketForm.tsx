@@ -4,6 +4,7 @@ import { AlertCircle, CheckCircle2, Image as ImageIcon, Loader2, Send, Trash2 } 
 import { api, getFreshSessionToken } from "../api";
 import { RASTER_IMAGE_ACCEPT } from "../avatar-security";
 import { getUploadedFileUrl, getUploadErrorMessage, uploadFiles, validateUploadFile, bindUploadProgress, formatUploadProgressLabel, uploadProgressBarWidth } from "../uploadthing-client";
+import { formatTicketReference } from "../utils/user-facing-labels";
 
 interface SupportTicketFormProps {
   defaultCategory?: string;
@@ -133,8 +134,8 @@ export default function SupportTicketForm({
           <div className="bg-slate-950/80 border border-slate-850 p-3 rounded-xl space-y-1.5 text-slate-350">
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Récapitulatif du ticket</p>
             <p className="text-xs">
-              <span className="text-slate-500">ID :</span>{" "}
-              <span className="font-mono font-bold text-indigo-300">{createdTicket.id}</span>
+              <span className="text-slate-500">Numéro :</span>{" "}
+              <span className="font-bold text-indigo-300">{formatTicketReference(createdTicket.id)}</span>
             </p>
             <p className="text-xs">
               <span className="text-slate-500">Sujet :</span>{" "}

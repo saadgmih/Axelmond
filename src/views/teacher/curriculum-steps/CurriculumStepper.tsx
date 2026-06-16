@@ -138,8 +138,9 @@ export default function CurriculumStepper(props: Props) {
                 </h3>
                 {managedCourse && (
                   <p className="mt-1 text-[11px] text-slate-400">
-                    ID {managedCourse.id} · {managedCourse.discipline?.name || managedCourse.category} ·{" "}
-                    {formatCredits(managedCourse.credits)} · {managedCourse.duration}
+                    {managedCourse.discipline?.name || managedCourse.category} · {formatCredits(managedCourse.credits)} ·{" "}
+                    {managedCourse.duration}
+                    {managedCourse.published === false ? " · Brouillon" : " · Publié"}
                   </p>
                 )}
               </div>

@@ -272,11 +272,8 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                 <form onSubmit={handleSaveEditCourse} className="space-y-4">
                   <div className={`flex items-center justify-between ${curriculumUi.divider} pb-2`}>
                     <p className="text-[10px] font-black uppercase tracking-wider text-indigo-400">
-                      Modifier le module #{course.id}
+                      Modifier le module
                     </p>
-                    <span className="rounded bg-slate-800 px-2 py-0.5 text-[9px] font-black text-slate-400">
-                      ID {course.id}
-                    </span>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <label className="md:col-span-2 space-y-1 block">
@@ -384,7 +381,6 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                         >
                           {course.discipline?.name || course.category}
                         </span>
-                        <span className="text-[9px] font-bold text-slate-500">ID {course.id}</span>
                       </div>
                       <p className="line-clamp-2 text-xs leading-relaxed text-slate-400">{course.description}</p>
                     </div>

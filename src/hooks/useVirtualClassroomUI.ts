@@ -260,8 +260,8 @@ export function useVirtualClassroomUI({
       : [
           {
             identity: "connecting",
-            name: "Connexion LiveKit",
-            initials: "LK",
+            name: "Connexion en cours…",
+            initials: "…",
             isLocal: true,
             role: currentUserRole,
             connectionQuality: "stable",

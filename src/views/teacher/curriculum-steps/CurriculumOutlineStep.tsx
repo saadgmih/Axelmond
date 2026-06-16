@@ -267,7 +267,6 @@ export default function CurriculumOutlineStep(props: TeacherCurriculumViewProps)
                           >
                             {isChapter ? "Chapitre" : isPart ? "Partie" : "Sous-partie"}
                           </span>
-                          <span className="text-[9px] text-slate-400 font-bold shrink-0">ID {section.id}</span>
                         </div>
                         <p
                           className={`mt-1.5 truncate text-xs text-slate-200 ${isChapter ? "font-black" : "font-bold"}`}
