@@ -1,14 +1,12 @@
 import { useEffect, useState, useRef } from "react";
-import { Camera, FileText, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-react";
+import { Camera, FileText, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Expand, Maximize } from "lucide-react";
 import { getFreshSessionToken } from "../api";
 import { Document, Page, pdfjs } from "react-pdf";
-import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
 // Configure PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
-
 
 interface PdfLessonViewerProps {
   contentId: string;
@@ -16,20 +14,58 @@ interface PdfLessonViewerProps {
   mediaType?: "PDF" | "IMAGE";
 }
 
+type FitMode = "width" | "page" | "custom";
+
 export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }: PdfLessonViewerProps) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState(1);
+  
+  const [scale, setScale] = useState(1.0);
+  const [fitMode, setFitMode] = useState<FitMode>("page");
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState<number>(800);
+  
+  const [containerDimensions, setContainerDimensions] = useState({ width: 800, height: 600 });
 
+  // Observe container size to dynamically adjust Fit Page / Fit Width
   useEffect(() => {
-    if (containerRef.current) {
-      setContainerWidth(containerRef.current.clientWidth);
-    }
+    if (!containerRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      if (entries[0]) {
+        setContainerDimensions({
+          width: entries[0].contentRect.width,
+          height: entries[0].contentRect.height,
+        });
+      }
+    });
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
   }, [loading]);
+
+  // Handle Fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      wrapperRef.current?.requestFullscreen().catch((err) => {
+        console.error("Error attempting to enable fullscreen:", err);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  }
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);
@@ -45,6 +81,16 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
     });
   }
 
+  function handleZoomIn() {
+    setFitMode("custom");
+    setScale((prev) => Math.min(prev + 0.25, 4.0));
+  }
+
+  function handleZoomOut() {
+    setFitMode("custom");
+    setScale((prev) => Math.max(prev - 0.25, 0.5));
+  }
+
   useEffect(() => {
     let active = true;
     let objectUrl: string | null = null;
@@ -56,35 +102,23 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
 
       try {
         const token = await getFreshSessionToken();
-        if (!token) {
-          throw new Error("Session expirée. Reconnectez-vous.");
-        }
+        if (!token) throw new Error("Session expirée. Reconnectez-vous.");
 
         const response = await fetch(`/api/lesson-contents/${contentId}/document`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        if (!response.ok) {
-          throw new Error("Impossible d'afficher ce contenu dans la plateforme.");
-        }
+        if (!response.ok) throw new Error("Impossible d'afficher ce contenu dans la plateforme.");
 
         const blob = await response.blob();
-        if (!blob.size) {
-          throw new Error("Le fichier est vide ou inaccessible.");
-        }
+        if (!blob.size) throw new Error("Le fichier est vide ou inaccessible.");
 
         objectUrl = URL.createObjectURL(blob);
-        if (active) {
-          setBlobUrl(objectUrl);
-        }
+        if (active) setBlobUrl(objectUrl);
       } catch (err) {
-        if (active) {
-          setError(err instanceof Error ? err.message : "Impossible de charger le contenu.");
-        }
+        if (active) setError(err instanceof Error ? err.message : "Impossible de charger le contenu.");
       } finally {
-        if (active) {
-          setLoading(false);
-        }
+        if (active) setLoading(false);
       }
     };
 
@@ -92,9 +126,7 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
 
     return () => {
       active = false;
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
-      }
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
   }, [contentId]);
 
@@ -139,85 +171,120 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
           draggable={false}
           className="mx-auto max-h-[70vh] w-full object-contain pointer-events-none"
         />
-        {/* Invisible overlay to intercept clicks and drag attempts */}
         <div className="absolute inset-0 z-10" />
       </div>
     );
   }
 
+  // Calculate dynamic dimensions for react-pdf Page
+  let renderWidth: number | undefined = undefined;
+  let renderHeight: number | undefined = undefined;
+  let renderScale = scale;
+
+  if (fitMode === "width") {
+    renderWidth = Math.max(containerDimensions.width - 32, 200); // 32px padding
+    renderScale = 1.0;
+  } else if (fitMode === "page") {
+    renderHeight = Math.max(containerDimensions.height - 32, 200);
+    renderScale = 1.0;
+  }
+
+  const zoomPercent = fitMode === "custom" 
+    ? `${Math.round(scale * 100)}%` 
+    : fitMode === "width" ? "Largeur" : "Page";
+
   return (
-    <div className="flex flex-col h-[70vh] rounded-2xl border border-slate-200 bg-slate-100 shadow-sm overflow-hidden select-none">
-      {/* Enterprise Grade Toolbar */}
-      <div className="flex items-center justify-between px-6 py-3 bg-slate-900 text-slate-200 border-b border-slate-800 z-20 shadow-sm">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center bg-slate-800 rounded-lg p-1 shadow-inner border border-slate-700/50">
+    <div 
+      ref={wrapperRef}
+      className={`flex flex-col rounded-2xl border border-slate-200 bg-slate-950 shadow-lg overflow-hidden select-none transition-all ${isFullscreen ? 'h-screen rounded-none border-none' : 'h-[75vh]'}`}
+    >
+      {/* Enterprise Toolbar */}
+      <div className="flex items-center justify-between px-4 py-3 bg-slate-900 text-slate-200 border-b border-slate-800 z-20 shadow-md">
+        
+        {/* Pagination Controls */}
+        <div className="flex items-center gap-2 bg-slate-800/80 rounded-lg p-1 border border-slate-700/50">
+          <button
+            onClick={() => changePage(-1)}
+            disabled={pageNumber <= 1}
+            className="p-1.5 rounded-md hover:bg-slate-700 text-slate-300 disabled:opacity-30 disabled:hover:bg-transparent transition-colors cursor-pointer"
+            title="Page précédente"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <span className="px-2 text-sm font-semibold font-mono text-slate-200 min-w-[5rem] text-center">
+            {pageNumber} <span className="text-slate-500 mx-0.5">/</span> {numPages || "?"}
+          </span>
+          <button
+            onClick={() => changePage(1)}
+            disabled={!numPages || pageNumber >= numPages}
+            className="p-1.5 rounded-md hover:bg-slate-700 text-slate-300 disabled:opacity-30 disabled:hover:bg-transparent transition-colors cursor-pointer"
+            title="Page suivante"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Zoom & View Controls */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center bg-slate-800/80 rounded-lg p-1 border border-slate-700/50">
             <button
-              onClick={() => changePage(-1)}
-              disabled={pageNumber <= 1}
-              className="p-1.5 rounded-md hover:bg-slate-700 text-slate-300 disabled:opacity-30 disabled:hover:bg-transparent transition-colors cursor-pointer"
-              title="Page précédente"
+              onClick={handleZoomOut}
+              className="p-1.5 rounded-md hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
+              title="Zoom arrière"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ZoomOut className="w-4 h-4" />
             </button>
-            <span className="px-4 text-sm font-semibold font-mono text-slate-100 min-w-[5rem] text-center">
-              {pageNumber} <span className="text-slate-500 mx-1">/</span> {numPages || "?"}
+            <span className="px-2 text-xs font-mono font-bold text-slate-300 min-w-[4rem] text-center">
+              {zoomPercent}
             </span>
             <button
-              onClick={() => changePage(1)}
-              disabled={!numPages || pageNumber >= numPages}
-              className="p-1.5 rounded-md hover:bg-slate-700 text-slate-300 disabled:opacity-30 disabled:hover:bg-transparent transition-colors cursor-pointer"
-              title="Page suivante"
+              onClick={handleZoomIn}
+              className="p-1.5 rounded-md hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
+              title="Zoom avant"
             >
-              <ChevronRight className="w-5 h-5" />
+              <ZoomIn className="w-4 h-4" />
             </button>
           </div>
+
+          <div className="w-px h-6 bg-slate-700 mx-1"></div>
+
+          <div className="flex items-center bg-slate-800/80 rounded-lg p-1 border border-slate-700/50">
+            <button
+              onClick={() => setFitMode("page")}
+              className={`p-1.5 rounded-md transition-colors cursor-pointer text-xs font-semibold ${fitMode === "page" ? 'bg-indigo-600 text-white' : 'hover:bg-slate-700 text-slate-300'}`}
+              title="Ajuster à la page"
+            >
+              <FileText className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setFitMode("width")}
+              className={`p-1.5 rounded-md transition-colors cursor-pointer text-xs font-semibold ${fitMode === "width" ? 'bg-indigo-600 text-white' : 'hover:bg-slate-700 text-slate-300'}`}
+              title="Ajuster à la largeur"
+            >
+              <Expand className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="w-px h-6 bg-slate-700 mx-1"></div>
+
+          <button
+            onClick={toggleFullscreen}
+            className="p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700/50 text-slate-300 transition-colors cursor-pointer"
+            title="Plein écran"
+          >
+            <Maximize className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
-      {/* PDF Canvas Area */}
+      {/* PDF Canvas Area with Scrollbars */}
       <div 
         ref={containerRef}
-        className="flex-1 overflow-hidden bg-slate-100 flex flex-col relative"
+        className="flex-1 overflow-auto bg-slate-900/95 flex flex-col items-center justify-start p-4"
         onContextMenu={(e) => e.preventDefault()}
       >
-        <TransformWrapper
-          initialScale={1}
-          minScale={0.5}
-          maxScale={4}
-          centerOnInit={true}
-          wheel={{ step: 0.1 }}
-          pinch={{ step: 5 }}
-        >
-          {({ zoomIn, zoomOut, resetTransform, scale }) => (
-            <>
-              {/* Floating Zoom Controls - Enterprise Style */}
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-slate-900/90 backdrop-blur-md p-1.5 rounded-xl border border-slate-700/50 shadow-2xl">
-                <button
-                  onClick={() => zoomOut()}
-                  className="p-2.5 rounded-lg hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
-                  title="Zoom arrière"
-                >
-                  <ZoomOut className="w-4 h-4" />
-                </button>
-                <div 
-                  className="px-3 text-xs font-mono font-bold text-slate-300 min-w-[4rem] text-center cursor-pointer hover:text-white transition-colors"
-                  onClick={() => resetTransform()}
-                  title="Réinitialiser le zoom"
-                >
-                  {Math.round(scale * 100)}%
-                </div>
-                <button
-                  onClick={() => zoomIn()}
-                  className="p-2.5 rounded-lg hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
-                  title="Zoom avant"
-                >
-                  <ZoomIn className="w-4 h-4" />
-                </button>
-              </div>
-
-              <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }} contentStyle={{ width: "100%", height: "100%", justifyContent: "center", alignItems: "flex-start", paddingTop: "2rem", paddingBottom: "5rem" }}>
-                <div className="relative shadow-2xl ring-1 ring-slate-900/5 w-fit mx-auto transition-transform duration-200">
-                  <Document
+        <div className="relative shadow-2xl ring-1 ring-white/10 w-fit mx-auto transition-transform duration-200">
+          <Document
             file={blobUrl}
             onLoadSuccess={onDocumentLoadSuccess}
             loading={
@@ -233,8 +300,9 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
           >
             <Page
               pageNumber={pageNumber}
-              scale={1.0}
-              width={containerWidth > 0 ? Math.min(containerWidth - 32, 1000) : undefined}
+              scale={renderScale}
+              width={renderWidth}
+              height={renderHeight}
               className="bg-white"
               renderTextLayer={false}
               renderAnnotationLayer={false}
@@ -242,11 +310,7 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
           </Document>
           {/* Protection overlay */}
           <div className="absolute inset-0 z-10" />
-                </div>
-              </TransformComponent>
-            </>
-          )}
-        </TransformWrapper>
+        </div>
       </div>
     </div>
   );
