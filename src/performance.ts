@@ -48,6 +48,7 @@ interface RouteStats {
 }
 
 const routeStats = new Map<string, RouteStats>();
+const ROUTE_STATS_MAX_SAMPLES = Number(process.env.PERF_ROUTE_STATS_MAX) || 100;
 let totalRequests = 0;
 let startupTime = Date.now();
 
@@ -57,9 +58,9 @@ function recordRequest(metrics: RequestMetrics) {
   const stats = routeStats.get(key) || { count: 0, totalMs: 0, durations: [] };
   stats.count++;
   stats.totalMs += metrics.durationMs;
-  // Garder les 1000 dernières durées pour p95/p99
+  // Garder les N dernières durées pour p95/p99
   stats.durations.push(metrics.durationMs);
-  if (stats.durations.length > 1000) stats.durations.shift();
+  if (stats.durations.length > ROUTE_STATS_MAX_SAMPLES) stats.durations.shift();
   routeStats.set(key, stats);
 }
 

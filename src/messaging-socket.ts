@@ -1,18 +1,66 @@
 import type { Server as HttpServer } from "node:http";
-import { Server } from "socket.io";
 import { prisma } from "./db";
 import { verifyAuthToken } from "./auth-token";
 import { isConversationParticipant } from "./messaging";
 import { normalizeRole } from "./rbac";
 
-let messagingIo: Server | null = null;
+const SOCKET_AUTH_CACHE_MS = Number(process.env.SOCKET_AUTH_CACHE_MS) || 5000;
+const configuredSocketCacheMax = Number(process.env.SOCKET_AUTH_CACHE_MAX_ENTRIES);
+const SOCKET_AUTH_CACHE_MAX_ENTRIES =
+  Number.isInteger(configuredSocketCacheMax) && configuredSocketCacheMax > 0 ? configuredSocketCacheMax : 200;
 
-export function initMessagingSocket(
+interface CachedSocketAuth {
+  userId: string;
+  expiresAt: number;
+  authTokenVersion: number;
+}
+
+const socketAuthCache = new Map<string, CachedSocketAuth>();
+
+function evictSocketAuthCacheOverflow() {
+  while (socketAuthCache.size > SOCKET_AUTH_CACHE_MAX_ENTRIES) {
+    const oldestKey = socketAuthCache.keys().next().value;
+    if (!oldestKey) return;
+    socketAuthCache.delete(oldestKey);
+  }
+}
+
+async function resolveSocketAuthUser(session: { userId: string; role: string; authTokenVersion: number }) {
+  const now = Date.now();
+  const cached = socketAuthCache.get(session.userId);
+  if (cached && cached.expiresAt > now && cached.authTokenVersion === session.authTokenVersion) {
+    return cached.userId;
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId },
+    select: { id: true, emailVerified: true, role: true, authTokenVersion: true },
+  });
+  if (!user || !user.emailVerified) return null;
+  const dbRole = normalizeRole(user.role);
+  if (!dbRole || dbRole !== session.role) return null;
+  if ((Number(user.authTokenVersion) || 0) !== session.authTokenVersion) return null;
+
+  socketAuthCache.delete(session.userId);
+  socketAuthCache.set(session.userId, {
+    userId: user.id,
+    expiresAt: now + SOCKET_AUTH_CACHE_MS,
+    authTokenVersion: session.authTokenVersion,
+  });
+  evictSocketAuthCacheOverflow();
+  return user.id;
+}
+
+type MessagingIo = import("socket.io").Server;
+let messagingIo: MessagingIo | null = null;
+
+export async function initMessagingSocket(
   httpServer: HttpServer,
   allowedOrigins: Set<string>,
   normalizeOrigin: (value: string) => string,
   isProduction = process.env.NODE_ENV === "production",
 ) {
+  const { Server } = await import("socket.io");
   messagingIo = new Server(httpServer, {
     cors: {
       origin(origin, callback) {
@@ -25,6 +73,9 @@ export function initMessagingSocket(
       credentials: true,
     },
     path: "/socket.io",
+    maxHttpBufferSize: Number(process.env.SOCKET_MAX_HTTP_BUFFER_BYTES) || 1_000_000,
+    pingTimeout: Number(process.env.SOCKET_PING_TIMEOUT_MS) || 20_000,
+    pingInterval: Number(process.env.SOCKET_PING_INTERVAL_MS) || 25_000,
   });
 
   messagingIo.use(async (socket, next) => {
@@ -36,17 +87,12 @@ export function initMessagingSocket(
         next(new Error("Unauthorized"));
         return;
       }
-      const user = await prisma.user.findUnique({ where: { id: session.userId } });
-      if (!user || !user.emailVerified) {
+      const userId = await resolveSocketAuthUser(session);
+      if (!userId) {
         next(new Error("Unauthorized"));
         return;
       }
-      const dbRole = normalizeRole(user.role);
-      if (!dbRole || dbRole !== session.role) {
-        next(new Error("Unauthorized"));
-        return;
-      }
-      socket.data.userId = user.id;
+      socket.data.userId = userId;
       next();
     } catch {
       next(new Error("Unauthorized"));

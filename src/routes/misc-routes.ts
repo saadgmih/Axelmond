@@ -296,11 +296,8 @@ export function registerMiscRoutes(app: Express, ctx: RouteContext): void {
 
     if (authHeader && authHeader === process.env.HEALTH_CHECK_TOKEN && process.env.HEALTH_CHECK_TOKEN) {
       payload.uptime = Math.round(process.uptime());
-
-      payload.memory = process.memoryUsage();
-
+      payload.memory = api.collectRuntimeMemoryMetrics();
       payload.dbStatus = dbStatus;
-
       payload.dbSchema = dbSchema;
     }
 

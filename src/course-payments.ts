@@ -6,6 +6,12 @@ export const APP_USER_BILLING_INCLUDE = {
   invoiceRecords: { orderBy: { issuedAt: "desc" as const } },
 } as const;
 
+/** Auth middleware: limit invoice history loaded per user to reduce RAM. */
+export const AUTH_USER_INCLUDE = {
+  enrollments: true,
+  invoiceRecords: { orderBy: { issuedAt: "desc" as const }, take: 25 },
+} as const;
+
 export function buildCourseInvoiceId(prefix: "PAYPAL" | "MOCK" | "REG"): string {
   return `INV-${prefix}-${Math.floor(Math.random() * 90000 + 10000)}`;
 }

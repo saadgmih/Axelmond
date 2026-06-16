@@ -11,14 +11,15 @@ import { initMessagingSocket } from "../messaging-socket";
 import { verifyDatabaseConnection } from "../db";
 import { getPayPalRuntimeEnv } from "../paypal-server";
 import { startPerformanceMonitor } from "../performance";
-import { initCache, startCachePruner } from "../cache";
+import { initCache, startCachePruner, stopCachePruner, disconnectCache } from "../cache";
 import { startAuditLogRetention } from "../audit-log-service";
 import { startRefreshTokenCleanup } from "../auth-token-cleanup";
 import { verifySmtpConnection, readSmtpBanner } from "../email";
 import { seedDatabase, synchronizePostgresSequences } from "./startup-db";
 import { apiErrorStatus, apiErrorMessage } from "./api-errors";
 import { createAxelmondApp } from "./create-app";
-import { logDb, logEmail } from "./route-deps";
+import { logDb, logEmail, startAuthUserCachePruner, stopAuthUserCachePruner } from "./route-deps";
+import { stopPerformanceMonitor } from "../performance";
 
 dotenv.config();
 
@@ -243,7 +244,12 @@ export async function startAxelmondServer() {
 
   const PORT = Number(process.env.PORT) || 3000;
   const httpServer = createServer(app);
-  initMessagingSocket(httpServer, allowedOrigins, normalizeOriginUrl, isProduction);
+  setImmediate(() => {
+    void initMessagingSocket(httpServer, allowedOrigins, normalizeOriginUrl, isProduction).catch((err) => {
+      logDb("ERROR", "Messaging socket initialization failed", { error: String(err) });
+    });
+  });
+  registerGracefulShutdown(httpServer);
   httpServer.on("error", (err: NodeJS.ErrnoException) => {
     logDb("ERROR", "HTTP server failed to bind", { port: PORT, code: err.code, error: String(err) });
     process.exit(1);
@@ -300,7 +306,35 @@ async function runDeferredStartupTasks(securityTest: boolean) {
 
   await initCache();
   startCachePruner();
+  startAuthUserCachePruner();
   startAuditLogRetention();
   startRefreshTokenCleanup();
-  startPerformanceMonitor(Number(process.env.PERF_MONITOR_INTERVAL_MS) || 30_000);
+  startPerformanceMonitor(Number(process.env.PERF_MONITOR_INTERVAL_MS) || 120_000);
+}
+
+function registerGracefulShutdown(httpServer: ReturnType<typeof createServer>) {
+  let shuttingDown = false;
+  const shutdown = async (signal: string) => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    logDb("INFO", "Graceful shutdown initiated", { signal, pid: process.pid });
+    stopPerformanceMonitor();
+    stopCachePruner();
+    stopAuthUserCachePruner();
+    try {
+      await disconnectCache();
+    } catch (err) {
+      logDb("WARN", "Cache disconnect failed during shutdown", { error: String(err) });
+    }
+    httpServer.close(() => {
+      logDb("INFO", "HTTP server closed", { signal });
+      process.exit(0);
+    });
+    setTimeout(() => {
+      logDb("ERROR", "Forced shutdown after timeout", { signal });
+      process.exit(1);
+    }, 15_000).unref();
+  };
+  process.on("SIGTERM", () => void shutdown("SIGTERM"));
+  process.on("SIGINT", () => void shutdown("SIGINT"));
 }

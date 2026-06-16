@@ -1,5 +1,5 @@
 import { Prisma, type LiveSession } from "@prisma/client";
-import { RoomServiceClient } from "livekit-server-sdk";
+import type { AccessTokenOptions } from "livekit-server-sdk";
 import { Course } from "../../types";
 import { canAccessAcademicProfile } from "../../rbac";
 import { buildLiveKitRoomName } from "../../livekit";
@@ -69,8 +69,33 @@ export function getLiveKitApiUrl(url: string) {
     .replace(/^ws:\/\//, "http://");
 }
 
-export function getLiveKitRoomService(config: { url: string; apiKey: string; apiSecret: string }) {
+type LiveKitSdk = typeof import("livekit-server-sdk");
+let liveKitSdkPromise: Promise<LiveKitSdk> | null = null;
+
+function loadLiveKitSdk(): Promise<LiveKitSdk> {
+  if (!liveKitSdkPromise) {
+    liveKitSdkPromise = import("livekit-server-sdk");
+  }
+  return liveKitSdkPromise;
+}
+
+export async function getLiveKitRoomService(config: { url: string; apiKey: string; apiSecret: string }) {
+  const { RoomServiceClient } = await loadLiveKitSdk();
   return new RoomServiceClient(getLiveKitApiUrl(config.url), config.apiKey, config.apiSecret);
+}
+
+export async function createLiveKitAccessToken(
+  apiKey: string,
+  apiSecret: string,
+  options: AccessTokenOptions,
+) {
+  const { AccessToken } = await loadLiveKitSdk();
+  return new AccessToken(apiKey, apiSecret, options);
+}
+
+export async function getLiveKitReliableDataKind() {
+  const { DataPacket_Kind } = await loadLiveKitSdk();
+  return DataPacket_Kind.RELIABLE;
 }
 
 export async function recordLiveAction(params: {

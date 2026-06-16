@@ -275,7 +275,14 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
 
   app.use(express.json({ limit: JSON_BODY_LIMIT }));
   app.use(csrfProtection);
-  app.use(compression());
+  app.use(
+    compression({
+      filter(req, res) {
+        if (req.path.startsWith("/api")) return false;
+        return compression.filter(req, res);
+      },
+    }),
+  );
   app.set("trust proxy", 1);
 
   const globalRateLimiter = rateLimit({

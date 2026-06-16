@@ -40,20 +40,12 @@ export { logLiveKit, logInvitation, logEmail, logDb } from "./route-loggers";
 export * from "./route-mappers";
 export * from "./route-schemas";
 
-const AUTH_USER_CACHE_MS = Number(process.env.AUTH_USER_CACHE_MS) || 5000;
-
-interface CachedUser {
-  dbUser: any;
-  expiresAt: number;
-  authTokenVersion: number;
-}
-const authUserCache = new Map<string, CachedUser>();
-
-export function invalidateAuthUserCache(userId: string) {
-  if (authUserCache.delete(userId)) {
-    logSecurity("INFO", "Auth user cache invalidated after enrollment update", { userId });
-  }
-}
+import {
+  invalidateAuthUserCache,
+  resolveCachedAuthDbUser,
+  startAuthUserCachePruner,
+  stopAuthUserCachePruner,
+} from "./auth-user-cache";
 
 export const requireAuth: express.RequestHandler = async (req, res, next) => {
   const token = req.headers.authorization?.replace(/^Bearer\s+/i, "");
@@ -66,33 +58,21 @@ export const requireAuth: express.RequestHandler = async (req, res, next) => {
 
   const now = Date.now();
   let dbUser: any = null;
-  const cached = authUserCache.get(session.userId);
-  if (cached && cached.expiresAt > now && cached.authTokenVersion === session.authTokenVersion) {
-    dbUser = cached.dbUser;
-  } else {
-    try {
-      dbUser = await prisma.user.findUnique({
-        where: { id: session.userId },
-        include: APP_USER_BILLING_INCLUDE,
-      });
-      if (dbUser) {
-        authUserCache.set(session.userId, {
-          dbUser,
-          expiresAt: now + AUTH_USER_CACHE_MS,
-          authTokenVersion: Number(dbUser.authTokenVersion) || 0,
-        });
-      }
-    } catch (err) {
-      logSecurity("WARN", "Auth database lookup failed", { userId: session.userId, error: String(err) });
-      res.status(503).json({ error: "Base de données indisponible" });
-      return;
-    }
+  try {
+    dbUser = await resolveCachedAuthDbUser({
+      userId: session.userId,
+      authTokenVersion: session.authTokenVersion,
+    });
+  } catch (err) {
+    logSecurity("WARN", "Auth database lookup failed", { userId: session.userId, error: String(err) });
+    res.status(503).json({ error: "Base de données indisponible" });
+    return;
   }
 
   const actualRole = normalizeRole(dbUser?.role);
   const currentAuthTokenVersion = Number(dbUser?.authTokenVersion) || 0;
   if (!dbUser || actualRole !== session.role || currentAuthTokenVersion !== session.authTokenVersion) {
-    authUserCache.delete(session.userId);
+    invalidateAuthUserCache(session.userId);
     logSecurity("WARN", "Token user not found, role changed, or token version revoked", {
       userId: session.userId,
       tokenRole: session.role,
@@ -295,8 +275,9 @@ export {
 export { createPayPalOrder, capturePayPalOrder, isPayPalConfigured, logPayPalError } from "../paypal-server";
 export { processPayPalCaptureEnrollment, toPayPalCaptureClientResponse } from "../paypal-enrollment";
 export { resolveCourseChargeAmount } from "../promo-codes";
+export { invalidateAuthUserCache, startAuthUserCachePruner, stopAuthUserCachePruner } from "./auth-user-cache";
+export { collectRuntimeMemoryMetrics } from "./memory-metrics";
 export { decodeStoredText } from "../text";
-export { AccessToken, RoomServiceClient, DataPacket_Kind } from "livekit-server-sdk";
 export { Prisma } from "@prisma/client";
 export { default as bcrypt } from "bcryptjs";
 export { z } from "zod";

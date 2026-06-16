@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import type OpenAI from "openai";
 import { logSecurity } from "./security-logger";
 import { ChatTutorServiceError } from "./openai-service";
 

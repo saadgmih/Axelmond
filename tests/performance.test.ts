@@ -83,15 +83,21 @@ rulesTest("performance", async () => {
 
     // 8. Éviction LRU bornée
     await cacheFlush();
-    for (let i = 0; i < 1001; i++) {
+    for (let i = 0; i < 101; i++) {
       await cacheSet(`lru:${i}`, String(i), 60);
     }
-    check(cacheSize() === 1000, "cache borné à 1000 entrées par défaut");
+    check(cacheSize() === 100, "cache borné à 100 entrées par défaut");
     check((await cacheGet("lru:0")) === null, "LRU évince la plus ancienne entrée");
     check((await cacheGet("lru:1")) === "1", "GET rafraîchit l'ordre LRU");
     await cacheSet("lru:new", "new", 60);
     check((await cacheGet("lru:1")) === "1", "entrée récemment lue conservée après éviction");
     check((await cacheGet("lru:2")) === null, "entrée la moins récemment utilisée évincée");
+
+    // 8b. Payload trop volumineux ignoré
+    await cacheFlush();
+    const oversized = "x".repeat(600_000);
+    await cacheSet("oversized", oversized, 60);
+    check((await cacheGet("oversized")) === null, "payload > maxValueBytes non mis en cache");
 
     // 9. Pruner démarre et s'arrête sans erreur
     startCachePruner();

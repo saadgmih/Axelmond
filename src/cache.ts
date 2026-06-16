@@ -3,28 +3,31 @@
 // Sans REDIS_URL : LRU en mémoire (développement / instance unique).
 // Avec REDIS_URL : Redis partagé entre workers PM2 cluster.
 
-import Redis from "ioredis";
-
 interface CacheEntry {
   value: string;
   expiresAt: number;
+  byteSize: number;
 }
 
 interface CacheBackend {
   readonly kind: "memory" | "redis";
   get(key: string): Promise<string | null>;
-  set(key: string, value: string, ttlSeconds: number): Promise<void>;
+  set(key: string, value: string, ttlSeconds: number): Promise<boolean>;
   del(key: string): Promise<void>;
   delByPrefix(prefix: string): Promise<number>;
   flush(): Promise<void>;
   size(): number;
+  stats(): { entries: number; approxBytes: number; maxEntries: number; maxValueBytes: number };
   disconnect?(): Promise<void>;
 }
 
 const DEFAULT_TTL_SECONDS = Number(process.env.CACHE_TTL_SECONDS) || 60;
 const configuredMaxEntries = Number(process.env.CACHE_MAX_ENTRIES);
 const DEFAULT_MAX_ENTRIES =
-  Number.isInteger(configuredMaxEntries) && configuredMaxEntries > 0 ? configuredMaxEntries : 1000;
+  Number.isInteger(configuredMaxEntries) && configuredMaxEntries > 0 ? configuredMaxEntries : 100;
+const configuredMaxValueBytes = Number(process.env.CACHE_MAX_VALUE_BYTES);
+const DEFAULT_MAX_VALUE_BYTES =
+  Number.isInteger(configuredMaxValueBytes) && configuredMaxValueBytes > 0 ? configuredMaxValueBytes : 512_000;
 const REDIS_KEY_PREFIX = (process.env.REDIS_KEY_PREFIX || "axelmond:cache:").trim();
 const REDIS_CONNECT_TIMEOUT_MS = Number(process.env.REDIS_CONNECT_TIMEOUT_MS) || 5000;
 const REDIS_COMMAND_TIMEOUT_MS = Number(process.env.REDIS_COMMAND_TIMEOUT_MS) || 3000;
@@ -56,12 +59,14 @@ function logCache(level: "INFO" | "WARN", message: string, data?: unknown) {
 
 function createMemoryBackend(): CacheBackend {
   const store = new Map<string, CacheEntry>();
+  let approxBytes = 0;
 
   function pruneExpired() {
     const now = Date.now();
     let pruned = 0;
     for (const [key, entry] of store.entries()) {
       if (entry.expiresAt <= now) {
+        approxBytes = Math.max(0, approxBytes - entry.byteSize);
         store.delete(key);
         pruned++;
       }
@@ -75,6 +80,8 @@ function createMemoryBackend(): CacheBackend {
     while (store.size > DEFAULT_MAX_ENTRIES) {
       const oldestKey = store.keys().next().value;
       if (!oldestKey) return;
+      const entry = store.get(oldestKey);
+      if (entry) approxBytes = Math.max(0, approxBytes - entry.byteSize);
       store.delete(oldestKey);
     }
   }
@@ -85,6 +92,7 @@ function createMemoryBackend(): CacheBackend {
       const entry = store.get(key);
       if (!entry) return null;
       if (entry.expiresAt <= Date.now()) {
+        approxBytes = Math.max(0, approxBytes - entry.byteSize);
         store.delete(key);
         return null;
       }
@@ -93,20 +101,34 @@ function createMemoryBackend(): CacheBackend {
       return entry.value;
     },
     async set(key, value, ttlSeconds) {
+      const byteSize = Buffer.byteLength(value, "utf8");
+      if (byteSize > DEFAULT_MAX_VALUE_BYTES) {
+        logCache("WARN", "Cache entry skipped — payload too large", { key, byteSize, maxBytes: DEFAULT_MAX_VALUE_BYTES });
+        return false;
+      }
+      const previous = store.get(key);
+      if (previous) approxBytes = Math.max(0, approxBytes - previous.byteSize);
       store.delete(key);
       store.set(key, {
         value,
         expiresAt: Date.now() + ttlSeconds * 1000,
+        byteSize,
       });
+      approxBytes += byteSize;
       evictLeastRecentlyUsed();
+      return true;
     },
     async del(key) {
+      const entry = store.get(key);
+      if (entry) approxBytes = Math.max(0, approxBytes - entry.byteSize);
       store.delete(key);
     },
     async delByPrefix(prefix) {
       let deleted = 0;
       for (const key of store.keys()) {
         if (key.startsWith(prefix)) {
+          const entry = store.get(key);
+          if (entry) approxBytes = Math.max(0, approxBytes - entry.byteSize);
           store.delete(key);
           deleted++;
         }
@@ -115,16 +137,27 @@ function createMemoryBackend(): CacheBackend {
     },
     async flush() {
       store.clear();
+      approxBytes = 0;
       logCache("INFO", "Cache flushed", { size: 0 });
     },
     size() {
       pruneExpired();
       return store.size;
     },
+    stats() {
+      pruneExpired();
+      return {
+        entries: store.size,
+        approxBytes,
+        maxEntries: DEFAULT_MAX_ENTRIES,
+        maxValueBytes: DEFAULT_MAX_VALUE_BYTES,
+      };
+    },
   };
 }
 
-function createRedisBackend(redisUrl: string): CacheBackend {
+async function createRedisBackend(redisUrl: string): Promise<CacheBackend> {
+  const { default: Redis } = await import("ioredis");
   const client = new Redis(redisUrl, {
     maxRetriesPerRequest: 1,
     connectTimeout: REDIS_CONNECT_TIMEOUT_MS,
@@ -145,8 +178,14 @@ function createRedisBackend(redisUrl: string): CacheBackend {
       return client.get(prefixed(key));
     },
     async set(key, value, ttlSeconds) {
+      const byteSize = Buffer.byteLength(value, "utf8");
+      if (byteSize > DEFAULT_MAX_VALUE_BYTES) {
+        logCache("WARN", "Cache entry skipped — payload too large", { key, byteSize, maxBytes: DEFAULT_MAX_VALUE_BYTES });
+        return false;
+      }
       const ttl = Math.max(1, Math.floor(ttlSeconds));
       await client.set(prefixed(key), value, "EX", ttl);
+      return true;
     },
     async del(key) {
       await client.del(prefixed(key));
@@ -180,6 +219,14 @@ function createRedisBackend(redisUrl: string): CacheBackend {
     size() {
       return -1;
     },
+    stats() {
+      return {
+        entries: -1,
+        approxBytes: -1,
+        maxEntries: DEFAULT_MAX_ENTRIES,
+        maxValueBytes: DEFAULT_MAX_VALUE_BYTES,
+      };
+    },
     async disconnect() {
       await client.quit();
     },
@@ -193,30 +240,38 @@ export function getCacheBackendKind(): "memory" | "redis" {
   return backend.kind;
 }
 
+export function getCacheStats() {
+  return {
+    kind: backend.kind,
+    ...backend.stats(),
+  };
+}
+
 export async function initCache(): Promise<void> {
   const redisUrl = process.env.REDIS_URL?.trim();
   if (!redisUrl) {
     backend = createMemoryBackend();
-    logCache("INFO", "Using in-memory cache backend");
+    logCache("INFO", "Using in-memory cache backend", {
+      maxEntries: DEFAULT_MAX_ENTRIES,
+      maxValueBytes: DEFAULT_MAX_VALUE_BYTES,
+    });
     return;
   }
 
-  const redisBackend = createRedisBackend(redisUrl);
-  const probe = new Redis(redisUrl, {
-    maxRetriesPerRequest: 1,
-    connectTimeout: 5000,
-    lazyConnect: true,
-    enableOfflineQueue: false,
-  });
-
   try {
+    const { default: Redis } = await import("ioredis");
+    const probe = new Redis(redisUrl, {
+      maxRetriesPerRequest: 1,
+      connectTimeout: REDIS_CONNECT_TIMEOUT_MS,
+      lazyConnect: true,
+      enableOfflineQueue: false,
+    });
     await probe.connect();
     await probe.ping();
     await probe.quit();
-    backend = redisBackend;
+    backend = await createRedisBackend(redisUrl);
     logCache("INFO", "Using Redis cache backend", { prefix: REDIS_KEY_PREFIX });
   } catch (err) {
-    await probe.quit().catch(() => undefined);
     logCache("WARN", "Redis unavailable — falling back to in-memory cache", { error: String(err) });
     backend = createMemoryBackend();
   }

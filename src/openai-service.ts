@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import type OpenAI from "openai";
 import { logSecurity } from "./security-logger";
 import { trimChatTutorHistory } from "./chat-tutor-limits";
 import {
@@ -53,17 +53,18 @@ export class ChatTutorServiceError extends Error {
   }
 }
 
+let OpenAIConstructor: typeof import("openai").default | null = null;
 let openAIClient: OpenAI | null = null;
 
-export function isOpenAIConfigured(): boolean {
-  return Boolean(process.env.OPENAI_API_KEY?.trim());
+async function loadOpenAIModule() {
+  if (!OpenAIConstructor) {
+    const mod = await import("openai");
+    OpenAIConstructor = mod.default;
+  }
+  return OpenAIConstructor;
 }
 
-export function getOpenAIModelName(): string {
-  return process.env.OPENAI_MODEL?.trim() || DEFAULT_OPENAI_MODEL;
-}
-
-function getOpenAIClient(): OpenAI {
+async function getOpenAIClient(): Promise<OpenAI> {
   if (openAIClient) return openAIClient;
 
   const apiKey = process.env.OPENAI_API_KEY?.trim();
@@ -71,12 +72,21 @@ function getOpenAIClient(): OpenAI {
     throw new ChatTutorServiceError("Assistant indisponible pour le moment.", "NOT_CONFIGURED", 503);
   }
 
+  const OpenAI = await loadOpenAIModule();
   openAIClient = new OpenAI({
     apiKey,
     timeout: OPENAI_REQUEST_TIMEOUT_MS,
     maxRetries: 2,
   });
   return openAIClient;
+}
+
+export function isOpenAIConfigured(): boolean {
+  return Boolean(process.env.OPENAI_API_KEY?.trim());
+}
+
+export function getOpenAIModelName(): string {
+  return process.env.OPENAI_MODEL?.trim() || DEFAULT_OPENAI_MODEL;
 }
 
 export function buildChatTutorSystemInstruction(courseName: string, moduleName: string): string {
@@ -196,7 +206,7 @@ export async function generateChatTutorResponse(options: {
   const systemInstruction = buildChatTutorSystemInstruction(courseName, moduleName);
 
   try {
-    const openai = getOpenAIClient();
+    const openai = await getOpenAIClient();
     await moderateChatTutorInput(openai, [prompt, ...trimmedHistory.map((entry) => entry.text)]);
     const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
       { role: "system", content: systemInstruction },

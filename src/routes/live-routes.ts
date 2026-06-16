@@ -56,7 +56,7 @@ export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
 
     const canPublish = api.canPublishLiveMedia(authUser.role);
 
-    const token = new api.AccessToken(liveKitConfig.apiKey, liveKitConfig.apiSecret, {
+    const token = await api.createLiveKitAccessToken(liveKitConfig.apiKey, liveKitConfig.apiSecret, {
       identity: participantIdentity,
 
       name: participantName,
@@ -479,7 +479,7 @@ export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
 
       const session = sessionResult.session;
 
-      const roomService = api.getLiveKitRoomService(liveKitConfig);
+      const roomService = await api.getLiveKitRoomService(liveKitConfig);
 
       try {
         if (req.body.action === "REMOVE_PARTICIPANT") {
@@ -594,12 +594,13 @@ export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
       return;
     }
     const session = sessionResult.session;
-    const roomService = api.getLiveKitRoomService(liveKitConfig);
+    const roomService = await api.getLiveKitRoomService(liveKitConfig);
+    const reliableKind = await api.getLiveKitReliableDataKind();
     try {
       await roomService.sendData(
         session.roomName,
         new TextEncoder().encode(JSON.stringify(validated)),
-        api.DataPacket_Kind.RELIABLE,
+        reliableKind,
         { topic: api.LIVE_SYNC_TOPIC },
       );
       api.logLiveKit("INFO", "Live sync relayed", {
