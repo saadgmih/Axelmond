@@ -46,6 +46,7 @@ export default function PremiumVideoPlayer({ src, title, instructor, activeSecto
         ref={videoRef}
         src={src}
         playsInline
+        controlsList="nodownload"
         className="w-full h-full object-contain"
         onContextMenu={(e) => e.preventDefault()}
       />
