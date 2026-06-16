@@ -1,7 +1,6 @@
 import {
   BookOpen,
   Check,
-  Eye,
   Sparkles,
 } from "lucide-react";
 import { formatCredits } from "../../../utils/morocco-locale";
@@ -18,7 +17,6 @@ type Props = Pick<
   | "managedCourse"
   | "managedCourses"
   | "newSectionCourseId"
-  | "showCurriculumSuccess"
   | "showCurriculumError"
   | "handleSelectManagedCourse"
   | "loadTeacherQuizzes"
@@ -33,7 +31,6 @@ export default function CurriculumStepper(props: Props) {
     managedCourse,
     managedCourses,
     newSectionCourseId,
-    showCurriculumSuccess,
     showCurriculumError,
     handleSelectManagedCourse,
     loadTeacherQuizzes,
@@ -45,8 +42,7 @@ export default function CurriculumStepper(props: Props) {
       <div className={curriculumUi.hero}>
         <div className={curriculumUi.heroGlow} />
         <div className="relative space-y-6">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-            <div className="space-y-3 max-w-2xl">
+          <div className="space-y-3 max-w-2xl">
               <span className={curriculumUi.studioBadge}>
                 <Sparkles className="h-3.5 w-3.5" />
                 Studio pédagogique
@@ -57,19 +53,6 @@ export default function CurriculumStepper(props: Props) {
                 évaluations. Chaque étape a sa couleur pour repérer rapidement où vous travaillez.
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() =>
-                showCurriculumSuccess(
-                  "Pour voir comme étudiant : connectez-vous avec un compte étudiant et ouvrez le catalogue puis le module publié.",
-                )
-              }
-              className={curriculumUi.previewBtn}
-            >
-              <Eye className="h-4 w-4 text-violet-400" />
-              Voir comme étudiant
-            </button>
-          </div>
 
           {(curriculumSuccessMsg || curriculumErrorMsg) && (
             <div

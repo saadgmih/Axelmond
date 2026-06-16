@@ -112,8 +112,6 @@ export const curriculumUi = {
     "inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-950/60 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-violet-300",
   heroTitle: "text-2xl md:text-3xl font-black tracking-tight text-white",
   heroDesc: "text-sm text-slate-400 leading-relaxed",
-  previewBtn:
-    "inline-flex shrink-0 items-center gap-2 self-start rounded-xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-xs font-bold text-slate-200 transition-colors hover:border-slate-600 hover:bg-slate-800",
   progressLabel: "text-[10px] font-black uppercase tracking-widest text-slate-500",
   progressTrack: "h-1.5 w-full overflow-hidden rounded-full bg-slate-800",
   progressFill:
