@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import AITutorChat from "../../components/AITutorChat";
+import PdfLessonViewer from "../../components/PdfLessonViewer";
 import PremiumVideoPlayer from "../../components/PremiumVideoPlayer";
 import { sanitizeCourseAttachmentUrl } from "../../external-url-security";
 import type { ContentSection, Course, CourseModule, LessonContent } from "../../types";
@@ -188,17 +189,19 @@ export default function StudentCourseView({
         )}
       </div>
 
-      <div className="p-4 border-t border-slate-100">
-        <button
-          onClick={() => {
-            setIsModuleDrawerOpen(false);
-            navigateTo("live", selectedCourse);
-          }}
-          className="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-3 min-h-[44px] rounded-xl flex items-center justify-center gap-1.5 shadow-sm shadow-red-100 cursor-pointer"
-        >
-          <Video className="w-4 h-4" /> Accéder à la classe Live
-        </button>
-      </div>
+      {selectedCourse.isLiveNow && (
+        <div className="p-4 border-t border-slate-100">
+          <button
+            onClick={() => {
+              setIsModuleDrawerOpen(false);
+              navigateTo("live", selectedCourse);
+            }}
+            className="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-3 min-h-[44px] rounded-xl flex items-center justify-center gap-1.5 shadow-sm shadow-red-100 cursor-pointer"
+          >
+            <Video className="w-4 h-4" /> Accéder à la classe Live
+          </button>
+        </div>
+      )}
     </>
   );
 
@@ -321,12 +324,10 @@ export default function StudentCourseView({
                       )}
 
                       {selectedLessonContent.type === "PDF" && safeAttachmentUrl && (
-                        <iframe
+                        <PdfLessonViewer
+                          contentId={selectedLessonContent.id}
                           title={selectedLessonContent.title}
-                          src={`${safeAttachmentUrl}#toolbar=1&navpanes=0`}
-                          className="w-full h-[70vh] bg-slate-50 rounded-2xl border border-slate-200 shadow-sm"
-                          sandbox="allow-same-origin allow-popups allow-forms"
-                          referrerPolicy="no-referrer"
+                          downloadUrl={safeAttachmentUrl}
                         />
                       )}
 

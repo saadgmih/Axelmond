@@ -281,6 +281,7 @@ export {
   syncPublishedLessonModules,
   syncPublishedLessonModulesForCourses,
 } from "../course-curriculum-sync";
+export { streamLessonContentDocument } from "./lesson-document";
 export { invalidateAuthUserCache, startAuthUserCachePruner, stopAuthUserCachePruner } from "./auth-user-cache";
 export { collectRuntimeMemoryMetrics } from "./memory-metrics";
 export { decodeStoredText } from "../text";

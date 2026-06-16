@@ -761,4 +761,29 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
 
     res.json({ ok: true });
   });
+
+  app.get("/api/lesson-contents/:contentId/document", requireAuth, async (req, res) => {
+    const authUser = getAuthUser(req);
+
+    try {
+      const result = await api.streamLessonContentDocument(req.params.contentId, authUser);
+      if (!result.ok) {
+        res.status(result.status).json({ error: result.error });
+        return;
+      }
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `inline; filename="${encodeURIComponent(result.fileName)}"`);
+      res.setHeader("Cache-Control", "private, max-age=300");
+      res.setHeader("X-Content-Type-Options", "nosniff");
+      res.send(result.bytes);
+    } catch (err) {
+      api.logDb("ERROR", "Lesson PDF document stream failed", {
+        contentId: req.params.contentId,
+        userId: authUser.id,
+        error: String(err),
+      });
+      res.status(502).json({ error: "Impossible de charger le document PDF" });
+    }
+  });
 }
