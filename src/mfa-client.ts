@@ -1,12 +1,8 @@
 import { api } from "./api";
 import { isTeacherSpaceRole } from "./rbac";
 
-export function isPrivilegedMfaEnforcedClient(): boolean {
-  return import.meta.env.PROD;
-}
-
-export function shouldCheckPrivilegedMfaSetup(role: unknown): boolean {
-  return isPrivilegedMfaEnforcedClient() && isTeacherSpaceRole(role);
+export function shouldShowPrivilegedMfaRecommendation(role: unknown): boolean {
+  return isTeacherSpaceRole(role);
 }
 
 export async function fetchPrivilegedMfaSetupRequired(): Promise<boolean> {

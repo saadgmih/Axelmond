@@ -27,6 +27,8 @@ export async function privilegedUserRequiresMfaSetup(user: {
   return !(await userHasPasskeys(user.id));
 }
 
+/** When true, privileged accounts must configure TOTP or a Passkey before other API access. Off by default. */
 export function isPrivilegedMfaEnforced(env: NodeJS.ProcessEnv = process.env): boolean {
-  return env.NODE_ENV === "production";
+  const raw = (env.PRIVILEGED_MFA_SETUP_REQUIRED || "").trim().toLowerCase();
+  return raw === "true" || raw === "1" || raw === "yes";
 }

@@ -17,11 +17,13 @@ rulesTest("mfa-client-errors", () => {
   const catalogSource = fs.readFileSync("src/app/hooks/usePlatformCatalogData.ts", "utf8");
   const layoutSource = fs.readFileSync("src/app/AuthenticatedPlatformLayout.tsx", "utf8");
   const bannerSource = fs.readFileSync("src/components/PrivilegedMfaSetupBanner.tsx", "utf8");
+  const mfaRequirementSource = fs.readFileSync("src/mfa-requirement.ts", "utf8");
 
   assert.match(catalogSource, /isMfaSetupRequiredError/);
-  assert.match(layoutSource, /usePrivilegedMfaSetupRedirect/);
+  assert.doesNotMatch(layoutSource, /usePrivilegedMfaSetupRedirect/);
   assert.match(bannerSource, /fetchPrivilegedMfaSetupRequired/);
-  assert.doesNotMatch(layoutSource, /multi-facteurs/);
+  assert.doesNotMatch(bannerSource, /obligatoire/);
+  assert.match(mfaRequirementSource, /PRIVILEGED_MFA_SETUP_REQUIRED/);
 
   console.log("MFA client error suppression tests passed");
 });

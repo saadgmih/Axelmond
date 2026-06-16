@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { hasBlockedChatTutorPattern } from "../src/chat-tutor-moderation.ts";
 import { shouldFailClosedOnHibpError, shouldSkipHibpCheck, strongPasswordField } from "../src/password-policy.ts";
-import { isMfaSetupExemptRoute, isPrivilegedAccountRole } from "../src/mfa-requirement.ts";
+import { isMfaSetupExemptRoute, isPrivilegedAccountRole, isPrivilegedMfaEnforced } from "../src/mfa-requirement.ts";
 import { signAuthToken, verifyAuthToken } from "../src/auth-token.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
@@ -31,6 +31,8 @@ rulesTest("mfa-requirement", () => {
     true,
   );
   assert.equal(isMfaSetupExemptRoute({ method: "POST", path: "/courses", baseUrl: "/api" } as any), false);
+  assert.equal(isPrivilegedMfaEnforced({ NODE_ENV: "production" }), false);
+  assert.equal(isPrivilegedMfaEnforced({ NODE_ENV: "production", PRIVILEGED_MFA_SETUP_REQUIRED: "true" }), true);
 });
 
 rulesTest("auth-token-version", () => {

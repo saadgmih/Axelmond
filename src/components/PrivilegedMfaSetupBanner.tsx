@@ -1,27 +1,27 @@
 import { useEffect, useState } from "react";
-import { ShieldAlert } from "lucide-react";
-import { fetchPrivilegedMfaSetupRequired, shouldCheckPrivilegedMfaSetup } from "../mfa-client";
+import { Shield } from "lucide-react";
+import { fetchPrivilegedMfaSetupRequired, shouldShowPrivilegedMfaRecommendation } from "../mfa-client";
 
 interface PrivilegedMfaSetupBannerProps {
   role?: string | null;
 }
 
 export default function PrivilegedMfaSetupBanner({ role }: PrivilegedMfaSetupBannerProps) {
-  const [needsSetup, setNeedsSetup] = useState(false);
+  const [showRecommendation, setShowRecommendation] = useState(false);
 
   useEffect(() => {
-    if (!shouldCheckPrivilegedMfaSetup(role)) {
-      setNeedsSetup(false);
+    if (!shouldShowPrivilegedMfaRecommendation(role)) {
+      setShowRecommendation(false);
       return;
     }
 
     let disposed = false;
     void fetchPrivilegedMfaSetupRequired()
-      .then((required) => {
-        if (!disposed) setNeedsSetup(required);
+      .then((needsSetup) => {
+        if (!disposed) setShowRecommendation(needsSetup);
       })
       .catch(() => {
-        if (!disposed) setNeedsSetup(false);
+        if (!disposed) setShowRecommendation(false);
       });
 
     return () => {
@@ -29,15 +29,18 @@ export default function PrivilegedMfaSetupBanner({ role }: PrivilegedMfaSetupBan
     };
   }, [role]);
 
-  if (!needsSetup) return null;
+  if (!showRecommendation) return null;
 
   return (
     <div
-      role="alert"
-      className="flex items-start gap-3 rounded-2xl border border-rose-500/30 bg-rose-950/40 px-4 py-3 text-sm text-rose-100 shadow-lg shadow-rose-950/20"
+      role="status"
+      className="flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-amber-950/30 px-4 py-3 text-sm text-amber-100 shadow-lg shadow-amber-950/10"
     >
-      <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-rose-400" aria-hidden />
-      <p>L&apos;authentification multi-facteurs est obligatoire pour ce compte.</p>
+      <Shield className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" aria-hidden />
+      <p>
+        Renforcez la sécurité de votre compte en activant l&apos;authentification multi-facteurs (TOTP ou Passkey)
+        ci-dessous, quand vous le souhaitez.
+      </p>
     </div>
   );
 }
