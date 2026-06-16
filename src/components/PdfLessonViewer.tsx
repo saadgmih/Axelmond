@@ -200,10 +200,10 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
       {/* PDF Canvas Area */}
       <div 
         ref={containerRef}
-        className="flex-1 overflow-auto bg-slate-200/50 flex justify-center p-4"
+        className="flex-1 overflow-auto bg-slate-200/50 p-4"
         onContextMenu={(e) => e.preventDefault()}
       >
-        <div className="relative shadow-lg ring-1 ring-slate-900/5">
+        <div className="mx-auto w-fit relative shadow-lg ring-1 ring-slate-900/5 transition-transform duration-200">
           <Document
             file={blobUrl}
             onLoadSuccess={onDocumentLoadSuccess}
