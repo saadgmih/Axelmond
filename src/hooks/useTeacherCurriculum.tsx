@@ -112,6 +112,7 @@ export function useTeacherCurriculum({
 
   const showCurriculumError = useCallback(
     (message: string) => {
+      if (!message.trim()) return;
       setCurriculumSuccessMsg("");
       setCurriculumErrorMsg(message);
       scheduleClear(() => setCurriculumErrorMsg(""), 8500);

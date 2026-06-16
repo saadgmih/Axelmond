@@ -10,6 +10,7 @@ import { usePlatformBindings, usePlatformCatalog, usePlatformLive, usePlatformNa
 import { StudentRouteSwitch } from "./StudentRouteSwitch";
 import { TeacherRouteSwitch } from "./TeacherRouteSwitch";
 import { AppFooter } from "./AppFooter";
+import { usePrivilegedMfaSetupRedirect } from "../hooks/usePrivilegedMfaSetupRedirect";
 
 export function AuthenticatedPlatformLayout() {
   const session = usePlatformSession();
@@ -18,6 +19,8 @@ export function AuthenticatedPlatformLayout() {
   const live = usePlatformLive();
   const ui = usePlatformUi();
   const bindings = usePlatformBindings();
+
+  usePrivilegedMfaSetupRedirect(session.currentUser?.role, navigation.teacherView, navigation.handleTeacherViewChange);
 
   return (
     <div className="flex h-[100dvh] max-h-[100dvh] bg-slate-50 font-sans overflow-hidden">

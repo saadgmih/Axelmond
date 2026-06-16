@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import type { Dispatch, SetStateAction } from "react";
+import { getClientErrorMessage, isMfaSetupRequiredError } from "../../client-errors";
 import { api } from "../../api";
 import { useAsyncEffectGuard } from "../../hooks/useAsyncEffectGuard";
 import type { Course, FacultyDomain } from "../../types";
@@ -34,11 +35,13 @@ export function usePlatformCatalogData(
       .catch((err) => {
         if (!request.isActive()) return;
         console.error("Failed to fetch academic catalog:", err);
-        const message =
-          err instanceof Error && err.message
-            ? err.message
-            : "Impossible de charger les données académiques. Réessayez dans un instant.";
-        setCatalogError(message);
+        if (isMfaSetupRequiredError(err)) {
+          setCatalogError(null);
+          setIsLoading(false);
+          return;
+        }
+        const message = getClientErrorMessage(err, "Impossible de charger les données académiques. Réessayez dans un instant.");
+        setCatalogError(message || null);
         setIsLoading(false);
       });
   }, [isAuthReady, setCourses, setDomains, setIsLoading, startCatalogRequest]);

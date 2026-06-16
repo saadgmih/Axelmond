@@ -22,6 +22,7 @@ export function isMfaSetupRequiredError(err: unknown): boolean {
 }
 
 export function getClientErrorMessage(err: unknown, fallback: string): string {
+  if (isMfaSetupRequiredError(err)) return "";
   if (!err || typeof err !== "object") return fallback;
   const record = err as Record<string, unknown>;
   const status = typeof record.status === "number" ? record.status : undefined;

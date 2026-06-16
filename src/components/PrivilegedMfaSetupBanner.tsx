@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { ShieldAlert } from "lucide-react";
-import { api } from "../api";
-import { isTeacherSpaceRole } from "../rbac";
+import { fetchPrivilegedMfaSetupRequired, shouldCheckPrivilegedMfaSetup } from "../mfa-client";
 
 interface PrivilegedMfaSetupBannerProps {
   role?: string | null;
@@ -9,22 +8,17 @@ interface PrivilegedMfaSetupBannerProps {
 
 export default function PrivilegedMfaSetupBanner({ role }: PrivilegedMfaSetupBannerProps) {
   const [needsSetup, setNeedsSetup] = useState(false);
-  const privileged = isTeacherSpaceRole(role);
-  const enforced = import.meta.env.PROD;
 
   useEffect(() => {
-    if (!privileged || !enforced) {
+    if (!shouldCheckPrivilegedMfaSetup(role)) {
       setNeedsSetup(false);
       return;
     }
 
     let disposed = false;
-    void api
-      .getMfaStatus()
-      .then((data) => {
-        if (disposed) return;
-        const protectedAccount = Boolean(data.totpEnabled) || Number(data.passkeyCount || 0) > 0;
-        setNeedsSetup(!protectedAccount);
+    void fetchPrivilegedMfaSetupRequired()
+      .then((required) => {
+        if (!disposed) setNeedsSetup(required);
       })
       .catch(() => {
         if (!disposed) setNeedsSetup(false);
@@ -33,7 +27,7 @@ export default function PrivilegedMfaSetupBanner({ role }: PrivilegedMfaSetupBan
     return () => {
       disposed = true;
     };
-  }, [privileged, enforced, role]);
+  }, [role]);
 
   if (!needsSetup) return null;
 
