@@ -16,7 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { api, getFreshSessionToken } from "../../api";
-import { uploadFiles, getUploadedFileUrl, getUploadErrorMessage, validateUploadFile } from "../../uploadthing-client";
+import { uploadFiles, getUploadedFileUrl, getUploadErrorMessage, validateUploadFile, bindUploadProgress, formatUploadProgressLabel, uploadProgressBarWidth } from "../../uploadthing-client";
 import { VirtualList } from "../../components/VirtualList";
 import { useMessagingSocket } from "../../hooks/useMessagingSocket";
 import type { ChatMessage, ConversationSummary, MessagingUser } from "../../types/messaging";
@@ -168,6 +168,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [peerTyping, setPeerTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -363,6 +364,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
       return;
     }
     setUploading(true);
+    setUploadProgress(0);
     setError("");
     try {
       const token = await getFreshSessionToken();
@@ -371,6 +373,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
         files: [file],
         input: { conversationId: selectedId },
         headers: { Authorization: `Bearer ${token}` },
+        onUploadProgress: bindUploadProgress((progress) => setUploadProgress(progress)),
       });
       const meta = uploaded[0]?.serverData;
       if (!meta?.url || !meta?.kind) throw new Error(getUploadErrorMessage(uploaded[0]));
@@ -386,6 +389,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
       setError(getClientErrorMessage(err, getUploadErrorMessage(err)));
     } finally {
       setUploading(false);
+      setUploadProgress(null);
     }
   };
 
@@ -528,6 +532,19 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
               </div>
 
               <footer className="border-t border-white/[0.08] p-3 sm:p-4">
+                {uploadProgress !== null && (
+                  <div className="mb-3 space-y-1.5">
+                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                      <div
+                        className={`h-full rounded-full transition-all duration-200 ${role === "teacher" ? "bg-pink-500" : "bg-indigo-500"}`}
+                        style={{ width: uploadProgressBarWidth(uploadProgress) }}
+                      />
+                    </div>
+                    <p className="text-[11px] font-semibold text-slate-400">
+                      Téléversement : {formatUploadProgressLabel(uploadProgress)}
+                    </p>
+                  </div>
+                )}
                 <div className="flex items-end gap-2">
                   <input
                     ref={fileInputRef}

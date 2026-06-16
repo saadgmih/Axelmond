@@ -3,7 +3,7 @@ import { getClientErrorMessage } from "../client-errors";
 import { AlertCircle, CheckCircle2, Image as ImageIcon, Loader2, Send, Trash2 } from "lucide-react";
 import { api, getFreshSessionToken } from "../api";
 import { RASTER_IMAGE_ACCEPT } from "../avatar-security";
-import { getUploadedFileUrl, getUploadErrorMessage, uploadFiles, validateUploadFile } from "../uploadthing-client";
+import { getUploadedFileUrl, getUploadErrorMessage, uploadFiles, validateUploadFile, bindUploadProgress, formatUploadProgressLabel, uploadProgressBarWidth } from "../uploadthing-client";
 
 interface SupportTicketFormProps {
   defaultCategory?: string;
@@ -58,9 +58,9 @@ export default function SupportTicketForm({
       const response = await (uploadFiles as any)("supportScreenshot", {
         files: [file],
         headers: { Authorization: `Bearer ${token}` },
-        onUploadProgress: ({ progress }: { progress: number }) => {
+        onUploadProgress: bindUploadProgress((progress) => {
           setUploadProgress(progress);
-        },
+        }),
       });
 
       const url = getUploadedFileUrl(response?.[0]);
@@ -259,7 +259,17 @@ export default function SupportTicketForm({
                 {uploadProgress !== null ? (
                   <>
                     <Loader2 className="w-5 h-5 text-amber-400 animate-spin" />
-                    <span className="text-xs text-slate-400">Téléversement : {uploadProgress}%</span>
+                    <div className="w-full space-y-2">
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
+                        <div
+                          className="h-full rounded-full bg-amber-400 transition-all duration-200"
+                          style={{ width: uploadProgressBarWidth(uploadProgress) }}
+                        />
+                      </div>
+                      <span className="text-xs text-slate-400">
+                        Téléversement : {formatUploadProgressLabel(uploadProgress)}
+                      </span>
+                    </div>
                   </>
                 ) : (
                   <>

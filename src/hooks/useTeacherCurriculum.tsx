@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
 import { getClientErrorMessage } from "../client-errors";
-import { uploadFiles, getUploadErrorMessage, validateUploadFile } from "../uploadthing-client";
+import {
+  bindUploadProgress,
+  formatUploadProgressLabel,
+  uploadFiles,
+  getUploadErrorMessage,
+  validateUploadFile,
+} from "../uploadthing-client";
 import { api, getFreshSessionToken } from "../api";
 import type { AppUser } from "../components/AuthScreen";
 import type { Course, ContentSection, FacultyDomain, LessonContent } from "../types";
@@ -315,8 +321,9 @@ export function useTeacherCurriculum({
           published: uploadPublished,
         },
         headers: { Authorization: `Bearer ${token}` },
-        onUploadProgress: ({ progress }: { progress: number }) =>
-          setUploadStatusMsg(`Téléversement UploadThing : ${progress}%`),
+        onUploadProgress: bindUploadProgress((progress) =>
+          setUploadStatusMsg(`Téléversement UploadThing : ${formatUploadProgressLabel(progress)}`),
+        ),
       });
       await refreshCourseContent(uploadCourseId);
       setUploadFile(null);

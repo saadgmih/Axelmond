@@ -8,6 +8,14 @@ export const uploadthingApiUrl = `${apiBaseUrl}/api/uploadthing`;
 
 export const { uploadFiles } = genUploader<OurFileRouter>({ url: uploadthingApiUrl });
 
+export {
+  bindUploadProgress,
+  clampUploadProgress,
+  formatUploadProgressLabel,
+  formatUploadProgressPercent,
+  uploadProgressBarWidth,
+} from "./upload-progress";
+
 export function getUploadedFileUrl(file: any): string {
   return (
     file?.serverData?.url ||
