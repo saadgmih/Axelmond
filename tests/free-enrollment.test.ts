@@ -29,6 +29,10 @@ rulesTest("free-enrollment-wiring", () => {
   const paymentsRoutesSource = fs.readFileSync("src/routes/payments-routes.ts", "utf8");
   const paypalServerSource = fs.readFileSync("src/paypal-server.ts", "utf8");
   const rbacSource = fs.readFileSync("src/rbac.ts", "utf8");
+  const freeEnrollmentSource = fs.readFileSync("src/course-free-enrollment.ts", "utf8");
+  const coursePaymentsSource = fs.readFileSync("src/course-payments.ts", "utf8");
+  const appSessionSource = fs.readFileSync("src/hooks/useAppSession.ts", "utf8");
+  const paypalEnrollmentSource = fs.readFileSync("src/paypal-enrollment.ts", "utf8");
 
   assert.match(paymentModalSource, /isFreeCheckout/);
   assert.match(paymentModalSource, /api\.freeEnrollCourse/);
@@ -40,6 +44,13 @@ rulesTest("free-enrollment-wiring", () => {
   assert.match(paymentsRoutesSource, /isFreeCourseCharge/);
   assert.match(paypalServerSource, /PAYPAL_AMOUNT_INVALID/);
   assert.match(rbacSource, /free-enroll/);
+
+  assert.doesNotMatch(freeEnrollmentSource, /ALREADY_ENROLLED/);
+  assert.match(freeEnrollmentSource, /persistCoursePaymentEnrollment/);
+  assert.match(coursePaymentsSource, /enrollment\.upsert/);
+  assert.doesNotMatch(appSessionSource, /useState<number\[\]>\(\[1\]\)/);
+  assert.doesNotMatch(appSessionSource, /enrolledCourses \|\| \[1\]/);
+  assert.doesNotMatch(paypalEnrollmentSource, /ALREADY_ENROLLED/);
 
   console.log("Free enrollment wiring tests passed");
 });

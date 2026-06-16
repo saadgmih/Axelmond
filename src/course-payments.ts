@@ -90,9 +90,24 @@ export async function persistCoursePaymentEnrollment(
   });
 
   if (existingPayment) {
+    const user = await prisma.$transaction(async (tx) => {
+      await tx.enrollment.upsert({
+        where: { userId_courseId: { userId: params.userId, courseId: params.courseId } },
+        update: { active: true },
+        create: { userId: params.userId, courseId: params.courseId, active: true },
+      });
+      return tx.user.findUnique({
+        where: { id: params.userId },
+        include: APP_USER_BILLING_INCLUDE,
+      });
+    });
+    if (!user) {
+      throw new Error("USER_NOT_FOUND");
+    }
+    deps.invalidateAuthUserCache(params.userId);
     return {
       duplicate: true as const,
-      user: existingPayment.user,
+      user,
       invoice: existingPayment.invoice ? serializeInvoiceRecord(existingPayment.invoice) : null,
     };
   }
@@ -192,9 +207,24 @@ export async function persistCoursePaymentEnrollment(
         },
       });
       if (racedPayment) {
+        const user = await prisma.$transaction(async (tx) => {
+          await tx.enrollment.upsert({
+            where: { userId_courseId: { userId: params.userId, courseId: params.courseId } },
+            update: { active: true },
+            create: { userId: params.userId, courseId: params.courseId, active: true },
+          });
+          return tx.user.findUnique({
+            where: { id: params.userId },
+            include: APP_USER_BILLING_INCLUDE,
+          });
+        });
+        if (!user) {
+          throw new Error("USER_NOT_FOUND");
+        }
+        deps.invalidateAuthUserCache(params.userId);
         return {
           duplicate: true as const,
-          user: racedPayment.user,
+          user,
           invoice: racedPayment.invoice ? serializeInvoiceRecord(racedPayment.invoice) : null,
         };
       }

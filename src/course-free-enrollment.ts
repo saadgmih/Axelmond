@@ -50,13 +50,6 @@ export async function processFreeCourseEnrollment(params: {
     };
   }
 
-  const existing = await prisma.enrollment.findUnique({
-    where: { userId_courseId: { userId: params.userId, courseId: params.courseId } },
-  });
-  if (existing?.active) {
-    return { ok: false, status: 400, error: "Déjà inscrit à ce module", code: "ALREADY_ENROLLED" };
-  }
-
   const invoiceId = buildCourseInvoiceId("FREE");
   const externalId = `free-enroll-${params.userId}-${params.courseId}`;
 

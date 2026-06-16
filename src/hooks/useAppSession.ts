@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
+import { useCallback, useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { api, getFreshSessionToken, setSessionToken } from "../api";
 import type { AppUser } from "../components/AuthScreen";
 import { getAllowedUiRole, isStudentRole } from "../rbac";
@@ -14,9 +14,8 @@ export interface UseAppSessionOptions {
 export function useAppSession({ setCourses, onAfterLogin, onSessionExpired }: UseAppSessionOptions) {
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
-  const [enrolledCourses, setEnrolledCourses] = useState<number[]>([1]);
+  const [enrolledCourses, setEnrolledCourses] = useState<number[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const lastSyncedUserStateRef = useRef("");
 
   const role = currentUser ? getAllowedUiRole(currentUser.role) : "student";
 
@@ -35,38 +34,15 @@ export function useAppSession({ setCourses, onAfterLogin, onSessionExpired }: Us
   useEffect(() => {
     if (currentUser) {
       if (isStudentRole(currentUser.role)) {
-        const nextEnrolledCourses = currentUser.enrolledCourses || [1];
-        const nextInvoices = currentUser.invoices || [];
-        lastSyncedUserStateRef.current = JSON.stringify({
-          enrolledCourses: nextEnrolledCourses,
-          invoices: nextInvoices,
-        });
+        const nextEnrolledCourses = currentUser.enrolledCourses ?? [];
+        const nextInvoices = currentUser.invoices ?? [];
         setEnrolledCourses(nextEnrolledCourses);
         setInvoices(nextInvoices);
       } else {
         setEnrolledCourses([1, 2, 3, 4]);
       }
     }
-  }, [currentUser?.id, currentUser?.role]);
-
-  useEffect(() => {
-    if (currentUser && isStudentRole(currentUser.role)) {
-      const nextSignature = JSON.stringify({ enrolledCourses, invoices });
-      if (lastSyncedUserStateRef.current === nextSignature) return;
-
-      const isEnrolledDiff = JSON.stringify(currentUser.enrolledCourses) !== JSON.stringify(enrolledCourses);
-      const isInvoicesDiff = JSON.stringify(currentUser.invoices) !== JSON.stringify(invoices);
-
-      if (isEnrolledDiff || isInvoicesDiff) {
-        lastSyncedUserStateRef.current = nextSignature;
-        setCurrentUser({
-          ...currentUser,
-          enrolledCourses,
-          invoices,
-        });
-      }
-    }
-  }, [enrolledCourses, invoices]);
+  }, [currentUser?.id, currentUser?.role, currentUser?.enrolledCourses, currentUser?.invoices]);
 
   const updateSessionUser = useCallback((user: AppUser) => {
     setCurrentUser(user);
@@ -79,8 +55,8 @@ export function useAppSession({ setCourses, onAfterLogin, onSessionExpired }: Us
       setCurrentUser(sessionUser);
 
       if (isStudentRole(user.role)) {
-        setEnrolledCourses(user.enrolledCourses || [1]);
-        setInvoices(user.invoices || []);
+        setEnrolledCourses(user.enrolledCourses ?? []);
+        setInvoices(user.invoices ?? []);
       }
 
       onAfterLogin?.(user);
