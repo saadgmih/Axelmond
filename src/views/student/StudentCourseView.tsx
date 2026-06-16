@@ -15,7 +15,7 @@ import {
 import AITutorChat from "../../components/AITutorChat";
 import PdfLessonViewer from "../../components/PdfLessonViewer";
 import PremiumVideoPlayer from "../../components/PremiumVideoPlayer";
-import { lessonContentIdFromModule } from "../../course-curriculum-sync";
+import { lessonContentIdFromModule } from "../../course-curriculum-utils";
 import { findLessonContent } from "../../hooks/useCourseContent";
 import { sanitizeCourseAttachmentUrl } from "../../external-url-security";
 import type { ContentSection, Course, CourseModule, LessonContent } from "../../types";
