@@ -130,7 +130,6 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
   const PORT = Number(options?.port ?? process.env.PORT) || 3000;
   const isSecurityRuntimeTest = process.env.SECURITY_RUNTIME_TEST === "1";
   const isProduction = process.env.NODE_ENV === "production";
-  const AUTH_MAX_ATTEMPTS = Number(process.env.AUTH_MAX_ATTEMPTS) || 20;
   const AUTH_LOCKOUT_WINDOW_MS = Number(process.env.AUTH_LOCKOUT_WINDOW_MS) || 1 * 60 * 1000;
   const uploadThingCallbackUrl =
     process.env.UPLOADTHING_CALLBACK_URL ||
@@ -296,7 +295,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
 
   const authRateLimiter = rateLimit({
     windowMs: AUTH_LOCKOUT_WINDOW_MS,
-    max: AUTH_MAX_ATTEMPTS,
+    max: routeDeps.AUTH_MAX_ATTEMPTS,
     standardHeaders: true,
     legacyHeaders: false,
     keyGenerator: (req) => {

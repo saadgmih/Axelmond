@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx server.ts",
     "build": "prisma generate && vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
-    "hostinger:build": "prisma migrate deploy && npm run build",
+    "hostinger:build": "prisma migrate deploy && cross-env NODE_OPTIONS=\"--max-old-space-size=512\" npm run build",
     "postinstall": "node scripts/prisma-postinstall.mjs",
     "start": "node scripts/hostinger-preflight.mjs && node dist/server.cjs",
     "start:cluster": "pm2 start ecosystem.config.cjs",
@@ -98,6 +98,7 @@
     "@types/supertest": "^7.2.0",
     "@types/web-push": "^3.6.4",
     "autocannon": "^7.15.0",
+    "cross-env": "^10.1.0",
     "esbuild": "^0.28.1",
     "eslint": "^9.39.1",
     "eslint-plugin-unused-imports": "^4.4.1",

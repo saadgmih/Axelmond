@@ -271,4 +271,5 @@ export const liveAttendanceLeaveSchema = z.object({
 });
 
 export const AUTH_LOCKOUT_WINDOW_MS = Number(process.env.AUTH_LOCKOUT_WINDOW_MS) || 60 * 1000;
+export const AUTH_MAX_ATTEMPTS = Number(process.env.AUTH_MAX_ATTEMPTS) || 20;
 export const isSecurityRuntimeTest = process.env.SECURITY_RUNTIME_TEST === "1";

@@ -229,5 +229,3 @@ export async function persistUserAvatarUrl(authUser: AppUser, avatarUrl: string)
     });
   }
 }
-
-export const AUTH_MAX_ATTEMPTS = Number(process.env.AUTH_MAX_ATTEMPTS) || 20;
