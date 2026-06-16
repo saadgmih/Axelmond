@@ -105,6 +105,47 @@ Symptôme : nginx affiche **504 Gateway Time-out** — le proxy ne reçoit aucun
 - Ne pas lancer PM2 en parallèle de l’app Hostinger.
 - Surveiller les Runtime logs : un seul `Axelmond server running on port 3000` stable, sans SIGTERM en boucle.
 
+## En cas de 503 — Max Processes / ressources Node
+
+Hostinger affiche parfois **503 Service Unavailable** avec un message du type *Max Processes* ou *utilisation élevée des ressources*. Cela signifie que **trop de processus Node.js** tournent en même temps sur le compte — le proxy coupe l’accès avant même d’atteindre votre app.
+
+### Pourquoi cela arrive avec Axelmond
+
+| Cause | Détail |
+|--------|--------|
+| **Redéploiements rapprochés** | Chaque push sur `main` lance un rebuild + un nouveau `node dist/server.cjs` pendant que l’ancien reçoit encore `SIGTERM` → 2–4 processus Node simultanés. |
+| **PM2 en parallèle** | `npm run start:cluster` ou `deploy-hostinger.sh` lance PM2 **en plus** du gestionnaire Hostinger → explosion du nombre de workers. |
+| **Mauvaise commande Start** | Start = `node dist/server.cjs` **et** PM2, ou un script qui relance Node en boucle. |
+| **Build + runtime chevauchés** | Pendant `npm ci` / `npm run build`, `postinstall` (`prisma generate`) et le démarrage peuvent coexister brièvement avec l’ancienne instance. |
+
+Les logs `Graceful shutdown initiated {"signal":"SIGTERM"}` répétés (comme lors des push `fe7b4fd` + `5cb066d` + `93464b6`) sont le signal typique d’un **chevauchement de processus**, pas d’un bug applicatif isolé.
+
+### Configuration hPanel obligatoire
+
+| Champ | Valeur correcte | À éviter |
+|--------|-----------------|----------|
+| **Start command** | `npm start` | `pm2 start`, `npm run start:cluster`, `node dist/server.cjs` lancé manuellement en SSH |
+| **Instances / workers** | **1** (défaut Hostinger) | PM2 cluster, `instances: max` |
+| **Entry file** | `dist/server.cjs` | — |
+
+Hostinger gère **un seul** process Node pour l’app — ne jamais ajouter PM2 sur cette offre.
+
+### Nettoyage si Max Processes est déjà saturé
+
+1. **Node.js Web App → Stop** (ou Kill all Node processes dans hPanel si disponible).
+2. Attendre **30–60 s** que tous les processus se terminent.
+3. Vérifier qu’aucun PM2 ne tourne (SSH, si accès) : `npx pm2 delete all` puis `npx pm2 kill` — **uniquement** si PM2 avait été lancé par erreur.
+4. **Restart** (pas Rebuild) une seule fois.
+5. Attendre `Axelmond server running on port 3000` **une seule fois** dans les Runtime logs.
+6. Tester `https://axelmond.com/api/live` puis `/api/health`.
+
+### Prévention durable
+
+- **Un push = un déploiement** : regrouper les commits avant de pousser sur `main`.
+- Après un incident, préférer **Restart** plutôt qu’un nouveau push (qui relance tout le pipeline).
+- Ne pas définir `REDIS_URL` + PM2 cluster sur Hostinger shared Node (réservé au VPS / Docker).
+- Surveiller **Max Processes** dans hPanel après chaque déploiement : la valeur doit retomber à **1 processus Node** stable.
+
 ## PM2 / SSH
 
 Le script `scripts/deploy-hostinger.sh` et PM2 sont pour un serveur VPS avec accès SSH.  
