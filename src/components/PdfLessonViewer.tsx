@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Camera, FileText, ChevronLeft, ChevronRight } from "lucide-react";
+import { Camera, FileText, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-react";
 import { getFreshSessionToken } from "../api";
 import { Document, Page, pdfjs } from "react-pdf";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
@@ -147,40 +147,37 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
 
   return (
     <div className="flex flex-col h-[70vh] rounded-2xl border border-slate-200 bg-slate-100 shadow-sm overflow-hidden select-none">
-      {/* PDF Controls */}
-      <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200 z-20">
+      {/* Enterprise Grade Toolbar */}
+      <div className="flex items-center justify-between px-6 py-3 bg-slate-900 text-slate-200 border-b border-slate-800 z-20 shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="flex items-center bg-slate-100 rounded-lg p-1">
+          <div className="flex items-center bg-slate-800 rounded-lg p-1 shadow-inner border border-slate-700/50">
             <button
               onClick={() => changePage(-1)}
               disabled={pageNumber <= 1}
-              className="p-1.5 rounded-md hover:bg-white text-slate-700 disabled:opacity-30 disabled:hover:bg-transparent"
+              className="p-1.5 rounded-md hover:bg-slate-700 text-slate-300 disabled:opacity-30 disabled:hover:bg-transparent transition-colors cursor-pointer"
               title="Page précédente"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <span className="px-3 text-sm font-semibold font-mono text-slate-700">
-              {pageNumber} / {numPages || "?"}
+            <span className="px-4 text-sm font-semibold font-mono text-slate-100 min-w-[5rem] text-center">
+              {pageNumber} <span className="text-slate-500 mx-1">/</span> {numPages || "?"}
             </span>
             <button
               onClick={() => changePage(1)}
               disabled={!numPages || pageNumber >= numPages}
-              className="p-1.5 rounded-md hover:bg-white text-slate-700 disabled:opacity-30 disabled:hover:bg-transparent"
+              className="p-1.5 rounded-md hover:bg-slate-700 text-slate-300 disabled:opacity-30 disabled:hover:bg-transparent transition-colors cursor-pointer"
               title="Page suivante"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
           </div>
         </div>
-        <div className="flex items-center gap-2 px-2 text-xs font-medium text-slate-500">
-          <span className="hidden sm:inline">Pincer ou scroller pour zoomer</span>
-        </div>
       </div>
 
       {/* PDF Canvas Area */}
       <div 
         ref={containerRef}
-        className="flex-1 overflow-hidden bg-slate-200/50 flex flex-col relative"
+        className="flex-1 overflow-hidden bg-slate-100 flex flex-col relative"
         onContextMenu={(e) => e.preventDefault()}
       >
         <TransformWrapper
@@ -191,9 +188,36 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
           wheel={{ step: 0.1 }}
           pinch={{ step: 5 }}
         >
-          <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }} contentStyle={{ width: "100%", height: "100%", justifyContent: "center", alignItems: "flex-start", paddingTop: "1rem" }}>
-            <div className="relative shadow-lg ring-1 ring-slate-900/5 w-fit mx-auto">
-              <Document
+          {({ zoomIn, zoomOut, resetTransform, scale }) => (
+            <>
+              {/* Floating Zoom Controls - Enterprise Style */}
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-slate-900/90 backdrop-blur-md p-1.5 rounded-xl border border-slate-700/50 shadow-2xl">
+                <button
+                  onClick={() => zoomOut()}
+                  className="p-2.5 rounded-lg hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
+                  title="Zoom arrière"
+                >
+                  <ZoomOut className="w-4 h-4" />
+                </button>
+                <div 
+                  className="px-3 text-xs font-mono font-bold text-slate-300 min-w-[4rem] text-center cursor-pointer hover:text-white transition-colors"
+                  onClick={() => resetTransform()}
+                  title="Réinitialiser le zoom"
+                >
+                  {Math.round(scale * 100)}%
+                </div>
+                <button
+                  onClick={() => zoomIn()}
+                  className="p-2.5 rounded-lg hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
+                  title="Zoom avant"
+                >
+                  <ZoomIn className="w-4 h-4" />
+                </button>
+              </div>
+
+              <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }} contentStyle={{ width: "100%", height: "100%", justifyContent: "center", alignItems: "flex-start", paddingTop: "2rem", paddingBottom: "5rem" }}>
+                <div className="relative shadow-2xl ring-1 ring-slate-900/5 w-fit mx-auto transition-transform duration-200">
+                  <Document
             file={blobUrl}
             onLoadSuccess={onDocumentLoadSuccess}
             loading={
@@ -218,8 +242,10 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
           </Document>
           {/* Protection overlay */}
           <div className="absolute inset-0 z-10" />
-            </div>
-          </TransformComponent>
+                </div>
+              </TransformComponent>
+            </>
+          )}
         </TransformWrapper>
       </div>
     </div>
