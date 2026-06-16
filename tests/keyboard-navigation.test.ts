@@ -31,6 +31,9 @@ rulesTest("keyboard-navigation", () => {
   assert.match(catalogSource, /useTvNavigation/);
   assert.match(catalogSource, /data-tv-focusable/);
   assert.match(catalogSource, /data-tv-zone="catalog"/);
+  assert.match(catalogSource, /DomainCatalogCard/);
+  assert.match(catalogSource, /items-stretch/);
+  assert.match(catalogSource, /min-h-\[2\.75rem\] line-clamp-2/);
 
   assert.match(dashboardSource, /data-tv-zone="student-dashboard"/);
 

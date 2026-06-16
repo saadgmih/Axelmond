@@ -108,6 +108,54 @@ const CatalogCourseCard = memo(function CatalogCourseCard({
   );
 });
 
+const DomainCatalogCard = memo(function DomainCatalogCard({
+  domain,
+  getDomainIcon,
+  onSelect,
+}: {
+  domain: FacultyDomain;
+  getDomainIcon: DomainIconRenderer;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      data-tv-focusable
+      tabIndex={0}
+      onClick={onSelect}
+      className="kbd-nav-focus h-full w-full min-h-0 text-left bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all overflow-hidden group flex flex-col"
+    >
+      <div className={`h-2 shrink-0 bg-gradient-to-r ${domain.color}`} />
+      <div className="flex flex-1 flex-col p-6">
+        <div className="flex min-h-[3rem] items-start justify-between gap-4">
+          <div
+            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-r ${domain.color} text-white shadow-sm`}
+          >
+            {getDomainIcon(domain.iconName, "w-6 h-6")}
+          </div>
+          <span className="shrink-0 rounded-full border border-slate-100 bg-slate-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
+            {domain.disciplines.length} disciplines
+          </span>
+        </div>
+
+        <div className="mt-4 flex flex-1 flex-col">
+          <h3 className="min-h-[2.75rem] line-clamp-2 font-black text-base leading-snug text-slate-800">{domain.name}</h3>
+          <p className="mt-2 min-h-[2.5rem] line-clamp-2 text-xs leading-relaxed text-slate-500">{domain.description}</p>
+        </div>
+
+        <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4">
+          <span className="text-[11px] font-bold uppercase text-slate-400">
+            {domain.courseCount || 0} modules publiés
+          </span>
+          <span className="flex items-center gap-1 text-xs font-bold text-indigo-600">
+            Explorer <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          </span>
+        </div>
+      </div>
+    </button>
+  );
+});
+
 interface StudentCatalogViewProps {
   domains: FacultyDomain[];
   selectedDomain: FacultyDomain | null;
@@ -201,46 +249,18 @@ export default function StudentCatalogView({
 
       <div ref={catalogGridRef} data-tv-zone="catalog" className="space-y-6">
         {!selectedDomain && (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 pt-3">
+          <div className="grid grid-cols-1 items-stretch gap-5 pt-3 md:grid-cols-2 xl:grid-cols-3">
             {domains.map((domain) => (
-              <button
+              <DomainCatalogCard
                 key={domain.id}
-                type="button"
-                data-tv-focusable
-                tabIndex={0}
-                onClick={() => {
+                domain={domain}
+                getDomainIcon={getDomainIcon}
+                onSelect={() => {
                   setSelectedDomainId(domain.id);
                   setSelectedDisciplineId(null);
                   setSearchQuery("");
                 }}
-                className="kbd-nav-focus touch-target text-left bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all overflow-hidden group"
-              >
-                <div className={`h-2 bg-gradient-to-r ${domain.color}`}></div>
-                <div className="p-6 space-y-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div
-                      className={`w-12 h-12 rounded-2xl bg-gradient-to-r ${domain.color} text-white flex items-center justify-center shadow-sm`}
-                    >
-                      {getDomainIcon(domain.iconName, "w-6 h-6")}
-                    </div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-full">
-                      {domain.disciplines.length} disciplines
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="font-black text-slate-800 text-base leading-tight">{domain.name}</h3>
-                    <p className="text-xs text-slate-500 leading-relaxed mt-2">{domain.description}</p>
-                  </div>
-                  <div className="flex items-center justify-between border-t border-slate-100 pt-4">
-                    <span className="text-[11px] font-bold text-slate-400 uppercase">
-                      {domain.courseCount || 0} modules publiés
-                    </span>
-                    <span className="text-xs font-bold text-indigo-600 flex items-center gap-1">
-                      Explorer <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                    </span>
-                  </div>
-                </div>
-              </button>
+              />
             ))}
           </div>
         )}
