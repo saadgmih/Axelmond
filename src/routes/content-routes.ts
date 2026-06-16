@@ -6,6 +6,10 @@ import * as api from "../server/route-deps";
 export function registerContentRoutes(app: Express, ctx: RouteContext): void {
   const { requireAuth, requireRbac, validateBody } = ctx.middleware;
 
+  const refreshStudentCourseModules = async (courseId: number) => {
+    await api.syncPublishedLessonModules(courseId);
+  };
+
   app.post(
     "/api/courses/:courseId/chapters",
     requireAuth,
@@ -254,6 +258,8 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
 
     api.logDb("INFO", "Chapter publication updated", { chapterId: result.id, published });
 
+    await refreshStudentCourseModules(result.courseId);
+
     if (published) {
       const course = await api.prisma.course.findUnique({ where: { id: result.courseId }, select: { title: true } });
 
@@ -443,6 +449,10 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
 
       api.logDb("INFO", "Content section updated", { sectionId: section.id, data: Object.keys(data) });
 
+      if (typeof data.published === "boolean") {
+        await refreshStudentCourseModules(section.courseId);
+      }
+
       res.json(section);
     },
   );
@@ -487,6 +497,10 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
       }
 
       api.logDb("INFO", "Content section updated", { sectionId: section.id, published: section.published });
+
+      if (typeof published === "boolean") {
+        await refreshStudentCourseModules(section.courseId);
+      }
 
       res.json(section);
     },
@@ -585,6 +599,8 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
         userId: authUser.id,
       });
 
+      await refreshStudentCourseModules(section.courseId);
+
       const isHomework = /devoir|homework|assignment/i.test(`${title} ${section.title}`);
 
       if (content.published && isHomework) {
@@ -652,6 +668,8 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
 
       api.logDb("INFO", "Lesson content updated", { contentId: content.id, data: Object.keys(data) });
 
+      await refreshStudentCourseModules(content.courseId);
+
       res.json(api.toLessonContent(content));
     },
   );
@@ -699,6 +717,8 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
 
       api.logDb("INFO", "Lesson content updated", { contentId: content.id, published: content.published });
 
+      await refreshStudentCourseModules(content.courseId);
+
       res.json(api.toLessonContent(content));
     },
   );
@@ -736,6 +756,8 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
     }
 
     api.logDb("INFO", "Lesson content deleted", { contentId: content.id });
+
+    await refreshStudentCourseModules(content.courseId);
 
     res.json({ ok: true });
   });

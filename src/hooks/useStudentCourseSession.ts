@@ -79,9 +79,6 @@ export function useStudentCourseSession({
   };
 
   const handlePaymentSuccess = async (courseId: number, _amountPaid: number, syncedUser?: AppUser) => {
-    const course = courses.find((c) => c.id === courseId);
-    if (!course) return;
-
     if (!syncedUser) {
       throw new Error("Inscription non confirmée par le serveur. Contactez le support.");
     }
@@ -92,6 +89,18 @@ export function useStudentCourseSession({
     updateSessionUser(syncedUser);
     setEnrolledCourses(syncedUser.enrolledCourses || []);
     setInvoices(syncedUser.invoices || []);
+
+    let course = courses.find((c) => c.id === courseId) ?? null;
+    try {
+      const refreshedCourse = await api.getCourse(courseId);
+      course = refreshedCourse;
+      setCourses((prev) => prev.map((item) => (item.id === courseId ? refreshedCourse : item)));
+    } catch (err) {
+      console.error("Failed to refresh enrolled course after payment:", err);
+    }
+
+    if (!course) return;
+
     setSelectedCourse(course);
     setSelectedModule(course.modules?.[0] || null);
     setQuizAnswers({});

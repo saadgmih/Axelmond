@@ -78,11 +78,7 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
 
       let payload;
       if (authUser?.role === "STUDENT") {
-        const progressByCourse = await api.getStudentCompletedModuleIdsByCourseIds(
-          authUser.id,
-          courses.map((course) => course.id),
-        );
-        payload = courses.map((course) => api.toCourse(course, progressByCourse.get(course.id) ?? new Set()));
+        payload = await api.toCoursesForStudent(courses, authUser.id, authUser.enrolledCourses);
       } else {
         payload = courses.map((course) => api.toCourse(course));
       }
@@ -194,7 +190,7 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
   app.get("/api/courses/:id", async (req, res) => {
     const authUser = await api.getOptionalAuthUser(req);
 
-    const course = await api.prisma.course.findUnique({
+    let course = await api.prisma.course.findUnique({
       where: { id: parseInt(req.params.id) },
       include: api.courseResponseInclude,
     });
@@ -203,6 +199,12 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
       res.status(404).json({ error: api.PUBLIC_API_ERRORS.courseNotFound });
 
       return;
+    }
+
+    if (authUser?.role === "STUDENT" && authUser.enrolledCourses.includes(course.id)) {
+      await api.syncPublishedLessonModules(course.id);
+      const refreshed = await api.attachSyncedCourseModules([course]);
+      course = refreshed[0] ?? course;
     }
 
     if (!course.published) {

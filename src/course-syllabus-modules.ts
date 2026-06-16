@@ -63,13 +63,16 @@ export function resolveCourseModules(
     courseModules?: CourseModuleRow[];
   },
   completedModuleIds?: Set<number>,
+  options?: { studentView?: boolean },
 ): CourseModule[] {
   if (!Array.isArray(course.courseModules) || course.courseModules.length === 0) {
     return [];
   }
 
-  return course.courseModules
+  const rows = course.courseModules
     .slice()
-    .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
-    .map((row) => serializeCourseModuleRow(row, completedModuleIds?.has(row.id) ?? false));
+    .filter((row) => (options?.studentView ? row.published : true))
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id);
+
+  return rows.map((row) => serializeCourseModuleRow(row, completedModuleIds?.has(row.id) ?? false));
 }

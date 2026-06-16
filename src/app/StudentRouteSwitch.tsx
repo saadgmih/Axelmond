@@ -93,7 +93,10 @@ export function StudentRouteSwitch() {
       )}
       {currentView === "course" && selectedCourse && !selectedModule && (
         <div className="mx-auto max-w-xl p-8 text-center text-slate-300">
-          <p className="text-sm font-semibold">Ce cours ne contient pas encore de module.</p>
+          <p className="text-sm font-semibold">Ce module n'a pas encore de contenu publié.</p>
+          <p className="mt-2 text-xs text-slate-500">
+            Le professeur doit publier au moins un chapitre ou un média pédagogique pour commencer.
+          </p>
           <button
             type="button"
             onClick={() => navigateTo("dashboard")}

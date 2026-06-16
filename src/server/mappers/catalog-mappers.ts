@@ -1,6 +1,11 @@
 import { Course } from "../../types";
 import { prisma } from "../../db";
 import { decodeStoredText } from "../../text";
+import {
+  attachSyncedCourseModules,
+  syncPublishedLessonModules,
+  syncPublishedLessonModulesForCourses,
+} from "../../course-curriculum-sync";
 import { resolveCourseModules } from "../../course-syllabus-modules";
 import type { AppUser } from "../route-types";
 
@@ -73,7 +78,7 @@ export function applyModuleProgressForStudent(course: Course, completedModuleIds
   };
 }
 
-export function toCourse(course: any, completedModuleIds?: Set<number>): Course {
+export function toCourse(course: any, completedModuleIds?: Set<number>, options?: { studentView?: boolean }): Course {
   const serialized: Course = {
     id: course.id,
     title: decodeStoredText(course.title),
@@ -92,9 +97,13 @@ export function toCourse(course: any, completedModuleIds?: Set<number>): Course 
     isLiveNow: course.isLiveNow,
     liveSubject: course.liveSubject ? decodeStoredText(course.liveSubject) : undefined,
     liveStartedAt: getLiveStartedAt(course),
-    modules: resolveCourseModules({
-      courseModules: course.courseModules,
-    }, completedModuleIds),
+    modules: resolveCourseModules(
+      {
+        courseModules: course.courseModules,
+      },
+      completedModuleIds,
+      options,
+    ),
     published: course.published,
     createdById: course.createdById || undefined,
   };
@@ -137,6 +146,33 @@ export async function toCourseForUser(
   completedModuleIds?: Set<number>,
 ): Promise<Course> {
   if (authUser.role !== "STUDENT") return toCourse(course);
+
+  if (authUser.enrolledCourses.includes(course.id)) {
+    await syncPublishedLessonModules(course.id);
+    const refreshed = await attachSyncedCourseModules([course]);
+    course = refreshed[0] ?? course;
+  }
+
   const moduleIds = completedModuleIds ?? (await getStudentCompletedModuleIds(authUser.id, course.id));
-  return toCourse(course, moduleIds);
+  return toCourse(course, moduleIds, { studentView: true });
+}
+
+export async function toCoursesForStudent(
+  courses: any[],
+  userId: string,
+  enrolledCourseIds: number[],
+): Promise<Course[]> {
+  const enrolledIds = enrolledCourseIds.filter((courseId) => courses.some((course) => course.id === courseId));
+  if (enrolledIds.length > 0) {
+    await syncPublishedLessonModulesForCourses(enrolledIds);
+    courses = await attachSyncedCourseModules(courses);
+  }
+
+  const progressByCourse = await getStudentCompletedModuleIdsByCourseIds(
+    userId,
+    courses.map((course) => course.id),
+  );
+  return courses.map((course) =>
+    toCourse(course, progressByCourse.get(course.id) ?? new Set(), { studentView: true }),
+  );
 }

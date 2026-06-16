@@ -2,6 +2,7 @@ import { createUploadthing, type FileRouter } from "uploadthing/express";
 import { UploadThingError, UTApi } from "uploadthing/server";
 import { z } from "zod";
 import { prisma } from "./db";
+import { syncPublishedLessonModules } from "./course-curriculum-sync";
 import { verifyAuthToken } from "./auth-token";
 import { canManageContent, isTeacherSpaceRole, normalizeRole } from "./rbac";
 import { isAllowedAvatarUrl, isAllowedRasterImageMime, isAllowedRasterImageUpload } from "./avatar-security";
@@ -298,6 +299,9 @@ export const uploadRouter = {
       console.log(
         `[${new Date().toISOString()}] [INFO] [uploadthing] Lesson asset uploaded ${JSON.stringify({ contentId: content.id, courseId: metadata.courseId, sectionId: metadata.sectionId, fileKey: file.key })}`,
       );
+      if (content.published) {
+        await syncPublishedLessonModules(metadata.courseId);
+      }
       return {
         contentId: content.id,
         attachmentId: content.attachments[0]?.id,

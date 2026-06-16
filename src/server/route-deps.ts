@@ -276,6 +276,11 @@ export { createPayPalOrder, capturePayPalOrder, isPayPalConfigured, logPayPalErr
 export { processPayPalCaptureEnrollment, toPayPalCaptureClientResponse } from "../paypal-enrollment";
 export { resolveCourseChargeAmount, isFreeCourseCharge } from "../promo-codes";
 export { processFreeCourseEnrollment } from "../course-free-enrollment";
+export {
+  attachSyncedCourseModules,
+  syncPublishedLessonModules,
+  syncPublishedLessonModulesForCourses,
+} from "../course-curriculum-sync";
 export { invalidateAuthUserCache, startAuthUserCachePruner, stopAuthUserCachePruner } from "./auth-user-cache";
 export { collectRuntimeMemoryMetrics } from "./memory-metrics";
 export { decodeStoredText } from "../text";
