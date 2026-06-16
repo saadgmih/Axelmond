@@ -51,6 +51,15 @@ export class GlobalErrorBoundary extends Component<Props, State> {
               <p className="text-sm text-slate-400">
                 L'application a rencontré un problème (mise à jour en arrière-plan ou erreur de rendu).
               </p>
+              
+              <div className="mt-4 p-3 bg-slate-950 rounded-lg border border-slate-800 text-left overflow-auto max-h-32">
+                <p className="text-xs text-red-400 font-mono break-all">
+                  {this.state.error?.name}: {this.state.error?.message}
+                </p>
+                <p className="text-[10px] text-slate-500 font-mono mt-1 break-all whitespace-pre-wrap">
+                  {this.state.error?.stack?.split('\\n').slice(0, 3).join('\\n')}
+                </p>
+              </div>
             </div>
 
             <button
