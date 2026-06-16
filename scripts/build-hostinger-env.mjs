@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 
 const root = process.cwd();
 const sourcePath = path.join(root, ".env");
@@ -27,6 +28,10 @@ const PRODUCTION_OVERRIDES = {
   UPLOADTHING_CALLBACK_URL: "https://axelmond.com/api/uploadthing",
   PAYPAL_ENV: "live",
   RUN_STARTUP_SEED: "false",
+  CACHE_MAX_ENTRIES: "100",
+  CACHE_MAX_VALUE_BYTES: "512000",
+  AUTH_USER_CACHE_MAX_ENTRIES: "200",
+  PERF_MONITOR_INTERVAL_MS: "120000",
 };
 
 const required = [
@@ -105,6 +110,11 @@ for (const [key, value] of Object.entries(PRODUCTION_OVERRIDES)) {
 if (!entries.get("WEBAUTHN_RP_ID")) {
   entries.set("WEBAUTHN_RP_ID", "axelmond.com");
   notes.push("Set WEBAUTHN_RP_ID=axelmond.com");
+}
+
+if (!entries.get("HEALTH_CHECK_TOKEN")) {
+  entries.set("HEALTH_CHECK_TOKEN", crypto.randomBytes(32).toString("hex"));
+  notes.push("Generated HEALTH_CHECK_TOKEN (store securely — used for /api/health memory metrics)");
 }
 
 const missing = required.filter((key) => !entries.get(key));

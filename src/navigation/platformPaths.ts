@@ -15,6 +15,7 @@ export const STUDENT_VIEWS = new Set([
   "catalog",
   "course",
   "profile",
+  "account-security",
   "live",
   "study-plan",
   "study-schedule",

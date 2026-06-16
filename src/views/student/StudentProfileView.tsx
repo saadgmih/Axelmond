@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { Award, BookOpen, CheckCircle2, CreditCard, GraduationCap, ShieldCheck, Sparkles } from "lucide-react";
 import ProfileAvatarUpload from "../../components/ProfileAvatarUpload";
-import SecuritySettingsPanel from "../../components/SecuritySettingsPanel";
 import type { AppUser } from "../../components/AuthScreen";
 import type { Course, Invoice } from "../../types";
 import { formatCredits, formatMad } from "../../utils/morocco-locale";
@@ -366,8 +365,6 @@ export default function StudentProfileView({
           </section>
         </div>
       </div>
-
-      <SecuritySettingsPanel layout="wide" emailVerified={Boolean(currentUser?.emailVerified)} />
     </div>
   );
 }

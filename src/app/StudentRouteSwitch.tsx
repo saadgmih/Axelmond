@@ -6,6 +6,7 @@ import {
   LazyStudentDashboardView,
   LazyStudentLiveView,
   LazyStudentProfileView,
+  LazyStudentAccountSecurityView,
   LazyStudentStudyPlanView,
   RouteChunkFallback,
 } from "../lazyViews";
@@ -129,6 +130,11 @@ export function StudentRouteSwitch() {
             handleUploadAvatarFile={handleUploadAvatarFile}
             handleDeleteAvatar={handleDeleteAvatar}
           />
+        </Suspense>
+      )}
+      {currentView === "account-security" && (
+        <Suspense fallback={<RouteChunkFallback label="Chargement de la sécurité du compte…" />}>
+          <LazyStudentAccountSecurityView currentUser={currentUser} />
         </Suspense>
       )}
       {(currentView === "study-plan" ||

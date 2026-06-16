@@ -39,6 +39,7 @@
     "generate:vapid-keys": "tsx scripts/generate-vapid-keys.mjs",
     "validate:vapid-keys": "tsx scripts/validate-vapid-keys.mjs",
     "hostinger:env": "node scripts/build-hostinger-env.mjs",
+    "hostinger:memory": "node --env-file=.env scripts/measure-prod-memory.mjs",
     "security:preflight": "tsx scripts/security-preflight.ts",
     "security:mobile-secret": "node scripts/generate-mobile-client-secret.mjs",
     "security:probe": "node scripts/security-probe.mjs"
