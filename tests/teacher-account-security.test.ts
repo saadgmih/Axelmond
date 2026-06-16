@@ -19,6 +19,9 @@ rulesTest("teacher-account-security", () => {
   assert.match(securityViewSource, /getProfileRoleTheme/);
   assert.match(sharedSource, /SecuritySettingsPanel/);
   assert.match(sharedSource, /AccountPasswordChangeForm/);
+  assert.match(sharedSource, /PrivilegedMfaSetupBanner/);
+  assert.doesNotMatch(profileViewSource, /multi-facteurs/);
+  assert.match(academicHookSource, /isMfaSetupRequiredError/);
 
   assert.match(sidebarSource, /setTeacherView\("account-security"\)/);
   assert.match(sidebarSource, /Sécurité du compte/);

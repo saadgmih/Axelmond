@@ -1,5 +1,6 @@
 import { ShieldCheck } from "lucide-react";
 import AccountPasswordChangeForm from "../../components/AccountPasswordChangeForm";
+import PrivilegedMfaSetupBanner from "../../components/PrivilegedMfaSetupBanner";
 import SecuritySettingsPanel from "../../components/SecuritySettingsPanel";
 import type { AppUser } from "../../components/AuthScreen";
 
@@ -43,6 +44,8 @@ export default function AccountSecurityView({
           </div>
         </div>
       </header>
+
+      <PrivilegedMfaSetupBanner role={currentUser?.role} />
 
       <AccountPasswordChangeForm variant="dark" />
 

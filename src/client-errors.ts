@@ -15,6 +15,12 @@ export function sanitizeClientErrorMessage(message: unknown, fallback: string, s
   return trimmed;
 }
 
+export function isMfaSetupRequiredError(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const record = err as Record<string, unknown>;
+  return record.code === "MFA_SETUP_REQUIRED" || record.mfaSetupRequired === true;
+}
+
 export function getClientErrorMessage(err: unknown, fallback: string): string {
   if (!err || typeof err !== "object") return fallback;
   const record = err as Record<string, unknown>;

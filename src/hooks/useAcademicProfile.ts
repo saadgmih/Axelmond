@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { getClientErrorMessage } from "../client-errors";
+import { getClientErrorMessage, isMfaSetupRequiredError } from "../client-errors";
 import { api } from "../api";
 import type { AppUser } from "../components/AuthScreen";
 import type { AcademicProfilePayload } from "../types";
@@ -72,7 +72,11 @@ export function useAcademicProfile({ role, teacherView, currentUser, updateSessi
     } catch (err: any) {
       if (!request.isActive()) return;
       setAcademicProfileData(null);
-      setAcademicProfileErrorMsg(getClientErrorMessage(err, "Profil académique indisponible."));
+      if (isMfaSetupRequiredError(err)) {
+        setAcademicProfileErrorMsg("");
+      } else {
+        setAcademicProfileErrorMsg(getClientErrorMessage(err, "Profil académique indisponible."));
+      }
       setAcademicProfileStatusMsg("");
     }
   }, [role, startRequest]);
@@ -110,7 +114,11 @@ export function useAcademicProfile({ role, teacherView, currentUser, updateSessi
       setAcademicProfileStatusMsg(payload.message || "Profil académique mis à jour.");
     } catch (err: any) {
       if (!request.isActive()) return;
-      setAcademicProfileErrorMsg(getClientErrorMessage(err, "Mise à jour du profil impossible."));
+      if (isMfaSetupRequiredError(err)) {
+        setAcademicProfileErrorMsg("");
+      } else {
+        setAcademicProfileErrorMsg(getClientErrorMessage(err, "Mise à jour du profil impossible."));
+      }
       setAcademicProfileStatusMsg("");
     }
   };
@@ -133,7 +141,11 @@ export function useAcademicProfile({ role, teacherView, currentUser, updateSessi
       setAcademicProfileStatusMsg(payload.message || "Photo de profil mise à jour.");
     } catch (err: any) {
       if (!request.isActive()) return;
-      setAcademicProfileErrorMsg(getClientErrorMessage(err, "Mise à jour de la photo impossible."));
+      if (isMfaSetupRequiredError(err)) {
+        setAcademicProfileErrorMsg("");
+      } else {
+        setAcademicProfileErrorMsg(getClientErrorMessage(err, "Mise à jour de la photo impossible."));
+      }
       setAcademicProfileStatusMsg("");
     }
   };
