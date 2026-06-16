@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef } from "react";
-import { Camera, FileText, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-react";
+import { Camera, FileText, ChevronLeft, ChevronRight } from "lucide-react";
 import { getFreshSessionToken } from "../api";
 import { Document, Page, pdfjs } from "react-pdf";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
@@ -21,7 +22,6 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
   const [loading, setLoading] = useState(true);
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState(1);
-  const [scale, setScale] = useState(1.0);
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState<number>(800);
 
@@ -43,10 +43,6 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
       if (numPages && next > numPages) return numPages;
       return next;
     });
-  }
-
-  function zoom(delta: number) {
-    setScale((prev) => Math.max(0.5, Math.min(3.0, prev + delta)));
   }
 
   useEffect(() => {
@@ -176,35 +172,28 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
             </button>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => zoom(-0.2)}
-            className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
-            title="Zoom arrière"
-          >
-            <ZoomOut className="w-4 h-4" />
-          </button>
-          <span className="text-xs font-mono font-bold text-slate-500 min-w-[3rem] text-center">
-            {Math.round(scale * 100)}%
-          </span>
-          <button
-            onClick={() => zoom(0.2)}
-            className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
-            title="Zoom avant"
-          >
-            <ZoomIn className="w-4 h-4" />
-          </button>
+        <div className="flex items-center gap-2 px-2 text-xs font-medium text-slate-500">
+          <span className="hidden sm:inline">Pincer ou scroller pour zoomer</span>
         </div>
       </div>
 
       {/* PDF Canvas Area */}
       <div 
         ref={containerRef}
-        className="flex-1 overflow-auto bg-slate-200/50 p-4"
+        className="flex-1 overflow-hidden bg-slate-200/50 flex flex-col relative"
         onContextMenu={(e) => e.preventDefault()}
       >
-        <div className="mx-auto w-fit relative shadow-lg ring-1 ring-slate-900/5 transition-transform duration-200">
-          <Document
+        <TransformWrapper
+          initialScale={1}
+          minScale={0.5}
+          maxScale={4}
+          centerOnInit={true}
+          wheel={{ step: 0.1 }}
+          pinch={{ step: 5 }}
+        >
+          <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }} contentStyle={{ width: "100%", height: "100%", justifyContent: "center", alignItems: "flex-start", paddingTop: "1rem" }}>
+            <div className="relative shadow-lg ring-1 ring-slate-900/5 w-fit mx-auto">
+              <Document
             file={blobUrl}
             onLoadSuccess={onDocumentLoadSuccess}
             loading={
@@ -220,7 +209,7 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
           >
             <Page
               pageNumber={pageNumber}
-              scale={scale}
+              scale={1.0}
               width={containerWidth > 0 ? Math.min(containerWidth - 32, 1000) : undefined}
               className="bg-white"
               renderTextLayer={false}
@@ -229,7 +218,9 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
           </Document>
           {/* Protection overlay */}
           <div className="absolute inset-0 z-10" />
-        </div>
+            </div>
+          </TransformComponent>
+        </TransformWrapper>
       </div>
     </div>
   );
