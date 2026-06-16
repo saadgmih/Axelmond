@@ -166,6 +166,9 @@ export async function createPayPalOrder(params: {
   amountMad: number;
   userId: string;
 }): Promise<{ id: string; currency: string; amount: string; amountMad: string }> {
+  if (params.amountMad <= 0) {
+    throw new Error("PAYPAL_AMOUNT_INVALID");
+  }
   const payPalCurrency = getPayPalCheckoutCurrency();
   const payPalAmount = convertMadAmountForPayPal(params.amountMad);
   const customId = buildPayPalCustomId(params.userId, params.courseId, payPalAmount, params.amountMad, payPalCurrency);

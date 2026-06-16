@@ -144,6 +144,15 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
       return;
     }
 
+    if (api.isFreeCourseCharge(chargePricing.amount)) {
+      res.status(400).json({
+        error: "Utilisez l'inscription gratuite pour ce module.",
+        code: "FREE_ENROLLMENT_REQUIRED",
+      });
+
+      return;
+    }
+
     if (chargePricing.discountPercent > 0) {
       api.logSecurity("INFO", "PayPal order promo applied", {
         userId: authUser.id,

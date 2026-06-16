@@ -286,6 +286,12 @@ export const api = {
       orderId,
       courseId,
     }),
+  freeEnrollCourse: (courseId: number, promoCode?: string) =>
+    request<{ ok: boolean; invoice?: any; user?: any; message?: string }>(
+      "POST",
+      `/api/courses/${courseId}/free-enroll`,
+      promoCode ? { promoCode } : undefined,
+    ),
   login: (email: string, password: string, role: string) =>
     request<any>("POST", "/api/auth/login", { email, password, role }),
   verifyMfaTotp: (mfaToken: string, code: string) =>

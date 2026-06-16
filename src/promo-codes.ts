@@ -49,6 +49,11 @@ export function computeDiscountedPrice(originalPrice: number, discountPercent: n
   return Math.round(raw * 100) / 100;
 }
 
+export function isFreeCourseCharge(amount: number): boolean {
+  const normalized = Math.round(amount * 100) / 100;
+  return normalized <= 0;
+}
+
 export function resolveCourseChargeAmount(
   originalPrice: number,
   promoCode: string | undefined | null,

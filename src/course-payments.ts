@@ -12,7 +12,7 @@ export const AUTH_USER_INCLUDE = {
   invoiceRecords: { orderBy: { issuedAt: "desc" as const }, take: 25 },
 } as const;
 
-export function buildCourseInvoiceId(prefix: "PAYPAL" | "MOCK" | "REG"): string {
+export function buildCourseInvoiceId(prefix: "PAYPAL" | "MOCK" | "REG" | "FREE"): string {
   return `INV-${prefix}-${Math.floor(Math.random() * 90000 + 10000)}`;
 }
 

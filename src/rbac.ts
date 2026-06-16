@@ -355,6 +355,10 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
     return true;
   }
 
+  if (verb === "POST" && /^\/api\/courses\/\d+\/free-enroll$/.test(cleanPath)) {
+    return normalized === "STUDENT";
+  }
+
   if (verb === "POST" && cleanPath === "/api/chat-tutor") {
     return true;
   }

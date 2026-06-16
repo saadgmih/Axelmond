@@ -675,5 +675,52 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
     res.json({ ok: true, deletedId: courseId });
   });
 
+  // POST /api/courses/:courseId/free-enroll — inscription gratuite (prix serveur = 0 DH)
+  app.post("/api/courses/:courseId/free-enroll", requireAuth, requireRbac, async (req, res) => {
+    const authUser = getAuthUser(req);
+    const courseId = api.parsePositiveInt(req.params.courseId);
+    if (!courseId) {
+      res.status(400).json({ error: "Identifiant de module invalide" });
+      return;
+    }
+
+    const promoCode = String(req.body?.promoCode || "").trim();
+    const persistCoursePaymentEnrollment = (params: Parameters<typeof api.persistCoursePaymentWithAudit>[0]) =>
+      api.persistCoursePaymentWithAudit(params);
+
+    try {
+      const result = await api.processFreeCourseEnrollment({
+        userId: authUser.id,
+        role: authUser.role,
+        courseId,
+        promoCode: promoCode || undefined,
+        reqIp: req.ip,
+        persistCoursePaymentEnrollment,
+      });
+
+      if (!result.ok) {
+        res.status(result.status).json({ error: result.error, code: result.code });
+        return;
+      }
+
+      if (result.duplicate) {
+        api.logSecurity("INFO", "Free enrollment duplicate ignored", {
+          userId: authUser.id,
+          courseId,
+        });
+      }
+
+      res.json({
+        ok: true,
+        message: result.message,
+        invoice: result.invoice,
+        user: result.user,
+      });
+    } catch (err) {
+      api.logDb("ERROR", "Free enrollment failed", { userId: authUser.id, courseId, error: String(err) });
+      res.status(500).json({ error: "Erreur lors de l'inscription gratuite" });
+    }
+  });
+
   // PUT /api/content-sections/:id
 }

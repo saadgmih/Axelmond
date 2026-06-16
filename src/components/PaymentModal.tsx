@@ -55,7 +55,17 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
   const [configError, setConfigError] = useState("");
   const [orderPreviewAmount, setOrderPreviewAmount] = useState<string | null>(null);
 
+  const originalPrice = course?.price ?? 0;
+  const finalPrice = Math.round(originalPrice * (1 - appliedDiscount / 100) * 100) / 100;
+  const savings = originalPrice - finalPrice;
+  const isFreeCheckout = finalPrice <= 0;
+
   useEffect(() => {
+    if (!course || isFreeCheckout) {
+      setPaypalConfig(null);
+      setConfigError("");
+      return;
+    }
     let active = true;
     api
       .getPayPalConfig()
@@ -68,7 +78,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
     return () => {
       active = false;
     };
-  }, []);
+  }, [course?.id, isFreeCheckout]);
 
   useEffect(() => {
     if (!course) return;
@@ -100,9 +110,26 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
     }
   };
 
-  const originalPrice = course.price;
-  const finalPrice = originalPrice * (1 - appliedDiscount / 100);
-  const savings = originalPrice - finalPrice;
+  const handleFreeEnroll = async () => {
+    setStep("loading");
+    setIsProcessing(true);
+    setPaymentError("");
+
+    try {
+      const appliedPromo = appliedDiscount > 0 ? promoCode.trim().toUpperCase() : undefined;
+      const result = await api.freeEnrollCourse(course.id, appliedPromo);
+      if (!result.user) {
+        throw new Error("Inscription non confirmée par le serveur. Contactez le support.");
+      }
+      await onSuccess(course.id, 0, result.user);
+      setStep("success");
+    } catch (err: unknown) {
+      setPaymentError(getClientErrorMessage(err, "Impossible de finaliser l'inscription gratuite."));
+      setStep("form");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handlePayPalApprove = async (orderId: string) => {
     setStep("loading");
@@ -273,82 +300,107 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                     )}
                   </div>
 
-                  {/* PayPal */}
+                  {/* Paiement ou inscription gratuite */}
                   <div className="space-y-2.5">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Payer avec PayPal</p>
+                    {isFreeCheckout ? (
+                      <>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                          Accès gratuit
+                        </p>
+                        <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/10 p-4">
+                          <p className="text-sm leading-relaxed text-emerald-100/90">
+                            Ce module est gratuit. Confirmez votre inscription pour y accéder immédiatement.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => void handleFreeEnroll()}
+                            disabled={isProcessing}
+                            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-emerald-500 disabled:opacity-60"
+                          >
+                            {originalPrice <= 0 ? "S'inscrire gratuitement" : "Activer gratuitement"}
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                          Payer avec PayPal
+                        </p>
 
-                    {configError && (
-                      <p className="rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2.5 text-xs font-medium text-red-300">
-                        {configError}
-                      </p>
-                    )}
+                        {configError && (
+                          <p className="rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2.5 text-xs font-medium text-red-300">
+                            {configError}
+                          </p>
+                        )}
 
-                    {!paypalConfig && !configError && (
-                      <div className="flex items-center justify-center gap-2.5 rounded-2xl border border-white/[0.06] bg-white/[0.02] py-7">
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-400/80 border-t-transparent" />
-                        <span className="text-xs font-medium text-slate-400">Initialisation PayPal…</span>
-                      </div>
-                    )}
-
-                    {paypalConfig && (
-                      <div className="axelmond-paypal-shell relative rounded-2xl border border-indigo-400/15 bg-gradient-to-br from-indigo-500/[0.1] via-slate-900/50 to-violet-500/[0.08] p-3 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
-                        {paypalConfig.currency !== PLATFORM_CURRENCY_CODE && (
-                          <div className="mb-3 flex items-start gap-2.5 rounded-xl border border-indigo-400/20 bg-indigo-500/10 px-3 py-2.5">
-                            <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-indigo-300" />
-                            <p className="text-[11px] leading-relaxed text-indigo-100/90">
-                              Tarif affiché en{" "}
-                              <span className="font-semibold text-white">{PLATFORM_CURRENCY_CODE}</span>. Encaissement
-                              sécurisé en <span className="font-semibold text-indigo-200">{paypalConfig.currency}</span>
-                              {displayedCheckoutAmount ? ` (~${displayedCheckoutAmount})` : ""}.
-                            </p>
+                        {!paypalConfig && !configError && (
+                          <div className="flex items-center justify-center gap-2.5 rounded-2xl border border-white/[0.06] bg-white/[0.02] py-7">
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-400/80 border-t-transparent" />
+                            <span className="text-xs font-medium text-slate-400">Initialisation PayPal…</span>
                           </div>
                         )}
 
-                        <PayPalScriptProvider
-                          options={{
-                            clientId: paypalConfig.clientId,
-                            currency: paypalConfig.currency,
-                            intent: "capture",
-                            components: "buttons",
-                            disableFunding: ["venmo", "paylater", "credit"],
-                          }}
-                        >
-                          <div className="min-h-[120px]">
-                            <PayPalButtons
-                              style={{
-                                ...paypalButtonBaseStyle,
-                                color: "blue",
-                                label: "paypal",
-                              }}
-                              disabled={isProcessing}
-                              createOrder={onPayPalCreateOrder}
-                              onApprove={async (data) => {
-                                if (!data.orderID) {
-                                  setPaymentError("Commande PayPal invalide.");
-                                  return;
-                                }
-                                await handlePayPalApprove(data.orderID);
-                              }}
-                              onError={(err) => {
-                                console.error("[paypal] checkout error", err);
-                                setPaymentError(
-                                  (current) =>
-                                    current ||
-                                    "Erreur PayPal. Veuillez réessayer ou utiliser un autre moyen de paiement.",
-                                );
-                              }}
-                              onCancel={() => {
-                                setPaymentError("Paiement annulé.");
-                              }}
-                            />
-                          </div>
-                        </PayPalScriptProvider>
+                        {paypalConfig && (
+                          <div className="axelmond-paypal-shell relative rounded-2xl border border-indigo-400/15 bg-gradient-to-br from-indigo-500/[0.1] via-slate-900/50 to-violet-500/[0.08] p-3 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
+                            {paypalConfig.currency !== PLATFORM_CURRENCY_CODE && (
+                              <div className="mb-3 flex items-start gap-2.5 rounded-xl border border-indigo-400/20 bg-indigo-500/10 px-3 py-2.5">
+                                <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-indigo-300" />
+                                <p className="text-[11px] leading-relaxed text-indigo-100/90">
+                                  Tarif affiché en{" "}
+                                  <span className="font-semibold text-white">{PLATFORM_CURRENCY_CODE}</span>. Encaissement
+                                  sécurisé en <span className="font-semibold text-indigo-200">{paypalConfig.currency}</span>
+                                  {displayedCheckoutAmount ? ` (~${displayedCheckoutAmount})` : ""}.
+                                </p>
+                              </div>
+                            )}
 
-                        <p className="mt-3 flex items-center justify-center gap-1.5 text-[10px] font-medium text-slate-500">
-                          <CreditCard className="h-3 w-3 text-indigo-400/80" />
-                          Carte ou compte PayPal — traitement chiffré
-                        </p>
-                      </div>
+                            <PayPalScriptProvider
+                              options={{
+                                clientId: paypalConfig.clientId,
+                                currency: paypalConfig.currency,
+                                intent: "capture",
+                                components: "buttons",
+                                disableFunding: ["venmo", "paylater", "credit"],
+                              }}
+                            >
+                              <div className="min-h-[120px]">
+                                <PayPalButtons
+                                  style={{
+                                    ...paypalButtonBaseStyle,
+                                    color: "blue",
+                                    label: "paypal",
+                                  }}
+                                  disabled={isProcessing}
+                                  createOrder={onPayPalCreateOrder}
+                                  onApprove={async (data) => {
+                                    if (!data.orderID) {
+                                      setPaymentError("Commande PayPal invalide.");
+                                      return;
+                                    }
+                                    await handlePayPalApprove(data.orderID);
+                                  }}
+                                  onError={(err) => {
+                                    console.error("[paypal] checkout error", err);
+                                    setPaymentError(
+                                      (current) =>
+                                        current ||
+                                        "Erreur PayPal. Veuillez réessayer ou utiliser un autre moyen de paiement.",
+                                    );
+                                  }}
+                                  onCancel={() => {
+                                    setPaymentError("Paiement annulé.");
+                                  }}
+                                />
+                              </div>
+                            </PayPalScriptProvider>
+
+                            <p className="mt-3 flex items-center justify-center gap-1.5 text-[10px] font-medium text-slate-500">
+                              <CreditCard className="h-3 w-3 text-indigo-400/80" />
+                              Carte ou compte PayPal — traitement chiffré
+                            </p>
+                          </div>
+                        )}
+                      </>
                     )}
 
                     {paymentError && (
@@ -371,7 +423,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                 </button>
                 <p className="flex items-center justify-center gap-1.5 text-[10px] text-slate-600">
                   <Lock className="h-3 w-3" />
-                  Paiement chiffré via PayPal Checkout
+                  {isFreeCheckout ? "Inscription sécurisée sur la plateforme" : "Paiement chiffré via PayPal Checkout"}
                 </p>
               </div>
             </>
@@ -385,7 +437,9 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
               </div>
               <h3 className="mt-5 text-lg font-bold text-white">Validation en cours</h3>
               <p className="mt-1.5 max-w-[260px] text-sm text-slate-400">
-                Capture sécurisée de votre paiement. Ne fermez pas cette fenêtre.
+                {isFreeCheckout
+                  ? "Activation de votre accès gratuit. Ne fermez pas cette fenêtre."
+                  : "Capture sécurisée de votre paiement. Ne fermez pas cette fenêtre."}
               </p>
             </div>
           )}
@@ -395,10 +449,21 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-400/25">
                 <CheckCircle2 className="h-8 w-8" />
               </div>
-              <h3 className="mt-5 text-xl font-bold text-white">Paiement confirmé</h3>
+              <h3 className="mt-5 text-xl font-bold text-white">
+                {isFreeCheckout ? "Inscription confirmée" : "Paiement confirmé"}
+              </h3>
               <p className="mt-2 max-w-xs text-sm leading-relaxed text-slate-400">
-                Votre accès au module <span className="font-semibold text-slate-200">{course.title}</span> est
-                maintenant actif.
+                {isFreeCheckout ? (
+                  <>
+                    Votre accès gratuit au module <span className="font-semibold text-slate-200">{course.title}</span>{" "}
+                    est maintenant actif.
+                  </>
+                ) : (
+                  <>
+                    Votre accès au module <span className="font-semibold text-slate-200">{course.title}</span> est
+                    maintenant actif.
+                  </>
+                )}
               </p>
               <button
                 type="button"

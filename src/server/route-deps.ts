@@ -274,7 +274,8 @@ export {
 } from "../course-syllabus-modules";
 export { createPayPalOrder, capturePayPalOrder, isPayPalConfigured, logPayPalError } from "../paypal-server";
 export { processPayPalCaptureEnrollment, toPayPalCaptureClientResponse } from "../paypal-enrollment";
-export { resolveCourseChargeAmount } from "../promo-codes";
+export { resolveCourseChargeAmount, isFreeCourseCharge } from "../promo-codes";
+export { processFreeCourseEnrollment } from "../course-free-enrollment";
 export { invalidateAuthUserCache, startAuthUserCachePruner, stopAuthUserCachePruner } from "./auth-user-cache";
 export { collectRuntimeMemoryMetrics } from "./memory-metrics";
 export { decodeStoredText } from "../text";
