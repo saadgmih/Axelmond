@@ -29,6 +29,7 @@ export const TEACHER_VIEWS = new Set([
   "curriculum",
   "live-control",
   "academic-profile",
+  "account-security",
   "schedule",
   "messages",
   "notifications",

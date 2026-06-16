@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import {
   LazyMessagesView,
   LazyTeacherAcademicProfileView,
+  LazyTeacherAccountSecurityView,
   LazyTeacherCurriculumView,
   LazyTeacherDashboardView,
   LazyTeacherLiveControlView,
@@ -67,6 +68,11 @@ export function TeacherRouteSwitch() {
               avatarStatusMsg={avatarStatusMsg}
               {...academicProfileBindings}
             />
+          </Suspense>
+        )}
+        {teacherView === "account-security" && (
+          <Suspense fallback={<RouteChunkFallback label="Chargement de la sécurité du compte…" />}>
+            <LazyTeacherAccountSecurityView currentUser={currentUser} />
           </Suspense>
         )}
         {teacherView === "curriculum" && (

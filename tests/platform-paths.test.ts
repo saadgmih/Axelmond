@@ -94,6 +94,18 @@ rulesTest("platform-paths", () => {
 
 
 
+  assert.deepEqual(parsePlatformPath("/teacher/account-security"), {
+
+    studentView: "dashboard",
+
+    teacherView: "account-security",
+
+    institutionalView: null,
+
+  });
+
+
+
   assert.deepEqual(parsePlatformPath("/teacher/not-a-view"), {
 
     studentView: "dashboard",

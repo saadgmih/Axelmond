@@ -32,7 +32,6 @@ export function useAcademicProfile({ role, teacherView, currentUser, updateSessi
   const [academicProfileForm, setAcademicProfileForm] = useState(emptyAcademicProfileForm);
   const [academicProfileStatusMsg, setAcademicProfileStatusMsg] = useState("");
   const [academicProfileErrorMsg, setAcademicProfileErrorMsg] = useState("");
-  const [academicPasswordForm, setAcademicPasswordForm] = useState({ currentPassword: "", newPassword: "" });
   const { startRequest } = useAsyncEffectGuard();
 
   const hydrateAcademicProfileForm = (payload: AcademicProfilePayload) => {
@@ -139,26 +138,6 @@ export function useAcademicProfile({ role, teacherView, currentUser, updateSessi
     }
   };
 
-  const handleChangeAcademicPassword = async (e: FormEvent) => {
-    e.preventDefault();
-    const request = startRequest();
-    setAcademicProfileStatusMsg("Mise à jour du mot de passe...");
-    setAcademicProfileErrorMsg("");
-    try {
-      const payload = await api.changeAcademicPassword(
-        academicPasswordForm.currentPassword,
-        academicPasswordForm.newPassword,
-      );
-      if (!request.isActive()) return;
-      setAcademicPasswordForm({ currentPassword: "", newPassword: "" });
-      setAcademicProfileStatusMsg(payload.message || "Mot de passe mis à jour.");
-    } catch (err: any) {
-      if (!request.isActive()) return;
-      setAcademicProfileErrorMsg(getClientErrorMessage(err, "Changement de mot de passe impossible."));
-      setAcademicProfileStatusMsg("");
-    }
-  };
-
   return {
     academicProfileData,
     academicProfileForm,
@@ -168,8 +147,5 @@ export function useAcademicProfile({ role, teacherView, currentUser, updateSessi
     refreshAcademicProfile,
     handleUpdateAcademicProfile,
     handleUpdateAcademicAvatar,
-    handleChangeAcademicPassword,
-    academicPasswordForm,
-    setAcademicPasswordForm,
   };
 }

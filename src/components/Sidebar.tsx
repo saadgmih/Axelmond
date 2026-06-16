@@ -287,6 +287,23 @@ export default function Sidebar({
               type="button"
               data-tv-focusable
               tabIndex={0}
+              aria-current={teacherView === "account-security" ? "page" : undefined}
+              onMouseEnter={() => prefetchTeacherView("account-security")}
+              onClick={() => setTeacherView("account-security")}
+              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
+                teacherView === "account-security"
+                  ? "bg-pink-600 text-white shadow-md shadow-pink-950/40"
+                  : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
+              }`}
+            >
+              <Shield className="w-5 h-5 text-violet-300" />
+              Sécurité du compte
+            </button>
+
+            <button
+              type="button"
+              data-tv-focusable
+              tabIndex={0}
               aria-current={teacherView === "schedule" ? "page" : undefined}
               onMouseEnter={() => prefetchTeacherView("schedule")}
               onClick={() => setTeacherView("schedule")}

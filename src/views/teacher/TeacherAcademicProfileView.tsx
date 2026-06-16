@@ -6,14 +6,12 @@ import {
   Globe,
   GraduationCap,
   Link2,
-  Lock,
   RefreshCw,
   Shield,
   User,
   Video,
 } from "lucide-react";
 import ProfileAvatarUpload from "../../components/ProfileAvatarUpload";
-import SecuritySettingsPanel from "../../components/SecuritySettingsPanel";
 import type { AppUser } from "../../components/AuthScreen";
 import { getRoleLabel, type UserRole } from "../../rbac";
 import type { AcademicProfilePayload } from "../../types";
@@ -34,11 +32,6 @@ type AcademicProfileFormState = {
   website: string;
 };
 
-type AcademicPasswordFormState = {
-  currentPassword: string;
-  newPassword: string;
-};
-
 interface TeacherAcademicProfileViewProps {
   currentUser: AppUser;
   academicProfileData: AcademicProfilePayload | null;
@@ -52,9 +45,6 @@ interface TeacherAcademicProfileViewProps {
   handleUpdateAcademicAvatar: (e: FormEvent) => void | Promise<void>;
   handleDeleteAvatar: () => void | Promise<void>;
   avatarStatusMsg: string;
-  academicPasswordForm: AcademicPasswordFormState;
-  setAcademicPasswordForm: Dispatch<SetStateAction<AcademicPasswordFormState>>;
-  handleChangeAcademicPassword: (e: FormEvent) => void | Promise<void>;
 }
 
 function getInitials(name: string) {
@@ -77,9 +67,6 @@ export default function TeacherAcademicProfileView({
   handleUpdateAcademicAvatar,
   handleDeleteAvatar,
   avatarStatusMsg,
-  academicPasswordForm,
-  setAcademicPasswordForm,
-  handleChangeAcademicPassword,
 }: TeacherAcademicProfileViewProps) {
   const role = (academicProfileData?.user.role || currentUser.role) as UserRole;
   const theme = useMemo(() => getProfileRoleTheme(role), [role]);
@@ -311,37 +298,6 @@ export default function TeacherAcademicProfileView({
                   Utiliser cette URL
                 </button>
               </form>
-            </div>
-          </section>
-
-          <section className={profileUi.card}>
-            <div className={profileUi.cardHeader}>
-              <h3 className={profileUi.cardTitle}>
-                <Lock className={`${profileUi.sectionIcon} ${theme.sectionIcon}`} />
-                Sécurité
-              </h3>
-            </div>
-            <form onSubmit={handleChangeAcademicPassword} className="space-y-3 p-5 sm:p-6">
-              <input
-                type="password"
-                placeholder="Mot de passe actuel"
-                value={academicPasswordForm.currentPassword}
-                onChange={(e) => setAcademicPasswordForm((prev) => ({ ...prev, currentPassword: e.target.value }))}
-                className={inputFocus}
-              />
-              <input
-                type="password"
-                placeholder="Nouveau mot de passe"
-                value={academicPasswordForm.newPassword}
-                onChange={(e) => setAcademicPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }))}
-                className={inputFocus}
-              />
-              <button type="submit" className={profileUi.passwordBtn}>
-                Mettre à jour le mot de passe
-              </button>
-            </form>
-            <div className="border-t border-slate-100 p-5 sm:p-6">
-              <SecuritySettingsPanel />
             </div>
           </section>
 

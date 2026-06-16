@@ -58,6 +58,7 @@ const STUDENT_VIEW_CHUNKS: Record<string, () => Promise<unknown>> = {
 const TEACHER_VIEW_CHUNKS: Record<string, () => Promise<unknown>> = {
   dashboard: () => import("../views/teacher/TeacherDashboardView"),
   "academic-profile": () => import("../views/teacher/TeacherAcademicProfileView"),
+  "account-security": () => import("../views/teacher/TeacherAccountSecurityView"),
   schedule: () => import("../views/teacher/TeacherScheduleView"),
   curriculum: () => import("../views/teacher/TeacherCurriculumView"),
   "live-control": () => import("../views/teacher/TeacherLiveControlView"),
