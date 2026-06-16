@@ -231,7 +231,7 @@ export default function PrivacyView() {
               <p className="text-[12px] text-amber-200/80">
                 <strong className="text-amber-300">Aucune donnée sensible</strong> (numéro de carte bancaire, données de
                 santé, données biométriques) n'est stockée directement sur les serveurs d'Axelmond Research Labs. Les
-                paiements sont traités exclusivement par PayPal.
+                paiements sont traités exclusivement par un prestataire de paiement certifié.
               </p>
             </div>
           </InstitutionalSection>
@@ -282,7 +282,7 @@ export default function PrivacyView() {
               color="text-violet-400"
               items={[
                 "Envoi d'e-mails de vérification et de notifications de service (aucun e-mail marketing sans consentement explicite)",
-                "Génération des factures et reçus PayPal associés à vos inscriptions aux modules",
+                "Génération des factures et reçus de paiement associés à vos inscriptions aux modules",
                 "Audit log interne à des fins de sécurité et de conformité (non partagé avec des tiers)",
                 "Personnalisation de l'expérience pédagogique (recommandations de modules basées sur votre filière)",
               ]}
@@ -392,45 +392,45 @@ export default function PrivacyView() {
             <div className="space-y-3">
               {[
                 {
-                  name: "PayPal",
+                  name: "Prestataire de paiement en ligne",
                   role: "Traitement sécurisé des paiements",
                   data: "Adresse e-mail, montant de la transaction (aucune donnée bancaire stockée par ARL)",
-                  url: "paypal.com/fr/webapps/mpp/ua/privacy-full",
+                  policy: "Politique de confidentialité disponible auprès du prestataire de paiement",
                   color: "border-indigo-800/40 bg-indigo-950/20",
                   chip: "text-indigo-300 border-indigo-500/30 bg-indigo-500/10",
                 },
                 {
-                  name: "LiveKit",
-                  role: "Infrastructure de visioconférence",
+                  name: "Prestataire de visioconférence",
+                  role: "Infrastructure de sessions en direct",
                   data: "Identifiant de session anonymisé pour la connexion aux sessions live",
-                  url: "livekit.io/privacy",
+                  policy: "Politique de confidentialité disponible auprès du prestataire de visioconférence",
                   color: "border-violet-800/40 bg-violet-950/20",
                   chip: "text-violet-300 border-violet-500/30 bg-violet-500/10",
                 },
                 {
-                  name: "UploadThing / CDN",
-                  role: "Hébergement des fichiers et captures d'écran",
+                  name: "Prestataire d'hébergement de fichiers",
+                  role: "Stockage des médias et pièces jointes",
                   data: "Fichiers uploadés volontairement (avatars, supports de module, captures d'écran de support)",
-                  url: "uploadthing.com/privacy",
+                  policy: "Politique de confidentialité disponible auprès du prestataire d'hébergement",
                   color: "border-emerald-800/40 bg-emerald-950/20",
                   chip: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10",
                 },
                 {
-                  name: "OpenAI",
+                  name: "Prestataire d'assistance IA",
                   role: "Tuteur IA pédagogique",
                   data: "Questions posées au tuteur IA (aucune donnée d'identité transmise, contenu du module uniquement)",
-                  url: "openai.com/policies/privacy-policy",
+                  policy: "Politique de confidentialité disponible auprès du prestataire d'assistance IA",
                   color: "border-amber-800/40 bg-amber-950/20",
                   chip: "text-amber-300 border-amber-500/30 bg-amber-500/10",
                 },
-              ].map(({ name, role, data, url, color, chip }) => (
+              ].map(({ name, role, data, policy, color, chip }) => (
                 <div key={name} className={`rounded-2xl border p-4 ${color}`}>
                   <div className="flex flex-wrap items-center gap-2 mb-2">
                     <span className="text-white font-bold text-sm">{name}</span>
                     <InstitutionalChip label={role} color={chip} />
                   </div>
                   <p className="text-[12px] text-slate-400 leading-relaxed">{data}</p>
-                  <p className="text-[10px] text-slate-600 mt-1.5">Politique de confidentialité : {url}</p>
+                  <p className="text-[10px] text-slate-600 mt-1.5">{policy}</p>
                 </div>
               ))}
             </div>

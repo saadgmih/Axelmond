@@ -162,7 +162,7 @@ export default function AboutView() {
     {
       icon: <Video className="w-5 h-5 text-pink-300" />,
       accent: "bg-pink-500/15 border border-pink-500/20",
-      title: "Sessions Live (LiveKit)",
+      title: "Sessions en direct",
       description:
         "Visioconférences académiques intégrées avec partage d'écran, chat en direct et gestion des participants.",
       badge: "Live",
@@ -172,7 +172,7 @@ export default function AboutView() {
       accent: "bg-violet-500/15 border border-violet-500/20",
       title: "Tuteur IA Personnalisé",
       description:
-        "Assistant pédagogique basé sur OpenAI, disponible dans les modules pour répondre aux questions et approfondir les concepts.",
+        "Assistant pédagogique intelligent, disponible dans les modules pour répondre aux questions et approfondir les concepts.",
       badge: "IA",
     },
     {
@@ -200,9 +200,9 @@ export default function AboutView() {
     {
       icon: <Lock className="w-5 h-5 text-orange-300" />,
       accent: "bg-orange-500/15 border border-orange-500/20",
-      title: "Paiements Sécurisés (PayPal)",
+      title: "Paiements sécurisés",
       description:
-        "Abonnements à l'accès aux modules avec facturation automatique, reçus archivés et intégration PayPal Checkout complète.",
+        "Abonnements à l'accès aux modules avec facturation automatique, reçus archivés et traitement chiffré des transactions.",
     },
     {
       icon: <Activity className="w-5 h-5 text-rose-300" />,
@@ -663,30 +663,31 @@ export default function AboutView() {
                   </p>
                   <p>
                     La plateforme propose un catalogue de modules structurés par domaines et disciplines académiques, un
-                    système de sessions live intégré (LiveKit), un tuteur IA basé sur OpenAI, des évaluations
-                    automatisées et des profils académiques complets avec publications et spécialités de recherche.
+                    système de sessions en direct intégré, un tuteur IA, des évaluations automatisées et des profils
+                    académiques complets avec publications et spécialités de recherche.
                   </p>
                   <p>
                     Toute l'infrastructure repose sur une{" "}
                     <strong className="text-white">architecture sécurisée de niveau production</strong> : RBAC strict,
                     authentification JWT, vérification email, rate-limiting, audit trail et chiffrement des données
-                    sensibles. Les paiements sont gérés par PayPal avec une conformité totale.
+                    sensibles. Les paiements sont traités par des prestataires certifiés, conformément aux standards de
+                    sécurité en vigueur.
                   </p>
                 </div>
 
                 {/* Technology stack badges */}
                 <div className="space-y-3 pt-2">
-                  <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Stack technologique</p>
+                  <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Piliers de la plateforme</p>
                   <div className="flex flex-wrap gap-2">
                     {[
-                      { label: "React + TypeScript", color: "text-cyan-300 bg-cyan-900/20 border-cyan-800/40" },
-                      { label: "Node.js + Express", color: "text-emerald-300 bg-emerald-900/20 border-emerald-800/40" },
-                      { label: "Prisma + PostgreSQL", color: "text-indigo-300 bg-indigo-900/20 border-indigo-800/40" },
-                      { label: "LiveKit WebRTC", color: "text-pink-300 bg-pink-900/20 border-pink-800/40" },
-                      { label: "OpenAI", color: "text-violet-300 bg-violet-900/20 border-violet-800/40" },
-                      { label: "PayPal Checkout", color: "text-amber-300 bg-amber-900/20 border-amber-800/40" },
-                      { label: "UploadThing CDN", color: "text-orange-300 bg-orange-900/20 border-orange-800/40" },
-                      { label: "JWT + Bcrypt", color: "text-rose-300 bg-rose-900/20 border-rose-800/40" },
+                      { label: "Interface moderne", color: "text-cyan-300 bg-cyan-900/20 border-cyan-800/40" },
+                      { label: "API sécurisée", color: "text-emerald-300 bg-emerald-900/20 border-emerald-800/40" },
+                      { label: "Données protégées", color: "text-indigo-300 bg-indigo-900/20 border-indigo-800/40" },
+                      { label: "Sessions en direct", color: "text-pink-300 bg-pink-900/20 border-pink-800/40" },
+                      { label: "Tuteur IA", color: "text-violet-300 bg-violet-900/20 border-violet-800/40" },
+                      { label: "Paiement en ligne", color: "text-amber-300 bg-amber-900/20 border-amber-800/40" },
+                      { label: "Médias pédagogiques", color: "text-orange-300 bg-orange-900/20 border-orange-800/40" },
+                      { label: "Authentification renforcée", color: "text-rose-300 bg-rose-900/20 border-rose-800/40" },
                     ].map(({ label, color }) => (
                       <span key={label} className={`text-[10px] font-bold border px-2.5 py-1 rounded-lg ${color}`}>
                         {label}

@@ -70,7 +70,7 @@ export default function SupportView({ navigateTo }: SupportViewProps) {
     {
       category: "Paiements",
       question: "Quels sont les modes de paiement acceptés ?",
-      answer: "Paiements sécurisés via PayPal Checkout uniquement.",
+      answer: "Paiement en ligne sécurisé par carte ou portefeuille numérique.",
     },
     {
       category: "Paiements",

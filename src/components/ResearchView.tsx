@@ -364,7 +364,7 @@ const collabs = [
     items: [
       "IEEE Computer Society — Member Lab",
       "ACM SIGAI — Affiliated Research Group",
-      "OpenAI Academic Partnership Program",
+      "Programme de partenariat académique en IA",
       "African AI Alliance — Founding Member",
     ],
     color: "border-emerald-800/30 bg-emerald-950/15",
