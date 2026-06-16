@@ -48,7 +48,7 @@ interface RouteStats {
 }
 
 const routeStats = new Map<string, RouteStats>();
-const ROUTE_STATS_MAX_SAMPLES = Number(process.env.PERF_ROUTE_STATS_MAX) || 100;
+const ROUTE_STATS_MAX_SAMPLES = Number(process.env.PERF_ROUTE_STATS_MAX) || 50;
 let totalRequests = 0;
 let startupTime = Date.now();
 
@@ -130,6 +130,11 @@ let monitorTimer: ReturnType<typeof setInterval> | null = null;
 
 export function startPerformanceMonitor(intervalMs: number = 30_000) {
   if (monitorTimer) return;
+  // On Hostinger shared hosting, skip periodic monitor to reduce CPU usage and Max Processes pressure.
+  if (process.env.HOSTINGER_WEBAPP === "1") {
+    logPerf("INFO", "Performance monitor disabled on Hostinger Web App");
+    return;
+  }
   startupTime = Date.now();
   logPerf("INFO", "Performance monitor started", { intervalMs });
   monitorTimer = setInterval(() => {

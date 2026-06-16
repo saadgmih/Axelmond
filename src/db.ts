@@ -88,11 +88,13 @@ function ensureFixedDatabaseConfig(): { url: string; schema: string } {
 }
 
 function createPgPool(fixedDatabaseUrl: string, schema: string): Pool {
+  const isHostinger = process.env.HOSTINGER_WEBAPP === "1";
+  const defaultPoolMax = isHostinger ? 3 : 5;
   const pool = new Pool({
     connectionString: fixedDatabaseUrl,
-    max: Number(process.env.DATABASE_POOL_MAX) || 5,
-    idleTimeoutMillis: 30_000,
-    connectionTimeoutMillis: 10_000,
+    max: Number(process.env.DATABASE_POOL_MAX) || defaultPoolMax,
+    idleTimeoutMillis: isHostinger ? 10_000 : 30_000,
+    connectionTimeoutMillis: isHostinger ? 5_000 : 10_000,
     options: `-c search_path=${quotePgIdentifier(schema)}`,
   });
 

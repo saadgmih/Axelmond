@@ -21,7 +21,7 @@ rulesTest("hostinger-deploy", () => {
 
   assert.match(startServer, /closeAllConnections/);
   assert.match(startServer, /shutdownTimeoutMs/);
-  assert.match(startServer, /isProduction \? 5_000 : 15_000/);
+  assert.match(startServer, /isProduction \? 3_000 : 15_000/);
 
   assert.match(ecosystem, /HOSTINGER_WEBAPP/);
   assert.match(hostingerDoc, /hostinger:build/);

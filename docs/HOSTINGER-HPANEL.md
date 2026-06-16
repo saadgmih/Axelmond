@@ -26,9 +26,10 @@ Ajouter dans **Environment variables** :
 
 | Variable | Valeur | Rôle |
 |----------|--------|------|
-| `HOSTINGER_WEBAPP` | `1` | Bloque PM2 / cluster si mal configuré |
+| `HOSTINGER_WEBAPP` | `1` | Bloque PM2 / cluster, réduit pool DB, désactive le performance monitor |
 | `SKIP_PRISMA_POSTINSTALL` | `1` | Évite un 2ᵉ `prisma generate` pendant `npm ci` (le build le fait déjà) |
-| `GRACEFUL_SHUTDOWN_MS` | `5000` | Arrêt plus rapide à la fin d’un déploiement (moins de chevauchement) |
+| `GRACEFUL_SHUTDOWN_MS` | `3000` | Arrêt plus rapide à la fin d'un déploiement (moins de chevauchement) |
+| `DATABASE_POOL_MAX` | `3` | Réduit les connexions DB actives (moins de processus bloqués) |
 
 Générer le fichier d’import : `npm run hostinger:env` (inclut ces clés si le script est à jour).
 

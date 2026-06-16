@@ -323,7 +323,7 @@ async function runDeferredStartupTasks(securityTest: boolean) {
   startAuthUserCachePruner();
   startAuditLogRetention();
   startRefreshTokenCleanup();
-  startPerformanceMonitor(Number(process.env.PERF_MONITOR_INTERVAL_MS) || 120_000);
+  startPerformanceMonitor(Number(process.env.PERF_MONITOR_INTERVAL_MS) || 300_000);
 
   void verifySmtpAtStartup();
 }
@@ -358,7 +358,7 @@ async function verifySmtpAtStartup() {
 function registerGracefulShutdown(httpServer: ReturnType<typeof createServer>, isProduction: boolean) {
   let shuttingDown = false;
   const shutdownTimeoutMs =
-    Number(process.env.GRACEFUL_SHUTDOWN_MS) || (isProduction ? 5_000 : 15_000);
+    Number(process.env.GRACEFUL_SHUTDOWN_MS) || (isProduction ? 3_000 : 15_000);
 
   const shutdown = async (signal: string) => {
     if (shuttingDown) return;
@@ -371,6 +371,12 @@ function registerGracefulShutdown(httpServer: ReturnType<typeof createServer>, i
       await disconnectCache();
     } catch (err) {
       logDb("WARN", "Cache disconnect failed during shutdown", { error: String(err) });
+    }
+    try {
+      const { disconnectDatabase } = await import("../db");
+      await disconnectDatabase();
+    } catch (err) {
+      logDb("WARN", "Database disconnect failed during shutdown", { error: String(err) });
     }
     httpServer.closeAllConnections?.();
     httpServer.close(() => {

@@ -7,5 +7,7 @@ export function shouldSkipStartupSeed(): boolean {
   const flag = process.env.RUN_STARTUP_SEED?.trim().toLowerCase();
   if (flag === "true") return false;
   if (flag === "false") return true;
+  // Always skip seed on Hostinger shared hosting to avoid slow startup and Max Processes issues.
+  if (process.env.HOSTINGER_WEBAPP === "1") return true;
   return process.env.NODE_ENV === "production";
 }

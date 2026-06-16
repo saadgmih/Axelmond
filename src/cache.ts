@@ -283,7 +283,7 @@ export function startCachePruner() {
     if (backend.kind === "memory") {
       backend.size();
     }
-  }, 5 * 60 * 1000);
+  }, 10 * 60 * 1000);
   if (pruneTimer && typeof pruneTimer === "object" && "unref" in pruneTimer) {
     (pruneTimer as NodeJS.Timeout).unref();
   }
