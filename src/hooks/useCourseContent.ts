@@ -13,6 +13,10 @@ export function flattenContents(sections: ContentSection[]): LessonContent[] {
   return sections.flatMap((section) => [...(section.contents || []), ...flattenContents(section.children || [])]);
 }
 
+export function findLessonContent(sections: ContentSection[], contentId: string): LessonContent | null {
+  return flattenContents(sections).find((content) => content.id === contentId) ?? null;
+}
+
 export function useCourseContent() {
   const [courseContentSections, setCourseContentSections] = useState<ContentSection[]>([]);
   const [selectedLessonContent, setSelectedLessonContent] = useState<LessonContent | null>(null);

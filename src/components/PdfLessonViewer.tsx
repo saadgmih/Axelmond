@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { Download, FileText } from "lucide-react";
+import { Camera, FileText } from "lucide-react";
 import { getFreshSessionToken } from "../api";
 
 interface PdfLessonViewerProps {
   contentId: string;
   title: string;
-  downloadUrl?: string | null;
+  mediaType?: "PDF" | "IMAGE";
 }
 
-export default function PdfLessonViewer({ contentId, title, downloadUrl }: PdfLessonViewerProps) {
+export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }: PdfLessonViewerProps) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -33,12 +33,12 @@ export default function PdfLessonViewer({ contentId, title, downloadUrl }: PdfLe
         });
 
         if (!response.ok) {
-          throw new Error("Impossible d'afficher ce document dans la plateforme.");
+          throw new Error("Impossible d'afficher ce contenu dans la plateforme.");
         }
 
         const blob = await response.blob();
         if (!blob.size) {
-          throw new Error("Le document PDF est vide ou inaccessible.");
+          throw new Error("Le fichier est vide ou inaccessible.");
         }
 
         objectUrl = URL.createObjectURL(blob);
@@ -47,7 +47,7 @@ export default function PdfLessonViewer({ contentId, title, downloadUrl }: PdfLe
         }
       } catch (err) {
         if (active) {
-          setError(err instanceof Error ? err.message : "Impossible de charger le PDF.");
+          setError(err instanceof Error ? err.message : "Impossible de charger le contenu.");
         }
       } finally {
         if (active) {
@@ -71,7 +71,7 @@ export default function PdfLessonViewer({ contentId, title, downloadUrl }: PdfLe
       <div className="flex h-[70vh] items-center justify-center rounded-2xl border border-slate-200 bg-slate-50">
         <div className="text-center">
           <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
-          <p className="mt-3 text-sm font-medium text-slate-600">Chargement du document…</p>
+          <p className="mt-3 text-sm font-medium text-slate-600">Chargement du contenu…</p>
         </div>
       </div>
     );
@@ -81,23 +81,32 @@ export default function PdfLessonViewer({ contentId, title, downloadUrl }: PdfLe
     return (
       <div className="space-y-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-5">
         <div className="flex items-start gap-3">
-          <FileText className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+          {mediaType === "IMAGE" ? (
+            <Camera className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+          ) : (
+            <FileText className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+          )}
           <div>
             <p className="text-sm font-semibold text-amber-900">{title}</p>
             <p className="mt-1 text-sm text-amber-800">{error || "Aperçu indisponible."}</p>
           </div>
         </div>
-        {downloadUrl && (
-          <a
-            href={downloadUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-indigo-500"
-          >
-            <Download className="h-4 w-4" />
-            Ouvrir le PDF dans un nouvel onglet
-          </a>
-        )}
+      </div>
+    );
+  }
+
+  if (mediaType === "IMAGE") {
+    return (
+      <div
+        className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-sm select-none"
+        onContextMenu={(event) => event.preventDefault()}
+      >
+        <img
+          src={blobUrl}
+          alt={title}
+          draggable={false}
+          className="mx-auto max-h-[70vh] w-full object-contain"
+        />
       </div>
     );
   }

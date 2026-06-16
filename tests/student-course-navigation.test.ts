@@ -7,16 +7,21 @@ rulesTest("student-course-navigation", () => {
   const appSource = readAppSources();
   const courseContentSource = readFileSync("src/hooks/useCourseContent.ts", "utf8");
   const studentCourseViewSource = readFileSync("src/views/student/StudentCourseView.tsx", "utf8");
+  const curriculumSyncSource = readFileSync("src/course-curriculum-sync.ts", "utf8");
 
   assert.match(courseContentSource, /setSelectedLessonContent\(\(current\) =>/);
   assert.match(courseContentSource, /return null;/);
+  assert.match(courseContentSource, /findLessonContent/);
   assert.doesNotMatch(courseContentSource, /contents\[0\]/);
+
+  assert.match(curriculumSyncSource, /lessonContentIdFromModule/);
 
   assert.match(appSource, /onModuleSelect=\{\(mod\) => \{/);
   assert.match(appSource, /setSelectedModule\(mod\)/);
-  assert.match(appSource, /setSelectedLessonContent\(null\)/);
+  assert.doesNotMatch(appSource, /setSelectedLessonContent\(null\)/);
 
-  assert.match(studentCourseViewSource, /setSelectedLessonContent\(content\)/);
-  assert.match(studentCourseViewSource, /!selectedLessonContent[\s\S]*?selectedModule\.type === "video"/);
-  assert.match(studentCourseViewSource, /selectedLessonContent &&/);
+  assert.doesNotMatch(studentCourseViewSource, /Contenus publiés/);
+  assert.match(studentCourseViewSource, /activeLessonContent/);
+  assert.match(studentCourseViewSource, /lessonContentIdFromModule/);
+  assert.match(studentCourseViewSource, /!activeLessonContent[\s\S]*?selectedModule\.type === "video"/);
 });

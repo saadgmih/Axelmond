@@ -19,8 +19,8 @@ rulesTest("student-module-content", () => {
   assert.match(studentCourseBundle, /refreshCourseContent\(selectedCourse\.id\)/);
   assert.match(appSource, /currentView === "course" && selectedCourse && selectedModule/);
   assert.match(appSource, /StudentCourseView/);
-  assert.match(appSource, /setSelectedLessonContent\(null\)/);
   assert.match(studentCourseViewSource, /selectedCourse\.title/);
+  assert.match(studentCourseViewSource, /activeLessonContent/);
 
   console.log("Student module content synchronization rules passed");
 });

@@ -12,6 +12,12 @@ export function isLessonModuleLink(sectionId: string | null | undefined): boolea
   return Boolean(sectionId?.startsWith(LESSON_MODULE_LINK_PREFIX));
 }
 
+export function lessonContentIdFromModule(sectionId: string | null | undefined): string | null {
+  if (!sectionId?.startsWith(LESSON_MODULE_LINK_PREFIX)) return null;
+  const contentId = sectionId.slice(LESSON_MODULE_LINK_PREFIX.length);
+  return contentId.length > 0 ? contentId : null;
+}
+
 export function mapLessonTypeToModuleType(type: string): ModuleType {
   switch (type) {
     case "VIDEO":

@@ -772,18 +772,18 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
         return;
       }
 
-      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Type", result.contentType);
       res.setHeader("Content-Disposition", `inline; filename="${encodeURIComponent(result.fileName)}"`);
-      res.setHeader("Cache-Control", "private, max-age=300");
+      res.setHeader("Cache-Control", "private, no-store");
       res.setHeader("X-Content-Type-Options", "nosniff");
       res.send(result.bytes);
     } catch (err) {
-      api.logDb("ERROR", "Lesson PDF document stream failed", {
+      api.logDb("ERROR", "Lesson document stream failed", {
         contentId: req.params.contentId,
         userId: authUser.id,
         error: String(err),
       });
-      res.status(502).json({ error: "Impossible de charger le document PDF" });
+      res.status(502).json({ error: "Impossible de charger le document" });
     }
   });
 }

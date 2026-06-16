@@ -30,7 +30,7 @@ export function StudentRouteSwitch() {
   const ui = usePlatformUi();
 
   const { currentUser, enrolledCourses, role, invoices } = session;
-  const { currentView, navigateTo, selectedCourse, selectedModule, setSelectedModule, setSelectedLessonContent } =
+  const { currentView, navigateTo, selectedCourse, selectedModule, setSelectedModule } =
     navigation;
   const {
     domains,
@@ -115,7 +115,6 @@ export function StudentRouteSwitch() {
               navigateTo={navigateTo}
               onModuleSelect={(mod) => {
                 setSelectedModule(mod);
-                setSelectedLessonContent(null);
               }}
               {...studentCourseBindings}
             />
