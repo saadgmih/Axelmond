@@ -271,7 +271,9 @@ export async function startAxelmondServer() {
 
   await attachStaticOrVite(app, securityTest, isProduction);
 
-  const PORT = Number(process.env.PORT) || 3000;
+  const rawPort = process.env.PORT || "3000";
+  const isPipe = isNaN(Number(rawPort));
+  const PORT = isPipe ? rawPort : Number(rawPort);
   const httpServer = createServer(app);
   setImmediate(() => {
     void initMessagingSocket(httpServer, allowedOrigins, normalizeOriginUrl, isProduction).catch((err) => {
@@ -284,16 +286,22 @@ export async function startAxelmondServer() {
     process.exit(1);
   });
   await new Promise<void>((resolve, reject) => {
-    httpServer.listen(PORT, "0.0.0.0", () => {
+    const listenCallback = () => {
       if (isVerboseStartup()) {
         console.log(
-          `Axelmond Research Labs server running (pid=${process.pid}, port=${PORT}, host=0.0.0.0, NODE_ENV=${process.env.NODE_ENV || "development"})`,
+          `Axelmond Research Labs server running (pid=${process.pid}, target=${PORT}, NODE_ENV=${process.env.NODE_ENV || "development"})`,
         );
       } else {
-        console.log(`Axelmond server running on port ${PORT}`);
+        console.log(`Axelmond server running on ${isPipe ? "pipe" : "port"} ${PORT}`);
       }
       resolve();
-    });
+    };
+
+    if (isPipe) {
+      httpServer.listen(PORT as string, listenCallback);
+    } else {
+      httpServer.listen(PORT as number, listenCallback);
+    }
     httpServer.once("error", reject);
   });
 
