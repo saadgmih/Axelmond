@@ -265,6 +265,10 @@ export function registerMiscRoutes(app: Express, ctx: RouteContext): void {
     message: { error: "Trop de requêtes healthcheck. Veuillez patienter.", code: "HEALTH_RATE_LIMIT_EXCEEDED" },
   });
 
+  app.get("/api/live", (_req, res) => {
+    res.status(200).json({ status: "OK", timestamp: new Date().toISOString() });
+  });
+
   app.get("/api/health", healthRateLimiter, async (req, res) => {
     let dbStatus = "HEALTHY";
 

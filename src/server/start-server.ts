@@ -318,6 +318,17 @@ async function runDeferredStartupTasks(securityTest: boolean) {
     return;
   }
 
+  await initCache();
+  startCachePruner();
+  startAuthUserCachePruner();
+  startAuditLogRetention();
+  startRefreshTokenCleanup();
+  startPerformanceMonitor(Number(process.env.PERF_MONITOR_INTERVAL_MS) || 120_000);
+
+  void verifySmtpAtStartup();
+}
+
+async function verifySmtpAtStartup() {
   const smtpCheck = await verifySmtpConnection();
   if (smtpCheck.ok) {
     logEmail(
@@ -331,24 +342,17 @@ async function runDeferredStartupTasks(securityTest: boolean) {
       error: smtpCheck.error,
     });
   }
-  if (isVerboseStartup()) {
-    const smtpBanner = await readSmtpBanner();
-    if (smtpBanner.ok) {
-      logEmail("INFO", "SMTP banner received at startup", { smtp: smtpBanner.details, banner: smtpBanner.banner });
-    } else {
-      logEmail("WARN", "SMTP banner check failed at startup", {
-        smtp: smtpBanner.details,
-        error: "error" in smtpBanner ? smtpBanner.error : undefined,
-      });
-    }
-  }
+  if (!isVerboseStartup()) return;
 
-  await initCache();
-  startCachePruner();
-  startAuthUserCachePruner();
-  startAuditLogRetention();
-  startRefreshTokenCleanup();
-  startPerformanceMonitor(Number(process.env.PERF_MONITOR_INTERVAL_MS) || 120_000);
+  const smtpBanner = await readSmtpBanner();
+  if (smtpBanner.ok) {
+    logEmail("INFO", "SMTP banner received at startup", { smtp: smtpBanner.details, banner: smtpBanner.banner });
+  } else {
+    logEmail("WARN", "SMTP banner check failed at startup", {
+      smtp: smtpBanner.details,
+      error: "error" in smtpBanner ? smtpBanner.error : undefined,
+    });
+  }
 }
 
 function registerGracefulShutdown(httpServer: ReturnType<typeof createServer>) {

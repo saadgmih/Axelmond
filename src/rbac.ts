@@ -133,6 +133,7 @@ export function isRbacExemptRoute(method: string, path: string): boolean {
   if (
     verb === "GET" &&
     (cleanPath === "/api/health" ||
+      cleanPath === "/api/live" ||
       cleanPath === "/api/domains" ||
       cleanPath === "/api/courses" ||
       cleanPath === "/api/mobile/routes" ||

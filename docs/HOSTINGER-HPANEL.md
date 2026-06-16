@@ -80,6 +80,31 @@ Les **Runtime logs** montrent parfois `server running` et des requêtes API (200
 3. Bouton **Restart** sur le dashboard Node.js (sans rebuild).
 4. Vérifier que le site `axelmond.com` est bien un **Node.js Web App**, pas un ancien hébergement PHP/statique en parallèle.
 
+## En cas de 504 (Gateway Time-out)
+
+Symptôme : nginx affiche **504 Gateway Time-out** — le proxy ne reçoit aucune réponse du process Node dans le délai imparti.
+
+### Causes fréquentes (logs)
+
+| Signal dans les logs | Signification |
+|----------------------|---------------|
+| `Graceful shutdown initiated {"signal":"SIGTERM"}` répété | Hostinger redéploie (souvent après **plusieurs push `main` rapprochés**) et tue l’ancien process |
+| `Axelmond server running` puis plus aucun log de démarrage | Le dernier process a été arrêté sans qu’un nouveau ne prenne le relais → site down |
+| `loadAvg1` très élevé (> 30) | Serveur surchargé — démarrage et réponses lents |
+
+### Actions immédiates
+
+1. **hPanel → Node.js Web App → Restart** (sans rebuild) — le plus rapide pour remettre le site en ligne.
+2. **Deployments** — vérifier que le dernier déploiement est **Completed** (pas Failed / Building bloqué).
+3. Attendre **2–3 minutes** après un seul push ; éviter d’enchaîner plusieurs commits sur `main` (chaque push relance un cycle SIGTERM + rebuild).
+4. Tester : `https://axelmond.com/api/live` (réponse instantanée) puis `/api/health`.
+
+### Prévention
+
+- Regrouper les changements en **un seul push** quand possible.
+- Ne pas lancer PM2 en parallèle de l’app Hostinger.
+- Surveiller les Runtime logs : un seul `Axelmond server running on port 3000` stable, sans SIGTERM en boucle.
+
 ## PM2 / SSH
 
 Le script `scripts/deploy-hostinger.sh` et PM2 sont pour un serveur VPS avec accès SSH.  

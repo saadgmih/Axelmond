@@ -266,7 +266,7 @@ export function buildVerificationEmailContent(input: VerificationEmailContentInp
   };
 }
 
-export async function verifySmtpConnection(env: NodeJS.ProcessEnv = process.env) {
+export async function verifySmtpConnection(env: NodeJS.ProcessEnv = process.env, timeoutMs = 8000) {
   if (!isSmtpConfigured(env)) {
     return {
       ok: false as const,
@@ -277,7 +277,12 @@ export async function verifySmtpConnection(env: NodeJS.ProcessEnv = process.env)
   }
 
   try {
-    await createSmtpTransporter(env).verify();
+    await Promise.race([
+      createSmtpTransporter(env).verify(),
+      new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error("SMTP_VERIFY_TIMEOUT")), timeoutMs);
+      }),
+    ]);
     return { ok: true as const, configured: true as const, details: getSmtpPublicConfig(env) };
   } catch (err: any) {
     return {

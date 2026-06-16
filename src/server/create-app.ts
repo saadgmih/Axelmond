@@ -291,7 +291,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: "Trop de requêtes. Veuillez réessayer dans quelques minutes.", code: "RATE_LIMIT_EXCEEDED" },
-    skip: (req) => req.path === "/api/health",
+    skip: (req) => req.path === "/api/health" || req.path === "/api/live",
   });
 
   const authRateLimiter = rateLimit({
