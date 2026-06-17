@@ -16,6 +16,7 @@ export function useAppSession({ setCourses, onAfterLogin, onSessionExpired }: Us
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [enrolledCourses, setEnrolledCourses] = useState<number[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [isLoginDataLoading, setIsLoginDataLoading] = useState(false);
 
   const role = currentUser ? getAllowedUiRole(currentUser.role) : "student";
 
@@ -60,10 +61,12 @@ export function useAppSession({ setCourses, onAfterLogin, onSessionExpired }: Us
       }
 
       onAfterLogin?.(user);
+      setIsLoginDataLoading(true);
       api
         .getCourses()
         .then(setCourses)
-        .catch((err) => console.error("Failed to refresh courses after login:", err));
+        .catch((err) => console.error("Failed to refresh courses after login:", err))
+        .finally(() => setIsLoginDataLoading(false));
     },
     [onAfterLogin, setCourses],
   );
@@ -115,5 +118,7 @@ export function useAppSession({ setCourses, onAfterLogin, onSessionExpired }: Us
     updateSessionUser,
     handleLoginSuccess,
     handleLogout,
+    handleSessionExpired,
+    isLoginDataLoading,
   };
 }

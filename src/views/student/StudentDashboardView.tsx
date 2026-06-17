@@ -41,6 +41,7 @@ interface StudentDashboardViewProps {
   courses: Course[];
 
   getCourseIcon: CourseIconRenderer;
+  isLoginDataLoading?: boolean;
 }
 
 function parseQuizScore(score?: string): { correct: number; total: number } | null {
@@ -201,6 +202,8 @@ export default function StudentDashboardView({
   courses,
 
   getCourseIcon,
+  
+  isLoginDataLoading,
 }: StudentDashboardViewProps) {
   const dashboardGridRef = useRef<HTMLDivElement>(null);
   useTvNavigation(dashboardGridRef, true);
@@ -621,7 +624,18 @@ export default function StudentDashboardView({
             <span className="text-xs font-semibold text-slate-500">Vos modules en accès</span>
           </div>
 
-          {enrolledList.length === 0 ? (
+          {isLoginDataLoading ? (
+            <div className="rounded-2xl py-20 text-center border border-slate-800/60 bg-slate-900/40 shadow-sm flex flex-col items-center justify-center">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-slate-900/40 text-indigo-400 rounded-full flex items-center justify-center mb-6 shadow-inner border border-indigo-500/20 relative">
+                <div className="absolute inset-0 rounded-full border-4 border-indigo-500/20 border-t-indigo-500 animate-spin" />
+                <BookOpen className="w-8 h-8 sm:w-10 sm:h-10 animate-pulse text-indigo-500" />
+              </div>
+              <h3 className="text-lg font-black text-slate-100 mb-2 animate-pulse">Chargement de votre espace...</h3>
+              <p className="text-sm text-slate-400 max-w-sm mx-auto">
+                Préparation de vos modules académiques et synchronisation de votre progression.
+              </p>
+            </div>
+          ) : enrolledList.length === 0 ? (
             <div className="rounded-2xl p-10 sm:p-12 text-center border border-slate-800 bg-slate-900/50 space-y-4 shadow-sm">
               <ShoppingCart className="w-12 h-12 text-slate-600 mx-auto" />
 

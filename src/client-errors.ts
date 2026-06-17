@@ -10,7 +10,7 @@ export function sanitizeClientErrorMessage(message: unknown, fallback: string, s
   if (status !== undefined && status >= 500) return fallback;
   if (typeof message !== "string") return fallback;
   const trimmed = message.trim();
-  if (!trimmed || trimmed.length > 280) return fallback;
+  if (!trimmed || trimmed.length > 500) return fallback;
   if (UNSAFE_CLIENT_ERROR_PATTERNS.some((pattern) => pattern.test(trimmed))) return fallback;
   return trimmed;
 }
@@ -26,6 +26,14 @@ export function getClientErrorMessage(err: unknown, fallback: string): string {
   if (!err || typeof err !== "object") return fallback;
   const record = err as Record<string, unknown>;
   const status = typeof record.status === "number" ? record.status : undefined;
+  
+  if (record.code === "VALIDATION_ERROR" && Array.isArray(record.details)) {
+    const detailMessages = record.details.map((d: any) => d.message).filter(Boolean);
+    if (detailMessages.length > 0) {
+      return sanitizeClientErrorMessage(detailMessages.join(" • "), fallback, status);
+    }
+  }
+
   const message =
     typeof record.message === "string" ? record.message : typeof record.error === "string" ? record.error : fallback;
   return sanitizeClientErrorMessage(message, fallback, status);

@@ -6,6 +6,8 @@ import { startAuthentication } from "@simplewebauthn/browser";
 import { Invoice } from "../types";
 import { api, setSessionToken } from "../api";
 import AuthMfaStep from "./AuthMfaStep";
+import RateLimitBanner from "./RateLimitBanner";
+import PasswordStrengthMeter, { isPasswordValid } from "./PasswordStrengthMeter";
 import { UserRole, getTeacherLoginSectorLabel, getTeacherLoginTabLabel } from "../rbac";
 import type { AppUser } from "../shared/app-user";
 
@@ -200,6 +202,11 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
       return;
     }
 
+    if (!isPasswordValid(password)) {
+      setErrorMsg("Le mot de passe ne respecte pas tous les critères de sécurité.");
+      return;
+    }
+
     if (activeSector === "teacher" && !professorInviteCode.trim()) {
       setErrorMsg("Veuillez renseigner le code d'invitation professeur.");
       return;
@@ -294,6 +301,11 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
 
     if (!email || !verificationCode || !password) {
       setErrorMsg("Veuillez remplir tous les champs.");
+      return;
+    }
+
+    if (!isPasswordValid(password)) {
+      setErrorMsg("Le nouveau mot de passe ne respecte pas tous les critères de sécurité.");
       return;
     }
 
@@ -601,6 +613,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                       />
                       <Lock className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
                     </div>
+                    <PasswordStrengthMeter password={password} isDark={true} />
                   </div>
 
                   <button
@@ -698,6 +711,9 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                       />
                       <Lock className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
                     </div>
+                    {authMode === "register" && (
+                      <PasswordStrengthMeter password={password} isDark={true} />
+                    )}
                   </div>
 
                   {authMode === "register" && (

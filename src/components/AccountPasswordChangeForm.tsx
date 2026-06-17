@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Lock } from "lucide-react";
 import { api } from "../api";
 import { getClientErrorMessage } from "../client-errors";
+import PasswordStrengthMeter, { isPasswordValid } from "./PasswordStrengthMeter";
 
 interface AccountPasswordChangeFormProps {
   variant?: "light" | "dark";
@@ -20,6 +21,12 @@ export default function AccountPasswordChangeForm({ variant = "light" }: Account
     e.preventDefault();
     setMessage("");
     setError("");
+
+    if (!isPasswordValid(newPassword)) {
+      setError("Le nouveau mot de passe ne respecte pas tous les critères de sécurité.");
+      return;
+    }
+
     setSubmitting(true);
     try {
       const payload = await api.changeAcademicPassword(currentPassword, newPassword);
@@ -101,6 +108,7 @@ export default function AccountPasswordChangeForm({ variant = "light" }: Account
           className={inputClass}
           required
         />
+        <PasswordStrengthMeter password={newPassword} isDark={isDark} />
         <button
           type="submit"
           disabled={submitting}

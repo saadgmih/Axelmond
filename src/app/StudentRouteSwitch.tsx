@@ -29,7 +29,7 @@ export function StudentRouteSwitch() {
   const bindings = usePlatformBindings();
   const ui = usePlatformUi();
 
-  const { currentUser, enrolledCourses, role, invoices } = session;
+  const { currentUser, enrolledCourses, role, invoices, isLoginDataLoading } = session;
   const { currentView, navigateTo, selectedCourse, selectedModule, setSelectedModule } =
     navigation;
   const {
@@ -58,6 +58,7 @@ export function StudentRouteSwitch() {
             enrolledCourses={enrolledCourses}
             courses={courses}
             getCourseIcon={getCourseIcon}
+            isLoginDataLoading={isLoginDataLoading}
           />
         </Suspense>
       )}
