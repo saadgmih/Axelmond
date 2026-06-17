@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type MutableRefObject } from "react";
 import type { Room } from "livekit-client";
 import VirtualClassroom, { type LiveParticipantCard, type VirtualClassroomProps } from "../components/VirtualClassroom";
 import type { AppUser } from "../components/AuthScreen";
@@ -46,6 +46,9 @@ export interface UseLiveKitRoomOptions {
   currentView: string;
   teacherView: string;
   handleToggleCourseLive?: (id: number) => Promise<Course | null>;
+  roomRef?: MutableRefObject<{
+    closeTeacherLiveRoom: () => Promise<void>;
+  } | null>;
 }
 
 export function useLiveKitRoom({
@@ -66,6 +69,7 @@ export function useLiveKitRoom({
   currentView,
   teacherView,
   handleToggleCourseLive: _handleToggleCourseLive,
+  roomRef,
 }: UseLiveKitRoomOptions) {
   const [liveRoom, setLiveRoom] = useState<Room | null>(null);
   const [liveParticipants, setLiveParticipants] = useState<LiveParticipantCard[]>([]);
@@ -366,10 +370,22 @@ export function useLiveKitRoom({
     }
   };
 
-  const leaveLiveRoom = () => {
+  const leaveLiveRoom = async () => {
     const course = activeLiveCourse;
     if (course) {
-      api.leaveLiveAttendance(course.id).catch((err) => console.warn("[livekit] Attendance leave failed", err));
+      if (currentUser && !isStudentRole(currentUser.role)) {
+        try {
+          await publishLiveSync(liveRoom, { type: "LIVE_ENDED" });
+        } catch (err) {
+          console.warn("[livekit] Failed to publish LIVE_ENDED message", err);
+        }
+        api.leaveLiveAttendance(course.id).catch((err) => console.warn("[livekit] Attendance leave failed", err));
+        if (_handleToggleCourseLive) {
+          await _handleToggleCourseLive(course.id);
+        }
+      } else {
+        api.leaveLiveAttendance(course.id).catch((err) => console.warn("[livekit] Attendance leave failed", err));
+      }
     }
     resetLiveKitState();
     if (course && currentUser && isStudentRole(currentUser.role)) {
@@ -434,6 +450,17 @@ export function useLiveKitRoom({
       />
     );
   };
+
+  useEffect(() => {
+    if (roomRef) {
+      roomRef.current = {
+        closeTeacherLiveRoom,
+      };
+      return () => {
+        roomRef.current = null;
+      };
+    }
+  }, [roomRef, closeTeacherLiveRoom]);
 
   return {
     liveAudioContainerRef,

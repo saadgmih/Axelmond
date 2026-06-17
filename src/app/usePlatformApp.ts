@@ -90,6 +90,7 @@ export function usePlatformApp() {
   const [courseToPurchase, setCourseToPurchase] = useState<Course | null>(null);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const catalogSearchRef = useRef<HTMLInputElement>(null);
+  const liveKitRoomRef = useRef<{ closeTeacherLiveRoom: () => Promise<void> } | null>(null);
 
   useEffect(() => {
     if (!isMobileMenuOpen) return;
@@ -218,6 +219,9 @@ export function usePlatformApp() {
             setCourses((prev) =>
               prev.map((c) => (c.id === courseId ? { ...c, isLiveNow: false, liveSubject: null } : c)),
             );
+            setSelectedCourse((current) =>
+              current?.id === courseId ? { ...current, isLiveNow: false, liveSubject: null } : current,
+            );
             if (activeLiveCourse?.id === courseId) {
               disconnectLiveSession();
               setActiveLiveCourse(null);
@@ -228,16 +232,20 @@ export function usePlatformApp() {
         } else if (notification.type === "LIVE_STARTED") {
           const courseId = Number(notification.metadata?.courseId);
           if (courseId) {
+            const liveSubject = notification.body ? notification.body.replace(" est en direct", "") : null;
             setCourses((prev) =>
               prev.map((c) =>
                 c.id === courseId
                   ? {
                       ...c,
                       isLiveNow: true,
-                      liveSubject: notification.body ? notification.body.replace(" est en direct", "") : null,
+                      liveSubject,
                     }
                   : c,
               ),
+            );
+            setSelectedCourse((current) =>
+              current?.id === courseId ? { ...current, isLiveNow: true, liveSubject } : current,
             );
           }
         }
@@ -279,8 +287,12 @@ export function usePlatformApp() {
 
       if (course.isLiveNow) {
         if (isRoomOpen) {
-          api.leaveLiveAttendance(courseId).catch((err) => console.warn("[livekit] Attendance leave failed", err));
-          setActiveLiveCourse(null);
+          if (liveKitRoomRef.current) {
+            await liveKitRoomRef.current.closeTeacherLiveRoom();
+          } else {
+            api.leaveLiveAttendance(courseId).catch((err) => console.warn("[livekit] Attendance leave failed", err));
+            setActiveLiveCourse(null);
+          }
           await toggleCourseLive(courseId);
         } else {
           setSelectedCourse(course);
@@ -297,7 +309,7 @@ export function usePlatformApp() {
         setTeacherView("live-control");
       }
     },
-    [courses, activeLiveCourse?.id, setActiveLiveCourse, setSelectedCourse, setTeacherView],
+    [courses, activeLiveCourse?.id, setActiveLiveCourse, setSelectedCourse, setTeacherView, liveKitRoomRef],
   );
 
   onSessionExpiredRef.current = disconnectLiveSession;
@@ -475,6 +487,7 @@ export function usePlatformApp() {
       isLiveSessionView,
       handleToggleCourseLive,
       handleUpdateCourseLiveSubject,
+      roomRef: liveKitRoomRef,
     }),
     [
       activeLiveCourse,

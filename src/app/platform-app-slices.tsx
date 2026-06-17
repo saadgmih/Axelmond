@@ -67,6 +67,7 @@ export type PlatformLiveSlice = Pick<
   | "isLiveSessionView"
   | "handleToggleCourseLive"
   | "handleUpdateCourseLiveSubject"
+  | "roomRef"
 >;
 
 export type PlatformBindingsSlice = Pick<

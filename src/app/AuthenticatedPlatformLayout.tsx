@@ -49,6 +49,7 @@ export function AuthenticatedPlatformLayout() {
             currentView={currentView}
             teacherView={navigation.teacherView}
             handleToggleCourseLive={live.handleToggleCourseLive}
+            roomRef={live.roomRef}
           />
         </Suspense>
       )}
