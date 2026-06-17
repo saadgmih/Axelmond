@@ -8,10 +8,11 @@ import type { Course, Invoice } from "../types";
 export interface UseAppSessionOptions {
   setCourses: Dispatch<SetStateAction<Course[]>>;
   onAfterLogin?: (user: AppUser) => void;
+  onLogout?: () => void;
   onSessionExpired?: () => void;
 }
 
-export function useAppSession({ setCourses, onAfterLogin, onSessionExpired }: UseAppSessionOptions) {
+export function useAppSession({ setCourses, onAfterLogin, onLogout, onSessionExpired }: UseAppSessionOptions) {
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [enrolledCourses, setEnrolledCourses] = useState<number[]>([]);
@@ -26,6 +27,9 @@ export function useAppSession({ setCourses, onAfterLogin, onSessionExpired }: Us
     setSessionToken(undefined);
     setEnrolledCourses([]);
     setInvoices([]);
+    if (typeof sessionStorage !== "undefined") {
+      sessionStorage.clear();
+    }
   }, []);
 
   useEffect(() => {
@@ -91,17 +95,23 @@ export function useAppSession({ setCourses, onAfterLogin, onSessionExpired }: Us
       .finally(() => setIsAuthReady(true));
   }, [clearAuthState]);
 
-  const handleLogout = useCallback(() => {
-    void api.logout().catch((err) => console.warn("[auth] Logout failed", err));
+  const handleLogout = useCallback(async () => {
+    try {
+      await api.logout();
+    } catch (err) {
+      console.warn("[auth] Logout failed", err);
+    }
     clearAuthState();
-    window.history.replaceState(null, "", "/");
-  }, [clearAuthState]);
+    onLogout?.();
+    window.location.href = "/";
+  }, [clearAuthState, onLogout]);
 
   const handleSessionExpired = useCallback(() => {
     clearAuthState();
-    window.history.replaceState(null, "", "/");
+    onLogout?.();
     onSessionExpired?.();
-  }, [clearAuthState, onSessionExpired]);
+    window.location.href = "/";
+  }, [clearAuthState, onLogout, onSessionExpired]);
 
   useEffect(() => {
     window.addEventListener("axelmond:session-expired", handleSessionExpired);
