@@ -33,7 +33,9 @@ export function StudySessionCard({
         {session.startTime} – {session.endTime}
       </p>
 
-      {session.roomOrLink && <p className="text-[11px] font-semibold text-slate-500">Lieu / lien : {session.roomOrLink}</p>}
+      {session.roomOrLink && (
+        <p className="text-[11px] font-semibold text-slate-500">Lieu / lien : {session.roomOrLink}</p>
+      )}
 
       <div className={scheduleUi.sessionActions}>
         <button type="button" className={scheduleUi.editBtn} onClick={() => onEdit(session)}>

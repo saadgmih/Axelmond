@@ -197,9 +197,7 @@ export default function Sidebar({
               onMouseEnter={() => prefetchStudentView("study-plan")}
               onClick={() => navigateTo("study-plan")}
               className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
-                currentView === "study-plan" ||
-                currentView === "study-schedule" ||
-                currentView === "objectives"
+                currentView === "study-plan" || currentView === "study-schedule" || currentView === "objectives"
                   ? "bg-indigo-600 text-white shadow-md shadow-indigo-950/40"
                   : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
               }`}

@@ -103,7 +103,11 @@ function createMemoryBackend(): CacheBackend {
     async set(key, value, ttlSeconds) {
       const byteSize = Buffer.byteLength(value, "utf8");
       if (byteSize > DEFAULT_MAX_VALUE_BYTES) {
-        logCache("WARN", "Cache entry skipped — payload too large", { key, byteSize, maxBytes: DEFAULT_MAX_VALUE_BYTES });
+        logCache("WARN", "Cache entry skipped — payload too large", {
+          key,
+          byteSize,
+          maxBytes: DEFAULT_MAX_VALUE_BYTES,
+        });
         return false;
       }
       const previous = store.get(key);
@@ -180,7 +184,11 @@ async function createRedisBackend(redisUrl: string): Promise<CacheBackend> {
     async set(key, value, ttlSeconds) {
       const byteSize = Buffer.byteLength(value, "utf8");
       if (byteSize > DEFAULT_MAX_VALUE_BYTES) {
-        logCache("WARN", "Cache entry skipped — payload too large", { key, byteSize, maxBytes: DEFAULT_MAX_VALUE_BYTES });
+        logCache("WARN", "Cache entry skipped — payload too large", {
+          key,
+          byteSize,
+          maxBytes: DEFAULT_MAX_VALUE_BYTES,
+        });
         return false;
       }
       const ttl = Math.max(1, Math.floor(ttlSeconds));
@@ -279,11 +287,14 @@ export async function initCache(): Promise<void> {
 
 export function startCachePruner() {
   if (backend.kind !== "memory" || pruneTimer) return;
-  pruneTimer = setInterval(() => {
-    if (backend.kind === "memory") {
-      backend.size();
-    }
-  }, 10 * 60 * 1000);
+  pruneTimer = setInterval(
+    () => {
+      if (backend.kind === "memory") {
+        backend.size();
+      }
+    },
+    10 * 60 * 1000,
+  );
   if (pruneTimer && typeof pruneTimer === "object" && "unref" in pruneTimer) {
     (pruneTimer as NodeJS.Timeout).unref();
   }

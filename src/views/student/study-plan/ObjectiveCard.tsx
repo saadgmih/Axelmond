@@ -1,13 +1,4 @@
-import {
-  CheckCircle2,
-  Clock3,
-  ExternalLink,
-  Headphones,
-  Pencil,
-  RotateCcw,
-  Target,
-  Trash2,
-} from "lucide-react";
+import { CheckCircle2, Clock3, ExternalLink, Headphones, Pencil, RotateCcw, Target, Trash2 } from "lucide-react";
 import type { StudentObjectiveView } from "../../../hooks/useStudentObjectives";
 import { scheduleUi } from "../../teacher/schedule-theme";
 import { formatDateTime } from "./study-plan-utils";

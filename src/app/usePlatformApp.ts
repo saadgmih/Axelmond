@@ -12,12 +12,12 @@ import { usePlatformNavigation } from "../hooks/usePlatformNavigation";
 import { useAcademicProfile } from "../hooks/useAcademicProfile";
 import { useStudentCourseSession } from "../hooks/useStudentCourseSession";
 import { isStudentRole } from "../rbac";
-import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import type { AppNotification } from "../types/messaging";
 import type { Course, CourseModule, FacultyDomain } from "../types";
 import { getInitials } from "./catalogIcons";
 import { usePlatformCatalogData } from "./hooks/usePlatformCatalogData";
 import { usePlatformAvatarActions } from "./hooks/usePlatformAvatarActions";
+import { usePlatformKeyboardShortcuts } from "./hooks/usePlatformKeyboardShortcuts";
 import { usePlatformNotificationHandlers } from "./hooks/usePlatformNotificationHandlers";
 import { usePlatformTeacherWorkspace } from "./hooks/usePlatformTeacherWorkspace";
 
@@ -70,9 +70,7 @@ export function usePlatformApp() {
   const {
     searchQuery,
     setSearchQuery,
-    selectedDomainId,
     setSelectedDomainId,
-    selectedDisciplineId,
     setSelectedDisciplineId,
     allDisciplines,
     selectedDomain,
@@ -239,8 +237,7 @@ export function usePlatformApp() {
     setAcademicProfileForm,
   );
 
-  const { disconnectLiveSession, renderLiveRoomInterface, classroomBindings } =
-    useLiveKitSession();
+  const { disconnectLiveSession, renderLiveRoomInterface, classroomBindings } = useLiveKitSession();
 
   const toggleTeacherLiveSession = useCallback(
     async (courseId: number, toggleCourseLive: (id: number) => Promise<Course | null>) => {
@@ -269,7 +266,7 @@ export function usePlatformApp() {
         setTeacherView("live-control");
       }
     },
-    [courses, activeLiveCourse?.id, setActiveLiveCourse, setSelectedCourse, setTeacherView]
+    [courses, activeLiveCourse?.id, setActiveLiveCourse, setSelectedCourse, setTeacherView],
   );
 
   onSessionExpiredRef.current = disconnectLiveSession;
@@ -284,59 +281,20 @@ export function usePlatformApp() {
   const lockMainScroll = currentView === "course" || isStudentLive;
   const hideGlobalFooter = currentView === "course" || isLiveSessionView;
 
-  useKeyboardShortcuts(
-    [
-      {
-        key: "Escape",
-        handler: () => {
-          if (showKeyboardHelp) {
-            setShowKeyboardHelp(false);
-            return;
-          }
-          if (courseToPurchase) {
-            setCourseToPurchase(null);
-            return;
-          }
-          if (isMobileMenuOpen) {
-            setIsMobileMenuOpen(false);
-            return;
-          }
-          if (document.fullscreenElement) {
-            document.exitFullscreen().catch(() => undefined);
-          }
-        },
-      },
-      {
-        key: "/",
-        when: () => role === "student" && currentView === "catalog" && !isStudentLive,
-        handler: () => {
-          catalogSearchRef.current?.focus();
-        },
-      },
-      {
-        key: "?",
-        when: () => !isStudentLive && !isTeacherLiveRoom,
-        handler: () => setShowKeyboardHelp(true),
-      },
-      {
-        key: "/",
-        shift: true,
-        when: () => !isStudentLive && !isTeacherLiveRoom,
-        handler: () => setShowKeyboardHelp(true),
-      },
-    ],
-    Boolean(currentUser),
-    [
-      showKeyboardHelp,
-      courseToPurchase,
-      isMobileMenuOpen,
-      currentView,
-      role,
-      isStudentLive,
-      isTeacherLiveRoom,
-      currentUser,
-    ],
-  );
+  usePlatformKeyboardShortcuts({
+    showKeyboardHelp,
+    setShowKeyboardHelp,
+    courseToPurchase,
+    setCourseToPurchase,
+    isMobileMenuOpen,
+    setIsMobileMenuOpen,
+    currentView,
+    role,
+    isStudentLive,
+    isTeacherLiveRoom,
+    catalogSearchRef,
+    currentUserId: currentUser?.id,
+  });
 
   const handleLogout = useCallback(() => {
     logoutAuth();
@@ -375,13 +333,16 @@ export function usePlatformApp() {
   const session = useMemo(
     () => ({
       currentUser,
+      isLoading,
       isAuthReady,
       role,
       enrolledCourses,
+      setEnrolledCourses,
       invoices,
+      setInvoices,
       updateSessionUser,
       handleLoginSuccess,
-      handleLogout: logoutAuth,
+      handleLogout,
       catalogError,
       retryCatalogLoad,
       notificationUnreadCount,
@@ -390,13 +351,16 @@ export function usePlatformApp() {
     }),
     [
       currentUser,
+      isLoading,
       isAuthReady,
       role,
       enrolledCourses,
+      setEnrolledCourses,
       invoices,
+      setInvoices,
       updateSessionUser,
       handleLoginSuccess,
-      logoutAuth,
+      handleLogout,
       catalogError,
       retryCatalogLoad,
       notificationUnreadCount,

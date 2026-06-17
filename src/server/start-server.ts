@@ -297,10 +297,10 @@ export async function startAxelmondServer() {
       resolve();
     };
 
-    if (isPipe) {
+    if (typeof PORT === "string") {
       httpServer.listen(PORT as string, listenCallback);
     } else {
-      httpServer.listen(PORT as number, listenCallback);
+      httpServer.listen(PORT, "0.0.0.0", listenCallback);
     }
     httpServer.once("error", reject);
   });
@@ -365,8 +365,7 @@ async function verifySmtpAtStartup() {
 
 function registerGracefulShutdown(httpServer: ReturnType<typeof createServer>, isProduction: boolean) {
   let shuttingDown = false;
-  const shutdownTimeoutMs =
-    Number(process.env.GRACEFUL_SHUTDOWN_MS) || (isProduction ? 3_000 : 15_000);
+  const shutdownTimeoutMs = Number(process.env.GRACEFUL_SHUTDOWN_MS) || (isProduction ? 3_000 : 15_000);
 
   const shutdown = async (signal: string) => {
     if (shuttingDown) return;

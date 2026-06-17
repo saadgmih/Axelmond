@@ -19,10 +19,7 @@ export function isMfaSetupExemptRoute(req: Pick<Request, "method" | "path" | "ba
   return MFA_SETUP_EXEMPT_PREFIXES.some((prefix) => apiPath === prefix || apiPath.startsWith(`${prefix}/`));
 }
 
-export async function privilegedUserRequiresMfaSetup(user: {
-  id: string;
-  totpEnabled: boolean;
-}): Promise<boolean> {
+export async function privilegedUserRequiresMfaSetup(user: { id: string; totpEnabled: boolean }): Promise<boolean> {
   if (user.totpEnabled) return false;
   return !(await userHasPasskeys(user.id));
 }

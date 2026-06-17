@@ -21,7 +21,7 @@ rulesTest("student-course-navigation", () => {
   assert.doesNotMatch(appSource, /setSelectedLessonContent\(null\)/);
 
   assert.doesNotMatch(studentCourseViewSource, /Contenus publiés/);
-  assert.match(studentCourseViewSource, /activeLessonContent/);
+  assert.match(studentCourseViewSource, /selectedLessonContent/);
   assert.match(studentCourseViewSource, /lessonContentIdFromModule/);
-  assert.match(studentCourseViewSource, /!activeLessonContent[\s\S]*?selectedModule\.type === "video"/);
+  assert.match(studentCourseViewSource, /!selectedLessonContent[\s\S]*?selectedModule\.type === "video"/);
 });

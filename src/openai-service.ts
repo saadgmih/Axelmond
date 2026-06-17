@@ -1,10 +1,7 @@
 import type OpenAI from "openai";
 import { logSecurity } from "./security-logger";
 import { trimChatTutorHistory } from "./chat-tutor-limits";
-import {
-  assertChatTutorPromptAllowed,
-  moderateChatTutorInput,
-} from "./chat-tutor-moderation";
+import { assertChatTutorPromptAllowed, moderateChatTutorInput } from "./chat-tutor-moderation";
 
 export const DEFAULT_OPENAI_MODEL = "gpt-4o-mini";
 export const OPENAI_REQUEST_TIMEOUT_MS = Number(process.env.OPENAI_TIMEOUT_MS) || 60_000;

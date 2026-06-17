@@ -6,10 +6,19 @@ import { api } from "../api";
 import { LiveChatMessage } from "../livekit";
 import { isStudentRole } from "../rbac";
 import type { Course, Invoice } from "../types";
-import { createEmptyPoll, type LivePollState, type LiveSharedResource, type LiveSyncMessage, type LiveWhiteboardStroke } from "../live/live-sync";
+import {
+  createEmptyPoll,
+  type LivePollState,
+  type LiveSharedResource,
+  type LiveSyncMessage,
+  type LiveWhiteboardStroke,
+} from "../live/live-sync";
 import { buildLiveParticipantCards } from "./livekit/participant-sync";
 import { applyLiveSyncMessage, respondToLiveSyncRequest } from "./livekit/live-sync-state";
-import { createPublishLiveSync, refreshLiveAttendanceReport as fetchLiveAttendanceReport } from "./livekit/live-sync-publish";
+import {
+  createPublishLiveSync,
+  refreshLiveAttendanceReport as fetchLiveAttendanceReport,
+} from "./livekit/live-sync-publish";
 import { useLiveKitConnection } from "./livekit/useLiveKitConnection";
 import { useLiveRoomControls } from "./livekit/useLiveRoomControls";
 import { useLiveMediaAttach } from "./livekit/useLiveMediaAttach";
@@ -69,6 +78,7 @@ export function useLiveKitRoom({
   const [isLiveFullscreen, setIsLiveFullscreen] = useState(false);
   const [isLiveRecording, setIsLiveRecording] = useState(false);
   const [activeSpeakerIdentity, setActiveSpeakerIdentity] = useState("");
+  const activeSpeakerIdentityRef = useRef(activeSpeakerIdentity);
   const [liveSignals, setLiveSignals] = useState<
     Record<string, { handRaised?: boolean; reaction?: string; updatedAt: number }>
   >({});
@@ -103,6 +113,10 @@ export function useLiveKitRoom({
   }, [livePoll]);
 
   useEffect(() => {
+    activeSpeakerIdentityRef.current = activeSpeakerIdentity;
+  }, [activeSpeakerIdentity]);
+
+  useEffect(() => {
     liveSignalsRef.current = liveSignals;
   }, [liveSignals]);
 
@@ -111,13 +125,13 @@ export function useLiveKitRoom({
       setLiveParticipants(
         buildLiveParticipantCards(room, {
           currentUser,
-          activeSpeakerIdentity,
-          liveSignals,
+          activeSpeakerIdentity: activeSpeakerIdentityRef.current,
+          liveSignals: liveSignalsRef.current,
           getInitials,
         }),
       );
     },
-    [activeSpeakerIdentity, currentUser, getInitials, liveSignals],
+    [currentUser, getInitials],
   );
 
   const appendLiveChatMessage = useCallback((message: LiveChatMessage) => {
@@ -135,17 +149,14 @@ export function useLiveKitRoom({
     [activeLiveCourse?.id, canModerateLive],
   );
 
-  const applyIncomingLiveSyncMessage = useCallback(
-    (message: LiveSyncMessage, localIdentity: string) => {
-      applyLiveSyncMessage(message, localIdentity, {
-        setWhiteboardStrokes,
-        setLivePoll,
-        setMyPollVote,
-        setSharedResource,
-      });
-    },
-    [],
-  );
+  const applyIncomingLiveSyncMessage = useCallback((message: LiveSyncMessage, localIdentity: string) => {
+    applyLiveSyncMessage(message, localIdentity, {
+      setWhiteboardStrokes,
+      setLivePoll,
+      setMyPollVote,
+      setSharedResource,
+    });
+  }, []);
 
   const respondToSyncRequest = useCallback(
     async (room: Room, requesterIdentity?: string) => {
@@ -203,11 +214,9 @@ export function useLiveKitRoom({
 
   useLiveMediaAttach({
     liveParticipants,
-    activeSpeakerIdentity,
     currentView,
     teacherView,
     activeLiveCourseId: activeLiveCourse?.id,
-    primaryLiveVideoRef,
     liveVideoRefs,
     liveAudioContainerRef,
   });

@@ -202,7 +202,7 @@ export default function StudentDashboardView({
   courses,
 
   getCourseIcon,
-  
+
   isLoginDataLoading,
 }: StudentDashboardViewProps) {
   const dashboardGridRef = useRef<HTMLDivElement>(null);
@@ -655,7 +655,12 @@ export default function StudentDashboardView({
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {enrolledList.map((course) => (
-                <DashboardCourseCard key={course.id} course={course} getCourseIcon={getCourseIcon} navigateTo={navigateTo} />
+                <DashboardCourseCard
+                  key={course.id}
+                  course={course}
+                  getCourseIcon={getCourseIcon}
+                  navigateTo={navigateTo}
+                />
               ))}
             </div>
           )}

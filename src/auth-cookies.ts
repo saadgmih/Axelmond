@@ -79,12 +79,7 @@ export function readRefreshTokenFromRequest(req: Request): string | null {
   }
 
   const fromBody = req.body?.refreshToken;
-  if (
-    isMobileClientRequest(req) &&
-    typeof fromBody === "string" &&
-    fromBody.length > 0 &&
-    fromBody.length <= 128
-  ) {
+  if (isMobileClientRequest(req) && typeof fromBody === "string" && fromBody.length > 0 && fromBody.length <= 128) {
     return fromBody;
   }
 

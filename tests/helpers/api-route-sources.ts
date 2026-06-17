@@ -1,6 +1,17 @@
 import fs from "node:fs";
 import path from "node:path";
 
+function readSourceFilesRecursive(dir: string): string[] {
+  return fs
+    .readdirSync(dir, { withFileTypes: true })
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .flatMap((entry) => {
+      const filePath = path.join(dir, entry.name);
+      if (entry.isDirectory()) return readSourceFilesRecursive(filePath);
+      return entry.name.endsWith(".ts") ? [filePath] : [];
+    });
+}
+
 /** Concatenate server bootstrap + modular API route modules for static analysis tests. */
 export function readServerBootstrapSources(): string {
   const root = process.cwd();
@@ -30,6 +41,10 @@ export function readApiRouteSources(): string {
         .map((name) => fs.readFileSync(path.join(authDir, name), "utf8"))
     : [];
 
+  const mapperFiles = readSourceFilesRecursive(path.join(root, "src", "server", "mappers")).map((filePath) =>
+    fs.readFileSync(filePath, "utf8"),
+  );
+
   return [
     ...readServerBootstrapSources().split("\n"),
     fs.readFileSync(path.join(root, "src", "server", "startup-db.ts"), "utf8"),
@@ -37,6 +52,8 @@ export function readApiRouteSources(): string {
     fs.readFileSync(path.join(root, "src", "server", "route-deps.ts"), "utf8"),
     fs.readFileSync(path.join(root, "src", "server", "route-mappers.ts"), "utf8"),
     fs.readFileSync(path.join(root, "src", "server", "route-schemas.ts"), "utf8"),
+    fs.readFileSync(path.join(root, "src", "server", "auth-user-cache.ts"), "utf8"),
+    ...mapperFiles,
     fs.readFileSync(path.join(root, "src", "auth-session.ts"), "utf8"),
     ...routeFiles,
     ...authRouteFiles,

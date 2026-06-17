@@ -3,7 +3,15 @@ import { getClientErrorMessage } from "../client-errors";
 import { AlertCircle, CheckCircle2, Image as ImageIcon, Loader2, Send, Trash2 } from "lucide-react";
 import { api, getFreshSessionToken } from "../api";
 import { RASTER_IMAGE_ACCEPT } from "../avatar-security";
-import { getUploadedFileUrl, getUploadErrorMessage, uploadFiles, validateUploadFile, bindUploadProgress, formatUploadProgressLabel, uploadProgressBarWidth } from "../uploadthing-client";
+import {
+  getUploadedFileUrl,
+  getUploadErrorMessage,
+  uploadFiles,
+  validateUploadFile,
+  bindUploadProgress,
+  formatUploadProgressLabel,
+  uploadProgressBarWidth,
+} from "../uploadthing-client";
 import { formatTicketReference } from "../utils/user-facing-labels";
 
 interface SupportTicketFormProps {

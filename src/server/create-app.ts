@@ -20,19 +20,14 @@ import {
 } from "../security-hardening";
 import { readRefreshTokenFromRequest } from "../auth-cookies";
 import { csrfProtection } from "../auth-csrf";
-import { isMobileClientRequest, MOBILE_CLIENT_HEADER, MOBILE_CLIENT_KEY_HEADER } from "../auth-mobile";
+import { isMobileClientRequest, MOBILE_CLIENT_HEADER } from "../auth-mobile";
 import { mobileClientSpoofGuard } from "../mobile-client-guard";
 import { verifyAuthToken } from "../auth-token";
 import { applyMobileApiCorsHeaders } from "../routes/mobile-api-routes";
 import { emailRateLimitKey } from "../email-rate-limit";
 import { liveKitRateLimitKey } from "../livekit-rate-limit";
 import { adminRateLimitKey } from "../admin-rate-limit";
-import {
-  PAYPAL_CSP_SCRIPT_SRC,
-  PAYPAL_CSP_IMG_SRC,
-  PAYPAL_CSP_FORM_ACTION,
-  buildCspFrameSrc,
-} from "../paypal-csp";
+import { PAYPAL_CSP_SCRIPT_SRC, PAYPAL_CSP_IMG_SRC, PAYPAL_CSP_FORM_ACTION, buildCspFrameSrc } from "../paypal-csp";
 
 export type AxelmondApp = {
   app: express.Express;
@@ -130,6 +125,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
   const PORT = Number(options?.port ?? process.env.PORT) || 3000;
   const isSecurityRuntimeTest = process.env.SECURITY_RUNTIME_TEST === "1";
   const isProduction = process.env.NODE_ENV === "production";
+  const AUTH_MAX_ATTEMPTS = Number(process.env.AUTH_MAX_ATTEMPTS) || 20;
   const AUTH_LOCKOUT_WINDOW_MS = Number(process.env.AUTH_LOCKOUT_WINDOW_MS) || 1 * 60 * 1000;
   const uploadThingCallbackUrl =
     process.env.UPLOADTHING_CALLBACK_URL ||
@@ -244,7 +240,10 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
       res.setHeader("Access-Control-Allow-Origin", origin);
       res.setHeader("Vary", "Origin");
       res.setHeader("Access-Control-Allow-Credentials", "true");
-      res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-CSRF-Token, X-Axelmond-Client, X-Axelmond-Client-Key");
+      res.setHeader(
+        "Access-Control-Allow-Headers",
+        "Content-Type, Authorization, X-CSRF-Token, X-Axelmond-Client, X-Axelmond-Client-Key",
+      );
       res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
     }
     if (req.method === "OPTIONS") {
@@ -295,7 +294,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
 
   const authRateLimiter = rateLimit({
     windowMs: AUTH_LOCKOUT_WINDOW_MS,
-    max: routeDeps.AUTH_MAX_ATTEMPTS,
+    max: AUTH_MAX_ATTEMPTS,
     standardHeaders: true,
     legacyHeaders: false,
     keyGenerator: (req) => {

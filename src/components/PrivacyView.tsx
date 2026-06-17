@@ -66,60 +66,58 @@ export default function PrivacyView() {
         translateY="20px"
         transition="opacity 0.65s ease, transform 0.65s ease"
       >
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-            <div className="space-y-4">
-              <span className="text-[10px] font-black uppercase tracking-widest text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full inline-block">
-                Document juridique
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+          <div className="space-y-4">
+            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full inline-block">
+              Document juridique
+            </span>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
+              Politique de{" "}
+              <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
+                confidentialité
               </span>
-              <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
-                Politique de{" "}
-                <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
-                  confidentialité
-                </span>
-              </h1>
-              <p className="text-slate-400 text-sm md:text-base leading-relaxed max-w-2xl">
-                Ce document décrit la manière dont <strong className="text-white">Axelmond Research Labs</strong>{" "}
-                collecte, utilise, protège et partage vos informations personnelles. Votre vie privée est une priorité
-                absolue.
-              </p>
-            </div>
-            {/* Meta badges */}
-            <div className="flex flex-col gap-2 flex-shrink-0">
-              <div className="bg-slate-900/80 border border-slate-800 rounded-2xl px-5 py-3 space-y-2 text-right">
-                <div className="flex items-center justify-end gap-2">
-                  <Clock className="w-3.5 h-3.5 text-slate-500" />
-                  <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Mise à jour</span>
-                </div>
-                <div className="text-white font-black text-sm">{lastUpdate}</div>
-                <div className="flex items-center justify-end gap-2">
-                  <InstitutionalChip label={version} color="text-indigo-300 border-indigo-500/30 bg-indigo-500/10" />
-                  <InstitutionalChip label="Loi 09-08" color="text-emerald-300 border-emerald-500/30 bg-emerald-500/10" />
-                </div>
+            </h1>
+            <p className="text-slate-400 text-sm md:text-base leading-relaxed max-w-2xl">
+              Ce document décrit la manière dont <strong className="text-white">Axelmond Research Labs</strong>{" "}
+              collecte, utilise, protège et partage vos informations personnelles. Votre vie privée est une priorité
+              absolue.
+            </p>
+          </div>
+          {/* Meta badges */}
+          <div className="flex flex-col gap-2 flex-shrink-0">
+            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl px-5 py-3 space-y-2 text-right">
+              <div className="flex items-center justify-end gap-2">
+                <Clock className="w-3.5 h-3.5 text-slate-500" />
+                <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Mise à jour</span>
+              </div>
+              <div className="text-white font-black text-sm">{lastUpdate}</div>
+              <div className="flex items-center justify-end gap-2">
+                <InstitutionalChip label={version} color="text-indigo-300 border-indigo-500/30 bg-indigo-500/10" />
+                <InstitutionalChip label="Loi 09-08" color="text-emerald-300 border-emerald-500/30 bg-emerald-500/10" />
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Conformité loi 09-08 */}
-          <div className="mt-8 flex flex-wrap items-center gap-4 bg-emerald-950/30 border border-emerald-800/40 rounded-2xl px-5 py-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                <Shield className="w-4 h-4 text-emerald-400" />
-              </div>
-              <div>
-                <div className="text-emerald-300 text-xs font-black uppercase tracking-wide">
-                  Conforme à la loi 09-08
-                </div>
-                <div className="text-emerald-700 text-[11px]">
-                  Loi relative à la protection des personnes physiques (Maroc)
-                </div>
-              </div>
+        {/* Conformité loi 09-08 */}
+        <div className="mt-8 flex flex-wrap items-center gap-4 bg-emerald-950/30 border border-emerald-800/40 rounded-2xl px-5 py-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+              <Shield className="w-4 h-4 text-emerald-400" />
             </div>
-            <div className="hidden md:block h-8 w-px bg-emerald-800/40 mx-2" />
-            <div className="text-[11px] text-emerald-600 leading-relaxed max-w-lg">
-              Axelmond Research Labs s'engage à respecter les obligations légales de la loi n° 09-08 et les bonnes
-              pratiques en matière de protection des données personnelles des utilisateurs de la plateforme.
+            <div>
+              <div className="text-emerald-300 text-xs font-black uppercase tracking-wide">Conforme à la loi 09-08</div>
+              <div className="text-emerald-700 text-[11px]">
+                Loi relative à la protection des personnes physiques (Maroc)
+              </div>
             </div>
           </div>
+          <div className="hidden md:block h-8 w-px bg-emerald-800/40 mx-2" />
+          <div className="text-[11px] text-emerald-600 leading-relaxed max-w-lg">
+            Axelmond Research Labs s'engage à respecter les obligations légales de la loi n° 09-08 et les bonnes
+            pratiques en matière de protection des données personnelles des utilisateurs de la plateforme.
+          </div>
+        </div>
       </InstitutionalHero>
 
       <div className="max-w-5xl mx-auto px-6 md:px-10 py-10 space-y-8">
@@ -491,7 +489,12 @@ export default function PrivacyView() {
                   detail: "Expiration courte (15 min à 24h selon le type). Révocation immédiate à la déconnexion.",
                 },
               ].map(({ type, duration, detail: _detail }) => (
-                <InstitutionalInfoRow key={type} label={type} value={duration} icon={<Clock className="w-3.5 h-3.5" />} />
+                <InstitutionalInfoRow
+                  key={type}
+                  label={type}
+                  value={duration}
+                  icon={<Clock className="w-3.5 h-3.5" />}
+                />
               ))}
             </div>
             <p className="text-[12px] text-slate-500">
@@ -644,7 +647,10 @@ export default function PrivacyView() {
                     </code>
                     <InstitutionalChip label={type} color="text-slate-400 border-slate-700 bg-slate-800/50" />
                     {necessary && (
-                      <InstitutionalChip label="Nécessaire" color="text-emerald-300 border-emerald-500/30 bg-emerald-500/10" />
+                      <InstitutionalChip
+                        label="Nécessaire"
+                        color="text-emerald-300 border-emerald-500/30 bg-emerald-500/10"
+                      />
                     )}
                   </div>
                   <p className="text-[12px] text-slate-400 leading-relaxed">{purpose}</p>
@@ -693,7 +699,11 @@ export default function PrivacyView() {
                 value="verification@axelmond.com"
                 icon={<Mail className="w-3.5 h-3.5" />}
               />
-              <InstitutionalInfoRow label="Domaine officiel" value="axelmond.com" icon={<Globe className="w-3.5 h-3.5" />} />
+              <InstitutionalInfoRow
+                label="Domaine officiel"
+                value="axelmond.com"
+                icon={<Globe className="w-3.5 h-3.5" />}
+              />
               <InstitutionalInfoRow
                 label="Délai de réponse"
                 value="30 jours calendaires maximum"

@@ -1,5 +1,6 @@
 import type { PaymentProvider } from "@prisma/client";
 import { prisma } from "./db";
+import type { Invoice } from "./types";
 
 export const APP_USER_BILLING_INCLUDE = {
   enrollments: true,
@@ -34,13 +35,13 @@ export function serializeInvoiceRecord(invoice: {
   amountMad: number;
   status: string;
   issuedAt: Date;
-}) {
+}): Invoice {
   return {
     id: invoice.id,
     date: invoice.issuedAt.toLocaleDateString("fr-FR"),
     courseTitle: invoice.courseTitle,
     amount: invoice.amountMad,
-    status: invoice.status,
+    status: invoice.status === "Remboursé" ? "Remboursé" : "Payé",
   };
 }
 

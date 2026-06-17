@@ -28,7 +28,12 @@ export async function processFreeCourseEnrollment(params: {
   persistCoursePaymentEnrollment: PersistEnrollment;
 }): Promise<FreeCourseEnrollmentResult> {
   if (!isStudentRole(params.role)) {
-    return { ok: false, status: 403, error: "Seuls les étudiants peuvent s'inscrire à un module.", code: "FREE_ENROLL_STUDENT_ONLY" };
+    return {
+      ok: false,
+      status: 403,
+      error: "Seuls les étudiants peuvent s'inscrire à un module.",
+      code: "FREE_ENROLL_STUDENT_ONLY",
+    };
   }
 
   const course = await prisma.course.findUnique({ where: { id: params.courseId } });

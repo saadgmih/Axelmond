@@ -18,13 +18,29 @@ rulesTest("security-score-guards", () => {
     { id: "rate-limits", weight: 7, ok: /globalRateLimiter/.test(bootstrap) && /refreshRateLimiter/.test(bootstrap) },
     { id: "rbac-default-deny", weight: 8, ok: /requireRbac/.test(apiSource) && /canAccessApiRoute/.test(apiSource) },
     { id: "refresh-token-hash", weight: 7, ok: /hashRefreshToken/.test(bootstrap) },
-    { id: "production-config", weight: 8, ok: /assertProductionConfiguration/.test(fs.readFileSync("src/production-config.ts", "utf8")) },
+    {
+      id: "production-config",
+      weight: 8,
+      ok: /assertProductionConfiguration/.test(fs.readFileSync("src/production-config.ts", "utf8")),
+    },
     { id: "cache-timeout", weight: 5, ok: /CACHE_OPERATION_TIMEOUT_MS/.test(fs.readFileSync("src/cache.ts", "utf8")) },
-    { id: "catalog-timeout", weight: 5, ok: /CATALOG_QUERY_TIMEOUT_MS/.test(fs.readFileSync("src/routes/courses-routes.ts", "utf8")) },
-    { id: "deploy-preflight", weight: 5, ok: /security-preflight/.test(fs.readFileSync("scripts/deploy-hostinger.sh", "utf8")) },
+    {
+      id: "catalog-timeout",
+      weight: 5,
+      ok: /CATALOG_QUERY_TIMEOUT_MS/.test(fs.readFileSync("src/routes/courses-routes.ts", "utf8")),
+    },
+    {
+      id: "deploy-preflight",
+      weight: 5,
+      ok: /security-preflight/.test(fs.readFileSync("scripts/deploy-hostinger.sh", "utf8")),
+    },
     { id: "npm-ws-override", weight: 6, ok: packageJson.overrides?.ws === "^8.21.0" },
     { id: "security-preflight-script", weight: 4, ok: packageJson.scripts?.["security:preflight"] !== undefined },
-    { id: "hostinger-env-mobile-secret", weight: 5, ok: /MOBILE_CLIENT_SECRET/.test(fs.readFileSync("scripts/build-hostinger-env.mjs", "utf8")) },
+    {
+      id: "hostinger-env-mobile-secret",
+      weight: 5,
+      ok: /MOBILE_CLIENT_SECRET/.test(fs.readFileSync("scripts/build-hostinger-env.mjs", "utf8")),
+    },
     { id: "paypal-webhook-verify", weight: 7, ok: /verifyPayPalWebhookSignature/.test(apiSource) },
     { id: "upload-validation", weight: 6, ok: /isDangerousFile/.test(fs.readFileSync("src/uploadthing.ts", "utf8")) },
   ];

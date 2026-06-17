@@ -1,16 +1,6 @@
 import { useMemo } from "react";
 import type { Dispatch, FormEvent, SetStateAction } from "react";
-import {
-  BookOpen,
-  ExternalLink,
-  Globe,
-  GraduationCap,
-  Link2,
-  RefreshCw,
-  Shield,
-  User,
-  Video,
-} from "lucide-react";
+import { BookOpen, ExternalLink, Globe, GraduationCap, Link2, RefreshCw, Shield, User, Video } from "lucide-react";
 import ProfileAvatarUpload from "../../components/ProfileAvatarUpload";
 import type { AppUser } from "../../components/AuthScreen";
 import { getRoleLabel, type UserRole } from "../../rbac";
@@ -144,8 +134,8 @@ export default function TeacherAcademicProfileView({
             <div>
               <h3 className="text-sm font-black text-violet-100">Espace administrateur</h3>
               <p className="mt-1 text-xs leading-relaxed text-violet-300/80">
-                Votre profil académique est partagé avec les enseignants. Utilisez le tableau de bord pour la
-                gestion des modules, le suivi des étudiants et la configuration de la plateforme.
+                Votre profil académique est partagé avec les enseignants. Utilisez le tableau de bord pour la gestion
+                des modules, le suivi des étudiants et la configuration de la plateforme.
               </p>
             </div>
           </div>

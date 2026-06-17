@@ -320,127 +320,130 @@ export default function AboutView() {
         contentClassName="px-6 md:px-10 py-16 md:py-24"
         translateY="30px"
         extraBlobs={
-          <div className="absolute top-1/2 left-0 w-64 h-64 bg-pink-600/5 rounded-full blur-3xl pointer-events-none" aria-hidden />
+          <div
+            className="absolute top-1/2 left-0 w-64 h-64 bg-pink-600/5 rounded-full blur-3xl pointer-events-none"
+            aria-hidden
+          />
         }
         topBlobClass="top-0 left-1/4 w-96 h-96 bg-indigo-600/10 rounded-full"
         bottomBlobClass="bottom-0 right-1/4 w-80 h-80 bg-violet-600/10 rounded-full"
       >
-          <div
-            style={{
-              opacity: heroRef.inView ? 1 : 0,
-              transform: heroRef.inView ? "translateY(0)" : "translateY(30px)",
-              transition: "opacity 0.7s ease, transform 0.7s ease",
-            }}
-          >
-            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full inline-block mb-6">
-              À propos d'Axelmond Research Labs
-            </span>
+        <div
+          style={{
+            opacity: heroRef.inView ? 1 : 0,
+            transform: heroRef.inView ? "translateY(0)" : "translateY(30px)",
+            transition: "opacity 0.7s ease, transform 0.7s ease",
+          }}
+        >
+          <span className="text-[10px] font-black uppercase tracking-widest text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full inline-block mb-6">
+            À propos d'Axelmond Research Labs
+          </span>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div className="space-y-6">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-tight">
-                  Axelmond{" "}
-                  <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-pink-400 bg-clip-text text-transparent">
-                    Research Labs
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-tight">
+                Axelmond{" "}
+                <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-pink-400 bg-clip-text text-transparent">
+                  Research Labs
+                </span>
+              </h1>
+              <p className="text-slate-300 text-base md:text-lg leading-relaxed max-w-xl">
+                Plateforme académique de nouvelle génération dédiée à la{" "}
+                <span className="text-indigo-300 font-semibold">recherche</span>,{" "}
+                <span className="text-violet-300 font-semibold">la formation</span> et{" "}
+                <span className="text-pink-300 font-semibold">l'innovation</span>. Conçue pour les étudiants, les
+                enseignants et les chercheurs.
+              </p>
+
+              {/* Pillars row */}
+              <div className="flex flex-wrap gap-3 pt-2">
+                {[
+                  {
+                    label: "Research",
+                    icon: <Atom className="w-3.5 h-3.5" />,
+                    color: "text-indigo-300 border-indigo-500/30 bg-indigo-500/10",
+                  },
+                  {
+                    label: "Innovation",
+                    icon: <Lightbulb className="w-3.5 h-3.5" />,
+                    color: "text-amber-300 border-amber-500/30 bg-amber-500/10",
+                  },
+                  {
+                    label: "Education",
+                    icon: <GraduationCap className="w-3.5 h-3.5" />,
+                    color: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10",
+                  },
+                ].map(({ label, icon, color }) => (
+                  <span
+                    key={label}
+                    className={`flex items-center gap-1.5 text-xs font-bold border px-3 py-1.5 rounded-full ${color}`}
+                  >
+                    {icon}
+                    {label}
                   </span>
-                </h1>
-                <p className="text-slate-300 text-base md:text-lg leading-relaxed max-w-xl">
-                  Plateforme académique de nouvelle génération dédiée à la{" "}
-                  <span className="text-indigo-300 font-semibold">recherche</span>,{" "}
-                  <span className="text-violet-300 font-semibold">la formation</span> et{" "}
-                  <span className="text-pink-300 font-semibold">l'innovation</span>. Conçue pour les étudiants, les
-                  enseignants et les chercheurs.
-                </p>
+                ))}
+              </div>
+            </div>
 
-                {/* Pillars row */}
-                <div className="flex flex-wrap gap-3 pt-2">
+            {/* Hero visual card */}
+            <div className="hidden lg:flex flex-col gap-4">
+              <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 backdrop-blur-sm space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center">
+                    <BrainCircuit className="w-5 h-5 text-indigo-400" />
+                  </div>
+                  <div>
+                    <div className="text-white font-black text-sm">Portail Académique Unifié</div>
+                    <div className="text-slate-500 text-[11px]">Modules · Live · IA · Recherche</div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
                   {[
-                    {
-                      label: "Research",
-                      icon: <Atom className="w-3.5 h-3.5" />,
-                      color: "text-indigo-300 border-indigo-500/30 bg-indigo-500/10",
-                    },
-                    {
-                      label: "Innovation",
-                      icon: <Lightbulb className="w-3.5 h-3.5" />,
-                      color: "text-amber-300 border-amber-500/30 bg-amber-500/10",
-                    },
-                    {
-                      label: "Education",
-                      icon: <GraduationCap className="w-3.5 h-3.5" />,
-                      color: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10",
-                    },
-                  ].map(({ label, icon, color }) => (
-                    <span
-                      key={label}
-                      className={`flex items-center gap-1.5 text-xs font-bold border px-3 py-1.5 rounded-full ${color}`}
-                    >
-                      {icon}
-                      {label}
-                    </span>
+                    { label: "Étudiants", val: "500+", color: "text-indigo-300" },
+                    { label: "Modules", val: "120+", color: "text-violet-300" },
+                    { label: "Chercheurs", val: "40+", color: "text-pink-300" },
+                    { label: "Satisfaction", val: "98%", color: "text-emerald-300" },
+                  ].map(({ label, val, color }) => (
+                    <div key={label} className="bg-slate-950/60 border border-slate-800 rounded-xl p-3">
+                      <div className={`text-xl font-black ${color}`}>{val}</div>
+                      <div className="text-slate-500 text-[10px] font-semibold">{label}</div>
+                    </div>
                   ))}
                 </div>
-              </div>
-
-              {/* Hero visual card */}
-              <div className="hidden lg:flex flex-col gap-4">
-                <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 backdrop-blur-sm space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center">
-                      <BrainCircuit className="w-5 h-5 text-indigo-400" />
-                    </div>
-                    <div>
-                      <div className="text-white font-black text-sm">Portail Académique Unifié</div>
-                      <div className="text-slate-500 text-[11px]">Modules · Live · IA · Recherche</div>
-                    </div>
+                {/* Fake activity bar */}
+                <div className="space-y-2 pt-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">
+                      Activité plateforme
+                    </span>
+                    <span className="flex items-center gap-1.5 text-[10px] text-emerald-400 font-bold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
+                      En ligne
+                    </span>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      { label: "Étudiants", val: "500+", color: "text-indigo-300" },
-                      { label: "Modules", val: "120+", color: "text-violet-300" },
-                      { label: "Chercheurs", val: "40+", color: "text-pink-300" },
-                      { label: "Satisfaction", val: "98%", color: "text-emerald-300" },
-                    ].map(({ label, val, color }) => (
-                      <div key={label} className="bg-slate-950/60 border border-slate-800 rounded-xl p-3">
-                        <div className={`text-xl font-black ${color}`}>{val}</div>
-                        <div className="text-slate-500 text-[10px] font-semibold">{label}</div>
+                  {[
+                    ["Modules complétés", 78],
+                    ["Taux de réussite quiz", 85],
+                    ["Uptime serveur", 99],
+                  ].map(([label, val]) => (
+                    <div key={label as string}>
+                      <div className="flex justify-between text-[10px] text-slate-400 mb-1">
+                        <span>{label}</span>
+                        <span className="text-white font-bold">{val}%</span>
                       </div>
-                    ))}
-                  </div>
-                  {/* Fake activity bar */}
-                  <div className="space-y-2 pt-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">
-                        Activité plateforme
-                      </span>
-                      <span className="flex items-center gap-1.5 text-[10px] text-emerald-400 font-bold">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
-                        En ligne
-                      </span>
-                    </div>
-                    {[
-                      ["Modules complétés", 78],
-                      ["Taux de réussite quiz", 85],
-                      ["Uptime serveur", 99],
-                    ].map(([label, val]) => (
-                      <div key={label as string}>
-                        <div className="flex justify-between text-[10px] text-slate-400 mb-1">
-                          <span>{label}</span>
-                          <span className="text-white font-bold">{val}%</span>
-                        </div>
-                        <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full"
-                            style={{ width: `${val}%`, transition: "width 1.5s ease" }}
-                          />
-                        </div>
+                      <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full"
+                          style={{ width: `${val}%`, transition: "width 1.5s ease" }}
+                        />
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
           </div>
+        </div>
       </InstitutionalHero>
 
       <div className="max-w-6xl mx-auto px-6 md:px-10 py-12 space-y-20">
@@ -677,7 +680,9 @@ export default function AboutView() {
 
                 {/* Technology stack badges */}
                 <div className="space-y-3 pt-2">
-                  <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Piliers de la plateforme</p>
+                  <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">
+                    Piliers de la plateforme
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {[
                       { label: "Interface moderne", color: "text-cyan-300 bg-cyan-900/20 border-cyan-800/40" },

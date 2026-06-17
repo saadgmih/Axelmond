@@ -84,11 +84,7 @@ export async function getLiveKitRoomService(config: { url: string; apiKey: strin
   return new RoomServiceClient(getLiveKitApiUrl(config.url), config.apiKey, config.apiSecret);
 }
 
-export async function createLiveKitAccessToken(
-  apiKey: string,
-  apiSecret: string,
-  options: AccessTokenOptions,
-) {
+export async function createLiveKitAccessToken(apiKey: string, apiSecret: string, options: AccessTokenOptions) {
   const { AccessToken } = await loadLiveKitSdk();
   return new AccessToken(apiKey, apiSecret, options);
 }
@@ -182,7 +178,11 @@ export async function assertLiveAccess(authUser: AppUser, courseId: number) {
   if (authUser.role === "STUDENT" && !authUser.enrolledCourses.includes(course.id)) {
     return { ok: false as const, status: 403, error: LIVE_ACCESS_ERRORS.enrollmentRequired };
   }
-  if ((authUser.role === "PROFESSOR" || authUser.role === "RESEARCHER") && course.createdById !== authUser.id && course.instructor !== authUser.fullName) {
+  if (
+    (authUser.role === "PROFESSOR" || authUser.role === "RESEARCHER") &&
+    course.createdById !== authUser.id &&
+    course.instructor !== authUser.fullName
+  ) {
     logLiveKit("WARN", "Live access denied for foreign course", { userId: authUser.id, courseId });
     return { ok: false as const, status: 403, error: LIVE_ACCESS_ERRORS.accessDenied };
   }
@@ -200,13 +200,15 @@ export async function findQuizWithQuestions(courseId: number, moduleId: number) 
   });
 }
 
-export function canReadCourseGrades(authUser: AppUser, course: { id: number; createdById?: string | null; instructor?: string | null }) {
+export function canReadCourseGrades(
+  authUser: AppUser,
+  course: { id: number; createdById?: string | null; instructor?: string | null },
+) {
   if (authUser.role === "ADMIN") return true;
   if (authUser.role === "STUDENT") return authUser.enrolledCourses.includes(course.id);
   // PROFESSOR/RESEARCHER : uniquement le propriétaire du module
   return course.createdById === authUser.id || (course.instructor && course.instructor === authUser.fullName);
 }
-
 
 export async function persistUserAvatarUrl(authUser: AppUser, avatarUrl: string) {
   await prisma.user.update({

@@ -26,7 +26,7 @@ export function getClientErrorMessage(err: unknown, fallback: string): string {
   if (!err || typeof err !== "object") return fallback;
   const record = err as Record<string, unknown>;
   const status = typeof record.status === "number" ? record.status : undefined;
-  
+
   if (record.code === "VALIDATION_ERROR" && Array.isArray(record.details)) {
     const detailMessages = record.details.map((d: any) => d.message).filter(Boolean);
     if (detailMessages.length > 0) {

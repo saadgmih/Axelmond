@@ -21,10 +21,7 @@ export const PAYPAL_CSP_IMG_SRC = [
   "https://www.paypalobjects.com",
 ] as const;
 
-export const PAYPAL_CSP_FORM_ACTION = [
-  "https://www.paypal.com",
-  "https://www.sandbox.paypal.com",
-] as const;
+export const PAYPAL_CSP_FORM_ACTION = ["https://www.paypal.com", "https://www.sandbox.paypal.com"] as const;
 
 /** PayPal REST + SDK connect targets for the active runtime environment. */
 export function getPayPalCspConnectSrc(): string[] {

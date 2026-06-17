@@ -106,15 +106,17 @@ export async function seedChatTutorRuntimeFixtures(): Promise<ChatTutorRuntimeFi
       isLiveNow: false,
       published: true,
       createdById: users.ownerProfessor.id,
-      modules: [
-        {
-          id: CHAT_TUTOR_RUNTIME_VALID_MODULE_ID,
-          title: "Chapitre runtime ACL",
-          type: "video",
-          duration: "10 min",
-          completed: false,
-        },
-      ],
+      courseModules: {
+        create: [
+          {
+            id: CHAT_TUTOR_RUNTIME_VALID_MODULE_ID,
+            title: "Chapitre runtime ACL",
+            type: "video",
+            duration: "10 min",
+            sortOrder: 0,
+          },
+        ],
+      },
     },
   });
 

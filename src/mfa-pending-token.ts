@@ -12,7 +12,10 @@ export function signMfaPendingToken(userId: string, secret = getAuthTokenSecret(
   return jwt.sign({ userId, typ: "mfa_pending" }, secret, { expiresIn: MFA_PENDING_TTL, algorithm: "HS256" });
 }
 
-export function verifyMfaPendingToken(token: string | undefined, secret = getAuthTokenSecret()): MfaPendingClaims | null {
+export function verifyMfaPendingToken(
+  token: string | undefined,
+  secret = getAuthTokenSecret(),
+): MfaPendingClaims | null {
   if (!token) return null;
   try {
     const decoded = jwt.verify(token, secret, { algorithms: ["HS256"] }) as { userId?: string; typ?: string };

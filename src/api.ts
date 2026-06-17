@@ -310,8 +310,7 @@ export const api = {
     request<any>("POST", "/api/auth/mfa/passkey/register/options", deviceName ? { deviceName } : {}),
   completePasskeyRegister: (challengeId: string, response: unknown, deviceName?: string) =>
     request<any>("POST", "/api/auth/mfa/passkey/register/verify", { challengeId, response, deviceName }),
-  deletePasskey: (id: string, password: string) =>
-    request<any>("DELETE", `/api/auth/mfa/passkeys/${id}`, { password }),
+  deletePasskey: (id: string, password: string) => request<any>("DELETE", `/api/auth/mfa/passkeys/${id}`, { password }),
   register: (data: {
     email: string;
     password: string;

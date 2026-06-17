@@ -26,10 +26,7 @@ rulesTest("mfa-requirement", () => {
   assert.equal(isPrivilegedAccountRole("ADMIN"), true);
   assert.equal(isPrivilegedAccountRole("PROFESSOR"), true);
   assert.equal(isPrivilegedAccountRole("STUDENT"), false);
-  assert.equal(
-    isMfaSetupExemptRoute({ method: "POST", path: "/mfa/totp/setup", baseUrl: "/api/auth" } as any),
-    true,
-  );
+  assert.equal(isMfaSetupExemptRoute({ method: "POST", path: "/mfa/totp/setup", baseUrl: "/api/auth" } as any), true);
   assert.equal(isMfaSetupExemptRoute({ method: "POST", path: "/courses", baseUrl: "/api" } as any), false);
   assert.equal(isPrivilegedMfaEnforced({ NODE_ENV: "production" }), false);
   assert.equal(isPrivilegedMfaEnforced({ NODE_ENV: "production", PRIVILEGED_MFA_SETUP_REQUIRED: "true" }), true);

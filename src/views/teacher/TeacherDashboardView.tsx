@@ -477,9 +477,7 @@ export default function TeacherDashboardView({
                 {formatEmailLogDate(emailDeliverySummary?.lastEmailSent?.createdAt)}
               </p>
               <p className="text-[10px] font-semibold text-slate-400 truncate">
-                {emailDeliverySummary?.lastEmailSent
-                  ? "Dernier envoi réussi"
-                  : "Aucun message envoyé récemment"}
+                {emailDeliverySummary?.lastEmailSent ? "Dernier envoi réussi" : "Aucun message envoyé récemment"}
               </p>
             </div>
             <div className="py-4 md:px-4 space-y-1">
@@ -852,8 +850,8 @@ export default function TeacherDashboardView({
           </div>
 
           <div className="p-4 bg-slate-50 rounded-2xl text-slate-500 text-[11px] leading-relaxed">
-            Les notes proviennent des tentatives de quiz complétées par vos étudiants. Un étudiant sans tentative terminée reste
-            affiché avec "Aucune note".
+            Les notes proviennent des tentatives de quiz complétées par vos étudiants. Un étudiant sans tentative
+            terminée reste affiché avec "Aucune note".
           </div>
         </div>
       </div>

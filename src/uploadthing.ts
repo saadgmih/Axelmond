@@ -7,7 +7,12 @@ import { verifyAuthToken } from "./auth-token";
 import { canManageContent, isTeacherSpaceRole, normalizeRole } from "./rbac";
 import { isAllowedAvatarUrl, isAllowedRasterImageMime, isAllowedRasterImageUpload } from "./avatar-security";
 import { alertSuspectUpload } from "./security-logger";
-import { isConversationParticipant, validateMessageAttachmentInput, registerMessageAttachmentUpload, type MessageAttachmentInput } from "./messaging";
+import {
+  isConversationParticipant,
+  validateMessageAttachmentInput,
+  registerMessageAttachmentUpload,
+  type MessageAttachmentInput,
+} from "./messaging";
 
 const f = createUploadthing();
 export const utapi = new UTApi();

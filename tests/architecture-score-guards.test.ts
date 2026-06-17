@@ -47,9 +47,7 @@ rulesTest("architecture-score-guards", () => {
     },
     {
       id: "route-mappers-split",
-      ok:
-        fs.existsSync("src/server/mappers/catalog-mappers.ts") &&
-        fs.existsSync("src/server/mappers/user-mappers.ts"),
+      ok: fs.existsSync("src/server/mappers/catalog-mappers.ts") && fs.existsSync("src/server/mappers/user-mappers.ts"),
       weight: 3,
     },
     {

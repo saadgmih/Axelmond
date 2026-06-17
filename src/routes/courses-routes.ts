@@ -89,7 +89,9 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
         role: authUser?.role || "PUBLIC",
 
         ownershipScope:
-          authUser && (authUser.role === "PROFESSOR" || authUser.role === "RESEARCHER") ? "OWN_MODULES_ONLY" : "DEFAULT",
+          authUser && (authUser.role === "PROFESSOR" || authUser.role === "RESEARCHER")
+            ? "OWN_MODULES_ONLY"
+            : "DEFAULT",
 
         count: payload.length,
       });
@@ -700,7 +702,7 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
         persistCoursePaymentEnrollment,
       });
 
-      if (!result.ok) {
+      if (result.ok === false) {
         res.status(result.status).json({ error: result.error, code: result.code });
         return;
       }

@@ -60,7 +60,14 @@ export function PlatformAppRoot() {
 
   return (
     <PlatformNotificationProvider value={notifications}>
-      <PlatformAppProvider session={session} catalog={catalog} navigation={navigation} live={live} bindings={bindings} ui={ui}>
+      <PlatformAppProvider
+        session={session}
+        catalog={catalog}
+        navigation={navigation}
+        live={live}
+        bindings={bindings}
+        ui={ui}
+      >
         <AuthenticatedPlatformLayout />
       </PlatformAppProvider>
     </PlatformNotificationProvider>

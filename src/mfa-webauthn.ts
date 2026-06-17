@@ -111,9 +111,7 @@ export async function finishWebAuthnRegistration(
       counter: BigInt(credential.counter),
       transports: credential.transports ?? [],
       deviceName:
-        deviceName?.trim()
-        || stored.deviceName
-        || `${credentialDeviceType}${credentialBackedUp ? " (sync)" : ""}`,
+        deviceName?.trim() || stored.deviceName || `${credentialDeviceType}${credentialBackedUp ? " (sync)" : ""}`,
     },
   });
 
@@ -147,9 +145,10 @@ export async function beginWebAuthnLogin(params: { userId?: string; email?: stri
   const options = await generateAuthenticationOptions({
     rpID,
     userVerification: "preferred",
-    allowCredentials: allowCredentials.length > 0
-      ? allowCredentials.map((cred) => ({ id: cred.id, transports: cred.transports }))
-      : undefined,
+    allowCredentials:
+      allowCredentials.length > 0
+        ? allowCredentials.map((cred) => ({ id: cred.id, transports: cred.transports }))
+        : undefined,
   });
 
   const challengeId = await createSecurityChallenge({

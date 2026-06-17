@@ -20,17 +20,17 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  
+
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState(1);
-  
+
   const [scale, setScale] = useState(1.0);
   const [fitMode, setFitMode] = useState<FitMode>("page");
   const [isFullscreen, setIsFullscreen] = useState(false);
-  
+
   const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  
+
   const [containerDimensions, setContainerDimensions] = useState({ width: 800, height: 600 });
 
   // Observe container size to dynamically adjust Fit Page / Fit Width
@@ -189,18 +189,15 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
     renderScale = 1.0;
   }
 
-  const zoomPercent = fitMode === "custom" 
-    ? `${Math.round(scale * 100)}%` 
-    : fitMode === "width" ? "Largeur" : "Page";
+  const zoomPercent = fitMode === "custom" ? `${Math.round(scale * 100)}%` : fitMode === "width" ? "Largeur" : "Page";
 
   return (
-    <div 
+    <div
       ref={wrapperRef}
-      className={`flex flex-col rounded-2xl border border-slate-200 bg-slate-950 shadow-lg overflow-hidden select-none transition-all ${isFullscreen ? 'h-screen rounded-none border-none' : 'h-[75vh]'}`}
+      className={`flex flex-col rounded-2xl border border-slate-200 bg-slate-950 shadow-lg overflow-hidden select-none transition-all ${isFullscreen ? "h-screen rounded-none border-none" : "h-[75vh]"}`}
     >
       {/* Enterprise Toolbar */}
       <div className="flex items-center justify-between px-4 py-3 bg-slate-900 text-slate-200 border-b border-slate-800 z-20 shadow-md">
-        
         {/* Pagination Controls */}
         <div className="flex items-center gap-2 bg-slate-800/80 rounded-lg p-1 border border-slate-700/50">
           <button
@@ -251,14 +248,14 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
           <div className="flex items-center bg-slate-800/80 rounded-lg p-1 border border-slate-700/50">
             <button
               onClick={() => setFitMode("page")}
-              className={`p-1.5 rounded-md transition-colors cursor-pointer text-xs font-semibold ${fitMode === "page" ? 'bg-indigo-600 text-white' : 'hover:bg-slate-700 text-slate-300'}`}
+              className={`p-1.5 rounded-md transition-colors cursor-pointer text-xs font-semibold ${fitMode === "page" ? "bg-indigo-600 text-white" : "hover:bg-slate-700 text-slate-300"}`}
               title="Ajuster à la page"
             >
               <FileText className="w-4 h-4" />
             </button>
             <button
               onClick={() => setFitMode("width")}
-              className={`p-1.5 rounded-md transition-colors cursor-pointer text-xs font-semibold ${fitMode === "width" ? 'bg-indigo-600 text-white' : 'hover:bg-slate-700 text-slate-300'}`}
+              className={`p-1.5 rounded-md transition-colors cursor-pointer text-xs font-semibold ${fitMode === "width" ? "bg-indigo-600 text-white" : "hover:bg-slate-700 text-slate-300"}`}
               title="Ajuster à la largeur"
             >
               <Expand className="w-4 h-4" />
@@ -283,14 +280,28 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
             className="p-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 border border-indigo-500/50 text-white transition-colors cursor-pointer flex items-center gap-2"
             title="Télécharger le document"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" x2="12" y1="15" y2="3"></line></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" x2="12" y1="15" y2="3"></line>
+            </svg>
             <span className="text-xs font-semibold hidden sm:inline">Télécharger</span>
           </a>
         </div>
       </div>
 
       {/* PDF Canvas Area with Scrollbars */}
-      <div 
+      <div
         ref={containerRef}
         className="flex-1 overflow-auto bg-slate-900/95 flex flex-col items-center justify-start p-4"
         onContextMenu={(e) => e.preventDefault()}

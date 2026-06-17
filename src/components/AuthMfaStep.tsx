@@ -14,14 +14,7 @@ interface AuthMfaStepProps {
   onBack: () => void;
 }
 
-export default function AuthMfaStep({
-  mfaToken,
-  email,
-  role,
-  passkeysAvailable,
-  onSuccess,
-  onBack,
-}: AuthMfaStepProps) {
+export default function AuthMfaStep({ mfaToken, email, role, passkeysAvailable, onSuccess, onBack }: AuthMfaStepProps) {
   const [code, setCode] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -71,7 +64,10 @@ export default function AuthMfaStep({
       </div>
 
       {errorMsg && (
-        <div role="alert" className="rounded-xl border border-rose-500/30 bg-rose-950/40 px-4 py-3 text-xs text-rose-200">
+        <div
+          role="alert"
+          className="rounded-xl border border-rose-500/30 bg-rose-950/40 px-4 py-3 text-xs text-rose-200"
+        >
           {errorMsg}
         </div>
       )}
@@ -111,7 +107,11 @@ export default function AuthMfaStep({
         </button>
       )}
 
-      <button type="button" onClick={onBack} className="w-full text-center text-xs font-semibold text-slate-500 hover:text-slate-300">
+      <button
+        type="button"
+        onClick={onBack}
+        className="w-full text-center text-xs font-semibold text-slate-500 hover:text-slate-300"
+      >
         Retour à la connexion
       </button>
     </div>

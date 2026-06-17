@@ -12,6 +12,8 @@ export interface CourseLearningAccessRecord {
   title: string;
   createdById?: string | null;
   modules?: unknown;
+  courseModules?: Array<{ id: number; title: string }>;
+  liveSubject?: string | null;
 }
 
 export type CourseLearningAccessResult =

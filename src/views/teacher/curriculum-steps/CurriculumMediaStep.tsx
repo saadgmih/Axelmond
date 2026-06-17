@@ -1,7 +1,4 @@
-import {
-  FileText,
-  Download,
-} from "lucide-react";
+import { FileText, Download } from "lucide-react";
 import { RASTER_IMAGE_ACCEPT } from "../../../avatar-security";
 import PremiumVideoPlayer from "../../../components/PremiumVideoPlayer";
 import { formatLessonContentTypeLabel } from "../../../utils/user-facing-labels";

@@ -23,6 +23,15 @@ export default defineConfig(({ mode }) => {
           entryFileNames: "assets/[hash].js",
           chunkFileNames: "assets/[hash].js",
           assetFileNames: "assets/[hash][extname]",
+          manualChunks(id) {
+            if (id.includes("node_modules")) {
+              if (id.includes("livekit-client")) return "livekit-vendor";
+              if (id.includes("@paypal")) return "paypal-vendor";
+              if (id.includes("react") || id.includes("react-dom") || id.includes("react-router-dom")) {
+                return "react-vendor";
+              }
+            }
+          },
         },
       },
     },

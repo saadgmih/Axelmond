@@ -41,7 +41,7 @@ export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
 
     const sessionResult = await api.ensureLiveSession(course, authUser);
 
-    if (!sessionResult.ok) {
+    if (sessionResult.ok === false) {
       res.status(sessionResult.status).json({ error: sessionResult.error });
       return;
     }
@@ -171,7 +171,7 @@ export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
 
     const sessionResult = await api.ensureLiveSession(access.course, authUser);
 
-    if (!sessionResult.ok) {
+    if (sessionResult.ok === false) {
       res.status(sessionResult.status).json({ error: sessionResult.error });
       return;
     }
@@ -386,7 +386,7 @@ export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
 
     const sessionResult = await api.ensureLiveSession(access.course, authUser);
 
-    if (!sessionResult.ok) {
+    if (sessionResult.ok === false) {
       res.status(sessionResult.status).json({ error: sessionResult.error });
       return;
     }
@@ -472,7 +472,7 @@ export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
 
       const sessionResult = await api.ensureLiveSession(access.course, authUser);
 
-      if (!sessionResult.ok) {
+      if (sessionResult.ok === false) {
         res.status(sessionResult.status).json({ error: sessionResult.error });
         return;
       }
@@ -589,7 +589,7 @@ export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
     }
 
     const sessionResult = await api.ensureLiveSession(access.course, authUser);
-    if (!sessionResult.ok) {
+    if (sessionResult.ok === false) {
       res.status(sessionResult.status).json({ error: sessionResult.error });
       return;
     }
@@ -597,12 +597,9 @@ export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
     const roomService = await api.getLiveKitRoomService(liveKitConfig);
     const reliableKind = await api.getLiveKitReliableDataKind();
     try {
-      await roomService.sendData(
-        session.roomName,
-        new TextEncoder().encode(JSON.stringify(validated)),
-        reliableKind,
-        { topic: api.LIVE_SYNC_TOPIC },
-      );
+      await roomService.sendData(session.roomName, new TextEncoder().encode(JSON.stringify(validated)), reliableKind, {
+        topic: api.LIVE_SYNC_TOPIC,
+      });
       api.logLiveKit("INFO", "Live sync relayed", {
         roomName: session.roomName,
         userId: authUser.id,

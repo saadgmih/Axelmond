@@ -2,7 +2,10 @@ import type { NextFunction, Request, Response } from "express";
 import { hasMobileClientHeader, isMobileClientRequest, MOBILE_CLIENT_HEADER } from "./auth-mobile";
 import { logSecurity } from "./security-logger";
 
-export function isMobileClientSpoofAttempt(req: Pick<Request, "headers">, env: NodeJS.ProcessEnv = process.env): boolean {
+export function isMobileClientSpoofAttempt(
+  req: Pick<Request, "headers">,
+  env: NodeJS.ProcessEnv = process.env,
+): boolean {
   if (!hasMobileClientHeader(req)) return false;
   return !isMobileClientRequest(req, env);
 }

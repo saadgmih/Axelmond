@@ -143,7 +143,6 @@ export async function seedLiveKitRuntimeFixtures(): Promise<LiveKitRuntimeFixtur
       liveSubject: "Session runtime LiveKit ACL",
       published: true,
       createdById: users.ownerProfessor.id,
-      modules: [],
     },
   });
 

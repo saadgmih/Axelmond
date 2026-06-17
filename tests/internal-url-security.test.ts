@@ -14,10 +14,7 @@ rulesTest("internal-url-security", () => {
   assert.equal(sanitizeInternalAppPath(""), "/");
   assert.equal(sanitizeInternalAppPath(null), "/");
 
-  assert.equal(
-    sanitizeInternalAppPathForOrigin("https://axelmond.com/messages", "https://axelmond.com"),
-    "/messages",
-  );
+  assert.equal(sanitizeInternalAppPathForOrigin("https://axelmond.com/messages", "https://axelmond.com"), "/messages");
   assert.equal(sanitizeInternalAppPathForOrigin("https://evil.com/messages", "https://axelmond.com"), "/");
 
   assert.equal(

@@ -1,5 +1,5 @@
 import v8 from "node:v8";
-import { cacheSize, getCacheStats } from "../cache";
+import { getCacheStats } from "../cache";
 import { getAuthUserCacheStats } from "./auth-user-cache";
 import { getRouteStats } from "../performance";
 

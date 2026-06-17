@@ -139,8 +139,12 @@ const DomainCatalogCard = memo(function DomainCatalogCard({
         </div>
 
         <div className="mt-4 flex flex-1 flex-col">
-          <h3 className="min-h-[2.75rem] line-clamp-2 font-black text-base leading-snug text-slate-800">{domain.name}</h3>
-          <p className="mt-2 min-h-[2.5rem] line-clamp-2 text-xs leading-relaxed text-slate-500">{domain.description}</p>
+          <h3 className="min-h-[2.75rem] line-clamp-2 font-black text-base leading-snug text-slate-800">
+            {domain.name}
+          </h3>
+          <p className="mt-2 min-h-[2.5rem] line-clamp-2 text-xs leading-relaxed text-slate-500">
+            {domain.description}
+          </p>
         </div>
 
         <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4">

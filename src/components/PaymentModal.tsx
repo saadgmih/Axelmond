@@ -304,9 +304,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                   <div className="space-y-2.5">
                     {isFreeCheckout ? (
                       <>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                          Accès gratuit
-                        </p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Accès gratuit</p>
                         <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/10 p-4">
                           <p className="text-sm leading-relaxed text-emerald-100/90">
                             Ce module est gratuit. Confirmez votre inscription pour y accéder immédiatement.
@@ -347,8 +345,9 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                                 <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-indigo-300" />
                                 <p className="text-[11px] leading-relaxed text-indigo-100/90">
                                   Tarif affiché en{" "}
-                                  <span className="font-semibold text-white">{PLATFORM_CURRENCY_CODE}</span>. Encaissement
-                                  sécurisé en <span className="font-semibold text-indigo-200">{paypalConfig.currency}</span>
+                                  <span className="font-semibold text-white">{PLATFORM_CURRENCY_CODE}</span>.
+                                  Encaissement sécurisé en{" "}
+                                  <span className="font-semibold text-indigo-200">{paypalConfig.currency}</span>
                                   {displayedCheckoutAmount ? ` (~${displayedCheckoutAmount})` : ""}.
                                 </p>
                               </div>

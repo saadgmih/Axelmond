@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 
+import { readAppSources } from "./helpers/app-sources.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("async-effect-guard", () => {
   const guardSource = fs.readFileSync("src/hooks/useAsyncEffectGuard.ts", "utf8");
-  const platformAppSource = fs.readFileSync("src/app/usePlatformApp.ts", "utf8");
+  const platformAppSource = readAppSources();
   const curriculumSource = fs.readFileSync("src/hooks/useTeacherCurriculum.tsx", "utf8");
   const academicSource = fs.readFileSync("src/hooks/useAcademicProfile.ts", "utf8");
   const appSource = fs.readFileSync("src/App.tsx", "utf8");

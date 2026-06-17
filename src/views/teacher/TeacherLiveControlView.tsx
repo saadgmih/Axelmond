@@ -183,7 +183,11 @@ export default function TeacherLiveControlView({
         </div>
       </div>
 
-      {isRoomOpen && activeLiveCourse && <div id="live-room-portal-target" className={liveControlUi.roomShell}>{renderTeacherLiveRoom()}</div>}
+      {isRoomOpen && activeLiveCourse && (
+        <div id="live-room-portal-target" className={liveControlUi.roomShell}>
+          {renderTeacherLiveRoom()}
+        </div>
+      )}
     </div>
   );
 }

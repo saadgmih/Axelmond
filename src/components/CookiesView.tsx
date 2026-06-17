@@ -271,81 +271,79 @@ export default function CookiesView() {
         topBlobClass="top-0 right-0 w-[480px] h-[480px] bg-orange-600/5 rounded-full translate-x-60 -translate-y-60"
         bottomBlobClass="bottom-0 left-0 w-80 h-80 bg-amber-600/5 rounded-full -translate-x-40 translate-y-40"
       >
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
-            {/* Left */}
-            <div className="space-y-5 max-w-2xl">
-              <span className="text-[10px] font-black uppercase tracking-widest text-amber-300 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full inline-block">
-                Document juridique — Portail académique
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
+          {/* Left */}
+          <div className="space-y-5 max-w-2xl">
+            <span className="text-[10px] font-black uppercase tracking-widest text-amber-300 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full inline-block">
+              Document juridique — Portail académique
+            </span>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
+              Politique des{" "}
+              <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-amber-300 bg-clip-text text-transparent">
+                cookies
               </span>
-              <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
-                Politique des{" "}
-                <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-amber-300 bg-clip-text text-transparent">
-                  cookies
-                </span>
-              </h1>
-              <p className="text-slate-400 text-sm md:text-base leading-relaxed">
-                <strong className="text-white">Axelmond Research Labs</strong> utilise des cookies et technologies
-                similaires pour assurer le bon fonctionnement de la plateforme, améliorer votre expérience
-                d'apprentissage et renforcer la sécurité de votre compte.
-              </p>
-              <div className="flex flex-wrap gap-2 pt-1">
-                {[
-                  {
-                    label: "Sans tracking publicitaire",
-                    color: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10",
-                  },
-                  { label: "Loi 09-08", color: "text-sky-300 border-sky-500/30 bg-sky-500/10" },
-                  { label: "CNDP", color: "text-violet-300 border-violet-500/30 bg-violet-500/10" },
-                ].map(({ label, color }) => (
-                  <span
-                    key={label}
-                    className={`text-[10px] font-black uppercase tracking-widest border px-2.5 py-1 rounded-full ${color}`}
-                  >
-                    {label}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Right meta card */}
-            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-3 flex-shrink-0 min-w-0 sm:min-w-[210px]">
-              <div>
-                <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">
-                  Dernière mise à jour
-                </div>
-                <div className="text-white font-black text-base mt-0.5">Juin 2026</div>
-              </div>
-              <div className="w-full h-px bg-slate-800" />
-              <div>
-                <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">
-                  Cookies tiers publicitaires
-                </div>
-                <div className="flex items-center gap-2 mt-1">
-                  <XCircle className="w-4 h-4 text-red-400" />
-                  <span className="text-red-300 text-sm font-bold">Aucun</span>
-                </div>
-              </div>
-              <div className="w-full h-px bg-slate-800" />
-              <div>
-                <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Cookies essentiels</div>
-                <div className="flex items-center gap-2 mt-1">
-                  <CheckCircle className="w-4 h-4 text-emerald-400" />
-                  <span className="text-emerald-300 text-sm font-bold">Actifs</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Info note */}
-          <div className="mt-8 bg-amber-950/20 border border-amber-800/30 rounded-2xl px-5 py-4 flex items-start gap-3">
-            <Cookie className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
-            <p className="text-[12px] text-slate-400 leading-relaxed">
-              <strong className="text-amber-300">Bon à savoir :</strong> La plateforme utilise des cookies
-              <strong className="text-white"> strictement essentiels</strong> pour sécuriser la session, ainsi que du
-              stockage local pour les préférences. Aucun pixel de tracking, aucune régie publicitaire, aucun réseau
-              social n'est connecté à vos données de navigation sur Axelmond Research Labs.
+            </h1>
+            <p className="text-slate-400 text-sm md:text-base leading-relaxed">
+              <strong className="text-white">Axelmond Research Labs</strong> utilise des cookies et technologies
+              similaires pour assurer le bon fonctionnement de la plateforme, améliorer votre expérience d'apprentissage
+              et renforcer la sécurité de votre compte.
             </p>
+            <div className="flex flex-wrap gap-2 pt-1">
+              {[
+                {
+                  label: "Sans tracking publicitaire",
+                  color: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10",
+                },
+                { label: "Loi 09-08", color: "text-sky-300 border-sky-500/30 bg-sky-500/10" },
+                { label: "CNDP", color: "text-violet-300 border-violet-500/30 bg-violet-500/10" },
+              ].map(({ label, color }) => (
+                <span
+                  key={label}
+                  className={`text-[10px] font-black uppercase tracking-widest border px-2.5 py-1 rounded-full ${color}`}
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
           </div>
+
+          {/* Right meta card */}
+          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-3 flex-shrink-0 min-w-0 sm:min-w-[210px]">
+            <div>
+              <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Dernière mise à jour</div>
+              <div className="text-white font-black text-base mt-0.5">Juin 2026</div>
+            </div>
+            <div className="w-full h-px bg-slate-800" />
+            <div>
+              <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">
+                Cookies tiers publicitaires
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                <XCircle className="w-4 h-4 text-red-400" />
+                <span className="text-red-300 text-sm font-bold">Aucun</span>
+              </div>
+            </div>
+            <div className="w-full h-px bg-slate-800" />
+            <div>
+              <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Cookies essentiels</div>
+              <div className="flex items-center gap-2 mt-1">
+                <CheckCircle className="w-4 h-4 text-emerald-400" />
+                <span className="text-emerald-300 text-sm font-bold">Actifs</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Info note */}
+        <div className="mt-8 bg-amber-950/20 border border-amber-800/30 rounded-2xl px-5 py-4 flex items-start gap-3">
+          <Cookie className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+          <p className="text-[12px] text-slate-400 leading-relaxed">
+            <strong className="text-amber-300">Bon à savoir :</strong> La plateforme utilise des cookies
+            <strong className="text-white"> strictement essentiels</strong> pour sécuriser la session, ainsi que du
+            stockage local pour les préférences. Aucun pixel de tracking, aucune régie publicitaire, aucun réseau social
+            n'est connecté à vos données de navigation sur Axelmond Research Labs.
+          </p>
+        </div>
       </InstitutionalHero>
 
       <div className="max-w-5xl mx-auto px-6 md:px-10 py-10 space-y-10">

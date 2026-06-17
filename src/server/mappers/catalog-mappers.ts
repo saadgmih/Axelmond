@@ -172,7 +172,5 @@ export async function toCoursesForStudent(
     userId,
     courses.map((course) => course.id),
   );
-  return courses.map((course) =>
-    toCourse(course, progressByCourse.get(course.id) ?? new Set(), { studentView: true }),
-  );
+  return courses.map((course) => toCourse(course, progressByCourse.get(course.id) ?? new Set(), { studentView: true }));
 }

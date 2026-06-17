@@ -16,7 +16,15 @@ import {
   X,
 } from "lucide-react";
 import { api, getFreshSessionToken } from "../../api";
-import { uploadFiles, getUploadedFileUrl, getUploadErrorMessage, validateUploadFile, bindUploadProgress, formatUploadProgressLabel, uploadProgressBarWidth } from "../../uploadthing-client";
+import {
+  uploadFiles,
+  getUploadedFileUrl,
+  getUploadErrorMessage,
+  validateUploadFile,
+  bindUploadProgress,
+  formatUploadProgressLabel,
+  uploadProgressBarWidth,
+} from "../../uploadthing-client";
 import { VirtualList } from "../../components/VirtualList";
 import { useMessagingSocket } from "../../hooks/useMessagingSocket";
 import type { ChatMessage, ConversationSummary, MessagingUser } from "../../types/messaging";

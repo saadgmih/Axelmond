@@ -308,7 +308,9 @@ export async function readSmtpBanner(env: NodeJS.ProcessEnv = process.env, timeo
     | { ok: false; details: ReturnType<typeof getSmtpPublicConfig>; error: unknown }
   >((resolve) => {
     let done = false;
-    const socket = secure ? tls.connect({ host, port, servername: host, timeout: timeoutMs }) : net.connect({ host, port });
+    const socket = secure
+      ? tls.connect({ host, port, servername: host, timeout: timeoutMs })
+      : net.connect({ host, port });
     const finish = (result: any) => {
       if (done) return;
       done = true;
@@ -618,9 +620,7 @@ export function buildNotificationEmailContent(input: {
   const name = escapeHtml(firstName(input.fullName));
   const title = escapeHtml(input.messageTitle);
   const body = escapeHtml(input.messageBody);
-  const safeActionUrl = input.actionUrl
-    ? buildAbsoluteAppUrl(sanitizeInternalAppPath(input.actionUrl))
-    : undefined;
+  const safeActionUrl = input.actionUrl ? buildAbsoluteAppUrl(sanitizeInternalAppPath(input.actionUrl)) : undefined;
   const actionButton = safeActionUrl
     ? `
       <div style="margin:24px 0;">

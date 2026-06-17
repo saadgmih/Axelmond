@@ -38,13 +38,41 @@ jobs:
         shell: powershell
         run: npm ci
 
+      - name: Lint
+        shell: powershell
+        run: npm run lint
+
+      - name: Strict TypeScript
+        shell: powershell
+        run: npm run lint:strict
+
+      - name: ESLint
+        shell: powershell
+        run: npm run lint:eslint
+
+      - name: Format check
+        shell: powershell
+        run: npm run format:check
+
       - name: Test
         shell: powershell
-        run: npm test -- tests/security-score-guards.test.ts tests/owasp-pen-test-guards.test.ts tests/security-max-hardening.test.ts tests/production-config.test.ts tests/security-hardening.test.ts
+        run: npm test
+
+      - name: Migration guard
+        shell: powershell
+        run: npm run ci:migrations
 
       - name: Generate Prisma client
         shell: powershell
         run: npx prisma generate
+
+      - name: Apply Prisma migrations
+        shell: powershell
+        run: npx prisma migrate deploy
+
+      - name: Security runtime tests
+        shell: powershell
+        run: npm run test:security-runtime
 
       - name: Build
         shell: powershell

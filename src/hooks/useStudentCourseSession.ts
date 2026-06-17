@@ -47,7 +47,7 @@ export function useStudentCourseSession({
   const [showAITutor, setShowAITutor] = useState(false);
 
   useEffect(() => {
-    if (selectedModule && selectedModule.type === "quiz") {
+    if (selectedCourse && selectedModule && selectedModule.type === "quiz") {
       api
         .getQuiz(selectedCourse.id, selectedModule.id)
         .then((data) => setQuizQuestions(data))

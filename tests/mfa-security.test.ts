@@ -6,11 +6,8 @@ import {
   hashRecoveryCode,
   hashWebAuthnCredentialId,
 } from "../src/mfa-crypto.ts";
-import {
-  generateTotpCodeForSecret,
-  generateTotpSecret,
-  verifyTotpCode,
-} from "../src/mfa-totp.ts";import { getWebAuthnConfig } from "../src/mfa-webauthn.ts";
+import { generateTotpCodeForSecret, generateTotpSecret, verifyTotpCode } from "../src/mfa-totp.ts";
+import { getWebAuthnConfig } from "../src/mfa-webauthn.ts";
 import { signMfaPendingToken, verifyMfaPendingToken } from "../src/mfa-pending-token.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 

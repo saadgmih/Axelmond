@@ -70,72 +70,70 @@ export default function TermsView() {
         topBlobClass="top-0 right-0 w-[500px] h-[500px] bg-violet-600/6 rounded-full translate-x-60 -translate-y-60"
         bottomBlobClass="bottom-0 left-0 w-80 h-80 bg-indigo-600/6 rounded-full -translate-x-40 translate-y-40"
       >
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
-            {/* Left */}
-            <div className="space-y-5 max-w-2xl">
-              <span className="text-[10px] font-black uppercase tracking-widest text-violet-300 bg-violet-500/10 border border-violet-500/20 px-3 py-1 rounded-full inline-block">
-                Document juridique — Portail académique
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
+          {/* Left */}
+          <div className="space-y-5 max-w-2xl">
+            <span className="text-[10px] font-black uppercase tracking-widest text-violet-300 bg-violet-500/10 border border-violet-500/20 px-3 py-1 rounded-full inline-block">
+              Document juridique — Portail académique
+            </span>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
+              Conditions{" "}
+              <span className="bg-gradient-to-r from-violet-400 via-indigo-400 to-indigo-300 bg-clip-text text-transparent">
+                d'utilisation
               </span>
-              <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
-                Conditions{" "}
-                <span className="bg-gradient-to-r from-violet-400 via-indigo-400 to-indigo-300 bg-clip-text text-transparent">
-                  d'utilisation
-                </span>
-              </h1>
-              <p className="text-slate-400 text-sm md:text-base leading-relaxed">
-                En accédant à la plateforme <strong className="text-white">Axelmond Research Labs</strong>, vous
-                acceptez les présentes conditions dans leur intégralité. Elles régissent l'ensemble de vos interactions
-                avec la plateforme, ses services et sa communauté académique.
-              </p>
-
-              {/* Pill tags */}
-              <div className="flex flex-wrap gap-2 pt-1">
-                {[
-                  { label: "Droit marocain", color: "text-sky-300 border-sky-500/30 bg-sky-500/10" },
-                  { label: "Loi 09-08", color: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10" },
-                  { label: "Acceptation implicite", color: "text-violet-300 border-violet-500/30 bg-violet-500/10" },
-                ].map(({ label, color }) => (
-                  <span
-                    key={label}
-                    className={`text-[10px] font-black uppercase tracking-widest border px-2.5 py-1 rounded-full ${color}`}
-                  >
-                    {label}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Right meta card */}
-            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-4 flex-shrink-0 min-w-0 sm:min-w-[220px]">
-              <div className="space-y-1">
-                <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">
-                  Dernière mise à jour
-                </div>
-                <div className="text-white font-black text-base">Juin 2026</div>
-              </div>
-              <div className="w-full h-px bg-slate-800" />
-              <div className="space-y-1">
-                <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Version</div>
-                <div className="text-violet-300 font-black text-sm">v3.1.0</div>
-              </div>
-              <div className="w-full h-px bg-slate-800" />
-              <div className="space-y-1">
-                <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Entité</div>
-                <div className="text-white text-sm font-bold">Axelmond Research Labs</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Acceptance note */}
-          <div className="mt-8 bg-slate-900/60 border border-slate-800 rounded-2xl px-5 py-4 flex items-start gap-3">
-            <Info className="w-4 h-4 text-violet-400 flex-shrink-0 mt-0.5" />
-            <p className="text-[12px] text-slate-400 leading-relaxed">
-              <strong className="text-violet-300">Acceptation :</strong> La création d'un compte ou la simple navigation
-              sur les pages protégées de la plateforme vaut acceptation pleine et entière des présentes conditions
-              d'utilisation. En cas de désaccord, veuillez cesser toute utilisation de la plateforme et contacter{" "}
-              <strong className="text-white">verification@axelmond.com</strong>.
+            </h1>
+            <p className="text-slate-400 text-sm md:text-base leading-relaxed">
+              En accédant à la plateforme <strong className="text-white">Axelmond Research Labs</strong>, vous acceptez
+              les présentes conditions dans leur intégralité. Elles régissent l'ensemble de vos interactions avec la
+              plateforme, ses services et sa communauté académique.
             </p>
+
+            {/* Pill tags */}
+            <div className="flex flex-wrap gap-2 pt-1">
+              {[
+                { label: "Droit marocain", color: "text-sky-300 border-sky-500/30 bg-sky-500/10" },
+                { label: "Loi 09-08", color: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10" },
+                { label: "Acceptation implicite", color: "text-violet-300 border-violet-500/30 bg-violet-500/10" },
+              ].map(({ label, color }) => (
+                <span
+                  key={label}
+                  className={`text-[10px] font-black uppercase tracking-widest border px-2.5 py-1 rounded-full ${color}`}
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
           </div>
+
+          {/* Right meta card */}
+          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-4 flex-shrink-0 min-w-0 sm:min-w-[220px]">
+            <div className="space-y-1">
+              <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Dernière mise à jour</div>
+              <div className="text-white font-black text-base">Juin 2026</div>
+            </div>
+            <div className="w-full h-px bg-slate-800" />
+            <div className="space-y-1">
+              <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Version</div>
+              <div className="text-violet-300 font-black text-sm">v3.1.0</div>
+            </div>
+            <div className="w-full h-px bg-slate-800" />
+            <div className="space-y-1">
+              <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Entité</div>
+              <div className="text-white text-sm font-bold">Axelmond Research Labs</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Acceptance note */}
+        <div className="mt-8 bg-slate-900/60 border border-slate-800 rounded-2xl px-5 py-4 flex items-start gap-3">
+          <Info className="w-4 h-4 text-violet-400 flex-shrink-0 mt-0.5" />
+          <p className="text-[12px] text-slate-400 leading-relaxed">
+            <strong className="text-violet-300">Acceptation :</strong> La création d'un compte ou la simple navigation
+            sur les pages protégées de la plateforme vaut acceptation pleine et entière des présentes conditions
+            d'utilisation. En cas de désaccord, veuillez cesser toute utilisation de la plateforme et contacter{" "}
+            <strong className="text-white">verification@axelmond.com</strong>.
+          </p>
+        </div>
       </InstitutionalHero>
 
       {/* ── CONTENT ──────────────────────────────────────────────────────── */}

@@ -268,8 +268,14 @@ export function useVirtualClassroomUI({
           },
         ];
 
+  const lastActiveSpeakerRef = useRef<string | null>(null);
+  if (activeSpeakerIdentity) {
+    lastActiveSpeakerRef.current = activeSpeakerIdentity;
+  }
+
   const activeSpeaker =
     connectedParticipants.find((participant) => participant.identity === activeSpeakerIdentity) ||
+    connectedParticipants.find((participant) => participant.identity === lastActiveSpeakerRef.current) ||
     connectedParticipants.find((participant) => !participant.isLocal && participant.videoTrack) ||
     connectedParticipants.find((participant) => participant.videoTrack) ||
     connectedParticipants[0];

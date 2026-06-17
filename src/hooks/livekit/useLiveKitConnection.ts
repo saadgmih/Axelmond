@@ -1,4 +1,4 @@
-import { useEffect, type Dispatch, type RefObject, type SetStateAction } from "react";
+import { useEffect, useRef, type Dispatch, type RefObject, type SetStateAction } from "react";
 import { Room, RoomEvent } from "livekit-client";
 import { getClientErrorMessage } from "../../client-errors";
 import type { AppUser } from "../../components/AuthScreen";
@@ -15,6 +15,9 @@ import {
   type LiveWhiteboardStroke,
 } from "../../live/live-sync";
 import { extractParticipantRole, validateIncomingLiveSyncMessage } from "../../live/live-sync-validation";
+
+const ACTIVE_SPEAKER_SWITCH_DELAY_MS = 350;
+const ACTIVE_SPEAKER_CLEAR_DELAY_MS = 900;
 
 export interface UseLiveKitConnectionOptions {
   activeLiveCourse: Course | null;
@@ -81,6 +84,15 @@ export function useLiveKitConnection({
   setInvoices,
   setCourseToPurchase,
 }: UseLiveKitConnectionOptions) {
+  const activeSpeakerIdentityRef = useRef(activeSpeakerIdentity);
+  const activeSpeakerSwitchTimerRef = useRef<number | null>(null);
+  const activeSpeakerClearTimerRef = useRef<number | null>(null);
+  const pendingActiveSpeakerIdentityRef = useRef("");
+
+  useEffect(() => {
+    activeSpeakerIdentityRef.current = activeSpeakerIdentity;
+  }, [activeSpeakerIdentity]);
+
   useEffect(() => {
     if (!activeLiveCourse || !currentUser) return;
 
@@ -155,10 +167,66 @@ export function useLiveKitConnection({
       }
     };
 
+    const clearActiveSpeakerTimers = () => {
+      if (activeSpeakerSwitchTimerRef.current !== null) {
+        window.clearTimeout(activeSpeakerSwitchTimerRef.current);
+        activeSpeakerSwitchTimerRef.current = null;
+      }
+      if (activeSpeakerClearTimerRef.current !== null) {
+        window.clearTimeout(activeSpeakerClearTimerRef.current);
+        activeSpeakerClearTimerRef.current = null;
+      }
+    };
+
+    const commitActiveSpeakerIdentity = (identity: string) => {
+      if (activeSpeakerIdentityRef.current === identity) return;
+      activeSpeakerIdentityRef.current = identity;
+      setActiveSpeakerIdentity(identity);
+    };
+
     const handleActiveSpeakersChanged = (speakers: any[]) => {
       const active = speakers.find((speaker) => speaker.identity);
-      setActiveSpeakerIdentity(active?.identity || "");
-      syncLiveParticipants(room);
+      const nextIdentity = active?.identity || "";
+
+      if (!nextIdentity) {
+        pendingActiveSpeakerIdentityRef.current = "";
+        if (activeSpeakerSwitchTimerRef.current !== null) {
+          window.clearTimeout(activeSpeakerSwitchTimerRef.current);
+          activeSpeakerSwitchTimerRef.current = null;
+        }
+        if (!activeSpeakerIdentityRef.current || activeSpeakerClearTimerRef.current !== null) return;
+        activeSpeakerClearTimerRef.current = window.setTimeout(() => {
+          activeSpeakerClearTimerRef.current = null;
+          if (pendingActiveSpeakerIdentityRef.current) return;
+          commitActiveSpeakerIdentity("");
+          syncLiveParticipants(room);
+        }, ACTIVE_SPEAKER_CLEAR_DELAY_MS);
+        return;
+      }
+
+      if (activeSpeakerClearTimerRef.current !== null) {
+        window.clearTimeout(activeSpeakerClearTimerRef.current);
+        activeSpeakerClearTimerRef.current = null;
+      }
+
+      if (!activeSpeakerIdentityRef.current || activeSpeakerIdentityRef.current === nextIdentity) {
+        pendingActiveSpeakerIdentityRef.current = "";
+        commitActiveSpeakerIdentity(nextIdentity);
+        syncLiveParticipants(room);
+        return;
+      }
+
+      pendingActiveSpeakerIdentityRef.current = nextIdentity;
+      if (activeSpeakerSwitchTimerRef.current !== null) {
+        window.clearTimeout(activeSpeakerSwitchTimerRef.current);
+      }
+      activeSpeakerSwitchTimerRef.current = window.setTimeout(() => {
+        activeSpeakerSwitchTimerRef.current = null;
+        if (pendingActiveSpeakerIdentityRef.current !== nextIdentity) return;
+        pendingActiveSpeakerIdentityRef.current = "";
+        commitActiveSpeakerIdentity(nextIdentity);
+        syncLiveParticipants(room);
+      }, ACTIVE_SPEAKER_SWITCH_DELAY_MS);
     };
 
     room
@@ -209,7 +277,9 @@ export function useLiveKitConnection({
             } catch (syncErr) {
               console.warn("[student] Enrollment resync failed after LiveKit denial", syncErr);
             }
-            setLiveStatusMsg("Inscription au module requise pour rejoindre ce live. Activez votre accès depuis le catalogue.");
+            setLiveStatusMsg(
+              "Inscription au module requise pour rejoindre ce live. Activez votre accès depuis le catalogue.",
+            );
             setCourseToPurchase(activeLiveCourse);
           })();
           return;
@@ -223,6 +293,8 @@ export function useLiveKitConnection({
 
     return () => {
       disposed = true;
+      clearActiveSpeakerTimers();
+      pendingActiveSpeakerIdentityRef.current = "";
       room.removeAllListeners();
       room.disconnect();
       setLiveRoom(null);
@@ -230,6 +302,7 @@ export function useLiveKitConnection({
       setIsMicEnabled(false);
       setIsCameraEnabled(false);
       setIsScreenShareEnabled(false);
+      activeSpeakerIdentityRef.current = "";
       setActiveSpeakerIdentity("");
     };
   }, [activeLiveCourse?.id, currentUser?.id, liveReconnectNonce]);

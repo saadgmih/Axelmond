@@ -9,6 +9,8 @@ import { skipSecurityRuntimeTests } from "./helpers/security-runtime-harness.ts"
 import { cleanupChatTutorRuntimeFixtures, seedChatTutorRuntimeFixtures } from "./helpers/security-runtime-fixtures.ts";
 import { SECURITY_RUNTIME_TEST_PASSWORD } from "./helpers/security-runtime-fixtures.ts";
 import { MOBILE_CLIENT_HEADER, MOBILE_CLIENT_VALUE } from "../src/auth-mobile.ts";
+import { prisma } from "../src/db.ts";
+import { buildLiveKitRoomName } from "../src/livekit.ts";
 import { runtimeTest } from "./helpers/runtimeTest.ts";
 
 await runtimeTest("mobile-api-runtime", async () => {
@@ -35,6 +37,26 @@ await runtimeTest("mobile-api-runtime", async () => {
   try {
     await waitForSecurityRuntimeHealth(baseUrl, { process: runtime.process });
     const fixture = await seedChatTutorRuntimeFixtures();
+    const roomName = buildLiveKitRoomName(fixture.courseId);
+    await prisma.course.update({
+      where: { id: fixture.courseId },
+      data: { isLiveNow: true, liveSubject: "Mobile runtime live" },
+    });
+    await prisma.liveSession.upsert({
+      where: { roomName },
+      update: {
+        isActive: true,
+        endTime: null,
+        professorId: fixture.users.ownerProfessor.id,
+        title: "Mobile runtime live",
+      },
+      create: {
+        roomName,
+        courseId: fixture.courseId,
+        professorId: fixture.users.ownerProfessor.id,
+        title: "Mobile runtime live",
+      },
+    });
 
     const routesRes = await fetch(`${baseUrl}/api/mobile/routes`, {
       headers: mobileHeaders(),

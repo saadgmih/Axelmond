@@ -35,11 +35,10 @@ export function signAuthToken(
   secret = getAuthTokenSecret(),
 ) {
   const authTokenVersion = Number.isInteger(user.authTokenVersion) ? Number(user.authTokenVersion) : 0;
-  return jwt.sign(
-    { userId: user.id, role: user.role, tv: authTokenVersion },
-    secret,
-    { expiresIn: "15m", algorithm: "HS256" },
-  );
+  return jwt.sign({ userId: user.id, role: user.role, tv: authTokenVersion }, secret, {
+    expiresIn: "15m",
+    algorithm: "HS256",
+  });
 }
 
 export function verifyAuthToken(token: string | undefined, secret = getAuthTokenSecret()): AuthTokenSession | null {

@@ -2,10 +2,7 @@ import type { Prisma } from "@prisma/client";
 import crypto from "node:crypto";
 import { prisma } from "./db";
 
-export type SecurityChallengeKind =
-  | "WEBAUTHN_REGISTER"
-  | "WEBAUTHN_LOGIN"
-  | "TOTP_SETUP";
+export type SecurityChallengeKind = "WEBAUTHN_REGISTER" | "WEBAUTHN_LOGIN" | "TOTP_SETUP";
 
 const CHALLENGE_TTL_MS = 5 * 60 * 1000;
 

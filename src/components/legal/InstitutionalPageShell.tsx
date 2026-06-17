@@ -210,12 +210,8 @@ export const InstitutionalHero: React.FC<{
     ref={heroRef.ref}
     className={`relative overflow-hidden bg-gradient-to-br from-slate-950 ${gradientClass} to-slate-950 border-b border-slate-800/50`}
   >
-    {topBlobClass && (
-      <div className={`absolute pointer-events-none blur-3xl ${topBlobClass}`} aria-hidden />
-    )}
-    {bottomBlobClass && (
-      <div className={`absolute pointer-events-none blur-3xl ${bottomBlobClass}`} aria-hidden />
-    )}
+    {topBlobClass && <div className={`absolute pointer-events-none blur-3xl ${topBlobClass}`} aria-hidden />}
+    {bottomBlobClass && <div className={`absolute pointer-events-none blur-3xl ${bottomBlobClass}`} aria-hidden />}
     {extraBlobs}
     <div
       className={`relative ${maxWidthClass} mx-auto ${contentClassName}`}

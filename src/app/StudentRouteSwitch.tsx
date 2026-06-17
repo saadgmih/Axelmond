@@ -4,7 +4,6 @@ import {
   LazyStudentCatalogView,
   LazyStudentCourseView,
   LazyStudentDashboardView,
-  LazyStudentLiveView,
   LazyStudentProfileView,
   LazyStudentAccountSecurityView,
   LazyStudentStudyPlanView,
@@ -30,8 +29,7 @@ export function StudentRouteSwitch() {
   const ui = usePlatformUi();
 
   const { currentUser, enrolledCourses, role, invoices, isLoginDataLoading } = session;
-  const { currentView, navigateTo, selectedCourse, selectedModule, setSelectedModule } =
-    navigation;
+  const { currentView, navigateTo, selectedCourse, selectedModule, setSelectedModule } = navigation;
   const {
     domains,
     selectedDomain,
@@ -43,7 +41,7 @@ export function StudentRouteSwitch() {
     setSearchQuery,
   } = catalog;
   const { studentCourseBindings } = bindings;
-  const { activeLiveCourse, classroomBindings } = live;
+  const { activeLiveCourse } = live;
   const { avatarStatusMsg, handleUploadAvatarFile, handleDeleteAvatar } = ui;
 
   if (!currentUser) return null;
@@ -140,9 +138,7 @@ export function StudentRouteSwitch() {
           <LazyStudentAccountSecurityView currentUser={currentUser} />
         </Suspense>
       )}
-      {(currentView === "study-plan" ||
-        currentView === "study-schedule" ||
-        currentView === "objectives") && (
+      {(currentView === "study-plan" || currentView === "study-schedule" || currentView === "objectives") && (
         <Suspense fallback={<RouteChunkFallback label="Chargement du plan d'étude…" />}>
           <LazyStudentStudyPlanView role={role} currentView={currentView} />
         </Suspense>

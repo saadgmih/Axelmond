@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import { readApiRouteSources } from "./helpers/api-route-sources.ts";
 import fs from "node:fs";
-import { computeDiscountedPrice, isPromoCodesEnabled, resolveCourseChargeAmount, resolvePromoDiscountPercent } from "../src/promo-codes.ts";
+import {
+  computeDiscountedPrice,
+  isPromoCodesEnabled,
+  resolveCourseChargeAmount,
+  resolvePromoDiscountPercent,
+} from "../src/promo-codes.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("promo-codes", () => {

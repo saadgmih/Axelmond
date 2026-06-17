@@ -1,9 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import {
-  courseModuleRowFromJsonItem,
-  resolveCourseModules,
-} from "../src/course-syllabus-modules.ts";
+import { courseModuleRowFromJsonItem, resolveCourseModules } from "../src/course-syllabus-modules.ts";
 import type { CourseModule } from "../src/types.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 

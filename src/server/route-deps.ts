@@ -12,9 +12,8 @@ import {
   signAuthToken,
   verifyAuthToken,
 } from "../auth-token";
-import { APP_USER_BILLING_INCLUDE, persistCoursePaymentEnrollment } from "../course-payments";
+import { persistCoursePaymentEnrollment } from "../course-payments";
 import type { CoursePaymentEnrollmentInput } from "../course-payments";
-import { prisma } from "../db";
 import { logSecurity, logAudit } from "../security-logger";
 import { setAuthUser, tryGetAuthUser } from "./route-types";
 import { toAppUser } from "./route-mappers";
@@ -40,12 +39,7 @@ export { logLiveKit, logInvitation, logEmail, logDb } from "./route-loggers";
 export * from "./route-mappers";
 export * from "./route-schemas";
 
-import {
-  invalidateAuthUserCache,
-  resolveCachedAuthDbUser,
-  startAuthUserCachePruner,
-  stopAuthUserCachePruner,
-} from "./auth-user-cache";
+import { invalidateAuthUserCache, resolveCachedAuthDbUser } from "./auth-user-cache";
 
 export const requireAuth: express.RequestHandler = async (req, res, next) => {
   const token = req.headers.authorization?.replace(/^Bearer\s+/i, "");
@@ -56,7 +50,6 @@ export const requireAuth: express.RequestHandler = async (req, res, next) => {
     return;
   }
 
-  const now = Date.now();
   let dbUser: any = null;
   try {
     dbUser = await resolveCachedAuthDbUser({
@@ -160,7 +153,6 @@ export const requireAdmin: express.RequestHandler = (req, res, next) => {
   next();
 };
 
-
 export async function persistCoursePaymentWithAudit(params: CoursePaymentEnrollmentInput) {
   return persistCoursePaymentEnrollment(params, {
     logAudit,
@@ -176,12 +168,22 @@ export { deleteCloudFiles } from "../uploadthing";
 export { notifyEnrolledStudentsForCourse } from "../notifications";
 export { buildCourseGradeRows } from "../grades";
 export { assertCourseLearningAccess } from "../course-access";
-export { APP_USER_BILLING_INCLUDE, buildCourseInvoiceId, mergeUserInvoices, persistCoursePaymentEnrollment } from "../course-payments";
+export {
+  APP_USER_BILLING_INCLUDE,
+  buildCourseInvoiceId,
+  mergeUserInvoices,
+  persistCoursePaymentEnrollment,
+} from "../course-payments";
 export { PUBLIC_API_ERRORS, LIVE_ACCESS_ERRORS, toPushSubscribeClientResponse } from "../public-api-errors";
 export { sanitizeAcademicProfileInput, sanitizeAvatarUrl, isAvatarUrlFieldInvalid } from "../academic-profile";
 export { isAllowedAvatarUrl } from "../avatar-security";
 export { setAuthCookies, clearAuthCookies, persistCsrfTokenForRefreshSession } from "../auth-cookies";
-export { withMobileRefreshToken, isMobileClientRequest, MOBILE_CLIENT_HEADER, MOBILE_CLIENT_KEY_HEADER } from "../auth-mobile";
+export {
+  withMobileRefreshToken,
+  isMobileClientRequest,
+  MOBILE_CLIENT_HEADER,
+  MOBILE_CLIENT_KEY_HEADER,
+} from "../auth-mobile";
 export { readRefreshTokenFromRequest } from "../auth-cookies";
 export { parsePositiveInt } from "../route-params";
 export {
@@ -267,11 +269,7 @@ export {
   trimChatTutorHistory,
   getBcryptRounds,
 } from "../security-hardening";
-export {
-  courseModuleRowFromJsonItem,
-  getNextCourseModuleId,
-  resolveCourseModules,
-} from "../course-syllabus-modules";
+export { courseModuleRowFromJsonItem, getNextCourseModuleId, resolveCourseModules } from "../course-syllabus-modules";
 export { createPayPalOrder, capturePayPalOrder, isPayPalConfigured, logPayPalError } from "../paypal-server";
 export { processPayPalCaptureEnrollment, toPayPalCaptureClientResponse } from "../paypal-enrollment";
 export { resolveCourseChargeAmount, isFreeCourseCharge } from "../promo-codes";
@@ -288,4 +286,3 @@ export { decodeStoredText } from "../text";
 export { Prisma } from "@prisma/client";
 export { default as bcrypt } from "bcryptjs";
 export { z } from "zod";
-

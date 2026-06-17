@@ -40,7 +40,10 @@ export function usePlatformCatalogData(
           setIsLoading(false);
           return;
         }
-        const message = getClientErrorMessage(err, "Impossible de charger les données académiques. Réessayez dans un instant.");
+        const message = getClientErrorMessage(
+          err,
+          "Impossible de charger les données académiques. Réessayez dans un instant.",
+        );
         setCatalogError(message || null);
         setIsLoading(false);
       });

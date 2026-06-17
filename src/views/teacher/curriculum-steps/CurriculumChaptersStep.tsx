@@ -1,8 +1,4 @@
-import {
-  Layers,
-  Video,
-  Plus,
-} from "lucide-react";
+import { Layers, Video, Plus } from "lucide-react";
 
 import { curriculumUi, getStepTheme, publishedBadge, publishedLabel } from "../curriculum-theme";
 import type { TeacherCurriculumViewProps } from "../curriculum-types";

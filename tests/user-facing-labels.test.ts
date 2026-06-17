@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { formatInvoiceReference, formatLessonContentTypeLabel, formatTicketReference } from "../src/utils/user-facing-labels.ts";
+import {
+  formatInvoiceReference,
+  formatLessonContentTypeLabel,
+  formatTicketReference,
+} from "../src/utils/user-facing-labels.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("user-facing-labels", () => {

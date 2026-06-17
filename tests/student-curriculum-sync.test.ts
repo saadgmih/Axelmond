@@ -1,11 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { readApiRouteSources } from "./helpers/api-route-sources.ts";
-import {
-  isLessonModuleLink,
-  lessonContentLinkKey,
-  mapLessonTypeToModuleType,
-} from "../src/course-curriculum-sync.ts";
+import { isLessonModuleLink, lessonContentLinkKey, mapLessonTypeToModuleType } from "../src/course-curriculum-sync.ts";
 import { resolveCourseModules } from "../src/course-syllabus-modules.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 

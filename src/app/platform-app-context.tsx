@@ -1,4 +1,11 @@
-import { usePlatformBindings, usePlatformCatalog, usePlatformLive, usePlatformNavigation, usePlatformSession, usePlatformUi } from "./platform-app-slices";
+import {
+  usePlatformBindings,
+  usePlatformCatalog,
+  usePlatformLive,
+  usePlatformNavigation,
+  usePlatformSession,
+  usePlatformUi,
+} from "./platform-app-slices";
 
 /** @deprecated Prefer domain hooks: usePlatformSession, usePlatformCatalog, etc. */
 export function usePlatformAppContext() {

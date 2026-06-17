@@ -30,6 +30,9 @@ rulesTest("livekit-ui", () => {
   assert.match(classroomSource, /resolveStageParticipants/);
   assert.match(classroomSource, /LiveResourceStage/);
   assert.match(liveKitSource, /LIVE_SYNC_TOPIC/);
+  assert.match(liveKitSource, /ACTIVE_SPEAKER_SWITCH_DELAY_MS/);
+  assert.match(liveKitSource, /ACTIVE_SPEAKER_CLEAR_DELAY_MS/);
+  assert.match(liveKitSource, /activeSpeakerClearTimerRef/);
   assert.match(classroomSource, /useLiveConnectionNotice/);
   assert.doesNotMatch(classroomSource, /Panneau interactif/);
   assert.match(classroomSource, /key: "v"/);

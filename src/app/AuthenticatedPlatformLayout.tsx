@@ -6,7 +6,14 @@ import KeyboardShortcutsHelp from "../components/KeyboardShortcutsHelp";
 import { INSTITUTIONAL_VIEWS } from "../navigation/platformPaths";
 import InstitutionalViewSwitch from "../views/InstitutionalViewSwitch";
 import { LazyLiveKitSessionHost, LazyPaymentModal } from "../lazyViews";
-import { usePlatformBindings, usePlatformCatalog, usePlatformLive, usePlatformNavigation, usePlatformSession, usePlatformUi } from "./platform-app-slices";
+import {
+  usePlatformBindings,
+  usePlatformCatalog,
+  usePlatformLive,
+  usePlatformNavigation,
+  usePlatformSession,
+  usePlatformUi,
+} from "./platform-app-slices";
 import { StudentRouteSwitch } from "./StudentRouteSwitch";
 import { TeacherRouteSwitch } from "./TeacherRouteSwitch";
 import { AppFooter } from "./AppFooter";
@@ -18,6 +25,7 @@ export function AuthenticatedPlatformLayout() {
   const live = usePlatformLive();
   const ui = usePlatformUi();
   const bindings = usePlatformBindings();
+  const currentView = navigation.currentView;
 
   return (
     <div className="flex h-[100dvh] max-h-[100dvh] bg-slate-50 font-sans overflow-hidden">
@@ -38,7 +46,7 @@ export function AuthenticatedPlatformLayout() {
             setInvoices={session.setInvoices}
             getInitials={catalog.getInitials}
             navigateTo={navigation.navigateTo}
-            currentView={navigation.currentView}
+            currentView={currentView}
             teacherView={navigation.teacherView}
             handleToggleCourseLive={live.handleToggleCourseLive}
           />
@@ -57,7 +65,7 @@ export function AuthenticatedPlatformLayout() {
       )}
 
       <Sidebar
-        currentView={navigation.currentView}
+        currentView={currentView}
         enrolledCourses={session.enrolledCourses}
         isMobileMenuOpen={ui.isMobileMenuOpen}
         courses={catalog.courses}
@@ -74,7 +82,7 @@ export function AuthenticatedPlatformLayout() {
       <div className="flex-1 flex flex-col overflow-hidden relative">
         {!live.isStudentLive && (
           <Topbar
-            currentView={navigation.currentView}
+            currentView={currentView}
             searchQuery={catalog.searchQuery}
             setSearchQuery={catalog.setSearchQuery}
             enrolledCourses={session.enrolledCourses}
@@ -86,7 +94,7 @@ export function AuthenticatedPlatformLayout() {
             catalogSearchRef={catalog.catalogSearchRef}
             notificationUnreadCount={session.notificationUnreadCount}
             onOpenNotifications={session.openNotificationsView}
-            activeView={session.role === "teacher" ? navigation.teacherView : navigation.currentView}
+            activeView={session.role === "teacher" ? navigation.teacherView : currentView}
           />
         )}
 
@@ -95,9 +103,9 @@ export function AuthenticatedPlatformLayout() {
           tabIndex={-1}
           className={`flex-1 relative bg-slate-50 outline-none min-h-0 ${ui.lockMainScroll ? "overflow-hidden" : "overflow-y-auto"}`}
         >
-          {INSTITUTIONAL_VIEWS.has(navigation.currentView) ? (
+          {INSTITUTIONAL_VIEWS.has(currentView) ? (
             <InstitutionalViewSwitch
-              currentView={navigation.currentView}
+              currentView={currentView}
               currentUser={session.currentUser!}
               navigateTo={navigation.navigateTo}
             />
@@ -107,6 +115,7 @@ export function AuthenticatedPlatformLayout() {
             <StudentRouteSwitch />
           )}
 
+          {/* Global Footer */}
           {!ui.hideGlobalFooter && <AppFooter />}
         </main>
       </div>
@@ -129,7 +138,7 @@ export function AuthenticatedPlatformLayout() {
 
       {live.activeLiveCourse &&
         !(
-          (session.role === "student" && navigation.currentView === "live") ||
+          (session.role === "student" && currentView === "live") ||
           (session.role === "teacher" && navigation.teacherView === "live-control")
         ) && (
           <button

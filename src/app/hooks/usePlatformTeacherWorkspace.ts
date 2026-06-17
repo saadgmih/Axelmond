@@ -3,13 +3,14 @@ import type { Dispatch, SetStateAction } from "react";
 import { useTeacherCurriculum } from "../../hooks/useTeacherCurriculum";
 import { useTeacherDashboard } from "../../hooks/useTeacherDashboard";
 import type { AppUser } from "../../shared/app-user";
-import type { Course, Discipline } from "../../types";
+import type { ContentSection, Course, Discipline } from "../../types";
+import type { flattenSections } from "../../hooks/useCourseContent";
 
 type CourseContentApi = {
-  courseContentSections: unknown;
-  setCourseContentSections: (value: unknown) => void;
-  flattenSections: (sections: unknown) => unknown[];
-  refreshCourseContent: (courseId: number) => Promise<void>;
+  courseContentSections: ContentSection[];
+  setCourseContentSections: Dispatch<SetStateAction<ContentSection[]>>;
+  flattenSections: typeof flattenSections;
+  refreshCourseContent: (courseId: number) => Promise<ContentSection[]>;
 };
 
 export function usePlatformTeacherWorkspace(options: {
@@ -22,8 +23,16 @@ export function usePlatformTeacherWorkspace(options: {
   setActiveLiveCourse: Dispatch<SetStateAction<Course | null>>;
   setLiveCourseId: Dispatch<SetStateAction<number>>;
 }) {
-  const { role, courses, setCourses, allDisciplines, currentUser, courseContent, setActiveLiveCourse, setLiveCourseId } =
-    options;
+  const {
+    role,
+    courses,
+    setCourses,
+    allDisciplines,
+    currentUser,
+    courseContent,
+    setActiveLiveCourse,
+    setLiveCourseId,
+  } = options;
 
   const managedCourses = useMemo(
     () =>

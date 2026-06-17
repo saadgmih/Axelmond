@@ -33,7 +33,7 @@ export default function PasswordStrengthMeter({ password = "", isDark = true }: 
   ];
 
   const metCount = Object.values(rules).filter(Boolean).length;
-  
+
   let strengthLabel = "Très faible";
   let strengthColor = isDark ? "bg-slate-700" : "bg-slate-300";
   let textColor = isDark ? "text-slate-400" : "text-slate-500";
@@ -73,10 +73,7 @@ export default function PasswordStrengthMeter({ password = "", isDark = true }: 
           </span>
         </div>
         <div className={`h-1.5 w-full rounded-full overflow-hidden ${isDark ? "bg-slate-800" : "bg-slate-200"}`}>
-          <div
-            className={`h-full transition-all duration-300 ease-out ${strengthColor}`}
-            style={{ width }}
-          />
+          <div className={`h-full transition-all duration-300 ease-out ${strengthColor}`} style={{ width }} />
         </div>
       </div>
 

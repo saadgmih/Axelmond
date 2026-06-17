@@ -1,8 +1,4 @@
-import {
-  BookOpen,
-  Check,
-  Sparkles,
-} from "lucide-react";
+import { BookOpen, Check, Sparkles } from "lucide-react";
 import { formatCredits } from "../../../utils/morocco-locale";
 
 import { CURRICULUM_STEPS, curriculumUi, getStepTheme } from "../curriculum-theme";
@@ -43,16 +39,16 @@ export default function CurriculumStepper(props: Props) {
         <div className={curriculumUi.heroGlow} />
         <div className="relative space-y-6">
           <div className="space-y-3 max-w-2xl">
-              <span className={curriculumUi.studioBadge}>
-                <Sparkles className="h-3.5 w-3.5" />
-                Studio pédagogique
-              </span>
-              <h2 className={curriculumUi.heroTitle}>Gestion du programme pédagogique</h2>
-              <p className={curriculumUi.heroDesc}>
-                Parcourez les 5 étapes pour construire votre module : catalogue, chapitres, arborescence, médias et
-                évaluations. Chaque étape a sa couleur pour repérer rapidement où vous travaillez.
-              </p>
-            </div>
+            <span className={curriculumUi.studioBadge}>
+              <Sparkles className="h-3.5 w-3.5" />
+              Studio pédagogique
+            </span>
+            <h2 className={curriculumUi.heroTitle}>Gestion du programme pédagogique</h2>
+            <p className={curriculumUi.heroDesc}>
+              Parcourez les 5 étapes pour construire votre module : catalogue, chapitres, arborescence, médias et
+              évaluations. Chaque étape a sa couleur pour repérer rapidement où vous travaillez.
+            </p>
+          </div>
 
           {(curriculumSuccessMsg || curriculumErrorMsg) && (
             <div
@@ -138,8 +134,8 @@ export default function CurriculumStepper(props: Props) {
                 </h3>
                 {managedCourse && (
                   <p className="mt-1 text-[11px] text-slate-400">
-                    {managedCourse.discipline?.name || managedCourse.category} · {formatCredits(managedCourse.credits)} ·{" "}
-                    {managedCourse.duration}
+                    {managedCourse.discipline?.name || managedCourse.category} · {formatCredits(managedCourse.credits)}{" "}
+                    · {managedCourse.duration}
                     {managedCourse.published === false ? " · Brouillon" : " · Publié"}
                   </p>
                 )}

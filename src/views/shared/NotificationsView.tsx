@@ -140,11 +140,7 @@ export default function NotificationsView({
             minItemsToVirtualize={18}
             getKey={(notification) => notification.id}
             renderItem={(notification) => (
-              <NotificationListItem
-                notification={notification}
-                onMarkRead={onMarkRead}
-                onNavigate={onNavigate}
-              />
+              <NotificationListItem notification={notification} onMarkRead={onMarkRead} onNavigate={onNavigate} />
             )}
           />
         )}

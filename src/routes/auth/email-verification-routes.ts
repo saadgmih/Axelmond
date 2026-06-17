@@ -110,7 +110,13 @@ export function registerEmailVerificationRoutes(app: Express, ctx: RouteContext)
       return;
     }
 
-    const body = await issueAuthenticatedSession(req, res, api, verifiedUser, "User logged in after email verification");
+    const body = await issueAuthenticatedSession(
+      req,
+      res,
+      api,
+      verifiedUser,
+      "User logged in after email verification",
+    );
     res.json({ ...body, message: "E-mail vérifié avec succès" });
   });
 

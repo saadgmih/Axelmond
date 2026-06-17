@@ -1,7 +1,11 @@
 import { X } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import type { StudentObjectiveFormState } from "../../../hooks/useStudentObjectives";
-import { FOCUS_CONTENT_TYPES, STUDENT_OBJECTIVE_RECURRENCES, STUDENT_OBJECTIVE_TYPES } from "../../../student-objectives";
+import {
+  FOCUS_CONTENT_TYPES,
+  STUDENT_OBJECTIVE_RECURRENCES,
+  STUDENT_OBJECTIVE_TYPES,
+} from "../../../student-objectives";
 import { scheduleUi } from "../../teacher/schedule-theme";
 
 export function ObjectivesFormModal({
@@ -107,9 +111,7 @@ export function ObjectivesFormModal({
               <select
                 className={scheduleUi.input}
                 value={form.status}
-                onChange={(e) =>
-                  setForm((current) => ({ ...current, status: e.target.value as typeof form.status }))
-                }
+                onChange={(e) => setForm((current) => ({ ...current, status: e.target.value as typeof form.status }))}
               >
                 <option value="IN_PROGRESS">En cours</option>
                 <option value="COMPLETED">Terminé</option>
@@ -138,8 +140,8 @@ export function ObjectivesFormModal({
             <div className="mb-4">
               <h3 className="text-sm font-black text-cyan-100">Écoute / concentration</h3>
               <p className="mt-1 text-[11px] font-semibold text-slate-400">
-                Vous pouvez ajouter un lien ou un contenu à écouter pendant le travail. Podcast, vidéo éducative,
-                rappel audio ou autre: le choix vous appartient.
+                Vous pouvez ajouter un lien ou un contenu à écouter pendant le travail. Podcast, vidéo éducative, rappel
+                audio ou autre: le choix vous appartient.
               </p>
             </div>
             <div className="grid grid-cols-1 gap-4">

@@ -121,7 +121,6 @@ export async function seedCourseContentRuntimeFixtures(): Promise<CourseContentR
       isLiveNow: false,
       published: true,
       createdById: users.ownerProfessor.id,
-      modules: [],
     },
   });
 

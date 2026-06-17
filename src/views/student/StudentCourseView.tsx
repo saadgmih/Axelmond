@@ -53,7 +53,7 @@ export default function StudentCourseView({
   selectedCourse,
   selectedModule,
   courseContentSections,
-  selectedLessonContent,
+  selectedLessonContent: selectedLessonContentFromProps,
   showAITutor,
   quizQuestions,
   quizAnswers,
@@ -70,12 +70,12 @@ export default function StudentCourseView({
 }: StudentCourseViewProps) {
   const [isModuleDrawerOpen, setIsModuleDrawerOpen] = useState(false);
 
-  const activeLessonContent = useMemo(() => {
-    if (selectedLessonContent) return selectedLessonContent;
+  const selectedLessonContent = useMemo(() => {
+    if (selectedLessonContentFromProps) return selectedLessonContentFromProps;
     const linkedContentId = lessonContentIdFromModule(selectedModule.sectionId);
     if (!linkedContentId) return null;
     return findLessonContent(courseContentSections, linkedContentId);
-  }, [selectedLessonContent, selectedModule.sectionId, courseContentSections]);
+  }, [selectedLessonContentFromProps, selectedModule.sectionId, courseContentSections]);
 
   const moduleSidebar = (
     <>
@@ -243,9 +243,9 @@ export default function StudentCourseView({
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
             {/* Module body (Video / Text / Quiz) */}
             <div className={`${showAITutor ? "xl:col-span-7" : "xl:col-span-12"} space-y-6`}>
-              {activeLessonContent &&
+              {selectedLessonContent &&
                 (() => {
-                  const rawAttachmentUrl = activeLessonContent.attachments[0]?.url;
+                  const rawAttachmentUrl = selectedLessonContent.attachments[0]?.url;
                   const safeAttachmentUrl = sanitizeCourseAttachmentUrl(rawAttachmentUrl);
 
                   return (
@@ -253,9 +253,9 @@ export default function StudentCourseView({
                       <div className="bg-slate-900 rounded-2xl p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm border border-slate-950">
                         <div className="flex items-center gap-3">
                           <div className="p-3 bg-indigo-500/10 text-indigo-300 rounded-xl border border-indigo-500/20">
-                            {activeLessonContent.type === "VIDEO" ? (
+                            {selectedLessonContent.type === "VIDEO" ? (
                               <Video className="w-6 h-6" />
-                            ) : activeLessonContent.type === "PDF" ? (
+                            ) : selectedLessonContent.type === "PDF" ? (
                               <FileText className="w-6 h-6" />
                             ) : (
                               <Camera className="w-6 h-6" />
@@ -265,42 +265,42 @@ export default function StudentCourseView({
                             <p className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest leading-none">
                               Contenu publié — consultation sur la plateforme
                             </p>
-                            <h4 className="text-sm font-bold text-white mt-1">{activeLessonContent.title}</h4>
+                            <h4 className="text-sm font-bold text-white mt-1">{selectedLessonContent.title}</h4>
                             <p className="text-[11px] text-slate-400">
-                              {activeLessonContent.attachments[0]?.fileName || "Contenu texte"}
+                              {selectedLessonContent.attachments[0]?.fileName || "Contenu texte"}
                             </p>
                           </div>
                         </div>
                       </div>
 
-                      {activeLessonContent.type === "VIDEO" && safeAttachmentUrl && (
+                      {selectedLessonContent.type === "VIDEO" && safeAttachmentUrl && (
                         <PremiumVideoPlayer
                           src={safeAttachmentUrl}
-                          title={activeLessonContent.title}
+                          title={selectedLessonContent.title}
                           instructor={selectedCourse.instructor}
                           activeSector="student"
                         />
                       )}
 
-                      {activeLessonContent.type === "PDF" && (
-                        <PdfLessonViewer contentId={activeLessonContent.id} title={activeLessonContent.title} />
+                      {selectedLessonContent.type === "PDF" && (
+                        <PdfLessonViewer contentId={selectedLessonContent.id} title={selectedLessonContent.title} />
                       )}
 
-                      {activeLessonContent.type === "PDF" && rawAttachmentUrl && !safeAttachmentUrl && (
+                      {selectedLessonContent.type === "PDF" && rawAttachmentUrl && !safeAttachmentUrl && (
                         <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
                           Ce document utilise une URL non autorisée.
                         </div>
                       )}
 
-                      {activeLessonContent.type === "IMAGE" && (
+                      {selectedLessonContent.type === "IMAGE" && (
                         <PdfLessonViewer
-                          contentId={activeLessonContent.id}
-                          title={activeLessonContent.title}
+                          contentId={selectedLessonContent.id}
+                          title={selectedLessonContent.title}
                           mediaType="IMAGE"
                         />
                       )}
 
-                      {activeLessonContent.type === "IMAGE" && rawAttachmentUrl && !safeAttachmentUrl && (
+                      {selectedLessonContent.type === "IMAGE" && rawAttachmentUrl && !safeAttachmentUrl && (
                         <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
                           Cette image utilise une URL non autorisée.
                         </div>
@@ -310,7 +310,7 @@ export default function StudentCourseView({
                 })()}
 
               {/* CASE A: VIDEO CONTENT */}
-              {!activeLessonContent &&
+              {!selectedLessonContent &&
                 selectedModule.type === "video" &&
                 (() => {
                   const safeModuleVideoUrl = sanitizeCourseAttachmentUrl(selectedModule.attachmentUrl);
@@ -377,7 +377,7 @@ export default function StudentCourseView({
                 })()}
 
               {/* CASE B: DOCUMENT PDF TEXT */}
-              {!activeLessonContent && selectedModule.type === "pdf" && selectedModule.contentMarkdown && (
+              {!selectedLessonContent && selectedModule.type === "pdf" && selectedModule.contentMarkdown && (
                 <div className="space-y-6">
                   {/* Download and Header banner */}
                   <div className="bg-slate-900 rounded-2xl p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm border border-slate-950">
@@ -482,7 +482,7 @@ export default function StudentCourseView({
               )}
 
               {/* CASE C: INTERACTIVE QUIZ */}
-              {!activeLessonContent && selectedModule.type === "quiz" && (
+              {!selectedLessonContent && selectedModule.type === "quiz" && (
                 <div className="space-y-6">
                   <div className="bg-gradient-to-r from-purple-900 to-indigo-900 text-white rounded-2xl p-6 shadow-md border border-indigo-950 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="space-y-1">
@@ -632,7 +632,7 @@ export default function StudentCourseView({
                 </div>
               )}
 
-              {!activeLessonContent &&
+              {!selectedLessonContent &&
                 selectedModule.type !== "video" &&
                 !(selectedModule.type === "pdf" && selectedModule.contentMarkdown) &&
                 selectedModule.type !== "quiz" && (

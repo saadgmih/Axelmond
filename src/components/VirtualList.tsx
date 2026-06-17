@@ -1,4 +1,14 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+  type RefObject,
+} from "react";
 
 interface VirtualListProps<T> {
   items: T[];
@@ -148,8 +158,7 @@ export function VirtualList<T>({
     );
   }
 
-  const effectiveSizes =
-    sizes.length === items.length ? sizes : items.map((_, index) => sizes[index] ?? estimateSize);
+  const effectiveSizes = sizes.length === items.length ? sizes : items.map((_, index) => sizes[index] ?? estimateSize);
   const { offsets, totalHeight } = buildOffsets(effectiveSizes);
 
   const startIndex = variableHeight
@@ -161,10 +170,7 @@ export function VirtualList<T>({
         items.length,
         findEndIndex(offsets, effectiveSizes, scrollTop + (viewportHeight || estimateSize), startIndex) + overscan,
       )
-    : Math.min(
-        items.length,
-        startIndex + Math.ceil((viewportHeight || estimateSize) / estimateSize) + overscan * 2,
-      );
+    : Math.min(items.length, startIndex + Math.ceil((viewportHeight || estimateSize) / estimateSize) + overscan * 2);
 
   return (
     <div ref={scrollRef} className={className} style={{ overflowY: "auto", ...style }} onScroll={onScroll}>

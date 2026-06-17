@@ -1,6 +1,17 @@
 import fs from "node:fs";
 import path from "node:path";
 
+function readSourceFilesRecursive(dir: string): string[] {
+  return fs
+    .readdirSync(dir, { withFileTypes: true })
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .flatMap((entry) => {
+      const filePath = path.join(dir, entry.name);
+      if (entry.isDirectory()) return readSourceFilesRecursive(filePath);
+      return entry.name.endsWith(".ts") || entry.name.endsWith(".tsx") ? [filePath] : [];
+    });
+}
+
 /** Concatenate App entrypoint + modular platform shell for static analysis tests. */
 export function readAppSources(): string {
   const root = process.cwd();
@@ -25,9 +36,9 @@ export function readAppSources(): string {
     if (fs.existsSync(filePath)) parts.push(filePath);
   }
 
-  for (const name of fs.readdirSync(appDir).sort()) {
-    if ((name.endsWith(".ts") || name.endsWith(".tsx")) && !appFiles.includes(name)) {
-      parts.push(path.join(appDir, name));
+  for (const filePath of readSourceFilesRecursive(appDir)) {
+    if (!parts.includes(filePath)) {
+      parts.push(filePath);
     }
   }
 

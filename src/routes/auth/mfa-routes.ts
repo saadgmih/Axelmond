@@ -208,28 +208,33 @@ export function registerMfaRoutes(app: Express, ctx: RouteContext): void {
     res.json(result);
   });
 
-  app.post("/api/auth/mfa/passkey/register/verify", requireAuth, validateBody(passkeyRegisterVerifySchema), async (req, res) => {
-    const authUser = await loadAuthUser(req);
-    if (!authUser) {
-      res.status(401).json({ error: "Non authentifié" });
-      return;
-    }
+  app.post(
+    "/api/auth/mfa/passkey/register/verify",
+    requireAuth,
+    validateBody(passkeyRegisterVerifySchema),
+    async (req, res) => {
+      const authUser = await loadAuthUser(req);
+      if (!authUser) {
+        res.status(401).json({ error: "Non authentifié" });
+        return;
+      }
 
-    const result = await finishWebAuthnRegistration(
-      authUser.id,
-      req.body.challengeId,
-      req.body.response as any,
-      req.body.deviceName,
-    );
+      const result = await finishWebAuthnRegistration(
+        authUser.id,
+        req.body.challengeId,
+        req.body.response as any,
+        req.body.deviceName,
+      );
 
-    if (!result.ok) {
-      res.status(400).json({ error: "Enregistrement Passkey refusé.", code: result.reason });
-      return;
-    }
+      if (!result.ok) {
+        res.status(400).json({ error: "Enregistrement Passkey refusé.", code: result.reason });
+        return;
+      }
 
-    api.logAudit(authUser.id, authUser.email, "WEBAUTHN_REGISTERED", "User", authUser.id, {}, req.ip);
-    res.json({ ok: true, message: "Passkey enregistrée." });
-  });
+      api.logAudit(authUser.id, authUser.email, "WEBAUTHN_REGISTERED", "User", authUser.id, {}, req.ip);
+      res.json({ ok: true, message: "Passkey enregistrée." });
+    },
+  );
 
   app.delete("/api/auth/mfa/passkeys/:id", requireAuth, validateBody(passkeyDeleteSchema), async (req, res) => {
     const authUser = await loadAuthUser(req);
@@ -250,7 +255,15 @@ export function registerMfaRoutes(app: Express, ctx: RouteContext): void {
       return;
     }
 
-    api.logAudit(authUser.id, authUser.email, "WEBAUTHN_REMOVED", "User", authUser.id, { credentialId: req.params.id }, req.ip);
+    api.logAudit(
+      authUser.id,
+      authUser.email,
+      "WEBAUTHN_REMOVED",
+      "User",
+      authUser.id,
+      { credentialId: req.params.id },
+      req.ip,
+    );
     res.json({ ok: true });
   });
 

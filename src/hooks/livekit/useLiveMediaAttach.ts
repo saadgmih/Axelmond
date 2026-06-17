@@ -3,22 +3,18 @@ import type { LiveParticipantCard } from "../../components/VirtualClassroom";
 
 export interface UseLiveMediaAttachOptions {
   liveParticipants: LiveParticipantCard[];
-  activeSpeakerIdentity: string;
   currentView: string;
   teacherView: string;
   activeLiveCourseId: number | undefined;
-  primaryLiveVideoRef: RefObject<HTMLVideoElement | null>;
   liveVideoRefs: RefObject<Record<string, HTMLVideoElement | null>>;
   liveAudioContainerRef: RefObject<HTMLDivElement | null>;
 }
 
 export function useLiveMediaAttach({
   liveParticipants,
-  activeSpeakerIdentity,
   currentView,
   teacherView,
   activeLiveCourseId,
-  primaryLiveVideoRef,
   liveVideoRefs,
   liveAudioContainerRef,
 }: UseLiveMediaAttachOptions) {
@@ -68,23 +64,5 @@ export function useLiveMediaAttach({
       });
       audioContainer?.replaceChildren();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [liveMediaSignature, currentView, teacherView, activeLiveCourseId]);
-
-  useEffect(() => {
-    const primaryTrack =
-      liveParticipants.find((participant) => participant.identity === activeSpeakerIdentity && participant.videoTrack)
-        ?.videoTrack ||
-      liveParticipants.find((participant) => !participant.isLocal && participant.videoTrack)?.videoTrack ||
-      liveParticipants.find((participant) => participant.videoTrack)?.videoTrack;
-
-    if (primaryLiveVideoRef.current && primaryTrack) {
-      primaryTrack.attach(primaryLiveVideoRef.current);
-    }
-
-    return () => {
-      primaryTrack?.detach(primaryLiveVideoRef.current || undefined);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [liveMediaSignature, activeSpeakerIdentity]);
 }

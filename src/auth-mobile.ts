@@ -14,9 +14,13 @@ function isProductionEnv(env: NodeJS.ProcessEnv = process.env): boolean {
 }
 
 function verifyMobileClientKey(req: Pick<Request, "headers">, env: NodeJS.ProcessEnv = process.env): boolean {
+  if (!isProductionEnv(env)) {
+    return true;
+  }
+
   const secret = readMobileClientSecret(env);
   if (!secret) {
-    return !isProductionEnv(env);
+    return false;
   }
 
   const provided = req.headers[MOBILE_CLIENT_KEY_HEADER];

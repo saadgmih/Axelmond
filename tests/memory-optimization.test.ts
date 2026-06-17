@@ -1,10 +1,6 @@
 import assert from "node:assert/strict";
 import { cacheFlush, cacheSet, cacheSize, getCacheStats } from "../src/cache";
-import {
-  getAuthUserCacheStats,
-  invalidateAuthUserCache,
-  pruneAuthUserCache,
-} from "../src/server/auth-user-cache";
+import { getAuthUserCacheStats, invalidateAuthUserCache, pruneAuthUserCache } from "../src/server/auth-user-cache";
 import { collectRuntimeMemoryMetrics } from "../src/server/memory-metrics";
 import { rulesTest } from "./helpers/rulesTest.ts";
 

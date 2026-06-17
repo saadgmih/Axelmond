@@ -48,8 +48,7 @@ export async function streamLessonContentDocument(contentId: string, authUser: A
     return { ok: false as const, status: 403, error: "Accès refusé pour consulter ce document" };
   }
 
-  const attachment =
-    content.attachments.find((item) => item.type === content.type) ?? content.attachments[0];
+  const attachment = content.attachments.find((item) => item.type === content.type) ?? content.attachments[0];
   if (!attachment) {
     return { ok: false as const, status: 404, error: "Fichier introuvable" };
   }
@@ -85,9 +84,7 @@ export async function streamLessonContentDocument(contentId: string, authUser: A
 
   return {
     ok: true as const,
-    fileName:
-      attachment.fileName ||
-      `${content.title}${content.type === "IMAGE" ? ".jpg" : ".pdf"}`,
+    fileName: attachment.fileName || `${content.title}${content.type === "IMAGE" ? ".jpg" : ".pdf"}`,
     bytes,
     contentType,
   };

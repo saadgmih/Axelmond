@@ -1,9 +1,4 @@
-import {
-  FolderTree,
-  Video,
-  Plus,
-  Trash2,
-} from "lucide-react";
+import { FolderTree, Video, Plus, Trash2 } from "lucide-react";
 
 import { curriculumUi, getStepTheme } from "../curriculum-theme";
 import type { TeacherCurriculumViewProps } from "../curriculum-types";

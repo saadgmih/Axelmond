@@ -13,9 +13,7 @@ rulesTest("phase3-optimizations", async () => {
 
   const testSchema = z.object({ title: z.string().min(1) });
   let capturedBody: unknown = null;
-  const middleware = (
-    await import("../src/server/route-schemas.ts")
-  ).validateBody(testSchema);
+  const middleware = (await import("../src/server/route-schemas.ts")).validateBody(testSchema);
   const req: any = { body: { title: "A & B <script>" } };
   const res: any = {
     statusCode: 200,

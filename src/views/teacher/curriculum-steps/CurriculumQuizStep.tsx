@@ -1,8 +1,4 @@
-import {
-  HelpCircle,
-  X,
-  ChevronRight,
-} from "lucide-react";
+import { HelpCircle, X, ChevronRight } from "lucide-react";
 
 import { curriculumUi, getStepTheme } from "../curriculum-theme";
 import type { TeacherCurriculumViewProps } from "../curriculum-types";

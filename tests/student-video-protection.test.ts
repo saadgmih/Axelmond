@@ -7,8 +7,7 @@ rulesTest("student-video-protection", () => {
   const sessionSource = readFileSync("src/hooks/useStudentCourseSession.ts", "utf8");
 
   assert.match(studentCourseViewSource, /sanitizeCourseAttachmentUrl/);
-  assert.match(studentCourseViewSource, /sandbox="allow-same-origin allow-popups allow-forms"/);
-  assert.match(studentCourseViewSource, /referrerPolicy="no-referrer"/);
+  assert.match(studentCourseViewSource, /PdfLessonViewer/);
   assert.match(studentCourseViewSource, /selectedLessonContent\.type === "VIDEO" && safeAttachmentUrl/);
   assert.match(studentCourseViewSource, /PremiumVideoPlayer/);
   assert.match(studentCourseViewSource, /activeSector="student"/);
@@ -16,6 +15,7 @@ rulesTest("student-video-protection", () => {
   assert.match(studentCourseViewSource, /Vidéo à venir/);
   assert.match(studentCourseViewSource, /Contenu en préparation/);
   assert.doesNotMatch(studentCourseViewSource, /<video controls/);
+  assert.doesNotMatch(studentCourseViewSource, /<iframe/);
   assert.doesNotMatch(studentCourseViewSource, /isVideoPlaying/);
   assert.doesNotMatch(studentCourseViewSource, /unsplash/);
 

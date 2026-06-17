@@ -48,73 +48,69 @@ export default function LegalView() {
         topBlobClass="top-0 right-0 w-[480px] h-[480px] bg-indigo-600/5 rounded-full translate-x-60 -translate-y-60"
         bottomBlobClass="bottom-0 left-0 w-80 h-80 bg-violet-600/5 rounded-full -translate-x-40 translate-y-40"
       >
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
-            {/* Left */}
-            <div className="space-y-5 max-w-2xl">
-              <span className="text-[10px] font-black uppercase tracking-widest text-slate-300 bg-slate-700/40 border border-slate-700/60 px-3 py-1 rounded-full inline-flex items-center gap-1.5">
-                <Scale className="w-3 h-3" />
-                Document juridique officiel
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
+          {/* Left */}
+          <div className="space-y-5 max-w-2xl">
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-300 bg-slate-700/40 border border-slate-700/60 px-3 py-1 rounded-full inline-flex items-center gap-1.5">
+              <Scale className="w-3 h-3" />
+              Document juridique officiel
+            </span>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
+              Mentions{" "}
+              <span className="bg-gradient-to-r from-slate-300 via-slate-100 to-slate-200 bg-clip-text text-transparent">
+                légales
               </span>
-              <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
-                Mentions{" "}
-                <span className="bg-gradient-to-r from-slate-300 via-slate-100 to-slate-200 bg-clip-text text-transparent">
-                  légales
-                </span>
-              </h1>
-              <p className="text-slate-400 text-sm md:text-base leading-relaxed">
-                Les présentes mentions légales régissent les conditions générales d'édition et de publication de la
-                plateforme <strong className="text-white">Axelmond Research Labs</strong>, conformément aux dispositions
-                légales en vigueur au Maroc.
-              </p>
-
-              <div className="flex flex-wrap gap-2 pt-1">
-                {[
-                  { label: "Droit marocain", color: "text-slate-300 border-slate-600 bg-slate-700/30" },
-                  { label: "Loi 09-08", color: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10" },
-                  { label: "CNDP", color: "text-sky-300 border-sky-500/30 bg-sky-500/10" },
-                ].map(({ label, color }) => (
-                  <span
-                    key={label}
-                    className={`text-[10px] font-black uppercase tracking-widest border px-2.5 py-1 rounded-full ${color}`}
-                  >
-                    {label}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Right meta */}
-            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-3 flex-shrink-0 min-w-0 sm:min-w-[220px]">
-              <div>
-                <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">
-                  Dernière mise à jour
-                </div>
-                <div className="text-white font-black text-base mt-0.5">Juin 2026</div>
-              </div>
-              <div className="w-full h-px bg-slate-800" />
-              <div>
-                <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Version</div>
-                <div className="text-slate-300 font-black text-sm mt-0.5">v1.2.0</div>
-              </div>
-              <div className="w-full h-px bg-slate-800" />
-              <div>
-                <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">
-                  Tous droits réservés
-                </div>
-                <div className="text-white text-sm font-bold mt-0.5">© 2026 Axelmond Research Labs</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Legal notice banner */}
-          <div className="mt-8 bg-slate-900/60 border border-slate-700/50 rounded-2xl px-5 py-4 flex items-start gap-3">
-            <Scale className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
-            <p className="text-[12px] text-slate-400 leading-relaxed">
-              En application de la <strong className="text-white">loi n° 09-08</strong> relative à la protection des
-              personnes physiques à l'égard du traitement des données à caractère personnel, les informations ci-dessous
-              permettent à tout utilisateur d'identifier l'éditeur responsable de la plateforme Axelmond Research Labs.
+            </h1>
+            <p className="text-slate-400 text-sm md:text-base leading-relaxed">
+              Les présentes mentions légales régissent les conditions générales d'édition et de publication de la
+              plateforme <strong className="text-white">Axelmond Research Labs</strong>, conformément aux dispositions
+              légales en vigueur au Maroc.
             </p>
+
+            <div className="flex flex-wrap gap-2 pt-1">
+              {[
+                { label: "Droit marocain", color: "text-slate-300 border-slate-600 bg-slate-700/30" },
+                { label: "Loi 09-08", color: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10" },
+                { label: "CNDP", color: "text-sky-300 border-sky-500/30 bg-sky-500/10" },
+              ].map(({ label, color }) => (
+                <span
+                  key={label}
+                  className={`text-[10px] font-black uppercase tracking-widest border px-2.5 py-1 rounded-full ${color}`}
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
           </div>
+
+          {/* Right meta */}
+          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-3 flex-shrink-0 min-w-0 sm:min-w-[220px]">
+            <div>
+              <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Dernière mise à jour</div>
+              <div className="text-white font-black text-base mt-0.5">Juin 2026</div>
+            </div>
+            <div className="w-full h-px bg-slate-800" />
+            <div>
+              <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Version</div>
+              <div className="text-slate-300 font-black text-sm mt-0.5">v1.2.0</div>
+            </div>
+            <div className="w-full h-px bg-slate-800" />
+            <div>
+              <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Tous droits réservés</div>
+              <div className="text-white text-sm font-bold mt-0.5">© 2026 Axelmond Research Labs</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Legal notice banner */}
+        <div className="mt-8 bg-slate-900/60 border border-slate-700/50 rounded-2xl px-5 py-4 flex items-start gap-3">
+          <Scale className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
+          <p className="text-[12px] text-slate-400 leading-relaxed">
+            En application de la <strong className="text-white">loi n° 09-08</strong> relative à la protection des
+            personnes physiques à l'égard du traitement des données à caractère personnel, les informations ci-dessous
+            permettent à tout utilisateur d'identifier l'éditeur responsable de la plateforme Axelmond Research Labs.
+          </p>
+        </div>
       </InstitutionalHero>
 
       <div className="max-w-5xl mx-auto px-6 md:px-10 py-10 space-y-8">
@@ -140,7 +136,12 @@ export default function LegalView() {
                   value="Plateforme académique de recherche, formation et innovation"
                   icon={<BookOpen className="w-3.5 h-3.5" />}
                 />
-                <InstitutionalInfoRow label="Site web" value="axelmond.com" icon={<Globe className="w-3.5 h-3.5" />} mono />
+                <InstitutionalInfoRow
+                  label="Site web"
+                  value="axelmond.com"
+                  icon={<Globe className="w-3.5 h-3.5" />}
+                  mono
+                />
                 <InstitutionalInfoRow
                   label="Contact général"
                   value="verification@axelmond.com"
@@ -419,9 +420,9 @@ export default function LegalView() {
                 <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
                 <p className="text-[12px] text-slate-400 leading-relaxed">
                   <strong className="text-amber-300">Liens externes :</strong> La plateforme peut contenir des liens
-                  vers des sites ou services tiers (paiement, visioconférence, authentification, etc.). Axelmond Research Labs n'est pas responsable du
-                  contenu, de la politique de confidentialité ou des pratiques de ces sites externes. Consultez leurs
-                  mentions légales respectives avant tout usage.
+                  vers des sites ou services tiers (paiement, visioconférence, authentification, etc.). Axelmond
+                  Research Labs n'est pas responsable du contenu, de la politique de confidentialité ou des pratiques de
+                  ces sites externes. Consultez leurs mentions légales respectives avant tout usage.
                 </p>
               </div>
             </InstitutionalCard>

@@ -18,6 +18,7 @@ export type PlatformSessionSlice = Pick<
   | "setInvoices"
   | "notificationUnreadCount"
   | "openNotificationsView"
+  | "isLoginDataLoading"
 >;
 
 export type PlatformCatalogSlice = Pick<

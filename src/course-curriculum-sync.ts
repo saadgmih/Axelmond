@@ -1,4 +1,3 @@
-import type { ModuleType } from "./types";
 import { prisma } from "./db";
 import { getNextCourseModuleId } from "./course-syllabus-modules";
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { isTeacherSpaceRole } from "../../rbac";
 import { LiveKitSessionContext } from "../../context/livekit-session-context";
 import { useLiveKitRoom, type UseLiveKitRoomOptions } from "../../hooks/useLiveKitRoom";
 
@@ -22,8 +23,10 @@ export default function LiveKitSessionHost(options: UseLiveKitRoomOptions) {
       {options.activeLiveCourse && <div ref={liveKit.liveAudioContainerRef} className="hidden" aria-hidden="true" />}
       {portalTarget && options.activeLiveCourse
         ? createPortal(
-            liveKit.renderLiveRoomInterface(options.currentUser?.role === "teacher" ? "teacher" : "student"),
-            portalTarget
+            liveKit.renderLiveRoomInterface(
+              options.currentUser?.role && isTeacherSpaceRole(options.currentUser.role) ? "teacher" : "student",
+            ),
+            portalTarget,
           )
         : null}
     </LiveKitSessionContext.Provider>

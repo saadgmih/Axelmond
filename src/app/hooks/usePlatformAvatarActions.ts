@@ -11,12 +11,10 @@ import {
   validateUploadFile,
 } from "../../uploadthing-client";
 
-type AcademicProfileFormSetter = Dispatch<SetStateAction<Record<string, unknown>>>;
-
-export function usePlatformAvatarActions(
+export function usePlatformAvatarActions<TProfileForm extends { avatarUrl: string }>(
   currentUser: AppUser | null,
   updateSessionUser: (user: AppUser) => void,
-  setAcademicProfileForm: AcademicProfileFormSetter,
+  setAcademicProfileForm: Dispatch<SetStateAction<TProfileForm>>,
 ) {
   const [avatarStatusMsg, setAvatarStatusMsg] = useState("");
 

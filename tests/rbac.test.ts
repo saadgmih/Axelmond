@@ -88,7 +88,7 @@ rulesTest("rbac", () => {
   assert.equal(canAccessApiRoute("ADMIN", "POST", "/api/me/avatar"), true);
   assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/me/avatar"), true);
   assert.equal(canAccessApiRoute("STUDENT", "DELETE", "/api/me/avatar"), true);
-  assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/me/password"), false);
+  assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/me/password"), true);
   assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/livekit/moderation"), false);
   assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/livekit/sync"), true);
   assert.equal(canAccessApiRoute("PROFESSOR", "POST", "/api/livekit/sync"), true);
@@ -109,11 +109,11 @@ rulesTest("rbac", () => {
   assert.equal(isRbacExemptRoute("POST", "/api/auth/mfa/passkey/login/verify"), true);
   assert.equal(isRbacExemptRoute("GET", "/api/admin/professor-invites"), true);
 
-assert.equal(normalizeApiRoutePath({ baseUrl: "/api", path: "/health" }), "/api/health");
-assert.equal(normalizeApiRoutePath({ baseUrl: "", path: "/api/courses" }), "/api/courses");
-assert.equal(isRbacExemptRoute("GET", normalizeApiRoutePath({ baseUrl: "/api", path: "/health" })), true);
+  assert.equal(normalizeApiRoutePath({ baseUrl: "/api", path: "/health" }), "/api/health");
+  assert.equal(normalizeApiRoutePath({ baseUrl: "", path: "/api/courses" }), "/api/courses");
+  assert.equal(isRbacExemptRoute("GET", normalizeApiRoutePath({ baseUrl: "/api", path: "/health" })), true);
 
-assert.equal(canAccessApiRoute("STUDENT", "GET", "/api/auth/me"), true);
+  assert.equal(canAccessApiRoute("STUDENT", "GET", "/api/auth/me"), true);
   assert.equal(canAccessApiRoute("PROFESSOR", "GET", "/api/courses/1/content"), true);
   assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/livekit/token"), true);
   assert.equal(canAccessApiRoute("PROFESSOR", "POST", "/api/chat-tutor"), true);

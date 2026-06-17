@@ -39,10 +39,7 @@ export function assertChatTutorPromptAllowed(prompt: string, history: Array<{ te
   }
 }
 
-export async function moderateChatTutorInput(
-  openai: OpenAI,
-  texts: string[],
-): Promise<void> {
+export async function moderateChatTutorInput(openai: OpenAI, texts: string[]): Promise<void> {
   const input = texts.map((text) => String(text || "").trim()).filter(Boolean);
   if (input.length === 0) return;
 
