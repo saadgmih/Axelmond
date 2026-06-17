@@ -176,13 +176,13 @@ export async function recordLiveAttendanceLeave(session: { id: string; roomName:
 export async function assertLiveAccess(authUser: AppUser, courseId: number) {
   const course = await prisma.course.findUnique({
     where: { id: courseId },
-    select: { id: true, createdById: true },
+    select: { id: true, createdById: true, instructor: true },
   });
   if (!course) return { ok: false as const, status: 404, error: LIVE_ACCESS_ERRORS.notFound };
   if (authUser.role === "STUDENT" && !authUser.enrolledCourses.includes(course.id)) {
     return { ok: false as const, status: 403, error: LIVE_ACCESS_ERRORS.enrollmentRequired };
   }
-  if ((authUser.role === "PROFESSOR" || authUser.role === "RESEARCHER") && course.createdById !== authUser.id) {
+  if ((authUser.role === "PROFESSOR" || authUser.role === "RESEARCHER") && course.createdById !== authUser.id && course.instructor !== authUser.fullName) {
     logLiveKit("WARN", "Live access denied for foreign course", { userId: authUser.id, courseId });
     return { ok: false as const, status: 403, error: LIVE_ACCESS_ERRORS.accessDenied };
   }
@@ -200,11 +200,11 @@ export async function findQuizWithQuestions(courseId: number, moduleId: number) 
   });
 }
 
-export function canReadCourseGrades(authUser: AppUser, course: { id: number; createdById?: string | null }) {
+export function canReadCourseGrades(authUser: AppUser, course: { id: number; createdById?: string | null; instructor?: string | null }) {
   if (authUser.role === "ADMIN") return true;
   if (authUser.role === "STUDENT") return authUser.enrolledCourses.includes(course.id);
   // PROFESSOR/RESEARCHER : uniquement le propriétaire du module
-  return course.createdById === authUser.id;
+  return course.createdById === authUser.id || (course.instructor && course.instructor === authUser.fullName);
 }
 
 

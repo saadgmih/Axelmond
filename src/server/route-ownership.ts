@@ -6,7 +6,7 @@ export async function verifyCourseAccess(authUser: AppUser, courseId: number): P
   if (authUser.role === "ADMIN") return true;
   const course = await prisma.course.findUnique({ where: { id: courseId } });
   if (!course) return false;
-  return course.createdById === authUser.id;
+  return course.createdById === authUser.id || course.instructor === authUser.fullName;
 }
 
 export async function verifyChapterAccess(authUser: AppUser, chapterId: string): Promise<boolean> {
