@@ -94,10 +94,12 @@ export function useAppSession({ setCourses, onAfterLogin, onSessionExpired }: Us
   const handleLogout = useCallback(() => {
     void api.logout().catch((err) => console.warn("[auth] Logout failed", err));
     clearAuthState();
+    window.history.replaceState(null, "", "/");
   }, [clearAuthState]);
 
   const handleSessionExpired = useCallback(() => {
     clearAuthState();
+    window.history.replaceState(null, "", "/");
     onSessionExpired?.();
   }, [clearAuthState, onSessionExpired]);
 

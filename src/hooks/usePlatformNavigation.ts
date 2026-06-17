@@ -94,6 +94,9 @@ export function usePlatformNavigation({
             const course = enrolled[0];
             return course?.modules?.[0] ?? null;
           });
+        } else {
+          setCurrentView("dashboard");
+          navigate("/student/dashboard", { replace: true });
         }
       }
 
@@ -122,6 +125,7 @@ export function usePlatformNavigation({
     setSelectedCourse,
     setSelectedModule,
     setActiveLiveCourse,
+    navigate,
   ]);
 
   const navigateTo = useCallback(
