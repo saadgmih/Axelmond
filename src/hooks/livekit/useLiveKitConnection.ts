@@ -257,47 +257,67 @@ export function useLiveKitConnection({
       })
       .catch((err) => console.warn("[livekit] Failed to load stored messages", err));
 
-    api
-      .getLiveKitToken(activeLiveCourse.id)
-      .then(async ({ url, token }) => {
-        await room.connect(url, token);
-        if (disposed) {
-          await room.disconnect();
-          return;
-        }
-        setLiveRoom(room);
-        setLiveStatusMsg("Connecté à la session en direct");
-        syncLiveParticipants(room);
-        refreshLiveAttendanceReport(activeLiveCourse.id);
-        await publishLiveSync(room, { type: "SYNC_REQUEST" });
-        console.info("[livekit] Room connected", { courseId: activeLiveCourse.id, roomName: room.name });
-      })
-      .catch((err) => {
-        console.error("[livekit] Room connection failed", err);
-        const message = String(err?.message || err || "");
-        if ((err as any)?.status === 403 && currentUser && isStudentRole(currentUser.role)) {
-          (async () => {
-            try {
-              const syncedUser = await api.me();
-              updateSessionUser(syncedUser);
-              setEnrolledCourses(syncedUser.enrolledCourses || []);
-              setInvoices(syncedUser.invoices || []);
-            } catch (syncErr) {
-              console.warn("[student] Enrollment resync failed after LiveKit denial", syncErr);
+    const connectLiveRoom = async () => {
+      const { url, token } = await api.getLiveKitToken(activeLiveCourse.id);
+      await room.connect(url, token);
+      if (disposed) {
+        await room.disconnect();
+        return;
+      }
+      setLiveRoom(room);
+      setLiveStatusMsg("Connecté à la session en direct");
+      syncLiveParticipants(room);
+      refreshLiveAttendanceReport(activeLiveCourse.id);
+      await publishLiveSync(room, { type: "SYNC_REQUEST" });
+      console.info("[livekit] Room connected", { courseId: activeLiveCourse.id, roomName: room.name });
+    };
+
+    const syncStudentEnrollment = async () => {
+      const syncedUser = await api.me();
+      updateSessionUser(syncedUser);
+      setEnrolledCourses(syncedUser.enrolledCourses || []);
+      setInvoices(syncedUser.invoices || []);
+      return syncedUser;
+    };
+
+    const handleConnectionFailure = (err: any) => {
+      console.error("[livekit] Room connection failed", err);
+      const message = String(err?.message || err || "");
+      if ((err as any)?.status === 403 && currentUser && isStudentRole(currentUser.role)) {
+        (async () => {
+          try {
+            const syncedUser = await syncStudentEnrollment();
+            if (syncedUser.enrolledCourses?.map(Number).includes(activeLiveCourse.id)) {
+              if (disposed) return;
+              setLiveStatusMsg("Accès live synchronisé. Reconnexion...");
+              try {
+                await connectLiveRoom();
+              } catch (retryErr) {
+                if (disposed) return;
+                console.error("[livekit] Room connection retry failed", retryErr);
+                setLiveStatusMsg(getClientErrorMessage(retryErr, "Connexion à la session en direct impossible"));
+              }
+              return;
             }
-            setLiveStatusMsg(
-              "Inscription au module requise pour rejoindre ce live. Activez votre accès depuis le catalogue.",
-            );
-            setCourseToPurchase(activeLiveCourse);
-          })();
-          return;
-        }
-        if (message.toLowerCase().includes("invalid token")) {
-          setLiveStatusMsg("Connexion live impossible. Réessayez ou contactez le support.");
-          return;
-        }
-        setLiveStatusMsg(getClientErrorMessage(err, "Connexion à la session en direct impossible"));
-      });
+          } catch (syncErr) {
+            console.warn("[student] Enrollment resync failed after LiveKit denial", syncErr);
+          }
+          if (disposed) return;
+          setLiveStatusMsg(
+            "Inscription au module requise pour rejoindre ce live. Activez votre accès depuis le catalogue.",
+          );
+          setCourseToPurchase(activeLiveCourse);
+        })();
+        return;
+      }
+      if (message.toLowerCase().includes("invalid token")) {
+        setLiveStatusMsg("Connexion live impossible. Réessayez ou contactez le support.");
+        return;
+      }
+      setLiveStatusMsg(getClientErrorMessage(err, "Connexion à la session en direct impossible"));
+    };
+
+    connectLiveRoom().catch(handleConnectionFailure);
 
     return () => {
       disposed = true;

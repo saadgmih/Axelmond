@@ -10,6 +10,7 @@ import { rulesTest } from "./helpers/rulesTest.ts";
 rulesTest("student-live-sync", () => {
   const apiSource = fs.readFileSync("src/api.ts", "utf8");
   const appSource = readAppSources();
+  const platformNavigationSource = fs.readFileSync("src/hooks/usePlatformNavigation.ts", "utf8");
   const studentCourseSessionSource = fs.readFileSync("src/hooks/useStudentCourseSession.ts", "utf8");
   const studentCourseBundle = appSource + studentCourseSessionSource;
   const liveKitSource = appSource + readLiveKitHookSources();
@@ -29,7 +30,11 @@ rulesTest("student-live-sync", () => {
     /if\s*\(\(err as any\)\?\.status === 403 && currentUser && isStudentRole\(currentUser\.role\)\)/,
   );
   assert.match(liveKitSource, /const syncedUser = await api\.me\(\)/);
+  assert.match(liveKitSource, /syncedUser\.enrolledCourses\?\.map\(Number\)\.includes\(activeLiveCourse\.id\)/);
+  assert.match(liveKitSource, /await connectLiveRoom\(\)/);
   assert.match(liveKitSource, /setCourseToPurchase\(activeLiveCourse\)/);
+  assert.match(platformNavigationSource, /studentCourseIds/);
+  assert.match(platformNavigationSource, /currentUser\.enrolledCourses\.map\(Number\)/);
 
   assert.match(serverSource, /api\.persistCoursePaymentEnrollment\(/);
   assert.match(serverSource, /provider:\s*"MOCK"/);

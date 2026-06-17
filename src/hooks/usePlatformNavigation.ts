@@ -1,4 +1,4 @@
-import { useCallback, useEffect, type Dispatch, type SetStateAction } from "react";
+import { useCallback, useEffect, useMemo, type Dispatch, type SetStateAction } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import type { AppUser } from "../components/AuthScreen";
 import { buildPlatformPath, parsePlatformPath, INSTITUTIONAL_VIEWS } from "../navigation/platformPaths";
@@ -45,6 +45,13 @@ export function usePlatformNavigation({
 }: UsePlatformNavigationOptions) {
   const navigate = useNavigate();
   const location = useLocation();
+  const studentCourseIds = useMemo(() => {
+    const ids = new Set(enrolledCourses.map(Number).filter(Number.isFinite));
+    if (currentUser && isStudentRole(currentUser.role) && Array.isArray(currentUser.enrolledCourses)) {
+      currentUser.enrolledCourses.map(Number).filter(Number.isFinite).forEach((id) => ids.add(id));
+    }
+    return Array.from(ids);
+  }, [currentUser, enrolledCourses]);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -86,7 +93,7 @@ export function usePlatformNavigation({
       setCurrentView(parsed.studentView);
 
       if (parsed.studentView === "course") {
-        const enrolled = courses.filter((course) => enrolledCourses.includes(course.id));
+        const enrolled = courses.filter((course) => studentCourseIds.includes(course.id));
         if (enrolled.length > 0) {
           setSelectedCourse((current) => current ?? enrolled[0] ?? null);
           setSelectedModule((current) => {
@@ -102,8 +109,8 @@ export function usePlatformNavigation({
 
       if (parsed.studentView === "live") {
         const liveCourse =
-          courses.find((course) => enrolledCourses.includes(course.id) && course.isLiveNow) ??
-          courses.find((course) => enrolledCourses.includes(course.id)) ??
+          courses.find((course) => studentCourseIds.includes(course.id) && course.isLiveNow) ??
+          courses.find((course) => studentCourseIds.includes(course.id)) ??
           null;
         if (liveCourse) {
           setActiveLiveCourse((current) => current ?? liveCourse);
@@ -119,7 +126,7 @@ export function usePlatformNavigation({
     location.pathname,
     currentUser,
     courses,
-    enrolledCourses,
+    studentCourseIds,
     setCurrentView,
     setTeacherView,
     setSelectedCourse,
@@ -149,7 +156,7 @@ export function usePlatformNavigation({
       }
 
       if (view === "course" && targetCourse) {
-        if (!enrolledCourses.includes(targetCourse.id)) {
+        if (!studentCourseIds.includes(targetCourse.id)) {
           setCourseToPurchase(targetCourse);
           return;
         }
@@ -166,7 +173,7 @@ export function usePlatformNavigation({
       }
 
       if (view === "live" && targetCourse) {
-        if (!enrolledCourses.includes(targetCourse.id)) {
+        if (!studentCourseIds.includes(targetCourse.id)) {
           setCourseToPurchase(targetCourse);
           return;
         }
@@ -184,7 +191,7 @@ export function usePlatformNavigation({
     },
     [
       currentUser,
-      enrolledCourses,
+      studentCourseIds,
       teacherView,
       navigate,
       setTeacherView,
