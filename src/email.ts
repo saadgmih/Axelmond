@@ -220,7 +220,7 @@ interface BaseEmailOptions {
  * Builds the unified, enterprise-quality Axelmond email HTML shell.
  * All security emails should use this function for consistency.
  */
-function buildBaseEmailHtml(opts: BaseEmailOptions): string {
+export function buildBaseEmailHtml(opts: BaseEmailOptions): string {
   const {
     title,
     headline,
@@ -662,30 +662,51 @@ export async function sendVerificationEmail(input: VerificationEmailInput, env: 
 interface ResetPasswordEmailInput {
   to: string;
   fullName: string;
-  resetUrl: string;
+  code: string;
+  resetUrl?: string;
   expiresInMinutes?: number;
 }
 
 export function buildResetPasswordEmailContent(input: {
   fullName: string;
-  resetUrl: string;
+  code: string;
+  resetUrl?: string;
   expiresInMinutes?: number;
 }) {
   const name = firstName(input.fullName);
+  const code = escapeHtml(input.code);
   const now = new Date();
   const validity = input.expiresInMinutes ?? 60;
+
+  const codeBlock = `
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:22px 0;">
+      <tr>
+        <td align="center">
+          <div style="display:inline-block;background:#020617;border:1px solid #9d174d;border-radius:18px;padding:24px 32px;box-shadow:0 0 40px rgba(244,63,94,.15);">
+            <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:#f472b6;margin-bottom:10px;">
+              Code de réinitialisation
+            </div>
+            <div class="code-display"
+                 style="font-family:'Courier New',Courier,monospace;font-size:46px;font-weight:900;letter-spacing:14px;color:#ffffff;line-height:1;">
+              ${code}
+            </div>
+          </div>
+        </td>
+      </tr>
+    </table>`;
 
   const bodyHtml = `
     <p style="margin:0 0 16px;color:#cbd5e1;font-size:15px;text-align:center;">
       Bonjour <strong style="color:#f1f5f9;">${escapeHtml(name)}</strong>,
     </p>
-    <p style="margin:0 0 20px;color:#94a3b8;text-align:center;line-height:1.8;">
+    <p style="margin:0 0 16px;color:#94a3b8;text-align:center;line-height:1.8;">
       Vous avez demandé la réinitialisation de votre mot de passe académique sur
       <strong style="color:#e2e8f0;">Axelmond Research Labs</strong>.<br/>
-      Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe.
+      Saisissez le code de réinitialisation ci-dessous dans l'interface de connexion pour choisir un nouveau mot de passe.
     </p>
+    ${codeBlock}
     <p style="margin:0;color:#64748b;font-size:13px;text-align:center;line-height:1.7;">
-      Pour votre sécurité, ce lien est à usage unique et expirera automatiquement.
+      Pour votre sécurité, ce code est à usage unique et expirera automatiquement.
     </p>`;
 
   const textLines = [
@@ -693,12 +714,14 @@ export function buildResetPasswordEmailContent(input: {
     "",
     "Vous avez demandé la réinitialisation de votre mot de passe Axelmond Research Labs.",
     "",
-    `Pour réinitialiser votre mot de passe, veuillez cliquer sur le lien suivant :`,
-    input.resetUrl,
+    "Veuillez utiliser le code de réinitialisation suivant :",
     "",
-    `Ce lien est valable pendant ${validity} minutes.`,
+    `CODE DE RÉINITIALISATION : ${input.code}`,
     "",
-    "Si vous n'êtes pas à l'origine de cette demande, votre mot de passe reste inchangé. Vous pouvez ignorer cet e-mail.",
+    `Ce code est valable pendant ${validity} minutes.`,
+    ...(input.resetUrl ? ["", `Réinitialiser mon mot de passe : ${input.resetUrl}`] : []),
+    "",
+    "Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail. Votre mot de passe reste sécurisé et aucun changement ne sera effectué.",
     "",
     "---",
     "",
@@ -712,13 +735,13 @@ export function buildResetPasswordEmailContent(input: {
   return {
     text: textLines.join("\n"),
     html: buildBaseEmailHtml({
-      title: "Réinitialisation du mot de passe — Axelmond Research Labs",
-      headline: "Réinitialisation du mot de passe",
+      title: "Réinitialisation de votre mot de passe — Axelmond Research Labs",
+      headline: "Réinitialisation de votre mot de passe",
       bodyHtml,
-      ctaButton: { href: input.resetUrl, label: "Réinitialiser mon mot de passe" },
-      validityNote: `Ce lien expire dans ${validity} minutes. Il ne peut être utilisé qu'une seule fois.`,
+      ctaButton: input.resetUrl ? { href: input.resetUrl, label: "Réinitialiser mon mot de passe" } : undefined,
+      validityNote: `Ce code de réinitialisation expire dans ${validity} minutes et est à usage unique.`,
       showSecurityAlert: true,
-      securityAlertDetail: "Votre mot de passe reste inchangé tant que vous n'avez pas cliqué sur le lien.",
+      securityAlertDetail: "Si vous n'avez pas demandé cette réinitialisation, veuillez ignorer ce message ou contacter notre équipe de support.",
       requestedAt: now,
     }),
   };
@@ -726,9 +749,11 @@ export function buildResetPasswordEmailContent(input: {
 
 export async function sendResetPasswordEmail(input: ResetPasswordEmailInput, env: NodeJS.ProcessEnv = process.env) {
   if (!isSmtpConfigured(env)) return { sent: false, reason: "SMTP_NOT_CONFIGURED" as const };
+  const resetUrl = input.resetUrl || getVerificationUrl(env);
   const content = buildResetPasswordEmailContent({
     fullName: input.fullName,
-    resetUrl: input.resetUrl,
+    code: input.code,
+    resetUrl,
     expiresInMinutes: input.expiresInMinutes,
   });
   const delivery = await sendMailWithDiagnostics(

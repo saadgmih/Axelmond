@@ -225,7 +225,7 @@ export {
   reserveProfessorInviteCode,
 } from "../professor-invite-consume";
 export { buildEmailDeliverySummary } from "../email-delivery-summary";
-export { sendVerificationEmail, sendAdminTestEmail, getEmailErrorDetails, getSmtpPublicConfig } from "../email";
+export { sendVerificationEmail, sendResetPasswordEmail, sendAdminTestEmail, getEmailErrorDetails, getSmtpPublicConfig } from "../email";
 export {
   generateEmailVerificationCode,
   hashEmailVerificationCode,

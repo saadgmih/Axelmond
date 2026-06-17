@@ -29,7 +29,7 @@ export function registerPasswordRoutes(app: Express, ctx: RouteContext): void {
     await api.createEmailVerificationCode(api.prisma, user.id, code, "PASSWORD_RESET");
 
     try {
-      const delivery = await api.sendVerificationEmail({
+      const delivery = await api.sendResetPasswordEmail({
         to: user.email,
 
         fullName: user.fullName,
