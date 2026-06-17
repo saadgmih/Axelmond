@@ -77,7 +77,7 @@ export const strongPasswordField = z
     if (await isPasswordBreached(password)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Ce mot de passe est compromis dans une fuite connue — choisissez-en un autre",
+        message: "Ce mot de passe a déjà été exposé dans une fuite de données publique. Pour protéger votre compte, veuillez choisir un mot de passe différent.",
       });
     }
   });
