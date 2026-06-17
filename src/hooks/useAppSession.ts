@@ -110,7 +110,7 @@ export function useAppSession({ setCourses, onAfterLogin, onLogout, onSessionExp
     clearAuthState();
     onLogout?.();
     onSessionExpired?.();
-    window.location.href = "/";
+    window.history.replaceState(null, "", "/");
   }, [clearAuthState, onLogout, onSessionExpired]);
 
   useEffect(() => {
