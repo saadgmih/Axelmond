@@ -39,7 +39,7 @@ export interface Course {
   description: string;
   progress: number;
   isLiveNow: boolean;
-  liveSubject?: string;
+  liveSubject?: string | null;
   liveStartedAt?: string | null;
   modules: CourseModule[];
   published?: boolean;

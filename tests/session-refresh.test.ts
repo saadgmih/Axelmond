@@ -27,6 +27,9 @@ rulesTest("session-refresh", () => {
   assert.match(sessionSource, /axelmond:session-expired/);
   assert.match(sessionSource, /getFreshSessionToken/);
   assert.match(sessionSource, /handleLogout/);
+  assert.match(appSessionSource, /syncedUser\s*=\s*await api\.me\(\)/);
+  assert.match(appSessionSource, /applySessionUser\(syncedUser\)[\s\S]*?api\.getCourses\(\)/);
+  assert.match(appSessionSource, /normalizeEnrolledCourseIds/);
 
   assert.match(serverSource, /api\.createRefreshToken\(safeUser\.id\)/);
   assert.match(serverSource, /api\.rotateRefreshToken\(storedToken\.id,\s*safeUser\.id\)/);

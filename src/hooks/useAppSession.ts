@@ -21,6 +21,25 @@ export function useAppSession({ setCourses, onAfterLogin, onLogout, onSessionExp
 
   const role = currentUser ? getAllowedUiRole(currentUser.role) : "student";
 
+  const normalizeEnrolledCourseIds = useCallback((courseIds?: unknown[]) => {
+    if (!Array.isArray(courseIds)) return [];
+    return [...new Set(courseIds.map(Number).filter(Number.isFinite))];
+  }, []);
+
+  const applySessionUser = useCallback(
+    (user: AppUser) => {
+      setCurrentUser(user);
+      if (isStudentRole(user.role)) {
+        setEnrolledCourses(normalizeEnrolledCourseIds(user.enrolledCourses));
+        setInvoices(user.invoices ?? []);
+      } else {
+        setEnrolledCourses([1, 2, 3, 4]);
+        setInvoices([]);
+      }
+    },
+    [normalizeEnrolledCourseIds],
+  );
+
   const clearAuthState = useCallback(() => {
     setCurrentUser(null);
     purgeLegacySessionUserStorage();
@@ -39,7 +58,7 @@ export function useAppSession({ setCourses, onAfterLogin, onLogout, onSessionExp
   useEffect(() => {
     if (currentUser) {
       if (isStudentRole(currentUser.role)) {
-        const nextEnrolledCourses = currentUser.enrolledCourses ?? [];
+        const nextEnrolledCourses = normalizeEnrolledCourseIds(currentUser.enrolledCourses);
         const nextInvoices = currentUser.invoices ?? [];
         setEnrolledCourses(nextEnrolledCourses);
         setInvoices(nextInvoices);
@@ -47,32 +66,48 @@ export function useAppSession({ setCourses, onAfterLogin, onLogout, onSessionExp
         setEnrolledCourses([1, 2, 3, 4]);
       }
     }
-  }, [currentUser?.id, currentUser?.role, currentUser?.enrolledCourses, currentUser?.invoices]);
+  }, [
+    currentUser?.id,
+    currentUser?.role,
+    currentUser?.enrolledCourses,
+    currentUser?.invoices,
+    normalizeEnrolledCourseIds,
+  ]);
 
-  const updateSessionUser = useCallback((user: AppUser) => {
-    setCurrentUser(user);
-  }, []);
+  const updateSessionUser = useCallback(
+    (user: AppUser) => {
+      applySessionUser(user);
+    },
+    [applySessionUser],
+  );
 
   const handleLoginSuccess = useCallback(
     (user: AppUser & { csrfToken?: string }) => {
       const { token, csrfToken, ...sessionUser } = user;
       if (token) setSessionToken(token, csrfToken);
-      setCurrentUser(sessionUser);
 
-      if (isStudentRole(user.role)) {
-        setEnrolledCourses(user.enrolledCourses ?? []);
-        setInvoices(user.invoices ?? []);
-      }
-
-      onAfterLogin?.(user);
       setIsLoginDataLoading(true);
-      api
-        .getCourses()
-        .then(setCourses)
-        .catch((err) => console.error("Failed to refresh courses after login:", err))
-        .finally(() => setIsLoginDataLoading(false));
+      void (async () => {
+        let syncedUser: AppUser = sessionUser;
+        try {
+          syncedUser = await api.me();
+        } catch (err) {
+          console.warn("Failed to refresh user session after login:", err);
+        }
+
+        applySessionUser(syncedUser);
+        onAfterLogin?.(syncedUser);
+
+        try {
+          setCourses(await api.getCourses());
+        } catch (err) {
+          console.error("Failed to refresh courses after login:", err);
+        } finally {
+          setIsLoginDataLoading(false);
+        }
+      })();
     },
-    [onAfterLogin, setCourses],
+    [applySessionUser, onAfterLogin, setCourses],
   );
 
   useEffect(() => {
@@ -85,7 +120,7 @@ export function useAppSession({ setCourses, onAfterLogin, onLogout, onSessionExp
         return api
           .me()
           .then((user) => {
-            setCurrentUser(user);
+            applySessionUser(user);
           })
           .catch((err) => {
             console.warn("[rbac] Session validation failed", err);
