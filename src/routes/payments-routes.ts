@@ -128,7 +128,8 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
       where: { userId_courseId: { userId: authUser.id, courseId } },
     });
 
-    if (existing?.active) {
+    const isExpired = existing?.endDate && new Date(existing.endDate) < new Date();
+    if (existing?.active && !isExpired) {
       res.status(400).json({ error: "Déjà inscrit à ce module" });
 
       return;
@@ -330,7 +331,8 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
       where: { userId_courseId: { userId: authUser.id, courseId } },
     });
 
-    if (existing && existing.active) {
+    const isExpired = existing?.endDate && new Date(existing.endDate) < new Date();
+    if (existing && existing.active && !isExpired) {
       res.status(400).json({ error: "Déjà inscrit à ce module" });
 
       return;

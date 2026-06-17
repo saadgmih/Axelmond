@@ -1,4 +1,4 @@
-import { Course } from "../../types";
+import { Course, CourseEnrollmentInfo } from "../../types";
 import { prisma } from "../../db";
 import { decodeStoredText } from "../../text";
 import {
@@ -78,7 +78,12 @@ export function applyModuleProgressForStudent(course: Course, completedModuleIds
   };
 }
 
-export function toCourse(course: any, completedModuleIds?: Set<number>, options?: { studentView?: boolean }): Course {
+export function toCourse(
+  course: any,
+  completedModuleIds?: Set<number>,
+  options?: { studentView?: boolean },
+  enrollment?: CourseEnrollmentInfo | null,
+): Course {
   const serialized: Course = {
     id: course.id,
     title: decodeStoredText(course.title),
@@ -106,6 +111,7 @@ export function toCourse(course: any, completedModuleIds?: Set<number>, options?
     ),
     published: course.published,
     createdById: course.createdById || undefined,
+    enrollment: enrollment || null,
   };
   return completedModuleIds ? applyModuleProgressForStudent(serialized, completedModuleIds) : serialized;
 }
@@ -153,8 +159,20 @@ export async function toCourseForUser(
     course = refreshed[0] ?? course;
   }
 
+  const enrollmentRecord = await prisma.enrollment.findUnique({
+    where: { userId_courseId: { userId: authUser.id, courseId: course.id } },
+  });
+
+  const enrollment = enrollmentRecord
+    ? {
+        startDate: enrollmentRecord.startDate.toISOString(),
+        endDate: enrollmentRecord.endDate ? enrollmentRecord.endDate.toISOString() : null,
+        active: enrollmentRecord.active,
+      }
+    : null;
+
   const moduleIds = completedModuleIds ?? (await getStudentCompletedModuleIds(authUser.id, course.id));
-  return toCourse(course, moduleIds, { studentView: true });
+  return toCourse(course, moduleIds, { studentView: true }, enrollment);
 }
 
 export async function toCoursesForStudent(
@@ -172,5 +190,26 @@ export async function toCoursesForStudent(
     userId,
     courses.map((course) => course.id),
   );
-  return courses.map((course) => toCourse(course, progressByCourse.get(course.id) ?? new Set(), { studentView: true }));
+
+  const enrollments = await prisma.enrollment.findMany({
+    where: { userId },
+  });
+  const enrollmentMap = new Map<number, CourseEnrollmentInfo>();
+  for (const e of enrollments) {
+    enrollmentMap.set(e.courseId, {
+      startDate: e.startDate.toISOString(),
+      endDate: e.endDate ? e.endDate.toISOString() : null,
+      active: e.active,
+    });
+  }
+
+  return courses.map((course) => {
+    const enrollment = enrollmentMap.get(course.id) ?? null;
+    return toCourse(
+      course,
+      progressByCourse.get(course.id) ?? new Set(),
+      { studentView: true },
+      enrollment,
+    );
+  });
 }

@@ -29,7 +29,12 @@ export function toAppUser(user: any): AppUser {
     filiere: user.filiere || undefined,
     avatarUrl: user.avatarUrl || undefined,
     enrolledCourses: Array.isArray(user.enrollments)
-      ? user.enrollments.filter((enrollment: any) => enrollment.active).map((enrollment: any) => enrollment.courseId)
+      ? user.enrollments
+          .filter((enrollment: any) => {
+            const isExpired = enrollment.endDate && new Date(enrollment.endDate) < new Date();
+            return enrollment.active && !isExpired;
+          })
+          .map((enrollment: any) => enrollment.courseId)
       : [],
     invoices: mergeUserInvoices(user),
   };

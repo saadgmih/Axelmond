@@ -115,6 +115,7 @@ export function StudentRouteSwitch() {
               onModuleSelect={(mod) => {
                 setSelectedModule(mod);
               }}
+              setCourseToPurchase={ui.setCourseToPurchase}
               {...studentCourseBindings}
             />
           </div>

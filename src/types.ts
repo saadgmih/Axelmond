@@ -17,6 +17,12 @@ export interface CourseModule {
   published?: boolean;
 }
 
+export interface CourseEnrollmentInfo {
+  startDate: string;
+  endDate: string | null;
+  active: boolean;
+}
+
 export interface Course {
   id: number;
   title: string;
@@ -38,6 +44,7 @@ export interface Course {
   modules: CourseModule[];
   published?: boolean;
   createdById?: string | null;
+  enrollment?: CourseEnrollmentInfo | null;
 }
 
 export interface FacultyDomain {

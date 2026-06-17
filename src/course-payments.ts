@@ -94,8 +94,8 @@ export async function persistCoursePaymentEnrollment(
     const user = await prisma.$transaction(async (tx) => {
       await tx.enrollment.upsert({
         where: { userId_courseId: { userId: params.userId, courseId: params.courseId } },
-        update: { active: true },
-        create: { userId: params.userId, courseId: params.courseId, active: true },
+        update: { active: true, startDate: new Date(), endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) },
+        create: { userId: params.userId, courseId: params.courseId, active: true, startDate: new Date(), endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) },
       });
       return tx.user.findUnique({
         where: { id: params.userId },
@@ -150,8 +150,8 @@ export async function persistCoursePaymentEnrollment(
 
       await tx.enrollment.upsert({
         where: { userId_courseId: { userId: params.userId, courseId: params.courseId } },
-        update: { active: true },
-        create: { userId: params.userId, courseId: params.courseId, active: true },
+        update: { active: true, startDate: new Date(), endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) },
+        create: { userId: params.userId, courseId: params.courseId, active: true, startDate: new Date(), endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) },
       });
 
       return tx.user.findUnique({
@@ -211,8 +211,8 @@ export async function persistCoursePaymentEnrollment(
         const user = await prisma.$transaction(async (tx) => {
           await tx.enrollment.upsert({
             where: { userId_courseId: { userId: params.userId, courseId: params.courseId } },
-            update: { active: true },
-            create: { userId: params.userId, courseId: params.courseId, active: true },
+            update: { active: true, startDate: new Date(), endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) },
+            create: { userId: params.userId, courseId: params.courseId, active: true, startDate: new Date(), endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) },
           });
           return tx.user.findUnique({
             where: { id: params.userId },
