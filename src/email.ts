@@ -1,4 +1,4 @@
-﻿import net from "node:net";
+import net from "node:net";
 import tls from "node:tls";
 import nodemailer from "nodemailer";
 import { buildAbsoluteAppUrl, sanitizeInternalAppPath } from "./internal-url-security";
@@ -156,55 +156,41 @@ export function getEmailErrorDetails(err: any) {
 
 // ─── Shared Email Design System ───────────────────────────────────────────────
 
-/** Inline SVG logo (base64-safe, no external HTTP). */
-const AXELMOND_LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none" width="48" height="48" style="display:block;">
-  <defs>
-    <linearGradient id="og" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#818cf8"/>
-      <stop offset="50%" stop-color="#a78bfa"/>
-      <stop offset="100%" stop-color="#f472b6"/>
-    </linearGradient>
-    <linearGradient id="fg" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#4f46e5"/>
-      <stop offset="100%" stop-color="#312e81"/>
-    </linearGradient>
-  </defs>
-  <g transform="rotate(-15 100 115)">
-    <ellipse cx="100" cy="115" rx="75" ry="18" stroke="url(#og)" stroke-width="6" fill="none" opacity="0.9"/>
-  </g>
-  <path d="M62 145 L90 70 L100 70" stroke="#fff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M95 70 L125 145" stroke="#fff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M92 74 C115 74 135 84 135 102 C135 118 115 125 95 125" stroke="#fff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M112 120 L140 145" stroke="#fff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
-  <g transform="translate(84,94)">
-    <path d="M12 0 H18 V12 H12 Z" fill="url(#fg)"/>
-    <path d="M12 12 L0 35 C-2 39 1 42 6 42 H24 C29 42 32 39 30 35 L18 12 Z" fill="url(#fg)" stroke="#fff" stroke-width="2.5"/>
-    <circle cx="10" cy="32" r="2.5" fill="#fff" opacity="0.9"/>
-    <circle cx="20" cy="28" r="2" fill="#fff" opacity="0.9"/>
-    <circle cx="14" cy="23" r="1.5" fill="#fff" opacity="0.7"/>
-  </g>
-  <g transform="translate(70,22)">
-    <path d="M30 0 L60 10 L30 20 L0 10 Z" fill="#fff" stroke="#fff" stroke-width="1.5" stroke-linejoin="round" opacity="0.95"/>
-    <path d="M13 14.5 V22 C13 25 47 25 47 22 V14.5" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
-    <path d="M30 10 L53 14 V24" fill="none" stroke="#eab308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="53" cy="25" r="2" fill="#eab308"/>
-  </g>
-</svg>`;
+/**
+ * Table-based logo badge — works in all email clients (Gmail, Outlook, Apple Mail).
+ * SVG is stripped by Gmail and ignored by Outlook, so we use styled text instead.
+ */
+const AXELMOND_LOGO_BADGE = `
+  <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 auto;">
+    <tr>
+      <td style="width:72px;height:72px;background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#be185d 100%);border-radius:50%;text-align:center;vertical-align:middle;">
+        <table role="presentation" cellspacing="0" cellpadding="0" width="100%">
+          <tr>
+            <td align="center" style="padding-top:2px;">
+              <div style="font-family:Arial,Helvetica,sans-serif;font-size:26px;font-weight:900;color:#ffffff;letter-spacing:-1px;line-height:1;">A</div>
+              <div style="font-family:Arial,Helvetica,sans-serif;font-size:9px;font-weight:700;color:rgba(255,255,255,0.75);letter-spacing:2px;text-transform:uppercase;line-height:1;margin-top:3px;">LABS</div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>`;
 
 /**
- * Formats a Date as a human-readable French datetime string.
+ * Formats a Date as a human-readable French datetime string in Morocco time.
  */
 function formatDateTime(date = new Date()): string {
-  return date.toLocaleString("fr-FR", {
-    timeZone: "UTC",
+  // Morocco uses Africa/Casablanca (UTC+1 year-round since 2018)
+  const formatted = date.toLocaleString("fr-FR", {
+    timeZone: "Africa/Casablanca",
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-    timeZoneName: "short",
   });
+  return formatted + " (Maroc)";
 }
 
 interface BaseEmailOptions {
@@ -219,8 +205,7 @@ interface BaseEmailOptions {
     href: string;
     label: string;
   };
-  /** Fallback text link shown below the button when ctaButton is set */
-  ctaFallbackLabel?: string;
+
   /** Metadata row: e.g. "Valide pendant 15 minutes" */
   validityNote?: string;
   /** If true, shows the "si vous n'êtes pas à l'origine" security alert banner */
@@ -241,7 +226,6 @@ function buildBaseEmailHtml(opts: BaseEmailOptions): string {
     headline,
     bodyHtml,
     ctaButton,
-    ctaFallbackLabel,
     validityNote,
     showSecurityAlert = false,
     securityAlertDetail = "",
@@ -254,7 +238,7 @@ function buildBaseEmailHtml(opts: BaseEmailOptions): string {
   const ctaSection = ctaButton
     ? `
       <tr>
-        <td align="center" style="padding:8px 0 4px;">
+        <td align="center" style="padding:24px 0 8px;">
           <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escapeHtml(ctaButton.href)}" style="height:52px;v-text-anchor:middle;width:260px;" arcsize="24%" fillcolor="#ec4899"><w:anchorlock/><center style="color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:800;">${escapeHtml(ctaButton.label)}</center></v:roundrect><![endif]-->
           <!--[if !mso]><!-->
           <a href="${escapeHtml(ctaButton.href)}"
@@ -264,13 +248,6 @@ function buildBaseEmailHtml(opts: BaseEmailOptions): string {
           <!--<![endif]-->
         </td>
       </tr>
-      ${ctaFallbackLabel ? `
-      <tr>
-        <td style="padding:14px 0 0;text-align:center;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#64748b;line-height:1.7;">
-          Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur&nbsp;:<br/>
-          <a href="${escapeHtml(ctaButton.href)}" style="color:#818cf8;word-break:break-all;">${escapeHtml(ctaButton.href)}</a>
-        </td>
-      </tr>` : ""}
     `
     : "";
 
@@ -395,29 +372,17 @@ function buildBaseEmailHtml(opts: BaseEmailOptions): string {
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                   <tr>
                     <td align="center" style="padding:28px 30px 24px;">
-                      <!-- Logo -->
-                      <table role="presentation" cellspacing="0" cellpadding="0">
-                        <tr>
-                          <td align="center" style="vertical-align:middle;">
-                            <!-- Inline SVG logo wrapped in a circle -->
-                            <div style="display:inline-block;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:50%;padding:10px;width:68px;height:68px;box-sizing:border-box;">
-                              ${AXELMOND_LOGO_SVG}
-                            </div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td align="center" style="padding-top:14px;">
-                            <div class="header-logo-text"
-                                 style="font-family:Arial,Helvetica,sans-serif;font-size:20px;font-weight:900;letter-spacing:3px;color:#ffffff;text-transform:uppercase;line-height:1;">
-                              AXELMOND
-                              <span style="color:#ec4899;font-weight:300;letter-spacing:1px;">RESEARCH LABS</span>
-                            </div>
-                            <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#7c8fa6;letter-spacing:2px;text-transform:uppercase;margin-top:5px;">
-                              Research &nbsp;•&nbsp; Innovation &nbsp;•&nbsp; Education
-                            </div>
-                          </td>
-                        </tr>
-                      </table>
+                      <!-- Logo badge (table-based, compatible all email clients) -->
+                      ${AXELMOND_LOGO_BADGE}
+                      <!-- Brand name -->
+                      <div class="header-logo-text"
+                           style="font-family:Arial,Helvetica,sans-serif;font-size:20px;font-weight:900;letter-spacing:3px;color:#ffffff;text-transform:uppercase;line-height:1;margin-top:14px;">
+                        AXELMOND
+                        <span style="color:#ec4899;font-weight:300;letter-spacing:1px;">RESEARCH LABS</span>
+                      </div>
+                      <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#7c8fa6;letter-spacing:2px;text-transform:uppercase;margin-top:5px;">
+                        Research &nbsp;•&nbsp; Innovation &nbsp;•&nbsp; Education
+                      </div>
                     </td>
                   </tr>
                 </table>
@@ -658,7 +623,6 @@ export function buildVerificationEmailContent(input: VerificationEmailContentInp
       ctaButton: input.verifyUrl
         ? { href: input.verifyUrl, label: "Vérifier mon compte" }
         : undefined,
-      ctaFallbackLabel: input.verifyUrl ? "Vérifier mon compte" : undefined,
       validityNote: `Ce code est valable pendant ${input.expiresInMinutes} minutes à compter de sa génération.`,
       showSecurityAlert: true,
       securityAlertDetail: "Aucune action n'est requise de votre part.",
@@ -752,7 +716,6 @@ export function buildResetPasswordEmailContent(input: {
       headline: "Réinitialisation du mot de passe",
       bodyHtml,
       ctaButton: { href: input.resetUrl, label: "Réinitialiser mon mot de passe" },
-      ctaFallbackLabel: "Réinitialiser mon mot de passe",
       validityNote: `Ce lien expire dans ${validity} minutes. Il ne peut être utilisé qu'une seule fois.`,
       showSecurityAlert: true,
       securityAlertDetail: "Votre mot de passe reste inchangé tant que vous n'avez pas cliqué sur le lien.",
@@ -858,7 +821,6 @@ export function buildEmailChangeContent(input: {
       headline: "Confirmation du changement d'e-mail",
       bodyHtml,
       ctaButton: { href: input.confirmUrl, label: "Confirmer mon nouvel e-mail" },
-      ctaFallbackLabel: "Confirmer mon nouvel e-mail",
       validityNote: `Ce lien expire dans ${validity} minutes.`,
       showSecurityAlert: true,
       securityAlertDetail: "Votre adresse e-mail actuelle reste inchangée tant que vous n'avez pas confirmé.",
@@ -950,7 +912,6 @@ export function buildInvitationEmailContent(input: { fullName: string; inviteCod
       headline: "Invitation à rejoindre la plateforme",
       bodyHtml,
       ctaButton: { href: input.inviteUrl, label: "Rejoindre la plateforme" },
-      ctaFallbackLabel: "Rejoindre la plateforme",
       requestedAt: now,
     }),
   };
@@ -1040,7 +1001,6 @@ export function buildNotificationEmailContent(input: {
       headline: input.messageTitle,
       bodyHtml,
       ctaButton: safeActionUrl ? { href: safeActionUrl, label: "Accéder à la notification" } : undefined,
-      ctaFallbackLabel: safeActionUrl ? "Accéder à la notification" : undefined,
       requestedAt: now,
     }),
   };
