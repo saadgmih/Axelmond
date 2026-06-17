@@ -170,12 +170,7 @@ export function StudentRouteSwitch() {
       {currentView === "live" && activeLiveCourse && (
         <Suspense fallback={<RouteChunkFallback label="Chargement de la classe live…" />}>
           <div className="flex h-full min-h-0 flex-col overflow-hidden">
-            <LazyStudentLiveView
-              course={activeLiveCourse}
-              currentUserRole={currentUser?.role || "STUDENT"}
-              onBack={() => navigateTo("course", activeLiveCourse)}
-              {...classroomBindings}
-            />
+            <div id="live-room-portal-target" className="flex h-full w-full min-h-0 flex-col overflow-hidden"></div>
           </div>
         </Suspense>
       )}
