@@ -40,7 +40,8 @@ export type LiveSyncMessage =
   | { type: "POLL_VOTE"; voterId: string; option: string }
   | { type: "POLL_END" }
   | { type: "RESOURCE_SHARE"; resource: LiveSharedResource }
-  | { type: "RESOURCE_DISMISS" };
+  | { type: "RESOURCE_DISMISS" }
+  | { type: "LIVE_ENDED" };
 
 export const DEFAULT_POLL_QUESTION = "Comprenez-vous la notion de base abordée ?";
 export const DEFAULT_POLL_OPTIONS = ["Oui, c'est très clair", "J'ai besoin de plus d'exemples", "Non, je suis perdu"];

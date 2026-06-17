@@ -78,7 +78,7 @@ export function usePlatformApp() {
     catalogCourses,
     catalogError,
     retryCatalogLoad,
-  } = usePlatformCatalogData(isAuthReady, courses, domains, setCourses, setDomains, setIsLoading);
+  } = usePlatformCatalogData(isAuthReady, currentUser, courses, domains, setCourses, setDomains, setIsLoading);
 
   useEffect(() => {
     document.documentElement.classList.add("dark");
@@ -210,6 +210,37 @@ export function usePlatformApp() {
     onNotification: (payload) => {
       if (payload && typeof payload === "object") {
         pushNotification(payload as AppNotification);
+
+        const notification = payload as any;
+        if (notification.type === "LIVE_FINISHED") {
+          const courseId = Number(notification.metadata?.courseId);
+          if (courseId) {
+            setCourses((prev) =>
+              prev.map((c) => (c.id === courseId ? { ...c, isLiveNow: false, liveSubject: null } : c)),
+            );
+            if (activeLiveCourse?.id === courseId) {
+              disconnectLiveSession();
+              setActiveLiveCourse(null);
+              setCurrentView("dashboard");
+              alert("La session live a été terminée par le professeur.");
+            }
+          }
+        } else if (notification.type === "LIVE_STARTED") {
+          const courseId = Number(notification.metadata?.courseId);
+          if (courseId) {
+            setCourses((prev) =>
+              prev.map((c) =>
+                c.id === courseId
+                  ? {
+                      ...c,
+                      isLiveNow: true,
+                      liveSubject: notification.body ? notification.body.replace(" est en direct", "") : null,
+                    }
+                  : c,
+              ),
+            );
+          }
+        }
       }
     },
   });

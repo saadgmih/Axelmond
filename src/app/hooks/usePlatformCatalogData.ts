@@ -4,9 +4,11 @@ import { getClientErrorMessage, isMfaSetupRequiredError } from "../../client-err
 import { api } from "../../api";
 import { useAsyncEffectGuard } from "../../hooks/useAsyncEffectGuard";
 import type { Course, FacultyDomain } from "../../types";
+import type { AppUser } from "../../components/AuthScreen";
 
 export function usePlatformCatalogData(
   isAuthReady: boolean,
+  currentUser: AppUser | null,
   courses: Course[],
   domains: FacultyDomain[],
   setCourses: Dispatch<SetStateAction<Course[]>>,
@@ -47,7 +49,7 @@ export function usePlatformCatalogData(
         setCatalogError(message || null);
         setIsLoading(false);
       });
-  }, [isAuthReady, setCourses, setDomains, setIsLoading, startCatalogRequest]);
+  }, [isAuthReady, currentUser?.id, setCourses, setDomains, setIsLoading, startCatalogRequest]);
 
   useEffect(() => {
     loadCatalog();

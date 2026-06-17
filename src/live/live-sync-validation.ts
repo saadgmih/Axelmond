@@ -20,6 +20,7 @@ const MODERATOR_ONLY_TYPES = new Set([
   "POLL_END",
   "RESOURCE_SHARE",
   "RESOURCE_DISMISS",
+  "LIVE_ENDED",
 ]);
 
 const HEX_COLOR_PATTERN = /^#[0-9a-fA-F]{3,8}$/;
@@ -303,6 +304,9 @@ export function validateIncomingLiveSyncMessage(
 
     case "RESOURCE_DISMISS":
       return { type: "RESOURCE_DISMISS" };
+
+    case "LIVE_ENDED":
+      return { type: "LIVE_ENDED" };
 
     default:
       return null;

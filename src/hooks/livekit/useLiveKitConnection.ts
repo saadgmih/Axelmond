@@ -51,6 +51,7 @@ export interface UseLiveKitConnectionOptions {
   setEnrolledCourses: (ids: number[]) => void;
   setInvoices: (invoices: Invoice[]) => void;
   setCourseToPurchase: (course: Course | null) => void;
+  onLiveEnded?: () => void;
 }
 
 export function useLiveKitConnection({
@@ -83,6 +84,7 @@ export function useLiveKitConnection({
   setEnrolledCourses,
   setInvoices,
   setCourseToPurchase,
+  onLiveEnded,
 }: UseLiveKitConnectionOptions) {
   const activeSpeakerIdentityRef = useRef(activeSpeakerIdentity);
   const activeSpeakerSwitchTimerRef = useRef<number | null>(null);
@@ -124,6 +126,12 @@ export function useLiveKitConnection({
           }
           if (message.type === "SYNC_REQUEST") {
             await respondToSyncRequest(room, participant?.identity);
+            return;
+          }
+          if (message.type === "LIVE_ENDED") {
+            if (currentUser && isStudentRole(currentUser.role)) {
+              onLiveEnded?.();
+            }
             return;
           }
           applyIncomingLiveSyncMessage(message, room.localParticipant.identity);

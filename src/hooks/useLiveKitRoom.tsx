@@ -210,6 +210,10 @@ export function useLiveKitRoom({
     setEnrolledCourses,
     setInvoices,
     setCourseToPurchase,
+    onLiveEnded: () => {
+      leaveLiveRoom();
+      alert("La session live a été terminée par le professeur.");
+    },
   });
 
   useLiveMediaAttach({
@@ -324,9 +328,14 @@ export function useLiveKitRoom({
     setTeacherView("live-control");
   };
 
-  const closeTeacherLiveRoom = () => {
+  const closeTeacherLiveRoom = async () => {
     const course = activeLiveCourse;
     if (course) {
+      try {
+        await publishLiveSync(liveRoom, { type: "LIVE_ENDED" });
+      } catch (err) {
+        console.warn("[livekit] Failed to publish LIVE_ENDED message", err);
+      }
       api.leaveLiveAttendance(course.id).catch((err) => console.warn("[livekit] Attendance leave failed", err));
     }
     resetLiveKitState();
@@ -343,7 +352,7 @@ export function useLiveKitRoom({
 
     if (course.isLiveNow) {
       if (isRoomOpen) {
-        closeTeacherLiveRoom();
+        await closeTeacherLiveRoom();
         await toggleCourseLive(courseId);
       } else {
         joinTeacherLiveRoom(course);

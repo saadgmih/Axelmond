@@ -594,6 +594,18 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
             metadata: { courseId: course.id },
           })
           .catch(() => undefined);
+      } else if (typeof req.body.isLiveNow === "boolean" && !req.body.isLiveNow && course.isLiveNow) {
+        await api
+          .notifyEnrolledStudentsForCourse(course.id, {
+            type: "LIVE_FINISHED",
+
+            title: "Séance live terminée",
+
+            body: `La séance en direct pour ${course.title} est terminée`,
+
+            metadata: { courseId: course.id },
+          })
+          .catch(() => undefined);
       }
 
       res.json(api.toCourse(updatedCourse));
