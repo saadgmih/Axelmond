@@ -5,6 +5,7 @@ import { canAccessAcademicProfile } from "../../rbac";
 import { buildLiveKitRoomName } from "../../livekit";
 import { prisma } from "../../db";
 import { LIVE_ACCESS_ERRORS } from "../../public-api-errors";
+import { LIVE_SYNC_TOPIC } from "../../live/live-sync";
 import { logLiveKit } from "../route-loggers";
 import type { AppUser } from "../route-types";
 import { findCourse } from "./user-mappers";
@@ -92,6 +93,20 @@ export async function createLiveKitAccessToken(apiKey: string, apiSecret: string
 export async function getLiveKitReliableDataKind() {
   const { DataPacket_Kind } = await loadLiveKitSdk();
   return DataPacket_Kind.RELIABLE;
+}
+
+export async function endLiveKitRoom(config: { url: string; apiKey: string; apiSecret: string }, roomName: string) {
+  const roomService = await getLiveKitRoomService(config);
+  const reliableKind = await getLiveKitReliableDataKind();
+  const liveEndedPayload = new TextEncoder().encode(JSON.stringify({ type: "LIVE_ENDED" }));
+
+  try {
+    await roomService.sendData(roomName, liveEndedPayload, reliableKind, { topic: LIVE_SYNC_TOPIC });
+  } catch (err) {
+    logLiveKit("WARN", "Live ended relay failed before room shutdown", { roomName, error: String(err) });
+  }
+
+  await roomService.deleteRoom(roomName);
 }
 
 export async function recordLiveAction(params: {

@@ -46,6 +46,7 @@ export interface UseLiveKitRoomOptions {
   currentView: string;
   teacherView: string;
   handleToggleCourseLive?: (id: number) => Promise<Course | null>;
+  onStudentLiveEnded?: (courseId: number) => void;
   roomRef?: MutableRefObject<{
     closeTeacherLiveRoom: () => Promise<void>;
   } | null>;
@@ -69,6 +70,7 @@ export function useLiveKitRoom({
   currentView,
   teacherView,
   handleToggleCourseLive: _handleToggleCourseLive,
+  onStudentLiveEnded,
   roomRef,
 }: UseLiveKitRoomOptions) {
   const [liveRoom, setLiveRoom] = useState<Room | null>(null);
@@ -215,7 +217,10 @@ export function useLiveKitRoom({
     setInvoices,
     setCourseToPurchase,
     onLiveEnded: () => {
-      leaveLiveRoom();
+      const endedCourseId = activeLiveCourse?.id;
+      void leaveLiveRoom({ liveEnded: true }).then(() => {
+        if (endedCourseId) onStudentLiveEnded?.(endedCourseId);
+      });
       alert("La session live a été terminée par le professeur.");
     },
   });
@@ -370,7 +375,7 @@ export function useLiveKitRoom({
     }
   };
 
-  const leaveLiveRoom = async () => {
+  const leaveLiveRoom = async (options: { liveEnded?: boolean } = {}) => {
     const course = activeLiveCourse;
     if (course) {
       if (currentUser && !isStudentRole(currentUser.role)) {
@@ -389,8 +394,8 @@ export function useLiveKitRoom({
     }
     resetLiveKitState();
     if (course && currentUser && isStudentRole(currentUser.role)) {
-      setSelectedCourse(course);
-      setCurrentView("course");
+      setSelectedCourse(options.liveEnded ? { ...course, isLiveNow: false, liveSubject: null } : course);
+      setCurrentView(options.liveEnded ? "dashboard" : "course");
     }
   };
 

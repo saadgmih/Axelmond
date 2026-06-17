@@ -146,6 +146,9 @@ rulesTest("live-sync-validation", () => {
   assert.match(hookSource, /api\.publishLiveSync|publishLiveSync/);
   assert.match(serverSource, /\/api\/livekit\/sync/);
   assert.match(serverSource, /roomService\.sendData/);
+  assert.match(serverSource, /endLiveKitRoom/);
+  assert.match(serverSource, /roomService\.deleteRoom/);
+  assert.match(serverSource, /LiveKit room closed after live stop/);
   assert.match(resourceStageSource, /sandbox=/);
   assert.doesNotMatch(resourceStageSource, /allow-scripts/);
 });

@@ -12,6 +12,7 @@ export {
   getLiveKitRoomService,
   createLiveKitAccessToken,
   getLiveKitReliableDataKind,
+  endLiveKitRoom,
   canReadCourseGrades,
   persistUserAvatarUrl,
   findQuizWithQuestions,

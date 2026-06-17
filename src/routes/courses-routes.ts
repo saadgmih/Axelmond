@@ -580,6 +580,25 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
 
       await api.invalidatePublicCatalogCache();
 
+      if (typeof req.body.isLiveNow === "boolean" && !req.body.isLiveNow && course.isLiveNow) {
+        const liveKitConfig = api.getLiveKitConfig(process.env);
+        if (liveKitConfig) {
+          const roomName = api.buildLiveKitRoomName(course.id);
+          await api
+            .endLiveKitRoom(liveKitConfig, roomName)
+            .then(() => {
+              api.logLiveKit("INFO", "LiveKit room closed after live stop", { courseId: course.id, roomName });
+            })
+            .catch((err) => {
+              api.logLiveKit("WARN", "LiveKit room shutdown failed after live stop", {
+                courseId: course.id,
+                roomName,
+                error: String(err),
+              });
+            });
+        }
+      }
+
       if (updatedCourse?.isLiveNow && !course.isLiveNow) {
         await api
           .notifyEnrolledStudentsForCourse(course.id, {

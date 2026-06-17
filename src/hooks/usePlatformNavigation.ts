@@ -108,13 +108,12 @@ export function usePlatformNavigation({
       }
 
       if (parsed.studentView === "live") {
-        const liveCourse =
-          courses.find((course) => studentCourseIds.includes(course.id) && course.isLiveNow) ??
-          courses.find((course) => studentCourseIds.includes(course.id)) ??
-          null;
+        const liveCourse = courses.find((course) => studentCourseIds.includes(course.id) && course.isLiveNow) ?? null;
         if (liveCourse) {
           setActiveLiveCourse((current) => current ?? liveCourse);
           setSelectedCourse((current) => current ?? liveCourse);
+        } else {
+          setActiveLiveCourse(null);
         }
       }
       return;
@@ -175,6 +174,17 @@ export function usePlatformNavigation({
       if (view === "live" && targetCourse) {
         if (!studentCourseIds.includes(targetCourse.id)) {
           setCourseToPurchase(targetCourse);
+          return;
+        }
+        if (!targetCourse.isLiveNow) {
+          setActiveLiveCourse(null);
+          setCurrentView(view);
+          setIsMobileMenuOpen(false);
+          if (currentUser) {
+            const uiRole = getAllowedUiRole(currentUser.role);
+            navigate(buildPlatformPath(uiRole, view, uiRole === "teacher" ? teacherView : undefined));
+          }
+          scrollAppToTopDeferred();
           return;
         }
         setSelectedCourse(targetCourse);

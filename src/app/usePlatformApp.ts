@@ -201,6 +201,14 @@ export function usePlatformApp() {
     pushNotification,
   } = useNotifications(isAuthReady && !!currentUser);
 
+  const markLiveCourseEnded = useCallback((courseId: number) => {
+    setCourses((prev) => prev.map((c) => (c.id === courseId ? { ...c, isLiveNow: false, liveSubject: null } : c)));
+    setSelectedCourse((current) =>
+      current?.id === courseId ? { ...current, isLiveNow: false, liveSubject: null } : current,
+    );
+    setActiveLiveCourse((current) => (current?.id === courseId ? null : current));
+  }, []);
+
   const {
     status: pushStatus,
     statusKind: pushStatusKind,
@@ -216,15 +224,9 @@ export function usePlatformApp() {
         if (notification.type === "LIVE_FINISHED") {
           const courseId = Number(notification.metadata?.courseId);
           if (courseId) {
-            setCourses((prev) =>
-              prev.map((c) => (c.id === courseId ? { ...c, isLiveNow: false, liveSubject: null } : c)),
-            );
-            setSelectedCourse((current) =>
-              current?.id === courseId ? { ...current, isLiveNow: false, liveSubject: null } : current,
-            );
+            markLiveCourseEnded(courseId);
             if (activeLiveCourse?.id === courseId) {
               disconnectLiveSession();
-              setActiveLiveCourse(null);
               setCurrentView("dashboard");
               alert("La session live a été terminée par le professeur.");
             }
@@ -487,6 +489,7 @@ export function usePlatformApp() {
       isLiveSessionView,
       handleToggleCourseLive,
       handleUpdateCourseLiveSubject,
+      handleStudentLiveEnded: markLiveCourseEnded,
       roomRef: liveKitRoomRef,
     }),
     [
@@ -503,6 +506,7 @@ export function usePlatformApp() {
       isLiveSessionView,
       handleToggleCourseLive,
       handleUpdateCourseLiveSubject,
+      markLiveCourseEnded,
     ],
   );
 

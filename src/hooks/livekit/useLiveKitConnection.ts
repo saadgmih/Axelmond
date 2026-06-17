@@ -99,12 +99,19 @@ export function useLiveKitConnection({
     if (!activeLiveCourse || !currentUser) return;
 
     let disposed = false;
+    let liveEndedHandled = false;
     const room = new Room({
       adaptiveStream: true,
       dynacast: true,
     });
 
     const refreshParticipants = () => syncLiveParticipants(room);
+    const handleLiveEndedOnce = () => {
+      if (liveEndedHandled) return;
+      liveEndedHandled = true;
+      onLiveEnded?.();
+    };
+
     const handleDataReceived = async (payload: Uint8Array, participant: any, _kind: any, topic?: string) => {
       try {
         if (topic === LIVE_SYNC_TOPIC) {
@@ -130,7 +137,7 @@ export function useLiveKitConnection({
           }
           if (message.type === "LIVE_ENDED") {
             if (currentUser && isStudentRole(currentUser.role)) {
-              onLiveEnded?.();
+              handleLiveEndedOnce();
             }
             return;
           }
@@ -173,6 +180,29 @@ export function useLiveKitConnection({
       } catch (err) {
         console.warn("[livekit] Invalid data payload", err);
       }
+    };
+
+    const closeIfLiveInactive = async () => {
+      try {
+        const latestCourse = await api.getCourse(activeLiveCourse.id);
+        if (!disposed && !latestCourse?.isLiveNow) {
+          handleLiveEndedOnce();
+          return true;
+        }
+      } catch (err: any) {
+        if (disposed) return false;
+        if (err?.status === 403 || err?.status === 404) {
+          handleLiveEndedOnce();
+          return true;
+        }
+        console.warn("[livekit] Failed to verify live status", err);
+      }
+      return false;
+    };
+
+    const handleRoomDisconnected = () => {
+      if (disposed || !currentUser || !isStudentRole(currentUser.role)) return;
+      void closeIfLiveInactive();
     };
 
     const clearActiveSpeakerTimers = () => {
@@ -246,6 +276,7 @@ export function useLiveKitConnection({
       .on(RoomEvent.LocalTrackUnpublished, refreshParticipants)
       .on(RoomEvent.ActiveSpeakersChanged, handleActiveSpeakersChanged)
       .on(RoomEvent.ConnectionQualityChanged, refreshParticipants)
+      .on(RoomEvent.Disconnected, handleRoomDisconnected)
       .on(RoomEvent.DataReceived, handleDataReceived);
 
     setLiveStatusMsg("Connexion à la session en direct...");
@@ -290,13 +321,14 @@ export function useLiveKitConnection({
             if (syncedUser.enrolledCourses?.map(Number).includes(activeLiveCourse.id)) {
               if (disposed) return;
               setLiveStatusMsg("Accès live synchronisé. Reconnexion...");
-              try {
-                await connectLiveRoom();
-              } catch (retryErr) {
-                if (disposed) return;
-                console.error("[livekit] Room connection retry failed", retryErr);
-                setLiveStatusMsg(getClientErrorMessage(retryErr, "Connexion à la session en direct impossible"));
-              }
+                try {
+                  await connectLiveRoom();
+                } catch (retryErr) {
+                  if (disposed) return;
+                  if ((retryErr as any)?.status === 403 && (await closeIfLiveInactive())) return;
+                  console.error("[livekit] Room connection retry failed", retryErr);
+                  setLiveStatusMsg(getClientErrorMessage(retryErr, "Connexion à la session en direct impossible"));
+                }
               return;
             }
           } catch (syncErr) {

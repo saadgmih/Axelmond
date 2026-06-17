@@ -33,8 +33,13 @@ rulesTest("student-live-sync", () => {
   assert.match(liveKitSource, /syncedUser\.enrolledCourses\?\.map\(Number\)\.includes\(activeLiveCourse\.id\)/);
   assert.match(liveKitSource, /await connectLiveRoom\(\)/);
   assert.match(liveKitSource, /setCourseToPurchase\(activeLiveCourse\)/);
+  assert.match(liveKitSource, /RoomEvent\.Disconnected/);
+  assert.match(liveKitSource, /handleLiveEndedOnce/);
+  assert.match(liveKitSource, /closeIfLiveInactive/);
+  assert.match(liveKitSource, /api\.getCourse\(activeLiveCourse\.id\)/);
   assert.match(platformNavigationSource, /studentCourseIds/);
   assert.match(platformNavigationSource, /currentUser\.enrolledCourses\.map\(Number\)/);
+  assert.match(platformNavigationSource, /parsed\.studentView === "live"[\s\S]*setActiveLiveCourse\(null\)/);
 
   assert.match(serverSource, /api\.persistCoursePaymentEnrollment\(/);
   assert.match(serverSource, /provider:\s*"MOCK"/);
