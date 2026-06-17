@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { api } from "../api";
 import { useLiveKitSession } from "../context/livekit-session-context";
 import { useNotifications } from "../hooks/useNotifications";
 import { usePushNotifications } from "../hooks/usePushNotifications";
@@ -238,8 +239,38 @@ export function usePlatformApp() {
     setAcademicProfileForm,
   );
 
-  const { toggleTeacherLiveSession, disconnectLiveSession, renderLiveRoomInterface, classroomBindings } =
+  const { disconnectLiveSession, renderLiveRoomInterface, classroomBindings } =
     useLiveKitSession();
+
+  const toggleTeacherLiveSession = useCallback(
+    async (courseId: number, toggleCourseLive: (id: number) => Promise<Course | null>) => {
+      const course = courses.find((c) => c.id === courseId);
+      if (!course) return;
+
+      const isRoomOpen = activeLiveCourse?.id === courseId;
+
+      if (course.isLiveNow) {
+        if (isRoomOpen) {
+          api.leaveLiveAttendance(courseId).catch((err) => console.warn("[livekit] Attendance leave failed", err));
+          setActiveLiveCourse(null);
+          await toggleCourseLive(courseId);
+        } else {
+          setSelectedCourse(course);
+          setActiveLiveCourse(course);
+          setTeacherView("live-control");
+        }
+        return;
+      }
+
+      const updatedCourse = await toggleCourseLive(courseId);
+      if (updatedCourse) {
+        setSelectedCourse(updatedCourse);
+        setActiveLiveCourse(updatedCourse);
+        setTeacherView("live-control");
+      }
+    },
+    [courses, activeLiveCourse?.id, setActiveLiveCourse, setSelectedCourse, setTeacherView]
+  );
 
   onSessionExpiredRef.current = disconnectLiveSession;
 
