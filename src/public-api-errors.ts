@@ -25,6 +25,8 @@ export const PUBLIC_API_ERRORS = {
   smtpSendFailed: "Échec d'envoi de l'e-mail.",
   quizQuestionFieldsRequired: "La question, les options (min. 2), la réponse et l'explication sont requis.",
   registrationConflict: "Impossible de créer le compte avec ces informations. Vérifiez vos données ou connectez-vous.",
+  registrationConflictVerified: "Un compte existe déjà avec cet e-mail. Veuillez vous connecter.",
+  unverifiedAccountResent: "Un code de vérification a été envoyé à votre adresse e-mail. Veuillez vérifier votre compte pour terminer l'inscription.",
   emailVerificationFailed: "Identifiants ou code incorrects.",
   resendVerificationGeneric: "Si le compte existe et n'est pas vérifié, un nouveau code a été envoyé.",
   serviceUnavailable: "Service temporairement indisponible.",

@@ -32,11 +32,43 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
 
     const existing = await api.prisma.user.findUnique({ where: { email: normalizedEmail } });
 
-    if (existing) {
-      res.status(409).json({ error: api.PUBLIC_API_ERRORS.registrationConflict });
-
+    // ── Cas 3 : email existant ET déjà vérifié → bloquer avec message clair ──
+    if (existing && existing.emailVerified) {
+      res.status(409).json({ error: api.PUBLIC_API_ERRORS.registrationConflictVerified });
       return;
     }
+
+    // ── Cas 2 : email existant MAIS non vérifié → reprendre le tunnel ─────────
+    if (existing && !existing.emailVerified) {
+      // Mettre à jour les informations saisies (mot de passe potentiellement changé, nom corrigé)
+      await api.prisma.user.update({
+        where: { id: existing.id },
+        data: {
+          passwordHash,
+          fullName,
+          filiere: existing.role === "STUDENT" && typeof filiere === "string" ? filiere.trim() || null : existing.filiere,
+        },
+      });
+
+      const safeExisting = api.toAppUser({ ...existing, passwordHash, fullName });
+      const delivery = await api.sendEmailVerificationCode(safeExisting);
+
+      api.logSecurity("INFO", "Unverified account re-registration: new code issued", {
+        userId: existing.id,
+        role: existing.role,
+      });
+
+      res.status(200).json({
+        verificationRequired: true,
+        email: existing.email,
+        message: delivery.sent
+          ? api.PUBLIC_API_ERRORS.unverifiedAccountResent
+          : "Compte en attente de vérification. Le service e-mail n'est pas encore disponible ; utilisez « Renvoyer le code » une fois l'envoi activé.",
+      });
+      return;
+    }
+
+    // ── Cas 1 : nouvel email → création du compte (flux existant) ─────────────
 
     const inviteCode = api.normalizeProfessorInviteCode(professorInviteCode);
 
@@ -144,6 +176,7 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
       res.status(500).json({ error: "Création du compte impossible" });
     }
   });
+
 
   // POST /api/auth/login
 
