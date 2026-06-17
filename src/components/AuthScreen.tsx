@@ -205,7 +205,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
     }
 
     if (activeSector === "teacher" && !professorInviteCode.trim()) {
-      setErrorMsg("Veuillez renseigner le code d'invitation professeur.");
+      setErrorMsg("Veuillez renseigner la clé d'accès fournie par l'administrateur.");
       return;
     }
 
@@ -714,7 +714,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                   {authMode === "register" && (
                     <div className="space-y-1.5 animate-in slide-in-from-top-1 duration-200">
                       <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 block">
-                        {activeSector === "student" ? "Filière" : "Code d'invitation professeur"}
+                        {activeSector === "student" ? "Filière" : "Clé d'accès"}
                       </label>
                       <input
                         type="text"
@@ -722,7 +722,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                         placeholder={
                           activeSector === "student"
                             ? "ex: Informatique, Mathématiques, Physique..."
-                            : "Code fourni par l'administrateur"
+                            : "Clé fournie par l'administrateur"
                         }
                         value={activeSector === "student" ? filiere : professorInviteCode}
                         onChange={(e) => {

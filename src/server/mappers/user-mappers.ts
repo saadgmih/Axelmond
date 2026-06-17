@@ -257,10 +257,14 @@ export async function sendEmailVerificationCode(user: { id: string; email: strin
 }
 
 export function professorInviteSnapshot(invite: any) {
+  const usedByName = invite.usedBy?.fullName || null;
+  const usedByEmail = invite.usedBy?.email || null;
   return {
     code: invite.code,
     createdAt: invite.createdAt?.toISOString?.() || invite.createdAt,
-    usedBy: invite.usedBy?.email,
+    usedBy: usedByEmail,
+    usedByName,
+    usedByEmail,
     usedAt: invite.usedAt?.toISOString?.() || invite.usedAt,
     revokedAt: invite.revokedAt?.toISOString?.() || invite.revokedAt,
   };

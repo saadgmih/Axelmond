@@ -16,9 +16,9 @@ export function registerAdminRoutes(app: Express, ctx: RouteContext): void {
   app.get("/api/admin/professor-invites", requireAuth, requireAdmin, async (_req, res) => {
     const invitations = await api.prisma.professorInviteCode.findMany({
       orderBy: { createdAt: "desc" },
-      include: { usedBy: true },
+      include: { usedBy: { select: { id: true, fullName: true, email: true } } },
     });
-    api.logInvitation("INFO", "Admin listed professor invitations");
+    api.logInvitation("INFO", "Admin listed access keys");
     res.json(invitations.map(api.professorInviteSnapshot));
   });
 
@@ -26,7 +26,7 @@ export function registerAdminRoutes(app: Express, ctx: RouteContext): void {
     const authUser = getAuthUser(req);
     const code = api.normalizeProfessorInviteCode(req.body?.code || api.generateProfessorInviteCode(true));
     if (!code) {
-      res.status(400).json({ error: "Code d'invitation absent" });
+      res.status(400).json({ error: "Clé d'accès absente" });
       return;
     }
 
@@ -34,32 +34,34 @@ export function registerAdminRoutes(app: Express, ctx: RouteContext): void {
       const invite = await api.prisma.professorInviteCode.create({
         data: { code, createdById: authUser.id },
       });
-      api.logInvitation("INFO", "Admin created professor invitation", { codeSuffix: invite.code.slice(-4) });
-      res.status(201).json({ code: invite.code });
+      api.logInvitation("INFO", "Admin created access key", { codeSuffix: invite.code.slice(-4) });
+      res.status(201).json(api.professorInviteSnapshot(invite));
     } catch (err: unknown) {
       const prismaCode = (err as { code?: string })?.code;
       if (prismaCode === "P2002") {
-        res.status(409).json({ error: "Code d'invitation déjà existant" });
+        res.status(409).json({ error: "Clé d'accès déjà existante" });
         return;
       }
-      api.logDb("ERROR", "Professor invitation creation failed", { codeSuffix: code.slice(-4), error: String(err) });
-      res.status(500).json({ error: "Création du code impossible" });
+      api.logDb("ERROR", "Access key creation failed", { codeSuffix: code.slice(-4), error: String(err) });
+      res.status(500).json({ error: "Création de la clé impossible" });
     }
   });
 
   app.delete("/api/admin/professor-invites/:code", requireAuth, requireAdmin, async (req, res) => {
     const code = api.normalizeProfessorInviteCode(req.params.code);
     const invite = await api.prisma.professorInviteCode.findUnique({ where: { code } });
-    if (!invite || invite.revokedAt) {
-      res.status(404).json({ error: "Code d'invitation introuvable ou déjà révoqué" });
+    if (!invite) {
+      res.status(404).json({ error: "Clé d'accès introuvable" });
       return;
     }
 
-    await api.prisma.professorInviteCode.update({
+    await api.prisma.professorInviteCode.delete({
       where: { code },
-      data: { revokedAt: new Date() },
     });
-    api.logInvitation("INFO", "Admin revoked professor invitation", { codeSuffix: code.slice(-4) });
+    api.logInvitation("INFO", "Admin deleted access key", {
+      codeSuffix: code.slice(-4),
+      used: Boolean(invite.usedAt),
+    });
     res.json({ ok: true });
   });
 

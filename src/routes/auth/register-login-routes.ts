@@ -41,9 +41,12 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
     const inviteCode = api.normalizeProfessorInviteCode(professorInviteCode);
 
     if (normalizedRole !== "STUDENT" && !inviteCode) {
-      api.logInvitation("WARN", "Professor registration denied", { email: normalizedEmail, reason: "missing" });
+      api.logInvitation("WARN", "Academic registration denied", {
+        email: normalizedEmail,
+        reason: "missing_access_key",
+      });
 
-      res.status(403).json({ error: "Code d'invitation professeur absent, invalide ou déjà utilisé" });
+      res.status(403).json({ error: "Clé d'accès absente, invalide ou déjà utilisée" });
 
       return;
     }
@@ -87,7 +90,7 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
 
           await api.attachProfessorInviteUsage(tx, inviteCode!, createdUser.id);
 
-          api.logInvitation("INFO", "Professor invitation consumed", {
+          api.logInvitation("INFO", "Access key consumed", {
             email: normalizedEmail,
             codeSuffix: inviteCode.slice(-4),
           });
@@ -122,11 +125,11 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
     } catch (err: any) {
       if (err instanceof api.ProfessorInviteConsumeError) {
         if (err.code === "EXPIRED") {
-          res.status(403).json({ error: "Le code d'accès professeur a expiré (validité de 5 minutes)" });
+          res.status(403).json({ error: "La clé d'accès a expiré" });
           return;
         }
 
-        res.status(403).json({ error: "Code d'invitation professeur absent, invalide ou déjà utilisé" });
+        res.status(403).json({ error: "Clé d'accès absente, invalide ou déjà utilisée" });
         return;
       }
 

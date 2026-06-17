@@ -4,6 +4,16 @@ import { api } from "../api";
 import type { AppUser } from "../components/AuthScreen";
 import type { Course, CourseGrade } from "../types";
 
+export interface ProfessorAccessKey {
+  code: string;
+  createdAt: string;
+  usedAt?: string | null;
+  revokedAt?: string | null;
+  usedBy?: string | null;
+  usedByEmail?: string | null;
+  usedByName?: string | null;
+}
+
 export interface UseTeacherDashboardOptions {
   role: string;
   courses: Course[];
@@ -30,6 +40,10 @@ export function useTeacherDashboard({
   const [isSendingTestEmail, setIsSendingTestEmail] = useState(false);
   const [emailDeliverySummary, setEmailDeliverySummary] = useState<any | null>(null);
   const [emailDeliveryStatusMsg, setEmailDeliveryStatusMsg] = useState("");
+  const [professorInvites, setProfessorInvites] = useState<ProfessorAccessKey[]>([]);
+  const [accessKeyStatusMsg, setAccessKeyStatusMsg] = useState("");
+  const [isLoadingAccessKeys, setIsLoadingAccessKeys] = useState(false);
+  const [isCreatingAccessKey, setIsCreatingAccessKey] = useState(false);
 
   useEffect(() => {
     if (courses.length && !courses.some((course) => course.id === gradesCourseId)) {
@@ -70,12 +84,29 @@ export function useTeacherDashboard({
     }
   };
 
+  const refreshProfessorInvites = async () => {
+    if (currentUser?.role !== "ADMIN") return;
+    setIsLoadingAccessKeys(true);
+    try {
+      const invites = await api.getProfessorInvites();
+      setProfessorInvites(invites);
+      setAccessKeyStatusMsg("");
+    } catch (err: any) {
+      setAccessKeyStatusMsg(getClientErrorMessage(err, "Clés d'accès indisponibles"));
+    } finally {
+      setIsLoadingAccessKeys(false);
+    }
+  };
+
   useEffect(() => {
     if (currentUser?.role === "ADMIN") {
       refreshEmailDeliverySummary();
+      refreshProfessorInvites();
     } else {
       setEmailDeliverySummary(null);
       setEmailDeliveryStatusMsg("");
+      setProfessorInvites([]);
+      setAccessKeyStatusMsg("");
     }
   }, [currentUser?.id, currentUser?.role]);
 
@@ -138,6 +169,34 @@ export function useTeacherDashboard({
     }
   };
 
+  const handleCreateProfessorInvite = async () => {
+    setIsCreatingAccessKey(true);
+    setAccessKeyStatusMsg("Génération de la clé d'accès...");
+    try {
+      const invite = await api.createProfessorInvite();
+      setProfessorInvites((prev) => [invite, ...prev.filter((item) => item.code !== invite.code)]);
+      setAccessKeyStatusMsg(`Clé d'accès générée : ${invite.code}`);
+    } catch (err: any) {
+      setAccessKeyStatusMsg(getClientErrorMessage(err, "Création de la clé impossible"));
+      await refreshProfessorInvites();
+    } finally {
+      setIsCreatingAccessKey(false);
+    }
+  };
+
+  const handleDeleteProfessorInvite = async (code: string) => {
+    if (!code) return;
+    setAccessKeyStatusMsg("Suppression de la clé d'accès...");
+    try {
+      await api.deleteProfessorInvite(code);
+      setProfessorInvites((prev) => prev.filter((item) => item.code !== code));
+      setAccessKeyStatusMsg("Clé d'accès supprimée.");
+    } catch (err: any) {
+      setAccessKeyStatusMsg(getClientErrorMessage(err, "Suppression de la clé impossible"));
+      await refreshProfessorInvites();
+    }
+  };
+
   const formatEmailLogDate = (value?: string) => {
     if (!value) return "Aucun envoi";
     return new Date(value).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
@@ -166,8 +225,15 @@ export function useTeacherDashboard({
     isSendingTestEmail,
     emailDeliverySummary,
     emailDeliveryStatusMsg,
+    professorInvites,
+    accessKeyStatusMsg,
+    isLoadingAccessKeys,
+    isCreatingAccessKey,
     formatEmailLogDate,
     handleSendTestEmail,
+    refreshProfessorInvites,
+    handleCreateProfessorInvite,
+    handleDeleteProfessorInvite,
     handleUpdateCoursePrice,
     handleToggleCourseLive,
     handleUpdateCourseLiveSubject,
