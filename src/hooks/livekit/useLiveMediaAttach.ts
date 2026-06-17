@@ -38,16 +38,6 @@ export function useLiveMediaAttach({
   );
 
   useEffect(() => {
-    const primaryTrack =
-      liveParticipants.find((participant) => participant.identity === activeSpeakerIdentity && participant.videoTrack)
-        ?.videoTrack ||
-      liveParticipants.find((participant) => !participant.isLocal && participant.videoTrack)?.videoTrack ||
-      liveParticipants.find((participant) => participant.videoTrack)?.videoTrack;
-
-    if (primaryLiveVideoRef.current && primaryTrack) {
-      primaryTrack.attach(primaryLiveVideoRef.current);
-    }
-
     liveParticipants.forEach((participant) => {
       const videoElement = liveVideoRefs.current[participant.identity];
       if (videoElement && participant.videoTrack) {
@@ -68,7 +58,6 @@ export function useLiveMediaAttach({
     }
 
     return () => {
-      primaryTrack?.detach(primaryLiveVideoRef.current || undefined);
       liveParticipants.forEach((participant) => {
         if (participant.videoTrack) {
           participant.videoTrack.detach(liveVideoRefs.current[participant.identity] || undefined);
@@ -79,5 +68,23 @@ export function useLiveMediaAttach({
       });
       audioContainer?.replaceChildren();
     };
-  }, [liveMediaSignature, currentView, teacherView, activeLiveCourseId, activeSpeakerIdentity]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveMediaSignature, currentView, teacherView, activeLiveCourseId]);
+
+  useEffect(() => {
+    const primaryTrack =
+      liveParticipants.find((participant) => participant.identity === activeSpeakerIdentity && participant.videoTrack)
+        ?.videoTrack ||
+      liveParticipants.find((participant) => !participant.isLocal && participant.videoTrack)?.videoTrack ||
+      liveParticipants.find((participant) => participant.videoTrack)?.videoTrack;
+
+    if (primaryLiveVideoRef.current && primaryTrack) {
+      primaryTrack.attach(primaryLiveVideoRef.current);
+    }
+
+    return () => {
+      primaryTrack?.detach(primaryLiveVideoRef.current || undefined);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveMediaSignature, activeSpeakerIdentity]);
 }
