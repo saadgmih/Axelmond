@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { createPortal } from "react-dom";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import SkipLink from "../components/SkipLink";
@@ -59,15 +60,6 @@ export function AuthenticatedPlatformLayout() {
 
       <SkipLink />
 
-      {ui.isMobileMenuOpen && isDrawer && (
-        <button
-          type="button"
-          aria-label="Fermer le menu de navigation"
-          className="sidebar-drawer-backdrop fixed inset-0 z-[60]"
-          onClick={() => ui.setIsMobileMenuOpen(false)}
-        />
-      )}
-
       <Sidebar
         currentView={currentView}
         enrolledCourses={session.enrolledCourses}
@@ -85,6 +77,18 @@ export function AuthenticatedPlatformLayout() {
         onToggleSidebarCollapsed={ui.toggleSidebarCollapsed}
       />
 
+      {ui.isMobileMenuOpen &&
+        isDrawer &&
+        createPortal(
+          <button
+            type="button"
+            aria-label="Fermer le menu de navigation"
+            className="sidebar-drawer-backdrop fixed inset-0 z-[60]"
+            onClick={() => ui.setIsMobileMenuOpen(false)}
+          />,
+          document.body,
+        )}
+
       <div className="flex-1 flex flex-col overflow-hidden relative">
         {!live.isStudentLive && (
           <Topbar
@@ -96,6 +100,7 @@ export function AuthenticatedPlatformLayout() {
             navigateTo={navigation.navigateTo}
             role={session.role}
             currentUser={session.currentUser!}
+            onOpenMobileMenu={() => ui.setIsMobileMenuOpen(true)}
             catalogSearchRef={catalog.catalogSearchRef}
             notificationUnreadCount={session.notificationUnreadCount}
             onOpenNotifications={session.openNotificationsView}

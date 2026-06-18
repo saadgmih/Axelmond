@@ -14,21 +14,31 @@ rulesTest("sidebar-layout-responsive", () => {
   assert.match(sidebarSource, /useSidebarLayout/);
   assert.match(sidebarSource, /sidebar-drawer/);
   assert.match(sidebarSource, /sidebar-collapse-toggle/);
-  assert.match(sidebarSource, /isSidebarHidden/);
+  assert.match(sidebarSource, /isDockedHidden/);
+  assert.match(sidebarSource, /isDockedVisible/);
+  assert.match(sidebarSource, /closeDrawer/);
+  assert.doesNotMatch(sidebarSource, /isSidebarHidden/);
   assert.match(sidebarSource, /lg:relative/);
   assert.doesNotMatch(sidebarSource, /md:relative/);
 
   assert.match(topbarSource, /useSidebarLayout/);
   assert.match(topbarSource, /platform-topbar/);
-  assert.match(sidebarSource, /sidebar-collapse-toggle/);
   assert.match(topbarSource, /layout-collapse-toggle-icon/);
   assert.match(topbarSource, /canCollapseTopbar/);
+  assert.match(topbarSource, /onOpenMobileMenu/);
 
   assert.match(layoutSource, /sidebar-drawer-backdrop/);
+  assert.match(layoutSource, /createPortal/);
   assert.match(layoutSource, /isDrawer/);
   assert.doesNotMatch(layoutSource, /lg:hidden/);
 
+  const sidebarMountIndex = layoutSource.indexOf("<Sidebar");
+  const backdropIndex = layoutSource.indexOf("sidebar-drawer-backdrop");
+  assert.ok(sidebarMountIndex >= 0, "Sidebar should be mounted in layout");
+  assert.ok(backdropIndex > sidebarMountIndex, "Backdrop should render after Sidebar in layout source");
+
   assert.match(cssSource, /sidebar-drawer/);
+  assert.match(cssSource, /sidebar-shell-drawer/);
   assert.match(cssSource, /min-width: 1024px/);
 
   console.log("Sidebar responsive layout rules passed");

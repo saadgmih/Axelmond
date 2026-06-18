@@ -112,6 +112,7 @@ export function usePlatformApp() {
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const catalogSearchRef = useRef<HTMLInputElement>(null);
   const liveKitRoomRef = useRef<{ closeTeacherLiveRoom: () => Promise<void> } | null>(null);
+  const location = useLocation();
 
   const persistSidebarCollapsed = useCallback((collapsed: boolean) => {
     if (typeof window === "undefined") return;
@@ -129,7 +130,7 @@ export function usePlatformApp() {
   const sidebarLayoutRef = useRef<boolean | null>(null);
   const { isDrawer } = useSidebarLayout();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const wasDrawer = sidebarLayoutRef.current;
     if (wasDrawer !== null) {
       if (isDrawer && !wasDrawer) {
@@ -142,6 +143,10 @@ export function usePlatformApp() {
     }
     sidebarLayoutRef.current = isDrawer;
   }, [isDrawer]);
+
+  useLayoutEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
   const toggleTopbarCollapsed = useCallback(() => {
     setIsTopbarCollapsed((previous) => {
@@ -240,7 +245,6 @@ export function usePlatformApp() {
     setQuizSubmitError,
   });
 
-  const location = useLocation();
   useLayoutEffect(() => {
     if (!currentUser) return;
     scrollAppToTopDeferred();

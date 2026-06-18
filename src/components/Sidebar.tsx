@@ -71,8 +71,8 @@ export default function Sidebar({
   useTvNavigation(navRef, true);
 
   const canToggleSidebar = Boolean(onToggleSidebarCollapsed);
-  const isSidebarHidden = isDrawer ? !isMobileMenuOpen : canToggleSidebar && isSidebarCollapsed;
-  const isSidebarVisible = !isSidebarHidden;
+  const isDockedHidden = !isDrawer && canToggleSidebar && isSidebarCollapsed;
+  const isDockedVisible = !isDrawer && !isDockedHidden;
 
   useEffect(() => {
     if (!isDrawer || !isMobileMenuOpen) return;
@@ -83,7 +83,9 @@ export default function Sidebar({
     };
   }, [isDrawer, isMobileMenuOpen]);
 
-  const conversations = useSidebarConversations(Boolean(currentUser) && (isDocked ? isSidebarVisible : isMobileMenuOpen));
+  const conversations = useSidebarConversations(
+    Boolean(currentUser) && (isDrawer ? isMobileMenuOpen : isDockedVisible),
+  );
   const navItems = useMemo(
     () => getSidebarNavItems(role, currentUser?.role),
     [role, currentUser?.role],
@@ -97,31 +99,35 @@ export default function Sidebar({
     setTeacherView,
   };
 
-  const hideSidebar = () => {
+  const closeDrawer = () => {
+    setIsMobileMenuOpen(false);
+  };
+
+  const hideSidebarAfterAction = () => {
     if (isDrawer) {
-      setIsMobileMenuOpen(false);
+      closeDrawer();
     }
   };
 
   const openMessages = () => {
     if (role === "student") navigateTo("messages");
     else setTeacherView("messages");
-    hideSidebar();
+    hideSidebarAfterAction();
   };
 
   const goHome = () => {
     if (role === "student") navigateTo("dashboard");
     else setTeacherView("dashboard");
-    hideSidebar();
+    hideSidebarAfterAction();
   };
 
   const goProfile = () => {
     if (role === "student") navigateTo("profile");
     else setTeacherView("academic-profile");
-    hideSidebar();
+    hideSidebarAfterAction();
   };
 
-  const reservedWidth = isDocked && isSidebarVisible ? "var(--sidebar-expanded-width)" : "0px";
+  const reservedWidth = isDocked && isDockedVisible ? "var(--sidebar-expanded-width)" : "0px";
 
   const renderNavItems = () =>
     navItems.map((item) => {
@@ -139,8 +145,10 @@ export default function Sidebar({
           badge={badge}
           onMouseEnter={item.prefetch}
           onClick={() => {
+            if (isDrawer) {
+              closeDrawer();
+            }
             item.onSelect(navContext);
-            hideSidebar();
           }}
         />
       );
@@ -247,18 +255,24 @@ export default function Sidebar({
     onToggleSidebarCollapsed?.();
   };
 
-  const sidebarToggleButton = (variant: "hidden" | "inline") =>
+  const sidebarToggleButton = (variant: "hidden" | "attached") =>
     canToggleSidebar ? (
       <button
         type="button"
         onClick={handleSidebarToggle}
         className={`layout-collapse-toggle sidebar-collapse-toggle kbd-nav-focus ${
-          variant === "hidden" ? "sidebar-collapse-toggle--hidden" : "sidebar-collapse-toggle--inline"
+          variant === "hidden" ? "sidebar-collapse-toggle--hidden" : "sidebar-collapse-toggle--attached"
         }`}
-        aria-label={isSidebarHidden ? "Afficher la barre latérale" : "Masquer la barre latérale"}
-        aria-pressed={isSidebarHidden}
+        aria-label={isDrawer ? (isMobileMenuOpen ? "Fermer la barre latérale" : "Ouvrir la barre latérale") : isDockedHidden ? "Afficher la barre latérale" : "Masquer la barre latérale"}
+        aria-pressed={isDrawer ? isMobileMenuOpen : isDockedHidden}
       >
-        {isSidebarHidden ? (
+        {isDrawer ? (
+          isMobileMenuOpen ? (
+            <PanelLeftClose className="layout-collapse-toggle-icon" aria-hidden="true" />
+          ) : (
+            <PanelLeftOpen className="layout-collapse-toggle-icon" aria-hidden="true" />
+          )
+        ) : isDockedHidden ? (
           <PanelLeftOpen className="layout-collapse-toggle-icon" aria-hidden="true" />
         ) : (
           <PanelLeftClose className="layout-collapse-toggle-icon" aria-hidden="true" />
@@ -266,73 +280,95 @@ export default function Sidebar({
       </button>
     ) : null;
 
+  const renderSidebarPanel = (mode: "drawer" | "docked") => (
+    <>
+      <div className="sidebar-glass-section border-b border-white/10 px-5 py-5">
+        <div className="flex items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={goHome}
+            className="flex items-center gap-3.5 transition-opacity hover:opacity-95"
+            aria-label="Accueil Axelmond Research Labs"
+          >
+            <LogoSymbol className="h-11 w-11 shrink-0 text-indigo-400" />
+            <div className="select-none text-left">
+              <span className="block text-lg font-black leading-none tracking-tight text-white">Axelmond</span>
+              <span className="mt-1.5 block text-[10px] font-bold uppercase leading-none tracking-[0.24em] text-indigo-300">
+                Research Labs
+              </span>
+            </div>
+          </button>
+          {mode === "drawer" && (
+            <button
+              type="button"
+              onClick={closeDrawer}
+              className="touch-target flex items-center justify-center rounded-full p-2 text-slate-400 hover:bg-white/5 hover:text-white"
+              aria-label="Fermer le menu"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="sidebar-glass-section space-y-2 border-b border-white/10 px-4 py-4">
+        <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+          Rôle authentifié
+        </span>
+        <div
+          className={`flex items-center gap-2 rounded-xl border py-2 pl-3 pr-2 text-xs font-bold ${roleBadgeClass(role, currentUser?.role)}`}
+        >
+          <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center">
+            <RoleIcon className="h-3.5 w-3.5" aria-hidden="true" />
+          </span>
+          <span className="min-w-0 flex-1 leading-none">{getRoleLabel(currentUser?.role)}</span>
+        </div>
+      </div>
+
+      <nav
+        ref={navRef}
+        data-tv-zone="sidebar-nav"
+        aria-label="Navigation principale"
+        className="sidebar-nav-scroll flex-1 space-y-1.5 overflow-y-auto px-4 py-4"
+      >
+        {renderNavItems()}
+      </nav>
+
+      {renderMessages()}
+      {renderUserFooter()}
+    </>
+  );
+
+  if (isDrawer) {
+    return (
+      <>
+        {!isMobileMenuOpen && sidebarToggleButton("hidden")}
+        <div className="sidebar-shell sidebar-shell-drawer relative z-[80] h-full w-0 shrink-0">
+          <aside
+            className={`sidebar-glass sidebar-drawer fixed z-[80] flex h-full w-[var(--sidebar-expanded-width)] flex-col text-white transition-transform duration-300 ease-out ${
+              isMobileMenuOpen ? "translate-x-0" : "pointer-events-none -translate-x-[calc(100%+1.5rem)]"
+            }`}
+            aria-label="Barre latérale de navigation"
+            aria-hidden={!isMobileMenuOpen}
+          >
+            {renderSidebarPanel("drawer")}
+          </aside>
+        </div>
+      </>
+    );
+  }
+
   return (
-    <div className="relative z-50 h-full shrink-0" style={{ width: reservedWidth }}>
-      {isSidebarHidden && sidebarToggleButton("hidden")}
-      {isSidebarVisible && (
+    <div className="sidebar-shell relative z-50 h-full shrink-0" style={{ width: reservedWidth }}>
+      {isDockedHidden && sidebarToggleButton("hidden")}
+      {isDockedVisible && (
         <aside
-          className={`sidebar-glass relative flex h-full w-[var(--sidebar-expanded-width)] flex-col text-white transition-[transform,box-shadow] duration-300 ease-out ${
-            isDrawer ? "sidebar-drawer fixed inset-y-0 left-0 z-[70]" : "lg:relative"
-          }`}
+          className="sidebar-glass relative flex h-full w-[var(--sidebar-expanded-width)] flex-col text-white lg:relative"
           aria-label="Barre latérale de navigation"
           aria-expanded={true}
-          aria-hidden={false}
         >
-          <div className="sidebar-glass-section border-b border-white/10 px-5 py-5">
-            <div className="flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={goHome}
-                className="flex items-center gap-3.5 transition-opacity hover:opacity-95"
-                aria-label="Accueil Axelmond Research Labs"
-              >
-                <LogoSymbol className="h-11 w-11 shrink-0 text-indigo-400" />
-                <div className="select-none text-left">
-                  <span className="block text-lg font-black leading-none tracking-tight text-white">Axelmond</span>
-                  <span className="mt-1.5 block text-[10px] font-bold uppercase leading-none tracking-[0.24em] text-indigo-300">
-                    Research Labs
-                  </span>
-                </div>
-              </button>
-              {isDrawer && (
-                <button
-                  type="button"
-                  onClick={hideSidebar}
-                  className="touch-target flex items-center justify-center rounded-full p-2 text-slate-400 hover:bg-white/5 hover:text-white"
-                  aria-label="Fermer le menu"
-                >
-                  <X className="h-6 w-6" />
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="sidebar-glass-section space-y-2 border-b border-white/10 px-4 py-4">
-            <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
-              Rôle authentifié
-            </span>
-            <div
-              className={`flex items-center gap-2 rounded-xl border py-2 pl-3 pr-2 text-xs font-bold ${roleBadgeClass(role, currentUser?.role)}`}
-            >
-              <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center">
-                <RoleIcon className="h-3.5 w-3.5" aria-hidden="true" />
-              </span>
-              <span className="min-w-0 flex-1 leading-none">{getRoleLabel(currentUser?.role)}</span>
-              {sidebarToggleButton("inline")}
-            </div>
-          </div>
-
-          <nav
-            ref={navRef}
-            data-tv-zone="sidebar-nav"
-            aria-label="Navigation principale"
-            className="sidebar-nav-scroll flex-1 space-y-1.5 overflow-y-auto px-4 py-4"
-          >
-            {renderNavItems()}
-          </nav>
-
-          {renderMessages()}
-          {renderUserFooter()}
+          {renderSidebarPanel("docked")}
+          {sidebarToggleButton("attached")}
         </aside>
       )}
     </div>
