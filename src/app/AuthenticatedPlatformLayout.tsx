@@ -100,7 +100,6 @@ export function AuthenticatedPlatformLayout() {
             navigateTo={navigation.navigateTo}
             role={session.role}
             currentUser={session.currentUser!}
-            onOpenMobileMenu={() => ui.setIsMobileMenuOpen(true)}
             catalogSearchRef={catalog.catalogSearchRef}
             notificationUnreadCount={session.notificationUnreadCount}
             onOpenNotifications={session.openNotificationsView}

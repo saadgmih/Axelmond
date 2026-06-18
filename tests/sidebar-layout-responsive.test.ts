@@ -25,7 +25,7 @@ rulesTest("sidebar-layout-responsive", () => {
   assert.match(topbarSource, /platform-topbar/);
   assert.match(topbarSource, /layout-collapse-toggle-icon/);
   assert.match(topbarSource, /canCollapseTopbar/);
-  assert.match(topbarSource, /onOpenMobileMenu/);
+  assert.doesNotMatch(topbarSource, /\bMenu\b/);
 
   assert.match(layoutSource, /sidebar-drawer-backdrop/);
   assert.match(layoutSource, /createPortal/);

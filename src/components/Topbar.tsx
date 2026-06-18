@@ -1,5 +1,5 @@
 import { type ReactNode, type RefObject } from "react";
-import { Search, Sparkles, Menu, Mic, Bell, BadgeCheck, ChevronDown, PanelTopClose, PanelTopOpen } from "lucide-react";
+import { Search, Sparkles, Mic, Bell, BadgeCheck, ChevronDown, PanelTopClose, PanelTopOpen } from "lucide-react";
 import { Course } from "../types";
 import { AppUser } from "./AuthScreen";
 import { getRoleLabel, getTeacherRoleBadgeTone, type UserRole } from "../rbac";
@@ -17,7 +17,6 @@ interface TopbarProps {
   navigateTo: (view: string, course?: Course | null) => void;
   role?: "student" | "teacher";
   currentUser: AppUser | null;
-  onOpenMobileMenu?: () => void;
   catalogSearchRef?: RefObject<HTMLInputElement | null>;
   notificationUnreadCount?: number;
   onOpenNotifications?: () => void;
@@ -150,7 +149,6 @@ export default function Topbar({
   navigateTo,
   role = "student",
   currentUser,
-  onOpenMobileMenu,
   catalogSearchRef,
   notificationUnreadCount = 0,
   onOpenNotifications,
@@ -260,19 +258,6 @@ export default function Topbar({
     <div className="platform-topbar-shell flex-shrink-0 px-3 pt-3 sm:px-4 lg:px-6">
       <header className="platform-topbar platform-topbar-console relative sticky top-3 z-40 flex flex-col gap-3 px-4 py-3 sm:px-5 sm:py-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
         <div className="flex min-w-0 flex-1 items-center gap-3">
-          {isDrawer && onOpenMobileMenu && (
-            <button
-              type="button"
-              onClick={onOpenMobileMenu}
-              className="flex touch-target kbd-nav-focus items-center justify-center rounded-xl border border-white/10 bg-slate-900/60 p-2 text-slate-300 hover:bg-white/5"
-              title="Menu"
-              aria-label="Ouvrir le menu de navigation"
-              aria-expanded={false}
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-          )}
-
           {isDrawer ? (
             <div className="flex min-w-0 flex-1 items-center justify-center gap-2 sm:justify-start">
               <TopbarBrand role={role} />
