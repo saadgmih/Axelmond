@@ -222,15 +222,15 @@ export default function StudentProfileView({
           <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:col-span-4">
             <div className="border-b border-slate-100 px-6 py-5">
               <h3 className="text-sm font-black text-slate-900">Photo de profil</h3>
-              <p className="mt-0.5 text-[11px] text-slate-500">Recadrez la zone visible comme sur WhatsApp</p>
             </div>
 
-            <div className="p-6">
+            <div className="flex justify-center p-6">
               <ProfileAvatarUpload
                 avatarUrl={currentUser?.avatarUrl}
                 initials={currentUser ? getInitials(currentUser.fullName) : "AR"}
                 statusMsg={avatarStatusMsg}
                 accent="indigo"
+                previewSize={112}
                 onUpload={handleUploadAvatarFile}
                 onDelete={handleDeleteAvatar}
               />

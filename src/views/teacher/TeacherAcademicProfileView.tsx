@@ -263,16 +263,15 @@ export default function TeacherAcademicProfileView({
                 <User className={`${profileUi.sectionIcon} ${theme.sectionIcon}`} />
                 Photo de profil
               </h3>
-              <p className={profileUi.cardSubtitle}>Recadrez la zone visible comme sur WhatsApp</p>
             </div>
-            <div className="p-5 sm:p-6">
+            <div className="flex justify-center p-5 sm:p-6">
               <ProfileAvatarUpload
                 avatarUrl={academicProfileForm.avatarUrl || currentUser.avatarUrl}
                 initials={getInitials(displayName)}
                 statusMsg={avatarStatusMsg}
                 accent={theme.uploadAccent}
                 variant="dark"
-                previewSize={90}
+                previewSize={112}
                 onUpload={handleUploadAvatarFile}
                 onDelete={handleDeleteAvatar}
               />
