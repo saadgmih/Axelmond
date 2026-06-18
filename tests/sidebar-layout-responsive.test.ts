@@ -25,8 +25,8 @@ rulesTest("sidebar-layout-responsive", () => {
   assert.match(topbarSource, /platform-topbar/);
   assert.match(topbarSource, /layout-collapse-toggle-icon/);
   assert.match(topbarSource, /canCollapseTopbar/);
-  assert.match(topbarSource, /justify-center/);
-  assert.match(topbarSource, /lg:justify-end/);
+  assert.match(topbarSource, /topbar-console-actions/);
+  assert.match(topbarSource, /Utilisateur actuel/);
   assert.doesNotMatch(topbarSource, /\bMenu\b/);
   assert.doesNotMatch(sidebarSource, /\bX\b/);
 
