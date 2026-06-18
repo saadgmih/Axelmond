@@ -14,6 +14,10 @@ rulesTest("student-video-protection", () => {
   assert.match(studentCourseViewSource, /selectedModule\.attachmentUrl/);
   assert.match(studentCourseViewSource, /Vidéo à venir/);
   assert.match(studentCourseViewSource, /Contenu en préparation/);
+  assert.match(
+    studentCourseViewSource,
+    /selectedLessonContent\.type !== "VIDEO" && \([\s\S]*selectedLessonContent\.attachments\[0\]\?\.fileName \|\| "Contenu texte"/,
+  );
   assert.doesNotMatch(studentCourseViewSource, /<video controls/);
   assert.doesNotMatch(studentCourseViewSource, /<iframe/);
   assert.doesNotMatch(studentCourseViewSource, /isVideoPlaying/);

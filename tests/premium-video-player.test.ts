@@ -25,13 +25,27 @@ rulesTest("premium-video-player", () => {
 
   assert.match(playerSource, /export default function PremiumVideoPlayer/);
   assert.match(playerSource, /useCourseVideoPlayer/);
-  assert.match(playerSource, /Vitesse:/);
+  assert.match(playerSource, /controlsVisible/);
+  assert.match(playerSource, /setTimeout[\s\S]*1600/);
+  assert.match(playerSource, /Vitesse/);
+  assert.match(playerSource, /COURSE_VIDEO_PLAYBACK_RATES\.map/);
+  assert.match(playerSource, /aria-label="Volume vidéo"/);
   assert.match(playerSource, /Volume2/);
+  assert.match(playerSource, /VolumeX/);
+  assert.match(
+    studentCourseViewSource,
+    /selectedLessonContent\.type !== "VIDEO" && \([\s\S]*selectedLessonContent\.attachments\[0\]\?\.fileName \|\| "Contenu texte"/,
+  );
 
+  assert.match(hookSource, /COURSE_VIDEO_PLAYBACK_RATES = \[0\.5, 0\.75, 1, 1\.25, 1\.5, 1\.75, 2, 2\.5, 3, 3\.5, 4\]/);
   assert.match(hookSource, /export function useCourseVideoPlayer/);
   assert.match(hookSource, /const \[isPlaying, setIsPlaying\] = useState\(false\)/);
   assert.match(hookSource, /const \[playbackRate, setPlaybackRate\] = useState\(1\.0\)/);
-  assert.match(hookSource, /const \[isMuted, setIsMuted\] = useState\(false\)/);
+  assert.match(hookSource, /const \[volume, setVolume\] = useState\(readStoredCourseVideoVolume\)/);
+  assert.match(hookSource, /const \[isMuted, setIsMuted\] = useState\(\(\) => readStoredCourseVideoVolume\(\) === 0\)/);
+  assert.match(hookSource, /COURSE_VIDEO_VOLUME_STORAGE_KEY/);
+  assert.match(hookSource, /handleVolumeChange/);
+  assert.match(hookSource, /handlePlaybackRateChange/);
   assert.match(hookSource, /const \[isFullscreen, setIsFullscreen\] = useState\(false\)/);
   assert.match(hookSource, /export function formatCourseVideoTime/);
 });

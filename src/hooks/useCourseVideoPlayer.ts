@@ -1,5 +1,27 @@
 import { useEffect, useRef, useState, type ChangeEvent, type MouseEvent } from "react";
 
+export const COURSE_VIDEO_PLAYBACK_RATES = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3, 3.5, 4] as const;
+const COURSE_VIDEO_VOLUME_STORAGE_KEY = "axelmond-course-video-volume";
+const DEFAULT_COURSE_VIDEO_VOLUME = 1;
+const DEFAULT_UNMUTED_VIDEO_VOLUME = 0.8;
+
+function clampCourseVideoVolume(volume: number): number {
+  if (!Number.isFinite(volume)) return DEFAULT_COURSE_VIDEO_VOLUME;
+  return Math.min(1, Math.max(0, volume));
+}
+
+function readStoredCourseVideoVolume(): number {
+  if (typeof window === "undefined") return DEFAULT_COURSE_VIDEO_VOLUME;
+
+  try {
+    const storedVolume = window.localStorage.getItem(COURSE_VIDEO_VOLUME_STORAGE_KEY);
+    if (storedVolume === null) return DEFAULT_COURSE_VIDEO_VOLUME;
+    return clampCourseVideoVolume(Number(storedVolume));
+  } catch {
+    return DEFAULT_COURSE_VIDEO_VOLUME;
+  }
+}
+
 export function formatCourseVideoTime(timeInSeconds: number): string {
   if (isNaN(timeInSeconds) || !isFinite(timeInSeconds)) return "0:00";
   const hours = Math.floor(timeInSeconds / 3600);
@@ -21,8 +43,10 @@ export function useCourseVideoPlayer(src: string) {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1.0);
-  const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState(readStoredCourseVideoVolume);
+  const [isMuted, setIsMuted] = useState(() => readStoredCourseVideoVolume() === 0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const lastAudibleVolumeRef = useRef(volume > 0 ? volume : DEFAULT_UNMUTED_VIDEO_VOLUME);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -52,15 +76,24 @@ export function useCourseVideoPlayer(src: string) {
 
   useEffect(() => {
     if (videoRef.current) {
-      videoRef.current.muted = isMuted;
+      videoRef.current.volume = volume;
+      videoRef.current.muted = isMuted || volume === 0;
     }
-  }, [isMuted]);
+  }, [isMuted, volume]);
 
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.playbackRate = playbackRate;
     }
   }, [playbackRate]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(COURSE_VIDEO_VOLUME_STORAGE_KEY, String(volume));
+    } catch {
+      // Local storage can be unavailable in private or restricted browser contexts.
+    }
+  }, [volume]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -92,16 +125,32 @@ export function useCourseVideoPlayer(src: string) {
 
   const toggleMute = (e: MouseEvent) => {
     e.stopPropagation();
-    setIsMuted((prev) => !prev);
+    if (isMuted || volume === 0) {
+      setVolume((prev) => {
+        if (prev > 0) return prev;
+        return lastAudibleVolumeRef.current || DEFAULT_UNMUTED_VIDEO_VOLUME;
+      });
+      setIsMuted(false);
+    } else {
+      setIsMuted(true);
+    }
   };
 
-  const cycleSpeed = (e: MouseEvent) => {
+  const handleVolumeChange = (e: ChangeEvent<HTMLInputElement>) => {
     e.stopPropagation();
-    setPlaybackRate((prev) => {
-      if (prev === 1.0) return 1.5;
-      if (prev === 1.5) return 2.0;
-      return 1.0;
-    });
+    const nextVolume = clampCourseVideoVolume(Number(e.target.value) / 100);
+    if (nextVolume > 0) {
+      lastAudibleVolumeRef.current = nextVolume;
+    }
+    setVolume(nextVolume);
+    setIsMuted(nextVolume === 0);
+  };
+
+  const handlePlaybackRateChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    e.stopPropagation();
+    const requestedRate = Number(e.target.value);
+    const nextRate = COURSE_VIDEO_PLAYBACK_RATES.find((rate) => rate === requestedRate) ?? 1.0;
+    setPlaybackRate(nextRate);
   };
 
   const toggleFullscreen = (e: MouseEvent) => {
@@ -127,13 +176,15 @@ export function useCourseVideoPlayer(src: string) {
     currentTime,
     duration,
     playbackRate,
+    volume,
     isMuted,
     isFullscreen,
     progressPercent,
     togglePlay,
     handleSeek,
     toggleMute,
-    cycleSpeed,
+    handleVolumeChange,
+    handlePlaybackRateChange,
     toggleFullscreen,
     formatTime: formatCourseVideoTime,
   };

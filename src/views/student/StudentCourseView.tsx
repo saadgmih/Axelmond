@@ -392,9 +392,11 @@ export default function StudentCourseView({
                                 Contenu publié — consultation sur la plateforme
                               </p>
                               <h4 className="text-sm font-bold text-white mt-1">{selectedLessonContent.title}</h4>
-                              <p className="text-[11px] text-slate-400">
-                                {selectedLessonContent.attachments[0]?.fileName || "Contenu texte"}
-                              </p>
+                              {selectedLessonContent.type !== "VIDEO" && (
+                                <p className="text-[11px] text-slate-400">
+                                  {selectedLessonContent.attachments[0]?.fileName || "Contenu texte"}
+                                </p>
+                              )}
                             </div>
                           </div>
                         </div>
