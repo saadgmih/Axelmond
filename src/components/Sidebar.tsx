@@ -1,25 +1,23 @@
-import React, { useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   X,
-  LayoutDashboard,
-  BookOpen,
-  User,
-  Shield,
-  ShieldAlert,
-  Sliders,
-  Video,
-  CalendarDays,
-  CalendarRange,
   LogOut,
-  MessageSquare,
-  Bell,
+  Plus,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import { Course, DEFAULT_STUDENT_LABEL } from "../types";
 import { AppUser } from "./AuthScreen";
-import { getRoleLabel, getTeacherRoleBadgeTone, getTeacherSpaceTitle } from "../rbac";
+import { getRoleLabel, getTeacherRoleBadgeTone } from "../rbac";
 import LogoSymbol from "./LogoSymbol";
 import { useTvNavigation } from "../hooks/useTvNavigation";
-import { prefetchStudentView, prefetchTeacherView } from "../utils/prefetch";
+import { useSidebarConversations } from "../hooks/useSidebarConversations";
+import {
+  getSidebarNavItems,
+  getSidebarRoleIcon,
+  type SidebarNavContext,
+} from "../navigation/sidebar-config";
+import { SidebarNavButton } from "./sidebar/SidebarNavButton";
 
 interface SidebarProps {
   currentView: string;
@@ -34,6 +32,27 @@ interface SidebarProps {
   currentUser: AppUser | null;
   onLogout: () => void;
   notificationUnreadCount?: number;
+  isSidebarCollapsed?: boolean;
+  onToggleSidebarCollapsed?: () => void;
+}
+
+function getInitials(name: string) {
+  if (!name) return "UN";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
+}
+
+function roleBadgeClass(role: "student" | "teacher", userRole?: AppUser["role"]) {
+  if (role === "student") {
+    return "bg-indigo-500/10 border-indigo-400/20 text-indigo-200";
+  }
+  const tone = getTeacherRoleBadgeTone(userRole);
+  if (tone === "admin") return "bg-violet-500/10 border-violet-400/20 text-violet-200";
+  if (tone === "researcher") return "bg-amber-500/10 border-amber-400/20 text-amber-200";
+  return "bg-pink-500/10 border-pink-400/20 text-pink-200";
 }
 
 export default function Sidebar({
@@ -49,395 +68,290 @@ export default function Sidebar({
   currentUser,
   onLogout,
   notificationUnreadCount = 0,
+  isSidebarCollapsed = false,
+  onToggleSidebarCollapsed,
 }: SidebarProps) {
   const navRef = useRef<HTMLElement>(null);
+  const [isHoverExpanded, setIsHoverExpanded] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
   useTvNavigation(navRef, true);
 
-  const getInitials = (name: string) => {
-    if (!name) return "UN";
-    const parts = name.trim().split(/\s+/);
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-    }
-    return name.slice(0, 2).toUpperCase();
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 768px)");
+    const update = () => setIsDesktop(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
+  const conversations = useSidebarConversations(Boolean(currentUser));
+  const navItems = useMemo(
+    () => getSidebarNavItems(role, currentUser?.role),
+    [role, currentUser?.role],
+  );
+  const RoleIcon = getSidebarRoleIcon(role);
+
+  const navContext: SidebarNavContext = {
+    currentView,
+    teacherView,
+    navigateTo: (view) => navigateTo(view),
+    setTeacherView,
   };
-  return (
-    <div
-      className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white transform ${
-        isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-      } md:relative md:translate-x-0 transition-transform duration-200 ease-in-out flex flex-col`}
-    >
-      {/* Brand Header */}
-      <div className="flex items-center justify-between p-5 border-b border-slate-800">
-        <div
+
+  const openMessages = () => {
+    if (role === "student") navigateTo("messages");
+    else setTeacherView("messages");
+    setIsMobileMenuOpen(false);
+  };
+
+  const goHome = () => {
+    if (role === "student") navigateTo("dashboard");
+    else setTeacherView("dashboard");
+    setIsMobileMenuOpen(false);
+  };
+
+  const goProfile = () => {
+    if (role === "student") navigateTo("profile");
+    else setTeacherView("academic-profile");
+    setIsMobileMenuOpen(false);
+  };
+
+  const compactNav = isSidebarCollapsed && !isHoverExpanded && isDesktop;
+
+  const renderNavItems = (compact: boolean) =>
+    navItems.map((item) => {
+      const badge = item.id === "nav-notifications" ? notificationUnreadCount : undefined;
+      return (
+        <SidebarNavButton
+          key={item.id}
+          id={compact ? undefined : item.id}
+          label={item.label}
+          icon={item.icon}
+          iconClassName={item.iconClassName}
+          active={item.isActive(navContext)}
+          accent={role}
+          compact={compact}
+          badge={badge}
+          onMouseEnter={item.prefetch}
           onClick={() => {
-            if (role === "student") navigateTo("dashboard");
-            else setTeacherView("dashboard");
+            item.onSelect(navContext);
+            setIsMobileMenuOpen(false);
           }}
-          className="flex items-center gap-3.5 cursor-pointer hover:opacity-95 transition-opacity"
-        >
-          <LogoSymbol className="w-12 h-12 text-indigo-400 flex-shrink-0" />
-          <div className="flex flex-col select-none">
-            <span className="text-lg font-black tracking-tight text-white leading-none">Axelmond</span>
-            <span className="text-[10px] font-bold text-indigo-400 mt-1.5 uppercase tracking-widest leading-none">
-              Research Labs
-            </span>
-          </div>
-        </div>
+        />
+      );
+    });
+
+  const renderMessages = (compact: boolean) => (
+    <div className={compact ? "px-2 py-2" : "px-4 py-3"}>
+      <div className={`mb-2 flex items-center ${compact ? "justify-center" : "justify-between gap-2"}`}>
+        {!compact && (
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Messages</span>
+        )}
         <button
-          onClick={() => setIsMobileMenuOpen(false)}
-          className="md:hidden touch-target p-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 flex items-center justify-center"
-          aria-label="Fermer le menu"
+          type="button"
+          onClick={openMessages}
+          aria-label="Nouvelle conversation"
+          className="touch-target flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
         >
-          <X className="w-6 h-6" />
+          <Plus className="h-4 w-4" />
         </button>
       </div>
-
-      {/* Authenticated role badge */}
-      <div className="p-4 border-b border-slate-800 space-y-2 bg-slate-950/40">
-        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Rôle authentifié</span>
-        <div
-          className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-bold ${
-            role === "student"
-              ? "bg-indigo-950/60 border-indigo-900/70 text-indigo-200"
-              : getTeacherRoleBadgeTone(currentUser?.role) === "admin"
-                ? "bg-violet-950/60 border-violet-900/70 text-violet-200"
-                : getTeacherRoleBadgeTone(currentUser?.role) === "researcher"
-                  ? "bg-amber-950/60 border-amber-900/70 text-amber-200"
-                  : "bg-pink-950/60 border-pink-900/70 text-pink-200"
-          }`}
-        >
-          {role === "student" ? <User className="w-3.5 h-3.5" /> : <ShieldAlert className="w-3.5 h-3.5" />}
-          <span>{getRoleLabel(currentUser?.role)}</span>
-        </div>
+      <div className={compact ? "space-y-2" : "space-y-1.5"}>
+        {conversations.map((conversation) => {
+          const peerName = conversation.peer?.fullName || "Contact";
+          const initials = getInitials(peerName);
+          return (
+            <button
+              key={conversation.id}
+              type="button"
+              onClick={openMessages}
+              aria-label={`Ouvrir la conversation avec ${peerName}`}
+              className={`relative flex w-full items-center rounded-xl transition-colors hover:bg-white/5 ${
+                compact ? "justify-center p-1.5" : "gap-3 px-2 py-2"
+              }`}
+            >
+              <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-slate-700/80 text-xs font-bold text-slate-200">
+                {conversation.peer?.avatarUrl ? (
+                  <img src={conversation.peer.avatarUrl} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="flex h-full w-full items-center justify-center">{initials}</span>
+                )}
+                {conversation.unreadCount > 0 && (
+                  <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-slate-900 bg-sky-400" />
+                )}
+              </div>
+              {!compact && (
+                <span className="truncate text-sm font-medium text-slate-300">{peerName}</span>
+              )}
+            </button>
+          );
+        })}
       </div>
+    </div>
+  );
 
-      {/* Dynamic Navigation tabs depending on the active user role */}
-      <nav
-        ref={navRef}
-        data-tv-zone="sidebar-nav"
-        aria-label="Navigation principale"
-        className="flex-1 p-4 space-y-1.5 overflow-y-auto"
+  const renderUserFooter = (compact: boolean) => (
+    <div
+      className={`sidebar-glass-section border-t border-white/10 ${
+        compact ? "flex flex-col items-center gap-2 p-3" : "flex items-center justify-between gap-2 p-4"
+      }`}
+    >
+      <button
+        type="button"
+        onClick={goProfile}
+        className={`flex min-w-0 items-center transition-opacity hover:opacity-85 ${
+          compact ? "justify-center" : "flex-1 gap-3 overflow-hidden"
+        }`}
+        aria-label="Ouvrir le profil"
       >
-        {role === "student" ? (
-          <>
-            <button
-              id="nav-dashboard"
-              type="button"
-              data-tv-focusable
-              tabIndex={0}
-              onMouseEnter={() => prefetchStudentView("dashboard")}
-              onClick={() => navigateTo("dashboard")}
-              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
-                currentView === "dashboard"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-950/40"
-                  : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
-              }`}
-            >
-              <LayoutDashboard className="w-5 h-5" />
-              Mon Espace (Études)
-            </button>
-
-            <button
-              id="nav-profile"
-              type="button"
-              data-tv-focusable
-              tabIndex={0}
-              onMouseEnter={() => prefetchStudentView("profile")}
-              onClick={() => navigateTo("profile")}
-              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
-                currentView === "profile"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-950/40"
-                  : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
-              }`}
-            >
-              <User className="w-5 h-5" />
-              Mon Profil Étudiant
-            </button>
-
-            <button
-              id="nav-account-security"
-              type="button"
-              data-tv-focusable
-              tabIndex={0}
-              onMouseEnter={() => prefetchStudentView("account-security")}
-              onClick={() => navigateTo("account-security")}
-              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
-                currentView === "account-security"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-950/40"
-                  : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
-              }`}
-            >
-              <Shield className="w-5 h-5 text-violet-300" />
-              Sécurité du compte
-            </button>
-
-            <button
-              id="nav-catalog"
-              type="button"
-              data-tv-focusable
-              tabIndex={0}
-              onMouseEnter={() => prefetchStudentView("catalog")}
-              onClick={() => navigateTo("catalog")}
-              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
-                currentView === "catalog"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-950/40"
-                  : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
-              }`}
-            >
-              <BookOpen className="w-5 h-5" />
-              Catalogue des Modules
-            </button>
-
-            <button
-              id="nav-study-plan"
-              type="button"
-              data-tv-focusable
-              tabIndex={0}
-              onMouseEnter={() => prefetchStudentView("study-plan")}
-              onClick={() => navigateTo("study-plan")}
-              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
-                currentView === "study-plan" || currentView === "study-schedule" || currentView === "objectives"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-950/40"
-                  : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
-              }`}
-            >
-              <CalendarRange className="w-5 h-5 text-amber-300" />
-              Plan d&apos;étude &amp; Objectifs
-            </button>
-
-            <button
-              id="nav-messages"
-              type="button"
-              data-tv-focusable
-              tabIndex={0}
-              onMouseEnter={() => prefetchStudentView("messages")}
-              onClick={() => navigateTo("messages")}
-              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
-                currentView === "messages"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-950/40"
-                  : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
-              }`}
-            >
-              <MessageSquare className="w-5 h-5 text-emerald-300" />
-              Messagerie
-            </button>
-
-            <button
-              id="nav-notifications"
-              type="button"
-              data-tv-focusable
-              tabIndex={0}
-              onMouseEnter={() => prefetchStudentView("notifications")}
-              onClick={() => navigateTo("notifications")}
-              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
-                currentView === "notifications"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-950/40"
-                  : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
-              }`}
-            >
-              <Bell className="w-5 h-5 text-rose-300" />
-              <span className="flex-1 text-left">Notifications</span>
-              {notificationUnreadCount > 0 && (
-                <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-black text-white">
-                  {notificationUnreadCount > 99 ? "99+" : notificationUnreadCount}
-                </span>
-              )}
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              type="button"
-              data-tv-focusable
-              tabIndex={0}
-              aria-current={teacherView === "dashboard" ? "page" : undefined}
-              onMouseEnter={() => prefetchTeacherView("dashboard")}
-              onClick={() => setTeacherView("dashboard")}
-              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
-                teacherView === "dashboard"
-                  ? "bg-pink-600 text-white shadow-md shadow-pink-950/40"
-                  : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
-              }`}
-            >
-              <LayoutDashboard className="w-5 h-5 text-pink-400" />
-              {getTeacherSpaceTitle(currentUser?.role)}
-            </button>
-
-            <button
-              type="button"
-              data-tv-focusable
-              tabIndex={0}
-              aria-current={teacherView === "academic-profile" ? "page" : undefined}
-              onMouseEnter={() => prefetchTeacherView("academic-profile")}
-              onClick={() => setTeacherView("academic-profile")}
-              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
-                teacherView === "academic-profile"
-                  ? "bg-pink-600 text-white shadow-md shadow-pink-950/40"
-                  : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
-              }`}
-            >
-              <User className="w-5 h-5 text-cyan-400" />
-              Mon Profil Académique
-            </button>
-
-            <button
-              type="button"
-              data-tv-focusable
-              tabIndex={0}
-              aria-current={teacherView === "account-security" ? "page" : undefined}
-              onMouseEnter={() => prefetchTeacherView("account-security")}
-              onClick={() => setTeacherView("account-security")}
-              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
-                teacherView === "account-security"
-                  ? "bg-pink-600 text-white shadow-md shadow-pink-950/40"
-                  : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
-              }`}
-            >
-              <Shield className="w-5 h-5 text-violet-300" />
-              Sécurité du compte
-            </button>
-
-            <button
-              type="button"
-              data-tv-focusable
-              tabIndex={0}
-              aria-current={teacherView === "schedule" ? "page" : undefined}
-              onMouseEnter={() => prefetchTeacherView("schedule")}
-              onClick={() => setTeacherView("schedule")}
-              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
-                teacherView === "schedule"
-                  ? "bg-pink-600 text-white shadow-md shadow-pink-950/40"
-                  : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
-              }`}
-            >
-              <CalendarDays className="w-5 h-5 text-amber-400" />
-              Emploi du Temps
-            </button>
-
-            <button
-              type="button"
-              data-tv-focusable
-              tabIndex={0}
-              aria-current={teacherView === "curriculum" ? "page" : undefined}
-              onMouseEnter={() => prefetchTeacherView("curriculum")}
-              onClick={() => setTeacherView("curriculum")}
-              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
-                teacherView === "curriculum"
-                  ? "bg-pink-600 text-white shadow-md shadow-pink-950/40"
-                  : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
-              }`}
-            >
-              <Sliders className="w-5 h-5 text-purple-400" />
-              Gestion des Contenus
-            </button>
-
-            <button
-              type="button"
-              data-tv-focusable
-              tabIndex={0}
-              aria-current={teacherView === "live-control" ? "page" : undefined}
-              onMouseEnter={() => prefetchTeacherView("live-control")}
-              onClick={() => setTeacherView("live-control")}
-              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
-                teacherView === "live-control"
-                  ? "bg-pink-600 text-white shadow-md shadow-pink-950/40"
-                  : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
-              }`}
-            >
-              <Video className="w-5 h-5 text-red-400" />
-              Contrôleur de Modules Live
-            </button>
-
-            <button
-              type="button"
-              data-tv-focusable
-              tabIndex={0}
-              aria-current={teacherView === "messages" ? "page" : undefined}
-              onMouseEnter={() => prefetchTeacherView("messages")}
-              onClick={() => setTeacherView("messages")}
-              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
-                teacherView === "messages"
-                  ? "bg-pink-600 text-white shadow-md shadow-pink-950/40"
-                  : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
-              }`}
-            >
-              <MessageSquare className="w-5 h-5 text-emerald-400" />
-              Messagerie
-            </button>
-
-            <button
-              type="button"
-              data-tv-focusable
-              tabIndex={0}
-              aria-current={teacherView === "notifications" ? "page" : undefined}
-              onMouseEnter={() => prefetchTeacherView("notifications")}
-              onClick={() => setTeacherView("notifications")}
-              className={`kbd-nav-focus touch-target flex items-center w-full gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm font-semibold transition-all ${
-                teacherView === "notifications"
-                  ? "bg-pink-600 text-white shadow-md shadow-pink-950/40"
-                  : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
-              }`}
-            >
-              <Bell className="w-5 h-5 text-rose-400" />
-              <span className="flex-1 text-left">Notifications</span>
-              {notificationUnreadCount > 0 && (
-                <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-black text-white">
-                  {notificationUnreadCount > 99 ? "99+" : notificationUnreadCount}
-                </span>
-              )}
-            </button>
-          </>
-        )}
-      </nav>
-
-      {/* Bottom user card based on role selection */}
-      <div className="p-4 border-t border-slate-800 flex items-center justify-between gap-2 bg-slate-950/20">
-        <div
-          onClick={() => {
-            if (role === "student") navigateTo("profile");
-            else setTeacherView("academic-profile");
-          }}
-          className="flex items-center gap-3 overflow-hidden cursor-pointer hover:opacity-85 transition-opacity flex-1"
-        >
-          <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-bold relative text-sm text-slate-200 flex-shrink-0 overflow-hidden">
-            {currentUser?.avatarUrl ? (
-              <img src={currentUser.avatarUrl} alt="Photo de profil" className="w-full h-full object-cover" />
-            ) : currentUser ? (
-              getInitials(currentUser.fullName)
-            ) : (
-              "AR"
-            )}
-            <div
-              className={`absolute bottom-0 right-0 w-3 h-3 border-2 border-slate-900 rounded-full ${
-                role === "student" ? "bg-emerald-500" : "bg-red-500 animate-pulse"
-              }`}
-            ></div>
-          </div>
-          <div className="truncate flex-1">
-            <p className="text-xs font-extrabold text-slate-200 truncate leading-none">
-              {currentUser ? currentUser.fullName : "Axelmond Research Labs"}
+        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full bg-slate-700/80 text-sm font-bold text-slate-200">
+          {currentUser?.avatarUrl ? (
+            <img src={currentUser.avatarUrl} alt="" className="h-full w-full object-cover" />
+          ) : currentUser ? (
+            <span className="flex h-full w-full items-center justify-center">{getInitials(currentUser.fullName)}</span>
+          ) : (
+            "AR"
+          )}
+          <span
+            className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-slate-900 ${
+              role === "student" ? "bg-emerald-500" : "bg-red-500 animate-pulse"
+            }`}
+          />
+        </div>
+        {!compact && (
+          <div className="min-w-0 flex-1 truncate text-left">
+            <p className="truncate text-xs font-extrabold leading-none text-slate-100">
+              {currentUser?.fullName || "Axelmond Research Labs"}
             </p>
-            <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider leading-tight mt-1.5 block truncate">
+            <span className="mt-1.5 block truncate text-[10px] font-bold uppercase tracking-wider text-slate-500">
               {role === "student"
                 ? currentUser?.filiere || DEFAULT_STUDENT_LABEL
                 : currentUser?.levelOrTitle || "Titulaire Chaire"}
             </span>
           </div>
-        </div>
-
-        {/* LOGOUT BUTTON ACTION */}
+        )}
+      </button>
+      {!compact && (
         <button
-          onClick={(e) => {
-            e.stopPropagation();
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
             onLogout();
           }}
           title="Se déconnecter"
-          className="p-2.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-rose-500 transition-all cursor-pointer flex-shrink-0"
+          aria-label="Se déconnecter"
+          className="touch-target shrink-0 rounded-xl p-2.5 text-slate-400 transition-all hover:bg-white/5 hover:text-rose-400"
         >
-          <LogOut className="w-4 h-4" />
+          <LogOut className="h-4 w-4" />
         </button>
+      )}
+    </div>
+  );
+
+  const sidebarBody = (compact: boolean) => (
+    <>
+      <div className={`sidebar-glass-section border-b border-white/10 ${compact ? "px-3 py-4" : "px-5 py-5"}`}>
+        <div className={`flex items-center ${compact ? "justify-center" : "justify-between gap-3"}`}>
+          <button
+            type="button"
+            onClick={goHome}
+            className={`flex items-center transition-opacity hover:opacity-95 ${compact ? "" : "gap-3.5"}`}
+            aria-label="Accueil Axelmond Research Labs"
+          >
+            <LogoSymbol className="h-11 w-11 shrink-0 text-indigo-400" />
+            {!compact && (
+              <div className="select-none text-left">
+                <span className="block text-lg font-black leading-none tracking-tight text-white">Axelmond</span>
+                <span className="mt-1.5 block text-[10px] font-bold uppercase leading-none tracking-[0.24em] text-indigo-300">
+                  Research Labs
+                </span>
+              </div>
+            )}
+          </button>
+          {!compact && (
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="touch-target flex items-center justify-center rounded-full p-2 text-slate-400 hover:bg-white/5 hover:text-white md:hidden"
+              aria-label="Fermer le menu"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          )}
+        </div>
       </div>
+
+      <div className={`sidebar-glass-section border-b border-white/10 ${compact ? "px-2 py-3" : "space-y-2 px-4 py-4"}`}>
+        {!compact && (
+          <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+            Rôle authentifié
+          </span>
+        )}
+        <div
+          className={`flex items-center rounded-xl border text-xs font-bold ${
+            compact ? "mx-auto justify-center px-2 py-2" : "gap-2 px-3 py-2.5"
+          } ${roleBadgeClass(role, currentUser?.role)}`}
+        >
+          <RoleIcon className="h-3.5 w-3.5 shrink-0" />
+          {!compact && <span>{getRoleLabel(currentUser?.role)}</span>}
+        </div>
+      </div>
+
+      <nav
+        ref={navRef}
+        data-tv-zone="sidebar-nav"
+        aria-label="Navigation principale"
+        className={`flex-1 overflow-y-auto ${compact ? "space-y-1 px-2 py-3" : "space-y-1.5 px-4 py-4"}`}
+      >
+        {renderNavItems(compact)}
+      </nav>
+
+      {renderMessages(compact)}
+      {renderUserFooter(compact)}
+    </>
+  );
+
+  return (
+    <div
+      className="relative z-50 flex h-full shrink-0"
+      onMouseEnter={() => {
+        if (isSidebarCollapsed && isDesktop) setIsHoverExpanded(true);
+      }}
+      onMouseLeave={() => setIsHoverExpanded(false)}
+    >
+      <aside
+        className={`sidebar-glass flex h-full flex-col text-white transition-[width,transform] duration-300 ease-out ${
+          isSidebarCollapsed && isDesktop ? "w-[4.75rem]" : "w-64"
+        } ${
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        } fixed inset-y-0 left-0 md:relative md:translate-x-0`}
+        aria-label="Barre latérale de navigation"
+      >
+        {sidebarBody(compactNav)}
+
+        {onToggleSidebarCollapsed && (
+          <button
+            type="button"
+            onClick={onToggleSidebarCollapsed}
+            className="absolute -right-3 top-20 z-10 hidden h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-slate-900/90 text-slate-300 shadow-lg backdrop-blur-md transition-colors hover:text-white md:flex"
+            aria-label={isSidebarCollapsed ? "Développer la barre latérale" : "Réduire la barre latérale"}
+            aria-pressed={isSidebarCollapsed}
+          >
+            {isSidebarCollapsed ? <PanelLeftOpen className="h-3.5 w-3.5" /> : <PanelLeftClose className="h-3.5 w-3.5" />}
+          </button>
+        )}
+      </aside>
+
+      {isSidebarCollapsed && isHoverExpanded && isDesktop && (
+        <aside
+          className="sidebar-glass-flyout pointer-events-auto absolute left-[4.75rem] top-0 z-[60] hidden h-full w-64 flex-col md:flex"
+          aria-label="Navigation développée"
+        >
+          <div className="flex h-full flex-col">
+            {sidebarBody(false)}
+          </div>
+        </aside>
+      )}
     </div>
   );
 }

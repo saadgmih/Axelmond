@@ -28,7 +28,7 @@ export function AuthenticatedPlatformLayout() {
   const currentView = navigation.currentView;
 
   return (
-    <div className="flex h-[100dvh] max-h-[100dvh] bg-slate-50 font-sans overflow-hidden">
+    <div className="flex h-[100dvh] max-h-[100dvh] overflow-hidden bg-slate-950 font-sans">
       {live.needsLiveKitSession && session.currentUser && (
         <Suspense fallback={null}>
           <LazyLiveKitSessionHost
@@ -61,7 +61,7 @@ export function AuthenticatedPlatformLayout() {
         <button
           type="button"
           aria-label="Fermer le menu de navigation"
-          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-[1px] md:hidden"
+          className="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm md:hidden"
           onClick={() => ui.setIsMobileMenuOpen(false)}
         />
       )}
@@ -79,6 +79,8 @@ export function AuthenticatedPlatformLayout() {
         currentUser={session.currentUser!}
         onLogout={session.handleLogout}
         notificationUnreadCount={session.notificationUnreadCount}
+        isSidebarCollapsed={ui.isSidebarCollapsed}
+        onToggleSidebarCollapsed={ui.toggleSidebarCollapsed}
       />
 
       <div className="flex-1 flex flex-col overflow-hidden relative">
@@ -103,7 +105,7 @@ export function AuthenticatedPlatformLayout() {
         <main
           id="main-content"
           tabIndex={-1}
-          className={`flex-1 relative bg-slate-50 outline-none min-h-0 ${ui.lockMainScroll ? "overflow-hidden" : "overflow-y-auto"}`}
+          className={`flex-1 relative bg-slate-950 outline-none min-h-0 ${ui.lockMainScroll ? "overflow-hidden" : "overflow-y-auto"}`}
         >
           {INSTITUTIONAL_VIEWS.has(currentView) ? (
             <InstitutionalViewSwitch

@@ -97,6 +97,10 @@ export function usePlatformApp() {
 
   const [liveCourseId, setLiveCourseId] = useState<number>(1);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem("axelmond_sidebar_collapsed") === "1";
+  });
   const [courseToPurchase, setCourseToPurchase] = useState<Course | null>(null);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const catalogSearchRef = useRef<HTMLInputElement>(null);
@@ -110,6 +114,16 @@ export function usePlatformApp() {
       document.body.style.overflow = previousOverflow;
     };
   }, [isMobileMenuOpen]);
+
+  const toggleSidebarCollapsed = useCallback(() => {
+    setIsSidebarCollapsed((previous) => {
+      const next = !previous;
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("axelmond_sidebar_collapsed", next ? "1" : "0");
+      }
+      return next;
+    });
+  }, []);
 
   const {
     curriculumBindings,
@@ -566,6 +580,9 @@ export function usePlatformApp() {
     () => ({
       isMobileMenuOpen,
       setIsMobileMenuOpen,
+      isSidebarCollapsed,
+      setIsSidebarCollapsed,
+      toggleSidebarCollapsed,
       courseToPurchase,
       setCourseToPurchase,
       showKeyboardHelp,
@@ -579,6 +596,9 @@ export function usePlatformApp() {
     [
       isMobileMenuOpen,
       setIsMobileMenuOpen,
+      isSidebarCollapsed,
+      setIsSidebarCollapsed,
+      toggleSidebarCollapsed,
       courseToPurchase,
       setCourseToPurchase,
       showKeyboardHelp,

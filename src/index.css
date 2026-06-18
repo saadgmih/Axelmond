@@ -17,6 +17,8 @@
 :root {
   --app-content-max: 160rem;
   --touch-target-min: 44px;
+  --sidebar-expanded-width: 16rem;
+  --sidebar-collapsed-width: 4.75rem;
 
   /* Axelmond scrollbars — light */
   --scroll-size: 7px;
@@ -506,4 +508,51 @@ body {
 .virtual-list-item {
   content-visibility: auto;
   contain-intrinsic-size: auto 72px;
+}
+
+/* ─── Responsive glass sidebar ─────────────────────────────────────────── */
+.sidebar-glass {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.92) 0%, rgba(17, 24, 39, 0.88) 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 20px 50px rgba(2, 6, 23, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.sidebar-glass-flyout {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.96) 0%, rgba(30, 27, 75, 0.92) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: none;
+  border-radius: 0 1.25rem 1.25rem 0;
+  box-shadow:
+    18px 0 40px rgba(2, 6, 23, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.sidebar-glass-section {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+@media (min-width: 768px) {
+  .sidebar-glass {
+    border-radius: 0 1rem 1rem 0;
+  }
+}
+
+@media (pointer: coarse) {
+  .sidebar-glass-flyout {
+    display: none !important;
+  }
+}
+
+.a11y-high-contrast .sidebar-glass,
+.a11y-high-contrast .sidebar-glass-flyout {
+  background: #0f172a;
+  border-color: #fff;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }

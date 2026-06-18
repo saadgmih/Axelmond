@@ -87,6 +87,9 @@ export type PlatformUiSlice = Pick<
   PlatformAppState["ui"],
   | "isMobileMenuOpen"
   | "setIsMobileMenuOpen"
+  | "isSidebarCollapsed"
+  | "setIsSidebarCollapsed"
+  | "toggleSidebarCollapsed"
   | "courseToPurchase"
   | "setCourseToPurchase"
   | "showKeyboardHelp"
