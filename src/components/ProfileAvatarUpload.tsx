@@ -57,6 +57,7 @@ interface ProfileAvatarUploadProps {
   accent?: AccentVariant;
   variant?: "light" | "dark";
   previewSize?: number;
+  layout?: "standalone" | "hero";
   onUpload: (file: File) => void | Promise<void>;
   onDelete: () => void | Promise<void>;
 }
@@ -68,6 +69,7 @@ export default function ProfileAvatarUpload({
   accent = "indigo",
   variant = "light",
   previewSize = 112,
+  layout = "standalone",
   onUpload,
   onDelete,
 }: ProfileAvatarUploadProps) {
@@ -97,9 +99,11 @@ export default function ProfileAvatarUpload({
     }
   };
 
+  const isHero = layout === "hero";
+
   return (
     <>
-      <div className="flex flex-col items-center gap-4">
+      <div className={`flex flex-col ${isHero ? "items-start gap-2" : "items-center gap-4"}`}>
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
@@ -139,18 +143,24 @@ export default function ProfileAvatarUpload({
           />
         </button>
 
-        <p className={`max-w-[220px] text-center text-[11px] leading-relaxed ${isDark ? "text-slate-500" : "text-slate-500"}`}>
-          Cliquez sur la photo pour la modifier ou la recadrer.
-        </p>
+        {!isHero && (
+          <p
+            className={`max-w-[220px] text-center text-[11px] leading-relaxed ${isDark ? "text-slate-500" : "text-slate-500"}`}
+          >
+            Cliquez sur la photo pour la modifier ou la recadrer.
+          </p>
+        )}
 
         {avatarUrl && (
           <button
             type="button"
             onClick={onDelete}
             className={`inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-[11px] font-semibold transition-colors ${
-              isDark
-                ? "text-slate-500 hover:bg-red-950/30 hover:text-red-300"
-                : "text-slate-500 hover:bg-red-50 hover:text-red-600"
+              isHero
+                ? "text-indigo-200/70 hover:text-red-200"
+                : isDark
+                  ? "text-slate-500 hover:bg-red-950/30 hover:text-red-300"
+                  : "text-slate-500 hover:bg-red-50 hover:text-red-600"
             }`}
           >
             <Trash2 className="h-3.5 w-3.5" />
@@ -158,7 +168,7 @@ export default function ProfileAvatarUpload({
           </button>
         )}
 
-        {statusMsg && (
+        {statusMsg && !isHero && (
           <p
             className={`w-full rounded-xl px-3 py-2 text-center text-[11px] font-semibold ${
               isDark ? "bg-indigo-950/40 text-indigo-300" : "bg-slate-50 text-slate-500"

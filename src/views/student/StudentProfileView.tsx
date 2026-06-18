@@ -70,40 +70,44 @@ export default function StudentProfileView({
 
         <div className="relative z-10 p-6 md:p-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-end">
-              <div className="relative shrink-0">
-                <div className="h-28 w-28 overflow-hidden rounded-2xl border-4 border-white/20 bg-gradient-to-tr from-indigo-500 to-purple-600 shadow-2xl ring-4 ring-indigo-500/20">
-                  {currentUser?.avatarUrl ? (
-                    <img src={currentUser.avatarUrl} alt="Photo de profil" className="h-full w-full object-cover" />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-3xl font-black">
-                      {currentUser ? getInitials(currentUser.fullName) : "AR"}
-                    </div>
-                  )}
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-end">
+                <ProfileAvatarUpload
+                  avatarUrl={currentUser?.avatarUrl}
+                  initials={currentUser ? getInitials(currentUser.fullName) : "AR"}
+                  statusMsg=""
+                  accent="indigo"
+                  layout="hero"
+                  previewSize={112}
+                  onUpload={handleUploadAvatarFile}
+                  onDelete={handleDeleteAvatar}
+                />
+
+                <div className="space-y-2 text-center sm:text-left">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-400/30 bg-indigo-500/20 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-indigo-200">
+                    <GraduationCap className="h-3 w-3" />
+                    Profil Étudiant
+                  </span>
+                  <h1 className="text-2xl font-black tracking-tight md:text-3xl">
+                    {currentUser?.fullName || "Étudiant Axelmond"}
+                  </h1>
+                  <p className="text-sm font-medium text-indigo-200/90">
+                    {currentUser?.levelOrTitle || "Licence 3 Informatique"} · Axelmond Research Labs
+                  </p>
+                  <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+                    <span className="inline-flex items-center gap-1 rounded-lg border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-300">
+                      <ShieldCheck className="h-3 w-3" />
+                      Compte actif
+                    </span>
+                  </div>
                 </div>
-                <span className="absolute -bottom-2 -right-2 flex h-8 w-8 items-center justify-center rounded-xl border border-emerald-400/30 bg-emerald-500 shadow-lg">
-                  <CheckCircle2 className="h-4 w-4 text-white" />
-                </span>
               </div>
 
-              <div className="space-y-2 text-center sm:text-left">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-400/30 bg-indigo-500/20 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-indigo-200">
-                  <GraduationCap className="h-3 w-3" />
-                  Profil Étudiant
-                </span>
-                <h1 className="text-2xl font-black tracking-tight md:text-3xl">
-                  {currentUser?.fullName || "Étudiant Axelmond"}
-                </h1>
-                <p className="text-sm font-medium text-indigo-200/90">
-                  {currentUser?.levelOrTitle || "Licence 3 Informatique"} · Axelmond Research Labs
+              {avatarStatusMsg && (
+                <p className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-center text-xs font-semibold text-indigo-100 sm:text-left">
+                  {avatarStatusMsg}
                 </p>
-                <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-                  <span className="inline-flex items-center gap-1 rounded-lg border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-300">
-                    <ShieldCheck className="h-3 w-3" />
-                    Compte actif
-                  </span>
-                </div>
-              </div>
+              )}
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm lg:min-w-[220px]">
@@ -173,7 +177,7 @@ export default function StudentProfileView({
       <div className="space-y-6">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-stretch">
           {/* Progression */}
-          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:col-span-8">
+          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:col-span-12">
             <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5 md:px-8">
               <div>
                 <h2 className="text-lg font-black text-slate-900">Progression académique</h2>
@@ -216,24 +220,6 @@ export default function StudentProfileView({
                   </p>
                 </div>
               )}
-            </div>
-          </section>
-
-          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:col-span-4">
-            <div className="border-b border-slate-100 px-6 py-5">
-              <h3 className="text-sm font-black text-slate-900">Photo de profil</h3>
-            </div>
-
-            <div className="flex justify-center p-6">
-              <ProfileAvatarUpload
-                avatarUrl={currentUser?.avatarUrl}
-                initials={currentUser ? getInitials(currentUser.fullName) : "AR"}
-                statusMsg={avatarStatusMsg}
-                accent="indigo"
-                previewSize={112}
-                onUpload={handleUploadAvatarFile}
-                onDelete={handleDeleteAvatar}
-              />
             </div>
           </section>
         </div>
