@@ -16,7 +16,7 @@ rulesTest("student-video-protection", () => {
   assert.match(studentCourseViewSource, /Contenu en préparation/);
   assert.match(
     studentCourseViewSource,
-    /selectedLessonContent\.type !== "VIDEO" && \([\s\S]*selectedLessonContent\.attachments\[0\]\?\.fileName \|\| "Contenu texte"/,
+    /selectedLessonContent\.type !== "VIDEO" &&\s*selectedLessonContent\.type !== "IMAGE" && \([\s\S]*selectedLessonContent\.attachments\[0\]\?\.fileName \|\| "Contenu texte"/,
   );
   assert.doesNotMatch(studentCourseViewSource, /<video controls/);
   assert.doesNotMatch(studentCourseViewSource, /<iframe/);

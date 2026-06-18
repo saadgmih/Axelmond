@@ -34,7 +34,7 @@ rulesTest("premium-video-player", () => {
   assert.match(playerSource, /VolumeX/);
   assert.match(
     studentCourseViewSource,
-    /selectedLessonContent\.type !== "VIDEO" && \([\s\S]*selectedLessonContent\.attachments\[0\]\?\.fileName \|\| "Contenu texte"/,
+    /selectedLessonContent\.type !== "VIDEO" &&\s*selectedLessonContent\.type !== "IMAGE" && \([\s\S]*selectedLessonContent\.attachments\[0\]\?\.fileName \|\| "Contenu texte"/,
   );
 
   assert.match(hookSource, /COURSE_VIDEO_PLAYBACK_RATES = \[0\.5, 0\.75, 1, 1\.25, 1\.5, 1\.75, 2, 2\.5, 3, 3\.5, 4\]/);

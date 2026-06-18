@@ -23,11 +23,26 @@ rulesTest("student-course-live-pdf", () => {
   assert.doesNotMatch(pdfViewerSource, /downloadUrl/);
   assert.doesNotMatch(pdfViewerSource, /Ouvrir le PDF/);
   assert.match(pdfViewerSource, /mediaType === "IMAGE"/);
+  assert.match(pdfViewerSource, /type ImageViewMode = "width" \| "screen" \| "actual"/);
+  assert.match(pdfViewerSource, /handleImageFitWidth/);
+  assert.match(pdfViewerSource, /handleImageFitScreen/);
+  assert.match(pdfViewerSource, /handleImageResetZoom/);
+  assert.match(pdfViewerSource, /onPointerDown=\{handleImagePointerDown\}/);
+  assert.match(pdfViewerSource, /cursor-grab/);
+  assert.match(pdfViewerSource, /naturalWidth/);
+  assert.match(pdfViewerSource, /imageRenderWidth/);
+  assert.match(pdfViewerSource, /Ajuster à la largeur/);
+  assert.match(pdfViewerSource, /Ajuster à l'écran/);
+  assert.match(pdfViewerSource, /Réinitialiser le zoom à 100%/);
   assert.doesNotMatch(pdfViewerSource, /FitMode|fitMode|setFitMode/);
   assert.doesNotMatch(pdfViewerSource, /Ajuster à la page/);
   assert.doesNotMatch(pdfViewerSource, /renderHeight|height=\{renderHeight\}/);
   assert.match(pdfViewerSource, /const renderWidth = Math\.round\(baseReadingWidth \* scale\)/);
   assert.match(pdfViewerSource, /scale === 1 \? "Largeur"/);
+  assert.match(
+    studentCourseViewSource,
+    /selectedLessonContent\.type !== "VIDEO" &&\s*selectedLessonContent\.type !== "IMAGE"/,
+  );
 
   assert.match(contentRoutesSource, /\/api\/lesson-contents\/:contentId\/document/);
   assert.match(contentRoutesSource, /result\.contentType/);
