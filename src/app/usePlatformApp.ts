@@ -21,14 +21,11 @@ import { usePlatformAvatarActions } from "./hooks/usePlatformAvatarActions";
 import { usePlatformKeyboardShortcuts } from "./hooks/usePlatformKeyboardShortcuts";
 import { usePlatformNotificationHandlers } from "./hooks/usePlatformNotificationHandlers";
 import { usePlatformTeacherWorkspace } from "./hooks/usePlatformTeacherWorkspace";
-import { SIDEBAR_DOCK_MIN_WIDTH, useSidebarLayout } from "../hooks/useSidebarLayout";
+import { useSidebarLayout } from "../hooks/useSidebarLayout";
 
 function readInitialSidebarCollapsed() {
   if (typeof window === "undefined") return false;
-  const stored = window.localStorage.getItem("axelmond_sidebar_collapsed");
-  if (stored === "1") return true;
-  if (stored === "0") return false;
-  return !window.matchMedia(`(min-width: ${SIDEBAR_DOCK_MIN_WIDTH}px)`).matches;
+  return window.localStorage.getItem("axelmond_sidebar_collapsed") === "1";
 }
 
 export function usePlatformApp() {
@@ -105,6 +102,7 @@ export function usePlatformApp() {
   }, []);
 
   const [liveCourseId, setLiveCourseId] = useState<number>(1);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(readInitialSidebarCollapsed);
   const [isTopbarCollapsed, setIsTopbarCollapsed] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -128,20 +126,6 @@ export function usePlatformApp() {
     });
   }, [persistSidebarCollapsed]);
 
-  const setIsMobileMenuOpen = useCallback(
-    (value: boolean | ((previous: boolean) => boolean)) => {
-      setIsSidebarCollapsed((previousCollapsed) => {
-        const previousOpen = !previousCollapsed;
-        const nextOpen = typeof value === "function" ? value(previousOpen) : value;
-        const nextCollapsed = !nextOpen;
-        persistSidebarCollapsed(nextCollapsed);
-        return nextCollapsed;
-      });
-    },
-    [persistSidebarCollapsed],
-  );
-
-  const isMobileMenuOpen = !isSidebarCollapsed;
   const sidebarLayoutRef = useRef<boolean | null>(null);
   const { isDrawer } = useSidebarLayout();
 
@@ -149,8 +133,9 @@ export function usePlatformApp() {
     const wasDrawer = sidebarLayoutRef.current;
     if (wasDrawer !== null) {
       if (isDrawer && !wasDrawer) {
-        setIsSidebarCollapsed(true);
+        setIsMobileMenuOpen(false);
       } else if (!isDrawer && wasDrawer) {
+        setIsMobileMenuOpen(false);
         const stored = window.localStorage.getItem("axelmond_sidebar_collapsed");
         setIsSidebarCollapsed(stored === "1");
       }

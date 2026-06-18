@@ -53,7 +53,7 @@ function roleBadgeClass(role: "student" | "teacher", userRole?: AppUser["role"])
 export default function Sidebar({
   currentView,
   enrolledCourses: _enrolledCourses,
-  isMobileMenuOpen: _isMobileMenuOpen,
+  isMobileMenuOpen,
   courses: _courses,
   setIsMobileMenuOpen,
   navigateTo,
@@ -71,19 +71,19 @@ export default function Sidebar({
   useTvNavigation(navRef, true);
 
   const canToggleSidebar = Boolean(onToggleSidebarCollapsed);
-  const isSidebarHidden = canToggleSidebar && isSidebarCollapsed;
+  const isSidebarHidden = isDrawer ? !isMobileMenuOpen : canToggleSidebar && isSidebarCollapsed;
   const isSidebarVisible = !isSidebarHidden;
 
   useEffect(() => {
-    if (!isDrawer || !isSidebarVisible) return;
+    if (!isDrawer || !isMobileMenuOpen) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = previousOverflow;
     };
-  }, [isDrawer, isSidebarVisible]);
+  }, [isDrawer, isMobileMenuOpen]);
 
-  const conversations = useSidebarConversations(Boolean(currentUser) && isSidebarVisible);
+  const conversations = useSidebarConversations(Boolean(currentUser) && (isDocked ? isSidebarVisible : isMobileMenuOpen));
   const navItems = useMemo(
     () => getSidebarNavItems(role, currentUser?.role),
     [role, currentUser?.role],
@@ -239,11 +239,19 @@ export default function Sidebar({
     </div>
   );
 
+  const handleSidebarToggle = () => {
+    if (isDrawer) {
+      setIsMobileMenuOpen(!isMobileMenuOpen);
+      return;
+    }
+    onToggleSidebarCollapsed?.();
+  };
+
   const sidebarToggleButton = (variant: "hidden" | "inline") =>
     canToggleSidebar ? (
       <button
         type="button"
-        onClick={onToggleSidebarCollapsed}
+        onClick={handleSidebarToggle}
         className={`layout-collapse-toggle sidebar-collapse-toggle kbd-nav-focus ${
           variant === "hidden" ? "sidebar-collapse-toggle--hidden" : "sidebar-collapse-toggle--inline"
         }`}

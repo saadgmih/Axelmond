@@ -59,7 +59,7 @@ export function AuthenticatedPlatformLayout() {
 
       <SkipLink />
 
-      {!ui.isSidebarCollapsed && isDrawer && (
+      {ui.isMobileMenuOpen && isDrawer && (
         <button
           type="button"
           aria-label="Fermer le menu de navigation"
