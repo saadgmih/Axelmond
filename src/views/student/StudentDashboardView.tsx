@@ -42,6 +42,7 @@ interface StudentDashboardViewProps {
 
   getCourseIcon: CourseIconRenderer;
   isLoginDataLoading?: boolean;
+  isEnrolledCatalogSyncing?: boolean;
 }
 
 function parseQuizScore(score?: string): { correct: number; total: number } | null {
@@ -204,6 +205,7 @@ export default function StudentDashboardView({
   getCourseIcon,
 
   isLoginDataLoading,
+  isEnrolledCatalogSyncing,
 }: StudentDashboardViewProps) {
   const dashboardGridRef = useRef<HTMLDivElement>(null);
   useTvNavigation(dashboardGridRef, true);
@@ -618,13 +620,13 @@ export default function StudentDashboardView({
           <div className="flex justify-between items-center gap-3 flex-wrap">
             <h2 className="text-xl font-black text-slate-100 flex items-center gap-2">
               <Layers className="w-5 h-5 text-indigo-400" />
-              Mes Modules d'Étude Actifs ({enrolledCourses.length})
+              Mes Modules d'Étude Actifs ({enrolledList.length})
             </h2>
 
             <span className="text-xs font-semibold text-slate-500">Vos modules en accès</span>
           </div>
 
-          {isLoginDataLoading ? (
+          {isLoginDataLoading || isEnrolledCatalogSyncing ? (
             <div className="rounded-2xl py-20 text-center border border-slate-800/60 bg-slate-900/40 shadow-sm flex flex-col items-center justify-center">
               <div className="w-16 h-16 sm:w-20 sm:h-20 bg-slate-900/40 text-indigo-400 rounded-full flex items-center justify-center mb-6 shadow-inner border border-indigo-500/20 relative">
                 <div className="absolute inset-0 rounded-full border-4 border-indigo-500/20 border-t-indigo-500 animate-spin" />

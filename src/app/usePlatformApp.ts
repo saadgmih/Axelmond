@@ -16,6 +16,7 @@ import type { AppNotification } from "../types/messaging";
 import type { Course, CourseModule, FacultyDomain } from "../types";
 import { getInitials } from "./catalogIcons";
 import { usePlatformCatalogData } from "./hooks/usePlatformCatalogData";
+import { useEnrolledCoursesHydration } from "./hooks/useEnrolledCoursesHydration";
 import { usePlatformAvatarActions } from "./hooks/usePlatformAvatarActions";
 import { usePlatformKeyboardShortcuts } from "./hooks/usePlatformKeyboardShortcuts";
 import { usePlatformNotificationHandlers } from "./hooks/usePlatformNotificationHandlers";
@@ -80,6 +81,14 @@ export function usePlatformApp() {
     catalogHasData,
     retryCatalogLoad,
   } = usePlatformCatalogData(isAuthReady, currentUser, courses, domains, setCourses, setDomains, setIsLoading);
+
+  const { isEnrolledCatalogSyncing } = useEnrolledCoursesHydration(
+    isAuthReady,
+    currentUser,
+    enrolledCourses,
+    courses,
+    setCourses,
+  );
 
   useEffect(() => {
     document.documentElement.classList.add("dark");
@@ -414,6 +423,7 @@ export function usePlatformApp() {
       notificationUnreadCount,
       openNotificationsView,
       isLoginDataLoading,
+      isEnrolledCatalogSyncing,
     }),
     [
       currentUser,
@@ -433,6 +443,7 @@ export function usePlatformApp() {
       notificationUnreadCount,
       openNotificationsView,
       isLoginDataLoading,
+      isEnrolledCatalogSyncing,
     ],
   );
 

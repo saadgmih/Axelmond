@@ -51,7 +51,14 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
           ? {}
           : authUser && (authUser.role === "PROFESSOR" || authUser.role === "RESEARCHER")
             ? { createdById: authUser.id }
-            : { published: true };
+            : authUser?.role === "STUDENT"
+              ? (() => {
+                  const enrolledIds = authUser.enrolledCourses.filter((id) => Number.isInteger(id) && id > 0);
+                  return enrolledIds.length > 0
+                    ? { OR: [{ published: true }, { id: { in: enrolledIds } }] }
+                    : { published: true };
+                })()
+              : { published: true };
 
       if (Number.isInteger(disciplineId) && disciplineId > 0) {
         where.disciplineId = disciplineId;

@@ -28,7 +28,7 @@ export function StudentRouteSwitch() {
   const bindings = usePlatformBindings();
   const ui = usePlatformUi();
 
-  const { currentUser, enrolledCourses, role, invoices, isLoginDataLoading } = session;
+  const { currentUser, enrolledCourses, role, invoices, isLoginDataLoading, isEnrolledCatalogSyncing } = session;
   const { currentView, navigateTo, selectedCourse, selectedModule, setSelectedModule } = navigation;
   const {
     domains,
@@ -57,6 +57,7 @@ export function StudentRouteSwitch() {
             courses={courses}
             getCourseIcon={getCourseIcon}
             isLoginDataLoading={isLoginDataLoading}
+            isEnrolledCatalogSyncing={isEnrolledCatalogSyncing}
           />
         </Suspense>
       )}

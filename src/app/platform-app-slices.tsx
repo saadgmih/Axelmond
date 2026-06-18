@@ -20,6 +20,7 @@ export type PlatformSessionSlice = Pick<
   | "notificationUnreadCount"
   | "openNotificationsView"
   | "isLoginDataLoading"
+  | "isEnrolledCatalogSyncing"
 >;
 
 export type PlatformCatalogSlice = Pick<

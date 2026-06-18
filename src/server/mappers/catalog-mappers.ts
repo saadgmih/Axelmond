@@ -178,8 +178,10 @@ export async function toCoursesForStudent(
   userId: string,
   enrolledCourseIds: number[],
 ): Promise<Course[]> {
-  // Catalog list must stay read-only: curriculum sync runs on publish / course detail, not every listing.
-  void enrolledCourseIds;
+  const enrolledIds = enrolledCourseIds.filter((courseId) => courses.some((course) => course.id === courseId));
+  if (enrolledIds.length > 0) {
+    courses = await attachSyncedCourseModules(courses);
+  }
 
   const progressByCourse = await getStudentProgressSnapshotsByCourseIds(
     userId,
