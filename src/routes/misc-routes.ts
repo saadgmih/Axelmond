@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { getAuthUser } from "../server/route-types";
 import rateLimit from "express-rate-limit";
 import type { RouteContext } from "../server/route-context";
+import { startupState } from "../server/startup-state";
 import * as api from "../server/route-deps";
 
 export function registerMiscRoutes(app: Express, ctx: RouteContext): void {
@@ -270,6 +271,14 @@ export function registerMiscRoutes(app: Express, ctx: RouteContext): void {
   });
 
   app.get("/api/health", healthRateLimiter, async (req, res) => {
+    if (!startupState.dbVerified) {
+      res.status(200).json({
+        status: startupState.listening ? "STARTING" : "BOOTING",
+        timestamp: new Date().toISOString(),
+      });
+      return;
+    }
+
     let dbStatus = "HEALTHY";
 
     const dbSchema = api.getActivePgSchema();

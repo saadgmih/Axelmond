@@ -32,6 +32,9 @@ rulesTest("hostinger-deploy", () => {
   assert.match(hostingerEnv, /CACHE_TTL_SECONDS/);
   assert.match(hostingerEnv, /AUTH_USER_CACHE_MS/);
   assert.match(hostingerEnv, /DATABASE_POOL_MAX/);
+  assert.match(hostingerEnv, /STARTUP_DB_TIMEOUT_MS/);
+  assert.match(startServer, /startupState\.listening\s*=\s*true/);
+  assert.match(startServer, /verifyDatabaseAtStartup/);
 
   console.log("Hostinger deploy guards passed");
 });

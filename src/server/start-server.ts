@@ -19,6 +19,7 @@ import { seedDatabase, synchronizePostgresSequences } from "./startup-db";
 import { apiErrorStatus, apiErrorMessage } from "./api-errors";
 import { createAxelmondApp } from "./create-app";
 import { logDb, logEmail, startAuthUserCachePruner, stopAuthUserCachePruner } from "./route-deps";
+import { startupState } from "./startup-state";
 import { stopPerformanceMonitor } from "../performance";
 import { isVerboseStartup } from "./startup-logging";
 
@@ -230,20 +231,6 @@ export async function startAxelmondServer() {
 
   logEnvironmentStatus(allowedOrigins, isProduction);
 
-  const dbCheck = await verifyDatabaseConnection();
-  if (dbCheck.ok) {
-    logDb(
-      "INFO",
-      isVerboseStartup() ? "Database schema verified at startup" : "Database connection verified at startup",
-      isVerboseStartup() ? { schema: dbCheck.schema } : undefined,
-    );
-  } else {
-    logDb("ERROR", "Database schema verification failed at startup", {
-      schema: dbCheck.schema,
-      error: dbCheck.error,
-    });
-  }
-
   app.use("/api", (err: unknown, req: express.Request, res: express.Response, next: express.NextFunction) => {
     const status = apiErrorStatus(err);
     const code = (err as { code?: string; name?: string })?.code || (err as { name?: string })?.name || "API_ERROR";
@@ -305,10 +292,37 @@ export async function startAxelmondServer() {
     httpServer.once("error", reject);
   });
 
+  startupState.listening = true;
   void runDeferredStartupTasks(securityTest);
 }
 
+async function verifyDatabaseAtStartup() {
+  const dbCheck = await verifyDatabaseConnection();
+  startupState.dbVerified = dbCheck.ok;
+  if (dbCheck.ok) {
+    logDb(
+      "INFO",
+      isVerboseStartup() ? "Database schema verified at startup" : "Database connection verified at startup",
+      isVerboseStartup() ? { schema: dbCheck.schema } : undefined,
+    );
+  } else {
+    logDb("ERROR", "Database schema verification failed at startup", {
+      schema: dbCheck.schema,
+      error: dbCheck.error,
+    });
+  }
+}
+
 async function runDeferredStartupTasks(securityTest: boolean) {
+  await initCache();
+  startCachePruner();
+
+  try {
+    await verifyDatabaseAtStartup();
+  } catch (err) {
+    logDb("ERROR", "Database verification threw at startup", { error: String(err) });
+  }
+
   try {
     await seedDatabase();
   } catch (err) {
@@ -326,8 +340,6 @@ async function runDeferredStartupTasks(securityTest: boolean) {
     return;
   }
 
-  await initCache();
-  startCachePruner();
   startAuthUserCachePruner();
   startAuditLogRetention();
   startRefreshTokenCleanup();
