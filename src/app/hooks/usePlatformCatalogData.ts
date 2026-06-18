@@ -7,7 +7,7 @@ import type { Course, FacultyDomain } from "../../types";
 import type { AppUser } from "../../components/AuthScreen";
 
 const CATALOG_RETRY_DELAYS_MS = [0, 2_000, 5_000, 10_000];
-const CATALOG_AUTO_RETRY_INTERVAL_MS = 30_000;
+const CATALOG_AUTO_RETRY_INTERVAL_MS = 60_000;
 
 function sleep(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));

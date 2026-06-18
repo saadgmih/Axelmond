@@ -176,6 +176,7 @@ export async function toCoursesForStudent(
   courses: any[],
   userId: string,
   enrolledCourseIds: number[],
+  enrollmentRecords?: Array<{ courseId: number; startDate: Date; endDate: Date | null; active: boolean }>,
 ): Promise<Course[]> {
   const enrolledIds = enrolledCourseIds.filter((courseId) => courses.some((course) => course.id === courseId));
   if (enrolledIds.length > 0) {
@@ -187,9 +188,11 @@ export async function toCoursesForStudent(
     courses.map((course) => course.id),
   );
 
-  const enrollments = await prisma.enrollment.findMany({
-    where: { userId },
-  });
+  const enrollments =
+    enrollmentRecords ??
+    (await prisma.enrollment.findMany({
+      where: { userId },
+    }));
   const enrollmentMap = new Map<number, CourseEnrollmentInfo>();
   for (const e of enrollments) {
     if (!isEnrollmentActive(e)) continue;

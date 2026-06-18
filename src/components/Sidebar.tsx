@@ -88,7 +88,7 @@ export default function Sidebar({
     };
   }, [isDrawer, isMobileMenuOpen]);
 
-  const conversations = useSidebarConversations(Boolean(currentUser));
+  const conversations = useSidebarConversations(Boolean(currentUser) && (isDocked || isMobileMenuOpen));
   const navItems = useMemo(
     () => getSidebarNavItems(role, currentUser?.role),
     [role, currentUser?.role],

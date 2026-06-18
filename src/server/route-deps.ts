@@ -28,6 +28,7 @@ export type { AppUser, AuthenticatedRequest } from "./route-types";
 export { getAuthUser, setAuthUser, tryGetAuthUser } from "./route-types";
 export {
   invalidatePublicCatalogCache,
+  invalidateStudentCatalogCache,
   verifyChapterAccess,
   verifyContentAccess,
   verifyCourseAccess,
@@ -39,7 +40,20 @@ export { logLiveKit, logInvitation, logEmail, logDb } from "./route-loggers";
 export * from "./route-mappers";
 export * from "./route-schemas";
 
-import { invalidateAuthUserCache, resolveCachedAuthDbUser } from "./auth-user-cache";
+import { invalidateStudentCatalogCache } from "./route-ownership";
+import {
+  invalidateAuthUserCache as invalidateAuthUserCacheEntry,
+  resolveCachedAuthDbUser,
+  startAuthUserCachePruner,
+  stopAuthUserCachePruner,
+} from "./auth-user-cache";
+
+export function invalidateAuthUserCache(userId: string): boolean {
+  void invalidateStudentCatalogCache(userId);
+  return invalidateAuthUserCacheEntry(userId);
+}
+
+export { startAuthUserCachePruner, stopAuthUserCachePruner };
 
 export const requireAuth: express.RequestHandler = async (req, res, next) => {
   const token = req.headers.authorization?.replace(/^Bearer\s+/i, "");
@@ -295,7 +309,6 @@ export {
   setStudentModuleCompletion,
 } from "../student-content-progress";
 export { streamLessonContentDocument } from "./lesson-document";
-export { invalidateAuthUserCache, startAuthUserCachePruner, stopAuthUserCachePruner } from "./auth-user-cache";
 export { collectRuntimeMemoryMetrics } from "./memory-metrics";
 export { decodeStoredText } from "../text";
 export { Prisma } from "@prisma/client";

@@ -29,6 +29,9 @@ rulesTest("hostinger-deploy", () => {
   assert.match(hostingerDoc, /HOSTINGER_WEBAPP/);
   assert.match(hostingerEnv, /HOSTINGER_WEBAPP/);
   assert.match(hostingerEnv, /SKIP_PRISMA_POSTINSTALL/);
+  assert.match(hostingerEnv, /CACHE_TTL_SECONDS/);
+  assert.match(hostingerEnv, /AUTH_USER_CACHE_MS/);
+  assert.match(hostingerEnv, /DATABASE_POOL_MAX/);
 
   console.log("Hostinger deploy guards passed");
 });

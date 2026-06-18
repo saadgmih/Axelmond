@@ -47,7 +47,12 @@ export async function verifyQuizQuestionAccess(authUser: AppUser, questionId: st
   return verifyCourseAccess(authUser, question.quiz.courseId);
 }
 
+export async function invalidateStudentCatalogCache(userId?: string): Promise<void> {
+  await cacheDelByPrefix(userId ? `api:courses:student:${userId}:` : "api:courses:student:");
+}
+
 export async function invalidatePublicCatalogCache(): Promise<void> {
   await cacheDel("api:domains:public");
   await cacheDelByPrefix("api:courses:public:");
+  await invalidateStudentCatalogCache();
 }

@@ -30,14 +30,20 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
 
   app.get("/api/courses", async (req, res, next) => {
     try {
-      const authUser = await api.getOptionalAuthUser(req);
+      const dbUser = await api.getOptionalAuthDbUser(req);
+      const authUser = dbUser ? api.toAppUser(dbUser) : null;
 
       const domainId = Number(req.query.domainId) || 0;
 
       const disciplineId = Number(req.query.disciplineId) || 0;
 
-      // Cache uniquement pour visiteurs anonymes, clé incluant les filtres
-      const cacheKey = authUser ? null : `api:courses:public:d=${domainId}:dis=${disciplineId}`;
+      const isStudent = authUser?.role === "STUDENT";
+      const cacheKey = !authUser
+        ? `api:courses:public:d=${domainId}:dis=${disciplineId}`
+        : isStudent
+          ? `api:courses:student:${authUser.id}:d=${domainId}:dis=${disciplineId}`
+          : null;
+
       if (cacheKey) {
         const cached = await api.cacheGet(cacheKey);
 
@@ -47,18 +53,7 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
         }
       }
 
-      const studentEnrolledIds =
-        authUser?.role === "STUDENT"
-          ? getActiveEnrolledCourseIds(
-              await withCatalogTimeout(
-                api.prisma.enrollment.findMany({
-                  where: { userId: authUser.id },
-                  select: { courseId: true, active: true, endDate: true, startDate: true },
-                }),
-                "student enrollment lookup",
-              ),
-            )
-          : [];
+      const studentEnrolledIds = isStudent && dbUser ? getActiveEnrolledCourseIds(dbUser.enrollments) : [];
 
       const where: any =
         authUser?.role === "ADMIN"
@@ -95,8 +90,8 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
       );
 
       let payload;
-      if (authUser?.role === "STUDENT") {
-        payload = await api.toCoursesForStudent(courses, authUser.id, studentEnrolledIds);
+      if (authUser?.role === "STUDENT" && dbUser) {
+        payload = await api.toCoursesForStudent(courses, authUser.id, studentEnrolledIds, dbUser.enrollments);
       } else {
         payload = courses.map((course) => api.toCourse(course));
       }
@@ -114,7 +109,12 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
         count: payload.length,
       });
 
-      if (cacheKey) await api.cacheSet(cacheKey, JSON.stringify(payload), Number(process.env.CACHE_TTL_SECONDS) || 60);
+      if (cacheKey) {
+        const ttl = isStudent
+          ? Number(process.env.STUDENT_CATALOG_CACHE_SECONDS) || Number(process.env.CACHE_TTL_SECONDS) || 60
+          : Number(process.env.CACHE_TTL_SECONDS) || 60;
+        await api.cacheSet(cacheKey, JSON.stringify(payload), ttl);
+      }
 
       res.json(payload);
     } catch (err) {

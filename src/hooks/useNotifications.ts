@@ -69,9 +69,23 @@ export function useNotifications(enabled: boolean) {
 
   useEffect(() => {
     if (!enabled) return;
-    refreshUnreadCount();
-    const timer = window.setInterval(refreshUnreadCount, 60_000);
-    return () => window.clearInterval(timer);
+
+    const pollUnreadCount = () => {
+      if (document.visibilityState === "hidden") return;
+      void refreshUnreadCount();
+    };
+
+    pollUnreadCount();
+    const timer = window.setInterval(pollUnreadCount, 120_000);
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") void refreshUnreadCount();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
   }, [enabled, refreshUnreadCount]);
 
   return {

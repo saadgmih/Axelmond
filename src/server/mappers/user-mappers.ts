@@ -15,6 +15,7 @@ import { sendVerificationEmail, getEmailErrorDetails, getSmtpPublicConfig } from
 import { prisma } from "../../db";
 import { APP_USER_BILLING_INCLUDE, mergeUserInvoices } from "../../course-payments";
 import { getActiveEnrolledCourseIds } from "../../enrollment-access";
+import { resolveCachedAuthDbUser } from "../auth-user-cache";
 import { logEmail } from "../route-loggers";
 import type { AppUser } from "../route-types";
 import { toCourse, courseResponseInclude } from "./catalog-mappers";
@@ -36,18 +37,24 @@ export function toAppUser(user: any): AppUser {
   };
 }
 
-export async function getOptionalAuthUser(req: express.Request) {
+export async function getOptionalAuthDbUser(req: express.Request) {
   const token = req.headers.authorization?.replace(/^Bearer\s+/i, "");
   const session = verifyAuthToken(token);
   if (!session) return null;
-  const user = await prisma.user.findUnique({
-    where: { id: session.userId },
-    include: APP_USER_BILLING_INCLUDE,
+
+  const dbUser = await resolveCachedAuthDbUser({
+    userId: session.userId,
+    authTokenVersion: session.authTokenVersion,
   });
-  const actualRole = normalizeRole(user?.role);
-  if (!user || actualRole !== session.role) return null;
-  if (!user.emailVerified) return null;
-  return toAppUser(user);
+  const actualRole = normalizeRole(dbUser?.role);
+  if (!dbUser || actualRole !== session.role) return null;
+  if (!dbUser.emailVerified) return null;
+  return dbUser;
+}
+
+export async function getOptionalAuthUser(req: express.Request) {
+  const dbUser = await getOptionalAuthDbUser(req);
+  return dbUser ? toAppUser(dbUser) : null;
 }
 
 export async function ensureAcademicProfileForUser(
