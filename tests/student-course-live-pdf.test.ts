@@ -23,6 +23,11 @@ rulesTest("student-course-live-pdf", () => {
   assert.doesNotMatch(pdfViewerSource, /downloadUrl/);
   assert.doesNotMatch(pdfViewerSource, /Ouvrir le PDF/);
   assert.match(pdfViewerSource, /mediaType === "IMAGE"/);
+  assert.doesNotMatch(pdfViewerSource, /FitMode|fitMode|setFitMode/);
+  assert.doesNotMatch(pdfViewerSource, /Ajuster à la page/);
+  assert.doesNotMatch(pdfViewerSource, /renderHeight|height=\{renderHeight\}/);
+  assert.match(pdfViewerSource, /const renderWidth = Math\.round\(baseReadingWidth \* scale\)/);
+  assert.match(pdfViewerSource, /scale === 1 \? "Largeur"/);
 
   assert.match(contentRoutesSource, /\/api\/lesson-contents\/:contentId\/document/);
   assert.match(contentRoutesSource, /result\.contentType/);

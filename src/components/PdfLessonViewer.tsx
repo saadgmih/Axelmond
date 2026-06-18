@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Camera, FileText, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Expand, Maximize } from "lucide-react";
+import { Camera, FileText, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Maximize } from "lucide-react";
 import { getFreshSessionToken } from "../api";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
@@ -14,8 +14,6 @@ interface PdfLessonViewerProps {
   mediaType?: "PDF" | "IMAGE";
 }
 
-type FitMode = "width" | "page" | "custom";
-
 export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }: PdfLessonViewerProps) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -25,22 +23,20 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
   const [pageNumber, setPageNumber] = useState(1);
 
   const [scale, setScale] = useState(1.0);
-  const [fitMode, setFitMode] = useState<FitMode>("page");
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const [containerDimensions, setContainerDimensions] = useState({ width: 800, height: 600 });
+  const [containerDimensions, setContainerDimensions] = useState({ width: 800 });
 
-  // Observe container size to dynamically adjust Fit Page / Fit Width
+  // Observe container size to keep PDF pages fitted to the reading width.
   useEffect(() => {
     if (!containerRef.current) return;
     const observer = new ResizeObserver((entries) => {
       if (entries[0]) {
         setContainerDimensions({
           width: entries[0].contentRect.width,
-          height: entries[0].contentRect.height,
         });
       }
     });
@@ -70,6 +66,7 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);
     setPageNumber(1);
+    setScale(1.0);
   }
 
   function changePage(offset: number) {
@@ -82,12 +79,10 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
   }
 
   function handleZoomIn() {
-    setFitMode("custom");
     setScale((prev) => Math.min(prev + 0.25, 4.0));
   }
 
   function handleZoomOut() {
-    setFitMode("custom");
     setScale((prev) => Math.max(prev - 0.25, 0.5));
   }
 
@@ -99,6 +94,7 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
       setLoading(true);
       setError("");
       setBlobUrl(null);
+      setScale(1.0);
 
       try {
         const token = await getFreshSessionToken();
@@ -176,20 +172,9 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
     );
   }
 
-  // Calculate dynamic dimensions for react-pdf Page
-  let renderWidth: number | undefined = undefined;
-  let renderHeight: number | undefined = undefined;
-  let renderScale = scale;
-
-  if (fitMode === "width") {
-    renderWidth = Math.max(containerDimensions.width - 32, 200); // 32px padding
-    renderScale = 1.0;
-  } else if (fitMode === "page") {
-    renderHeight = Math.max(containerDimensions.height - 32, 200);
-    renderScale = 1.0;
-  }
-
-  const zoomPercent = fitMode === "custom" ? `${Math.round(scale * 100)}%` : fitMode === "width" ? "Largeur" : "Page";
+  const baseReadingWidth = Math.max(containerDimensions.width - 32, 280);
+  const renderWidth = Math.round(baseReadingWidth * scale);
+  const zoomLabel = scale === 1 ? "Largeur" : `${Math.round(scale * 100)}%`;
 
   return (
     <div
@@ -232,7 +217,7 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
               <ZoomOut className="w-4 h-4" />
             </button>
             <span className="px-2 text-xs font-mono font-bold text-slate-300 min-w-[4rem] text-center">
-              {zoomPercent}
+              {zoomLabel}
             </span>
             <button
               onClick={handleZoomIn}
@@ -240,25 +225,6 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
               title="Zoom avant"
             >
               <ZoomIn className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="w-px h-6 bg-slate-700 mx-1"></div>
-
-          <div className="flex items-center bg-slate-800/80 rounded-lg p-1 border border-slate-700/50">
-            <button
-              onClick={() => setFitMode("page")}
-              className={`p-1.5 rounded-md transition-colors cursor-pointer text-xs font-semibold ${fitMode === "page" ? "bg-indigo-600 text-white" : "hover:bg-slate-700 text-slate-300"}`}
-              title="Ajuster à la page"
-            >
-              <FileText className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setFitMode("width")}
-              className={`p-1.5 rounded-md transition-colors cursor-pointer text-xs font-semibold ${fitMode === "width" ? "bg-indigo-600 text-white" : "hover:bg-slate-700 text-slate-300"}`}
-              title="Ajuster à la largeur"
-            >
-              <Expand className="w-4 h-4" />
             </button>
           </div>
 
@@ -323,9 +289,7 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
           >
             <Page
               pageNumber={pageNumber}
-              scale={renderScale}
               width={renderWidth}
-              height={renderHeight}
               className="bg-white"
               renderTextLayer={false}
               renderAnnotationLayer={false}
