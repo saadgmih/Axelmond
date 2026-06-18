@@ -16,12 +16,18 @@ rulesTest("student-dashboard-enrolled-modules", () => {
   assert.match(dashboardSource, /enrolledList\.length === 0/);
 
   assert.match(coursesRoutesSource, /authUser\?\.role === "STUDENT"/);
-  assert.match(coursesRoutesSource, /OR: \[\{ published: true \}, \{ id: \{ in: enrolledIds \} \}\]/);
+  assert.match(coursesRoutesSource, /getActiveEnrolledCourseIds/);
+  assert.match(coursesRoutesSource, /OR: \[\{ published: true \}, \{ id: \{ in: studentEnrolledIds \} \}\]/);
+  assert.doesNotMatch(coursesRoutesSource, /syncPublishedLessonModules\(course\.id\)/);
 
   assert.match(catalogSource, /attachSyncedCourseModules\(courses\)/);
   assert.doesNotMatch(catalogSource, /syncPublishedLessonModulesForCourses/);
 
   assert.match(hydrationSource, /api\.getCourse/);
+  assert.match(hydrationSource, /isEnrolledCatalogSyncing/);
+  assert.match(hydrationSource, /setIsEnrolledCatalogSyncing\(false\)/);
+  assert.match(hydrationSource, /unresolvedIds/);
+  assert.doesNotMatch(hydrationSource, /isEnrolledCatalogSyncing: missingEnrolledCourseIds\.length > 0/);
 
   const sampleCourse = { id: 2, title: "C++" } as Course;
   assert.deepEqual(findMissingEnrolledCourseIds([2], []), [2]);

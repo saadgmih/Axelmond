@@ -14,6 +14,7 @@ import {
 import { sendVerificationEmail, getEmailErrorDetails, getSmtpPublicConfig } from "../../email";
 import { prisma } from "../../db";
 import { APP_USER_BILLING_INCLUDE, mergeUserInvoices } from "../../course-payments";
+import { getActiveEnrolledCourseIds } from "../../enrollment-access";
 import { logEmail } from "../route-loggers";
 import type { AppUser } from "../route-types";
 import { toCourse, courseResponseInclude } from "./catalog-mappers";
@@ -29,12 +30,7 @@ export function toAppUser(user: any): AppUser {
     filiere: user.filiere || undefined,
     avatarUrl: user.avatarUrl || undefined,
     enrolledCourses: Array.isArray(user.enrollments)
-      ? user.enrollments
-          .filter((enrollment: any) => {
-            const isExpired = enrollment.endDate && new Date(enrollment.endDate) < new Date();
-            return enrollment.active && !isExpired;
-          })
-          .map((enrollment: any) => enrollment.courseId)
+      ? getActiveEnrolledCourseIds(user.enrollments)
       : [],
     invoices: mergeUserInvoices(user),
   };

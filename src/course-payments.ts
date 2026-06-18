@@ -1,6 +1,7 @@
 import type { PaymentProvider } from "@prisma/client";
 import { prisma } from "./db";
 import type { Invoice } from "./types";
+import { buildEnrollmentEndDate } from "./enrollment-access";
 
 export const APP_USER_BILLING_INCLUDE = {
   enrollments: true,
@@ -94,8 +95,8 @@ export async function persistCoursePaymentEnrollment(
     const user = await prisma.$transaction(async (tx) => {
       await tx.enrollment.upsert({
         where: { userId_courseId: { userId: params.userId, courseId: params.courseId } },
-        update: { active: true, startDate: new Date(), endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) },
-        create: { userId: params.userId, courseId: params.courseId, active: true, startDate: new Date(), endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) },
+        update: { active: true, startDate: new Date(), endDate: buildEnrollmentEndDate() },
+        create: { userId: params.userId, courseId: params.courseId, active: true, startDate: new Date(), endDate: buildEnrollmentEndDate() },
       });
       return tx.user.findUnique({
         where: { id: params.userId },
@@ -150,8 +151,8 @@ export async function persistCoursePaymentEnrollment(
 
       await tx.enrollment.upsert({
         where: { userId_courseId: { userId: params.userId, courseId: params.courseId } },
-        update: { active: true, startDate: new Date(), endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) },
-        create: { userId: params.userId, courseId: params.courseId, active: true, startDate: new Date(), endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) },
+        update: { active: true, startDate: new Date(), endDate: buildEnrollmentEndDate() },
+        create: { userId: params.userId, courseId: params.courseId, active: true, startDate: new Date(), endDate: buildEnrollmentEndDate() },
       });
 
       return tx.user.findUnique({
@@ -211,8 +212,8 @@ export async function persistCoursePaymentEnrollment(
         const user = await prisma.$transaction(async (tx) => {
           await tx.enrollment.upsert({
             where: { userId_courseId: { userId: params.userId, courseId: params.courseId } },
-            update: { active: true, startDate: new Date(), endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) },
-            create: { userId: params.userId, courseId: params.courseId, active: true, startDate: new Date(), endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) },
+            update: { active: true, startDate: new Date(), endDate: buildEnrollmentEndDate() },
+            create: { userId: params.userId, courseId: params.courseId, active: true, startDate: new Date(), endDate: buildEnrollmentEndDate() },
           });
           return tx.user.findUnique({
             where: { id: params.userId },

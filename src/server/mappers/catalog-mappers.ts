@@ -3,8 +3,8 @@ import { prisma } from "../../db";
 import { decodeStoredText } from "../../text";
 import {
   attachSyncedCourseModules,
-  syncPublishedLessonModules,
 } from "../../course-curriculum-sync";
+import { isEnrollmentActive } from "../../enrollment-access";
 import { resolveCourseModules } from "../../course-syllabus-modules";
 import {
   getModuleContentProgressKey,
@@ -150,7 +150,6 @@ export async function toCourseForUser(
   if (authUser.role !== "STUDENT") return toCourse(course);
 
   if (authUser.enrolledCourses.includes(course.id)) {
-    await syncPublishedLessonModules(course.id);
     const refreshed = await attachSyncedCourseModules([course]);
     course = refreshed[0] ?? course;
   }
@@ -193,6 +192,7 @@ export async function toCoursesForStudent(
   });
   const enrollmentMap = new Map<number, CourseEnrollmentInfo>();
   for (const e of enrollments) {
+    if (!isEnrollmentActive(e)) continue;
     enrollmentMap.set(e.courseId, {
       startDate: e.startDate.toISOString(),
       endDate: e.endDate ? e.endDate.toISOString() : null,

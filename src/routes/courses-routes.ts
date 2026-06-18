@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { getAuthUser } from "../server/route-types";
 import type { CourseModule } from "../server/route-deps";
 import type { RouteContext } from "../server/route-context";
+import { getActiveEnrolledCourseIds } from "../enrollment-access";
 import * as api from "../server/route-deps";
 
 const CATALOG_QUERY_TIMEOUT_MS = Number(process.env.CATALOG_QUERY_TIMEOUT_MS) || 15000;
@@ -46,18 +47,28 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
         }
       }
 
+      const studentEnrolledIds =
+        authUser?.role === "STUDENT"
+          ? getActiveEnrolledCourseIds(
+              await withCatalogTimeout(
+                api.prisma.enrollment.findMany({
+                  where: { userId: authUser.id },
+                  select: { courseId: true, active: true, endDate: true, startDate: true },
+                }),
+                "student enrollment lookup",
+              ),
+            )
+          : [];
+
       const where: any =
         authUser?.role === "ADMIN"
           ? {}
           : authUser && (authUser.role === "PROFESSOR" || authUser.role === "RESEARCHER")
             ? { createdById: authUser.id }
             : authUser?.role === "STUDENT"
-              ? (() => {
-                  const enrolledIds = authUser.enrolledCourses.filter((id) => Number.isInteger(id) && id > 0);
-                  return enrolledIds.length > 0
-                    ? { OR: [{ published: true }, { id: { in: enrolledIds } }] }
-                    : { published: true };
-                })()
+              ? studentEnrolledIds.length > 0
+                ? { OR: [{ published: true }, { id: { in: studentEnrolledIds } }] }
+                : { published: true }
               : { published: true };
 
       if (Number.isInteger(disciplineId) && disciplineId > 0) {
@@ -85,7 +96,7 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
 
       let payload;
       if (authUser?.role === "STUDENT") {
-        payload = await api.toCoursesForStudent(courses, authUser.id, authUser.enrolledCourses);
+        payload = await api.toCoursesForStudent(courses, authUser.id, studentEnrolledIds);
       } else {
         payload = courses.map((course) => api.toCourse(course));
       }
@@ -211,7 +222,6 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
     }
 
     if (authUser?.role === "STUDENT" && authUser.enrolledCourses.includes(course.id)) {
-      await api.syncPublishedLessonModules(course.id);
       const refreshed = await api.attachSyncedCourseModules([course]);
       course = refreshed[0] ?? course;
     }
