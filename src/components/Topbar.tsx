@@ -236,21 +236,21 @@ export default function Topbar({
     <button
       type="button"
       onClick={onToggleTopbarCollapsed}
-      className="layout-collapse-toggle topbar-collapse-toggle kbd-nav-focus touch-target"
+      className="layout-collapse-toggle topbar-collapse-toggle kbd-nav-focus"
       aria-label={effectiveTopbarCollapsed ? "Afficher la barre supérieure" : "Masquer la barre supérieure"}
       aria-pressed={effectiveTopbarCollapsed}
     >
       {effectiveTopbarCollapsed ? (
-        <PanelTopOpen className="h-3.5 w-3.5" aria-hidden="true" />
+        <PanelTopOpen className="topbar-collapse-toggle-icon" aria-hidden="true" />
       ) : (
-        <PanelTopClose className="h-3.5 w-3.5" aria-hidden="true" />
+        <PanelTopClose className="topbar-collapse-toggle-icon" aria-hidden="true" />
       )}
     </button>
   ) : null;
 
   if (effectiveTopbarCollapsed) {
     return (
-      <div className="platform-topbar-shell platform-topbar-shell-collapsed relative z-40 flex flex-shrink-0 justify-center px-3 pt-2 sm:px-4 lg:px-6">
+      <div className="platform-topbar-shell platform-topbar-shell-collapsed relative z-40 flex flex-shrink-0 justify-end px-3 pt-2 sm:px-4 lg:px-6">
         {topbarToggleButton}
       </div>
     );
