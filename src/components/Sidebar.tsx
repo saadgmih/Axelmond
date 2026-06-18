@@ -304,11 +304,14 @@ export default function Sidebar({
             <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
               Rôle authentifié
             </span>
-            <div
-              className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-bold ${roleBadgeClass(role, currentUser?.role)}`}
-            >
-              <RoleIcon className="h-3.5 w-3.5 shrink-0" />
-              <span>{getRoleLabel(currentUser?.role)}</span>
+            <div className="relative">
+              <div
+                className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-bold leading-none ${roleBadgeClass(role, currentUser?.role)}`}
+              >
+                <RoleIcon className="h-3.5 w-3.5 shrink-0 self-center" aria-hidden="true" />
+                <span className="leading-none">{getRoleLabel(currentUser?.role)}</span>
+              </div>
+              {!isSidebarHidden && sidebarToggleButton}
             </div>
           </div>
 
@@ -323,7 +326,6 @@ export default function Sidebar({
 
           {renderMessages()}
           {renderUserFooter()}
-          {sidebarToggleButton}
         </aside>
       )}
     </div>
