@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { Dispatch, FormEvent, SetStateAction } from "react";
-import { BookOpen, ExternalLink, Globe, GraduationCap, Link2, RefreshCw, Shield, User, Video } from "lucide-react";
+import { BookOpen, ExternalLink, Globe, GraduationCap, Link2, Shield, User, Video } from "lucide-react";
 import ProfileAvatarUpload from "../../components/ProfileAvatarUpload";
 import type { AppUser } from "../../components/AuthScreen";
 import { getRoleLabel, type UserRole } from "../../rbac";
@@ -29,10 +29,8 @@ interface TeacherAcademicProfileViewProps {
   setAcademicProfileForm: Dispatch<SetStateAction<AcademicProfileFormState>>;
   academicProfileStatusMsg: string;
   academicProfileErrorMsg: string;
-  refreshAcademicProfile: () => void | Promise<void>;
   handleUpdateAcademicProfile: (e: FormEvent) => void | Promise<void>;
   handleUploadAvatarFile: (file: File) => void | Promise<void>;
-  handleUpdateAcademicAvatar: (e: FormEvent) => void | Promise<void>;
   handleDeleteAvatar: () => void | Promise<void>;
   avatarStatusMsg: string;
 }
@@ -51,10 +49,8 @@ export default function TeacherAcademicProfileView({
   setAcademicProfileForm,
   academicProfileStatusMsg,
   academicProfileErrorMsg,
-  refreshAcademicProfile,
   handleUpdateAcademicProfile,
   handleUploadAvatarFile,
-  handleUpdateAcademicAvatar,
   handleDeleteAvatar,
   avatarStatusMsg,
 }: TeacherAcademicProfileViewProps) {
@@ -82,7 +78,7 @@ export default function TeacherAcademicProfileView({
             <div className="flex flex-col gap-4">
               <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-end">
                 <ProfileAvatarUpload
-                  avatarUrl={academicProfileForm.avatarUrl || currentUser.avatarUrl}
+                  avatarUrl={currentUser.avatarUrl || academicProfileForm.avatarUrl}
                   initials={getInitials(displayName)}
                   statusMsg=""
                   accent={theme.uploadAccent}
@@ -113,27 +109,13 @@ export default function TeacherAcademicProfileView({
                   {avatarStatusMsg}
                 </p>
               )}
-
-              <form
-                onSubmit={handleUpdateAcademicAvatar}
-                className="flex max-w-xl flex-col gap-2 sm:flex-row sm:items-center"
-              >
-                <input
-                  placeholder="URL de la photo (optionnel)"
-                  value={academicProfileForm.avatarUrl}
-                  onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, avatarUrl: e.target.value }))}
-                  className={`min-w-0 flex-1 ${inputFocus}`}
-                />
-                <button type="submit" className={`shrink-0 sm:min-w-[160px] ${profileUi.secondaryBtn}`}>
-                  Utiliser cette URL
-                </button>
-              </form>
             </div>
 
-            <button type="button" onClick={refreshAcademicProfile} className={profileUi.refreshBtn}>
-              <RefreshCw className="h-4 w-4 text-indigo-300" />
-              Actualiser
-            </button>
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm lg:min-w-[220px]">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-300/80">Compte</p>
+              <p className="mt-1 text-sm font-bold text-white">{displayName}</p>
+              <p className="mt-2 truncate text-xs font-medium text-indigo-200/80">{displayEmail}</p>
+            </div>
           </div>
         </div>
       </div>

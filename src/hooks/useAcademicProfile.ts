@@ -9,7 +9,6 @@ export interface UseAcademicProfileOptions {
   role: string;
   teacherView: string;
   currentUser: AppUser | null;
-  updateSessionUser: (user: AppUser) => void;
 }
 
 const emptyAcademicProfileForm = {
@@ -27,7 +26,7 @@ const emptyAcademicProfileForm = {
   website: "",
 };
 
-export function useAcademicProfile({ role, teacherView, currentUser, updateSessionUser }: UseAcademicProfileOptions) {
+export function useAcademicProfile({ role, teacherView, currentUser }: UseAcademicProfileOptions) {
   const [academicProfileData, setAcademicProfileData] = useState<AcademicProfilePayload | null>(null);
   const [academicProfileForm, setAcademicProfileForm] = useState(emptyAcademicProfileForm);
   const [academicProfileStatusMsg, setAcademicProfileStatusMsg] = useState("");
@@ -123,33 +122,6 @@ export function useAcademicProfile({ role, teacherView, currentUser, updateSessi
     }
   };
 
-  const handleUpdateAcademicAvatar = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!academicProfileForm.avatarUrl.trim()) {
-      setAcademicProfileErrorMsg("URL de photo requise.");
-      return;
-    }
-    const request = startRequest();
-    setAcademicProfileStatusMsg("Mise à jour de la photo...");
-    setAcademicProfileErrorMsg("");
-    try {
-      const payload = await api.updateAcademicAvatar(academicProfileForm.avatarUrl.trim());
-      if (!request.isActive()) return;
-      setAcademicProfileData(payload);
-      hydrateAcademicProfileForm(payload);
-      if (currentUser) updateSessionUser({ ...currentUser, avatarUrl: academicProfileForm.avatarUrl.trim() });
-      setAcademicProfileStatusMsg(payload.message || "Photo de profil mise à jour.");
-    } catch (err: any) {
-      if (!request.isActive()) return;
-      if (isMfaSetupRequiredError(err)) {
-        setAcademicProfileErrorMsg("");
-      } else {
-        setAcademicProfileErrorMsg(getClientErrorMessage(err, "Mise à jour de la photo impossible."));
-      }
-      setAcademicProfileStatusMsg("");
-    }
-  };
-
   return {
     academicProfileData,
     academicProfileForm,
@@ -158,6 +130,5 @@ export function useAcademicProfile({ role, teacherView, currentUser, updateSessi
     academicProfileErrorMsg,
     refreshAcademicProfile,
     handleUpdateAcademicProfile,
-    handleUpdateAcademicAvatar,
   };
 }

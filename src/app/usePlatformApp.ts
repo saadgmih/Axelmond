@@ -314,7 +314,6 @@ export function usePlatformApp() {
     role,
     teacherView,
     currentUser,
-    updateSessionUser,
   });
 
   const { setAcademicProfileForm } = academicProfileBindings;
