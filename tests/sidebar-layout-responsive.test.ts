@@ -28,6 +28,7 @@ rulesTest("sidebar-layout-responsive", () => {
   assert.match(topbarSource, /justify-center/);
   assert.match(topbarSource, /lg:justify-end/);
   assert.doesNotMatch(topbarSource, /\bMenu\b/);
+  assert.doesNotMatch(sidebarSource, /\bX\b/);
 
   assert.match(layoutSource, /sidebar-drawer-backdrop/);
   assert.match(layoutSource, /createPortal/);

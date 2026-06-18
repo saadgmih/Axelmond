@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { X, LogOut, Plus, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { LogOut, Plus, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { Course, DEFAULT_STUDENT_LABEL } from "../types";
 import { AppUser } from "./AuthScreen";
 import { getRoleLabel, getTeacherRoleBadgeTone } from "../rbac";
@@ -302,16 +302,6 @@ export default function Sidebar({
               </span>
             </div>
           </button>
-          {mode === "drawer" && (
-            <button
-              type="button"
-              onClick={closeDrawer}
-              className="touch-target flex items-center justify-center rounded-full p-2 text-slate-400 hover:bg-white/5 hover:text-white"
-              aria-label="Fermer le menu"
-            >
-              <X className="h-6 w-6" />
-            </button>
-          )}
         </div>
       </div>
 
@@ -328,7 +318,7 @@ export default function Sidebar({
             </span>
             <span className="min-w-0 flex-1 leading-none">{getRoleLabel(currentUser?.role)}</span>
           </div>
-          {mode === "docked" && sidebarToggleButton("attached")}
+          {sidebarToggleButton("attached")}
         </div>
       </div>
 
