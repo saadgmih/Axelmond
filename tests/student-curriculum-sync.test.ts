@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { readApiRouteSources } from "./helpers/api-route-sources.ts";
-import { isLessonModuleLink, lessonContentLinkKey, mapLessonTypeToModuleType } from "../src/course-curriculum-sync.ts";
+import {
+  isLessonModuleLink,
+  isQuizModuleLink,
+  lessonContentLinkKey,
+  mapLessonTypeToModuleType,
+  quizModuleLinkKey,
+} from "../src/course-curriculum-sync.ts";
 import { resolveCourseModules } from "../src/course-syllabus-modules.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
@@ -15,7 +21,9 @@ rulesTest("student-curriculum-sync", () => {
   const serverSource = readApiRouteSources();
 
   assert.equal(lessonContentLinkKey("abc123"), "lesson:abc123");
+  assert.equal(quizModuleLinkKey("quiz123"), "quiz:quiz123");
   assert.equal(isLessonModuleLink("lesson:abc123"), true);
+  assert.equal(isQuizModuleLink("quiz:quiz123"), true);
   assert.equal(isLessonModuleLink("section-cuid"), false);
   assert.equal(mapLessonTypeToModuleType("VIDEO"), "video");
   assert.equal(mapLessonTypeToModuleType("TEXT"), "pdf");
@@ -58,6 +66,9 @@ rulesTest("student-curriculum-sync", () => {
   assert.equal(modules[0]?.title, "Published");
 
   assert.match(syncSource, /syncPublishedLessonModules/);
+  assert.match(syncSource, /client\.quiz\.findMany/);
+  assert.match(syncSource, /type:\s*"quiz"/);
+  assert.match(syncSource, /client\.quiz\.update\(\{ where:\s*\{ id:\s*quiz\.id \}, data:\s*\{ moduleId:/);
   assert.match(catalogSource, /toCoursesForStudent/);
   assert.match(coursesRoutesSource, /toCoursesForStudent/);
   assert.match(coursesRoutesSource, /syncPublishedLessonModules/);

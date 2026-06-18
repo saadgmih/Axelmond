@@ -23,6 +23,8 @@ rulesTest("quiz-flexible-workflow", () => {
 
   assert.match(serverSource, /sectionId:\s*z\.string\(\)\.trim\(\)\.optional\(\)\.nullable\(\)/);
   assert.doesNotMatch(serverSource, /Un quiz existe déjà pour ce module/);
+  assert.match(serverSource, /api\.syncPublishedLessonModules\(courseId\)/);
+  assert.match(serverSource, /api\.syncPublishedLessonModules\(quiz\.courseId\)/);
   assert.match(serverSource, /app\.patch\("\/api\/quizzes\/:quizId"/);
   assert.match(serverSource, /app\.delete\("\/api\/quizzes\/:quizId"/);
   assert.match(serverSource, /app\.post\("\/api\/quizzes\/:quizId\/attempts"/);
@@ -42,5 +44,7 @@ rulesTest("quiz-flexible-workflow", () => {
   assert.match(curriculumSource, /Directement dans le module/);
   assert.match(curriculumBundle, /teacherQuizzes/);
   assert.match(curriculumBundle, /loadTeacherQuizzes/);
+  assert.match(appSource, /notification\.type === "NEW_QUIZ"/);
+  assert.match(appSource, /refreshCourseSnapshot\(courseId\)/);
 });
 console.log("Flexible multiple quiz workflow rules passed");

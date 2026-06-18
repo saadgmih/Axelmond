@@ -482,7 +482,7 @@ export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
         }
       }
 
-      const quiz = await api.prisma.quiz.create({
+      let quiz = await api.prisma.quiz.create({
         data: {
           courseId,
 
@@ -511,6 +511,17 @@ export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
       });
 
       if (quiz.published) {
+        await api.syncPublishedLessonModules(courseId);
+        quiz =
+          (await api.prisma.quiz.findUnique({
+            where: { id: quiz.id },
+            include: {
+              section: { select: { id: true, title: true, parentId: true, chapterId: true } },
+
+              questions: true,
+            },
+          })) ?? quiz;
+
         await api
           .notifyEnrolledStudentsForCourse(courseId, {
             type: "NEW_QUIZ",
@@ -569,6 +580,8 @@ export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
 
     api.logDb("INFO", "Quiz updated", { quizId: quiz.id, published: quiz.published, userId: authUser.id });
 
+    await api.syncPublishedLessonModules(quiz.courseId);
+
     if (quiz.published && !existingQuiz.published) {
       const course = await api.prisma.course.findUnique({ where: { id: quiz.courseId }, select: { title: true } });
 
@@ -609,6 +622,8 @@ export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
     }
 
     api.logDb("INFO", "Quiz deleted", { quizId: quiz.id, courseId: quiz.courseId, userId: authUser.id });
+
+    await api.syncPublishedLessonModules(quiz.courseId);
 
     res.json({ ok: true, deletedId: quiz.id });
   });

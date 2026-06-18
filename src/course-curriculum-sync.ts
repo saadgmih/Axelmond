@@ -3,25 +3,31 @@ import { getNextCourseModuleId } from "./course-syllabus-modules";
 
 import {
   LESSON_MODULE_LINK_PREFIX,
+  QUIZ_MODULE_LINK_PREFIX,
   lessonContentLinkKey,
+  quizModuleLinkKey,
   isLessonModuleLink,
+  isQuizModuleLink,
   lessonContentIdFromModule,
   mapLessonTypeToModuleType,
 } from "./course-curriculum-utils";
 
 export {
   LESSON_MODULE_LINK_PREFIX,
+  QUIZ_MODULE_LINK_PREFIX,
   lessonContentLinkKey,
+  quizModuleLinkKey,
   isLessonModuleLink,
+  isQuizModuleLink,
   lessonContentIdFromModule,
   mapLessonTypeToModuleType,
 };
 
-type CurriculumSyncClient = Pick<typeof prisma, "lessonContent" | "courseModule">;
+type CurriculumSyncClient = Pick<typeof prisma, "lessonContent" | "courseModule" | "quiz">;
 
 /**
- * Mirror published curriculum lessonContent rows into courseModules so the student
- * course view (syllabus modules) stays in sync with teacher uploads.
+ * Mirror published curriculum lessonContent and quiz rows into courseModules so
+ * the student course view stays in sync with teacher uploads.
  */
 export async function syncPublishedLessonModules(
   courseId: number,
@@ -42,7 +48,10 @@ export async function syncPublishedLessonModules(
   const linkedModules = await client.courseModule.findMany({
     where: {
       courseId,
-      sectionId: { startsWith: LESSON_MODULE_LINK_PREFIX },
+      OR: [
+        { sectionId: { startsWith: LESSON_MODULE_LINK_PREFIX } },
+        { sectionId: { startsWith: QUIZ_MODULE_LINK_PREFIX } },
+      ],
     },
   });
   const linkedByKey = new Map(linkedModules.map((row) => [row.sectionId!, row]));
@@ -84,8 +93,60 @@ export async function syncPublishedLessonModules(
     });
   }
 
+  const publishedQuizzes = await client.quiz.findMany({
+    where: {
+      courseId,
+      published: true,
+      OR: [{ sectionId: null }, { section: { published: true } }],
+    },
+    orderBy: [{ createdAt: "asc" }],
+  });
+
+  for (let index = 0; index < publishedQuizzes.length; index++) {
+    const quiz = publishedQuizzes[index];
+    const linkKey = quizModuleLinkKey(quiz.id);
+    activeKeys.add(linkKey);
+    const modulePayload = {
+      title: quiz.title,
+      type: "quiz",
+      duration: "Quiz",
+      contentMarkdown: null,
+      attachmentUrl: null,
+      attachmentName: null,
+      sectionId: linkKey,
+      published: true,
+      sortOrder: publishedContents.length + index,
+    };
+
+    const existing = linkedByKey.get(linkKey);
+    if (existing) {
+      await client.courseModule.update({
+        where: { courseId_id: { courseId, id: existing.id } },
+        data: modulePayload,
+      });
+      if (quiz.moduleId !== existing.id) {
+        await client.quiz.update({ where: { id: quiz.id }, data: { moduleId: existing.id } });
+      }
+      continue;
+    }
+
+    const nextId = await getNextCourseModuleId(courseId);
+    await client.courseModule.create({
+      data: {
+        courseId,
+        id: nextId,
+        ...modulePayload,
+      },
+    });
+    await client.quiz.update({ where: { id: quiz.id }, data: { moduleId: nextId } });
+  }
+
   for (const moduleRow of linkedModules) {
-    if (moduleRow.sectionId && !activeKeys.has(moduleRow.sectionId)) {
+    if (
+      moduleRow.sectionId &&
+      (isLessonModuleLink(moduleRow.sectionId) || isQuizModuleLink(moduleRow.sectionId)) &&
+      !activeKeys.has(moduleRow.sectionId)
+    ) {
       await client.courseModule.delete({
         where: { courseId_id: { courseId, id: moduleRow.id } },
       });
