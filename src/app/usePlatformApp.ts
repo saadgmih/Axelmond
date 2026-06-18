@@ -19,7 +19,9 @@ import { usePlatformCatalogData } from "./hooks/usePlatformCatalogData";
 import { useEnrolledCoursesHydration } from "./hooks/useEnrolledCoursesHydration";
 import { usePlatformAvatarActions } from "./hooks/usePlatformAvatarActions";
 import { usePlatformKeyboardShortcuts } from "./hooks/usePlatformKeyboardShortcuts";
-import { SIDEBAR_DOCK_MIN_WIDTH } from "../hooks/useSidebarLayout";
+import { usePlatformNotificationHandlers } from "./hooks/usePlatformNotificationHandlers";
+import { usePlatformTeacherWorkspace } from "./hooks/usePlatformTeacherWorkspace";
+import { SIDEBAR_DOCK_MIN_WIDTH, useSidebarLayout } from "../hooks/useSidebarLayout";
 
 function readInitialSidebarCollapsed() {
   if (typeof window === "undefined") return false;
@@ -28,8 +30,6 @@ function readInitialSidebarCollapsed() {
   if (stored === "0") return false;
   return !window.matchMedia(`(min-width: ${SIDEBAR_DOCK_MIN_WIDTH}px)`).matches;
 }
-import { usePlatformNotificationHandlers } from "./hooks/usePlatformNotificationHandlers";
-import { usePlatformTeacherWorkspace } from "./hooks/usePlatformTeacherWorkspace";
 
 export function usePlatformApp() {
   const [currentView, setCurrentView] = useState<string>("dashboard");
@@ -142,6 +142,21 @@ export function usePlatformApp() {
   );
 
   const isMobileMenuOpen = !isSidebarCollapsed;
+  const sidebarLayoutRef = useRef<boolean | null>(null);
+  const { isDrawer } = useSidebarLayout();
+
+  useEffect(() => {
+    const wasDrawer = sidebarLayoutRef.current;
+    if (wasDrawer !== null) {
+      if (isDrawer && !wasDrawer) {
+        setIsSidebarCollapsed(true);
+      } else if (!isDrawer && wasDrawer) {
+        const stored = window.localStorage.getItem("axelmond_sidebar_collapsed");
+        setIsSidebarCollapsed(stored === "1");
+      }
+    }
+    sidebarLayoutRef.current = isDrawer;
+  }, [isDrawer]);
 
   const toggleTopbarCollapsed = useCallback(() => {
     setIsTopbarCollapsed((previous) => {

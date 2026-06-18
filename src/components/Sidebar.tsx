@@ -98,11 +98,9 @@ export default function Sidebar({
   };
 
   const hideSidebar = () => {
-    if (onToggleSidebarCollapsed && !isSidebarCollapsed) {
-      onToggleSidebarCollapsed();
-      return;
+    if (isDrawer) {
+      setIsMobileMenuOpen(false);
     }
-    setIsMobileMenuOpen(false);
   };
 
   const openMessages = () => {
