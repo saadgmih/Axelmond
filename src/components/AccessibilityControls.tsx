@@ -7,7 +7,11 @@ import { computeFloatingPanelPosition, type FloatingPanelPosition } from "../uti
 
 const PANEL_Z_INDEX = 140;
 
-export default function AccessibilityControls() {
+interface AccessibilityControlsProps {
+  labeled?: boolean;
+}
+
+export default function AccessibilityControls({ labeled = false }: AccessibilityControlsProps) {
   const { preferences, toggleHighContrast, toggleReduceMotion } = useAccessibilityPreferences();
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState<FloatingPanelPosition | null>(null);
@@ -174,19 +178,28 @@ export default function AccessibilityControls() {
       )
     : null;
 
+  const triggerButton = (
+    <button
+      ref={triggerRef}
+      type="button"
+      onClick={() => setOpen((value) => !value)}
+      className={
+        labeled
+          ? "topbar-console-action kbd-nav-focus touch-target"
+          : "kbd-nav-focus touch-target flex h-10 min-w-10 items-center justify-center rounded-xl border border-slate-700 bg-slate-900/70 text-slate-300 transition-colors hover:border-violet-500/40 hover:bg-violet-950/40 hover:text-violet-300"
+      }
+      aria-label="Options d'accessibilité"
+      aria-expanded={open}
+      aria-controls="accessibility-controls-panel"
+    >
+      <Settings2 className={labeled ? "topbar-console-action-icon" : "h-4 w-4"} aria-hidden="true" />
+      {labeled && <span className="topbar-console-action-label">Paramètres</span>}
+    </button>
+  );
+
   return (
     <>
-      <button
-        ref={triggerRef}
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        className="kbd-nav-focus touch-target flex h-10 min-w-10 items-center justify-center rounded-xl border border-slate-700 bg-slate-900/70 text-slate-300 transition-colors hover:border-violet-500/40 hover:bg-violet-950/40 hover:text-violet-300"
-        aria-label="Options d'accessibilité"
-        aria-expanded={open}
-        aria-controls="accessibility-controls-panel"
-      >
-        <Settings2 className="h-4 w-4" aria-hidden="true" />
-      </button>
+      {triggerButton}
       {panel}
     </>
   );
