@@ -119,7 +119,11 @@ export function usePlatformApp() {
     setIsSidebarCollapsed((previous) => {
       const next = !previous;
       if (typeof window !== "undefined") {
-        window.localStorage.setItem("axelmond_sidebar_collapsed", next ? "1" : "0");
+        if (next) {
+          window.localStorage.setItem("axelmond_sidebar_collapsed", "1");
+        } else {
+          window.localStorage.removeItem("axelmond_sidebar_collapsed");
+        }
       }
       return next;
     });

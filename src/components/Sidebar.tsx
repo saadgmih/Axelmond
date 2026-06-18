@@ -1,11 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  X,
-  LogOut,
-  Plus,
-  PanelLeftClose,
-  PanelLeftOpen,
-} from "lucide-react";
+import { X, LogOut, Plus, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { Course, DEFAULT_STUDENT_LABEL } from "../types";
 import { AppUser } from "./AuthScreen";
 import { getRoleLabel, getTeacherRoleBadgeTone } from "../rbac";
@@ -73,16 +67,23 @@ export default function Sidebar({
 }: SidebarProps) {
   const navRef = useRef<HTMLElement>(null);
   const [isHoverExpanded, setIsHoverExpanded] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia("(min-width: 768px)").matches : false,
+  );
   useTvNavigation(navRef, true);
 
   useEffect(() => {
     const media = window.matchMedia("(min-width: 768px)");
     const update = () => setIsDesktop(media.matches);
-    update();
     media.addEventListener("change", update);
     return () => media.removeEventListener("change", update);
   }, []);
+
+  useEffect(() => {
+    if (!isSidebarCollapsed) {
+      setIsHoverExpanded(false);
+    }
+  }, [isSidebarCollapsed]);
 
   const conversations = useSidebarConversations(Boolean(currentUser));
   const navItems = useMemo(
@@ -116,7 +117,9 @@ export default function Sidebar({
     setIsMobileMenuOpen(false);
   };
 
-  const compactNav = isSidebarCollapsed && !isHoverExpanded && isDesktop;
+  const isCompact = isDesktop && isSidebarCollapsed && !isHoverExpanded;
+  const isHoverFlyout = isDesktop && isSidebarCollapsed && isHoverExpanded;
+  const reservedWidth = isDesktop ? (isSidebarCollapsed ? "var(--sidebar-collapsed-width)" : "var(--sidebar-expanded-width)") : "0px";
 
   const renderNavItems = (compact: boolean) =>
     navItems.map((item) => {
@@ -156,37 +159,35 @@ export default function Sidebar({
           <Plus className="h-4 w-4" />
         </button>
       </div>
-      <div className={compact ? "space-y-2" : "space-y-1.5"}>
-        {conversations.map((conversation) => {
-          const peerName = conversation.peer?.fullName || "Contact";
-          const initials = getInitials(peerName);
-          return (
-            <button
-              key={conversation.id}
-              type="button"
-              onClick={openMessages}
-              aria-label={`Ouvrir la conversation avec ${peerName}`}
-              className={`relative flex w-full items-center rounded-xl transition-colors hover:bg-white/5 ${
-                compact ? "justify-center p-1.5" : "gap-3 px-2 py-2"
-              }`}
-            >
-              <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-slate-700/80 text-xs font-bold text-slate-200">
-                {conversation.peer?.avatarUrl ? (
-                  <img src={conversation.peer.avatarUrl} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  <span className="flex h-full w-full items-center justify-center">{initials}</span>
-                )}
-                {conversation.unreadCount > 0 && (
-                  <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-slate-900 bg-sky-400" />
-                )}
-              </div>
-              {!compact && (
+      {!compact && conversations.length > 0 && (
+        <div className="space-y-1.5">
+          {conversations.map((conversation) => {
+            const peerName = conversation.peer?.fullName || "Contact";
+            const initials = getInitials(peerName);
+            return (
+              <button
+                key={conversation.id}
+                type="button"
+                onClick={openMessages}
+                aria-label={`Ouvrir la conversation avec ${peerName}`}
+                className="relative flex w-full items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-white/5"
+              >
+                <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-slate-700/80 text-xs font-bold text-slate-200">
+                  {conversation.peer?.avatarUrl ? (
+                    <img src={conversation.peer.avatarUrl} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="flex h-full w-full items-center justify-center">{initials}</span>
+                  )}
+                  {conversation.unreadCount > 0 && (
+                    <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-slate-900 bg-sky-400" />
+                  )}
+                </div>
                 <span className="truncate text-sm font-medium text-slate-300">{peerName}</span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 
@@ -248,92 +249,91 @@ export default function Sidebar({
     </div>
   );
 
-  const sidebarBody = (compact: boolean) => (
-    <>
-      <div className={`sidebar-glass-section border-b border-white/10 ${compact ? "px-3 py-4" : "px-5 py-5"}`}>
-        <div className={`flex items-center ${compact ? "justify-center" : "justify-between gap-3"}`}>
-          <button
-            type="button"
-            onClick={goHome}
-            className={`flex items-center transition-opacity hover:opacity-95 ${compact ? "" : "gap-3.5"}`}
-            aria-label="Accueil Axelmond Research Labs"
-          >
-            <LogoSymbol className="h-11 w-11 shrink-0 text-indigo-400" />
-            {!compact && (
-              <div className="select-none text-left">
-                <span className="block text-lg font-black leading-none tracking-tight text-white">Axelmond</span>
-                <span className="mt-1.5 block text-[10px] font-bold uppercase leading-none tracking-[0.24em] text-indigo-300">
-                  Research Labs
-                </span>
-              </div>
-            )}
-          </button>
-          {!compact && (
-            <button
-              type="button"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="touch-target flex items-center justify-center rounded-full p-2 text-slate-400 hover:bg-white/5 hover:text-white md:hidden"
-              aria-label="Fermer le menu"
-            >
-              <X className="h-6 w-6" />
-            </button>
-          )}
-        </div>
-      </div>
-
-      <div className={`sidebar-glass-section border-b border-white/10 ${compact ? "px-2 py-3" : "space-y-2 px-4 py-4"}`}>
-        {!compact && (
-          <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
-            Rôle authentifié
-          </span>
-        )}
-        <div
-          className={`flex items-center rounded-xl border text-xs font-bold ${
-            compact ? "mx-auto justify-center px-2 py-2" : "gap-2 px-3 py-2.5"
-          } ${roleBadgeClass(role, currentUser?.role)}`}
-        >
-          <RoleIcon className="h-3.5 w-3.5 shrink-0" />
-          {!compact && <span>{getRoleLabel(currentUser?.role)}</span>}
-        </div>
-      </div>
-
-      <nav
-        ref={navRef}
-        data-tv-zone="sidebar-nav"
-        aria-label="Navigation principale"
-        className={`flex-1 overflow-y-auto ${compact ? "space-y-1 px-2 py-3" : "space-y-1.5 px-4 py-4"}`}
-      >
-        {renderNavItems(compact)}
-      </nav>
-
-      {renderMessages(compact)}
-      {renderUserFooter(compact)}
-    </>
-  );
-
   return (
     <div
-      className="relative z-50 flex h-full shrink-0"
+      className="relative z-50 h-full shrink-0"
+      style={{ width: isDesktop ? reservedWidth : undefined }}
       onMouseEnter={() => {
         if (isSidebarCollapsed && isDesktop) setIsHoverExpanded(true);
       }}
       onMouseLeave={() => setIsHoverExpanded(false)}
     >
       <aside
-        className={`sidebar-glass flex h-full flex-col text-white transition-[width,transform] duration-300 ease-out ${
-          isSidebarCollapsed && isDesktop ? "w-[4.75rem]" : "w-64"
-        } ${
+        className={`sidebar-glass flex h-full flex-col text-white transition-[width,transform,box-shadow] duration-300 ease-out ${
+          isCompact ? "w-[var(--sidebar-collapsed-width)]" : "w-[var(--sidebar-expanded-width)]"
+        } ${isHoverFlyout ? "sidebar-glass-flyout absolute left-0 top-0 z-[60] shadow-2xl" : ""} ${
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         } fixed inset-y-0 left-0 md:relative md:translate-x-0`}
         aria-label="Barre latérale de navigation"
+        aria-expanded={!isCompact}
       >
-        {sidebarBody(compactNav)}
+        <div className={`sidebar-glass-section border-b border-white/10 ${isCompact ? "px-3 py-4" : "px-5 py-5"}`}>
+          <div className={`flex items-center ${isCompact ? "justify-center" : "justify-between gap-3"}`}>
+            <button
+              type="button"
+              onClick={goHome}
+              className={`flex items-center transition-opacity hover:opacity-95 ${isCompact ? "" : "gap-3.5"}`}
+              aria-label="Accueil Axelmond Research Labs"
+            >
+              <LogoSymbol className="h-11 w-11 shrink-0 text-indigo-400" />
+              {!isCompact && (
+                <div className="select-none text-left">
+                  <span className="block text-lg font-black leading-none tracking-tight text-white">Axelmond</span>
+                  <span className="mt-1.5 block text-[10px] font-bold uppercase leading-none tracking-[0.24em] text-indigo-300">
+                    Research Labs
+                  </span>
+                </div>
+              )}
+            </button>
+            {!isCompact && (
+              <button
+                type="button"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="touch-target flex items-center justify-center rounded-full p-2 text-slate-400 hover:bg-white/5 hover:text-white md:hidden"
+                aria-label="Fermer le menu"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            )}
+          </div>
+        </div>
 
-        {onToggleSidebarCollapsed && (
+        <div className={`sidebar-glass-section border-b border-white/10 ${isCompact ? "px-2 py-3" : "space-y-2 px-4 py-4"}`}>
+          {!isCompact && (
+            <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+              Rôle authentifié
+            </span>
+          )}
+          <div
+            className={`flex items-center rounded-xl border text-xs font-bold ${
+              isCompact ? "mx-auto justify-center px-2 py-2" : "gap-2 px-3 py-2.5"
+            } ${roleBadgeClass(role, currentUser?.role)}`}
+          >
+            <RoleIcon className="h-3.5 w-3.5 shrink-0" />
+            {!isCompact && <span>{getRoleLabel(currentUser?.role)}</span>}
+          </div>
+        </div>
+
+        <nav
+          ref={navRef}
+          data-tv-zone="sidebar-nav"
+          aria-label="Navigation principale"
+          className={`flex-1 overflow-y-auto ${isCompact ? "space-y-1 px-2 py-3" : "space-y-1.5 px-4 py-4"}`}
+        >
+          {renderNavItems(isCompact)}
+        </nav>
+
+        {renderMessages(isCompact)}
+        {renderUserFooter(isCompact)}
+
+        {onToggleSidebarCollapsed && isDesktop && (
           <button
             type="button"
-            onClick={onToggleSidebarCollapsed}
-            className="absolute -right-3 top-20 z-10 hidden h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-slate-900/90 text-slate-300 shadow-lg backdrop-blur-md transition-colors hover:text-white md:flex"
+            onClick={() => {
+              setIsHoverExpanded(false);
+              onToggleSidebarCollapsed();
+            }}
+            className="absolute -right-3 top-20 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-slate-900/95 text-slate-300 shadow-lg backdrop-blur-md transition-colors hover:text-white"
             aria-label={isSidebarCollapsed ? "Développer la barre latérale" : "Réduire la barre latérale"}
             aria-pressed={isSidebarCollapsed}
           >
@@ -341,17 +341,6 @@ export default function Sidebar({
           </button>
         )}
       </aside>
-
-      {isSidebarCollapsed && isHoverExpanded && isDesktop && (
-        <aside
-          className="sidebar-glass-flyout pointer-events-auto absolute left-[4.75rem] top-0 z-[60] hidden h-full w-64 flex-col md:flex"
-          aria-label="Navigation développée"
-        >
-          <div className="flex h-full flex-col">
-            {sidebarBody(false)}
-          </div>
-        </aside>
-      )}
     </div>
   );
 }
