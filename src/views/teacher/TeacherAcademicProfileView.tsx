@@ -79,36 +79,55 @@ export default function TeacherAcademicProfileView({
 
         <div className={profileUi.heroInner}>
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-end">
-              <div className={`${profileUi.avatarFrame} ${theme.accentRing} ring-2`}>
-                {academicProfileForm.avatarUrl || currentUser.avatarUrl ? (
-                  <img
-                    src={academicProfileForm.avatarUrl || currentUser.avatarUrl}
-                    alt="Photo de profil"
-                    className={`${profileUi.avatarSize} object-cover`}
-                  />
-                ) : (
-                  <div
-                    className={`flex ${profileUi.avatarSize} items-center justify-center bg-gradient-to-br from-indigo-950 to-[#020617] text-2xl font-black text-white`}
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-end">
+                <ProfileAvatarUpload
+                  avatarUrl={academicProfileForm.avatarUrl || currentUser.avatarUrl}
+                  initials={getInitials(displayName)}
+                  statusMsg=""
+                  accent={theme.uploadAccent}
+                  variant="dark"
+                  layout="hero"
+                  previewSize={112}
+                  onUpload={handleUploadAvatarFile}
+                  onDelete={handleDeleteAvatar}
+                />
+
+                <div className="space-y-2 text-center sm:text-left">
+                  <span
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm ${theme.badge} ${theme.badgeText}`}
                   >
-                    {getInitials(displayName)}
-                  </div>
-                )}
+                    <RoleIcon className="h-3.5 w-3.5" />
+                    {roleLabel}
+                  </span>
+                  <h1 className={profileUi.heroName}>{displayName}</h1>
+                  <p className={profileUi.heroTitle}>
+                    {academicProfileForm.title || currentUser.levelOrTitle || "Profil académique"}
+                  </p>
+                  <p className={profileUi.heroSubtitle}>{theme.subtitle}</p>
+                </div>
               </div>
 
-              <div className="space-y-2 text-center sm:text-left">
-                <span
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm ${theme.badge} ${theme.badgeText}`}
-                >
-                  <RoleIcon className="h-3.5 w-3.5" />
-                  {roleLabel}
-                </span>
-                <h1 className={profileUi.heroName}>{displayName}</h1>
-                <p className={profileUi.heroTitle}>
-                  {academicProfileForm.title || currentUser.levelOrTitle || "Profil académique"}
+              {avatarStatusMsg && (
+                <p className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-center text-xs font-semibold text-indigo-100 sm:text-left">
+                  {avatarStatusMsg}
                 </p>
-                <p className={profileUi.heroSubtitle}>{theme.subtitle}</p>
-              </div>
+              )}
+
+              <form
+                onSubmit={handleUpdateAcademicAvatar}
+                className="flex max-w-xl flex-col gap-2 sm:flex-row sm:items-center"
+              >
+                <input
+                  placeholder="URL de la photo (optionnel)"
+                  value={academicProfileForm.avatarUrl}
+                  onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, avatarUrl: e.target.value }))}
+                  className={`min-w-0 flex-1 ${inputFocus}`}
+                />
+                <button type="submit" className={`shrink-0 sm:min-w-[160px] ${profileUi.secondaryBtn}`}>
+                  Utiliser cette URL
+                </button>
+              </form>
             </div>
 
             <button type="button" onClick={refreshAcademicProfile} className={profileUi.refreshBtn}>
@@ -257,39 +276,6 @@ export default function TeacherAcademicProfileView({
 
         {/* Sidebar */}
         <aside className="space-y-6">
-          <section className={profileUi.card}>
-            <div className={profileUi.cardHeader}>
-              <h3 className={profileUi.cardTitle}>
-                <User className={`${profileUi.sectionIcon} ${theme.sectionIcon}`} />
-                Photo de profil
-              </h3>
-            </div>
-            <div className="flex justify-center p-5 sm:p-6">
-              <ProfileAvatarUpload
-                avatarUrl={academicProfileForm.avatarUrl || currentUser.avatarUrl}
-                initials={getInitials(displayName)}
-                statusMsg={avatarStatusMsg}
-                accent={theme.uploadAccent}
-                variant="dark"
-                previewSize={112}
-                onUpload={handleUploadAvatarFile}
-                onDelete={handleDeleteAvatar}
-              />
-
-              <form onSubmit={handleUpdateAcademicAvatar} className={`mt-5 space-y-3 ${profileUi.divider} pt-5`}>
-                <input
-                  placeholder="URL de la photo"
-                  value={academicProfileForm.avatarUrl}
-                  onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, avatarUrl: e.target.value }))}
-                  className={inputFocus}
-                />
-                <button type="submit" className={profileUi.secondaryBtn}>
-                  Utiliser cette URL
-                </button>
-              </form>
-            </div>
-          </section>
-
           <section className={profileUi.card}>
             <div className={profileUi.cardHeader}>
               <h3 className={profileUi.cardTitle}>
