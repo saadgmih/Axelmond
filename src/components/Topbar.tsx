@@ -272,66 +272,62 @@ export default function Topbar({
           )}
         </div>
 
-        <div className="topbar-console-actions flex w-full flex-col items-center gap-3 sm:gap-4 lg:w-auto lg:flex-row lg:flex-wrap lg:items-center lg:justify-end">
+        <div className="topbar-console-actions flex w-full flex-wrap items-center justify-center gap-3 sm:gap-4 lg:w-auto lg:justify-end">
           {isDrawer && role === "student" && currentView === "catalog" && (
-            <div className="order-first w-full max-w-md lg:order-none lg:hidden">{catalogSearch}</div>
+            <div className="w-full max-w-md basis-full lg:hidden">{catalogSearch}</div>
           )}
 
-          <div className="flex w-full flex-col items-center gap-3 lg:w-auto lg:flex-row lg:items-center lg:gap-4">
-            <div className="flex items-center justify-center gap-2 sm:gap-3">
-              <AccessibilityControls labeled />
+          <AccessibilityControls labeled />
 
-              {onOpenNotifications && (
-                <TopbarConsoleAction
-                  label="Notifications"
-                  onClick={onOpenNotifications}
-                  ariaLabel="Ouvrir les notifications"
-                  ariaCurrent={activeView === "notifications"}
-                  badge={notificationUnreadCount}
-                >
-                  <Bell className="topbar-console-action-icon" />
-                </TopbarConsoleAction>
-              )}
-            </div>
-
-            <div className="hidden h-12 w-px bg-white/10 lg:block" aria-hidden="true" />
-
-            <div className="flex min-w-0 flex-col items-center text-center lg:items-end lg:text-right">
-              <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-300/80">
-                Utilisateur actuel
-              </span>
-              <span className="mt-0.5 flex max-w-[220px] items-center justify-center gap-1.5 truncate text-sm font-black text-white lg:justify-end">
-                {currentUser ? currentUser.fullName : "Axelmond Research Labs"}
-                <BadgeCheck className="h-4 w-4 shrink-0 text-violet-400" aria-hidden="true" />
-              </span>
-              <span className="mt-0.5 text-[11px] font-medium text-slate-400">
-                {getAccessLabel(role, currentUser?.role)}
-              </span>
-            </div>
-
-            <RolePill role={role} userRole={currentUser?.role} onClick={openProfile} />
-
-            {role === "student" && (
-              <div className="flex items-center gap-2 rounded-full border border-indigo-400/20 bg-indigo-500/10 px-3 py-1.5">
-                <Sparkles className="h-4 w-4 text-indigo-300" />
-                <span className="font-mono text-xs font-extrabold text-indigo-200">{activeCredits} ARL</span>
-              </div>
-            )}
-
-            <button
-              type="button"
-              onClick={openProfile}
-              aria-label={currentUser ? `Profil de ${currentUser.fullName}` : "Profil utilisateur"}
-              className="topbar-avatar-button kbd-nav-focus touch-target"
+          {onOpenNotifications && (
+            <TopbarConsoleAction
+              label="Notifications"
+              onClick={onOpenNotifications}
+              ariaLabel="Ouvrir les notifications"
+              ariaCurrent={activeView === "notifications"}
+              badge={notificationUnreadCount}
             >
-              {currentUser?.avatarUrl ? (
-                <img src={currentUser.avatarUrl} alt="" className="topbar-avatar-image object-cover" />
-              ) : (
-                <div className="topbar-avatar-fallback">{currentUser ? getInitials(currentUser.fullName) : "AR"}</div>
-              )}
-              <span className="topbar-avatar-online" aria-hidden="true" />
-            </button>
+              <Bell className="topbar-console-action-icon" />
+            </TopbarConsoleAction>
+          )}
+
+          <div className="hidden h-12 w-px bg-white/10 lg:block" aria-hidden="true" />
+
+          <div className="flex min-w-0 flex-col items-center text-center lg:items-end lg:text-right">
+            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-300/80">
+              Utilisateur actuel
+            </span>
+            <span className="mt-0.5 flex max-w-[220px] items-center justify-center gap-1.5 truncate text-sm font-black text-white lg:justify-end">
+              {currentUser ? currentUser.fullName : "Axelmond Research Labs"}
+              <BadgeCheck className="h-4 w-4 shrink-0 text-violet-400" aria-hidden="true" />
+            </span>
+            <span className="mt-0.5 text-[11px] font-medium text-slate-400">
+              {getAccessLabel(role, currentUser?.role)}
+            </span>
           </div>
+
+          <RolePill role={role} userRole={currentUser?.role} onClick={openProfile} />
+
+          {role === "student" && (
+            <div className="flex items-center gap-2 rounded-full border border-indigo-400/20 bg-indigo-500/10 px-3 py-1.5">
+              <Sparkles className="h-4 w-4 text-indigo-300" />
+              <span className="font-mono text-xs font-extrabold text-indigo-200">{activeCredits} ARL</span>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={openProfile}
+            aria-label={currentUser ? `Profil de ${currentUser.fullName}` : "Profil utilisateur"}
+            className="topbar-avatar-button kbd-nav-focus touch-target"
+          >
+            {currentUser?.avatarUrl ? (
+              <img src={currentUser.avatarUrl} alt="" className="topbar-avatar-image object-cover" />
+            ) : (
+              <div className="topbar-avatar-fallback">{currentUser ? getInitials(currentUser.fullName) : "AR"}</div>
+            )}
+            <span className="topbar-avatar-online" aria-hidden="true" />
+          </button>
         </div>
         {topbarToggleButton}
       </header>
