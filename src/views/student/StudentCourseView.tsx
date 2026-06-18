@@ -3,7 +3,6 @@ import {
   Brain,
   Camera,
   CheckCircle,
-  ChevronLeft,
   FileText,
   HelpCircle,
   Info,
@@ -155,13 +154,6 @@ export default function StudentCourseView({
   const moduleSidebar = (
     <>
       <div className="p-4 sm:p-5 border-b border-slate-100 space-y-4">
-        <button
-          onClick={() => navigateTo("dashboard")}
-          className="text-xs text-slate-500 font-bold hover:text-indigo-600 flex items-center gap-1 transition-colors min-h-[44px]"
-        >
-          <ChevronLeft className="w-4 h-4" /> Retour tableau de bord
-        </button>
-
         <div className="space-y-1">
           <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-0.5 rounded">
             {selectedCourse.level} · {formatCredits(selectedCourse.credits)}
