@@ -261,7 +261,11 @@ export default function Sidebar({
         type="button"
         onClick={handleSidebarToggle}
         className={`layout-collapse-toggle sidebar-collapse-toggle kbd-nav-focus ${
-          variant === "hidden" ? "sidebar-collapse-toggle--hidden" : "sidebar-collapse-toggle--attached"
+          variant === "hidden"
+            ? `sidebar-collapse-toggle--hidden ${
+                isDrawer ? "sidebar-collapse-toggle--hidden-drawer" : "sidebar-collapse-toggle--hidden-docked"
+              }`
+            : "sidebar-collapse-toggle--attached"
         }`}
         aria-label={isDrawer ? (isMobileMenuOpen ? "Fermer la barre latérale" : "Ouvrir la barre latérale") : isDockedHidden ? "Afficher la barre latérale" : "Masquer la barre latérale"}
         aria-pressed={isDrawer ? isMobileMenuOpen : isDockedHidden}
@@ -315,13 +319,16 @@ export default function Sidebar({
         <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
           Rôle authentifié
         </span>
-        <div
-          className={`flex items-center gap-2 rounded-xl border py-2 pl-3 pr-2 text-xs font-bold ${roleBadgeClass(role, currentUser?.role)}`}
-        >
-          <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center">
-            <RoleIcon className="h-3.5 w-3.5" aria-hidden="true" />
-          </span>
-          <span className="min-w-0 flex-1 leading-none">{getRoleLabel(currentUser?.role)}</span>
+        <div className="relative">
+          <div
+            className={`flex items-center gap-2 rounded-xl border py-2 pl-3 pr-2 text-xs font-bold ${roleBadgeClass(role, currentUser?.role)}`}
+          >
+            <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center">
+              <RoleIcon className="h-3.5 w-3.5" aria-hidden="true" />
+            </span>
+            <span className="min-w-0 flex-1 leading-none">{getRoleLabel(currentUser?.role)}</span>
+          </div>
+          {mode === "docked" && sidebarToggleButton("attached")}
         </div>
       </div>
 
@@ -368,7 +375,6 @@ export default function Sidebar({
           aria-expanded={true}
         >
           {renderSidebarPanel("docked")}
-          {sidebarToggleButton("attached")}
         </aside>
       )}
     </div>

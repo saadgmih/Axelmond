@@ -605,8 +605,9 @@ body {
 .sidebar-collapse-toggle--attached {
   position: absolute;
   right: -0.625rem;
-  top: 5rem;
+  top: 50%;
   z-index: 10;
+  transform: translateY(-50%);
 }
 
 .sidebar-shell-drawer {
@@ -621,8 +622,16 @@ body {
 .sidebar-collapse-toggle--hidden {
   position: fixed;
   left: 0.75rem;
-  top: 5rem;
   z-index: 90;
+  transform: translateY(-50%);
+}
+
+.sidebar-collapse-toggle--hidden-docked {
+  top: 9.5rem;
+}
+
+.sidebar-collapse-toggle--hidden-drawer {
+  top: calc(0.75rem + 9.5rem);
 }
 
 .topbar-collapse-toggle {
