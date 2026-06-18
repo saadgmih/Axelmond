@@ -241,27 +241,28 @@ export default function Sidebar({
     </div>
   );
 
-  const sidebarToggleButton = canToggleSidebar ? (
-    <button
-      type="button"
-      onClick={onToggleSidebarCollapsed}
-      className={`layout-collapse-toggle sidebar-collapse-toggle kbd-nav-focus ${
-        isSidebarHidden ? "sidebar-collapse-toggle--hidden" : "sidebar-collapse-toggle--attached"
-      }`}
-      aria-label={isSidebarHidden ? "Afficher la barre latérale" : "Masquer la barre latérale"}
-      aria-pressed={isSidebarHidden}
-    >
-      {isSidebarHidden ? (
-        <PanelLeftOpen className="layout-collapse-toggle-icon" aria-hidden="true" />
-      ) : (
-        <PanelLeftClose className="layout-collapse-toggle-icon" aria-hidden="true" />
-      )}
-    </button>
-  ) : null;
+  const sidebarToggleButton = (variant: "hidden" | "inline") =>
+    canToggleSidebar ? (
+      <button
+        type="button"
+        onClick={onToggleSidebarCollapsed}
+        className={`layout-collapse-toggle sidebar-collapse-toggle kbd-nav-focus ${
+          variant === "hidden" ? "sidebar-collapse-toggle--hidden" : "sidebar-collapse-toggle--inline"
+        }`}
+        aria-label={isSidebarHidden ? "Afficher la barre latérale" : "Masquer la barre latérale"}
+        aria-pressed={isSidebarHidden}
+      >
+        {isSidebarHidden ? (
+          <PanelLeftOpen className="layout-collapse-toggle-icon" aria-hidden="true" />
+        ) : (
+          <PanelLeftClose className="layout-collapse-toggle-icon" aria-hidden="true" />
+        )}
+      </button>
+    ) : null;
 
   return (
     <div className="relative z-50 h-full shrink-0" style={{ width: reservedWidth }}>
-      {isSidebarHidden && sidebarToggleButton}
+      {isSidebarHidden && sidebarToggleButton("hidden")}
       {isSidebarVisible && (
         <aside
           className={`sidebar-glass relative flex h-full w-[var(--sidebar-expanded-width)] flex-col text-white transition-[transform,box-shadow] duration-300 ease-out ${
@@ -304,14 +305,14 @@ export default function Sidebar({
             <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
               Rôle authentifié
             </span>
-            <div className="relative">
-              <div
-                className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-bold leading-none ${roleBadgeClass(role, currentUser?.role)}`}
-              >
-                <RoleIcon className="h-3.5 w-3.5 shrink-0 self-center" aria-hidden="true" />
-                <span className="leading-none">{getRoleLabel(currentUser?.role)}</span>
-              </div>
-              {!isSidebarHidden && sidebarToggleButton}
+            <div
+              className={`flex items-center gap-2 rounded-xl border py-2 pl-3 pr-2 text-xs font-bold ${roleBadgeClass(role, currentUser?.role)}`}
+            >
+              <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center">
+                <RoleIcon className="h-3.5 w-3.5" aria-hidden="true" />
+              </span>
+              <span className="min-w-0 flex-1 leading-none">{getRoleLabel(currentUser?.role)}</span>
+              {sidebarToggleButton("inline")}
             </div>
           </div>
 

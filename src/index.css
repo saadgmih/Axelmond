@@ -602,12 +602,10 @@ body {
   border-color: rgba(139, 92, 246, 0.35);
 }
 
-.sidebar-collapse-toggle--attached {
-  position: absolute;
-  right: -0.625rem;
-  top: 50%;
-  z-index: 10;
-  transform: translateY(-50%);
+.sidebar-collapse-toggle--inline {
+  position: static;
+  flex-shrink: 0;
+  transform: none;
 }
 
 .sidebar-collapse-toggle--hidden {
