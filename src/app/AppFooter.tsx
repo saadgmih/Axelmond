@@ -1,4 +1,4 @@
-import { scrollToSupportReportForm } from "../components/SupportView";
+import { scrollToSupportReportForm } from "../utils/support-navigation";
 import { usePlatformNavigation, usePlatformSession } from "./platform-app-slices";
 
 export function AppFooter() {

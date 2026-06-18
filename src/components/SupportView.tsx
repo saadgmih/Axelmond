@@ -14,6 +14,7 @@ import {
   ArrowRight,
   Send,
 } from "lucide-react";
+import { scrollToSupportReportForm } from "../utils/support-navigation";
 import SupportTicketForm from "./SupportTicketForm";
 
 interface SupportViewProps {
@@ -24,10 +25,6 @@ interface FaqItem {
   question: string;
   answer: string;
   category: string;
-}
-
-export function scrollToSupportReportForm(behavior: ScrollBehavior = "smooth") {
-  document.getElementById("support-report-form")?.scrollIntoView({ behavior, block: "start" });
 }
 
 export default function SupportView({ navigateTo }: SupportViewProps) {

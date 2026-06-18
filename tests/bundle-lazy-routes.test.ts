@@ -5,7 +5,9 @@ import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("bundle-lazy-routes", () => {
   const appSource = readAppSources();
+  const appFooterSource = readFileSync("src/app/AppFooter.tsx", "utf-8");
   const lazyViewsSource = readFileSync("src/lazyViews.tsx", "utf-8");
+  const supportViewSource = readFileSync("src/components/SupportView.tsx", "utf-8");
   const viteSource = readFileSync("vite.config.ts", "utf-8");
 
   assert.match(lazyViewsSource, /lazy\(\(\) => import\("\.\/views\/teacher\/TeacherWorkspace"\)\)/);
@@ -45,9 +47,14 @@ rulesTest("bundle-lazy-routes", () => {
 
   assert.match(lazyViewsSource, /lazy\(\(\) => import\("\.\/components\/AboutView"\)\)/);
   assert.match(lazyViewsSource, /lazy\(\(\) => import\("\.\/components\/PrivacyView"\)\)/);
+  assert.match(supportViewSource, /utils\/support-navigation/);
+  assert.match(appFooterSource, /utils\/support-navigation/);
+  assert.doesNotMatch(appFooterSource, /components\/SupportView/);
 
   assert.match(viteSource, /manualChunks/);
   assert.match(viteSource, /livekit-vendor/);
-  assert.match(viteSource, /paypal-vendor/);
   assert.match(viteSource, /react-vendor/);
+  assert.match(viteSource, /REACT_VENDOR_PACKAGES/);
+  assert.doesNotMatch(viteSource, /paypal-vendor/);
+  assert.doesNotMatch(viteSource, /id\.includes\("react"\)/);
 });
