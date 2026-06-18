@@ -272,7 +272,7 @@ export default function Topbar({
           )}
         </div>
 
-        <div className="flex flex-wrap items-center justify-end gap-3 sm:gap-4 lg:flex-nowrap">
+        <div className="flex w-full flex-wrap items-center justify-center gap-3 sm:gap-4 lg:w-auto lg:flex-nowrap lg:justify-end">
           {isDrawer && role === "student" && currentView === "catalog" && (
             <div className="order-first w-full lg:order-none lg:hidden">{catalogSearch}</div>
           )}
