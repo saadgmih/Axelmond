@@ -46,16 +46,16 @@ export function PlatformAppRoot() {
     return <PlatformLoadingScreen />;
   }
 
-  if (session.catalogError) {
-    return <PlatformCatalogErrorScreen message={session.catalogError} onRetry={session.retryCatalogLoad} />;
-  }
-
   if (!session.currentUser) {
     return (
       <Suspense fallback={<PlatformLoadingScreen />}>
         <LazyAuthScreen onLoginSuccess={session.handleLoginSuccess} />
       </Suspense>
     );
+  }
+
+  if (session.catalogError && !session.catalogHasData) {
+    return <PlatformCatalogErrorScreen message={session.catalogError} onRetry={session.retryCatalogLoad} />;
   }
 
   return (

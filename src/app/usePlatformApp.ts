@@ -77,6 +77,7 @@ export function usePlatformApp() {
     selectedDiscipline,
     catalogCourses,
     catalogError,
+    catalogHasData,
     retryCatalogLoad,
   } = usePlatformCatalogData(isAuthReady, currentUser, courses, domains, setCourses, setDomains, setIsLoading);
 
@@ -408,6 +409,7 @@ export function usePlatformApp() {
       handleLoginSuccess,
       handleLogout,
       catalogError,
+      catalogHasData,
       retryCatalogLoad,
       notificationUnreadCount,
       openNotificationsView,
@@ -426,6 +428,7 @@ export function usePlatformApp() {
       handleLoginSuccess,
       handleLogout,
       catalogError,
+      catalogHasData,
       retryCatalogLoad,
       notificationUnreadCount,
       openNotificationsView,

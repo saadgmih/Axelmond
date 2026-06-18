@@ -1,10 +1,17 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import type { Dispatch, SetStateAction } from "react";
-import { getClientErrorMessage, isMfaSetupRequiredError } from "../../client-errors";
+import { getClientErrorMessage, isMfaSetupRequiredError, isTransientCatalogError } from "../../client-errors";
 import { api } from "../../api";
 import { useAsyncEffectGuard } from "../../hooks/useAsyncEffectGuard";
 import type { Course, FacultyDomain } from "../../types";
 import type { AppUser } from "../../components/AuthScreen";
+
+const CATALOG_RETRY_DELAYS_MS = [0, 2_000, 5_000, 10_000];
+const CATALOG_AUTO_RETRY_INTERVAL_MS = 30_000;
+
+function sleep(ms: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms));
+}
 
 export function usePlatformCatalogData(
   isAuthReady: boolean,
@@ -19,41 +26,96 @@ export function usePlatformCatalogData(
   const [selectedDomainId, setSelectedDomainId] = useState<number | null>(null);
   const [selectedDisciplineId, setSelectedDisciplineId] = useState<number | null>(null);
   const [catalogError, setCatalogError] = useState<string | null>(null);
-  const { startRequest: startCatalogRequest } = useAsyncEffectGuard();
+  const { startRequest } = useAsyncEffectGuard();
+  const autoRetryTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const loadCatalog = useCallback(() => {
-    if (!isAuthReady) return;
-    const request = startCatalogRequest();
-    setCatalogError(null);
-    setIsLoading(true);
-    Promise.all([api.getCourses(), api.getDomains()])
-      .then(([courseData, domainData]) => {
-        if (!request.isActive()) return;
-        setCourses(courseData);
-        setDomains(domainData);
+  const loadCatalog = useCallback(
+    async (options?: { silent?: boolean }) => {
+      if (!isAuthReady) return;
+      const request = startRequest();
+      if (!options?.silent) {
         setCatalogError(null);
-        setIsLoading(false);
-      })
-      .catch((err) => {
+        setIsLoading(true);
+      }
+
+      let lastError: unknown = null;
+
+      for (let attempt = 0; attempt < CATALOG_RETRY_DELAYS_MS.length; attempt++) {
+        if (attempt > 0) {
+          await sleep(CATALOG_RETRY_DELAYS_MS[attempt]);
+          if (!request.isActive()) return;
+        }
+
+        const [coursesResult, domainsResult] = await Promise.allSettled([api.getCourses(), api.getDomains()]);
         if (!request.isActive()) return;
-        console.error("Failed to fetch academic catalog:", err);
-        if (isMfaSetupRequiredError(err)) {
+
+        const courseData = coursesResult.status === "fulfilled" ? coursesResult.value : null;
+        const domainData = domainsResult.status === "fulfilled" ? domainsResult.value : null;
+
+        if (courseData) setCourses(courseData);
+        if (domainData) setDomains(domainData);
+
+        if (courseData && domainData) {
           setCatalogError(null);
           setIsLoading(false);
           return;
         }
-        const message = getClientErrorMessage(
-          err,
-          "Impossible de charger les données académiques. Réessayez dans un instant.",
-        );
-        setCatalogError(message || null);
+
+        lastError =
+          coursesResult.status === "rejected"
+            ? coursesResult.reason
+            : domainsResult.status === "rejected"
+              ? domainsResult.reason
+              : lastError;
+
+        if (!isTransientCatalogError(lastError)) break;
+      }
+
+      if (!request.isActive()) return;
+
+      console.error("Failed to fetch academic catalog:", lastError);
+      if (isMfaSetupRequiredError(lastError)) {
+        setCatalogError(null);
         setIsLoading(false);
-      });
-  }, [isAuthReady, currentUser?.id, setCourses, setDomains, setIsLoading, startCatalogRequest]);
+        return;
+      }
+
+      const message = getClientErrorMessage(
+        lastError,
+        "Impossible de charger les données académiques. Réessayez dans un instant.",
+      );
+      setCatalogError(message || null);
+      setIsLoading(false);
+    },
+    [isAuthReady, currentUser?.id, setCourses, setDomains, setIsLoading, startRequest],
+  );
+
+  const retryCatalogLoad = useCallback(() => {
+    void loadCatalog();
+  }, [loadCatalog]);
 
   useEffect(() => {
-    loadCatalog();
+    void loadCatalog();
   }, [loadCatalog]);
+
+  useEffect(() => {
+    if (autoRetryTimerRef.current) {
+      clearInterval(autoRetryTimerRef.current);
+      autoRetryTimerRef.current = null;
+    }
+    if (!catalogError || !isAuthReady) return;
+
+    autoRetryTimerRef.current = setInterval(() => {
+      void loadCatalog({ silent: true });
+    }, CATALOG_AUTO_RETRY_INTERVAL_MS);
+
+    return () => {
+      if (autoRetryTimerRef.current) {
+        clearInterval(autoRetryTimerRef.current);
+        autoRetryTimerRef.current = null;
+      }
+    };
+  }, [catalogError, isAuthReady, loadCatalog]);
 
   const allDisciplines = useMemo(() => domains.flatMap((domain) => domain.disciplines), [domains]);
   const selectedDomain = useMemo(
@@ -81,6 +143,8 @@ export function usePlatformCatalogData(
     });
   }, [courses, searchQuery, selectedDisciplineId, selectedDomainId]);
 
+  const catalogHasData = courses.length > 0 || domains.length > 0;
+
   return {
     searchQuery,
     setSearchQuery,
@@ -93,6 +157,7 @@ export function usePlatformCatalogData(
     selectedDiscipline,
     catalogCourses,
     catalogError,
-    retryCatalogLoad: loadCatalog,
+    catalogHasData,
+    retryCatalogLoad,
   };
 }

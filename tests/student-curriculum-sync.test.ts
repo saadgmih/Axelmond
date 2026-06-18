@@ -70,6 +70,8 @@ rulesTest("student-curriculum-sync", () => {
   assert.match(syncSource, /type:\s*"quiz"/);
   assert.match(syncSource, /client\.quiz\.update\(\{ where:\s*\{ id:\s*quiz\.id \}, data:\s*\{ moduleId:/);
   assert.match(catalogSource, /toCoursesForStudent/);
+  assert.doesNotMatch(catalogSource, /syncPublishedLessonModulesForCourses/);
+  assert.match(catalogSource, /Catalog list must stay read-only/);
   assert.match(coursesRoutesSource, /toCoursesForStudent/);
   assert.match(coursesRoutesSource, /syncPublishedLessonModules/);
   assert.match(contentRoutesSource, /refreshStudentCourseModules/);

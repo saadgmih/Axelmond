@@ -4,7 +4,6 @@ import { decodeStoredText } from "../../text";
 import {
   attachSyncedCourseModules,
   syncPublishedLessonModules,
-  syncPublishedLessonModulesForCourses,
 } from "../../course-curriculum-sync";
 import { resolveCourseModules } from "../../course-syllabus-modules";
 import {
@@ -179,11 +178,8 @@ export async function toCoursesForStudent(
   userId: string,
   enrolledCourseIds: number[],
 ): Promise<Course[]> {
-  const enrolledIds = enrolledCourseIds.filter((courseId) => courses.some((course) => course.id === courseId));
-  if (enrolledIds.length > 0) {
-    await syncPublishedLessonModulesForCourses(enrolledIds);
-    courses = await attachSyncedCourseModules(courses);
-  }
+  // Catalog list must stay read-only: curriculum sync runs on publish / course detail, not every listing.
+  void enrolledCourseIds;
 
   const progressByCourse = await getStudentProgressSnapshotsByCourseIds(
     userId,

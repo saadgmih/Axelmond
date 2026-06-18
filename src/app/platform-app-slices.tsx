@@ -6,6 +6,7 @@ export type PlatformSessionSlice = Pick<
   | "isLoading"
   | "isAuthReady"
   | "catalogError"
+  | "catalogHasData"
   | "retryCatalogLoad"
   | "currentUser"
   | "role"

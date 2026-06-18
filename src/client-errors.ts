@@ -21,6 +21,14 @@ export function isMfaSetupRequiredError(err: unknown): boolean {
   return record.code === "MFA_SETUP_REQUIRED" || record.mfaSetupRequired === true;
 }
 
+export function isTransientCatalogError(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const record = err as Record<string, unknown>;
+  const status = typeof record.status === "number" ? record.status : undefined;
+  if (status === 0 || status === 502 || status === 503 || status === 504 || status === 429) return true;
+  return record.code === "CATALOG_TIMEOUT";
+}
+
 export function getClientErrorMessage(err: unknown, fallback: string): string {
   if (isMfaSetupRequiredError(err)) return "";
   if (!err || typeof err !== "object") return fallback;
