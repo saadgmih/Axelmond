@@ -50,7 +50,8 @@ rulesTest("messaging-ownership", () => {
 
   assert.match(appSource, /MessagesView/);
   assert.match(appSource, /NotificationsView/);
-  assert.match(sidebarSource, /Messagerie/);
+  assert.match(sidebarSource, /openMessages/);
+  assert.match(sidebarSource, /Messages/);
   assert.match(platformPathsSource, /"messages"/);
   assert.match(platformPathsSource, /"notifications"/);
   assert.match(institutionalSwitchSource, /SupportView navigateTo/);
