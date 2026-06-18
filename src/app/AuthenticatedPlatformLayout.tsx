@@ -108,6 +108,9 @@ export function AuthenticatedPlatformLayout() {
             notificationUnreadCount={session.notificationUnreadCount}
             onOpenNotifications={session.openNotificationsView}
             activeView={session.role === "teacher" ? navigation.teacherView : currentView}
+            onTeacherNavigate={navigation.handleTeacherViewChange}
+            isTopbarCollapsed={ui.isTopbarCollapsed}
+            onToggleTopbarCollapsed={ui.toggleTopbarCollapsed}
           />
         )}
 

@@ -1,5 +1,5 @@
 import { type ReactNode, type RefObject } from "react";
-import { Search, Sparkles, Menu, Mic, Bell, BadgeCheck, ChevronDown } from "lucide-react";
+import { Search, Sparkles, Menu, Mic, Bell, BadgeCheck, ChevronDown, PanelTopClose, PanelTopOpen } from "lucide-react";
 import { Course } from "../types";
 import { AppUser } from "./AuthScreen";
 import { getRoleLabel, getTeacherRoleBadgeTone, type UserRole } from "../rbac";
@@ -23,6 +23,8 @@ interface TopbarProps {
   onOpenNotifications?: () => void;
   activeView?: string;
   onTeacherNavigate?: (view: string) => void;
+  isTopbarCollapsed?: boolean;
+  onToggleTopbarCollapsed?: () => void;
 }
 
 function getInitials(name: string) {
@@ -154,8 +156,12 @@ export default function Topbar({
   onOpenNotifications,
   activeView,
   onTeacherNavigate,
+  isTopbarCollapsed = false,
+  onToggleTopbarCollapsed,
 }: TopbarProps) {
-  const { isDrawer, isDocked } = useSidebarLayout();
+  const { isDrawer, isDocked, isTvLike } = useSidebarLayout();
+  const canCollapseTopbar = isDocked && !isTvLike && Boolean(onToggleTopbarCollapsed);
+  const effectiveTopbarCollapsed = canCollapseTopbar && isTopbarCollapsed;
 
   const activeCredits = enrolledCourses.reduce((sum, id) => {
     const found = courses.find((c) => c.id === id);
@@ -226,9 +232,33 @@ export default function Topbar({
     </div>
   );
 
+  const topbarToggleButton = canCollapseTopbar ? (
+    <button
+      type="button"
+      onClick={onToggleTopbarCollapsed}
+      className="layout-collapse-toggle topbar-collapse-toggle kbd-nav-focus touch-target"
+      aria-label={effectiveTopbarCollapsed ? "Afficher la barre supérieure" : "Masquer la barre supérieure"}
+      aria-pressed={effectiveTopbarCollapsed}
+    >
+      {effectiveTopbarCollapsed ? (
+        <PanelTopOpen className="h-3.5 w-3.5" aria-hidden="true" />
+      ) : (
+        <PanelTopClose className="h-3.5 w-3.5" aria-hidden="true" />
+      )}
+    </button>
+  ) : null;
+
+  if (effectiveTopbarCollapsed) {
+    return (
+      <div className="platform-topbar-shell platform-topbar-shell-collapsed relative z-40 flex flex-shrink-0 justify-center px-3 pt-2 sm:px-4 lg:px-6">
+        {topbarToggleButton}
+      </div>
+    );
+  }
+
   return (
     <div className="platform-topbar-shell flex-shrink-0 px-3 pt-3 sm:px-4 lg:px-6">
-      <header className="platform-topbar platform-topbar-console sticky top-3 z-40 flex flex-col gap-3 px-4 py-3 sm:px-5 sm:py-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
+      <header className="platform-topbar platform-topbar-console relative sticky top-3 z-40 flex flex-col gap-3 px-4 py-3 sm:px-5 sm:py-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           {onToggleMobileMenu && isDrawer && (
             <button
@@ -318,6 +348,7 @@ export default function Topbar({
             <span className="topbar-avatar-online" aria-hidden="true" />
           </button>
         </div>
+        {topbarToggleButton}
       </header>
     </div>
   );

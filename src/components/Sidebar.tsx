@@ -343,7 +343,7 @@ export default function Sidebar({
               setIsHoverExpanded(false);
               onToggleSidebarCollapsed();
             }}
-            className="absolute -right-3 top-20 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-slate-900/95 text-slate-300 shadow-lg backdrop-blur-md transition-colors hover:text-white"
+            className="layout-collapse-toggle absolute -right-3 top-20 z-10 kbd-nav-focus touch-target"
             aria-label={effectiveCollapsed ? "Développer la barre latérale" : "Réduire la barre latérale"}
             aria-pressed={effectiveCollapsed}
           >
