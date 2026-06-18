@@ -1,4 +1,4 @@
-import { Suspense, useEffect } from "react";
+import { Suspense } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import SkipLink from "../components/SkipLink";
@@ -27,14 +27,8 @@ export function AuthenticatedPlatformLayout() {
   const ui = usePlatformUi();
   const bindings = usePlatformBindings();
   const currentView = navigation.currentView;
-  const { isDocked } = useSidebarLayout();
+  const { isDrawer } = useSidebarLayout();
   const { isMobileMenuOpen, setIsMobileMenuOpen } = ui;
-
-  useEffect(() => {
-    if (isDocked && isMobileMenuOpen) {
-      setIsMobileMenuOpen(false);
-    }
-  }, [isDocked, isMobileMenuOpen, setIsMobileMenuOpen]);
 
   return (
     <div className="flex h-[100dvh] max-h-[100dvh] overflow-hidden bg-slate-950 font-sans">
@@ -66,11 +60,11 @@ export function AuthenticatedPlatformLayout() {
 
       <SkipLink />
 
-      {ui.isMobileMenuOpen && (
+      {ui.isMobileMenuOpen && isDrawer && (
         <button
           type="button"
           aria-label="Fermer le menu de navigation"
-          className="sidebar-drawer-backdrop fixed inset-0 z-[60] lg:hidden"
+          className="sidebar-drawer-backdrop fixed inset-0 z-[60]"
           onClick={() => ui.setIsMobileMenuOpen(false)}
         />
       )}
@@ -108,6 +102,7 @@ export function AuthenticatedPlatformLayout() {
             notificationUnreadCount={session.notificationUnreadCount}
             onOpenNotifications={session.openNotificationsView}
             activeView={session.role === "teacher" ? navigation.teacherView : currentView}
+            onTeacherNavigate={navigation.handleTeacherViewChange}
           />
         )}
 

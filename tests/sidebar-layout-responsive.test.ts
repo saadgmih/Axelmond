@@ -19,10 +19,11 @@ rulesTest("sidebar-layout-responsive", () => {
 
   assert.match(topbarSource, /useSidebarLayout/);
   assert.match(topbarSource, /platform-topbar/);
+  assert.match(topbarSource, /isWideViewport/);
   assert.match(topbarSource, /isDrawer &&/);
 
   assert.match(layoutSource, /sidebar-drawer-backdrop/);
-  assert.match(layoutSource, /lg:hidden/);
+  assert.match(layoutSource, /isDrawer/);
 
   assert.match(cssSource, /sidebar-drawer/);
   assert.match(cssSource, /min-width: 1024px/);
