@@ -19,6 +19,15 @@ import { usePlatformCatalogData } from "./hooks/usePlatformCatalogData";
 import { useEnrolledCoursesHydration } from "./hooks/useEnrolledCoursesHydration";
 import { usePlatformAvatarActions } from "./hooks/usePlatformAvatarActions";
 import { usePlatformKeyboardShortcuts } from "./hooks/usePlatformKeyboardShortcuts";
+import { SIDEBAR_DOCK_MIN_WIDTH } from "../hooks/useSidebarLayout";
+
+function readInitialSidebarCollapsed() {
+  if (typeof window === "undefined") return false;
+  const stored = window.localStorage.getItem("axelmond_sidebar_collapsed");
+  if (stored === "1") return true;
+  if (stored === "0") return false;
+  return !window.matchMedia(`(min-width: ${SIDEBAR_DOCK_MIN_WIDTH}px)`).matches;
+}
 import { usePlatformNotificationHandlers } from "./hooks/usePlatformNotificationHandlers";
 import { usePlatformTeacherWorkspace } from "./hooks/usePlatformTeacherWorkspace";
 
@@ -96,11 +105,7 @@ export function usePlatformApp() {
   }, []);
 
   const [liveCourseId, setLiveCourseId] = useState<number>(1);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return window.localStorage.getItem("axelmond_sidebar_collapsed") === "1";
-  });
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(readInitialSidebarCollapsed);
   const [isTopbarCollapsed, setIsTopbarCollapsed] = useState(() => {
     if (typeof window === "undefined") return false;
     return window.localStorage.getItem("axelmond_topbar_collapsed") === "1";
@@ -110,28 +115,33 @@ export function usePlatformApp() {
   const catalogSearchRef = useRef<HTMLInputElement>(null);
   const liveKitRoomRef = useRef<{ closeTeacherLiveRoom: () => Promise<void> } | null>(null);
 
-  useEffect(() => {
-    if (!isMobileMenuOpen) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [isMobileMenuOpen]);
+  const persistSidebarCollapsed = useCallback((collapsed: boolean) => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem("axelmond_sidebar_collapsed", collapsed ? "1" : "0");
+  }, []);
 
   const toggleSidebarCollapsed = useCallback(() => {
     setIsSidebarCollapsed((previous) => {
       const next = !previous;
-      if (typeof window !== "undefined") {
-        if (next) {
-          window.localStorage.setItem("axelmond_sidebar_collapsed", "1");
-        } else {
-          window.localStorage.removeItem("axelmond_sidebar_collapsed");
-        }
-      }
+      persistSidebarCollapsed(next);
       return next;
     });
-  }, []);
+  }, [persistSidebarCollapsed]);
+
+  const setIsMobileMenuOpen = useCallback(
+    (value: boolean | ((previous: boolean) => boolean)) => {
+      setIsSidebarCollapsed((previousCollapsed) => {
+        const previousOpen = !previousCollapsed;
+        const nextOpen = typeof value === "function" ? value(previousOpen) : value;
+        const nextCollapsed = !nextOpen;
+        persistSidebarCollapsed(nextCollapsed);
+        return nextCollapsed;
+      });
+    },
+    [persistSidebarCollapsed],
+  );
+
+  const isMobileMenuOpen = !isSidebarCollapsed;
 
   const toggleTopbarCollapsed = useCallback(() => {
     setIsTopbarCollapsed((previous) => {

@@ -13,16 +13,20 @@ rulesTest("sidebar-layout-responsive", () => {
 
   assert.match(sidebarSource, /useSidebarLayout/);
   assert.match(sidebarSource, /sidebar-drawer/);
-  assert.match(sidebarSource, /isTvLike/);
+  assert.match(sidebarSource, /sidebar-collapse-toggle/);
+  assert.match(sidebarSource, /isSidebarHidden/);
   assert.match(sidebarSource, /lg:relative/);
   assert.doesNotMatch(sidebarSource, /md:relative/);
 
   assert.match(topbarSource, /useSidebarLayout/);
   assert.match(topbarSource, /platform-topbar/);
-  assert.match(topbarSource, /isDrawer &&/);
+  assert.match(sidebarSource, /sidebar-collapse-toggle/);
+  assert.match(topbarSource, /layout-collapse-toggle-icon/);
+  assert.match(topbarSource, /canCollapseTopbar/);
 
   assert.match(layoutSource, /sidebar-drawer-backdrop/);
-  assert.match(layoutSource, /lg:hidden/);
+  assert.match(layoutSource, /isDrawer/);
+  assert.doesNotMatch(layoutSource, /lg:hidden/);
 
   assert.match(cssSource, /sidebar-drawer/);
   assert.match(cssSource, /min-width: 1024px/);
