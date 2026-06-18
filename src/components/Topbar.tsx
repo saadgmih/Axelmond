@@ -155,7 +155,7 @@ export default function Topbar({
   activeView,
   onTeacherNavigate,
 }: TopbarProps) {
-  const { isDrawer, isWideViewport } = useSidebarLayout();
+  const { isDrawer, isDocked } = useSidebarLayout();
 
   const activeCredits = enrolledCourses.reduce((sum, id) => {
     const found = courses.find((c) => c.id === id);
@@ -241,27 +241,27 @@ export default function Topbar({
             </button>
           )}
 
-          {isWideViewport ? (
+          {isDrawer ? (
+            <div className="flex min-w-0 flex-1 items-center justify-center gap-2 sm:justify-start">
+              <TopbarBrand role={role} />
+            </div>
+          ) : (
             <>
               <TopbarBrand role={role} />
               {role === "student" && currentView === "catalog" && (
                 <div className="hidden min-w-0 flex-1 px-2 xl:block">{catalogSearch}</div>
               )}
             </>
-          ) : (
-            <div className="flex min-w-0 flex-1 items-center justify-center gap-2 sm:justify-start">
-              <TopbarBrand role={role} />
-            </div>
           )}
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-3 sm:gap-4 lg:flex-nowrap">
-          {!isWideViewport && role === "student" && currentView === "catalog" && (
+          {isDrawer && role === "student" && currentView === "catalog" && (
             <div className="order-first w-full lg:order-none lg:hidden">{catalogSearch}</div>
           )}
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <AccessibilityControls labeled={isWideViewport} />
+            {(isDocked || isDrawer) && <AccessibilityControls labeled={isDocked} />}
 
             {onOpenNotifications && (
               <TopbarConsoleAction
@@ -276,7 +276,7 @@ export default function Topbar({
             )}
           </div>
 
-          {isWideViewport && (
+          {isDocked && (
             <>
               <div className="hidden h-12 w-px bg-white/10 sm:block" aria-hidden="true" />
 

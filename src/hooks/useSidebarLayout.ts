@@ -7,12 +7,8 @@ export type SidebarLayoutMode = "drawer" | "docked";
 
 export interface SidebarLayoutState {
   mode: SidebarLayoutMode;
-  /** Sidebar fixe visible (TV / grand écran sans souris précise). */
   isDocked: boolean;
-  /** Sidebar en tiroir, masquée jusqu'à ouverture. */
   isDrawer: boolean;
-  /** Grand écran (≥1024px) — layout topbar console complet. */
-  isWideViewport: boolean;
   /** Large screen without precise pointer (TV, console browser). */
   isTvLike: boolean;
   /** Touch-first pointer (phone, tablet tactile). */
@@ -21,30 +17,21 @@ export interface SidebarLayoutState {
 
 function readSidebarLayoutState(): SidebarLayoutState {
   if (typeof window === "undefined") {
-    return {
-      mode: "drawer",
-      isDocked: false,
-      isDrawer: true,
-      isWideViewport: false,
-      isTvLike: false,
-      isCoarsePointer: false,
-    };
+    return { mode: "docked", isDocked: true, isDrawer: false, isTvLike: false, isCoarsePointer: false };
   }
 
-  const isWideViewport = window.matchMedia(`(min-width: ${SIDEBAR_DOCK_MIN_WIDTH}px)`).matches;
+  const docked = window.matchMedia(`(min-width: ${SIDEBAR_DOCK_MIN_WIDTH}px)`).matches;
   const coarse = window.matchMedia("(pointer: coarse)").matches;
   const noHover = window.matchMedia("(hover: none)").matches;
-  const tvLike = window.matchMedia(`(min-width: 1280px)`).matches && (coarse || noHover);
+  const tvLike =
+    window.matchMedia(`(min-width: 1280px)`).matches && (coarse || noHover);
 
-  const isDocked = tvLike;
-  const isDrawer = !isDocked;
-  const mode: SidebarLayoutMode = isDocked ? "docked" : "drawer";
+  const mode: SidebarLayoutMode = docked ? "docked" : "drawer";
 
   return {
     mode,
-    isDocked,
-    isDrawer,
-    isWideViewport,
+    isDocked: mode === "docked",
+    isDrawer: mode === "drawer",
     isTvLike: tvLike,
     isCoarsePointer: coarse,
   };
