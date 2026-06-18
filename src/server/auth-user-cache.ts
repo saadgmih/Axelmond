@@ -68,10 +68,18 @@ export function getAuthUserCacheStats() {
   };
 }
 
-export async function resolveCachedAuthDbUser(session: { userId: string; authTokenVersion: number }) {
+export async function resolveCachedAuthDbUser(
+  session: { userId: string; authTokenVersion: number },
+  options?: { forceRefresh?: boolean },
+) {
   const now = Date.now();
   const cached = authUserCache.get(session.userId);
-  if (cached && cached.expiresAt > now && cached.authTokenVersion === session.authTokenVersion) {
+  if (
+    !options?.forceRefresh &&
+    cached &&
+    cached.expiresAt > now &&
+    cached.authTokenVersion === session.authTokenVersion
+  ) {
     return cached.dbUser;
   }
 

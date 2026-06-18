@@ -14,6 +14,11 @@ rulesTest("student-dashboard-enrolled-modules", () => {
   assert.doesNotMatch(dashboardSource, /Mes Modules d'Étude Actifs \(\{enrolledCourses\.length\}\)/);
   assert.match(dashboardSource, /isEnrolledCatalogSyncing/);
   assert.match(dashboardSource, /enrolledList\.length === 0/);
+  assert.match(
+    dashboardSource,
+    /enrolledCourses\.length > 0 && Boolean\(isLoginDataLoading \|\| isEnrolledCatalogSyncing\)/,
+  );
+  assert.match(dashboardSource, /showEnrollmentLoading \? \(/);
 
   assert.match(coursesRoutesSource, /authUser\?\.role === "STUDENT"/);
   assert.match(coursesRoutesSource, /getActiveEnrolledCourseIds/);

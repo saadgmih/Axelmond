@@ -215,6 +215,7 @@ export default function StudentDashboardView({
 
     [courses, enrolledCourses],
   );
+  const showEnrollmentLoading = enrolledCourses.length > 0 && Boolean(isLoginDataLoading || isEnrolledCatalogSyncing);
 
   const progress = useMemo(() => {
     const completedChapters = enrolledList.reduce(
@@ -626,7 +627,7 @@ export default function StudentDashboardView({
             <span className="text-xs font-semibold text-slate-500">Vos modules en accès</span>
           </div>
 
-          {isLoginDataLoading || isEnrolledCatalogSyncing ? (
+          {showEnrollmentLoading ? (
             <div className="rounded-2xl py-20 text-center border border-slate-800/60 bg-slate-900/40 shadow-sm flex flex-col items-center justify-center">
               <div className="w-16 h-16 sm:w-20 sm:h-20 bg-slate-900/40 text-indigo-400 rounded-full flex items-center justify-center mb-6 shadow-inner border border-indigo-500/20 relative">
                 <div className="absolute inset-0 rounded-full border-4 border-indigo-500/20 border-t-indigo-500 animate-spin" />

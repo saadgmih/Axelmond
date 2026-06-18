@@ -52,10 +52,13 @@ export const requireAuth: express.RequestHandler = async (req, res, next) => {
 
   let dbUser: any = null;
   try {
-    dbUser = await resolveCachedAuthDbUser({
-      userId: session.userId,
-      authTokenVersion: session.authTokenVersion,
-    });
+    dbUser = await resolveCachedAuthDbUser(
+      {
+        userId: session.userId,
+        authTokenVersion: session.authTokenVersion,
+      },
+      { forceRefresh: req.method === "GET" && req.path === "/api/auth/me" },
+    );
   } catch (err) {
     logSecurity("WARN", "Auth database lookup failed", { userId: session.userId, error: String(err) });
     res.status(503).json({ error: "Base de données indisponible" });

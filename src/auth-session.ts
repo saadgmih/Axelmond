@@ -15,6 +15,7 @@ export type AuthSessionApi = {
   signAuthToken: typeof signAuthToken;
   withMobileRefreshToken: typeof withMobileRefreshToken;
   logSecurity: typeof logSecurity;
+  invalidateAuthUserCache: (userId: string) => boolean;
 };
 
 export async function issueAuthenticatedSession(
@@ -24,11 +25,14 @@ export async function issueAuthenticatedSession(
   user: Parameters<typeof toAppUser>[0],
   logMessage = "User logged in",
 ) {
+  const userId = (user as { id: string }).id;
+
   await api.prisma.user.update({
-    where: { id: (user as { id: string }).id },
+    where: { id: userId },
     data: { failedLoginAttempts: 0, lockoutUntil: null },
   });
 
+  api.invalidateAuthUserCache(userId);
   const safeUser = api.toAppUser(user);
   const refreshToken = await api.createRefreshToken(safeUser.id);
   const csrfToken = api.setAuthCookies(res, refreshToken);
