@@ -21,6 +21,11 @@ rulesTest("student-module-content", () => {
   assert.match(appSource, /StudentCourseView/);
   assert.match(studentCourseViewSource, /selectedCourse\.title/);
   assert.match(studentCourseViewSource, /selectedLessonContent/);
+  assert.match(studentCourseViewSource, /getContentCompletionLabel/);
+  assert.match(studentCourseViewSource, /Marquer comme terminée/);
+  assert.match(studentCourseViewSource, /Marquer comme consultée/);
+  assert.match(studentCourseViewSource, /Annuler terminé/);
+  assert.match(studentCourseViewSource, /markModuleCompleted\(selectedModule\.id,\s*false\)/);
 
   console.log("Student module content synchronization rules passed");
 });

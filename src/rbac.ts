@@ -168,6 +168,10 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
     return normalized === "STUDENT";
   }
 
+  if (verb === "PUT" && /^\/api\/courses\/\d+\/modules\/\d+\/progress$/.test(cleanPath)) {
+    return normalized === "STUDENT";
+  }
+
   if (verb === "POST" && /^\/api\/courses\/\d+\/modules\/\d+\/quiz-attempts$/.test(cleanPath)) {
     return normalized === "STUDENT";
   }

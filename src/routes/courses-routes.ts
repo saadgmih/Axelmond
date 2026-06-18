@@ -335,12 +335,50 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
       return;
     }
 
-    await api.prisma.moduleProgress.upsert({
-      where: { userId_courseId_moduleId: { userId: authUser.id, courseId: course.id, moduleId } },
+    await api.setStudentModuleCompletion({
+      userId: authUser.id,
+      courseId: course.id,
+      module: mod,
+      completed: true,
+    });
 
-      create: { userId: authUser.id, courseId: course.id, moduleId },
+    res.json(await api.toCourseForUser(course, authUser));
+  });
 
-      update: {},
+  // PUT /api/courses/:courseId/modules/:moduleId/progress
+
+  app.put("/api/courses/:courseId/modules/:moduleId/progress", requireAuth, requireRbac, async (req, res) => {
+    const authUser = getAuthUser(req);
+
+    const courseId = parseInt(req.params.courseId);
+
+    if (authUser.role === "STUDENT" && !authUser.enrolledCourses.includes(courseId)) {
+      res.status(403).json({ error: "Inscription requise pour modifier cette progression" });
+
+      return;
+    }
+
+    const moduleId = parseInt(req.params.moduleId);
+
+    const course = await api.findCourse(courseId);
+
+    if (!course) {
+      res.status(404).json({ error: api.PUBLIC_API_ERRORS.courseNotFound });
+      return;
+    }
+
+    const mod = course.modules.find((m) => m.id === moduleId);
+
+    if (!mod) {
+      res.status(404).json({ error: api.PUBLIC_API_ERRORS.courseModuleNotFound });
+      return;
+    }
+
+    await api.setStudentModuleCompletion({
+      userId: authUser.id,
+      courseId: course.id,
+      module: mod,
+      completed: Boolean(req.body?.completed),
     });
 
     res.json(await api.toCourseForUser(course, authUser));

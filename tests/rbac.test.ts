@@ -50,6 +50,8 @@ rulesTest("rbac", () => {
 
   assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/courses/1/modules/101/complete"), true);
   assert.equal(canAccessApiRoute("PROFESSOR", "POST", "/api/courses/1/modules/101/complete"), false);
+  assert.equal(canAccessApiRoute("STUDENT", "PUT", "/api/courses/1/modules/101/progress"), true);
+  assert.equal(canAccessApiRoute("PROFESSOR", "PUT", "/api/courses/1/modules/101/progress"), false);
   assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/courses/1/modules/101/quiz-attempts"), true);
   assert.equal(canAccessApiRoute("PROFESSOR", "POST", "/api/courses/1/modules/101/quiz-attempts"), false);
   assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/courses/1/modules"), false);

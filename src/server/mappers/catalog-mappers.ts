@@ -7,6 +7,12 @@ import {
   syncPublishedLessonModulesForCourses,
 } from "../../course-curriculum-sync";
 import { resolveCourseModules } from "../../course-syllabus-modules";
+import {
+  getModuleContentProgressKey,
+  getStudentProgressSnapshot,
+  getStudentProgressSnapshotsByCourseIds,
+  type StudentProgressSnapshot,
+} from "../../student-content-progress";
 import type { AppUser } from "../route-types";
 
 export function toDomain(domain: any) {
@@ -63,12 +69,18 @@ export function getLiveStartedAt(course: any) {
   return session?.startTime ? new Date(session.startTime).toISOString() : null;
 }
 
-export function applyModuleProgressForStudent(course: Course, completedModuleIds: Set<number>): Course {
-  if (completedModuleIds.size === 0) return course;
-  const modules = course.modules.map((module) => ({
-    ...module,
-    completed: Boolean(module.completed || completedModuleIds.has(Number(module.id))),
-  }));
+export function applyModuleProgressForStudent(course: Course, progress: StudentProgressSnapshot): Course {
+  const modules = course.modules.map((module) => {
+    const contentKey = getModuleContentProgressKey(module);
+    return {
+      ...module,
+      completed: Boolean(
+        module.completed ||
+        progress.completedModuleIds.has(Number(module.id)) ||
+        (contentKey ? progress.completedContentKeys.has(contentKey) : false),
+      ),
+    };
+  });
   const totalCount = modules.length;
   const completedCount = modules.filter((module) => module.completed).length;
   return {
@@ -80,7 +92,7 @@ export function applyModuleProgressForStudent(course: Course, completedModuleIds
 
 export function toCourse(
   course: any,
-  completedModuleIds?: Set<number>,
+  progress?: StudentProgressSnapshot,
   options?: { studentView?: boolean },
   enrollment?: CourseEnrollmentInfo | null,
 ): Course {
@@ -106,22 +118,18 @@ export function toCourse(
       {
         courseModules: course.courseModules,
       },
-      completedModuleIds,
+      progress?.completedModuleIds,
       options,
     ),
     published: course.published,
     createdById: course.createdById || undefined,
     enrollment: enrollment || null,
   };
-  return completedModuleIds ? applyModuleProgressForStudent(serialized, completedModuleIds) : serialized;
+  return progress ? applyModuleProgressForStudent(serialized, progress) : serialized;
 }
 
 export async function getStudentCompletedModuleIds(userId: string, courseId: number): Promise<Set<number>> {
-  const rows = await prisma.moduleProgress.findMany({
-    where: { userId, courseId },
-    select: { moduleId: true },
-  });
-  return new Set(rows.map((row) => row.moduleId));
+  return (await getStudentProgressSnapshot(userId, courseId)).completedModuleIds;
 }
 
 export async function getStudentCompletedModuleIdsByCourseIds(
@@ -131,19 +139,8 @@ export async function getStudentCompletedModuleIdsByCourseIds(
   const uniqueCourseIds = [...new Set(courseIds)];
   if (uniqueCourseIds.length === 0) return new Map();
 
-  const rows = await prisma.moduleProgress.findMany({
-    where: { userId, courseId: { in: uniqueCourseIds } },
-    select: { courseId: true, moduleId: true },
-  });
-
-  const byCourse = new Map<number, Set<number>>();
-  for (const courseId of uniqueCourseIds) {
-    byCourse.set(courseId, new Set());
-  }
-  for (const row of rows) {
-    byCourse.get(row.courseId)!.add(row.moduleId);
-  }
-  return byCourse;
+  const snapshots = await getStudentProgressSnapshotsByCourseIds(userId, uniqueCourseIds);
+  return new Map([...snapshots.entries()].map(([courseId, snapshot]) => [courseId, snapshot.completedModuleIds]));
 }
 
 export async function toCourseForUser(
@@ -171,8 +168,10 @@ export async function toCourseForUser(
       }
     : null;
 
-  const moduleIds = completedModuleIds ?? (await getStudentCompletedModuleIds(authUser.id, course.id));
-  return toCourse(course, moduleIds, { studentView: true }, enrollment);
+  const progress = completedModuleIds
+    ? { completedModuleIds, completedContentKeys: new Set<string>() }
+    : await getStudentProgressSnapshot(authUser.id, course.id);
+  return toCourse(course, progress, { studentView: true }, enrollment);
 }
 
 export async function toCoursesForStudent(
@@ -186,7 +185,7 @@ export async function toCoursesForStudent(
     courses = await attachSyncedCourseModules(courses);
   }
 
-  const progressByCourse = await getStudentCompletedModuleIdsByCourseIds(
+  const progressByCourse = await getStudentProgressSnapshotsByCourseIds(
     userId,
     courses.map((course) => course.id),
   );
@@ -207,7 +206,7 @@ export async function toCoursesForStudent(
     const enrollment = enrollmentMap.get(course.id) ?? null;
     return toCourse(
       course,
-      progressByCourse.get(course.id) ?? new Set(),
+      progressByCourse.get(course.id) ?? { completedModuleIds: new Set(), completedContentKeys: new Set() },
       { studentView: true },
       enrollment,
     );

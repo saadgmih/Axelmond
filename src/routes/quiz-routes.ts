@@ -197,6 +197,13 @@ export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
       },
     });
 
+    await api.setStudentModuleCompletion({
+      userId: authUser.id,
+      courseId: course.id,
+      module,
+      completed: true,
+    });
+
     api.logDb("INFO", "Quiz attempt recorded", {
       courseId: course.id,
       moduleId: module.id,
@@ -310,6 +317,21 @@ export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
         },
       },
     });
+
+    if (quiz.moduleId) {
+      const module = await api.prisma.courseModule.findUnique({
+        where: { courseId_id: { courseId: quiz.courseId, id: quiz.moduleId } },
+      });
+
+      if (module) {
+        await api.setStudentModuleCompletion({
+          userId: authUser.id,
+          courseId: quiz.courseId,
+          module,
+          completed: true,
+        });
+      }
+    }
 
     api.logDb("INFO", "Flexible quiz attempt recorded", {
       quizId: quiz.id,

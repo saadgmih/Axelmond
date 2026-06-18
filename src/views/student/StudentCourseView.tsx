@@ -43,7 +43,7 @@ interface StudentCourseViewProps {
   navigateTo: NavigateTo;
   onModuleSelect: (mod: CourseModule) => void;
   setShowAITutor: Dispatch<SetStateAction<boolean>>;
-  markModuleCompleted: (modId: number) => void | Promise<void>;
+  markModuleCompleted: (modId: number, completed?: boolean) => void | Promise<void>;
   handleQuizAnswerSelect: (index: number, optionValue: string) => void;
   handleQuizSubmit: () => void | Promise<void>;
   resetQuiz: () => void;
@@ -145,6 +145,12 @@ export default function StudentCourseView({
     if (!linkedContentId) return null;
     return findLessonContent(courseContentSections, linkedContentId);
   }, [selectedLessonContentFromProps, selectedModule.sectionId, courseContentSections]);
+
+  function getContentCompletionLabel(type: LessonContent["type"]): string {
+    if (type === "VIDEO") return "Marquer comme terminée";
+    if (type === "IMAGE") return "Marquer comme consultée";
+    return "Marquer comme terminé";
+  }
 
   const moduleSidebar = (
     <>
@@ -434,6 +440,38 @@ export default function StudentCourseView({
                             Cette image utilise une URL non autorisée.
                           </div>
                         )}
+
+                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div className="space-y-1">
+                            <h4 className="font-extrabold text-sm text-slate-800 flex items-center gap-2">
+                              {selectedModule.completed && <CheckCircle className="w-4 h-4 text-emerald-600" />}
+                              Progression de ce contenu
+                            </h4>
+                            <p className="text-xs text-slate-500">
+                              {selectedModule.completed
+                                ? "Ce contenu est comptabilisé dans votre progression."
+                                : "Validez ce contenu après consultation pour mettre à jour votre progression."}
+                            </p>
+                          </div>
+
+                          {selectedModule.completed ? (
+                            <button
+                              type="button"
+                              onClick={() => markModuleCompleted(selectedModule.id, false)}
+                              className="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer"
+                            >
+                              Annuler terminé
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => markModuleCompleted(selectedModule.id, true)}
+                              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer shadow-sm shadow-indigo-100"
+                            >
+                              {getContentCompletionLabel(selectedLessonContent.type)}
+                            </button>
+                          )}
+                        </div>
                       </div>
                     );
                   })()}
@@ -631,6 +669,27 @@ export default function StudentCourseView({
                         </div>
                       )}
                     </div>
+
+                    {selectedModule.completed && (
+                      <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="space-y-1">
+                          <h4 className="font-extrabold text-sm text-emerald-800 flex items-center gap-2">
+                            <CheckCircle className="w-4 h-4 text-emerald-600" />
+                            Quiz validé dans votre progression
+                          </h4>
+                          <p className="text-xs text-emerald-700">
+                            Cette évaluation est comptabilisée dans votre avancement actuel.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => markModuleCompleted(selectedModule.id, false)}
+                          className="bg-white hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer"
+                        >
+                          Annuler terminé
+                        </button>
+                      </div>
+                    )}
 
                     <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm">
                       {/* Render questions list */}

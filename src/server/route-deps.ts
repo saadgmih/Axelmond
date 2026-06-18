@@ -225,7 +225,13 @@ export {
   reserveProfessorInviteCode,
 } from "../professor-invite-consume";
 export { buildEmailDeliverySummary } from "../email-delivery-summary";
-export { sendVerificationEmail, sendResetPasswordEmail, sendAdminTestEmail, getEmailErrorDetails, getSmtpPublicConfig } from "../email";
+export {
+  sendVerificationEmail,
+  sendResetPasswordEmail,
+  sendAdminTestEmail,
+  getEmailErrorDetails,
+  getSmtpPublicConfig,
+} from "../email";
 export {
   generateEmailVerificationCode,
   hashEmailVerificationCode,
@@ -279,6 +285,12 @@ export {
   syncPublishedLessonModules,
   syncPublishedLessonModulesForCourses,
 } from "../course-curriculum-sync";
+export {
+  getModuleContentProgressKey,
+  getStudentProgressSnapshot,
+  getStudentProgressSnapshotsByCourseIds,
+  setStudentModuleCompletion,
+} from "../student-content-progress";
 export { streamLessonContentDocument } from "./lesson-document";
 export { invalidateAuthUserCache, startAuthUserCachePruner, stopAuthUserCachePruner } from "./auth-user-cache";
 export { collectRuntimeMemoryMetrics } from "./memory-metrics";

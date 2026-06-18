@@ -65,10 +65,10 @@ export function useStudentCourseSession({
     refreshCourseContent(selectedCourse.id);
   }, [currentUser?.id, currentView, selectedCourse?.id, refreshCourseContent]);
 
-  const markModuleCompleted = async (modId: number) => {
+  const markModuleCompleted = async (modId: number, completed = true) => {
     if (!selectedCourse) return;
     try {
-      const updatedCourse = await api.completeModule(selectedCourse.id, modId);
+      const updatedCourse = await api.setModuleProgress(selectedCourse.id, modId, completed);
       setCourses((prev) => prev.map((c) => (c.id === updatedCourse.id ? updatedCourse : c)));
       setSelectedCourse(updatedCourse);
       const mod = updatedCourse.modules.find((m: CourseModule) => m.id === modId);
@@ -145,7 +145,7 @@ export function useStudentCourseSession({
     setQuizSubmitted(true);
 
     try {
-      const completedCourse = await api.completeModule(selectedCourse.id, selectedModule.id);
+      const completedCourse = await api.setModuleProgress(selectedCourse.id, selectedModule.id, true);
       const updatedCourse = {
         ...completedCourse,
         modules: completedCourse.modules.map((module: CourseModule) =>

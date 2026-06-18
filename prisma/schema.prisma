@@ -65,6 +65,7 @@ model User {
   academicProfile        AcademicProfile?
   quizAttempts           QuizAttempt[]
   moduleProgress         ModuleProgress[]
+  contentProgress        StudentContentProgress[]
   refreshTokens          RefreshToken[]
   auditLogs              AuditLog[]
   liveAttendances        LiveAttendance[]
@@ -221,6 +222,7 @@ model Course {
   quizzes      Quiz[]
   quizAttempts QuizAttempt[]
   moduleProgress ModuleProgress[]
+  contentProgress StudentContentProgress[]
   payments       Payment[]
   courseModules  CourseModule[]
 
@@ -641,6 +643,25 @@ model ModuleProgress {
   @@unique([userId, courseId, moduleId])
   @@index([userId, courseId])
   @@index([courseId, moduleId])
+  @@schema("AxelmondResearchLab")
+}
+
+model StudentContentProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  courseId    Int
+  moduleId    Int?
+  contentKey  String
+  contentType String
+  completedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId, contentKey])
+  @@index([userId, courseId])
+  @@index([courseId, contentKey])
   @@schema("AxelmondResearchLab")
 }
 
