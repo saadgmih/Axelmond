@@ -6,6 +6,7 @@ import { getRoleLabel, getTeacherRoleBadgeTone } from "../rbac";
 import LogoSymbol from "./LogoSymbol";
 import { useTvNavigation } from "../hooks/useTvNavigation";
 import { useSidebarConversations } from "../hooks/useSidebarConversations";
+import { useSidebarLayout } from "../hooks/useSidebarLayout";
 import {
   getSidebarNavItems,
   getSidebarRoleIcon,
@@ -67,23 +68,25 @@ export default function Sidebar({
 }: SidebarProps) {
   const navRef = useRef<HTMLElement>(null);
   const [isHoverExpanded, setIsHoverExpanded] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(() =>
-    typeof window !== "undefined" ? window.matchMedia("(min-width: 768px)").matches : false,
-  );
+  const { isDocked, isDrawer, isTvLike, isCoarsePointer } = useSidebarLayout();
   useTvNavigation(navRef, true);
 
-  useEffect(() => {
-    const media = window.matchMedia("(min-width: 768px)");
-    const update = () => setIsDesktop(media.matches);
-    media.addEventListener("change", update);
-    return () => media.removeEventListener("change", update);
-  }, []);
+  const effectiveCollapsed = isDocked && isSidebarCollapsed && !isTvLike;
 
   useEffect(() => {
-    if (!isSidebarCollapsed) {
+    if (!effectiveCollapsed) {
       setIsHoverExpanded(false);
     }
-  }, [isSidebarCollapsed]);
+  }, [effectiveCollapsed]);
+
+  useEffect(() => {
+    if (!isDrawer || !isMobileMenuOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isDrawer, isMobileMenuOpen]);
 
   const conversations = useSidebarConversations(Boolean(currentUser));
   const navItems = useMemo(
@@ -117,23 +120,29 @@ export default function Sidebar({
     setIsMobileMenuOpen(false);
   };
 
-  const isCompact = isDesktop && isSidebarCollapsed && !isHoverExpanded;
-  const isHoverFlyout = isDesktop && isSidebarCollapsed && isHoverExpanded;
-  const reservedWidth = isDesktop ? (isSidebarCollapsed ? "var(--sidebar-collapsed-width)" : "var(--sidebar-expanded-width)") : "0px";
+  const canHoverExpand = effectiveCollapsed && !isCoarsePointer && !isTvLike;
+  const isCompact = effectiveCollapsed && !isHoverExpanded;
+  const isHoverFlyout = canHoverExpand && isHoverExpanded;
+  const showExpandedContent = !isCompact;
+  const reservedWidth = isDocked
+    ? effectiveCollapsed
+      ? "var(--sidebar-collapsed-width)"
+      : "var(--sidebar-expanded-width)"
+    : "0px";
 
-  const renderNavItems = (compact: boolean) =>
+  const renderNavItems = () =>
     navItems.map((item) => {
       const badge = item.id === "nav-notifications" ? notificationUnreadCount : undefined;
       return (
         <SidebarNavButton
           key={item.id}
-          id={compact ? undefined : item.id}
+          id={isCompact ? undefined : item.id}
           label={item.label}
           icon={item.icon}
           iconClassName={item.iconClassName}
           active={item.isActive(navContext)}
           accent={role}
-          compact={compact}
+          compact={isCompact}
           badge={badge}
           onMouseEnter={item.prefetch}
           onClick={() => {
@@ -144,10 +153,10 @@ export default function Sidebar({
       );
     });
 
-  const renderMessages = (compact: boolean) => (
-    <div className={compact ? "px-2 py-2" : "px-4 py-3"}>
-      <div className={`mb-2 flex items-center ${compact ? "justify-center" : "justify-between gap-2"}`}>
-        {!compact && (
+  const renderMessages = () => (
+    <div className={isCompact ? "px-2 py-2" : "px-4 py-3"}>
+      <div className={`mb-2 flex items-center ${isCompact ? "justify-center" : "justify-between gap-2"}`}>
+        {showExpandedContent && (
           <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Messages</span>
         )}
         <button
@@ -159,7 +168,7 @@ export default function Sidebar({
           <Plus className="h-4 w-4" />
         </button>
       </div>
-      {!compact && conversations.length > 0 && (
+      {showExpandedContent && conversations.length > 0 && (
         <div className="space-y-1.5">
           {conversations.map((conversation) => {
             const peerName = conversation.peer?.fullName || "Contact";
@@ -191,17 +200,17 @@ export default function Sidebar({
     </div>
   );
 
-  const renderUserFooter = (compact: boolean) => (
+  const renderUserFooter = () => (
     <div
       className={`sidebar-glass-section border-t border-white/10 ${
-        compact ? "flex flex-col items-center gap-2 p-3" : "flex items-center justify-between gap-2 p-4"
+        isCompact ? "flex flex-col items-center gap-2 p-3" : "flex items-center justify-between gap-2 p-4"
       }`}
     >
       <button
         type="button"
         onClick={goProfile}
         className={`flex min-w-0 items-center transition-opacity hover:opacity-85 ${
-          compact ? "justify-center" : "flex-1 gap-3 overflow-hidden"
+          isCompact ? "justify-center" : "flex-1 gap-3 overflow-hidden"
         }`}
         aria-label="Ouvrir le profil"
       >
@@ -219,7 +228,7 @@ export default function Sidebar({
             }`}
           />
         </div>
-        {!compact && (
+        {showExpandedContent && (
           <div className="min-w-0 flex-1 truncate text-left">
             <p className="truncate text-xs font-extrabold leading-none text-slate-100">
               {currentUser?.fullName || "Axelmond Research Labs"}
@@ -232,7 +241,7 @@ export default function Sidebar({
           </div>
         )}
       </button>
-      {!compact && (
+      {showExpandedContent && (
         <button
           type="button"
           onClick={(event) => {
@@ -252,9 +261,9 @@ export default function Sidebar({
   return (
     <div
       className="relative z-50 h-full shrink-0"
-      style={{ width: isDesktop ? reservedWidth : undefined }}
+      style={{ width: isDocked ? reservedWidth : undefined }}
       onMouseEnter={() => {
-        if (isSidebarCollapsed && isDesktop) setIsHoverExpanded(true);
+        if (canHoverExpand) setIsHoverExpanded(true);
       }}
       onMouseLeave={() => setIsHoverExpanded(false)}
     >
@@ -262,10 +271,11 @@ export default function Sidebar({
         className={`sidebar-glass flex h-full flex-col text-white transition-[width,transform,box-shadow] duration-300 ease-out ${
           isCompact ? "w-[var(--sidebar-collapsed-width)]" : "w-[var(--sidebar-expanded-width)]"
         } ${isHoverFlyout ? "sidebar-glass-flyout absolute left-0 top-0 z-[60] shadow-2xl" : ""} ${
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        } fixed inset-y-0 left-0 md:relative md:translate-x-0`}
+          isDrawer ? "sidebar-drawer fixed inset-y-0 left-0 z-[70]" : "lg:relative"
+        } ${isDrawer ? (isMobileMenuOpen ? "translate-x-0" : "-translate-x-full") : ""}`}
         aria-label="Barre latérale de navigation"
-        aria-expanded={!isCompact}
+        aria-expanded={showExpandedContent}
+        aria-hidden={isDrawer && !isMobileMenuOpen}
       >
         <div className={`sidebar-glass-section border-b border-white/10 ${isCompact ? "px-3 py-4" : "px-5 py-5"}`}>
           <div className={`flex items-center ${isCompact ? "justify-center" : "justify-between gap-3"}`}>
@@ -276,7 +286,7 @@ export default function Sidebar({
               aria-label="Accueil Axelmond Research Labs"
             >
               <LogoSymbol className="h-11 w-11 shrink-0 text-indigo-400" />
-              {!isCompact && (
+              {showExpandedContent && (
                 <div className="select-none text-left">
                   <span className="block text-lg font-black leading-none tracking-tight text-white">Axelmond</span>
                   <span className="mt-1.5 block text-[10px] font-bold uppercase leading-none tracking-[0.24em] text-indigo-300">
@@ -285,11 +295,11 @@ export default function Sidebar({
                 </div>
               )}
             </button>
-            {!isCompact && (
+            {showExpandedContent && isDrawer && (
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="touch-target flex items-center justify-center rounded-full p-2 text-slate-400 hover:bg-white/5 hover:text-white md:hidden"
+                className="touch-target flex items-center justify-center rounded-full p-2 text-slate-400 hover:bg-white/5 hover:text-white"
                 aria-label="Fermer le menu"
               >
                 <X className="h-6 w-6" />
@@ -299,7 +309,7 @@ export default function Sidebar({
         </div>
 
         <div className={`sidebar-glass-section border-b border-white/10 ${isCompact ? "px-2 py-3" : "space-y-2 px-4 py-4"}`}>
-          {!isCompact && (
+          {showExpandedContent && (
             <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
               Rôle authentifié
             </span>
@@ -310,7 +320,7 @@ export default function Sidebar({
             } ${roleBadgeClass(role, currentUser?.role)}`}
           >
             <RoleIcon className="h-3.5 w-3.5 shrink-0" />
-            {!isCompact && <span>{getRoleLabel(currentUser?.role)}</span>}
+            {showExpandedContent && <span>{getRoleLabel(currentUser?.role)}</span>}
           </div>
         </div>
 
@@ -318,15 +328,15 @@ export default function Sidebar({
           ref={navRef}
           data-tv-zone="sidebar-nav"
           aria-label="Navigation principale"
-          className={`flex-1 overflow-y-auto ${isCompact ? "space-y-1 px-2 py-3" : "space-y-1.5 px-4 py-4"}`}
+          className={`sidebar-nav-scroll flex-1 overflow-y-auto ${isCompact ? "space-y-1 px-2 py-3" : "space-y-1.5 px-4 py-4"}`}
         >
-          {renderNavItems(isCompact)}
+          {renderNavItems()}
         </nav>
 
-        {renderMessages(isCompact)}
-        {renderUserFooter(isCompact)}
+        {renderMessages()}
+        {renderUserFooter()}
 
-        {onToggleSidebarCollapsed && isDesktop && (
+        {onToggleSidebarCollapsed && isDocked && !isTvLike && (
           <button
             type="button"
             onClick={() => {
@@ -334,10 +344,10 @@ export default function Sidebar({
               onToggleSidebarCollapsed();
             }}
             className="absolute -right-3 top-20 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-slate-900/95 text-slate-300 shadow-lg backdrop-blur-md transition-colors hover:text-white"
-            aria-label={isSidebarCollapsed ? "Développer la barre latérale" : "Réduire la barre latérale"}
-            aria-pressed={isSidebarCollapsed}
+            aria-label={effectiveCollapsed ? "Développer la barre latérale" : "Réduire la barre latérale"}
+            aria-pressed={effectiveCollapsed}
           >
-            {isSidebarCollapsed ? <PanelLeftOpen className="h-3.5 w-3.5" /> : <PanelLeftClose className="h-3.5 w-3.5" />}
+            {effectiveCollapsed ? <PanelLeftOpen className="h-3.5 w-3.5" /> : <PanelLeftClose className="h-3.5 w-3.5" />}
           </button>
         )}
       </aside>

@@ -1,8 +1,9 @@
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import SkipLink from "../components/SkipLink";
 import KeyboardShortcutsHelp from "../components/KeyboardShortcutsHelp";
+import { useSidebarLayout } from "../hooks/useSidebarLayout";
 import { INSTITUTIONAL_VIEWS } from "../navigation/platformPaths";
 import InstitutionalViewSwitch from "../views/InstitutionalViewSwitch";
 import { LazyLiveKitSessionHost, LazyPaymentModal } from "../lazyViews";
@@ -26,6 +27,14 @@ export function AuthenticatedPlatformLayout() {
   const ui = usePlatformUi();
   const bindings = usePlatformBindings();
   const currentView = navigation.currentView;
+  const { isDocked } = useSidebarLayout();
+  const { isMobileMenuOpen, setIsMobileMenuOpen } = ui;
+
+  useEffect(() => {
+    if (isDocked && isMobileMenuOpen) {
+      setIsMobileMenuOpen(false);
+    }
+  }, [isDocked, isMobileMenuOpen, setIsMobileMenuOpen]);
 
   return (
     <div className="flex h-[100dvh] max-h-[100dvh] overflow-hidden bg-slate-950 font-sans">
@@ -61,7 +70,7 @@ export function AuthenticatedPlatformLayout() {
         <button
           type="button"
           aria-label="Fermer le menu de navigation"
-          className="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm md:hidden"
+          className="sidebar-drawer-backdrop fixed inset-0 z-[60] lg:hidden"
           onClick={() => ui.setIsMobileMenuOpen(false)}
         />
       )}
