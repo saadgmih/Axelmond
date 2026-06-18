@@ -30,7 +30,6 @@ Voir [`docs/MIGRATIONS-RUNBOOK.md`](../../docs/MIGRATIONS-RUNBOOK.md) pour basel
 
 - `patch-prisma-multischema.mjs` — patch Prisma multi-schéma (historique)
 - `server-backup.ts` — copie de `server.ts` avant extraction des routes
-- `tmp-payments-extract.txt` — extrait temporaire routes paiements
 
 ## ⚠️ Destructif
 
