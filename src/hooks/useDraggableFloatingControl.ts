@@ -21,6 +21,8 @@ const DEFAULT_RATIOS: Record<FloatingAnchor, NormalizedPoint> = {
   topbar: { xRatio: 0.92, yRatio: 0.05 },
 };
 
+const positionCache = new Map<string, NormalizedPoint>();
+
 function getViewportSize() {
   if (typeof window === "undefined") {
     return { width: 1280, height: 720 };
@@ -83,6 +85,9 @@ export function floatingPointToNormalized(
 }
 
 function readStoredNormalizedPosition(storageKey: string): NormalizedPoint | null {
+  const cached = positionCache.get(storageKey);
+  if (cached) return cached;
+
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(storageKey);
@@ -94,14 +99,18 @@ function readStoredNormalizedPosition(storageKey: string): NormalizedPoint | nul
 
     if (parsed.v === 2 && typeof parsed.xRatio === "number" && typeof parsed.yRatio === "number") {
       if (!Number.isFinite(parsed.xRatio) || !Number.isFinite(parsed.yRatio)) return null;
-      return {
+      const normalized = {
         xRatio: Math.min(1, Math.max(0, parsed.xRatio)),
         yRatio: Math.min(1, Math.max(0, parsed.yRatio)),
       };
+      positionCache.set(storageKey, normalized);
+      return normalized;
     }
 
     if (typeof parsed.x === "number" && typeof parsed.y === "number") {
-      return floatingPointToNormalized({ x: parsed.x, y: parsed.y });
+      const normalized = floatingPointToNormalized({ x: parsed.x, y: parsed.y });
+      positionCache.set(storageKey, normalized);
+      return normalized;
     }
 
     return null;
@@ -118,6 +127,7 @@ function resolveInitialPosition(storageKey: string, anchor: FloatingAnchor): Flo
 
 export function useDraggableFloatingControl(storageKey: string, anchor: FloatingAnchor) {
   const [position, setPosition] = useState<FloatingPoint>(() => resolveInitialPosition(storageKey, anchor));
+  const positionRef = useRef(position);
 
   const dragRef = useRef({
     active: false,
@@ -129,18 +139,27 @@ export function useDraggableFloatingControl(storageKey: string, anchor: Floating
     originY: 0,
   });
 
+  useEffect(() => {
+    positionRef.current = position;
+  }, [position]);
+
   const persistPosition = useCallback(
     (next: FloatingPoint) => {
-      if (typeof window === "undefined") return;
-      const normalized = floatingPointToNormalized(next);
-      window.localStorage.setItem(
-        storageKey,
-        JSON.stringify({
-          v: 2,
-          xRatio: normalized.xRatio,
-          yRatio: normalized.yRatio,
-        }),
-      );
+      const clamped = clampFloatingControlPosition(next);
+      const normalized = floatingPointToNormalized(clamped);
+      positionCache.set(storageKey, normalized);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(
+          storageKey,
+          JSON.stringify({
+            v: 2,
+            xRatio: normalized.xRatio,
+            yRatio: normalized.yRatio,
+          }),
+        );
+      }
+      positionRef.current = clamped;
+      return clamped;
     },
     [storageKey],
   );
@@ -148,12 +167,10 @@ export function useDraggableFloatingControl(storageKey: string, anchor: Floating
   const syncPositionToViewport = useCallback(() => {
     const stored = readStoredNormalizedPosition(storageKey);
     const defaults = DEFAULT_RATIOS[anchor];
-    setPosition(normalizedToFloatingPoint(stored ?? defaults));
+    const next = normalizedToFloatingPoint(stored ?? defaults);
+    positionRef.current = next;
+    setPosition(next);
   }, [anchor, storageKey]);
-
-  useEffect(() => {
-    syncPositionToViewport();
-  }, [syncPositionToViewport]);
 
   useEffect(() => {
     const handleViewportChange = () => {
@@ -171,23 +188,20 @@ export function useDraggableFloatingControl(storageKey: string, anchor: Floating
     };
   }, [syncPositionToViewport]);
 
-  const onPointerDown = useCallback(
-    (event: ReactPointerEvent<HTMLButtonElement>) => {
-      if (event.button !== 0) return;
-      const target = event.currentTarget;
-      target.setPointerCapture(event.pointerId);
-      dragRef.current = {
-        active: true,
-        moved: false,
-        pointerId: event.pointerId,
-        startClientX: event.clientX,
-        startClientY: event.clientY,
-        originX: position.x,
-        originY: position.y,
-      };
-    },
-    [position.x, position.y],
-  );
+  const onPointerDown = useCallback((event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (event.button !== 0) return;
+    const target = event.currentTarget;
+    target.setPointerCapture(event.pointerId);
+    dragRef.current = {
+      active: true,
+      moved: false,
+      pointerId: event.pointerId,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      originX: positionRef.current.x,
+      originY: positionRef.current.y,
+    };
+  }, []);
 
   const onPointerMove = useCallback((event: ReactPointerEvent<HTMLButtonElement>) => {
     const drag = dragRef.current;
@@ -204,6 +218,7 @@ export function useDraggableFloatingControl(storageKey: string, anchor: Floating
       x: drag.originX + deltaX,
       y: drag.originY + deltaY,
     });
+    positionRef.current = next;
     setPosition(next);
   }, []);
 
@@ -218,11 +233,8 @@ export function useDraggableFloatingControl(storageKey: string, anchor: Floating
 
       drag.active = false;
       if (drag.moved) {
-        setPosition((current) => {
-          const clamped = clampFloatingControlPosition(current);
-          persistPosition(clamped);
-          return clamped;
-        });
+        const clamped = persistPosition(positionRef.current);
+        setPosition(clamped);
       }
     },
     [persistPosition],
@@ -233,6 +245,11 @@ export function useDraggableFloatingControl(storageKey: string, anchor: Floating
     dragRef.current.moved = false;
     return moved;
   }, []);
+
+  const saveCurrentPosition = useCallback(() => {
+    const clamped = persistPosition(positionRef.current);
+    setPosition(clamped);
+  }, [persistPosition]);
 
   const style: CSSProperties = {
     left: `${position.x}px`,
@@ -248,5 +265,6 @@ export function useDraggableFloatingControl(storageKey: string, anchor: Floating
       onPointerCancel: finishDrag,
     },
     consumeDragClick,
+    saveCurrentPosition,
   };
 }

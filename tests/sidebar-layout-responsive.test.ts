@@ -16,8 +16,8 @@ rulesTest("sidebar-layout-responsive", () => {
   assert.match(sidebarSource, /sidebar-collapse-toggle/);
   assert.match(sidebarSource, /isDockedHidden/);
   assert.match(sidebarSource, /isDockedVisible/);
-  assert.match(sidebarSource, /LayoutFloatingToggle/);
-  assert.match(sidebarSource, /axelmond_sidebar_toggle_position/);
+  assert.match(sidebarSource, /floatingSidebarToggle/);
+  assert.match(sidebarSource, /inactive=\{isDrawer \? isMobileMenuOpen : !isDockedHidden\}/);
   assert.match(topbarSource, /LayoutFloatingToggle/);
   assert.match(topbarSource, /axelmond_topbar_toggle_position/);
   assert.doesNotMatch(sidebarSource, /isSidebarHidden/);

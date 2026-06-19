@@ -630,6 +630,11 @@ body {
   cursor: grabbing;
 }
 
+.layout-floating-toggle--inactive {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .topbar-collapse-toggle {
   /* Marker class for topbar floating toggle */
 }

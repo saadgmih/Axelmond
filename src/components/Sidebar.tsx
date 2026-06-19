@@ -272,24 +272,8 @@ export default function Sidebar({
       ? "Afficher la barre latérale"
       : "Masquer la barre latérale";
 
-  const sidebarToggleButton = (variant: "hidden" | "attached") => {
+  const sidebarToggleButton = (variant: "attached") => {
     if (!canToggleSidebar) return null;
-
-    if (variant === "hidden") {
-      return (
-        <LayoutFloatingToggle
-          anchor="sidebar"
-          storageKey="axelmond_sidebar_toggle_position"
-          ariaLabel={sidebarToggleLabel}
-          ariaPressed={isDrawer ? isMobileMenuOpen : isDockedHidden}
-          title="Glisser pour déplacer, cliquer pour basculer la barre latérale"
-          onActivate={handleSidebarToggle}
-          className="sidebar-collapse-toggle"
-        >
-          {sidebarToggleIcon}
-        </LayoutFloatingToggle>
-      );
-    }
 
     return (
       <button
@@ -303,6 +287,21 @@ export default function Sidebar({
       </button>
     );
   };
+
+  const floatingSidebarToggle = canToggleSidebar ? (
+    <LayoutFloatingToggle
+      anchor="sidebar"
+      storageKey="axelmond_sidebar_toggle_position"
+      inactive={isDrawer ? isMobileMenuOpen : !isDockedHidden}
+      ariaLabel={sidebarToggleLabel}
+      ariaPressed={isDrawer ? isMobileMenuOpen : isDockedHidden}
+      title="Glisser pour déplacer, cliquer pour basculer la barre latérale"
+      onActivate={handleSidebarToggle}
+      className="sidebar-collapse-toggle"
+    >
+      <PanelLeftOpen className="layout-collapse-toggle-icon" aria-hidden="true" />
+    </LayoutFloatingToggle>
+  ) : null;
 
   const renderSidebarPanel = (mode: "drawer" | "docked") => (
     <>
@@ -359,7 +358,7 @@ export default function Sidebar({
   if (isDrawer) {
     return (
       <>
-        {!isMobileMenuOpen && sidebarToggleButton("hidden")}
+        {floatingSidebarToggle}
         <div className="sidebar-shell sidebar-shell-drawer relative z-[80] h-full w-0 shrink-0">
           <aside
             className={`sidebar-glass sidebar-drawer fixed z-[80] flex h-full w-[var(--sidebar-expanded-width)] flex-col text-white transition-transform duration-300 ease-out ${
@@ -376,17 +375,19 @@ export default function Sidebar({
   }
 
   return (
-    <div className="sidebar-shell relative z-50 h-full shrink-0" style={{ width: reservedWidth }}>
-      {isDockedHidden && sidebarToggleButton("hidden")}
-      {isDockedVisible && (
-        <aside
-          className="sidebar-glass relative flex h-full w-[var(--sidebar-expanded-width)] flex-col text-white lg:relative"
-          aria-label="Barre latérale de navigation"
-          aria-expanded={true}
-        >
-          {renderSidebarPanel("docked")}
-        </aside>
-      )}
-    </div>
+    <>
+      {floatingSidebarToggle}
+      <div className="sidebar-shell relative z-50 h-full shrink-0" style={{ width: reservedWidth }}>
+        {isDockedVisible && (
+          <aside
+            className="sidebar-glass relative flex h-full w-[var(--sidebar-expanded-width)] flex-col text-white lg:relative"
+            aria-label="Barre latérale de navigation"
+            aria-expanded={true}
+          >
+            {renderSidebarPanel("docked")}
+          </aside>
+        )}
+      </div>
+    </>
   );
 }
