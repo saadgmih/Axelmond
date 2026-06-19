@@ -215,11 +215,7 @@ export default function Sidebar({
           ) : (
             "AR"
           )}
-          <span
-            className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-slate-900 ${
-              role === "student" ? "bg-emerald-500" : "bg-red-500 animate-pulse"
-            }`}
-          />
+          <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-slate-900 bg-emerald-500" />
         </div>
         <div className="min-w-0 flex-1 truncate text-left">
           <p className="truncate text-xs font-extrabold leading-none text-slate-100">
