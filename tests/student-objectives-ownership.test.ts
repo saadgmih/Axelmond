@@ -89,6 +89,7 @@ rulesTest("student-objectives-ownership", () => {
   assert.match(statsSectionSource, /Objectifs en retard/);
   assert.match(statsSectionSource, /Proches de la date limite/);
   assert.match(studyPlanViewSource, /AxelCalendarShell/);
+  assert.doesNotMatch(studyPlanViewSource, /onAddSession=/);
   assert.match(statsSectionSource, /Streak/);
   assert.match(objectiveFormSource, /Récurrence/);
   assert.match(studyPlanViewSource, /Objectifs en cours/);

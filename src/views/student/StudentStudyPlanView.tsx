@@ -140,9 +140,7 @@ export default function StudentStudyPlanView({ role, currentView }: StudentStudy
               labels={{
                 emptyDay: "Aucune séance ni objectif ce jour",
                 emptyWeekDay: "Rien de planifié",
-                add: "Ajouter",
               }}
-              onAddSession={primaryAction.onClick}
               onDayAction={handleCalendarDayAction}
               onSessionClick={handleCalendarSessionClick}
             />
