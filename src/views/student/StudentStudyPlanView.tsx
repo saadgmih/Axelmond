@@ -71,14 +71,13 @@ export default function StudentStudyPlanView({ role, currentView }: StudentStudy
     if (objective) objectives.openEditForm(objective);
   };
 
-  const handleCalendarDayAction = (_date: Date, dayOfWeek: number) => {
+  const handleCreateSessionForDay = (_date: Date, dayOfWeek: number) => {
     schedule.openCreateForm(dayOfWeek);
   };
 
-  const primaryAction =
-    activeTab === "sessions"
-      ? { label: "Ajouter une séance", onClick: () => schedule.openCreateForm() }
-      : { label: "Ajouter un objectif", onClick: objectives.openCreateForm };
+  const handleCreateObjectiveForDay = (date: Date) => {
+    objectives.openCreateFormForDate(date);
+  };
 
   return (
     <div className={scheduleUi.page} data-tv-zone="student-study-plan">
@@ -92,14 +91,26 @@ export default function StudentStudyPlanView({ role, currentView }: StudentStudy
               reste privé et visible uniquement par vous.
             </p>
           </div>
-          <button
-            type="button"
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 px-5 py-3 text-xs font-bold text-white shadow-lg shadow-indigo-950/30 transition-all hover:from-indigo-500 hover:to-cyan-500 active:scale-[0.98]"
-            onClick={primaryAction.onClick}
-          >
-            <Plus className="h-4 w-4" />
-            {primaryAction.label}
-          </button>
+          {activeTab === "calendar" && (
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <button
+                type="button"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-5 py-3 text-xs font-bold text-white transition-all hover:bg-white/10 active:scale-[0.98]"
+                onClick={() => schedule.openCreateForm()}
+              >
+                <Plus className="h-4 w-4" />
+                Ajouter une séance
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 px-5 py-3 text-xs font-bold text-white shadow-lg shadow-indigo-950/30 transition-all hover:from-indigo-500 hover:to-cyan-500 active:scale-[0.98]"
+                onClick={objectives.openCreateForm}
+              >
+                <Plus className="h-4 w-4" />
+                Ajouter un objectif
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -140,8 +151,13 @@ export default function StudentStudyPlanView({ role, currentView }: StudentStudy
               labels={{
                 emptyDay: "Aucune séance ni objectif ce jour",
                 emptyWeekDay: "Rien de planifié",
+                addSession: "Ajouter une séance",
+                addObjective: "Ajouter un objectif",
               }}
-              onDayAction={handleCalendarDayAction}
+              onAddSession={() => schedule.openCreateForm()}
+              onAddObjective={objectives.openCreateForm}
+              onCreateSessionForDay={handleCreateSessionForDay}
+              onCreateObjectiveForDay={handleCreateObjectiveForDay}
               onSessionClick={handleCalendarSessionClick}
             />
           )}
@@ -156,7 +172,7 @@ export default function StudentStudyPlanView({ role, currentView }: StudentStudy
             </div>
           ) : schedule.sessions.length === 0 ? (
             <div className={scheduleUi.emptyDay}>
-              Aucune séance planifiée. Ajoutez votre première session d&apos;étude.
+              Aucune séance planifiée. Utilisez l&apos;onglet Calendrier pour en ajouter, puis modifiez-les ici.
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -190,7 +206,7 @@ export default function StudentStudyPlanView({ role, currentView }: StudentStudy
                 </div>
                 {objectives.inProgressObjectives.length === 0 ? (
                   <div className={scheduleUi.emptyDay}>
-                    Aucun objectif en cours. Ajoutez votre prochain objectif d&apos;étude.
+                    Aucun objectif en cours. Utilisez l&apos;onglet Calendrier pour en ajouter, puis modifiez-les ici.
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 gap-3 md:grid-cols-2">

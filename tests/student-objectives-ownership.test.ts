@@ -14,6 +14,7 @@ rulesTest("student-objectives-ownership", () => {
   const apiSource = fs.readFileSync("src/api.ts", "utf8");
   const appSource = readAppSources();
   const sidebarSource = fs.readFileSync("src/components/Sidebar.tsx", "utf8");
+  const sidebarConfigSource = fs.readFileSync("src/navigation/sidebar-config.ts", "utf8");
   const platformPathsSource = fs.readFileSync("src/navigation/platformPaths.ts", "utf8");
   const studyPlanViewSource = fs.readFileSync("src/views/student/StudentStudyPlanView.tsx", "utf8");
   const objectiveCardSource = fs.readFileSync("src/views/student/study-plan/ObjectiveCard.tsx", "utf8");
@@ -70,8 +71,8 @@ rulesTest("student-objectives-ownership", () => {
 
   assert.match(appSource, /StudentStudyPlanView/);
   assert.match(appSource, /currentView === "study-plan"/);
-  assert.match(sidebarSource, /nav-study-plan/);
-  assert.match(sidebarSource, /Plan d/);
+  assert.match(sidebarConfigSource, /nav-study-plan/);
+  assert.match(sidebarConfigSource, /Plan d/);
   assert.match(platformPathsSource, /"study-plan"/);
   assert.match(platformPathsSource, /"objectives"/);
 
@@ -89,7 +90,10 @@ rulesTest("student-objectives-ownership", () => {
   assert.match(statsSectionSource, /Objectifs en retard/);
   assert.match(statsSectionSource, /Proches de la date limite/);
   assert.match(studyPlanViewSource, /AxelCalendarShell/);
-  assert.doesNotMatch(studyPlanViewSource, /onAddSession=/);
+  assert.match(studyPlanViewSource, /onAddSession=/);
+  assert.match(studyPlanViewSource, /onAddObjective=/);
+  assert.match(studyPlanViewSource, /onCreateSessionForDay=/);
+  assert.match(studyPlanViewSource, /activeTab === "calendar"/);
   assert.match(statsSectionSource, /Streak/);
   assert.match(objectiveFormSource, /Récurrence/);
   assert.match(studyPlanViewSource, /Objectifs en cours/);

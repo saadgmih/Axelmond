@@ -34,8 +34,13 @@ interface AxelCalendarShellProps {
     emptyDay?: string;
     emptyWeekDay?: string;
     add?: string;
+    addSession?: string;
+    addObjective?: string;
   };
   onAddSession?: () => void;
+  onAddObjective?: () => void;
+  onCreateSessionForDay?: (date: Date, dayOfWeek: number) => void;
+  onCreateObjectiveForDay?: (date: Date, dayOfWeek: number) => void;
   onDayAction?: (date: Date, dayOfWeek: number) => void;
   onSessionClick?: (sessionId: string) => void;
 }
@@ -70,12 +75,17 @@ export default function AxelCalendarShell({
   matchBy = "weekday",
   labels,
   onAddSession,
+  onAddObjective,
+  onCreateSessionForDay,
+  onCreateObjectiveForDay,
   onDayAction,
   onSessionClick,
 }: AxelCalendarShellProps) {
   const emptyDayLabel = labels?.emptyDay ?? "Aucune séance planifiée ce jour";
   const emptyWeekDayLabel = labels?.emptyWeekDay ?? "Aucune séance";
   const addLabel = labels?.add ?? "Ajouter";
+  const addSessionLabel = labels?.addSession ?? "Séance";
+  const addObjectiveLabel = labels?.addObjective ?? "Objectif";
   const today = useMemo(() => new Date(), []);
   const [viewMode, setViewMode] = useState<CalendarViewMode>("year");
   const [focusDate, setFocusDate] = useState(() => new Date(today.getFullYear(), today.getMonth(), today.getDate()));
@@ -260,15 +270,29 @@ export default function AxelCalendarShell({
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
-        {onAddSession && (
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-slate-200 hover:bg-white/10"
-            onClick={onAddSession}
-          >
-            <Plus className="h-4 w-4" />
-            {addLabel}
-          </button>
+        {(onAddSession || onAddObjective) && (
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {onAddSession && (
+              <button
+                type="button"
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-slate-200 hover:bg-white/10"
+                onClick={onAddSession}
+              >
+                <Plus className="h-4 w-4" />
+                {onAddObjective ? addSessionLabel : addLabel}
+              </button>
+            )}
+            {onAddObjective && (
+              <button
+                type="button"
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-indigo-400/20 bg-indigo-500/10 px-3 py-2 text-xs font-bold text-indigo-100 hover:bg-indigo-500/20"
+                onClick={onAddObjective}
+              >
+                <Plus className="h-4 w-4" />
+                {addObjectiveLabel}
+              </button>
+            )}
+          </div>
         )}
       </div>
 
@@ -329,7 +353,33 @@ export default function AxelCalendarShell({
             <p className="text-sm font-semibold capitalize text-slate-300">{formatFrenchDate(focusDate)}</p>
             {sessionsForDay(sessions, focusDate, matchBy).length === 0 ? (
               <div className="rounded-xl border border-dashed border-white/[0.08] px-4 py-8 text-center text-sm text-slate-500">
-                {emptyDayLabel}
+                <p>{emptyDayLabel}</p>
+                {(onCreateSessionForDay || onCreateObjectiveForDay) && (
+                  <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                    {onCreateSessionForDay && (
+                      <button
+                        type="button"
+                        className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-slate-200 hover:bg-white/10"
+                        onClick={() =>
+                          onCreateSessionForDay(focusDate, dateToScheduleDayOfWeek(focusDate))
+                        }
+                      >
+                        <Plus className="h-4 w-4" />
+                        {addSessionLabel}
+                      </button>
+                    )}
+                    {onCreateObjectiveForDay && (
+                      <button
+                        type="button"
+                        className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-indigo-400/20 bg-indigo-500/10 px-3 py-2 text-xs font-bold text-indigo-100 hover:bg-indigo-500/20"
+                        onClick={() => onCreateObjectiveForDay(focusDate, dateToScheduleDayOfWeek(focusDate))}
+                      >
+                        <Plus className="h-4 w-4" />
+                        {addObjectiveLabel}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             ) : (
               sessionsForDay(sessions, focusDate, matchBy).map((session) => (
