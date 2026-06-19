@@ -90,10 +90,14 @@ rulesTest("student-objectives-ownership", () => {
   assert.match(statsSectionSource, /Objectifs en retard/);
   assert.match(statsSectionSource, /Proches de la date limite/);
   assert.match(studyPlanViewSource, /AxelCalendarShell/);
-  assert.match(studyPlanViewSource, /onAddSession=/);
-  assert.match(studyPlanViewSource, /onAddObjective=/);
+  assert.doesNotMatch(studyPlanViewSource, /onAddSession=/);
+  assert.doesNotMatch(studyPlanViewSource, /onAddObjective=/);
   assert.match(studyPlanViewSource, /onCreateSessionForDay=/);
   assert.match(studyPlanViewSource, /activeTab === "calendar"/);
+  assert.equal(
+    (studyPlanViewSource.match(/bg-gradient-to-r from-indigo-600 to-cyan-600/g) ?? []).length,
+    2,
+  );
   assert.match(statsSectionSource, /Streak/);
   assert.match(objectiveFormSource, /Récurrence/);
   assert.match(studyPlanViewSource, /Objectifs en cours/);
