@@ -24,6 +24,7 @@ import {
 } from "../../uploadthing-client";
 import { uploadMessageAttachmentFile, type OutgoingMessageAttachment } from "../../message-attachment-upload";
 import { useMessageAudioRecorder } from "../../hooks/useMessageAudioRecorder";
+import { MessageAudioPlayer } from "../../components/messaging/MessageAudioPlayer";
 import { VirtualList } from "../../components/VirtualList";
 import { useMessagingSocket } from "../../hooks/useMessagingSocket";
 import type { ChatMessage, ConversationSummary, MessagingUser } from "../../types/messaging";
@@ -47,29 +48,34 @@ function peerInitials(name: string) {
   return name.slice(0, 2).toUpperCase();
 }
 
-function renderAttachment(message: ChatMessage) {
+function renderAttachment(message: ChatMessage, mine: boolean) {
   const attachment = message.attachments[0];
   if (!attachment) return null;
   if (attachment.kind === "IMAGE") {
     return (
-      <a href={attachment.url} target="_blank" rel="noreferrer" className="block mt-2">
+      <a href={attachment.url} target="_blank" rel="noreferrer" className="mt-2 block max-w-full">
         <img
           src={attachment.url}
           alt={attachment.fileName}
-          className="max-w-full max-h-64 rounded-xl border border-white/10 object-cover"
+          className="max-h-64 max-w-full rounded-xl border border-white/10 object-cover"
         />
       </a>
     );
   }
   if (attachment.kind === "VIDEO") {
     return (
-      <video controls className="mt-2 max-w-full max-h-64 rounded-xl border border-white/10" src={attachment.url}>
+      <video
+        controls
+        controlsList="nodownload"
+        className="mt-2 max-h-64 max-w-full rounded-xl border border-white/10"
+        src={attachment.url}
+      >
         <track kind="captions" />
       </video>
     );
   }
   if (attachment.kind === "AUDIO") {
-    return <audio controls className="mt-2 w-full" src={attachment.url} />;
+    return <MessageAudioPlayer url={attachment.url} mine={mine} />;
   }
   return (
     <a
@@ -142,13 +148,19 @@ interface MessageBubbleProps {
 }
 
 const MessageBubble = memo(function MessageBubble({ message, mine }: MessageBubbleProps) {
+  const attachment = message.attachments[0];
+  const hasBody = Boolean(message.body?.trim());
+  const isAudioOnly = attachment?.kind === "AUDIO" && !hasBody;
+
   return (
     <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
       <div
-        className={`max-w-[85%] rounded-2xl px-4 py-3 shadow-lg ${mine ? "rounded-br-md bg-indigo-600 text-white" : "rounded-bl-md border border-white/10 bg-[#0f172a] text-slate-100"}`}
+        className={`rounded-2xl px-4 py-3 shadow-lg ${
+          isAudioOnly ? "w-auto min-w-[200px] max-w-[min(85%,280px)]" : "max-w-[85%]"
+        } ${mine ? "rounded-br-md bg-indigo-600 text-white" : "rounded-bl-md border border-white/10 bg-[#0f172a] text-slate-100"}`}
       >
         {message.body && <p className="whitespace-pre-wrap text-sm">{message.body}</p>}
-        {renderAttachment(message)}
+        {renderAttachment(message, mine)}
         <div className={`mt-2 flex items-center gap-1 text-[10px] ${mine ? "text-indigo-100/80" : "text-slate-500"}`}>
           <span>{message.sentAtLabel}</span>
           {mine &&
