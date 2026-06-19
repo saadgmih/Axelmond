@@ -33,6 +33,8 @@ rulesTest("premium-video-player", () => {
   assert.match(playerSource, /Vitesse/);
   assert.match(playerSource, /COURSE_VIDEO_PLAYBACK_RATES\.map/);
   assert.match(playerSource, /aria-label="Volume vidéo"/);
+  assert.match(playerSource, /video-volume-slider-vertical/);
+  assert.match(playerSource, /group\/volume/);
   assert.match(playerSource, /Volume2/);
   assert.match(playerSource, /VolumeX/);
   assert.match(

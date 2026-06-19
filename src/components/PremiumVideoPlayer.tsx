@@ -152,7 +152,7 @@ export default function PremiumVideoPlayer({
           />
         </div>
 
-        <div className="flex min-w-[150px] items-center gap-2">
+        <div className="group/volume relative flex items-center">
           <button
             type="button"
             onClick={toggleMute}
@@ -161,17 +161,27 @@ export default function PremiumVideoPlayer({
           >
             {isMuted || volumePercent === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
           </button>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            step="1"
-            value={volumePercent}
-            onChange={handleVolumeChange}
-            aria-label="Volume vidéo"
-            className={`h-1 w-20 bg-slate-800 rounded-lg appearance-none cursor-pointer outline-none ${themeAccentClass}`}
-          />
-          <span className="w-8 text-right font-mono text-[10px] text-slate-400">{volumePercent}%</span>
+          <div
+            onMouseMove={() => revealControlsTemporarily()}
+            onTouchStart={() => revealControlsTemporarily()}
+            className={`absolute bottom-[calc(100%+0.5rem)] left-1/2 z-30 flex -translate-x-1/2 flex-col items-center gap-1.5 rounded-xl border border-slate-700/80 bg-slate-950/95 px-2.5 py-2 shadow-lg transition-all duration-200 ${
+              chromeVisible
+                ? "pointer-events-none opacity-0 group-hover/volume:pointer-events-auto group-hover/volume:opacity-100 group-focus-within/volume:pointer-events-auto group-focus-within/volume:opacity-100"
+                : "pointer-events-none opacity-0"
+            }`}
+          >
+            <span className="font-mono text-[10px] text-slate-400">{volumePercent}%</span>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value={volumePercent}
+              onChange={handleVolumeChange}
+              aria-label="Volume vidéo"
+              className={`video-volume-slider-vertical ${themeAccentClass}`}
+            />
+          </div>
         </div>
 
         <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-300">
