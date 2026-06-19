@@ -10,8 +10,8 @@ import { logLiveKit } from "../route-loggers";
 import type { AppUser } from "../route-types";
 import { findCourse } from "./user-mappers";
 
-export function canPublishLiveMedia(role: AppUser["role"]): boolean {
-  return role !== "STUDENT";
+export function canPublishLiveMedia(_role: AppUser["role"]): boolean {
+  return true;
 }
 
 export type LiveSessionResolveResult =

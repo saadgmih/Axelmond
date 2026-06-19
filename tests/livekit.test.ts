@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { buildLiveKitRoomName, getLiveKitConfig, getLiveKitParticipantIdentity } from "../src/livekit.ts";
+import { canPublishLiveMedia } from "../src/server/mappers/live-mappers.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("livekit", () => {
@@ -29,4 +30,7 @@ rulesTest("livekit", () => {
     }),
     null,
   );
+
+  assert.equal(canPublishLiveMedia("STUDENT"), true);
+  assert.equal(canPublishLiveMedia("PROFESSOR"), true);
 });
