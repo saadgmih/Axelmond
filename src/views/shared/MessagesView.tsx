@@ -26,7 +26,7 @@ import {
 import { uploadMessageAttachmentFile, type OutgoingMessageAttachment } from "../../message-attachment-upload";
 import { useMessageAudioRecorder } from "../../hooks/useMessageAudioRecorder";
 import { MessageAudioPlayer } from "../../components/messaging/MessageAudioPlayer";
-import PremiumVideoPlayer from "../../components/PremiumVideoPlayer";
+import { MessageVideoAttachment } from "../../components/messaging/MessageVideoAttachment";
 import { canDeleteOwnMessage } from "../../message-delete-policy";
 import { VirtualList } from "../../components/VirtualList";
 import { useMessagingSocket } from "../../hooks/useMessagingSocket";
@@ -67,13 +67,8 @@ function renderAttachment(message: ChatMessage, role: "student" | "teacher", min
   }
   if (attachment.kind === "VIDEO") {
     return (
-      <div className="mt-2 w-full min-w-[260px] max-w-full" onClick={(event) => event.stopPropagation()}>
-        <PremiumVideoPlayer
-          src={attachment.url}
-          title={attachment.fileName || "Vidéo"}
-          instructor={message.sender.fullName || "Axelmond"}
-          activeSector={role}
-        />
+      <div className="w-full" onClick={(event) => event.stopPropagation()}>
+        <MessageVideoAttachment url={attachment.url} role={role} />
       </div>
     );
   }
@@ -164,18 +159,60 @@ const MessageBubble = memo(function MessageBubble({
 }: MessageBubbleProps) {
   const attachment = message.attachments[0];
   const hasBody = Boolean(message.body?.trim());
+  const isVideo = attachment?.kind === "VIDEO";
   const isAudioOnly = attachment?.kind === "AUDIO" && !hasBody;
-  const isVideoOnly = attachment?.kind === "VIDEO" && !hasBody;
+
+  const metaRow = (
+    <div className={`flex items-center gap-1.5 text-[10px] ${mine ? "text-slate-400" : "text-slate-500"}`}>
+      <span>{message.sentAtLabel}</span>
+      {mine &&
+        (message.seenByOthers ? (
+          <CheckCheck className="h-3.5 w-3.5" aria-label="Vu" />
+        ) : (
+          <Check className="h-3.5 w-3.5" aria-label="Envoyé" />
+        ))}
+      {canDelete && (
+        <button
+          type="button"
+          onClick={() => onDelete(message.id)}
+          disabled={deleting}
+          aria-label="Supprimer ce message"
+          title="Supprimer (disponible 4 jours après l'envoi)"
+          className="ml-1 inline-flex h-6 w-6 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-white/10 hover:text-slate-200 disabled:opacity-50"
+        >
+          {deleting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+        </button>
+      )}
+    </div>
+  );
+
+  if (isVideo) {
+    return (
+      <div className={`group flex w-full flex-col gap-1.5 ${mine ? "items-end" : "items-start"}`}>
+        {hasBody && (
+          <div
+            className={`max-w-[85%] rounded-2xl px-4 py-3 shadow-lg ${
+              mine
+                ? "rounded-br-md bg-indigo-600 text-white"
+                : "rounded-bl-md border border-white/10 bg-[#0f172a] text-slate-100"
+            }`}
+          >
+            <p className="whitespace-pre-wrap text-sm">{message.body}</p>
+          </div>
+        )}
+        <div className="w-full min-w-[220px] max-w-[min(100%,280px)]">{renderAttachment(message, role, mine)}</div>
+        {metaRow}
+      </div>
+    );
+  }
 
   return (
     <div className={`group flex ${mine ? "justify-end" : "justify-start"}`}>
       <div
         className={`relative rounded-2xl shadow-lg ${
-          isVideoOnly
-            ? "w-full min-w-[280px] max-w-[min(95%,440px)] p-2"
-            : isAudioOnly
-              ? "w-auto min-w-[200px] max-w-[min(85%,280px)] px-4 py-3"
-              : "max-w-[85%] px-4 py-3"
+          isAudioOnly
+            ? "w-auto min-w-[200px] max-w-[min(85%,280px)] px-4 py-3"
+            : "max-w-[85%] px-4 py-3"
         } ${mine ? "rounded-br-md bg-indigo-600 text-white" : "rounded-bl-md border border-white/10 bg-[#0f172a] text-slate-100"}`}
       >
         {message.body && <p className="whitespace-pre-wrap text-sm">{message.body}</p>}

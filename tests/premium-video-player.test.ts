@@ -19,7 +19,7 @@ rulesTest("premium-video-player", () => {
   assert.doesNotMatch(studentCourseViewSource, /isVideoPlaying/);
 
   assert.match(teacherCurriculumSource, /PremiumVideoPlayer/);
-  assert.match(readFileSync("src/views/shared/MessagesView.tsx", "utf-8"), /PremiumVideoPlayer/);
+  assert.match(readFileSync("src/components/messaging/MessageVideoAttachment.tsx", "utf-8"), /PremiumVideoPlayer/);
   assert.match(teacherCurriculumSource, /activeSector="teacher"/);
   assert.match(teacherCurriculumSource, /managedCourse\?\.instructor \?\? "Professeur"/);
   assert.doesNotMatch(teacherCurriculumSource, /<video controls/);
@@ -28,6 +28,7 @@ rulesTest("premium-video-player", () => {
   assert.match(playerSource, /useCourseVideoPlayer/);
   assert.match(playerSource, /controlsVisible/);
   assert.match(playerSource, /setTimeout[\s\S]*1600/);
+  assert.match(playerSource, /showMetadata/);
   assert.match(playerSource, /Vitesse/);
   assert.match(playerSource, /COURSE_VIDEO_PLAYBACK_RATES\.map/);
   assert.match(playerSource, /aria-label="Volume vidéo"/);

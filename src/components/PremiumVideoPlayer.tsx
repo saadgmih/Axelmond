@@ -7,9 +7,16 @@ interface PremiumVideoPlayerProps {
   title: string;
   instructor: string;
   activeSector: string;
+  showMetadata?: boolean;
 }
 
-export default function PremiumVideoPlayer({ src, title, instructor, activeSector }: PremiumVideoPlayerProps) {
+export default function PremiumVideoPlayer({
+  src,
+  title,
+  instructor,
+  activeSector,
+  showMetadata = true,
+}: PremiumVideoPlayerProps) {
   const {
     videoRef,
     containerRef,
@@ -103,9 +110,11 @@ export default function PremiumVideoPlayer({ src, title, instructor, activeSecto
             >
               <PlayCircle className={`w-10 h-10 ml-0.5 ${playButtonThemeClass}`} />
             </button>
-            <p className="max-w-[90%] truncate text-white text-xs font-bold font-mono tracking-wide bg-slate-900/80 px-3 py-1.5 rounded-lg border border-slate-700/50 shadow-sm animate-in fade-in duration-200">
-              {title} • {instructor} • {formatTime(duration)}
-            </p>
+            {showMetadata && (
+              <p className="max-w-[90%] truncate text-white text-xs font-bold font-mono tracking-wide bg-slate-900/80 px-3 py-1.5 rounded-lg border border-slate-700/50 shadow-sm animate-in fade-in duration-200">
+                {title} • {instructor} • {formatTime(duration)}
+              </p>
+            )}
           </div>
         ) : (
           <button
