@@ -272,34 +272,17 @@ export default function Sidebar({
       ? "Afficher la barre latérale"
       : "Masquer la barre latérale";
 
-  const sidebarToggleButton = (variant: "attached") => {
-    if (!canToggleSidebar) return null;
-
-    return (
-      <button
-        type="button"
-        onClick={handleSidebarToggle}
-        className="layout-collapse-toggle sidebar-collapse-toggle sidebar-collapse-toggle--attached kbd-nav-focus"
-        aria-label={sidebarToggleLabel}
-        aria-pressed={isDrawer ? isMobileMenuOpen : isDockedHidden}
-      >
-        {sidebarToggleIcon}
-      </button>
-    );
-  };
-
   const floatingSidebarToggle = canToggleSidebar ? (
     <LayoutFloatingToggle
       anchor="sidebar"
       storageKey="axelmond_sidebar_toggle_position"
-      inactive={isDrawer ? isMobileMenuOpen : !isDockedHidden}
       ariaLabel={sidebarToggleLabel}
       ariaPressed={isDrawer ? isMobileMenuOpen : isDockedHidden}
       title="Glisser pour déplacer, cliquer pour basculer la barre latérale"
       onActivate={handleSidebarToggle}
       className="sidebar-collapse-toggle"
     >
-      <PanelLeftOpen className="layout-collapse-toggle-icon" aria-hidden="true" />
+      {sidebarToggleIcon}
     </LayoutFloatingToggle>
   ) : null;
 
@@ -337,7 +320,6 @@ export default function Sidebar({
             </span>
             <span className="min-w-0 flex-1 leading-none">{getRoleLabel(currentUser?.role)}</span>
           </div>
-          {sidebarToggleButton("attached")}
         </div>
       </div>
 
