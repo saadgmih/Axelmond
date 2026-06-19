@@ -1,5 +1,5 @@
 import { type ReactNode, type RefObject } from "react";
-import { Search, Sparkles, Mic, Bell, BadgeCheck, ChevronDown, PanelTopClose, PanelTopOpen } from "lucide-react";
+import { Search, Sparkles, Mic, Bell, BadgeCheck, PanelTopClose, PanelTopOpen } from "lucide-react";
 import { Course } from "../types";
 import { AppUser } from "./AuthScreen";
 import { getRoleLabel, getTeacherRoleBadgeTone, type UserRole } from "../rbac";
@@ -135,7 +135,6 @@ function RolePill({
     >
       <Sparkles className={`h-4 w-4 ${iconTone}`} />
       <span>{role === "student" ? "Étudiant" : getRoleLabel(userRole)}</span>
-      <ChevronDown className="h-4 w-4 opacity-80" />
     </button>
   );
 }
