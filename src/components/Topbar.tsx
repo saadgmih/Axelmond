@@ -7,6 +7,7 @@ import LogoSymbol from "./LogoSymbol";
 import { useVoiceSearch } from "../hooks/useVoiceSearch";
 import { useSidebarLayout } from "../hooks/useSidebarLayout";
 import AccessibilityControls from "./AccessibilityControls";
+import { LayoutFloatingToggle } from "./LayoutFloatingToggle";
 
 interface TopbarProps {
   currentView: string;
@@ -229,28 +230,26 @@ export default function Topbar({
     </div>
   );
 
-  const topbarToggleButton = canCollapseTopbar ? (
-    <button
-      type="button"
-      onClick={onToggleTopbarCollapsed}
-      className="layout-collapse-toggle topbar-collapse-toggle kbd-nav-focus"
-      aria-label={effectiveTopbarCollapsed ? "Afficher la barre supérieure" : "Masquer la barre supérieure"}
-      aria-pressed={effectiveTopbarCollapsed}
+  const topbarFloatingToggle = canCollapseTopbar ? (
+    <LayoutFloatingToggle
+      anchor="topbar"
+      storageKey="axelmond_topbar_toggle_position"
+      ariaLabel={effectiveTopbarCollapsed ? "Afficher la barre supérieure" : "Masquer la barre supérieure"}
+      ariaPressed={effectiveTopbarCollapsed}
+      title="Glisser pour déplacer, cliquer pour basculer la barre supérieure"
+      onActivate={() => onToggleTopbarCollapsed?.()}
+      className="topbar-collapse-toggle"
     >
       {effectiveTopbarCollapsed ? (
         <PanelTopOpen className="layout-collapse-toggle-icon" aria-hidden="true" />
       ) : (
         <PanelTopClose className="layout-collapse-toggle-icon" aria-hidden="true" />
       )}
-    </button>
+    </LayoutFloatingToggle>
   ) : null;
 
   if (effectiveTopbarCollapsed) {
-    return (
-      <div className="platform-topbar-shell platform-topbar-shell-collapsed relative z-40 flex flex-shrink-0 justify-end px-3 pt-2 sm:px-4 lg:px-6">
-        {topbarToggleButton}
-      </div>
-    );
+    return topbarFloatingToggle;
   }
 
   return (
@@ -328,7 +327,7 @@ export default function Topbar({
             <span className="topbar-avatar-online" aria-hidden="true" />
           </button>
         </div>
-        {topbarToggleButton}
+        {topbarFloatingToggle}
       </header>
     </div>
   );

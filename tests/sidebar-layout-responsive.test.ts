@@ -16,8 +16,10 @@ rulesTest("sidebar-layout-responsive", () => {
   assert.match(sidebarSource, /sidebar-collapse-toggle/);
   assert.match(sidebarSource, /isDockedHidden/);
   assert.match(sidebarSource, /isDockedVisible/);
-  assert.match(sidebarSource, /useDraggableFloatingControl/);
-  assert.match(sidebarSource, /sidebar-collapse-toggle--hidden-draggable/);
+  assert.match(sidebarSource, /LayoutFloatingToggle/);
+  assert.match(sidebarSource, /axelmond_sidebar_toggle_position/);
+  assert.match(topbarSource, /LayoutFloatingToggle/);
+  assert.match(topbarSource, /axelmond_topbar_toggle_position/);
   assert.doesNotMatch(sidebarSource, /isSidebarHidden/);
   assert.match(sidebarSource, /lg:relative/);
   assert.doesNotMatch(sidebarSource, /md:relative/);
@@ -43,7 +45,7 @@ rulesTest("sidebar-layout-responsive", () => {
   assert.ok(backdropIndex > sidebarMountIndex, "Backdrop should render after Sidebar in layout source");
 
   assert.match(cssSource, /sidebar-drawer/);
-  assert.match(cssSource, /sidebar-shell-drawer/);
+  assert.match(cssSource, /layout-floating-toggle/);
   assert.match(cssSource, /min-width: 1024px/);
 
   console.log("Sidebar responsive layout rules passed");

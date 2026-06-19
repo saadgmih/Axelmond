@@ -4,10 +4,10 @@ import { Course, DEFAULT_STUDENT_LABEL } from "../types";
 import { AppUser } from "./AuthScreen";
 import { getRoleLabel, getTeacherRoleBadgeTone } from "../rbac";
 import LogoSymbol from "./LogoSymbol";
+import { LayoutFloatingToggle } from "./LayoutFloatingToggle";
 import { useTvNavigation } from "../hooks/useTvNavigation";
 import { useSidebarConversations } from "../hooks/useSidebarConversations";
 import { useSidebarLayout } from "../hooks/useSidebarLayout";
-import { useDraggableFloatingControl } from "../hooks/useDraggableFloatingControl";
 import {
   getSidebarNavItems,
   getSidebarRoleIcon,
@@ -74,15 +74,6 @@ export default function Sidebar({
   const canToggleSidebar = Boolean(onToggleSidebarCollapsed);
   const isDockedHidden = !isDrawer && canToggleSidebar && isSidebarCollapsed;
   const isDockedVisible = !isDrawer && !isDockedHidden;
-
-  const floatingToggleDefault = useMemo(
-    () => ({ x: 12, y: isDrawer ? 164 : 152 }),
-    [isDrawer],
-  );
-  const floatingToggleDrag = useDraggableFloatingControl(
-    "axelmond_sidebar_toggle_position",
-    floatingToggleDefault,
-  );
 
   useEffect(() => {
     if (!isDrawer || !isMobileMenuOpen) return;
@@ -261,48 +252,54 @@ export default function Sidebar({
     onToggleSidebarCollapsed?.();
   };
 
+  const sidebarToggleIcon = isDrawer ? (
+    isMobileMenuOpen ? (
+      <PanelLeftClose className="layout-collapse-toggle-icon" aria-hidden="true" />
+    ) : (
+      <PanelLeftOpen className="layout-collapse-toggle-icon" aria-hidden="true" />
+    )
+  ) : isDockedHidden ? (
+    <PanelLeftOpen className="layout-collapse-toggle-icon" aria-hidden="true" />
+  ) : (
+    <PanelLeftClose className="layout-collapse-toggle-icon" aria-hidden="true" />
+  );
+
+  const sidebarToggleLabel = isDrawer
+    ? isMobileMenuOpen
+      ? "Fermer la barre latérale"
+      : "Ouvrir la barre latérale"
+    : isDockedHidden
+      ? "Afficher la barre latérale"
+      : "Masquer la barre latérale";
+
   const sidebarToggleButton = (variant: "hidden" | "attached") => {
     if (!canToggleSidebar) return null;
 
-    const isHiddenFloating = variant === "hidden";
+    if (variant === "hidden") {
+      return (
+        <LayoutFloatingToggle
+          anchor="sidebar"
+          storageKey="axelmond_sidebar_toggle_position"
+          ariaLabel={sidebarToggleLabel}
+          ariaPressed={isDrawer ? isMobileMenuOpen : isDockedHidden}
+          title="Glisser pour déplacer, cliquer pour basculer la barre latérale"
+          onActivate={handleSidebarToggle}
+          className="sidebar-collapse-toggle"
+        >
+          {sidebarToggleIcon}
+        </LayoutFloatingToggle>
+      );
+    }
 
     return (
       <button
         type="button"
-        onClick={() => {
-          if (isHiddenFloating && floatingToggleDrag.consumeDragClick()) return;
-          handleSidebarToggle();
-        }}
-        style={isHiddenFloating ? floatingToggleDrag.style : undefined}
-        {...(isHiddenFloating ? floatingToggleDrag.pointerHandlers : {})}
-        className={`layout-collapse-toggle sidebar-collapse-toggle kbd-nav-focus ${
-          isHiddenFloating
-            ? "sidebar-collapse-toggle--hidden sidebar-collapse-toggle--hidden-draggable"
-            : "sidebar-collapse-toggle--attached"
-        }`}
-        aria-label={
-          isDrawer
-            ? isMobileMenuOpen
-              ? "Fermer la barre latérale"
-              : "Ouvrir la barre latérale"
-            : isDockedHidden
-              ? "Afficher la barre latérale"
-              : "Masquer la barre latérale"
-        }
+        onClick={handleSidebarToggle}
+        className="layout-collapse-toggle sidebar-collapse-toggle sidebar-collapse-toggle--attached kbd-nav-focus"
+        aria-label={sidebarToggleLabel}
         aria-pressed={isDrawer ? isMobileMenuOpen : isDockedHidden}
-        title={isHiddenFloating ? "Glisser pour déplacer, cliquer pour basculer la barre latérale" : undefined}
       >
-        {isDrawer ? (
-          isMobileMenuOpen ? (
-            <PanelLeftClose className="layout-collapse-toggle-icon" aria-hidden="true" />
-          ) : (
-            <PanelLeftOpen className="layout-collapse-toggle-icon" aria-hidden="true" />
-          )
-        ) : isDockedHidden ? (
-          <PanelLeftOpen className="layout-collapse-toggle-icon" aria-hidden="true" />
-        ) : (
-          <PanelLeftClose className="layout-collapse-toggle-icon" aria-hidden="true" />
-        )}
+        {sidebarToggleIcon}
       </button>
     );
   };

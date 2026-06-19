@@ -614,38 +614,24 @@ body {
   pointer-events: none;
 }
 
-.sidebar-shell-drawer .sidebar-collapse-toggle--hidden,
+.sidebar-shell-drawer .layout-floating-toggle--sidebar,
 .sidebar-shell-drawer .sidebar-drawer {
   pointer-events: auto;
 }
 
-.sidebar-collapse-toggle--hidden {
+.layout-floating-toggle {
   position: fixed;
-  z-index: 90;
+  z-index: 95;
   touch-action: none;
-}
-
-.sidebar-collapse-toggle--hidden-draggable {
   cursor: grab;
 }
 
-.sidebar-collapse-toggle--hidden-draggable:active {
+.layout-floating-toggle:active {
   cursor: grabbing;
 }
 
 .topbar-collapse-toggle {
-  position: absolute;
-  right: -0.625rem;
-  top: 50%;
-  z-index: 50;
-  transform: translateY(-50%);
-}
-
-.platform-topbar-shell-collapsed .topbar-collapse-toggle {
-  position: relative;
-  right: auto;
-  top: auto;
-  transform: none;
+  /* Marker class for topbar floating toggle */
 }
 
 .a11y-high-contrast .layout-collapse-toggle {
