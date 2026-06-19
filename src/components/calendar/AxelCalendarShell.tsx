@@ -52,6 +52,9 @@ const viewIcons: Record<CalendarViewMode, typeof Grid3X3> = {
   day: CalendarDays,
 };
 
+const addActionButtonClass =
+  "inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 px-3 py-2 text-xs font-bold text-white shadow-lg shadow-indigo-950/30 transition-all hover:from-indigo-500 hover:to-cyan-500 active:scale-[0.98]";
+
 function sessionsForDay(
   sessions: CalendarSessionMarker[],
   date: Date,
@@ -275,7 +278,7 @@ export default function AxelCalendarShell({
             {onAddSession && (
               <button
                 type="button"
-                className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-slate-200 hover:bg-white/10"
+                className={addActionButtonClass}
                 onClick={onAddSession}
               >
                 <Plus className="h-4 w-4" />
@@ -285,7 +288,7 @@ export default function AxelCalendarShell({
             {onAddObjective && (
               <button
                 type="button"
-                className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-indigo-400/20 bg-indigo-500/10 px-3 py-2 text-xs font-bold text-indigo-100 hover:bg-indigo-500/20"
+                className={addActionButtonClass}
                 onClick={onAddObjective}
               >
                 <Plus className="h-4 w-4" />
@@ -359,7 +362,7 @@ export default function AxelCalendarShell({
                     {onCreateSessionForDay && (
                       <button
                         type="button"
-                        className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-slate-200 hover:bg-white/10"
+                        className={addActionButtonClass}
                         onClick={() =>
                           onCreateSessionForDay(focusDate, dateToScheduleDayOfWeek(focusDate))
                         }
@@ -371,7 +374,7 @@ export default function AxelCalendarShell({
                     {onCreateObjectiveForDay && (
                       <button
                         type="button"
-                        className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-indigo-400/20 bg-indigo-500/10 px-3 py-2 text-xs font-bold text-indigo-100 hover:bg-indigo-500/20"
+                        className={addActionButtonClass}
                         onClick={() => onCreateObjectiveForDay(focusDate, dateToScheduleDayOfWeek(focusDate))}
                       >
                         <Plus className="h-4 w-4" />
