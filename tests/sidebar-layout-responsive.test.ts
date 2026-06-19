@@ -16,7 +16,8 @@ rulesTest("sidebar-layout-responsive", () => {
   assert.match(sidebarSource, /sidebar-collapse-toggle/);
   assert.match(sidebarSource, /isDockedHidden/);
   assert.match(sidebarSource, /isDockedVisible/);
-  assert.match(sidebarSource, /closeDrawer/);
+  assert.match(sidebarSource, /useDraggableFloatingControl/);
+  assert.match(sidebarSource, /sidebar-collapse-toggle--hidden-draggable/);
   assert.doesNotMatch(sidebarSource, /isSidebarHidden/);
   assert.match(sidebarSource, /lg:relative/);
   assert.doesNotMatch(sidebarSource, /md:relative/);

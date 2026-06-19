@@ -7,6 +7,7 @@ import LogoSymbol from "./LogoSymbol";
 import { useTvNavigation } from "../hooks/useTvNavigation";
 import { useSidebarConversations } from "../hooks/useSidebarConversations";
 import { useSidebarLayout } from "../hooks/useSidebarLayout";
+import { useDraggableFloatingControl } from "../hooks/useDraggableFloatingControl";
 import {
   getSidebarNavItems,
   getSidebarRoleIcon,
@@ -73,6 +74,15 @@ export default function Sidebar({
   const canToggleSidebar = Boolean(onToggleSidebarCollapsed);
   const isDockedHidden = !isDrawer && canToggleSidebar && isSidebarCollapsed;
   const isDockedVisible = !isDrawer && !isDockedHidden;
+
+  const floatingToggleDefault = useMemo(
+    () => ({ x: 12, y: isDrawer ? 164 : 152 }),
+    [isDrawer],
+  );
+  const floatingToggleDrag = useDraggableFloatingControl(
+    "axelmond_sidebar_toggle_position",
+    floatingToggleDefault,
+  );
 
   useEffect(() => {
     if (!isDrawer || !isMobileMenuOpen) return;
@@ -251,20 +261,36 @@ export default function Sidebar({
     onToggleSidebarCollapsed?.();
   };
 
-  const sidebarToggleButton = (variant: "hidden" | "attached") =>
-    canToggleSidebar ? (
+  const sidebarToggleButton = (variant: "hidden" | "attached") => {
+    if (!canToggleSidebar) return null;
+
+    const isHiddenFloating = variant === "hidden";
+
+    return (
       <button
         type="button"
-        onClick={handleSidebarToggle}
+        onClick={() => {
+          if (isHiddenFloating && floatingToggleDrag.consumeDragClick()) return;
+          handleSidebarToggle();
+        }}
+        style={isHiddenFloating ? floatingToggleDrag.style : undefined}
+        {...(isHiddenFloating ? floatingToggleDrag.pointerHandlers : {})}
         className={`layout-collapse-toggle sidebar-collapse-toggle kbd-nav-focus ${
-          variant === "hidden"
-            ? `sidebar-collapse-toggle--hidden ${
-                isDrawer ? "sidebar-collapse-toggle--hidden-drawer" : "sidebar-collapse-toggle--hidden-docked"
-              }`
+          isHiddenFloating
+            ? "sidebar-collapse-toggle--hidden sidebar-collapse-toggle--hidden-draggable"
             : "sidebar-collapse-toggle--attached"
         }`}
-        aria-label={isDrawer ? (isMobileMenuOpen ? "Fermer la barre latérale" : "Ouvrir la barre latérale") : isDockedHidden ? "Afficher la barre latérale" : "Masquer la barre latérale"}
+        aria-label={
+          isDrawer
+            ? isMobileMenuOpen
+              ? "Fermer la barre latérale"
+              : "Ouvrir la barre latérale"
+            : isDockedHidden
+              ? "Afficher la barre latérale"
+              : "Masquer la barre latérale"
+        }
         aria-pressed={isDrawer ? isMobileMenuOpen : isDockedHidden}
+        title={isHiddenFloating ? "Glisser pour déplacer, cliquer pour basculer la barre latérale" : undefined}
       >
         {isDrawer ? (
           isMobileMenuOpen ? (
@@ -278,7 +304,8 @@ export default function Sidebar({
           <PanelLeftClose className="layout-collapse-toggle-icon" aria-hidden="true" />
         )}
       </button>
-    ) : null;
+    );
+  };
 
   const renderSidebarPanel = (mode: "drawer" | "docked") => (
     <>
