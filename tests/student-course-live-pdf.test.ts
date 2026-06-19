@@ -38,7 +38,11 @@ rulesTest("student-course-live-pdf", () => {
   assert.doesNotMatch(pdfViewerSource, /Ajuster à la page/);
   assert.doesNotMatch(pdfViewerSource, /renderHeight|height=\{renderHeight\}/);
   assert.match(pdfViewerSource, /const renderWidth = Math\.round\(baseReadingWidth \* scale\)/);
-  assert.match(pdfViewerSource, /scale === 1 \? "Largeur"/);
+  assert.match(pdfViewerSource, /handlePdfFitWidth/);
+  assert.match(pdfViewerSource, /touch-target/);
+  assert.match(pdfViewerSource, /pointer-events-none absolute inset-0/);
+  assert.match(pdfViewerSource, /isPseudoFullscreen/);
+  assert.doesNotMatch(pdfViewerSource, /download=\{title \|\| "document\.pdf"\}/);
   assert.match(
     studentCourseViewSource,
     /selectedLessonContent\.type !== "VIDEO" &&\s*selectedLessonContent\.type !== "IMAGE"/,

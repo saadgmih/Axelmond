@@ -37,6 +37,7 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
 
   const [scale, setScale] = useState(1.0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isPseudoFullscreen, setIsPseudoFullscreen] = useState(false);
   const [imageViewMode, setImageViewMode] = useState<ImageViewMode>("width");
   const [imageNaturalSize, setImageNaturalSize] = useState({ width: 0, height: 0 });
   const [isImagePanning, setIsImagePanning] = useState(false);
@@ -90,25 +91,48 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
     });
     observer.observe(containerRef.current);
     return () => observer.disconnect();
-  }, [loading]);
+  }, [loading, blobUrl, mediaType]);
 
   // Handle Fullscreen changes
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      const active = !!document.fullscreenElement;
+      setIsFullscreen(active);
+      if (!active) setIsPseudoFullscreen(false);
     };
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
   }, []);
 
-  function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-      wrapperRef.current?.requestFullscreen().catch((err) => {
-        console.error("Error attempting to enable fullscreen:", err);
-      });
-    } else {
-      document.exitFullscreen();
+  useEffect(() => {
+    if (!isPseudoFullscreen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isPseudoFullscreen]);
+
+  const isExpandedView = isFullscreen || isPseudoFullscreen;
+  const toolbarButtonClass =
+    "touch-target inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-slate-300 transition-colors cursor-pointer hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed";
+
+  function exitExpandedView() {
+    setIsPseudoFullscreen(false);
+    if (document.fullscreenElement) {
+      void document.exitFullscreen();
     }
+  }
+
+  function toggleFullscreen() {
+    if (isExpandedView) {
+      exitExpandedView();
+      return;
+    }
+
+    wrapperRef.current?.requestFullscreen().catch(() => {
+      setIsPseudoFullscreen(true);
+    });
   }
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
@@ -132,6 +156,10 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
 
   function handleZoomOut() {
     setScale((prev) => Math.max(prev - 0.25, mediaType === "IMAGE" ? 0.25 : 0.5));
+  }
+
+  function handlePdfFitWidth() {
+    setScale(1.0);
   }
 
   function centerImageStage() {
@@ -242,7 +270,7 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
   useEffect(() => {
     if (mediaType !== "IMAGE" || !imageRenderWidth || !imageRenderHeight) return;
     centerImageStage();
-  }, [mediaType, imageRenderWidth, imageRenderHeight, isFullscreen]);
+  }, [mediaType, imageRenderWidth, imageRenderHeight, isExpandedView]);
 
   if (loading) {
     return (
@@ -277,9 +305,13 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
     return (
       <div
         ref={wrapperRef}
-        className={`flex flex-col rounded-2xl border border-slate-200 bg-slate-950 shadow-lg overflow-hidden select-none transition-all ${isFullscreen ? "h-screen rounded-none border-none" : "h-[75vh]"}`}
+        className={`flex flex-col rounded-2xl border border-slate-200 bg-slate-950 shadow-lg overflow-hidden select-none transition-all ${isExpandedView ? "fixed inset-0 z-[120] h-[100dvh] w-full rounded-none border-none" : "h-[75vh]"}`}
       >
-        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 bg-slate-900 text-slate-200 border-b border-slate-800 z-20 shadow-md">
+        <div
+          className="sticky top-0 z-30 flex flex-wrap items-center justify-center gap-2 border-b border-slate-800 bg-slate-900 px-3 py-2 text-slate-200 shadow-md sm:justify-between sm:gap-3 sm:px-4 sm:py-3"
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={(event) => event.stopPropagation()}
+        >
           <div className="flex min-w-0 items-center gap-2 bg-slate-800/80 rounded-lg p-1.5 border border-slate-700/50">
             <Camera className="h-4 w-4 shrink-0 text-indigo-300" />
             <span className="max-w-[14rem] truncate px-1 text-xs font-semibold text-slate-200">{title}</span>
@@ -290,7 +322,7 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
               <button
                 type="button"
                 onClick={handleZoomOut}
-                className="p-1.5 rounded-md hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
+                className={toolbarButtonClass}
                 title="Zoom arrière"
               >
                 <ZoomOut className="w-4 h-4" />
@@ -301,7 +333,7 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
               <button
                 type="button"
                 onClick={handleZoomIn}
-                className="p-1.5 rounded-md hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
+                className={toolbarButtonClass}
                 title="Zoom avant"
               >
                 <ZoomIn className="w-4 h-4" />
@@ -357,7 +389,7 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
             <button
               type="button"
               onClick={toggleFullscreen}
-              className="p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700/50 text-slate-300 transition-colors cursor-pointer"
+              className={`${toolbarButtonClass} rounded-lg border border-slate-700/50 bg-slate-800/80`}
               title="Plein écran"
             >
               <Maximize className="w-4 h-4" />
@@ -422,86 +454,78 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
   return (
     <div
       ref={wrapperRef}
-      className={`flex flex-col rounded-2xl border border-slate-200 bg-slate-950 shadow-lg overflow-hidden select-none transition-all ${isFullscreen ? "h-screen rounded-none border-none" : "h-[75vh]"}`}
+      className={`flex flex-col rounded-2xl border border-slate-200 bg-slate-950 shadow-lg overflow-hidden select-none transition-all ${isExpandedView ? "fixed inset-0 z-[120] h-[100dvh] w-full rounded-none border-none" : "h-[75vh]"}`}
     >
-      {/* Enterprise Toolbar */}
-      <div className="flex items-center justify-between px-4 py-3 bg-slate-900 text-slate-200 border-b border-slate-800 z-20 shadow-md">
-        {/* Pagination Controls */}
-        <div className="flex items-center gap-2 bg-slate-800/80 rounded-lg p-1 border border-slate-700/50">
+      <div
+        className="sticky top-0 z-30 flex flex-wrap items-center justify-center gap-2 border-b border-slate-800 bg-slate-900 px-3 py-2 text-slate-200 shadow-md sm:justify-between sm:gap-3 sm:px-4 sm:py-3"
+        onPointerDown={(event) => event.stopPropagation()}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-center gap-1 rounded-lg border border-slate-700/50 bg-slate-800/80 p-1">
           <button
+            type="button"
             onClick={() => changePage(-1)}
             disabled={pageNumber <= 1}
-            className="p-1.5 rounded-md hover:bg-slate-700 text-slate-300 disabled:opacity-30 disabled:hover:bg-transparent transition-colors cursor-pointer"
+            className={toolbarButtonClass}
             title="Page précédente"
+            aria-label="Page précédente"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <span className="px-2 text-sm font-semibold font-mono text-slate-200 min-w-[5rem] text-center">
-            {pageNumber} <span className="text-slate-500 mx-0.5">/</span> {numPages || "?"}
+          <span className="min-w-[5rem] px-2 text-center text-sm font-semibold font-mono text-slate-200">
+            {pageNumber} <span className="mx-0.5 text-slate-500">/</span> {numPages || "?"}
           </span>
           <button
+            type="button"
             onClick={() => changePage(1)}
             disabled={!numPages || pageNumber >= numPages}
-            className="p-1.5 rounded-md hover:bg-slate-700 text-slate-300 disabled:opacity-30 disabled:hover:bg-transparent transition-colors cursor-pointer"
+            className={toolbarButtonClass}
             title="Page suivante"
+            aria-label="Page suivante"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Zoom & View Controls */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center bg-slate-800/80 rounded-lg p-1 border border-slate-700/50">
-            <button
-              onClick={handleZoomOut}
-              className="p-1.5 rounded-md hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
-              title="Zoom arrière"
-            >
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+          <div className="flex items-center rounded-lg border border-slate-700/50 bg-slate-800/80 p-1">
+            <button type="button" onClick={handleZoomOut} className={toolbarButtonClass} title="Zoom arrière" aria-label="Zoom arrière">
               <ZoomOut className="w-4 h-4" />
             </button>
-            <span className="px-2 text-xs font-mono font-bold text-slate-300 min-w-[4rem] text-center">
-              {zoomLabel}
-            </span>
             <button
-              onClick={handleZoomIn}
-              className="p-1.5 rounded-md hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
-              title="Zoom avant"
+              type="button"
+              onClick={handlePdfFitWidth}
+              className={`min-h-[44px] rounded-md px-2 text-xs font-mono font-bold transition-colors ${
+                scale === 1 ? "bg-indigo-600 text-white" : "text-slate-300 hover:bg-slate-700"
+              }`}
+              title="Ajuster à la largeur"
+              aria-label="Ajuster à la largeur"
             >
+              {zoomLabel}
+            </button>
+            <button type="button" onClick={handleZoomIn} className={toolbarButtonClass} title="Zoom avant" aria-label="Zoom avant">
               <ZoomIn className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="w-px h-6 bg-slate-700 mx-1"></div>
-
           <button
+            type="button"
             onClick={toggleFullscreen}
-            className="p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700/50 text-slate-300 transition-colors cursor-pointer"
+            className={`${toolbarButtonClass} rounded-lg border border-slate-700/50 bg-slate-800/80`}
             title="Plein écran"
+            aria-label="Plein écran"
           >
             <Maximize className="w-4 h-4" />
           </button>
-
-          <div className="w-px h-6 bg-slate-700 mx-1"></div>
-
-          <a
-            href={blobUrl || "#"}
-            download={title || "document.pdf"}
-            className="p-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 border border-indigo-500/50 text-white transition-colors cursor-pointer flex items-center gap-2"
-            title="Télécharger le document"
-          >
-            <Download className="w-4 h-4" />
-            <span className="text-xs font-semibold hidden sm:inline">Télécharger</span>
-          </a>
         </div>
       </div>
 
-      {/* PDF Canvas Area with Scrollbars */}
       <div
         ref={containerRef}
-        className="flex-1 overflow-auto bg-slate-900/95 flex flex-col items-center justify-start p-4"
-        onContextMenu={(e) => e.preventDefault()}
+        className="flex-1 overflow-auto bg-slate-900/95 p-4 [-webkit-overflow-scrolling:touch]"
+        onContextMenu={(event) => event.preventDefault()}
       >
-        <div className="relative shadow-2xl ring-1 ring-white/10 w-fit mx-auto transition-transform duration-200">
+        <div className="relative mx-auto w-fit shadow-2xl ring-1 ring-white/10 transition-transform duration-200">
           <Document
             file={blobUrl}
             onLoadSuccess={onDocumentLoadSuccess}
@@ -511,12 +535,13 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
               </div>
             }
             error={
-              <div className="flex h-[50vh] w-full items-center justify-center text-rose-500 text-sm font-semibold">
+              <div className="flex h-[50vh] w-full items-center justify-center text-sm font-semibold text-rose-500">
                 Impossible de lire ce PDF.
               </div>
             }
           >
             <Page
+              key={`${pageNumber}-${renderWidth}`}
               pageNumber={pageNumber}
               width={renderWidth}
               className="bg-white"
@@ -524,8 +549,7 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
               renderAnnotationLayer={false}
             />
           </Document>
-          {/* Protection overlay */}
-          <div className="absolute inset-0 z-10" />
+          <div className="pointer-events-none absolute inset-0 z-10" aria-hidden="true" />
         </div>
       </div>
     </div>
