@@ -6,12 +6,14 @@ import {
   FileText,
   HelpCircle,
   Info,
-  List,
+  PanelLeftClose,
+  PanelLeftOpen,
   PlayCircle,
   Video,
   X,
 } from "lucide-react";
 import AITutorChat from "../../components/AITutorChat";
+import { LayoutFloatingToggle } from "../../components/LayoutFloatingToggle";
 import PdfLessonViewer from "../../components/PdfLessonViewer";
 import PremiumVideoPlayer from "../../components/PremiumVideoPlayer";
 import { lessonContentIdFromModule } from "../../course-curriculum-utils";
@@ -244,6 +246,24 @@ export default function StudentCourseView({
 
   return (
     <div className="flex flex-col lg:flex-row h-full min-h-0 overflow-hidden">
+      <div className="lg:hidden">
+        <LayoutFloatingToggle
+          anchor="module"
+          storageKey="axelmond_module_plan_toggle_position"
+          ariaLabel={isModuleDrawerOpen ? "Fermer le plan du cours" : "Ouvrir le plan du cours"}
+          ariaPressed={isModuleDrawerOpen}
+          title="Glisser pour déplacer, cliquer pour basculer le plan du cours"
+          onActivate={() => setIsModuleDrawerOpen((open) => !open)}
+          className="module-plan-collapse-toggle"
+        >
+          {isModuleDrawerOpen ? (
+            <PanelLeftClose className="layout-collapse-toggle-icon" aria-hidden="true" />
+          ) : (
+            <PanelLeftOpen className="layout-collapse-toggle-icon" aria-hidden="true" />
+          )}
+        </LayoutFloatingToggle>
+      </div>
+
       {isModuleDrawerOpen && (
         <button
           type="button"
@@ -275,18 +295,6 @@ export default function StudentCourseView({
 
       {/* Central Module Lesson space */}
       <div className="flex-1 bg-white overflow-y-auto flex flex-col min-w-0 min-h-0">
-        <div className="lg:hidden sticky top-0 z-20 flex items-center gap-2 px-4 py-3 border-b border-slate-100 bg-white/95 backdrop-blur-sm">
-          <button
-            type="button"
-            onClick={() => setIsModuleDrawerOpen(true)}
-            className="touch-target inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
-          >
-            <List className="w-4 h-4" />
-            Plan du cours
-          </button>
-          <span className="text-xs font-bold text-slate-500 truncate">{selectedModule.title}</span>
-        </div>
-
         <div className="p-4 sm:p-6 md:p-8 space-y-6 flex-1">
           {/* Lesson Context Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">

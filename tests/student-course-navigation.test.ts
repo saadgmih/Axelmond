@@ -23,5 +23,8 @@ rulesTest("student-course-navigation", () => {
   assert.doesNotMatch(studentCourseViewSource, /Contenus publiés/);
   assert.match(studentCourseViewSource, /selectedLessonContent/);
   assert.match(studentCourseViewSource, /lessonContentIdFromModule/);
+  assert.match(studentCourseViewSource, /LayoutFloatingToggle/);
+  assert.match(studentCourseViewSource, /module-plan-collapse-toggle/);
+  assert.doesNotMatch(studentCourseViewSource, /lg:hidden sticky top-0/);
   assert.match(studentCourseViewSource, /!selectedLessonContent[\s\S]*?selectedModule\.type === "video"/);
 });

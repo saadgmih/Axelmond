@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 
-export type FloatingAnchor = "sidebar" | "topbar";
+export type FloatingAnchor = "sidebar" | "topbar" | "module";
 
 export interface FloatingPoint {
   x: number;
@@ -19,6 +19,7 @@ const CONTROL_SIZE_PX = 24;
 const DEFAULT_RATIOS: Record<FloatingAnchor, NormalizedPoint> = {
   sidebar: { xRatio: 0.03, yRatio: 0.2 },
   topbar: { xRatio: 0.92, yRatio: 0.05 },
+  module: { xRatio: 0.03, yRatio: 0.34 },
 };
 
 const positionCache = new Map<string, NormalizedPoint>();
