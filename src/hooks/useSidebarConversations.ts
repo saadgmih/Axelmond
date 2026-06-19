@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
 import type { ConversationSummary } from "../types/messaging";
-
-const SIDEBAR_CONVERSATION_LIMIT = 4;
+import { selectSidebarUnreadConversations } from "../sidebar-conversations";
 
 export function useSidebarConversations(enabled: boolean) {
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
@@ -19,7 +18,7 @@ export function useSidebarConversations(enabled: boolean) {
       .getConversations()
       .then((items) => {
         if (cancelled || !Array.isArray(items)) return;
-        setConversations(items.slice(0, SIDEBAR_CONVERSATION_LIMIT));
+        setConversations(selectSidebarUnreadConversations(items));
       })
       .catch(() => {
         if (!cancelled) setConversations([]);
