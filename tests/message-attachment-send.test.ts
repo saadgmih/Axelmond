@@ -18,6 +18,8 @@ rulesTest("message-attachment-send", () => {
   assert.doesNotMatch(messagesSource, /<audio controls/);
   assert.match(messagesSource, /MessageVideoAttachment/);
   assert.doesNotMatch(messagesSource, /PremiumVideoPlayer/);
+  assert.match(videoAttachmentSource, /createPortal/);
+  assert.match(videoAttachmentSource, /z-\[200\]/);
   assert.match(videoAttachmentSource, /showMetadata=\{false\}/);
   assert.match(videoAttachmentSource, /Vidéo/);
   assert.match(audioPlayerSource, /rounded-full/);

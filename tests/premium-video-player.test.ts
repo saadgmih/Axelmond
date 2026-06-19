@@ -29,6 +29,7 @@ rulesTest("premium-video-player", () => {
   assert.match(playerSource, /controlsVisible/);
   assert.match(playerSource, /setTimeout[\s\S]*1600/);
   assert.match(playerSource, /showMetadata/);
+  assert.match(playerSource, /if \(isPlaying && showMetadata\)/);
   assert.match(playerSource, /Vitesse/);
   assert.match(playerSource, /COURSE_VIDEO_PLAYBACK_RATES\.map/);
   assert.match(playerSource, /aria-label="Volume vidéo"/);

@@ -1,4 +1,5 @@
 import { useEffect, useId, useState } from "react";
+import { createPortal } from "react-dom";
 import { PlayCircle, Video, X } from "lucide-react";
 import PremiumVideoPlayer from "../PremiumVideoPlayer";
 
@@ -9,7 +10,12 @@ interface MessageVideoAttachmentProps {
 
 export function MessageVideoAttachment({ url, role }: MessageVideoAttachmentProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const titleId = useId();
+
+  useEffect(() => {
+    setPortalTarget(document.body);
+  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -31,6 +37,50 @@ export function MessageVideoAttachment({ url, role }: MessageVideoAttachmentProp
 
   const playButtonClass =
     role === "student" ? "text-indigo-300 fill-indigo-300" : "text-pink-300 fill-pink-300";
+
+  const modal =
+    isOpen && portalTarget
+      ? createPortal(
+          <div
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 p-4 sm:p-6 backdrop-blur-sm"
+            onClick={() => setIsOpen(false)}
+            role="presentation"
+          >
+            <div
+              className="flex w-full max-w-5xl max-h-[calc(100dvh-2rem)] flex-col"
+              onClick={(event) => event.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby={titleId}
+            >
+              <div className="mb-3 flex shrink-0 items-center justify-between gap-3">
+                <h3 id={titleId} className="text-sm font-bold text-white">
+                  Lecture vidéo
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  aria-label="Fermer la vidéo"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-200 transition-colors hover:bg-white/10"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="min-h-0 flex-1 overflow-hidden rounded-2xl">
+                <PremiumVideoPlayer
+                  key={`message-video-${url}`}
+                  src={url}
+                  title="Vidéo"
+                  instructor=""
+                  activeSector={role}
+                  showMetadata={false}
+                />
+              </div>
+            </div>
+          </div>,
+          portalTarget,
+        )
+      : null;
 
   return (
     <>
@@ -56,43 +106,7 @@ export function MessageVideoAttachment({ url, role }: MessageVideoAttachmentProp
           </span>
         </div>
       </button>
-
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm"
-          onClick={() => setIsOpen(false)}
-          role="presentation"
-        >
-          <div
-            className="w-full max-w-4xl"
-            onClick={(event) => event.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={titleId}
-          >
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <h3 id={titleId} className="text-sm font-bold text-white">
-                Lecture vidéo
-              </h3>
-              <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                aria-label="Fermer la vidéo"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-200 transition-colors hover:bg-white/10"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <PremiumVideoPlayer
-              src={url}
-              title="Vidéo"
-              instructor=""
-              activeSector={role}
-              showMetadata={false}
-            />
-          </div>
-        </div>
-      )}
+      {modal}
     </>
   );
 }

@@ -54,12 +54,12 @@ export default function PremiumVideoPlayer({
     setControlsVisible(true);
     clearHideControlsTimeout();
 
-    if (isPlaying) {
+    if (isPlaying && showMetadata) {
       hideControlsTimeoutRef.current = window.setTimeout(() => {
         setControlsVisible(false);
       }, 1600);
     }
-  }, [clearHideControlsTimeout, isPlaying]);
+  }, [clearHideControlsTimeout, isPlaying, showMetadata]);
 
   useEffect(() => {
     if (!isPlaying) {
@@ -77,8 +77,10 @@ export default function PremiumVideoPlayer({
     togglePlay();
   };
 
-  const chromeVisible = !isPlaying || controlsVisible;
+  const chromeVisible = !isPlaying || controlsVisible || !showMetadata;
   const volumePercent = Math.round(volume * 100);
+  const overlayButtonClass = showMetadata ? "w-20 h-20" : "w-14 h-14";
+  const overlayIconClass = showMetadata ? "w-10 h-10" : "w-7 h-7";
 
   return (
     <div
@@ -106,9 +108,9 @@ export default function PremiumVideoPlayer({
             <button
               type="button"
               onClick={togglePlay}
-              className="w-20 h-20 bg-white/95 text-indigo-900 rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-slate-100 hover:scale-105 transition-all"
+              className={`${overlayButtonClass} bg-white/95 text-indigo-900 rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-slate-100 hover:scale-105 transition-all`}
             >
-              <PlayCircle className={`w-10 h-10 ml-0.5 ${playButtonThemeClass}`} />
+              <PlayCircle className={`${overlayIconClass} ml-0.5 ${playButtonThemeClass}`} />
             </button>
             {showMetadata && (
               <p className="max-w-[90%] truncate text-white text-xs font-bold font-mono tracking-wide bg-slate-900/80 px-3 py-1.5 rounded-lg border border-slate-700/50 shadow-sm animate-in fade-in duration-200">
@@ -120,10 +122,10 @@ export default function PremiumVideoPlayer({
           <button
             type="button"
             onClick={togglePlay}
-            className="w-20 h-20 rounded-full bg-white/95 text-slate-950 flex items-center justify-center cursor-pointer shadow-lg hover:bg-slate-100 hover:scale-105 transition-all"
+            className={`${overlayButtonClass} rounded-full bg-white/95 text-slate-950 flex items-center justify-center cursor-pointer shadow-lg hover:bg-slate-100 hover:scale-105 transition-all`}
             title="Mettre en pause"
           >
-            <PauseCircle className="w-10 h-10" />
+            <PauseCircle className={overlayIconClass} />
           </button>
         )}
       </div>
