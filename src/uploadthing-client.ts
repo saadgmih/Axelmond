@@ -73,6 +73,8 @@ export function validateUploadFile(
       "audio/mpeg",
       "audio/wav",
       "audio/webm",
+      "audio/mp4",
+      "audio/ogg",
       "application/pdf",
       "application/msword",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

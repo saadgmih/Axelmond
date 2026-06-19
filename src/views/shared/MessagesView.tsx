@@ -15,16 +15,15 @@ import {
   Video,
   X,
 } from "lucide-react";
-import { api, getFreshSessionToken } from "../../api";
+import { api } from "../../api";
 import {
-  uploadFiles,
-  getUploadedFileUrl,
   getUploadErrorMessage,
   validateUploadFile,
-  bindUploadProgress,
   formatUploadProgressLabel,
   uploadProgressBarWidth,
 } from "../../uploadthing-client";
+import { uploadMessageAttachmentFile, type OutgoingMessageAttachment } from "../../message-attachment-upload";
+import { useMessageAudioRecorder } from "../../hooks/useMessageAudioRecorder";
 import { VirtualList } from "../../components/VirtualList";
 import { useMessagingSocket } from "../../hooks/useMessagingSocket";
 import type { ChatMessage, ConversationSummary, MessagingUser } from "../../types/messaging";
@@ -317,34 +316,38 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
     typingTimerRef.current = window.setTimeout(() => emitTypingStop(selectedId), 1200);
   };
 
-  const sendMessage = async (attachment?: ChatMessage["attachments"][0]) => {
-    if (!selectedId || sending) return;
-    const body = draft.trim();
-    if (!body && !attachment) return;
-    setSending(true);
-    setError("");
-    try {
-      const payload = await api.sendConversationMessage(selectedId, {
-        body,
-        attachment: attachment
-          ? {
-              kind: attachment.kind,
-              fileName: attachment.fileName,
-              mimeType: attachment.mimeType,
-              sizeBytes: attachment.sizeBytes,
-              url: attachment.url,
-            }
-          : null,
-      });
-      setDraft("");
-      emitTypingStop(selectedId);
-      setMessages((prev) => (prev.some((item) => item.id === payload.id) ? prev : [...prev, payload]));
-    } catch (err: any) {
-      setError(getClientErrorMessage(err, "Envoi impossible"));
-    } finally {
-      setSending(false);
-    }
-  };
+  const sendMessage = useCallback(
+    async (attachment?: OutgoingMessageAttachment) => {
+      if (!selectedId || sending) return;
+      const body = draft.trim();
+      if (!body && !attachment) return;
+      setSending(true);
+      setError("");
+      try {
+        const payload = await api.sendConversationMessage(selectedId, {
+          body,
+          attachment: attachment
+            ? {
+                kind: attachment.kind,
+                fileName: attachment.fileName,
+                mimeType: attachment.mimeType,
+                sizeBytes: attachment.sizeBytes,
+                url: attachment.url,
+                storageKey: attachment.storageKey,
+              }
+            : null,
+        });
+        setDraft("");
+        emitTypingStop(selectedId);
+        setMessages((prev) => (prev.some((item) => item.id === payload.id) ? prev : [...prev, payload]));
+      } catch (err: any) {
+        setError(getClientErrorMessage(err, "Envoi impossible"));
+      } finally {
+        setSending(false);
+      }
+    },
+    [draft, emitTypingStop, selectedId, sending],
+  );
 
   const startConversation = async (participantUserId: string) => {
     try {
@@ -362,43 +365,40 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
     }
   };
 
+  const uploadAndSendAttachment = useCallback(
+    async (file: File) => {
+      if (!selectedId || uploading) return;
+      const validationError = validateUploadFile(file, "MESSAGE");
+      if (validationError) {
+        setError(validationError);
+        return;
+      }
+      setUploading(true);
+      setUploadProgress(0);
+      setError("");
+      try {
+        const attachment = await uploadMessageAttachmentFile(file, selectedId, (progress) => setUploadProgress(progress));
+        await sendMessage(attachment);
+      } catch (err: any) {
+        setError(getClientErrorMessage(err, getUploadErrorMessage(err)));
+      } finally {
+        setUploading(false);
+        setUploadProgress(null);
+      }
+    },
+    [selectedId, uploading, sendMessage],
+  );
+
+  const audioRecorder = useMessageAudioRecorder({
+    onRecorded: uploadAndSendAttachment,
+    onError: (message) => setError(message),
+  });
+
   const handleFilePick = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     event.target.value = "";
-    if (!file || !selectedId) return;
-    const validationError = validateUploadFile(file, "MESSAGE");
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-    setUploading(true);
-    setUploadProgress(0);
-    setError("");
-    try {
-      const token = await getFreshSessionToken();
-      if (!token) throw new Error("Session expirée. Reconnectez-vous.");
-      const uploaded = await (uploadFiles as any)("messageAttachment", {
-        files: [file],
-        input: { conversationId: selectedId },
-        headers: { Authorization: `Bearer ${token}` },
-        onUploadProgress: bindUploadProgress((progress) => setUploadProgress(progress)),
-      });
-      const meta = uploaded[0]?.serverData;
-      if (!meta?.url || !meta?.kind) throw new Error(getUploadErrorMessage(uploaded[0]));
-      await sendMessage({
-        id: "pending",
-        kind: meta.kind,
-        fileName: meta.fileName || file.name,
-        mimeType: meta.mimeType || file.type,
-        sizeBytes: meta.sizeBytes || file.size,
-        url: getUploadedFileUrl(uploaded[0]) || meta.url,
-      });
-    } catch (err: any) {
-      setError(getClientErrorMessage(err, getUploadErrorMessage(err)));
-    } finally {
-      setUploading(false);
-      setUploadProgress(null);
-    }
+    if (!file) return;
+    await uploadAndSendAttachment(file);
   };
 
   const accentBtn =
@@ -553,22 +553,43 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
                     </p>
                   </div>
                 )}
+                {audioRecorder.isRecording && (
+                  <p className="mb-3 text-[11px] font-semibold text-red-300">
+                    Enregistrement vocal en cours… Cliquez à nouveau sur le micro pour envoyer.
+                  </p>
+                )}
                 <div className="flex items-end gap-2">
                   <input
                     ref={fileInputRef}
                     type="file"
                     className="hidden"
                     onChange={handleFilePick}
-                    accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,audio/mpeg,audio/wav,audio/webm,application/pdf,.doc,.docx"
+                    accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,audio/mpeg,audio/wav,audio/webm,audio/mp4,audio/ogg,application/pdf,.doc,.docx"
                   />
                   <button
                     type="button"
                     className="rounded-xl border border-white/10 bg-white/5 p-3 text-slate-200 hover:bg-white/10"
                     onClick={() => fileInputRef.current?.click()}
-                    disabled={uploading}
+                    disabled={uploading || audioRecorder.isRecording}
                     aria-label="Joindre un fichier"
                   >
                     {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Paperclip className="h-5 w-5" />}
+                  </button>
+                  <button
+                    type="button"
+                    className={`rounded-xl border p-3 transition-colors ${
+                      audioRecorder.isRecording
+                        ? "border-red-400/40 bg-red-500/15 text-red-200"
+                        : "border-white/10 bg-white/5 text-slate-200 hover:bg-white/10"
+                    }`}
+                    onClick={audioRecorder.toggleRecording}
+                    disabled={uploading || !selectedId}
+                    aria-label={
+                      audioRecorder.isRecording ? "Arrêter et envoyer le message vocal" : "Enregistrer un message vocal"
+                    }
+                    aria-pressed={audioRecorder.isRecording}
+                  >
+                    <Mic className={`h-5 w-5 ${audioRecorder.isRecording ? "animate-pulse" : ""}`} />
                   </button>
                   <textarea
                     value={draft}
