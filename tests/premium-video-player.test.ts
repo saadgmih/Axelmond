@@ -27,7 +27,9 @@ rulesTest("premium-video-player", () => {
   assert.match(playerSource, /export default function PremiumVideoPlayer/);
   assert.match(playerSource, /useCourseVideoPlayer/);
   assert.match(playerSource, /controlsVisible/);
-  assert.match(playerSource, /setTimeout[\s\S]*1600/);
+  assert.match(playerSource, /overlayVisible/);
+  assert.match(playerSource, /OVERLAY_HIDE_DELAY_MS = 500/);
+  assert.match(playerSource, /CONTROLS_HIDE_DELAY_MS = 1600/);
   assert.match(playerSource, /showMetadata/);
   assert.match(playerSource, /if \(isPlaying && showMetadata\)/);
   assert.match(playerSource, /Vitesse/);

@@ -2,6 +2,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Maximize, PauseCircle, PlayCircle, Volume2, VolumeX } from "lucide-react";
 import { COURSE_VIDEO_PLAYBACK_RATES, useCourseVideoPlayer } from "../hooks/useCourseVideoPlayer";
 
+const OVERLAY_HIDE_DELAY_MS = 500;
+const CONTROLS_HIDE_DELAY_MS = 1600;
+
 interface PremiumVideoPlayerProps {
   src: string;
   title: string;
@@ -41,7 +44,9 @@ export default function PremiumVideoPlayer({
   const playButtonThemeClass = isStudent ? "text-indigo-600 fill-indigo-600" : "text-pink-600 fill-pink-600";
   const controlFocusClass = isStudent ? "focus:ring-indigo-400" : "focus:ring-pink-400";
   const [controlsVisible, setControlsVisible] = useState(true);
+  const [overlayVisible, setOverlayVisible] = useState(true);
   const hideControlsTimeoutRef = useRef<number | null>(null);
+  const hideOverlayTimeoutRef = useRef<number | null>(null);
 
   const clearHideControlsTimeout = useCallback(() => {
     if (hideControlsTimeoutRef.current) {
@@ -50,6 +55,21 @@ export default function PremiumVideoPlayer({
     }
   }, []);
 
+  const clearHideOverlayTimeout = useCallback(() => {
+    if (hideOverlayTimeoutRef.current) {
+      window.clearTimeout(hideOverlayTimeoutRef.current);
+      hideOverlayTimeoutRef.current = null;
+    }
+  }, []);
+
+  const scheduleHideOverlay = useCallback(() => {
+    clearHideOverlayTimeout();
+    setOverlayVisible(true);
+    hideOverlayTimeoutRef.current = window.setTimeout(() => {
+      setOverlayVisible(false);
+    }, OVERLAY_HIDE_DELAY_MS);
+  }, [clearHideOverlayTimeout]);
+
   const revealControlsTemporarily = useCallback(() => {
     setControlsVisible(true);
     clearHideControlsTimeout();
@@ -57,9 +77,20 @@ export default function PremiumVideoPlayer({
     if (isPlaying && showMetadata) {
       hideControlsTimeoutRef.current = window.setTimeout(() => {
         setControlsVisible(false);
-      }, 1600);
+      }, CONTROLS_HIDE_DELAY_MS);
     }
   }, [clearHideControlsTimeout, isPlaying, showMetadata]);
+
+  useEffect(() => {
+    if (!isPlaying) {
+      clearHideOverlayTimeout();
+      setOverlayVisible(true);
+      return;
+    }
+
+    scheduleHideOverlay();
+    return clearHideOverlayTimeout;
+  }, [clearHideOverlayTimeout, isPlaying, scheduleHideOverlay]);
 
   useEffect(() => {
     if (!isPlaying) {
@@ -78,6 +109,7 @@ export default function PremiumVideoPlayer({
   };
 
   const chromeVisible = !isPlaying || controlsVisible || !showMetadata;
+  const centerOverlayVisible = !isPlaying || overlayVisible;
   const volumePercent = Math.round(volume * 100);
   const overlayButtonClass = showMetadata ? "w-20 h-20" : "w-14 h-14";
   const overlayIconClass = showMetadata ? "w-10 h-10" : "w-7 h-7";
@@ -101,7 +133,7 @@ export default function PremiumVideoPlayer({
       />
 
       <div
-        className={`absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-950/20 transition-opacity duration-300 ${chromeVisible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+        className={`absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-950/20 transition-opacity duration-300 ${centerOverlayVisible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
       >
         {!isPlaying ? (
           <div className="flex flex-col items-center gap-3">
