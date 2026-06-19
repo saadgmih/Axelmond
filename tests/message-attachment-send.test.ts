@@ -15,6 +15,8 @@ rulesTest("message-attachment-send", () => {
   assert.match(uploadSource, /storageKey/);
   assert.match(messagesSource, /MessageAudioPlayer/);
   assert.doesNotMatch(messagesSource, /<audio controls/);
+  assert.match(messagesSource, /PremiumVideoPlayer/);
+  assert.doesNotMatch(messagesSource, /<video[\s\S]*controls/);
   assert.match(audioPlayerSource, /rounded-full/);
   assert.match(audioSource, /MediaRecorder/);
 });

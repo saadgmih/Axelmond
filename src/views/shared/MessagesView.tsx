@@ -26,6 +26,7 @@ import {
 import { uploadMessageAttachmentFile, type OutgoingMessageAttachment } from "../../message-attachment-upload";
 import { useMessageAudioRecorder } from "../../hooks/useMessageAudioRecorder";
 import { MessageAudioPlayer } from "../../components/messaging/MessageAudioPlayer";
+import PremiumVideoPlayer from "../../components/PremiumVideoPlayer";
 import { canDeleteOwnMessage } from "../../message-delete-policy";
 import { VirtualList } from "../../components/VirtualList";
 import { useMessagingSocket } from "../../hooks/useMessagingSocket";
@@ -50,7 +51,7 @@ function peerInitials(name: string) {
   return name.slice(0, 2).toUpperCase();
 }
 
-function renderAttachment(message: ChatMessage, mine: boolean) {
+function renderAttachment(message: ChatMessage, role: "student" | "teacher", mine: boolean) {
   const attachment = message.attachments[0];
   if (!attachment) return null;
   if (attachment.kind === "IMAGE") {
@@ -66,14 +67,14 @@ function renderAttachment(message: ChatMessage, mine: boolean) {
   }
   if (attachment.kind === "VIDEO") {
     return (
-      <video
-        controls
-        controlsList="nodownload"
-        className="mt-2 max-h-64 max-w-full rounded-xl border border-white/10"
-        src={attachment.url}
-      >
-        <track kind="captions" />
-      </video>
+      <div className="mt-2 w-full min-w-[260px] max-w-full" onClick={(event) => event.stopPropagation()}>
+        <PremiumVideoPlayer
+          src={attachment.url}
+          title={attachment.fileName || "Vidéo"}
+          instructor={message.sender.fullName || "Axelmond"}
+          activeSector={role}
+        />
+      </div>
     );
   }
   if (attachment.kind === "AUDIO") {
@@ -147,25 +148,38 @@ const ConversationListItem = memo(function ConversationListItem({
 interface MessageBubbleProps {
   message: ChatMessage;
   mine: boolean;
+  role: "student" | "teacher";
   canDelete: boolean;
   deleting: boolean;
   onDelete: (messageId: string) => void;
 }
 
-const MessageBubble = memo(function MessageBubble({ message, mine, canDelete, deleting, onDelete }: MessageBubbleProps) {
+const MessageBubble = memo(function MessageBubble({
+  message,
+  mine,
+  role,
+  canDelete,
+  deleting,
+  onDelete,
+}: MessageBubbleProps) {
   const attachment = message.attachments[0];
   const hasBody = Boolean(message.body?.trim());
   const isAudioOnly = attachment?.kind === "AUDIO" && !hasBody;
+  const isVideoOnly = attachment?.kind === "VIDEO" && !hasBody;
 
   return (
     <div className={`group flex ${mine ? "justify-end" : "justify-start"}`}>
       <div
-        className={`relative rounded-2xl px-4 py-3 shadow-lg ${
-          isAudioOnly ? "w-auto min-w-[200px] max-w-[min(85%,280px)]" : "max-w-[85%]"
+        className={`relative rounded-2xl shadow-lg ${
+          isVideoOnly
+            ? "w-full min-w-[280px] max-w-[min(95%,440px)] p-2"
+            : isAudioOnly
+              ? "w-auto min-w-[200px] max-w-[min(85%,280px)] px-4 py-3"
+              : "max-w-[85%] px-4 py-3"
         } ${mine ? "rounded-br-md bg-indigo-600 text-white" : "rounded-bl-md border border-white/10 bg-[#0f172a] text-slate-100"}`}
       >
         {message.body && <p className="whitespace-pre-wrap text-sm">{message.body}</p>}
-        {renderAttachment(message, mine)}
+        {renderAttachment(message, role, mine)}
         <div
           className={`mt-2 flex items-center gap-1.5 text-[10px] ${mine ? "text-indigo-100/80" : "text-slate-500"}`}
         >
@@ -616,6 +630,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
                         <MessageBubble
                           message={message}
                           mine={mine}
+                          role={role}
                           canDelete={mine && canDeleteOwnMessage(message, currentUserId)}
                           deleting={deletingMessageId === message.id}
                           onDelete={handleDeleteMessage}

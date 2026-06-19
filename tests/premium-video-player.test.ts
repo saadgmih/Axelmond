@@ -19,6 +19,7 @@ rulesTest("premium-video-player", () => {
   assert.doesNotMatch(studentCourseViewSource, /isVideoPlaying/);
 
   assert.match(teacherCurriculumSource, /PremiumVideoPlayer/);
+  assert.match(readFileSync("src/views/shared/MessagesView.tsx", "utf-8"), /PremiumVideoPlayer/);
   assert.match(teacherCurriculumSource, /activeSector="teacher"/);
   assert.match(teacherCurriculumSource, /managedCourse\?\.instructor \?\? "Professeur"/);
   assert.doesNotMatch(teacherCurriculumSource, /<video controls/);
