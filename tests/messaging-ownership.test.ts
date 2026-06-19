@@ -40,13 +40,22 @@ rulesTest("messaging-ownership", () => {
   assert.equal(canAccessApiRoute("PROFESSOR", "POST", "/api/conversations"), true);
   assert.equal(canAccessApiRoute("STUDENT", "GET", "/api/conversations/abc/messages"), true);
   assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/conversations/abc/read"), true);
+  assert.equal(canAccessApiRoute("STUDENT", "DELETE", "/api/conversations/abc/messages/msg-1"), true);
   assert.equal(canAccessApiRoute("STUDENT", "GET", "/api/notifications/unread-count"), true);
   assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/notifications/push-subscribe"), true);
 
   assert.match(apiSource, /getConversations/);
   assert.match(apiSource, /sendConversationMessage/);
+  assert.match(apiSource, /deleteConversationMessage/);
   assert.match(apiSource, /getNotifications/);
   assert.match(uploadSource, /messageAttachment/);
+
+  const messagingRoutesSource = fs.readFileSync("src/routes/messaging-routes.ts", "utf8");
+  const messagesViewSource = fs.readFileSync("src/views/shared/MessagesView.tsx", "utf8");
+  assert.match(messagingRoutesSource, /canDeleteOwnMessage/);
+  assert.match(messagingRoutesSource, /message:deleted/);
+  assert.match(messagesViewSource, /deleteConversationMessage/);
+  assert.match(messagesViewSource, /canDeleteOwnMessage/);
 
   assert.match(appSource, /MessagesView/);
   assert.match(appSource, /NotificationsView/);

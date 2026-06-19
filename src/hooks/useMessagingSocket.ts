@@ -7,6 +7,7 @@ const socketBaseUrl = ((import.meta as any).env?.VITE_API_BASE_URL || "").replac
 
 export interface MessagingSocketHandlers {
   onMessage?: (message: ChatMessage) => void;
+  onMessageDeleted?: (payload: { conversationId: string; messageId: string }) => void;
   onMessageRead?: (payload: { conversationId: string; messageId: string; userId: string }) => void;
   onTyping?: (payload: { conversationId: string; userId: string; isTyping: boolean }) => void;
   onNotification?: (payload: unknown) => void;
@@ -34,6 +35,7 @@ export function useMessagingSocket(enabled: boolean, handlers: MessagingSocketHa
       socketRef.current = socket;
 
       socket.on("message:new", (payload: ChatMessage) => handlersRef.current.onMessage?.(payload));
+      socket.on("message:deleted", (payload) => handlersRef.current.onMessageDeleted?.(payload));
       socket.on("message:read", (payload) => handlersRef.current.onMessageRead?.(payload));
       socket.on("typing:update", (payload) => handlersRef.current.onTyping?.(payload));
       socket.on("notification:new", (payload) => handlersRef.current.onNotification?.(payload));

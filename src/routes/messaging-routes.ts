@@ -35,6 +35,7 @@ import {
   serializeNotification,
 } from "../notifications";
 import { toPushSubscribeClientResponse } from "../public-api-errors";
+import { canDeleteOwnMessage } from "../message-delete-policy";
 
 type AuthUser = { id: string; email: string; fullName: string; role: string };
 
@@ -394,6 +395,60 @@ export function registerMessagingRoutes(
 
     res.json({ ok: true, marked: unreadMessages.length });
   });
+
+  app.delete(
+    "/api/conversations/:id/messages/:messageId",
+    middleware.requireAuth,
+    middleware.requireRbac,
+    async (req, res) => {
+      const authUser = getAuthUser(req) as AuthUser;
+      const conversationId = String(req.params.id);
+      const messageId = String(req.params.messageId);
+
+      if (!(await isConversationParticipant(conversationId, authUser.id))) {
+        res.status(403).json({ error: "Accès refusé à cette conversation" });
+        return;
+      }
+
+      const message = await prisma.message.findFirst({
+        where: { id: messageId, conversationId },
+        select: { id: true, senderId: true, createdAt: true },
+      });
+
+      if (!message) {
+        res.status(404).json({ error: "Message introuvable" });
+        return;
+      }
+
+      if (!canDeleteOwnMessage(message, authUser.id)) {
+        res.status(403).json({
+          error: "Ce message ne peut plus être supprimé. Seuls vos messages de moins de 4 jours peuvent l'être.",
+        });
+        return;
+      }
+
+      await prisma.message.delete({ where: { id: messageId } });
+
+      const latestMessage = await prisma.message.findFirst({
+        where: { conversationId },
+        orderBy: { createdAt: "desc" },
+        include: {
+          sender: { select: { id: true, fullName: true, email: true, role: true, avatarUrl: true } },
+          attachments: true,
+          reads: true,
+        },
+      });
+
+      await prisma.conversation.update({
+        where: { id: conversationId },
+        data: { updatedAt: latestMessage?.createdAt ?? new Date() },
+      });
+
+      emitToConversation(conversationId, "message:deleted", { conversationId, messageId });
+
+      res.json({ ok: true, messageId, conversationId });
+    },
+  );
 
   app.get("/api/notifications", middleware.requireAuth, middleware.requireRbac, async (req, res) => {
     const authUser = getAuthUser(req) as AuthUser;

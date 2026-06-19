@@ -487,6 +487,11 @@ export const api = {
     request<any[]>("GET", `/api/conversations/${conversationId}/messages`),
   sendConversationMessage: (conversationId: string, data: { body?: string; attachment?: unknown }) =>
     request<any>("POST", `/api/conversations/${conversationId}/messages`, data),
+  deleteConversationMessage: (conversationId: string, messageId: string) =>
+    request<{ ok: true; messageId: string; conversationId: string }>(
+      "DELETE",
+      `/api/conversations/${conversationId}/messages/${messageId}`,
+    ),
   markConversationRead: (conversationId: string) => request<any>("POST", `/api/conversations/${conversationId}/read`),
   getNotifications: () => request<any[]>("GET", "/api/notifications"),
   getNotificationUnreadCount: () => request<{ count: number }>("GET", "/api/notifications/unread-count"),

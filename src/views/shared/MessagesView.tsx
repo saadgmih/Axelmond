@@ -12,6 +12,7 @@ import {
   Plus,
   Search,
   Send,
+  Trash2,
   Video,
   X,
 } from "lucide-react";
@@ -25,6 +26,7 @@ import {
 import { uploadMessageAttachmentFile, type OutgoingMessageAttachment } from "../../message-attachment-upload";
 import { useMessageAudioRecorder } from "../../hooks/useMessageAudioRecorder";
 import { MessageAudioPlayer } from "../../components/messaging/MessageAudioPlayer";
+import { canDeleteOwnMessage } from "../../message-delete-policy";
 import { VirtualList } from "../../components/VirtualList";
 import { useMessagingSocket } from "../../hooks/useMessagingSocket";
 import type { ChatMessage, ConversationSummary, MessagingUser } from "../../types/messaging";
@@ -145,23 +147,28 @@ const ConversationListItem = memo(function ConversationListItem({
 interface MessageBubbleProps {
   message: ChatMessage;
   mine: boolean;
+  canDelete: boolean;
+  deleting: boolean;
+  onDelete: (messageId: string) => void;
 }
 
-const MessageBubble = memo(function MessageBubble({ message, mine }: MessageBubbleProps) {
+const MessageBubble = memo(function MessageBubble({ message, mine, canDelete, deleting, onDelete }: MessageBubbleProps) {
   const attachment = message.attachments[0];
   const hasBody = Boolean(message.body?.trim());
   const isAudioOnly = attachment?.kind === "AUDIO" && !hasBody;
 
   return (
-    <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+    <div className={`group flex ${mine ? "justify-end" : "justify-start"}`}>
       <div
-        className={`rounded-2xl px-4 py-3 shadow-lg ${
+        className={`relative rounded-2xl px-4 py-3 shadow-lg ${
           isAudioOnly ? "w-auto min-w-[200px] max-w-[min(85%,280px)]" : "max-w-[85%]"
         } ${mine ? "rounded-br-md bg-indigo-600 text-white" : "rounded-bl-md border border-white/10 bg-[#0f172a] text-slate-100"}`}
       >
         {message.body && <p className="whitespace-pre-wrap text-sm">{message.body}</p>}
         {renderAttachment(message, mine)}
-        <div className={`mt-2 flex items-center gap-1 text-[10px] ${mine ? "text-indigo-100/80" : "text-slate-500"}`}>
+        <div
+          className={`mt-2 flex items-center gap-1.5 text-[10px] ${mine ? "text-indigo-100/80" : "text-slate-500"}`}
+        >
           <span>{message.sentAtLabel}</span>
           {mine &&
             (message.seenByOthers ? (
@@ -169,6 +176,20 @@ const MessageBubble = memo(function MessageBubble({ message, mine }: MessageBubb
             ) : (
               <Check className="h-3.5 w-3.5" aria-label="Envoyé" />
             ))}
+          {canDelete && (
+            <button
+              type="button"
+              onClick={() => onDelete(message.id)}
+              disabled={deleting}
+              aria-label="Supprimer ce message"
+              title="Supprimer (disponible 4 jours après l'envoi)"
+              className={`ml-1 inline-flex h-6 w-6 items-center justify-center rounded-md transition-colors disabled:opacity-50 ${
+                mine ? "text-indigo-100/80 hover:bg-white/15 hover:text-white" : "text-slate-400 hover:bg-white/10"
+              }`}
+            >
+              {deleting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -190,6 +211,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [peerTyping, setPeerTyping] = useState(false);
+  const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messagesScrollRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -232,6 +254,50 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
     }
   }, []);
 
+  const handleDeleteMessage = useCallback(
+    async (messageId: string) => {
+      if (!selectedId || deletingMessageId) return;
+      setDeletingMessageId(messageId);
+      setError("");
+      try {
+        await api.deleteConversationMessage(selectedId, messageId);
+        setMessages((prev) => {
+          const remaining = prev.filter((item) => item.id !== messageId);
+          const lastMessage = remaining.at(-1) ?? null;
+          setConversations((convPrev) =>
+            convPrev.map((item) =>
+              item.id === selectedId
+                ? { ...item, lastMessage, updatedAt: lastMessage?.createdAt ?? item.updatedAt }
+                : item,
+            ),
+          );
+          return remaining;
+        });
+      } catch (err: any) {
+        setError(getClientErrorMessage(err, "Suppression impossible"));
+      } finally {
+        setDeletingMessageId(null);
+      }
+    },
+    [deletingMessageId, selectedId],
+  );
+
+  const handleMessageDeleted = useCallback(
+    ({ conversationId, messageId }: { conversationId: string; messageId: string }) => {
+      setMessages((prev) => (selectedId === conversationId ? prev.filter((item) => item.id !== messageId) : prev));
+      setConversations((prev) =>
+        prev.map((item) => {
+          if (item.id !== conversationId || item.lastMessage?.id !== messageId) return item;
+          return {
+            ...item,
+            lastMessage: null,
+          };
+        }),
+      );
+    },
+    [selectedId],
+  );
+
   const { joinConversation, leaveConversation, emitTypingStart, emitTypingStop } = useMessagingSocket(true, {
     onMessage: (message) => {
       setConversations((prev) => {
@@ -268,6 +334,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
       );
       if (conversationId === selectedId) setPeerTyping(false);
     },
+    onMessageDeleted: handleMessageDeleted,
     onTyping: ({ conversationId, userId, isTyping }) => {
       if (conversationId !== selectedId || userId === currentUserId) return;
       setPeerTyping(isTyping);
@@ -543,9 +610,18 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
                     minItemsToVirtualize={15}
                     variableHeight
                     getKey={(message) => message.id}
-                    renderItem={(message) => (
-                      <MessageBubble message={message} mine={message.senderId === currentUserId} />
-                    )}
+                    renderItem={(message) => {
+                      const mine = message.senderId === currentUserId;
+                      return (
+                        <MessageBubble
+                          message={message}
+                          mine={mine}
+                          canDelete={mine && canDeleteOwnMessage(message, currentUserId)}
+                          deleting={deletingMessageId === message.id}
+                          onDelete={handleDeleteMessage}
+                        />
+                      );
+                    }}
                   />
                 )}
                 <div ref={messagesEndRef} />
