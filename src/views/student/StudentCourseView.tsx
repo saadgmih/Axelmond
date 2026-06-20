@@ -318,7 +318,9 @@ export default function StudentCourseView({
             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-700">
                 <div className="flex items-center gap-2">
-                  <span className={`px-2.5 py-1 rounded-lg border text-[10px] font-extrabold uppercase tracking-wider ${statusColor}`}>
+                  <span
+                    className={`px-2.5 py-1 rounded-lg border text-[10px] font-extrabold uppercase tracking-wider ${statusColor}`}
+                  >
                     {statusLabel}
                   </span>
                 </div>
@@ -331,10 +333,12 @@ export default function StudentCourseView({
                   <span className="text-slate-400 font-bold">Fin d'accès :</span> {formattedEndDate}
                 </div>
               </div>
-              
+
               <div className="flex items-center justify-between md:justify-end gap-4">
                 <div className="text-xs font-bold text-slate-800 flex items-center gap-1.5 bg-white border border-slate-200/60 px-3.5 py-2 rounded-xl shadow-sm">
-                  <span className="text-indigo-600 uppercase text-[9px] tracking-wider font-extrabold">Temps restant :</span>
+                  <span className="text-indigo-600 uppercase text-[9px] tracking-wider font-extrabold">
+                    Temps restant :
+                  </span>
                   <span className="font-mono text-indigo-700 font-black">
                     {isExpired ? "Accès expiré" : formatTimeRemaining(timeRemaining)}
                   </span>
@@ -359,7 +363,8 @@ export default function StudentCourseView({
               <div className="space-y-2">
                 <h3 className="text-xl font-black text-slate-800">Votre accès a expiré</h3>
                 <p className="text-sm text-slate-500 leading-relaxed">
-                  L'accès de 30 jours à ce module est terminé. Pour continuer à visionner les vidéos, lire les manuels et passer les évaluations, veuillez renouveler votre inscription.
+                  L'accès de 30 jours à ce module est terminé. Pour continuer à visionner les vidéos, lire les manuels
+                  et passer les évaluations, veuillez renouveler votre inscription.
                 </p>
               </div>
               {setCourseToPurchase && (
@@ -398,12 +403,11 @@ export default function StudentCourseView({
                                 Contenu publié — consultation sur la plateforme
                               </p>
                               <h4 className="text-sm font-bold text-white mt-1">{selectedLessonContent.title}</h4>
-                              {selectedLessonContent.type !== "VIDEO" &&
-                                selectedLessonContent.type !== "IMAGE" && (
-                                  <p className="text-[11px] text-slate-400">
-                                    {selectedLessonContent.attachments[0]?.fileName || "Contenu texte"}
-                                  </p>
-                                )}
+                              {selectedLessonContent.type !== "VIDEO" && selectedLessonContent.type !== "IMAGE" && (
+                                <p className="text-[11px] text-slate-400">
+                                  {selectedLessonContent.attachments[0]?.fileName || "Contenu texte"}
+                                </p>
+                              )}
                             </div>
                           </div>
                         </div>

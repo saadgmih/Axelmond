@@ -9,7 +9,7 @@ rulesTest("academic-profile-api", () => {
   const appSource = readAppSources();
   const academicProfileHookSource = fs.readFileSync("src/hooks/useAcademicProfile.ts", "utf8");
   const appProfileBundle = appSource + academicProfileHookSource;
-  const sidebarSource = fs.readFileSync("src/components/Sidebar.tsx", "utf8");
+  const sidebarConfigSource = fs.readFileSync("src/navigation/sidebar-config.ts", "utf8");
 
   assert.match(serverSource, /ensureAcademicProfileForUser\(tx,\s*\{\s*id:\s*createdUser\.id/s);
   assert.match(serverSource, /app\.get\("\/api\/me\/profile",\s*requireAuth,\s*requireRbac/);
@@ -23,5 +23,5 @@ rulesTest("academic-profile-api", () => {
   assert.match(appSource, /teacherView === "academic-profile"/);
   assert.match(appProfileBundle, /api\.updateAcademicProfile\(\{/);
   assert.doesNotMatch(appProfileBundle, /api\.updateAcademicProfile\(\{[^}]*role/s);
-  assert.match(sidebarSource, /Mon Profil Académique/);
+  assert.match(sidebarConfigSource, /Mon Profil Académique/);
 });

@@ -1,9 +1,7 @@
 import { Course, CourseEnrollmentInfo } from "../../types";
 import { prisma } from "../../db";
 import { decodeStoredText } from "../../text";
-import {
-  attachSyncedCourseModules,
-} from "../../course-curriculum-sync";
+import { attachSyncedCourseModules } from "../../course-curriculum-sync";
 import { isEnrollmentActive } from "../../enrollment-access";
 import { resolveCourseModules } from "../../course-syllabus-modules";
 import {

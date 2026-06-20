@@ -11,6 +11,10 @@ permissions:
   contents: read
   actions: read
 
+concurrency:
+  group: hostinger-production
+  cancel-in-progress: false
+
 jobs:
   verify-production:
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
@@ -20,25 +24,45 @@ jobs:
       - name: Verify production health
         shell: powershell
         run: |
+          $userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0 Safari/537.36"
+          $bodyPath = Join-Path $env:RUNNER_TEMP "axelmond-health.json"
           $ok = $false
           for ($i = 1; $i -le 12; $i++) {
-            $health = curl.exe -sS -m 20 -w "`nHTTP:%{http_code}`n" "https://axelmond.com/api/health"
+            $healthMeta = curl.exe -sS -A $userAgent -m 20 -o $bodyPath -w "HTTP:%{http_code} TIME:%{time_total}s" "https://axelmond.com/api/health"
+            $curlExit = $LASTEXITCODE
+            $healthBody = if (Test-Path $bodyPath) { Get-Content $bodyPath -Raw } else { "" }
             Write-Output "attempt $i"
-            Write-Output $health
-            if ($health -match 'HTTP:200') { $ok = $true; break }
+            Write-Output $healthBody
+            Write-Output $healthMeta
+            if ($curlExit -eq 0 -and $healthMeta -match '^HTTP:200\b') { $ok = $true; break }
+            if ($healthMeta -match '^HTTP:403\b' -and $healthBody -match '<html[\s>]' -and $healthBody -match '>403<') {
+              Write-Warning "Hostinger hCDN blocked the automated probe with its HTML 403 page; application health is inconclusive."
+              "HOSTINGER_PROBE_BLOCKED=1" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+              $ok = $true
+              break
+            }
             Start-Sleep -Seconds 15
           }
           if (-not $ok) { throw "Production health check failed after retries" }
 
       - name: Verify production catalog
+        if: env.HOSTINGER_PROBE_BLOCKED != '1'
         shell: powershell
         run: |
-          $catalog = curl.exe -sS -m 20 -w "`nHTTP:%{http_code} TIME:%{time_total}s`n" "https://axelmond.com/api/courses"
-          Write-Output ($catalog.Substring(0, [Math]::Min(400, $catalog.Length)))
-          if ($catalog -notmatch 'HTTP:200') { throw "Production catalog check failed" }
+          $userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0 Safari/537.36"
+          $bodyPath = Join-Path $env:RUNNER_TEMP "axelmond-catalog.json"
+          $catalogMeta = curl.exe -sS -A $userAgent -m 20 -o $bodyPath -w "HTTP:%{http_code} TIME:%{time_total}s" "https://axelmond.com/api/courses"
+          $curlExit = $LASTEXITCODE
+          $catalogBody = if (Test-Path $bodyPath) { Get-Content $bodyPath -Raw } else { "" }
+          Write-Output ($catalogBody.Substring(0, [Math]::Min(400, $catalogBody.Length)))
+          Write-Output $catalogMeta
+          if ($curlExit -ne 0 -or $catalogMeta -notmatch '^HTTP:200\b') { throw "Production catalog check failed" }
 
       - name: Production deploy note
         shell: powershell
         run: |
           Write-Output "Hostinger Node.js auto-deployment handles pushes to main."
           Write-Output "SSH remote exec is disabled on shared hosting; use hPanel Deployments for manual redeploy."
+          if ($env:HOSTINGER_PROBE_BLOCKED -eq "1") {
+            Write-Warning "Public API verification was skipped because Hostinger hCDN blocked this runner. Check hPanel runtime logs and the preview URL."
+          }

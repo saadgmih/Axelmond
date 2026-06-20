@@ -1,10 +1,5 @@
 import { getFreshSessionToken } from "./api";
-import {
-  bindUploadProgress,
-  getUploadedFileUrl,
-  getUploadErrorMessage,
-  uploadFiles,
-} from "./uploadthing-client";
+import { bindUploadProgress, getUploadedFileUrl, getUploadErrorMessage, uploadFiles } from "./uploadthing-client";
 import type { MessageAttachment } from "./types/messaging";
 
 export type OutgoingMessageAttachment = Pick<

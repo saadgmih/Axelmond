@@ -276,21 +276,13 @@ export default function AxelCalendarShell({
         {(onAddSession || onAddObjective) && (
           <div className="flex flex-wrap items-center justify-end gap-2">
             {onAddSession && (
-              <button
-                type="button"
-                className={addActionButtonClass}
-                onClick={onAddSession}
-              >
+              <button type="button" className={addActionButtonClass} onClick={onAddSession}>
                 <Plus className="h-4 w-4" />
                 {onAddObjective ? addSessionLabel : addLabel}
               </button>
             )}
             {onAddObjective && (
-              <button
-                type="button"
-                className={addActionButtonClass}
-                onClick={onAddObjective}
-              >
+              <button type="button" className={addActionButtonClass} onClick={onAddObjective}>
                 <Plus className="h-4 w-4" />
                 {addObjectiveLabel}
               </button>
@@ -363,9 +355,7 @@ export default function AxelCalendarShell({
                       <button
                         type="button"
                         className={addActionButtonClass}
-                        onClick={() =>
-                          onCreateSessionForDay(focusDate, dateToScheduleDayOfWeek(focusDate))
-                        }
+                        onClick={() => onCreateSessionForDay(focusDate, dateToScheduleDayOfWeek(focusDate))}
                       >
                         <Plus className="h-4 w-4" />
                         {addSessionLabel}

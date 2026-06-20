@@ -48,12 +48,17 @@ rulesTest("upload-progress", () => {
   const curriculumSource = fs.readFileSync("src/hooks/useTeacherCurriculum.tsx", "utf8");
   const supportSource = fs.readFileSync("src/components/SupportTicketForm.tsx", "utf8");
   const messagesSource = fs.readFileSync("src/views/shared/MessagesView.tsx", "utf8");
+  const messageUploadSource = fs.readFileSync("src/message-attachment-upload.ts", "utf8");
 
-  for (const source of [avatarSource, curriculumSource, supportSource, messagesSource]) {
+  for (const source of [avatarSource, curriculumSource, supportSource]) {
     assert.match(source, /bindUploadProgress/);
     assert.match(source, /formatUploadProgressLabel/);
     assert.doesNotMatch(source, /\$\{progress\}%/);
   }
+
+  assert.match(messageUploadSource, /bindUploadProgress/);
+  assert.match(messagesSource, /formatUploadProgressLabel/);
+  assert.doesNotMatch(messageUploadSource + messagesSource, /\$\{progress\}%/);
 
   console.log("Upload progress utility tests passed");
 });

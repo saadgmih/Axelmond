@@ -112,54 +112,54 @@ await runtimeTest("security-runtime-livekit-moderation-rate", async () => {
   try {
     fixture = await seedLiveKitRuntimeFixtures();
 
-    await withFreshRuntimeServer(async (bootstrapHandle) => {
-      ownerSession = await loginViaHttp(bootstrapHandle.baseUrl, {
+    // Un seul serveur couvre les quotas utilisateur, l'indépendance entre
+    // comptes et l'isolation du endpoint token. Le redémarrage suivant sert
+    // uniquement à obtenir un bucket neuf pour le scénario multi-IP.
+    await withFreshRuntimeServer(async (handle) => {
+      ownerSession = await loginViaHttp(handle.baseUrl, {
         email: fixture.users.ownerProfessor.email,
         password: SECURITY_RUNTIME_TEST_PASSWORD,
         role: "PROFESSOR",
       });
-      adminSession = await loginViaHttp(bootstrapHandle.baseUrl, {
+      adminSession = await loginViaHttp(handle.baseUrl, {
         email: fixture.users.admin.email,
         password: SECURITY_RUNTIME_TEST_PASSWORD,
         role: "ADMIN",
       });
-    });
-
-    // 1. Même professeur : 2 requêtes OK, 3e → 429
-    await withFreshRuntimeServer(async (handle) => {
-      const first = await postModeration(handle.baseUrl, ownerSession, fixture);
-      const second = await postModeration(handle.baseUrl, ownerSession, fixture);
-      await assertNotRateLimited(first, "owner moderation request 1");
-      await assertNotRateLimited(second, "owner moderation request 2");
-
-      const blocked = await postModeration(handle.baseUrl, ownerSession, fixture);
-      await assertModerationRateLimited(blocked, "owner moderation request 3");
-    });
-
-    // 2. Deux professeurs différents, même IP : quotas indépendants
-    await withFreshRuntimeServer(async (handle) => {
       const sharedIp = "203.0.113.55";
 
+      // 1. Même professeur : 2 requêtes OK, 3e → 429.
       await assertNotRateLimited(
         await postModeration(handle.baseUrl, ownerSession, fixture, { forwardedFor: sharedIp }),
-        "independent quota owner request 1",
+        "owner moderation request 1",
       );
       await assertNotRateLimited(
         await postModeration(handle.baseUrl, ownerSession, fixture, { forwardedFor: sharedIp }),
-        "independent quota owner request 2",
+        "owner moderation request 2",
       );
       await assertModerationRateLimited(
         await postModeration(handle.baseUrl, ownerSession, fixture, { forwardedFor: sharedIp }),
-        "independent quota owner request 3",
+        "owner moderation request 3",
       );
 
+      // 2. Un autre compte sur la même IP conserve son propre quota.
       await assertNotRateLimited(
         await postModeration(handle.baseUrl, adminSession, fixture, { forwardedFor: sharedIp }),
         "independent quota admin after owner saturation",
       );
+
+      // 3. La saturation moderation n'empêche pas le token LiveKit.
+      const tokenResponse = await authedFetch(handle.baseUrl, ownerSession, "POST", TOKEN_PATH, {
+        courseId: fixture.courseId,
+      });
+      assert.equal(tokenResponse.status, 200, "token must remain available after moderation saturation");
+      const payload = (await tokenResponse.json()) as { token?: string; roomName?: string };
+      assert.equal(typeof payload.token, "string");
+      assert.ok(payload.token!.length > 0);
+      assert.equal(payload.roomName, fixture.roomName);
     });
 
-    // 3. Même professeur, deux IP : même bucket utilisateur
+    // 4. Même professeur, deux IP : même bucket utilisateur.
     await withFreshRuntimeServer(async (handle) => {
       const ipA = "203.0.113.61";
       const ipB = "203.0.113.62";
@@ -177,31 +177,6 @@ await runtimeTest("security-runtime-livekit-moderation-rate", async () => {
         forwardedFor: ipB,
       });
       await assertModerationRateLimited(blockedFromIpB, "shared user bucket third request on IP-B");
-    });
-
-    // 4. Saturation moderation n'empêche pas le token LiveKit
-    await withFreshRuntimeServer(async (handle) => {
-      await assertNotRateLimited(
-        await postModeration(handle.baseUrl, ownerSession, fixture),
-        "token isolation moderation request 1",
-      );
-      await assertNotRateLimited(
-        await postModeration(handle.baseUrl, ownerSession, fixture),
-        "token isolation moderation request 2",
-      );
-      await assertModerationRateLimited(
-        await postModeration(handle.baseUrl, ownerSession, fixture),
-        "token isolation moderation request 3",
-      );
-
-      const tokenResponse = await authedFetch(handle.baseUrl, ownerSession, "POST", TOKEN_PATH, {
-        courseId: fixture.courseId,
-      });
-      assert.equal(tokenResponse.status, 200, "token must remain available after moderation saturation");
-      const payload = (await tokenResponse.json()) as { token?: string; roomName?: string };
-      assert.equal(typeof payload.token, "string");
-      assert.ok(payload.token!.length > 0);
-      assert.equal(payload.roomName, fixture.roomName);
     });
 
     console.log("Security runtime LiveKit moderation rate tests passed");

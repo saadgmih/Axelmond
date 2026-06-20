@@ -9,21 +9,34 @@ rulesTest("hostinger-deploy", () => {
   const ecosystem = fs.readFileSync("ecosystem.config.cjs", "utf8");
   const hostingerDoc = fs.readFileSync("docs/HOSTINGER-HPANEL.md", "utf8");
   const hostingerEnv = fs.readFileSync("scripts/build-hostinger-env.mjs", "utf8");
+  const postinstall = fs.readFileSync("scripts/prisma-postinstall.mjs", "utf8");
+  const deployWorkflow = fs.readFileSync(".github/workflows/hostinger-deploy.yml", "utf8");
+  const legacyVpsDeploy = fs.readFileSync("scripts/deploy-hostinger.sh", "utf8");
 
   assert.match(scripts["hostinger:build"], /prisma migrate deploy/);
   assert.match(scripts.start, /hostinger-preflight/);
   assert.match(scripts.start, /node dist\/server\.cjs/);
   assert.doesNotMatch(JSON.stringify(scripts), /prestart/);
+  assert.equal(packageJson.engines?.node, "^20.19.0 || ^22.12.0");
 
   assert.match(scripts.postinstall, /prisma-postinstall/);
   assert.ok(fs.existsSync("scripts/prisma-postinstall.mjs"));
   assert.ok(fs.existsSync("scripts/hostinger-preflight.mjs"));
+  assert.match(postinstall, /Generating Prisma client/);
+  assert.doesNotMatch(postinstall, /clientEntry|already present/);
 
   assert.match(startServer, /closeAllConnections/);
   assert.match(startServer, /shutdownTimeoutMs/);
   assert.match(startServer, /isProduction \? 3_000 : 15_000/);
 
   assert.match(ecosystem, /HOSTINGER_WEBAPP/);
+  assert.match(legacyVpsDeploy, /deploy-hostinger\.sh is VPS-only/);
+  assert.match(deployWorkflow, /group:\s*hostinger-production/);
+  assert.match(deployWorkflow, /cancel-in-progress:\s*false/);
+  assert.match(deployWorkflow, /catalogMeta/);
+  assert.match(deployWorkflow, /Mozilla\/5\.0/);
+  assert.match(deployWorkflow, /HOSTINGER_PROBE_BLOCKED=1/);
+  assert.match(deployWorkflow, /if: env\.HOSTINGER_PROBE_BLOCKED != '1'/);
   assert.match(hostingerDoc, /hostinger:build/);
   assert.match(hostingerDoc, /SKIP_PRISMA_POSTINSTALL/);
   assert.match(hostingerDoc, /HOSTINGER_WEBAPP/);

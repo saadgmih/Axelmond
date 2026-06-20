@@ -1,9 +1,5 @@
 import assert from "node:assert/strict";
-import {
-  buildEnrollmentEndDate,
-  getActiveEnrolledCourseIds,
-  isEnrollmentActive,
-} from "../src/enrollment-access.ts";
+import { buildEnrollmentEndDate, getActiveEnrolledCourseIds, isEnrollmentActive } from "../src/enrollment-access.ts";
 import {
   findMissingEnrolledCourseIds,
   hydrateEnrolledCourses,
@@ -17,24 +13,21 @@ rulesTest("enrollment-access", () => {
 
   assert.equal(isEnrollmentActive({ active: true, endDate: null }, now), true);
   assert.equal(isEnrollmentActive({ active: true, endDate: undefined }, now), true);
-  assert.equal(
-    isEnrollmentActive({ active: true, endDate: "2026-07-01T00:00:00.000Z" }, now),
-    true,
-  );
-  assert.equal(
-    isEnrollmentActive({ active: true, endDate: "2026-05-01T00:00:00.000Z" }, now),
-    false,
-  );
+  assert.equal(isEnrollmentActive({ active: true, endDate: "2026-07-01T00:00:00.000Z" }, now), true);
+  assert.equal(isEnrollmentActive({ active: true, endDate: "2026-05-01T00:00:00.000Z" }, now), false);
   assert.equal(isEnrollmentActive({ active: false, endDate: null }, now), false);
   assert.equal(isEnrollmentActive({ active: true, endDate: "not-a-date" }, now), true);
 
   assert.deepEqual(
-    getActiveEnrolledCourseIds([
-      { courseId: 2, active: true, endDate: null },
-      { courseId: 3, active: true, endDate: "2026-05-01T00:00:00.000Z" },
-      { courseId: 4, active: true, endDate: "2026-08-01T00:00:00.000Z" },
-      { courseId: 5, active: false, endDate: null },
-    ], now),
+    getActiveEnrolledCourseIds(
+      [
+        { courseId: 2, active: true, endDate: null },
+        { courseId: 3, active: true, endDate: "2026-05-01T00:00:00.000Z" },
+        { courseId: 4, active: true, endDate: "2026-08-01T00:00:00.000Z" },
+        { courseId: 5, active: false, endDate: null },
+      ],
+      now,
+    ),
     [2, 4],
   );
 

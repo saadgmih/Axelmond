@@ -13,7 +13,7 @@ import {
 } from "../../email-verification";
 import { sendVerificationEmail, getEmailErrorDetails, getSmtpPublicConfig } from "../../email";
 import { prisma } from "../../db";
-import { APP_USER_BILLING_INCLUDE, mergeUserInvoices } from "../../course-payments";
+import { mergeUserInvoices } from "../../course-payments";
 import { getActiveEnrolledCourseIds } from "../../enrollment-access";
 import { resolveCachedAuthDbUser } from "../auth-user-cache";
 import { logEmail } from "../route-loggers";
@@ -30,9 +30,7 @@ export function toAppUser(user: any): AppUser {
     levelOrTitle: user.levelOrTitle || (user.role === "STUDENT" ? DEFAULT_STUDENT_LABEL : "Enseignant Docteur"),
     filiere: user.filiere || undefined,
     avatarUrl: user.avatarUrl || undefined,
-    enrolledCourses: Array.isArray(user.enrollments)
-      ? getActiveEnrolledCourseIds(user.enrollments)
-      : [],
+    enrolledCourses: Array.isArray(user.enrollments) ? getActiveEnrolledCourseIds(user.enrollments) : [],
     invoices: mergeUserInvoices(user),
   };
 }

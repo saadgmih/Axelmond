@@ -3,6 +3,12 @@ import { convertMadAmountForPayPal, getPayPalCheckoutCurrency } from "./paypal-c
 
 export type PayPalRuntimeEnv = "sandbox" | "live";
 
+const PAYPAL_REQUEST_TIMEOUT_MS = Number(process.env.PAYPAL_REQUEST_TIMEOUT_MS) || 15_000;
+
+function getPayPalRequestSignal(): AbortSignal {
+  return AbortSignal.timeout(PAYPAL_REQUEST_TIMEOUT_MS);
+}
+
 export function getPayPalRuntimeEnv(): PayPalRuntimeEnv {
   const value = (process.env.PAYPAL_ENV || "sandbox").trim().toLowerCase();
   return value === "live" ? "live" : "sandbox";
@@ -42,6 +48,7 @@ async function getPayPalAccessToken(): Promise<string> {
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: "grant_type=client_credentials",
+    signal: getPayPalRequestSignal(),
   });
 
   const payload = await response.json().catch(() => ({}));
@@ -78,6 +85,7 @@ async function paypalRequest<T>(method: string, path: string, body?: unknown): P
       "Content-Type": "application/json",
     },
     body: body ? JSON.stringify(body) : undefined,
+    signal: getPayPalRequestSignal(),
   });
 
   const payload = await response.json().catch(() => ({}));

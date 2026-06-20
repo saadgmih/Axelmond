@@ -24,6 +24,8 @@ rulesTest("session-refresh", () => {
   assert.match(apiSource, /credentials:\s*"include"/);
   assert.match(apiSource, /accessTokenMemory/);
   assert.match(apiSource, /purgeLegacyTokenStorage/);
+  assert.match(apiSource, /AbortSignal\.timeout\(timeoutMs\)/);
+  assert.match(apiSource, /API_LONG_REQUEST_TIMEOUT_MS/);
 
   assert.match(authScreenSource, /setSessionToken\(user\.token,\s*user\.csrfToken\)/);
   assert.match(sessionSource, /setSessionToken\(token,\s*csrfToken\)/);

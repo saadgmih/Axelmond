@@ -20,6 +20,7 @@ rulesTest("student-course-live-pdf", () => {
   assert.doesNotMatch(studentCourseViewSource, /target="_blank"[\s\S]*safeAttachmentUrl/);
 
   assert.match(pdfViewerSource, /\/api\/lesson-contents\/\$\{contentId\}\/document/);
+  assert.match(pdfViewerSource, /signal:\s*AbortSignal\.timeout\(30_000\)/);
   assert.doesNotMatch(pdfViewerSource, /downloadUrl/);
   assert.doesNotMatch(pdfViewerSource, /Ouvrir le PDF/);
   assert.match(pdfViewerSource, /mediaType === "IMAGE"/);

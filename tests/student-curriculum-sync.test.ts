@@ -73,7 +73,8 @@ rulesTest("student-curriculum-sync", () => {
   assert.match(catalogSource, /attachSyncedCourseModules\(courses\)/);
   assert.doesNotMatch(catalogSource, /syncPublishedLessonModulesForCourses/);
   assert.match(coursesRoutesSource, /toCoursesForStudent/);
-  assert.match(coursesRoutesSource, /syncPublishedLessonModules/);
+  assert.doesNotMatch(coursesRoutesSource, /syncPublishedLessonModules/);
+  assert.match(catalogSource, /attachSyncedCourseModules/);
   assert.match(contentRoutesSource, /refreshStudentCourseModules/);
   assert.match(uploadthingSource, /syncPublishedLessonModules/);
   assert.match(studentSessionSource, /api\.getCourse\(courseId\)/);

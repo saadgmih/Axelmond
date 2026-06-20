@@ -22,6 +22,7 @@ rulesTest("paypal-webhook", async () => {
   const bootstrapSource = readServerBootstrapSources();
   const serverSource = bootstrapSource + fs.readFileSync("src/routes/payments-routes.ts", "utf8");
   const paypalServerSource = fs.readFileSync("src/paypal-server.ts", "utf8");
+  const paypalWebhookSource = fs.readFileSync("src/paypal-webhook.ts", "utf8");
 
   assert.match(serverSource, /app\.post\(\s*"\s*\/api\/paypal\/webhook"/);
   assert.match(serverSource, /express\.raw\(\{\s*type:\s*"application\/json"/);
@@ -33,6 +34,8 @@ rulesTest("paypal-webhook", async () => {
   assert.match(serverSource, /processPayPalCaptureEnrollment/);
   assert.match(paypalServerSource, /export async function getPayPalOrder/);
   assert.match(paypalServerSource, /export async function getPayPalAccessTokenForWebhook/);
+  assert.match(paypalServerSource, /signal:\s*getPayPalRequestSignal\(\)/);
+  assert.match(paypalWebhookSource, /signal:\s*AbortSignal\.timeout/);
 
   const jsonIndex = bootstrapSource.indexOf("app.use(express.json({ limit: JSON_BODY_LIMIT }));");
   const webhookIndex = bootstrapSource.indexOf("registerPayPalWebhook(app, routeCtx, paypalWebhookRateLimiter)");
@@ -77,6 +80,7 @@ rulesTest("paypal-webhook", async () => {
   assert.equal(isHandledPayPalWebhookEvent("BILLING.SUBSCRIPTION.CREATED"), false);
 
   let verifyPayload: Record<string, unknown> | null = null;
+  let verifySignal: AbortSignal | null = null;
   const verified = await verifyPayPalWebhookSignature({
     headers: validHeaders!,
     webhookEvent: { event_type: "TEST" },
@@ -84,6 +88,7 @@ rulesTest("paypal-webhook", async () => {
     getAccessToken: async () => "token-test",
     fetchImpl: async (_url, init) => {
       verifyPayload = JSON.parse(String(init?.body));
+      verifySignal = init?.signal ?? null;
       return {
         ok: true,
         json: async () => ({ verification_status: "SUCCESS" }),
@@ -93,6 +98,7 @@ rulesTest("paypal-webhook", async () => {
   assert.equal(verified, true);
   assert.equal(verifyPayload?.webhook_id, "wh-test");
   assert.equal(verifyPayload?.auth_algo, "SHA256withRSA");
+  assert.ok(verifySignal instanceof AbortSignal);
 
   const rejected = await verifyPayPalWebhookSignature({
     headers: validHeaders!,

@@ -43,11 +43,7 @@ export function SidebarNavButton({
       onClick={onClick}
       className={`kbd-nav-focus touch-target relative flex w-full items-center rounded-xl text-sm font-semibold transition-all ${
         compact ? "justify-center px-0 py-3 min-h-[44px]" : "gap-3 px-4 py-3 min-h-[44px]"
-      } ${
-        active
-          ? activeClass
-          : "text-slate-400 hover:bg-white/5 hover:text-white"
-      }`}
+      } ${active ? activeClass : "text-slate-400 hover:bg-white/5 hover:text-white"}`}
     >
       <Icon className={`h-5 w-5 shrink-0 ${active ? "text-white" : iconClassName || ""}`} />
       {!compact && <span className="truncate text-left">{label}</span>}

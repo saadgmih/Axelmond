@@ -48,7 +48,10 @@ export function usePlatformNavigation({
   const studentCourseIds = useMemo(() => {
     const ids = new Set(enrolledCourses.map(Number).filter(Number.isFinite));
     if (currentUser && isStudentRole(currentUser.role) && Array.isArray(currentUser.enrolledCourses)) {
-      currentUser.enrolledCourses.map(Number).filter(Number.isFinite).forEach((id) => ids.add(id));
+      currentUser.enrolledCourses
+        .map(Number)
+        .filter(Number.isFinite)
+        .forEach((id) => ids.add(id));
     }
     return Array.from(ids);
   }, [currentUser, enrolledCourses]);

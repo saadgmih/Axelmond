@@ -3,6 +3,8 @@ import { capturePayPalOrder, getPayPalOrder, getPayPalRuntimeEnv, logPayPalError
 import { processPayPalCaptureEnrollment, type PayPalCaptureEnrollmentResult } from "./paypal-enrollment";
 import { logSecurity } from "./security-logger";
 
+const PAYPAL_WEBHOOK_VERIFY_TIMEOUT_MS = Number(process.env.PAYPAL_WEBHOOK_VERIFY_TIMEOUT_MS) || 15_000;
+
 export type PayPalWebhookHeaders = {
   authAlgo: string;
   certUrl: string;
@@ -71,6 +73,7 @@ export async function verifyPayPalWebhookSignature(params: {
       webhook_id: webhookId,
       webhook_event: params.webhookEvent,
     }),
+    signal: AbortSignal.timeout(PAYPAL_WEBHOOK_VERIFY_TIMEOUT_MS),
   });
 
   const payload = await response.json().catch(() => ({}));

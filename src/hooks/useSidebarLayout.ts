@@ -23,8 +23,7 @@ function readSidebarLayoutState(): SidebarLayoutState {
   const docked = window.matchMedia(`(min-width: ${SIDEBAR_DOCK_MIN_WIDTH}px)`).matches;
   const coarse = window.matchMedia("(pointer: coarse)").matches;
   const noHover = window.matchMedia("(hover: none)").matches;
-  const tvLike =
-    window.matchMedia(`(min-width: 1280px)`).matches && (coarse || noHover);
+  const tvLike = window.matchMedia(`(min-width: 1280px)`).matches && (coarse || noHover);
 
   const mode: SidebarLayoutMode = docked ? "docked" : "drawer";
 

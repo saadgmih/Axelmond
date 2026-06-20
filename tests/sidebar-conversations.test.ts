@@ -1,8 +1,5 @@
 import assert from "node:assert/strict";
-import {
-  selectSidebarUnreadConversations,
-  SIDEBAR_UNREAD_PREVIEW_LIMIT,
-} from "../src/sidebar-conversations.ts";
+import { selectSidebarUnreadConversations, SIDEBAR_UNREAD_PREVIEW_LIMIT } from "../src/sidebar-conversations.ts";
 import type { ConversationSummary } from "../src/types/messaging.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
@@ -33,6 +30,9 @@ rulesTest("sidebar-conversations", () => {
     ["b", "d", "e"],
   );
 
-  assert.deepEqual(selectSidebarUnreadConversations(items, 1).map((item) => item.id), ["b"]);
+  assert.deepEqual(
+    selectSidebarUnreadConversations(items, 1).map((item) => item.id),
+    ["b"],
+  );
   assert.deepEqual(selectSidebarUnreadConversations([]), []);
 });

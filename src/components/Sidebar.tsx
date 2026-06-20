@@ -8,11 +8,7 @@ import { LayoutFloatingToggle } from "./LayoutFloatingToggle";
 import { useTvNavigation } from "../hooks/useTvNavigation";
 import { useSidebarConversations } from "../hooks/useSidebarConversations";
 import { useSidebarLayout } from "../hooks/useSidebarLayout";
-import {
-  getSidebarNavItems,
-  getSidebarRoleIcon,
-  type SidebarNavContext,
-} from "../navigation/sidebar-config";
+import { getSidebarNavItems, getSidebarRoleIcon, type SidebarNavContext } from "../navigation/sidebar-config";
 import { SidebarNavButton } from "./sidebar/SidebarNavButton";
 
 interface SidebarProps {
@@ -87,10 +83,7 @@ export default function Sidebar({
   const conversations = useSidebarConversations(
     Boolean(currentUser) && (isDrawer ? isMobileMenuOpen : isDockedVisible),
   );
-  const navItems = useMemo(
-    () => getSidebarNavItems(role, currentUser?.role),
-    [role, currentUser?.role],
-  );
+  const navItems = useMemo(() => getSidebarNavItems(role, currentUser?.role), [role, currentUser?.role]);
   const RoleIcon = getSidebarRoleIcon(role);
 
   const navContext: SidebarNavContext = {
@@ -286,7 +279,7 @@ export default function Sidebar({
     </LayoutFloatingToggle>
   ) : null;
 
-  const renderSidebarPanel = (mode: "drawer" | "docked") => (
+  const renderSidebarPanel = () => (
     <>
       <div className="sidebar-glass-section border-b border-white/10 px-5 py-5">
         <div className="flex items-center justify-between gap-3">
@@ -349,7 +342,7 @@ export default function Sidebar({
             aria-label="Barre latérale de navigation"
             aria-hidden={!isMobileMenuOpen}
           >
-            {renderSidebarPanel("drawer")}
+            {renderSidebarPanel()}
           </aside>
         </div>
       </>
@@ -366,7 +359,7 @@ export default function Sidebar({
             aria-label="Barre latérale de navigation"
             aria-expanded={true}
           >
-            {renderSidebarPanel("docked")}
+            {renderSidebarPanel()}
           </aside>
         )}
       </div>

@@ -36,7 +36,13 @@ jobs:
 
       - name: Install dependencies
         shell: powershell
+        env:
+          SKIP_PRISMA_POSTINSTALL: "1"
         run: npm ci
+
+      - name: Generate Prisma client
+        shell: powershell
+        run: npm run prisma:generate
 
       - name: Lint
         shell: powershell
@@ -61,10 +67,6 @@ jobs:
       - name: Migration guard
         shell: powershell
         run: npm run ci:migrations
-
-      - name: Generate Prisma client
-        shell: powershell
-        run: npx prisma generate
 
       - name: Apply Prisma migrations
         shell: powershell

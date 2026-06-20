@@ -104,9 +104,17 @@ export async function waitForSecurityRuntimeHealth(
     try {
       const response = await fetch(`${baseUrl}/api/health`);
       if (response.ok) {
-        return response;
+        const body = (await response
+          .clone()
+          .json()
+          .catch(() => null)) as { status?: string } | null;
+        if (body?.status === "UP") {
+          return response;
+        }
+        lastError = new Error(`Health is not ready yet (${body?.status || "unknown"})`);
+      } else {
+        lastError = new Error(`Health returned HTTP ${response.status}`);
       }
-      lastError = new Error(`Health returned HTTP ${response.status}`);
     } catch (err) {
       lastError = err;
     }

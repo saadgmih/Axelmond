@@ -46,7 +46,8 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
         data: {
           passwordHash,
           fullName,
-          filiere: existing.role === "STUDENT" && typeof filiere === "string" ? filiere.trim() || null : existing.filiere,
+          filiere:
+            existing.role === "STUDENT" && typeof filiere === "string" ? filiere.trim() || null : existing.filiere,
         },
       });
 
@@ -176,7 +177,6 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
       res.status(500).json({ error: "Création du compte impossible" });
     }
   });
-
 
   // POST /api/auth/login
 

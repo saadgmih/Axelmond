@@ -1,9 +1,5 @@
 import assert from "node:assert/strict";
-import {
-  buildVerificationEmailContent,
-  buildResetPasswordEmailContent,
-  getVerificationUrl,
-} from "../src/email.ts";
+import { buildVerificationEmailContent, buildResetPasswordEmailContent, getVerificationUrl } from "../src/email.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("email-template", () => {

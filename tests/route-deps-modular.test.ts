@@ -44,7 +44,7 @@ rulesTest("route-deps-modular", () => {
   assert.ok(liveMapperLines <= 250, `live-mappers.ts is ${liveMapperLines} lines`);
 
   const depsLines = routeDeps.split("\n").length;
-  const mapperLines = routeMappers.split("\n").length;
+  const mapperLines = routeMappers.trim().split(/\r?\n/).length;
   const schemaLines = routeSchemas.split("\n").length;
 
   assert.ok(depsLines <= 500, `route-deps.ts still ${depsLines} lines — keep auth + barrel exports only`);

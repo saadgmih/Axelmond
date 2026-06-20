@@ -321,14 +321,14 @@ export function useLiveKitConnection({
             if (syncedUser.enrolledCourses?.map(Number).includes(activeLiveCourse.id)) {
               if (disposed) return;
               setLiveStatusMsg("Accès live synchronisé. Reconnexion...");
-                try {
-                  await connectLiveRoom();
-                } catch (retryErr) {
-                  if (disposed) return;
-                  if ((retryErr as any)?.status === 403 && (await closeIfLiveInactive())) return;
-                  console.error("[livekit] Room connection retry failed", retryErr);
-                  setLiveStatusMsg(getClientErrorMessage(retryErr, "Connexion à la session en direct impossible"));
-                }
+              try {
+                await connectLiveRoom();
+              } catch (retryErr) {
+                if (disposed) return;
+                if ((retryErr as any)?.status === 403 && (await closeIfLiveInactive())) return;
+                console.error("[livekit] Room connection retry failed", retryErr);
+                setLiveStatusMsg(getClientErrorMessage(retryErr, "Connexion à la session en direct impossible"));
+              }
               return;
             }
           } catch (syncErr) {

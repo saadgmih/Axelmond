@@ -11,7 +11,7 @@ rulesTest("student-study-schedule-ownership", () => {
   const schemaSource = fs.readFileSync("prisma/schema.prisma", "utf8");
   const apiSource = fs.readFileSync("src/api.ts", "utf8");
   const appSource = readAppSources();
-  const sidebarSource = fs.readFileSync("src/components/Sidebar.tsx", "utf8");
+  const sidebarConfigSource = fs.readFileSync("src/navigation/sidebar-config.ts", "utf8");
   const platformPathsSource = fs.readFileSync("src/navigation/platformPaths.ts", "utf8");
   const migrationSource = fs.readFileSync(
     "prisma/migrations/20260607120000_student_study_schedule/migration.sql",
@@ -45,8 +45,8 @@ rulesTest("student-study-schedule-ownership", () => {
 
   assert.match(appSource, /StudentStudyPlanView/);
   assert.match(appSource, /currentView === "study-plan"/);
-  assert.match(sidebarSource, /nav-study-plan/);
-  assert.match(sidebarSource, /Plan d/);
+  assert.match(sidebarConfigSource, /nav-study-plan/);
+  assert.match(sidebarConfigSource, /Plan d/);
   assert.match(platformPathsSource, /"study-plan"/);
   assert.match(platformPathsSource, /"study-schedule"/);
 });

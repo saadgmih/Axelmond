@@ -5,6 +5,9 @@ const LEGACY_ACCESS_TOKEN_KEY = "axelmond_session_token";
 const LEGACY_REFRESH_TOKEN_KEY = "axelmond_refresh_token";
 const CSRF_COOKIE_NAME = "csrf_token";
 const UNSAFE_HTTP_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+const API_REQUEST_TIMEOUT_MS = Number((import.meta as any).env?.VITE_API_TIMEOUT_MS) || 20_000;
+const API_LONG_REQUEST_TIMEOUT_MS = Number((import.meta as any).env?.VITE_API_LONG_TIMEOUT_MS) || 45_000;
+const LONG_REQUEST_PATH_PREFIXES = ["/api/paypal/", "/api/chat-tutor", "/api/contact", "/api/support"];
 const AUTH_PATHS_WITHOUT_REFRESH = new Set([
   "/api/auth/login",
   "/api/auth/register",
@@ -46,7 +49,13 @@ function purgeLegacyTokenStorage() {
   purgeLegacySessionUserStorage();
 }
 
-function buildRequestOptions(method: string, body: unknown, token: string | null): RequestInit {
+function getRequestTimeoutMs(path: string): number {
+  return LONG_REQUEST_PATH_PREFIXES.some((prefix) => path.startsWith(prefix))
+    ? API_LONG_REQUEST_TIMEOUT_MS
+    : API_REQUEST_TIMEOUT_MS;
+}
+
+function buildRequestOptions(method: string, body: unknown, token: string | null, timeoutMs: number): RequestInit {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -61,6 +70,7 @@ function buildRequestOptions(method: string, body: unknown, token: string | null
     method,
     credentials: "include",
     headers,
+    signal: AbortSignal.timeout(timeoutMs),
   };
   if (body !== undefined) opts.body = JSON.stringify(body);
   return opts;
@@ -83,7 +93,10 @@ async function performSessionRefresh(): Promise<string | null> {
   const body = legacyRefreshToken ? { refreshToken: legacyRefreshToken } : undefined;
 
   try {
-    const res = await fetch(`${BASE_URL}/api/auth/refresh`, buildRequestOptions("POST", body, null));
+    const res = await fetch(
+      `${BASE_URL}/api/auth/refresh`,
+      buildRequestOptions("POST", body, null, API_REQUEST_TIMEOUT_MS),
+    );
     if (!res.ok) throw new Error("Refresh token rejected");
     const payload = await res.json();
     if (!payload?.token) throw new Error("Refresh token response missing access token");
@@ -132,18 +145,22 @@ export function getStoredRefreshToken(): string | null {
 async function request<T>(method: string, path: string, body?: unknown, allowCsrfRetry = true): Promise<T> {
   let token = accessTokenMemory;
   const url = `${BASE_URL}${path}`;
+  const timeoutMs = getRequestTimeoutMs(path);
   let res: Response;
   try {
-    res = await fetch(url, buildRequestOptions(method, body, token));
+    res = await fetch(url, buildRequestOptions(method, body, token, timeoutMs));
     if (res.status === 401 && !AUTH_PATHS_WITHOUT_REFRESH.has(path)) {
       token = await refreshSessionToken();
-      if (token) res = await fetch(url, buildRequestOptions(method, body, token));
+      if (token) res = await fetch(url, buildRequestOptions(method, body, token, timeoutMs));
     }
   } catch (err: any) {
+    const timedOut = err?.name === "TimeoutError" || err?.name === "AbortError";
     const error = new Error(
-      `Erreur de connexion au serveur. Veuillez vérifier votre connexion internet et réessayer.`,
+      timedOut
+        ? "Le serveur met trop de temps à répondre. Veuillez réessayer."
+        : "Erreur de connexion au serveur. Veuillez vérifier votre connexion internet et réessayer.",
     ) as Error & Record<string, unknown>;
-    Object.assign(error, { status: 0, method, path, url, cause: err });
+    Object.assign(error, { status: 0, method, path, url, timeout: timedOut, timeoutMs, cause: err });
     throw error;
   }
 

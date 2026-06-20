@@ -35,8 +35,7 @@ export function MessageVideoAttachment({ url, role }: MessageVideoAttachmentProp
     return () => window.removeEventListener("keydown", handleEscape);
   }, [isOpen]);
 
-  const playButtonClass =
-    role === "student" ? "text-indigo-300 fill-indigo-300" : "text-pink-300 fill-pink-300";
+  const playButtonClass = role === "student" ? "text-indigo-300 fill-indigo-300" : "text-pink-300 fill-pink-300";
 
   const modal =
     isOpen && portalTarget

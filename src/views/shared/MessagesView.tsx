@@ -210,16 +210,12 @@ const MessageBubble = memo(function MessageBubble({
     <div className={`group flex ${mine ? "justify-end" : "justify-start"}`}>
       <div
         className={`relative rounded-2xl shadow-lg ${
-          isAudioOnly
-            ? "w-auto min-w-[200px] max-w-[min(85%,280px)] px-4 py-3"
-            : "max-w-[85%] px-4 py-3"
+          isAudioOnly ? "w-auto min-w-[200px] max-w-[min(85%,280px)] px-4 py-3" : "max-w-[85%] px-4 py-3"
         } ${mine ? "rounded-br-md bg-indigo-600 text-white" : "rounded-bl-md border border-white/10 bg-[#0f172a] text-slate-100"}`}
       >
         {message.body && <p className="whitespace-pre-wrap text-sm">{message.body}</p>}
         {renderAttachment(message, role, mine)}
-        <div
-          className={`mt-2 flex items-center gap-1.5 text-[10px] ${mine ? "text-indigo-100/80" : "text-slate-500"}`}
-        >
+        <div className={`mt-2 flex items-center gap-1.5 text-[10px] ${mine ? "text-indigo-100/80" : "text-slate-500"}`}>
           <span>{message.sentAtLabel}</span>
           {mine &&
             (message.seenByOthers ? (
@@ -507,7 +503,9 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
       setUploadProgress(0);
       setError("");
       try {
-        const attachment = await uploadMessageAttachmentFile(file, selectedId, (progress) => setUploadProgress(progress));
+        const attachment = await uploadMessageAttachmentFile(file, selectedId, (progress) =>
+          setUploadProgress(progress),
+        );
         await sendMessage(attachment);
       } catch (err: any) {
         setError(getClientErrorMessage(err, getUploadErrorMessage(err)));

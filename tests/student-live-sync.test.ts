@@ -38,7 +38,7 @@ rulesTest("student-live-sync", () => {
   assert.match(liveKitSource, /closeIfLiveInactive/);
   assert.match(liveKitSource, /api\.getCourse\(activeLiveCourse\.id\)/);
   assert.match(platformNavigationSource, /studentCourseIds/);
-  assert.match(platformNavigationSource, /currentUser\.enrolledCourses\.map\(Number\)/);
+  assert.match(platformNavigationSource, /currentUser\.enrolledCourses\s*\.map\(Number\)/);
   assert.match(platformNavigationSource, /parsed\.studentView === "live"[\s\S]*setActiveLiveCourse\(null\)/);
 
   assert.match(serverSource, /api\.persistCoursePaymentEnrollment\(/);

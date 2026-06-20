@@ -13,7 +13,6 @@ rulesTest("student-objectives-ownership", () => {
   const schemaSource = fs.readFileSync("prisma/schema.prisma", "utf8");
   const apiSource = fs.readFileSync("src/api.ts", "utf8");
   const appSource = readAppSources();
-  const sidebarSource = fs.readFileSync("src/components/Sidebar.tsx", "utf8");
   const sidebarConfigSource = fs.readFileSync("src/navigation/sidebar-config.ts", "utf8");
   const platformPathsSource = fs.readFileSync("src/navigation/platformPaths.ts", "utf8");
   const studyPlanViewSource = fs.readFileSync("src/views/student/StudentStudyPlanView.tsx", "utf8");
@@ -94,10 +93,7 @@ rulesTest("student-objectives-ownership", () => {
   assert.doesNotMatch(studyPlanViewSource, /onAddObjective=/);
   assert.match(studyPlanViewSource, /onCreateSessionForDay=/);
   assert.match(studyPlanViewSource, /activeTab === "calendar"/);
-  assert.equal(
-    (studyPlanViewSource.match(/bg-gradient-to-r from-indigo-600 to-cyan-600/g) ?? []).length,
-    2,
-  );
+  assert.equal((studyPlanViewSource.match(/bg-gradient-to-r from-indigo-600 to-cyan-600/g) ?? []).length, 2);
   assert.match(statsSectionSource, /Streak/);
   assert.match(objectiveFormSource, /Récurrence/);
   assert.match(studyPlanViewSource, /Objectifs en cours/);

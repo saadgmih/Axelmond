@@ -96,7 +96,13 @@ export async function persistCoursePaymentEnrollment(
       await tx.enrollment.upsert({
         where: { userId_courseId: { userId: params.userId, courseId: params.courseId } },
         update: { active: true, startDate: new Date(), endDate: buildEnrollmentEndDate() },
-        create: { userId: params.userId, courseId: params.courseId, active: true, startDate: new Date(), endDate: buildEnrollmentEndDate() },
+        create: {
+          userId: params.userId,
+          courseId: params.courseId,
+          active: true,
+          startDate: new Date(),
+          endDate: buildEnrollmentEndDate(),
+        },
       });
       return tx.user.findUnique({
         where: { id: params.userId },
@@ -152,7 +158,13 @@ export async function persistCoursePaymentEnrollment(
       await tx.enrollment.upsert({
         where: { userId_courseId: { userId: params.userId, courseId: params.courseId } },
         update: { active: true, startDate: new Date(), endDate: buildEnrollmentEndDate() },
-        create: { userId: params.userId, courseId: params.courseId, active: true, startDate: new Date(), endDate: buildEnrollmentEndDate() },
+        create: {
+          userId: params.userId,
+          courseId: params.courseId,
+          active: true,
+          startDate: new Date(),
+          endDate: buildEnrollmentEndDate(),
+        },
       });
 
       return tx.user.findUnique({
@@ -213,7 +225,13 @@ export async function persistCoursePaymentEnrollment(
           await tx.enrollment.upsert({
             where: { userId_courseId: { userId: params.userId, courseId: params.courseId } },
             update: { active: true, startDate: new Date(), endDate: buildEnrollmentEndDate() },
-            create: { userId: params.userId, courseId: params.courseId, active: true, startDate: new Date(), endDate: buildEnrollmentEndDate() },
+            create: {
+              userId: params.userId,
+              courseId: params.courseId,
+              active: true,
+              startDate: new Date(),
+              endDate: buildEnrollmentEndDate(),
+            },
           });
           return tx.user.findUnique({
             where: { id: params.userId },

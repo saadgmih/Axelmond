@@ -11,7 +11,7 @@ rulesTest("professor-schedule-ownership", () => {
   const schemaSource = fs.readFileSync("prisma/schema.prisma", "utf8");
   const apiSource = fs.readFileSync("src/api.ts", "utf8");
   const appSource = readAppSources();
-  const sidebarSource = fs.readFileSync("src/components/Sidebar.tsx", "utf8");
+  const sidebarConfigSource = fs.readFileSync("src/navigation/sidebar-config.ts", "utf8");
   const platformPathsSource = fs.readFileSync("src/navigation/platformPaths.ts", "utf8");
   const migrationSource = fs.readFileSync("prisma/migrations/20260607103000_professor_schedule/migration.sql", "utf8");
 
@@ -43,6 +43,6 @@ rulesTest("professor-schedule-ownership", () => {
 
   assert.match(appSource, /TeacherScheduleView/);
   assert.match(appSource, /teacherView === "schedule"/);
-  assert.match(sidebarSource, /Emploi du Temps/);
+  assert.match(sidebarConfigSource, /Emploi du Temps/);
   assert.match(platformPathsSource, /"schedule"/);
 });

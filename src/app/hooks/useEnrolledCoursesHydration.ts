@@ -58,7 +58,8 @@ export function useEnrolledCoursesHydration(
   }, [currentUser?.id, enrolledKey]);
 
   const missingEnrolledCourseIds = useMemo(
-    () => findMissingEnrolledCourseIds(enrolledCourses, courses).filter((courseId) => !unresolvedIds.includes(courseId)),
+    () =>
+      findMissingEnrolledCourseIds(enrolledCourses, courses).filter((courseId) => !unresolvedIds.includes(courseId)),
     [enrolledCourses, courses, unresolvedIds],
   );
 

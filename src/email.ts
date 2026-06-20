@@ -620,9 +620,7 @@ export function buildVerificationEmailContent(input: VerificationEmailContentInp
       title: "Vérification de compte — Axelmond Research Labs",
       headline: "Vérification de votre compte",
       bodyHtml,
-      ctaButton: input.verifyUrl
-        ? { href: input.verifyUrl, label: "Vérifier mon compte" }
-        : undefined,
+      ctaButton: input.verifyUrl ? { href: input.verifyUrl, label: "Vérifier mon compte" } : undefined,
       validityNote: `Ce code est valable pendant ${input.expiresInMinutes} minutes à compter de sa génération.`,
       showSecurityAlert: true,
       securityAlertDetail: "Aucune action n'est requise de votre part.",
@@ -741,7 +739,8 @@ export function buildResetPasswordEmailContent(input: {
       ctaButton: input.resetUrl ? { href: input.resetUrl, label: "Réinitialiser mon mot de passe" } : undefined,
       validityNote: `Ce code de réinitialisation expire dans ${validity} minutes et est à usage unique.`,
       showSecurityAlert: true,
-      securityAlertDetail: "Si vous n'avez pas demandé cette réinitialisation, veuillez ignorer ce message ou contacter notre équipe de support.",
+      securityAlertDetail:
+        "Si vous n'avez pas demandé cette réinitialisation, veuillez ignorer ce message ou contacter notre équipe de support.",
       requestedAt: now,
     }),
   };

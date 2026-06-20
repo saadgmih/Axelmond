@@ -1,21 +1,27 @@
 #!/usr/bin/env node
 /**
- * Avoid duplicate prisma generate during Hostinger deploy overlap.
- * Build (`npm run build` / `hostinger:build`) always runs generate explicitly.
+ * Generate from the checked-out schema on every regular install. The generated
+ * directory can survive between CI jobs, so its mere presence is not proof that
+ * it matches the current Prisma schema.
  */
 import { existsSync } from "node:fs";
 import { spawnSync } from "node:child_process";
+import path from "node:path";
 
 if (process.env.SKIP_PRISMA_POSTINSTALL === "1") {
   console.log("[postinstall] SKIP_PRISMA_POSTINSTALL=1 — skipping prisma generate");
   process.exit(0);
 }
 
-const clientEntry = "node_modules/.prisma/client/index.js";
-if (existsSync(clientEntry) && process.env.FORCE_PRISMA_GENERATE !== "1") {
-  console.log("[postinstall] Prisma client already present — skipping generate");
-  process.exit(0);
+const prismaCli = path.resolve("node_modules/prisma/build/index.js");
+if (!existsSync(prismaCli)) {
+  console.error("[postinstall] Prisma CLI is missing; cannot generate the client");
+  process.exit(1);
 }
 
-const result = spawnSync("npx", ["prisma", "generate"], { stdio: "inherit", shell: true });
+console.log("[postinstall] Generating Prisma client from prisma/schema.prisma");
+const result = spawnSync(process.execPath, [prismaCli, "generate"], {
+  stdio: "inherit",
+  shell: false,
+});
 process.exit(result.status ?? 1);

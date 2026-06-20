@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 
 export type FloatingAnchor = "sidebar" | "topbar" | "module";
 
@@ -93,9 +100,7 @@ function readStoredNormalizedPosition(storageKey: string): NormalizedPoint | nul
   try {
     const raw = window.localStorage.getItem(storageKey);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as
-      | { v?: number; xRatio?: number; yRatio?: number; x?: number; y?: number }
-      | null;
+    const parsed = JSON.parse(raw) as { v?: number; xRatio?: number; yRatio?: number; x?: number; y?: number } | null;
     if (!parsed) return null;
 
     if (parsed.v === 2 && typeof parsed.xRatio === "number" && typeof parsed.yRatio === "number") {

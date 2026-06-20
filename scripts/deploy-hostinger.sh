@@ -5,6 +5,11 @@ set -euo pipefail
 # Sur Node.js Web App : auto-deploy GitHub + npm run hostinger:build + npm start.
 # Ne jamais lancer PM2 en parallèle du gestionnaire Hostinger hPanel.
 
+if [ "${HOSTINGER_WEBAPP:-}" = "1" ]; then
+  echo "ERROR: deploy-hostinger.sh is VPS-only. Hostinger Node.js Web App must use npm ci + npm run hostinger:build + npm start."
+  exit 1
+fi
+
 echo "==> git pull"
 git pull origin main
 

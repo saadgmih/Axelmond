@@ -243,6 +243,7 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
 
         const response = await fetch(`/api/lesson-contents/${contentId}/document`, {
           headers: { Authorization: `Bearer ${token}` },
+          signal: AbortSignal.timeout(30_000),
         });
 
         if (!response.ok) throw new Error("Impossible d'afficher ce contenu dans la plateforme.");
@@ -319,23 +320,13 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
 
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center bg-slate-800/80 rounded-lg p-1 border border-slate-700/50">
-              <button
-                type="button"
-                onClick={handleZoomOut}
-                className={toolbarButtonClass}
-                title="Zoom arrière"
-              >
+              <button type="button" onClick={handleZoomOut} className={toolbarButtonClass} title="Zoom arrière">
                 <ZoomOut className="w-4 h-4" />
               </button>
               <span className="px-2 text-xs font-mono font-bold text-slate-300 min-w-[4.5rem] text-center">
                 {imageZoomLabel}
               </span>
-              <button
-                type="button"
-                onClick={handleZoomIn}
-                className={toolbarButtonClass}
-                title="Zoom avant"
-              >
+              <button type="button" onClick={handleZoomIn} className={toolbarButtonClass} title="Zoom avant">
                 <ZoomIn className="w-4 h-4" />
               </button>
             </div>
@@ -489,7 +480,13 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
 
         <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
           <div className="flex items-center rounded-lg border border-slate-700/50 bg-slate-800/80 p-1">
-            <button type="button" onClick={handleZoomOut} className={toolbarButtonClass} title="Zoom arrière" aria-label="Zoom arrière">
+            <button
+              type="button"
+              onClick={handleZoomOut}
+              className={toolbarButtonClass}
+              title="Zoom arrière"
+              aria-label="Zoom arrière"
+            >
               <ZoomOut className="w-4 h-4" />
             </button>
             <button
@@ -503,7 +500,13 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
             >
               {zoomLabel}
             </button>
-            <button type="button" onClick={handleZoomIn} className={toolbarButtonClass} title="Zoom avant" aria-label="Zoom avant">
+            <button
+              type="button"
+              onClick={handleZoomIn}
+              className={toolbarButtonClass}
+              title="Zoom avant"
+              aria-label="Zoom avant"
+            >
               <ZoomIn className="w-4 h-4" />
             </button>
           </div>

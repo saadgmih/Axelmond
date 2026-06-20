@@ -98,20 +98,20 @@ export function useAppSession({ setCourses, onAfterLogin, onLogout, onSessionExp
         applySessionUser(syncedUser);
         onAfterLogin?.(syncedUser);
 
-      try {
-        await Promise.race([
-          api.getCourses().then((courseData) => {
-            setCourses(courseData);
-          }),
-          new Promise<void>((_, reject) => {
-            setTimeout(() => reject(new Error("Course refresh timed out")), 20_000);
-          }),
-        ]);
-      } catch (err) {
-        console.error("Failed to refresh courses after login:", err);
-      } finally {
-        setIsLoginDataLoading(false);
-      }
+        try {
+          await Promise.race([
+            api.getCourses().then((courseData) => {
+              setCourses(courseData);
+            }),
+            new Promise<void>((_, reject) => {
+              setTimeout(() => reject(new Error("Course refresh timed out")), 20_000);
+            }),
+          ]);
+        } catch (err) {
+          console.error("Failed to refresh courses after login:", err);
+        } finally {
+          setIsLoginDataLoading(false);
+        }
       })();
     },
     [applySessionUser, onAfterLogin, setCourses],

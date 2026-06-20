@@ -7,7 +7,7 @@ rulesTest("student-account-security", () => {
   const profileViewSource = fs.readFileSync("src/views/student/StudentProfileView.tsx", "utf8");
   const securityViewSource = fs.readFileSync("src/views/student/StudentAccountSecurityView.tsx", "utf8");
   const sharedSource = fs.readFileSync("src/views/shared/AccountSecurityView.tsx", "utf8");
-  const sidebarSource = fs.readFileSync("src/components/Sidebar.tsx", "utf8");
+  const sidebarConfigSource = fs.readFileSync("src/navigation/sidebar-config.ts", "utf8");
   const routeSwitchSource = fs.readFileSync("src/app/StudentRouteSwitch.tsx", "utf8");
   const platformPathsSource = fs.readFileSync("src/navigation/platformPaths.ts", "utf8");
   const lazyViewsSource = fs.readFileSync("src/lazyViews.tsx", "utf8");
@@ -17,9 +17,9 @@ rulesTest("student-account-security", () => {
   assert.match(sharedSource, /SecuritySettingsPanel/);
   assert.match(sharedSource, /Sécurité du compte/);
 
-  assert.match(sidebarSource, /nav-account-security/);
-  assert.match(sidebarSource, /Sécurité du compte/);
-  assert.match(sidebarSource, /navigateTo\("account-security"\)/);
+  assert.match(sidebarConfigSource, /nav-account-security/);
+  assert.match(sidebarConfigSource, /Sécurité du compte/);
+  assert.match(sidebarConfigSource, /navigateTo\("account-security"\)/);
 
   assert.match(routeSwitchSource, /currentView === "account-security"/);
   assert.match(routeSwitchSource, /LazyStudentAccountSecurityView/);

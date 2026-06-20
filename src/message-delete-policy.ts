@@ -7,7 +7,8 @@ export function canDeleteOwnMessage(
   nowMs = Date.now(),
 ): boolean {
   if (message.senderId !== currentUserId) return false;
-  const createdAtMs = message.createdAt instanceof Date ? message.createdAt.getTime() : new Date(message.createdAt).getTime();
+  const createdAtMs =
+    message.createdAt instanceof Date ? message.createdAt.getTime() : new Date(message.createdAt).getTime();
   if (!Number.isFinite(createdAtMs)) return false;
   return nowMs - createdAtMs <= MESSAGE_DELETE_MAX_AGE_MS;
 }

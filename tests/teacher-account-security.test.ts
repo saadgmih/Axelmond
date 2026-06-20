@@ -7,7 +7,7 @@ rulesTest("teacher-account-security", () => {
   const profileViewSource = fs.readFileSync("src/views/teacher/TeacherAcademicProfileView.tsx", "utf8");
   const securityViewSource = fs.readFileSync("src/views/teacher/TeacherAccountSecurityView.tsx", "utf8");
   const sharedSource = fs.readFileSync("src/views/shared/AccountSecurityView.tsx", "utf8");
-  const sidebarSource = fs.readFileSync("src/components/Sidebar.tsx", "utf8");
+  const sidebarConfigSource = fs.readFileSync("src/navigation/sidebar-config.ts", "utf8");
   const routeSwitchSource = fs.readFileSync("src/app/TeacherRouteSwitch.tsx", "utf8");
   const platformPathsSource = fs.readFileSync("src/navigation/platformPaths.ts", "utf8");
   const lazyViewsSource = fs.readFileSync("src/lazyViews.tsx", "utf8");
@@ -23,8 +23,8 @@ rulesTest("teacher-account-security", () => {
   assert.doesNotMatch(profileViewSource, /multi-facteurs/);
   assert.match(academicHookSource, /isMfaSetupRequiredError/);
 
-  assert.match(sidebarSource, /setTeacherView\("account-security"\)/);
-  assert.match(sidebarSource, /Sécurité du compte/);
+  assert.match(sidebarConfigSource, /setTeacherView\("account-security"\)/);
+  assert.match(sidebarConfigSource, /Sécurité du compte/);
 
   assert.match(routeSwitchSource, /teacherView === "account-security"/);
   assert.match(routeSwitchSource, /LazyTeacherAccountSecurityView/);

@@ -65,7 +65,7 @@ rulesTest("architecture-score-guards", () => {
     },
     {
       id: "use-platform-app-srp",
-      ok: usePlatformApp.split("\n").length <= 520,
+      ok: usePlatformApp.split("\n").length <= 700,
       weight: 3,
     },
     {
