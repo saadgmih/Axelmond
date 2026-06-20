@@ -189,6 +189,7 @@ rulesTest("paypal-webhook", async () => {
       expectedCourseId: 999999999,
     },
     mockPersist,
+    async () => null,
   );
   assert.equal(enrollmentResult.ok, false);
   if (!enrollmentResult.ok) {

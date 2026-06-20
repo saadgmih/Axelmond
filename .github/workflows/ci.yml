@@ -19,7 +19,14 @@ jobs:
     runs-on: [self-hosted, Windows, X64]
 
     env:
-      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/axelmond_ci?schema=AxelmondResearchLab&sslmode=require
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/axelmond_ci?schema=AxelmondResearchLab&sslmode=disable
+      CI_POSTGRES_DATA_DIR: ${{ runner.temp }}/axelmond-postgres-${{ github.run_id }}
+      CI_POSTGRES_READY_FILE: ${{ runner.temp }}/axelmond-postgres-${{ github.run_id }}.ready
+      CI_POSTGRES_STOP_FILE: ${{ runner.temp }}/axelmond-postgres-${{ github.run_id }}.stop
+      CI_POSTGRES_PID_FILE: ${{ runner.temp }}/axelmond-postgres-${{ github.run_id }}.pid
+      CI_POSTGRES_STDOUT: ${{ runner.temp }}/axelmond-postgres-${{ github.run_id }}.out.log
+      CI_POSTGRES_STDERR: ${{ runner.temp }}/axelmond-postgres-${{ github.run_id }}.err.log
+      CI_POSTGRES_MODULE_DIR: ${{ runner.temp }}/axelmond-postgres-tools-${{ github.run_id }}
       NODE_ENV: test
       AUTH_TOKEN_SECRET: ci-auth-secret-32-characters-minimum-value
       EMAIL_VERIFICATION_SECRET: ci-email-secret-32-characters-minimum-value
@@ -40,9 +47,41 @@ jobs:
           SKIP_PRISMA_POSTINSTALL: "1"
         run: npm ci
 
+      - name: Install CI PostgreSQL runtime
+        shell: powershell
+        run: npm install --prefix $env:CI_POSTGRES_MODULE_DIR --no-save --package-lock=false --no-audit --no-fund embedded-postgres@18.4.0-beta.17
+
       - name: Generate Prisma client
         shell: powershell
         run: npm run prisma:generate
+
+      - name: Start CI PostgreSQL
+        shell: powershell
+        run: |
+          $process = Start-Process -FilePath (Get-Command node).Source `
+            -ArgumentList "scripts/start-ci-postgres.mjs" `
+            -PassThru `
+            -WindowStyle Hidden `
+            -RedirectStandardOutput $env:CI_POSTGRES_STDOUT `
+            -RedirectStandardError $env:CI_POSTGRES_STDERR
+
+          for ($attempt = 1; $attempt -le 120; $attempt++) {
+            if (Test-Path -LiteralPath $env:CI_POSTGRES_READY_FILE) { exit 0 }
+            if ($process.HasExited) {
+              Get-Content -LiteralPath $env:CI_POSTGRES_STDOUT -ErrorAction SilentlyContinue
+              Get-Content -LiteralPath $env:CI_POSTGRES_STDERR -ErrorAction SilentlyContinue
+              throw "CI PostgreSQL exited before becoming ready"
+            }
+            Start-Sleep -Seconds 1
+          }
+
+          Get-Content -LiteralPath $env:CI_POSTGRES_STDOUT -ErrorAction SilentlyContinue
+          Get-Content -LiteralPath $env:CI_POSTGRES_STDERR -ErrorAction SilentlyContinue
+          throw "CI PostgreSQL did not become ready within 120 seconds"
+
+      - name: Apply Prisma migrations
+        shell: powershell
+        run: npx prisma migrate deploy
 
       - name: Lint
         shell: powershell
@@ -67,10 +106,6 @@ jobs:
       - name: Migration guard
         shell: powershell
         run: npm run ci:migrations
-
-      - name: Apply Prisma migrations
-        shell: powershell
-        run: npx prisma migrate deploy
 
       - name: Security runtime tests
         shell: powershell
@@ -108,3 +143,28 @@ jobs:
       - name: Secret scan
         shell: powershell
         run: npm run ci:secrets
+
+      - name: Stop CI PostgreSQL
+        if: always()
+        shell: powershell
+        run: |
+          Set-Content -LiteralPath $env:CI_POSTGRES_STOP_FILE -Value "stop"
+          if (Test-Path -LiteralPath $env:CI_POSTGRES_PID_FILE) {
+            $postgresPid = [int](Get-Content -LiteralPath $env:CI_POSTGRES_PID_FILE -Raw)
+            for ($attempt = 1; $attempt -le 30; $attempt++) {
+              if (-not (Get-Process -Id $postgresPid -ErrorAction SilentlyContinue)) { break }
+              Start-Sleep -Milliseconds 500
+            }
+            if (Get-Process -Id $postgresPid -ErrorAction SilentlyContinue) {
+              Stop-Process -Id $postgresPid -Force
+            }
+          }
+
+          $tempRoot = [IO.Path]::GetFullPath($env:RUNNER_TEMP)
+          foreach ($candidate in @($env:CI_POSTGRES_DATA_DIR, $env:CI_POSTGRES_MODULE_DIR)) {
+            $cleanupPath = [IO.Path]::GetFullPath($candidate)
+            if (-not $cleanupPath.StartsWith($tempRoot, [StringComparison]::OrdinalIgnoreCase)) {
+              throw "Refusing to clean PostgreSQL files outside RUNNER_TEMP: $cleanupPath"
+            }
+            Remove-Item -LiteralPath $cleanupPath -Recurse -Force -ErrorAction SilentlyContinue
+          }

@@ -28,6 +28,8 @@ export type PayPalCaptureEnrollmentResult =
       code?: string;
     };
 
+type FindPayPalCourseById = (courseId: number) => Promise<{ title: string; price: number } | null>;
+
 export function extractPayPalCaptureContext(captureResult: any) {
   const purchaseUnit = captureResult?.purchase_units?.[0];
   const metadata = parsePayPalCustomId(purchaseUnit?.custom_id);
@@ -66,6 +68,7 @@ export async function processPayPalCaptureEnrollment(
     auditAction: string;
     reqIp?: string;
   }) => Promise<{ duplicate: boolean; user: any; invoice: any }>,
+  findCourseById: FindPayPalCourseById = (courseId) => prisma.course.findUnique({ where: { id: courseId } }),
 ): Promise<PayPalCaptureEnrollmentResult> {
   const { orderId, captureResult, reqIp, auditAction, expectedUserId, expectedCourseId } = params;
   const { metadata, capture } = extractPayPalCaptureContext(captureResult);
@@ -85,7 +88,7 @@ export async function processPayPalCaptureEnrollment(
     return { ok: false, status: 400, error: "Commande PayPal invalide pour ce module", code: "PAYPAL_COURSE_MISMATCH" };
   }
 
-  const course = await prisma.course.findUnique({ where: { id: metadata.courseId } });
+  const course = await findCourseById(metadata.courseId);
   if (!course) {
     return { ok: false, status: 404, error: "Module non trouvé", code: "COURSE_NOT_FOUND" };
   }
