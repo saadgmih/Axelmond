@@ -23,8 +23,12 @@ rulesTest("ci-pipeline", () => {
   assert.match(workflow, /scripts\/start-ci-postgres\.mjs/);
   assert.match(workflow, /embedded-postgres@18\.4\.0-beta\.17/);
   assert.match(workflow, /npm install --prefix \$env:CI_POSTGRES_MODULE_DIR --no-save --package-lock=false/);
-  assert.match(workflow, /CI_POSTGRES_MODULE_DIR:\s*\$\{\{ runner\.temp \}\}/);
-  assert.match(workflow, /CI_POSTGRES_DATA_DIR:\s*\$\{\{ runner\.temp \}\}/);
+  assert.match(workflow, /Configure CI PostgreSQL paths/);
+  assert.match(workflow, /\$basePath = Join-Path \$env:RUNNER_TEMP \$instanceName/);
+  assert.match(workflow, /CI_POSTGRES_MODULE_DIR=\$\{basePath\}\.tools/);
+  assert.match(workflow, /CI_POSTGRES_DATA_DIR=\$basePath/);
+  assert.match(workflow, /GITHUB_ENV/);
+  assert.doesNotMatch(workflow, /CI_POSTGRES_(?:DATA_DIR|MODULE_DIR):\s*\$\{\{ runner\.temp/);
   assert.match(workflow, /Stop CI PostgreSQL[\s\S]*if:\s*always\(\)/);
   assert.match(workflow, /127\.0\.0\.1:5432[^\s]*sslmode=disable/);
 

@@ -20,13 +20,6 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/axelmond_ci?schema=AxelmondResearchLab&sslmode=disable
-      CI_POSTGRES_DATA_DIR: ${{ runner.temp }}/axelmond-postgres-${{ github.run_id }}
-      CI_POSTGRES_READY_FILE: ${{ runner.temp }}/axelmond-postgres-${{ github.run_id }}.ready
-      CI_POSTGRES_STOP_FILE: ${{ runner.temp }}/axelmond-postgres-${{ github.run_id }}.stop
-      CI_POSTGRES_PID_FILE: ${{ runner.temp }}/axelmond-postgres-${{ github.run_id }}.pid
-      CI_POSTGRES_STDOUT: ${{ runner.temp }}/axelmond-postgres-${{ github.run_id }}.out.log
-      CI_POSTGRES_STDERR: ${{ runner.temp }}/axelmond-postgres-${{ github.run_id }}.err.log
-      CI_POSTGRES_MODULE_DIR: ${{ runner.temp }}/axelmond-postgres-tools-${{ github.run_id }}
       NODE_ENV: test
       AUTH_TOKEN_SECRET: ci-auth-secret-32-characters-minimum-value
       EMAIL_VERIFICATION_SECRET: ci-email-secret-32-characters-minimum-value
@@ -40,6 +33,19 @@ jobs:
         with:
           node-version: "22"
           cache: npm
+
+      - name: Configure CI PostgreSQL paths
+        shell: powershell
+        run: |
+          $instanceName = "axelmond-postgres-${{ github.run_id }}"
+          $basePath = Join-Path $env:RUNNER_TEMP $instanceName
+          Add-Content -LiteralPath $env:GITHUB_ENV -Value "CI_POSTGRES_DATA_DIR=$basePath"
+          Add-Content -LiteralPath $env:GITHUB_ENV -Value "CI_POSTGRES_READY_FILE=${basePath}.ready"
+          Add-Content -LiteralPath $env:GITHUB_ENV -Value "CI_POSTGRES_STOP_FILE=${basePath}.stop"
+          Add-Content -LiteralPath $env:GITHUB_ENV -Value "CI_POSTGRES_PID_FILE=${basePath}.pid"
+          Add-Content -LiteralPath $env:GITHUB_ENV -Value "CI_POSTGRES_STDOUT=${basePath}.out.log"
+          Add-Content -LiteralPath $env:GITHUB_ENV -Value "CI_POSTGRES_STDERR=${basePath}.err.log"
+          Add-Content -LiteralPath $env:GITHUB_ENV -Value "CI_POSTGRES_MODULE_DIR=${basePath}.tools"
 
       - name: Install dependencies
         shell: powershell
