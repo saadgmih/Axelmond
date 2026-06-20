@@ -15,5 +15,7 @@ rulesTest("tsconfig-strict", () => {
   assert.match(packageJson.scripts.ci, /lint:strict/);
 
   const workflow = fs.readFileSync(".github/workflows/ci.yml", "utf8");
-  assert.match(workflow, /npm run lint:strict/);
+  const postgresRunner = fs.readFileSync("scripts/run-ci-with-postgres.mjs", "utf8");
+  assert.match(workflow, /scripts\/run-ci-with-postgres\.mjs/);
+  assert.match(postgresRunner, /"run", "lint:strict"/);
 });

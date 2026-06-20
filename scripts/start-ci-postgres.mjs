@@ -29,7 +29,7 @@ const postgres = new EmbeddedPostgres({
   user: "postgres",
   password: "postgres",
   port,
-  persistent: false,
+  persistent: true,
   onLog: (message) => console.log(`[ci-postgres] ${String(message)}`),
   onError: (error) => console.error(`[ci-postgres] ${String(error)}`),
 });

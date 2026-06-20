@@ -61,98 +61,29 @@ jobs:
         shell: powershell
         run: npm run prisma:generate
 
-      - name: Start CI PostgreSQL
-        shell: powershell
-        run: |
-          # Keep PostgreSQL alive across workflow steps; the cleanup step stops it explicitly.
-          $env:RUNNER_TRACKING_ID = "axelmond-postgres-${{ github.run_id }}"
-          $process = Start-Process -FilePath (Get-Command node).Source `
-            -ArgumentList "scripts/start-ci-postgres.mjs" `
-            -PassThru `
-            -WindowStyle Hidden `
-            -RedirectStandardOutput $env:CI_POSTGRES_STDOUT `
-            -RedirectStandardError $env:CI_POSTGRES_STDERR
-
-          for ($attempt = 1; $attempt -le 120; $attempt++) {
-            if (Test-Path -LiteralPath $env:CI_POSTGRES_READY_FILE) { exit 0 }
-            if ($process.HasExited) {
-              Get-Content -LiteralPath $env:CI_POSTGRES_STDOUT -ErrorAction SilentlyContinue
-              Get-Content -LiteralPath $env:CI_POSTGRES_STDERR -ErrorAction SilentlyContinue
-              throw "CI PostgreSQL exited before becoming ready"
-            }
-            Start-Sleep -Seconds 1
-          }
-
-          Get-Content -LiteralPath $env:CI_POSTGRES_STDOUT -ErrorAction SilentlyContinue
-          Get-Content -LiteralPath $env:CI_POSTGRES_STDERR -ErrorAction SilentlyContinue
-          throw "CI PostgreSQL did not become ready within 120 seconds"
-
-      - name: Apply Prisma migrations
-        shell: powershell
-        run: npx prisma migrate deploy
-
-      - name: Lint
-        shell: powershell
-        run: npm run lint
-
-      - name: Strict TypeScript
-        shell: powershell
-        run: npm run lint:strict
-
-      - name: ESLint
-        shell: powershell
-        run: npm run lint:eslint
-
-      - name: Format check
-        shell: powershell
-        run: npm run format:check
-
-      - name: Test
-        shell: powershell
-        run: npm test
-
-      - name: Migration guard
-        shell: powershell
-        run: npm run ci:migrations
-
-      - name: Security runtime tests
-        shell: powershell
-        run: npm run test:security-runtime
-
-      - name: Build
-        shell: powershell
-        run: npm run build
-
-      - name: Security preflight
+      - name: Verify with CI PostgreSQL
         shell: powershell
         env:
-          NODE_ENV: production
-          APP_URL: https://axelmond.com
-          MOBILE_CLIENT_SECRET: ci-mobile-secret-32-characters-minimum-value
-          PAYPAL_CLIENT_ID: x
-          PAYPAL_CLIENT_SECRET: y
-          PAYPAL_WEBHOOK_ID: z
-          LIVEKIT_URL: wss://x.livekit.cloud
-          LIVEKIT_API_KEY: k
-          LIVEKIT_API_SECRET: ci-livekit-secret-32-characters-minimum
-          UPLOADTHING_TOKEN: ci-uploadthing-secret-32-characters-min
-          SMTP_HOST: smtp.example.com
-          SMTP_USER: u
-          SMTP_PASS: ci-smtp-pass-32-characters-minimum-value
-          VAPID_PUBLIC_KEY: BMxtest
-          VAPID_PRIVATE_KEY: ci-vapid-private-32-characters-minimum
-          PAYPAL_ENV: live
-        run: npx tsx scripts/security-preflight.ts
+          CI_PREFLIGHT_NODE_ENV: production
+          CI_PREFLIGHT_APP_URL: https://axelmond.com
+          CI_PREFLIGHT_DATABASE_URL: postgresql://ci:ci@db.example.com:5432/axelmond?sslmode=require
+          CI_PREFLIGHT_MOBILE_CLIENT_SECRET: ci-mobile-secret-32-characters-minimum-value
+          CI_PREFLIGHT_PAYPAL_CLIENT_ID: x
+          CI_PREFLIGHT_PAYPAL_CLIENT_SECRET: y
+          CI_PREFLIGHT_PAYPAL_WEBHOOK_ID: z
+          CI_PREFLIGHT_LIVEKIT_URL: wss://x.livekit.cloud
+          CI_PREFLIGHT_LIVEKIT_API_KEY: k
+          CI_PREFLIGHT_LIVEKIT_API_SECRET: ci-livekit-secret-32-characters-minimum
+          CI_PREFLIGHT_UPLOADTHING_TOKEN: ci-uploadthing-secret-32-characters-min
+          CI_PREFLIGHT_SMTP_HOST: smtp.example.com
+          CI_PREFLIGHT_SMTP_USER: u
+          CI_PREFLIGHT_SMTP_PASS: ci-smtp-pass-32-characters-minimum-value
+          CI_PREFLIGHT_VAPID_PUBLIC_KEY: BMxtest
+          CI_PREFLIGHT_VAPID_PRIVATE_KEY: ci-vapid-private-32-characters-minimum
+          CI_PREFLIGHT_PAYPAL_ENV: live
+        run: node scripts/run-ci-with-postgres.mjs
 
-      - name: npm audit (high+)
-        shell: powershell
-        run: npm audit --audit-level=high
-
-      - name: Secret scan
-        shell: powershell
-        run: npm run ci:secrets
-
-      - name: Stop CI PostgreSQL
+      - name: Clean CI PostgreSQL
         if: always()
         shell: powershell
         run: |
