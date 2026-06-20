@@ -17,7 +17,7 @@ rulesTest("code-quality", () => {
   assert.ok(fs.existsSync("src/hooks/useInView.ts"));
   assert.equal(
     packageJson.scripts["format:check"],
-    'prettier --check "src/**/*.{ts,tsx}" "tests/**/*.{ts,tsx}" server.ts vite.config.ts vitest.config.ts .github/**/*.yml',
+    'prettier --end-of-line auto --check "src/**/*.{ts,tsx}" "tests/**/*.{ts,tsx}" server.ts vite.config.ts vitest.config.ts .github/**/*.yml',
   );
   assert.equal(packageJson.scripts["lint:eslint"], "eslint . --max-warnings 0");
   assert.equal(packageJson.scripts["lint:eslint:fix"], "eslint . --max-warnings 9999 --fix");

@@ -22,7 +22,7 @@
     "load-test": "tsx tests/load-report.ts",
     "clean": "node -e \"const fs=require('fs'); for (const p of ['dist','server.js']) { fs.rmSync(p,{recursive:true,force:true}); }\"",
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"tests/**/*.{ts,tsx}\" server.ts vite.config.ts vitest.config.ts .github/**/*.yml",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"tests/**/*.{ts,tsx}\" server.ts vite.config.ts vitest.config.ts .github/**/*.yml",
+    "format:check": "prettier --end-of-line auto --check \"src/**/*.{ts,tsx}\" \"tests/**/*.{ts,tsx}\" server.ts vite.config.ts vitest.config.ts .github/**/*.yml",
     "lint": "tsc --noEmit",
     "lint:eslint": "eslint . --max-warnings 0",
     "lint:eslint:fix": "eslint . --max-warnings 9999 --fix",
