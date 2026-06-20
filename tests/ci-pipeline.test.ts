@@ -29,6 +29,11 @@ rulesTest("ci-pipeline", () => {
   assert.match(workflow, /CI_POSTGRES_DATA_DIR=\$basePath/);
   assert.match(workflow, /GITHUB_ENV/);
   assert.doesNotMatch(workflow, /CI_POSTGRES_(?:DATA_DIR|MODULE_DIR):\s*\$\{\{ runner\.temp/);
+  assert.match(workflow, /RUNNER_TRACKING_ID = "axelmond-postgres-\$\{\{ github\.run_id \}\}"/);
+  assert.ok(
+    workflow.indexOf("RUNNER_TRACKING_ID") < workflow.indexOf("Start-Process"),
+    "The PostgreSQL process must be detached from runner cleanup before it starts",
+  );
   assert.match(workflow, /Stop CI PostgreSQL[\s\S]*if:\s*always\(\)/);
   assert.match(workflow, /127\.0\.0\.1:5432[^\s]*sslmode=disable/);
 

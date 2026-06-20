@@ -64,6 +64,8 @@ jobs:
       - name: Start CI PostgreSQL
         shell: powershell
         run: |
+          # Keep PostgreSQL alive across workflow steps; the cleanup step stops it explicitly.
+          $env:RUNNER_TRACKING_ID = "axelmond-postgres-${{ github.run_id }}"
           $process = Start-Process -FilePath (Get-Command node).Source `
             -ArgumentList "scripts/start-ci-postgres.mjs" `
             -PassThru `
