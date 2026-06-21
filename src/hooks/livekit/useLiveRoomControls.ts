@@ -1,11 +1,26 @@
-import { useEffect, type Dispatch, type FormEvent, type RefObject, type SetStateAction } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type Dispatch,
+  type FormEvent,
+  type RefObject,
+  type SetStateAction,
+} from "react";
 import { getClientErrorMessage } from "../../client-errors";
 import type { LiveParticipantCard } from "../../components/VirtualClassroom";
 import type { AppUser } from "../../components/AuthScreen";
 import { api } from "../../api";
 import { LiveChatMessage } from "../../livekit";
-import type { Room } from "livekit-client";
+import { Room } from "livekit-client";
 import type { Course } from "../../types";
+import {
+  DEFAULT_LIVE_CAMERA_FACING_MODE,
+  liveCameraDeviceLabel,
+  nextLiveCameraDevice,
+  normalizeLiveCameraDevices,
+  type LiveCameraDevice,
+} from "../../live/live-camera";
 import {
   appendWhiteboardStroke,
   applyPollStart,
@@ -93,6 +108,39 @@ export function useLiveRoomControls({
   publishLiveSync,
   refreshLiveAttendanceReport,
 }: UseLiveRoomControlsOptions) {
+  const [cameraDevices, setCameraDevices] = useState<LiveCameraDevice[]>([]);
+  const [activeCameraDeviceId, setActiveCameraDeviceId] = useState<string | null>(null);
+
+  const refreshCameraDevices = useCallback(async (): Promise<LiveCameraDevice[]> => {
+    if (!liveRoom || typeof navigator === "undefined" || !navigator.mediaDevices) {
+      setCameraDevices([]);
+      setActiveCameraDeviceId(null);
+      return [];
+    }
+
+    try {
+      const devices = normalizeLiveCameraDevices(await Room.getLocalDevices("videoinput", false));
+      setCameraDevices(devices);
+      setActiveCameraDeviceId(liveRoom.getActiveDevice("videoinput") || null);
+      return devices;
+    } catch (err) {
+      console.warn("[livekit] Camera enumeration failed", err);
+      setCameraDevices([]);
+      return [];
+    }
+  }, [liveRoom]);
+
+  useEffect(() => {
+    void refreshCameraDevices();
+    if (!liveRoom || typeof navigator === "undefined" || !navigator.mediaDevices?.addEventListener) return;
+
+    const handleDeviceChange = () => {
+      void refreshCameraDevices();
+    };
+    navigator.mediaDevices.addEventListener("devicechange", handleDeviceChange);
+    return () => navigator.mediaDevices.removeEventListener("devicechange", handleDeviceChange);
+  }, [liveRoom, refreshCameraDevices]);
+
   useEffect(() => {
     const syncFullscreen = () => setIsLiveFullscreen(Boolean(document.fullscreenElement));
     document.addEventListener("fullscreenchange", syncFullscreen);
@@ -136,12 +184,60 @@ export function useLiveRoomControls({
     if (!liveRoom) return;
     try {
       const nextState = !isCameraEnabled;
-      await liveRoom.localParticipant.setCameraEnabled(nextState);
+      if (nextState) {
+        const selectedDeviceExists = cameraDevices.some((device) => device.deviceId === activeCameraDeviceId);
+        if (selectedDeviceExists && activeCameraDeviceId) {
+          try {
+            await liveRoom.localParticipant.setCameraEnabled(true, {
+              deviceId: { exact: activeCameraDeviceId },
+            });
+          } catch {
+            setActiveCameraDeviceId(null);
+          }
+        }
+
+        if (!liveRoom.localParticipant.isCameraEnabled) {
+          try {
+            await liveRoom.localParticipant.setCameraEnabled(true, {
+              facingMode: DEFAULT_LIVE_CAMERA_FACING_MODE,
+            });
+          } catch {
+            await liveRoom.localParticipant.setCameraEnabled(true);
+          }
+        }
+      } else {
+        await liveRoom.localParticipant.setCameraEnabled(false);
+      }
       setIsCameraEnabled(nextState);
+      setActiveCameraDeviceId(liveRoom.getActiveDevice("videoinput") || null);
+      await refreshCameraDevices();
       syncLiveParticipants(liveRoom);
     } catch (err) {
       console.error("[livekit] Camera toggle failed", err);
       setLiveStatusMsg("Accès caméra refusé ou indisponible");
+    }
+  };
+
+  const switchLiveCamera = async () => {
+    if (!liveRoom || !isCameraEnabled) return;
+    try {
+      const devices = await refreshCameraDevices();
+      const currentDeviceId = liveRoom.getActiveDevice("videoinput") || activeCameraDeviceId;
+      const nextDevice = nextLiveCameraDevice(devices, currentDeviceId);
+      if (!nextDevice) return;
+
+      await liveRoom.switchActiveDevice("videoinput", nextDevice.deviceId);
+      setActiveCameraDeviceId(nextDevice.deviceId);
+      setLiveStatusMsg(
+        `${liveCameraDeviceLabel(
+          nextDevice,
+          devices.findIndex((device) => device.deviceId === nextDevice.deviceId),
+        )} sélectionnée`,
+      );
+      syncLiveParticipants(liveRoom);
+    } catch (err) {
+      console.error("[livekit] Camera switch failed", err);
+      setLiveStatusMsg("Impossible de changer de caméra");
     }
   };
 
@@ -393,6 +489,8 @@ export function useLiveRoomControls({
   return {
     toggleLiveMic,
     toggleLiveCamera,
+    switchLiveCamera,
+    canSwitchLiveCamera: isCameraEnabled && cameraDevices.length > 1,
     toggleLiveScreenShare,
     toggleLiveFullscreen,
     sendLiveChatMessage,

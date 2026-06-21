@@ -237,6 +237,8 @@ export function useLiveKitRoom({
   const {
     toggleLiveMic,
     toggleLiveCamera,
+    switchLiveCamera,
+    canSwitchLiveCamera,
     toggleLiveScreenShare,
     toggleLiveFullscreen,
     sendLiveChatMessage,
@@ -418,6 +420,8 @@ export function useLiveKitRoom({
     stageRef: liveStageRef,
     onToggleMic: toggleLiveMic,
     onToggleCamera: toggleLiveCamera,
+    canSwitchCamera: canSwitchLiveCamera,
+    onSwitchCamera: switchLiveCamera,
     onToggleScreenShare: toggleLiveScreenShare,
     onToggleFullscreen: toggleLiveFullscreen,
     onSendMessage: sendLiveChatMessage,

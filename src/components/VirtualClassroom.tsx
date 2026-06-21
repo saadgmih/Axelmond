@@ -61,6 +61,8 @@ export interface VirtualClassroomProps {
   onBack?: () => void;
   onToggleMic: () => void;
   onToggleCamera: () => void;
+  canSwitchCamera: boolean;
+  onSwitchCamera: () => void;
   onToggleScreenShare: () => void;
   onToggleFullscreen: () => void;
   onLeave?: () => void;
@@ -109,6 +111,8 @@ export default function VirtualClassroom({
   onBack,
   onToggleMic,
   onToggleCamera,
+  canSwitchCamera,
+  onSwitchCamera,
   onToggleScreenShare,
   onToggleFullscreen,
   onLeave,
@@ -269,6 +273,8 @@ export default function VirtualClassroom({
             localReaction={ui.localReaction}
             onToggleMic={onToggleMic}
             onToggleCamera={onToggleCamera}
+            canSwitchCamera={canSwitchCamera}
+            onSwitchCamera={onSwitchCamera}
             onToggleScreenShare={onToggleScreenShare}
             onRaiseHand={onRaiseHand}
             onTogglePictureInPicture={() => {
