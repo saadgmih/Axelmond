@@ -7,6 +7,7 @@ import {
   FileText,
   Maximize,
   Maximize2,
+  Minimize2,
   RotateCcw,
   ZoomIn,
   ZoomOut,
@@ -26,6 +27,20 @@ interface PdfLessonViewerProps {
 }
 
 type ImageViewMode = "width" | "screen" | "actual";
+
+const viewerToolbarClass =
+  "sticky top-0 z-30 flex min-h-16 flex-wrap items-center gap-2 border-b border-slate-700/70 bg-slate-950/95 px-3 py-2.5 text-slate-200 shadow-[0_10px_30px_rgba(2,6,23,0.28)] backdrop-blur-xl sm:flex-nowrap sm:gap-3 sm:px-4";
+const toolbarGroupClass =
+  "flex h-11 shrink-0 items-center rounded-md border border-slate-700/80 bg-slate-900 p-1 shadow-sm";
+const toolbarButtonClass =
+  "touch-target inline-flex h-9 min-h-9 w-9 min-w-9 items-center justify-center rounded-[5px] text-slate-300 transition-colors hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/80 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-slate-300";
+const toolbarDividerClass = "hidden h-6 w-px shrink-0 bg-slate-700/80 sm:block";
+
+function getToolbarModeClass(active: boolean) {
+  return `inline-flex h-9 min-h-9 items-center justify-center gap-2 rounded-[5px] px-3 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/80 ${
+    active ? "bg-indigo-500 text-white shadow-sm" : "text-slate-300 hover:bg-slate-800 hover:text-white"
+  }`;
+}
 
 export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }: PdfLessonViewerProps) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
@@ -114,8 +129,6 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
   }, [isPseudoFullscreen]);
 
   const isExpandedView = isFullscreen || isPseudoFullscreen;
-  const toolbarButtonClass =
-    "touch-target inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-slate-300 transition-colors cursor-pointer hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed";
 
   function exitExpandedView() {
     setIsPseudoFullscreen(false);
@@ -309,40 +322,41 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
         className={`flex flex-col rounded-2xl border border-slate-200 bg-slate-950 shadow-lg overflow-hidden select-none transition-all ${isExpandedView ? "fixed inset-0 z-[120] h-[100dvh] w-full rounded-none border-none" : "h-[75vh]"}`}
       >
         <div
-          className="sticky top-0 z-30 flex flex-wrap items-center justify-center gap-2 border-b border-slate-800 bg-slate-900 px-3 py-2 text-slate-200 shadow-md sm:justify-between sm:gap-3 sm:px-4 sm:py-3"
+          className={viewerToolbarClass}
           onPointerDown={(event) => event.stopPropagation()}
           onClick={(event) => event.stopPropagation()}
         >
-          <div className="flex min-w-0 items-center gap-2 bg-slate-800/80 rounded-lg p-1.5 border border-slate-700/50">
-            <Camera className="h-4 w-4 shrink-0 text-indigo-300" />
-            <span className="max-w-[14rem] truncate px-1 text-xs font-semibold text-slate-200">{title}</span>
+          <div className="flex min-w-0 flex-1 items-center gap-3 py-0.5">
+            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-indigo-400/25 bg-indigo-500/10 text-indigo-300">
+              <Camera className="h-4 w-4" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Support visuel</p>
+              <p className="max-w-[18rem] truncate text-sm font-semibold text-slate-100 lg:max-w-[26rem]">{title}</p>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center bg-slate-800/80 rounded-lg p-1 border border-slate-700/50">
+          <div className="flex w-full items-center gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:w-auto sm:pb-0">
+            <div className={toolbarGroupClass}>
               <button type="button" onClick={handleZoomOut} className={toolbarButtonClass} title="Zoom arrière">
-                <ZoomOut className="w-4 h-4" />
+                <ZoomOut className="h-4 w-4" />
               </button>
-              <span className="px-2 text-xs font-mono font-bold text-slate-300 min-w-[4.5rem] text-center">
+              <span className="min-w-[4.75rem] px-2 text-center text-xs font-semibold tabular-nums text-slate-200">
                 {imageZoomLabel}
               </span>
               <button type="button" onClick={handleZoomIn} className={toolbarButtonClass} title="Zoom avant">
-                <ZoomIn className="w-4 h-4" />
+                <ZoomIn className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="w-px h-6 bg-slate-700 mx-1 hidden sm:block"></div>
+            <span className={toolbarDividerClass} aria-hidden="true" />
 
-            <div className="flex items-center bg-slate-800/80 rounded-lg p-1 border border-slate-700/50">
+            <div className={toolbarGroupClass}>
               <button
                 type="button"
                 onClick={handleImageFitWidth}
                 aria-pressed={imageViewMode === "width" && scale === 1}
-                className={`px-2 py-1.5 rounded-md text-xs font-bold transition-colors cursor-pointer ${
-                  imageViewMode === "width" && scale === 1
-                    ? "bg-indigo-600 text-white"
-                    : "text-slate-300 hover:bg-slate-700"
-                }`}
+                className={getToolbarModeClass(imageViewMode === "width" && scale === 1)}
                 title="Ajuster à la largeur"
               >
                 Largeur
@@ -351,49 +365,48 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
                 type="button"
                 onClick={handleImageFitScreen}
                 aria-pressed={imageViewMode === "screen" && scale === 1}
-                className={`p-1.5 rounded-md transition-colors cursor-pointer ${
-                  imageViewMode === "screen" && scale === 1
-                    ? "bg-indigo-600 text-white"
-                    : "text-slate-300 hover:bg-slate-700"
+                className={`${toolbarButtonClass} ${
+                  imageViewMode === "screen" && scale === 1 ? "bg-indigo-500 text-white hover:bg-indigo-500" : ""
                 }`}
                 title="Ajuster à l'écran"
+                aria-label="Ajuster à l'écran"
               >
-                <Maximize2 className="w-4 h-4" />
+                <Maximize2 className="h-4 w-4" />
               </button>
               <button
                 type="button"
                 onClick={handleImageResetZoom}
                 aria-pressed={imageViewMode === "actual" && scale === 1}
-                className={`p-1.5 rounded-md transition-colors cursor-pointer ${
-                  imageViewMode === "actual" && scale === 1
-                    ? "bg-indigo-600 text-white"
-                    : "text-slate-300 hover:bg-slate-700"
+                className={`${toolbarButtonClass} ${
+                  imageViewMode === "actual" && scale === 1 ? "bg-indigo-500 text-white hover:bg-indigo-500" : ""
                 }`}
                 title="Réinitialiser le zoom à 100%"
+                aria-label="Réinitialiser le zoom à 100%"
               >
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="w-px h-6 bg-slate-700 mx-1 hidden sm:block"></div>
+            <span className={toolbarDividerClass} aria-hidden="true" />
 
             <button
               type="button"
               onClick={toggleFullscreen}
-              className={`${toolbarButtonClass} rounded-lg border border-slate-700/50 bg-slate-800/80`}
-              title="Plein écran"
+              className={`${toolbarButtonClass} h-11 min-h-11 w-11 min-w-11 border border-slate-700/80 bg-slate-900`}
+              title={isExpandedView ? "Quitter le plein écran" : "Plein écran"}
+              aria-label={isExpandedView ? "Quitter le plein écran" : "Plein écran"}
             >
-              <Maximize className="w-4 h-4" />
+              {isExpandedView ? <Minimize2 className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
             </button>
 
             <a
               href={blobUrl || "#"}
               download={title || "image"}
-              className="p-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 border border-indigo-500/50 text-white transition-colors cursor-pointer flex items-center gap-2"
+              className="inline-flex h-11 shrink-0 items-center gap-2 rounded-md border border-indigo-400/30 bg-indigo-500 px-3 text-white shadow-sm transition-colors hover:bg-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
               title="Télécharger l'image"
             >
-              <Download className="w-4 h-4" />
-              <span className="text-xs font-semibold hidden sm:inline">Télécharger</span>
+              <Download className="h-4 w-4" />
+              <span className="hidden text-xs font-semibold md:inline">Télécharger</span>
             </a>
           </div>
         </div>
@@ -448,11 +461,11 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
       className={`flex flex-col rounded-2xl border border-slate-200 bg-slate-950 shadow-lg overflow-hidden select-none transition-all ${isExpandedView ? "fixed inset-0 z-[120] h-[100dvh] w-full rounded-none border-none" : "h-[75vh]"}`}
     >
       <div
-        className="sticky top-0 z-30 flex flex-wrap items-center justify-center gap-2 border-b border-slate-800 bg-slate-900 px-3 py-2 text-slate-200 shadow-md sm:justify-between sm:gap-3 sm:px-4 sm:py-3"
+        className={viewerToolbarClass}
         onPointerDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-center gap-1 rounded-lg border border-slate-700/50 bg-slate-800/80 p-1">
+        <div className={toolbarGroupClass}>
           <button
             type="button"
             onClick={() => changePage(-1)}
@@ -461,10 +474,10 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
             title="Page précédente"
             aria-label="Page précédente"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="h-5 w-5" />
           </button>
-          <span className="min-w-[5rem] px-2 text-center text-sm font-semibold font-mono text-slate-200">
-            {pageNumber} <span className="mx-0.5 text-slate-500">/</span> {numPages || "?"}
+          <span className="min-w-[5.25rem] px-2 text-center text-sm font-semibold tabular-nums text-slate-100">
+            {pageNumber} <span className="mx-1 font-normal text-slate-600">/</span> {numPages || "?"}
           </span>
           <button
             type="button"
@@ -474,12 +487,12 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
             title="Page suivante"
             aria-label="Page suivante"
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-          <div className="flex items-center rounded-lg border border-slate-700/50 bg-slate-800/80 p-1">
+        <div className="ml-auto flex min-w-0 items-center gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:pb-0">
+          <div className={toolbarGroupClass}>
             <button
               type="button"
               onClick={handleZoomOut}
@@ -487,14 +500,13 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
               title="Zoom arrière"
               aria-label="Zoom arrière"
             >
-              <ZoomOut className="w-4 h-4" />
+              <ZoomOut className="h-4 w-4" />
             </button>
             <button
               type="button"
               onClick={handlePdfFitWidth}
-              className={`min-h-[44px] rounded-md px-2 text-xs font-mono font-bold transition-colors ${
-                scale === 1 ? "bg-indigo-600 text-white" : "text-slate-300 hover:bg-slate-700"
-              }`}
+              aria-pressed={scale === 1}
+              className={`${getToolbarModeClass(scale === 1)} min-w-[5rem] tabular-nums`}
               title="Ajuster à la largeur"
               aria-label="Ajuster à la largeur"
             >
@@ -507,18 +519,20 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
               title="Zoom avant"
               aria-label="Zoom avant"
             >
-              <ZoomIn className="w-4 h-4" />
+              <ZoomIn className="h-4 w-4" />
             </button>
           </div>
+
+          <span className={toolbarDividerClass} aria-hidden="true" />
 
           <button
             type="button"
             onClick={toggleFullscreen}
-            className={`${toolbarButtonClass} rounded-lg border border-slate-700/50 bg-slate-800/80`}
-            title="Plein écran"
-            aria-label="Plein écran"
+            className={`${toolbarButtonClass} h-11 min-h-11 w-11 min-w-11 border border-slate-700/80 bg-slate-900`}
+            title={isExpandedView ? "Quitter le plein écran" : "Plein écran"}
+            aria-label={isExpandedView ? "Quitter le plein écran" : "Plein écran"}
           >
-            <Maximize className="w-4 h-4" />
+            {isExpandedView ? <Minimize2 className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
           </button>
         </div>
       </div>
