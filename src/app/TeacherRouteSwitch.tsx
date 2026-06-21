@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import {
+  LazyAdminProfessorAccessKeysView,
   LazyMessagesView,
   LazyTeacherAcademicProfileView,
   LazyTeacherAccountSecurityView,
@@ -58,6 +59,16 @@ export function TeacherRouteSwitch() {
               {...teacherDashboardBindings}
             />
           </Suspense>
+        )}
+        {teacherView === "access-keys" && currentUser.role === "ADMIN" && (
+          <Suspense fallback={<RouteChunkFallback label="Chargement des codes professeur…" />}>
+            <LazyAdminProfessorAccessKeysView {...teacherDashboardBindings} />
+          </Suspense>
+        )}
+        {teacherView === "access-keys" && currentUser.role !== "ADMIN" && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-5 text-sm font-semibold text-amber-900">
+            Cet espace est réservé aux administrateurs.
+          </div>
         )}
         {teacherView === "academic-profile" && (
           <Suspense fallback={<RouteChunkFallback label="Chargement du profil académique…" />}>

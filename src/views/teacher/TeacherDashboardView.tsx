@@ -4,23 +4,19 @@ import {
   ArrowUpRight,
   BookOpen,
   ChevronRight,
-  Copy,
   Code2,
   CreditCard,
   DollarSign,
   FilePlus2,
   GraduationCap,
   HelpCircle,
-  KeyRound,
   Layers,
   Mail,
   PlayCircle,
   Radio,
-  RefreshCw,
   Target,
   Tag,
   TrendingUp,
-  Trash2,
   UserPlus,
   Users,
   Video,
@@ -34,13 +30,6 @@ import { formatCredits, formatMad } from "../../utils/morocco-locale";
 
 interface TeacherDashboardViewProps {
   currentUser: AppUser;
-  professorInvites: ProfessorAccessKey[];
-  accessKeyStatusMsg: string;
-  isLoadingAccessKeys: boolean;
-  isCreatingAccessKey: boolean;
-  refreshProfessorInvites: () => void | Promise<void>;
-  handleCreateProfessorInvite: () => void | Promise<void>;
-  handleDeleteProfessorInvite: (code: string) => void | Promise<void>;
   emailDeliverySummary: any | null;
   formatEmailLogDate: (value?: string) => string;
   emailDeliveryStatusMsg: string;
@@ -64,24 +53,7 @@ interface TeacherDashboardViewProps {
   onTeacherNavigate?: (view: string) => void;
 }
 
-interface ProfessorAccessKey {
-  code: string;
-  createdAt?: string;
-  usedAt?: string | null;
-  revokedAt?: string | null;
-  usedBy?: string | null;
-  usedByEmail?: string | null;
-  usedByName?: string | null;
-}
-
 function formatActivityDate(value?: string | null) {
-  if (!value) return "—";
-  const parsed = Date.parse(value);
-  if (!Number.isFinite(parsed)) return "—";
-  return new Date(parsed).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
-}
-
-function formatAccessKeyDate(value?: string | null) {
   if (!value) return "—";
   const parsed = Date.parse(value);
   if (!Number.isFinite(parsed)) return "—";
@@ -214,13 +186,6 @@ const TeacherTariffCard = memo(function TeacherTariffCard({
 
 export default function TeacherDashboardView({
   currentUser,
-  professorInvites,
-  accessKeyStatusMsg,
-  isLoadingAccessKeys,
-  isCreatingAccessKey,
-  refreshProfessorInvites,
-  handleCreateProfessorInvite,
-  handleDeleteProfessorInvite,
   emailDeliverySummary,
   formatEmailLogDate,
   emailDeliveryStatusMsg,
@@ -243,18 +208,7 @@ export default function TeacherDashboardView({
   const [profileSnapshot, setProfileSnapshot] = useState<AcademicProfilePayload | null>(null);
   const [gradesByCourse, setGradesByCourse] = useState<Record<number, CourseGrade[]>>({});
   const [draftPrices, setDraftPrices] = useState<Record<number, number>>({});
-  const [copiedAccessKey, setCopiedAccessKey] = useState("");
   const managedCourseIds = managedCourses.map((course) => course.id).join(",");
-
-  const handleCopyAccessKey = async (code: string) => {
-    try {
-      await navigator.clipboard.writeText(code);
-      setCopiedAccessKey(code);
-      window.setTimeout(() => setCopiedAccessKey((current) => (current === code ? "" : current)), 1600);
-    } catch {
-      setCopiedAccessKey("");
-    }
-  };
 
   useEffect(() => {
     let disposed = false;
@@ -487,124 +441,6 @@ export default function TeacherDashboardView({
           </p>
         </div>
       </div>
-
-      {currentUser.role === "ADMIN" && (
-        <div
-          id="admin-access-keys"
-          className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-5"
-        >
-          <div className="flex flex-col gap-4 border-b border-slate-100 pb-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h3 className="flex items-center gap-2 text-lg font-black text-slate-800">
-                <KeyRound className="h-5 w-5 text-violet-600" />
-                Clés d&apos;accès à usage unique
-              </h3>
-              <p className="text-xs text-slate-400">
-                Générez une clé, suivez le compte utilisateur, puis conservez-la ou supprimez-la.
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => void refreshProfessorInvites()}
-                disabled={isLoadingAccessKeys}
-                className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-50"
-              >
-                <RefreshCw className={`h-4 w-4 ${isLoadingAccessKeys ? "animate-spin" : ""}`} />
-                Actualiser
-              </button>
-              <button
-                type="button"
-                onClick={() => void handleCreateProfessorInvite()}
-                disabled={isCreatingAccessKey}
-                className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-slate-900 px-5 py-2.5 text-xs font-black uppercase tracking-wider text-white shadow-sm transition-colors hover:bg-slate-800 disabled:bg-slate-300"
-              >
-                <KeyRound className="h-4 w-4" />
-                {isCreatingAccessKey ? "Génération..." : "Générer une clé"}
-              </button>
-            </div>
-          </div>
-
-          {accessKeyStatusMsg && <p className="text-xs font-semibold text-slate-500">{accessKeyStatusMsg}</p>}
-
-          <div className="grid grid-cols-1 gap-3">
-            {professorInvites.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center">
-                <p className="text-sm font-bold text-slate-600">Aucune clé d&apos;accès générée.</p>
-              </div>
-            ) : (
-              professorInvites.map((invite) => {
-                const isUsed = Boolean(invite.usedAt);
-                const isRevoked = Boolean(invite.revokedAt);
-                const usedByLabel =
-                  invite.usedByName && invite.usedByEmail
-                    ? `${invite.usedByName} (${invite.usedByEmail})`
-                    : invite.usedByName || invite.usedByEmail || invite.usedBy || "Compte non renseigné";
-                return (
-                  <div
-                    key={invite.code}
-                    className="grid grid-cols-1 gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 lg:grid-cols-[1fr_auto] lg:items-center"
-                  >
-                    <div className="min-w-0 space-y-3">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="rounded-xl border border-slate-200 bg-white px-3 py-2 font-mono text-sm font-black tracking-widest text-slate-900">
-                          {invite.code}
-                        </span>
-                        <span
-                          className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${
-                            isRevoked
-                              ? "border-slate-300 bg-slate-100 text-slate-500"
-                              : isUsed
-                                ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                                : "border-violet-200 bg-violet-50 text-violet-700"
-                          }`}
-                        >
-                          {isRevoked ? "Supprimée" : isUsed ? "Utilisée" : "Disponible"}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-1 gap-2 text-xs sm:grid-cols-3">
-                        <div>
-                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Créée</p>
-                          <p className="font-semibold text-slate-700">{formatAccessKeyDate(invite.createdAt)}</p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Utilisée</p>
-                          <p className="font-semibold text-slate-700">{formatAccessKeyDate(invite.usedAt)}</p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                            Utilisée par
-                          </p>
-                          <p className="truncate font-semibold text-slate-700">{isUsed ? usedByLabel : "—"}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-                      <button
-                        type="button"
-                        onClick={() => void handleCopyAccessKey(invite.code)}
-                        className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-100"
-                      >
-                        <Copy className="h-4 w-4" />
-                        {copiedAccessKey === invite.code ? "Copiée" : "Copier"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => void handleDeleteProfessorInvite(invite.code)}
-                        className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-xs font-bold text-red-700 transition-colors hover:bg-red-100"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        Supprimer
-                      </button>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-      )}
 
       {currentUser.role === "ADMIN" && (
         <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-5">

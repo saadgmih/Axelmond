@@ -10,6 +10,7 @@ import {
   Sliders,
   Video,
   ShieldAlert,
+  KeyRound,
 } from "lucide-react";
 import { getTeacherSpaceTitle } from "../rbac";
 import type { UserRole } from "../rbac";
@@ -93,7 +94,7 @@ function studentItems(): SidebarNavItem[] {
 
 function teacherItems(role?: UserRole): SidebarNavItem[] {
   const spaceTitle = getTeacherSpaceTitle(role);
-  return [
+  const items: SidebarNavItem[] = [
     {
       id: "nav-teacher-dashboard",
       label: spaceTitle,
@@ -158,6 +159,20 @@ function teacherItems(role?: UserRole): SidebarNavItem[] {
       onSelect: ({ setTeacherView }) => setTeacherView("notifications"),
     },
   ];
+
+  if (role === "ADMIN") {
+    items.splice(1, 0, {
+      id: "nav-professor-access-keys",
+      label: "Codes d'accès professeur",
+      icon: KeyRound,
+      iconClassName: "text-emerald-400",
+      prefetch: () => prefetchTeacherView("access-keys"),
+      isActive: ({ teacherView }) => teacherView === "access-keys",
+      onSelect: ({ setTeacherView }) => setTeacherView("access-keys"),
+    });
+  }
+
+  return items;
 }
 
 export function getSidebarNavItems(role: "student" | "teacher", userRole?: UserRole): SidebarNavItem[] {

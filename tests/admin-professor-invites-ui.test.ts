@@ -8,6 +8,9 @@ rulesTest("admin-professor-invites-ui", () => {
   const serverSource = readApiRouteSources();
   const dashboardSource = readFileSync("src/views/teacher/TeacherDashboardView.tsx", "utf8");
   const dashboardHookSource = readFileSync("src/hooks/useTeacherDashboard.ts", "utf8");
+  const accessKeysViewSource = readFileSync("src/views/teacher/AdminProfessorAccessKeysView.tsx", "utf8");
+  const sidebarSource = readFileSync("src/navigation/sidebar-config.ts", "utf8");
+  const routeSwitchSource = readFileSync("src/app/TeacherRouteSwitch.tsx", "utf8");
 
   assert.match(serverSource, /app\.get\("\/api\/admin\/professor-invites",\s*requireAuth,\s*requireAdmin/);
   assert.match(serverSource, /app\.post\("\/api\/admin\/professor-invites",\s*requireAuth,\s*requireAdmin/);
@@ -22,9 +25,13 @@ rulesTest("admin-professor-invites-ui", () => {
   assert.match(dashboardHookSource, /professorInvites/);
   assert.match(dashboardHookSource, /handleCreateProfessorInvite/);
   assert.match(dashboardHookSource, /handleDeleteProfessorInvite/);
-  assert.match(dashboardSource, /Clés d&apos;accès à usage unique/);
-  assert.match(dashboardSource, /Utilisée par/);
-  assert.match(dashboardSource, /usedByName/);
-  assert.match(dashboardSource, /Supprimer/);
+  assert.doesNotMatch(dashboardSource, /admin-access-keys/);
+  assert.match(accessKeysViewSource, /Codes d&apos;accès professeur/);
+  assert.match(accessKeysViewSource, /Professeur associé/);
+  assert.match(accessKeysViewSource, /usedByName/);
+  assert.match(accessKeysViewSource, /handleDeleteProfessorInvite/);
+  assert.match(sidebarSource, /role === "ADMIN"/);
+  assert.match(sidebarSource, /Codes d'accès professeur/);
+  assert.match(routeSwitchSource, /teacherView === "access-keys" && currentUser\.role === "ADMIN"/);
 });
 console.log("Admin professor invite UI rules passed");

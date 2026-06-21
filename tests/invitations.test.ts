@@ -14,4 +14,5 @@ rulesTest("invitations", () => {
   assert.deepEqual(parseProfessorInviteCodes(""), []);
 
   assert.match(generateProfessorInviteCode(), /^PROF-[0-9A-F]{8}$/);
+  assert.match(generateProfessorInviteCode(true), /^\d{6}$/);
 });

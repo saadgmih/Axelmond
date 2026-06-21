@@ -26,6 +26,7 @@ export const STUDENT_VIEWS = new Set([
 
 export const TEACHER_VIEWS = new Set([
   "dashboard",
+  "access-keys",
   "curriculum",
   "live-control",
   "academic-profile",

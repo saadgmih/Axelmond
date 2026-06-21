@@ -14,8 +14,7 @@ export function parseProfessorInviteCodes(raw: string | undefined): string[] {
 
 export function generateProfessorInviteCode(isNumeric = false) {
   if (isNumeric) {
-    const num = Math.floor(100000 + Math.random() * 900000);
-    return String(num);
+    return String(crypto.randomInt(100000, 1000000));
   }
   return `PROF-${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
 }
