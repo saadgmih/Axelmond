@@ -379,6 +379,9 @@ export function useLiveKitRoom({
 
   const leaveLiveRoom = async (options: { liveEnded?: boolean } = {}) => {
     const course = activeLiveCourse;
+    const isStudentLeaving = Boolean(course && currentUser && isStudentRole(currentUser.role));
+    let courseToOpen = course;
+
     if (course) {
       if (currentUser && !isStudentRole(currentUser.role)) {
         try {
@@ -392,12 +395,24 @@ export function useLiveKitRoom({
         }
       } else {
         api.leaveLiveAttendance(course.id).catch((err) => console.warn("[livekit] Attendance leave failed", err));
+        if (!options.liveEnded) {
+          courseToOpen = courses.find((candidate) => candidate.id === course.id) || course;
+          try {
+            courseToOpen = await api.getCourse(course.id);
+          } catch (err) {
+            console.warn("[livekit] Failed to refresh course after leaving live", err);
+          }
+        }
       }
     }
     resetLiveKitState();
-    if (course && currentUser && isStudentRole(currentUser.role)) {
-      setSelectedCourse(options.liveEnded ? { ...course, isLiveNow: false, liveSubject: null } : course);
-      setCurrentView(options.liveEnded ? "dashboard" : "course");
+    if (course && isStudentLeaving) {
+      if (options.liveEnded) {
+        setSelectedCourse({ ...course, isLiveNow: false, liveSubject: null });
+        setCurrentView("dashboard");
+      } else if (courseToOpen) {
+        navigateTo("course", courseToOpen);
+      }
     }
   };
 
