@@ -26,7 +26,9 @@ rulesTest("admin-professor-invites-ui", () => {
   assert.match(dashboardHookSource, /handleCreateProfessorInvite/);
   assert.match(dashboardHookSource, /handleDeleteProfessorInvite/);
   assert.doesNotMatch(dashboardSource, /admin-access-keys/);
-  assert.match(accessKeysViewSource, /Codes d&apos;accès professeur/);
+  assert.match(accessKeysViewSource, /Administration/);
+  assert.match(accessKeysViewSource, /Registre des codes/);
+  assert.match(accessKeysViewSource, /PAGE_SIZE/);
   assert.match(accessKeysViewSource, /Professeur associé/);
   assert.match(accessKeysViewSource, /usedByName/);
   assert.match(accessKeysViewSource, /handleDeleteProfessorInvite/);
