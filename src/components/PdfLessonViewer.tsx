@@ -5,8 +5,10 @@ import {
   ChevronRight,
   Download,
   FileText,
-  Maximize,
+  Fullscreen,
   Maximize2,
+  Minimize2,
+  MoveHorizontal,
   RotateCcw,
   ZoomIn,
   ZoomOut,
@@ -26,6 +28,20 @@ interface PdfLessonViewerProps {
 }
 
 type ImageViewMode = "width" | "screen" | "actual";
+
+const viewerToolbarClass =
+  "sticky top-0 z-30 flex min-h-[76px] flex-wrap items-center justify-between gap-3 border-b border-[#202838] bg-[#0b1019] px-3 py-3 text-slate-200 shadow-[0_12px_32px_rgba(2,6,23,0.28)] sm:min-h-[104px] sm:flex-nowrap sm:gap-6 sm:px-6 sm:py-5";
+const toolbarPillClass =
+  "flex h-12 shrink-0 items-center rounded-[18px] border border-[#222c3d] bg-[#121827] px-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.025),0_8px_24px_rgba(2,6,23,0.2)] sm:h-16 sm:rounded-[22px] sm:px-2";
+const toolbarButtonClass =
+  "touch-target inline-flex h-11 min-h-11 w-11 min-w-11 shrink-0 items-center justify-center rounded-[14px] border border-[#222c3d] bg-[#121827] text-[#8175ff] shadow-[inset_0_1px_0_rgba(255,255,255,0.025),0_8px_22px_rgba(2,6,23,0.2)] transition-colors hover:border-violet-500/50 hover:bg-[#171e2e] hover:text-violet-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/80 disabled:cursor-not-allowed disabled:opacity-30 sm:h-16 sm:min-h-16 sm:w-16 sm:min-w-16 sm:rounded-[18px]";
+const toolbarPillButtonClass =
+  "touch-target inline-flex h-10 min-h-10 w-10 min-w-10 items-center justify-center rounded-xl text-[#8175ff] transition-colors hover:bg-white/[0.04] hover:text-violet-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/80 disabled:cursor-not-allowed disabled:opacity-25 sm:h-14 sm:min-h-14 sm:w-14 sm:min-w-14";
+const toolbarDividerClass = "h-8 w-px shrink-0 bg-[#273043] sm:mx-1 sm:h-14";
+
+function imageModeButtonClass(active: boolean) {
+  return `${toolbarButtonClass} ${active ? "border-violet-500/50 bg-violet-500/10 text-violet-300" : ""}`;
+}
 
 export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }: PdfLessonViewerProps) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
@@ -69,14 +85,6 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
   const imageRenderWidth = imageNaturalSize.width > 0 ? Math.round(imageNaturalSize.width * imageActiveScale) : 0;
   const imageRenderHeight = imageNaturalSize.height > 0 ? Math.round(imageNaturalSize.height * imageActiveScale) : 0;
   const imageCanPan = imageRenderWidth > mediaViewportWidth || imageRenderHeight > mediaViewportHeight;
-  const imageZoomLabel =
-    scale === 1
-      ? imageViewMode === "width"
-        ? "Largeur"
-        : imageViewMode === "screen"
-          ? "Écran"
-          : "100%"
-      : `${Math.round(imageActiveScale * 100)}%`;
 
   // Observe container size to keep PDF pages fitted to the reading width.
   useEffect(() => {
@@ -114,8 +122,6 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
   }, [isPseudoFullscreen]);
 
   const isExpandedView = isFullscreen || isPseudoFullscreen;
-  const toolbarButtonClass =
-    "touch-target inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-slate-300 transition-colors cursor-pointer hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed";
 
   function exitExpandedView() {
     setIsPseudoFullscreen(false);
@@ -156,10 +162,6 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
 
   function handleZoomOut() {
     setScale((prev) => Math.max(prev - 0.25, mediaType === "IMAGE" ? 0.25 : 0.5));
-  }
-
-  function handlePdfFitWidth() {
-    setScale(1.0);
   }
 
   function centerImageStage() {
@@ -306,94 +308,95 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
     return (
       <div
         ref={wrapperRef}
-        className={`flex flex-col rounded-2xl border border-slate-200 bg-slate-950 shadow-lg overflow-hidden select-none transition-all ${isExpandedView ? "fixed inset-0 z-[120] h-[100dvh] w-full rounded-none border-none" : "h-[75vh]"}`}
+        className={`flex flex-col overflow-hidden rounded-[24px] border border-[#202838] bg-slate-950 shadow-lg select-none transition-all ${isExpandedView ? "fixed inset-0 z-[120] h-[100dvh] w-full rounded-none border-none" : "h-[75vh]"}`}
       >
         <div
-          className="sticky top-0 z-30 flex flex-wrap items-center justify-center gap-2 border-b border-slate-800 bg-slate-900 px-3 py-2 text-slate-200 shadow-md sm:justify-between sm:gap-3 sm:px-4 sm:py-3"
+          className={viewerToolbarClass}
           onPointerDown={(event) => event.stopPropagation()}
           onClick={(event) => event.stopPropagation()}
         >
-          <div className="flex min-w-0 items-center gap-2 bg-slate-800/80 rounded-lg p-1.5 border border-slate-700/50">
-            <Camera className="h-4 w-4 shrink-0 text-indigo-300" />
-            <span className="max-w-[14rem] truncate px-1 text-xs font-semibold text-slate-200">{title}</span>
+          <div className={`${toolbarPillClass} min-w-0 max-w-[13rem] gap-2 px-3 sm:max-w-[18rem] sm:px-4`}>
+            <Camera className="h-4 w-4 shrink-0 text-[#8175ff] sm:h-5 sm:w-5" />
+            <span className="truncate text-xs font-semibold text-slate-200 sm:text-sm">{title}</span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center bg-slate-800/80 rounded-lg p-1 border border-slate-700/50">
-              <button type="button" onClick={handleZoomOut} className={toolbarButtonClass} title="Zoom arrière">
-                <ZoomOut className="w-4 h-4" />
-              </button>
-              <span className="px-2 text-xs font-mono font-bold text-slate-300 min-w-[4.5rem] text-center">
-                {imageZoomLabel}
-              </span>
-              <button type="button" onClick={handleZoomIn} className={toolbarButtonClass} title="Zoom avant">
-                <ZoomIn className="w-4 h-4" />
-              </button>
-            </div>
+          <div className="flex w-full min-w-0 items-center justify-end gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:w-auto sm:gap-3">
+            <button
+              type="button"
+              onClick={handleZoomOut}
+              className={toolbarButtonClass}
+              title="Zoom arrière"
+              aria-label="Zoom arrière"
+            >
+              <ZoomOut className="h-5 w-5 sm:h-7 sm:w-7" strokeWidth={1.8} />
+            </button>
+            <button
+              type="button"
+              onClick={handleZoomIn}
+              className={toolbarButtonClass}
+              title="Zoom avant"
+              aria-label="Zoom avant"
+            >
+              <ZoomIn className="h-5 w-5 sm:h-7 sm:w-7" strokeWidth={1.8} />
+            </button>
 
-            <div className="w-px h-6 bg-slate-700 mx-1 hidden sm:block"></div>
+            <span className={toolbarDividerClass} aria-hidden="true" />
 
-            <div className="flex items-center bg-slate-800/80 rounded-lg p-1 border border-slate-700/50">
-              <button
-                type="button"
-                onClick={handleImageFitWidth}
-                aria-pressed={imageViewMode === "width" && scale === 1}
-                className={`px-2 py-1.5 rounded-md text-xs font-bold transition-colors cursor-pointer ${
-                  imageViewMode === "width" && scale === 1
-                    ? "bg-indigo-600 text-white"
-                    : "text-slate-300 hover:bg-slate-700"
-                }`}
-                title="Ajuster à la largeur"
-              >
-                Largeur
-              </button>
-              <button
-                type="button"
-                onClick={handleImageFitScreen}
-                aria-pressed={imageViewMode === "screen" && scale === 1}
-                className={`p-1.5 rounded-md transition-colors cursor-pointer ${
-                  imageViewMode === "screen" && scale === 1
-                    ? "bg-indigo-600 text-white"
-                    : "text-slate-300 hover:bg-slate-700"
-                }`}
-                title="Ajuster à l'écran"
-              >
-                <Maximize2 className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={handleImageResetZoom}
-                aria-pressed={imageViewMode === "actual" && scale === 1}
-                className={`p-1.5 rounded-md transition-colors cursor-pointer ${
-                  imageViewMode === "actual" && scale === 1
-                    ? "bg-indigo-600 text-white"
-                    : "text-slate-300 hover:bg-slate-700"
-                }`}
-                title="Réinitialiser le zoom à 100%"
-              >
-                <RotateCcw className="w-4 h-4" />
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleImageFitWidth}
+              aria-pressed={imageViewMode === "width" && scale === 1}
+              className={imageModeButtonClass(imageViewMode === "width" && scale === 1)}
+              title="Ajuster à la largeur"
+              aria-label="Ajuster à la largeur"
+            >
+              <MoveHorizontal className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+            </button>
+            <button
+              type="button"
+              onClick={handleImageFitScreen}
+              aria-pressed={imageViewMode === "screen" && scale === 1}
+              className={imageModeButtonClass(imageViewMode === "screen" && scale === 1)}
+              title="Ajuster à l'écran"
+              aria-label="Ajuster à l'écran"
+            >
+              <Maximize2 className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+            </button>
+            <button
+              type="button"
+              onClick={handleImageResetZoom}
+              aria-pressed={imageViewMode === "actual" && scale === 1}
+              className={imageModeButtonClass(imageViewMode === "actual" && scale === 1)}
+              title="Réinitialiser le zoom à 100%"
+              aria-label="Réinitialiser le zoom à 100%"
+            >
+              <RotateCcw className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+            </button>
 
-            <div className="w-px h-6 bg-slate-700 mx-1 hidden sm:block"></div>
+            <span className={toolbarDividerClass} aria-hidden="true" />
 
             <button
               type="button"
               onClick={toggleFullscreen}
-              className={`${toolbarButtonClass} rounded-lg border border-slate-700/50 bg-slate-800/80`}
-              title="Plein écran"
+              className={toolbarButtonClass}
+              title={isExpandedView ? "Quitter le plein écran" : "Plein écran"}
+              aria-label={isExpandedView ? "Quitter le plein écran" : "Plein écran"}
             >
-              <Maximize className="w-4 h-4" />
+              {isExpandedView ? (
+                <Minimize2 className="h-5 w-5 sm:h-7 sm:w-7" strokeWidth={1.8} />
+              ) : (
+                <Fullscreen className="h-5 w-5 sm:h-7 sm:w-7" strokeWidth={1.8} />
+              )}
             </button>
 
             <a
               href={blobUrl || "#"}
               download={title || "image"}
-              className="p-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 border border-indigo-500/50 text-white transition-colors cursor-pointer flex items-center gap-2"
+              className={toolbarButtonClass}
               title="Télécharger l'image"
+              aria-label="Télécharger l'image"
             >
-              <Download className="w-4 h-4" />
-              <span className="text-xs font-semibold hidden sm:inline">Télécharger</span>
+              <Download className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
             </a>
           </div>
         </div>
@@ -440,85 +443,77 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
 
   const baseReadingWidth = Math.max(containerDimensions.width - 32, 280);
   const renderWidth = Math.round(baseReadingWidth * scale);
-  const zoomLabel = scale === 1 ? "Largeur" : `${Math.round(scale * 100)}%`;
 
   return (
     <div
       ref={wrapperRef}
-      className={`flex flex-col rounded-2xl border border-slate-200 bg-slate-950 shadow-lg overflow-hidden select-none transition-all ${isExpandedView ? "fixed inset-0 z-[120] h-[100dvh] w-full rounded-none border-none" : "h-[75vh]"}`}
+      className={`flex flex-col overflow-hidden rounded-[24px] border border-[#202838] bg-slate-950 shadow-lg select-none transition-all ${isExpandedView ? "fixed inset-0 z-[120] h-[100dvh] w-full rounded-none border-none" : "h-[75vh]"}`}
     >
       <div
-        className="sticky top-0 z-30 flex flex-wrap items-center justify-center gap-2 border-b border-slate-800 bg-slate-900 px-3 py-2 text-slate-200 shadow-md sm:justify-between sm:gap-3 sm:px-4 sm:py-3"
+        className={viewerToolbarClass}
         onPointerDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-center gap-1 rounded-lg border border-slate-700/50 bg-slate-800/80 p-1">
+        <div className={toolbarPillClass}>
           <button
             type="button"
             onClick={() => changePage(-1)}
             disabled={pageNumber <= 1}
-            className={toolbarButtonClass}
+            className={toolbarPillButtonClass}
             title="Page précédente"
             aria-label="Page précédente"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="h-5 w-5 sm:h-7 sm:w-7" strokeWidth={1.8} />
           </button>
-          <span className="min-w-[5rem] px-2 text-center text-sm font-semibold font-mono text-slate-200">
-            {pageNumber} <span className="mx-0.5 text-slate-500">/</span> {numPages || "?"}
+          <span className="min-w-[4.5rem] px-1 text-center text-base font-bold tabular-nums text-slate-100 sm:min-w-[6rem] sm:px-2 sm:text-xl">
+            {pageNumber} <span className="mx-1 font-medium text-slate-500">/</span> {numPages || "?"}
           </span>
           <button
             type="button"
             onClick={() => changePage(1)}
             disabled={!numPages || pageNumber >= numPages}
-            className={toolbarButtonClass}
+            className={toolbarPillButtonClass}
             title="Page suivante"
             aria-label="Page suivante"
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="h-5 w-5 sm:h-7 sm:w-7" strokeWidth={1.8} />
           </button>
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-          <div className="flex items-center rounded-lg border border-slate-700/50 bg-slate-800/80 p-1">
-            <button
-              type="button"
-              onClick={handleZoomOut}
-              className={toolbarButtonClass}
-              title="Zoom arrière"
-              aria-label="Zoom arrière"
-            >
-              <ZoomOut className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={handlePdfFitWidth}
-              className={`min-h-[44px] rounded-md px-2 text-xs font-mono font-bold transition-colors ${
-                scale === 1 ? "bg-indigo-600 text-white" : "text-slate-300 hover:bg-slate-700"
-              }`}
-              title="Ajuster à la largeur"
-              aria-label="Ajuster à la largeur"
-            >
-              {zoomLabel}
-            </button>
-            <button
-              type="button"
-              onClick={handleZoomIn}
-              className={toolbarButtonClass}
-              title="Zoom avant"
-              aria-label="Zoom avant"
-            >
-              <ZoomIn className="w-4 h-4" />
-            </button>
-          </div>
+        <div className="ml-auto flex items-center gap-2 sm:gap-3">
+          <button
+            type="button"
+            onClick={handleZoomOut}
+            className={toolbarButtonClass}
+            title="Zoom arrière"
+            aria-label="Zoom arrière"
+          >
+            <ZoomOut className="h-5 w-5 sm:h-7 sm:w-7" strokeWidth={1.8} />
+          </button>
+          <button
+            type="button"
+            onClick={handleZoomIn}
+            className={toolbarButtonClass}
+            title="Zoom avant"
+            aria-label="Zoom avant"
+          >
+            <ZoomIn className="h-5 w-5 sm:h-7 sm:w-7" strokeWidth={1.8} />
+          </button>
+
+          <span className={toolbarDividerClass} aria-hidden="true" />
 
           <button
             type="button"
             onClick={toggleFullscreen}
-            className={`${toolbarButtonClass} rounded-lg border border-slate-700/50 bg-slate-800/80`}
-            title="Plein écran"
-            aria-label="Plein écran"
+            className={toolbarButtonClass}
+            title={isExpandedView ? "Quitter le plein écran" : "Plein écran"}
+            aria-label={isExpandedView ? "Quitter le plein écran" : "Plein écran"}
           >
-            <Maximize className="w-4 h-4" />
+            {isExpandedView ? (
+              <Minimize2 className="h-5 w-5 sm:h-7 sm:w-7" strokeWidth={1.8} />
+            ) : (
+              <Fullscreen className="h-5 w-5 sm:h-7 sm:w-7" strokeWidth={1.8} />
+            )}
           </button>
         </div>
       </div>

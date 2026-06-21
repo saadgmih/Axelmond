@@ -39,7 +39,9 @@ rulesTest("student-course-live-pdf", () => {
   assert.doesNotMatch(pdfViewerSource, /Ajuster à la page/);
   assert.doesNotMatch(pdfViewerSource, /renderHeight|height=\{renderHeight\}/);
   assert.match(pdfViewerSource, /const renderWidth = Math\.round\(baseReadingWidth \* scale\)/);
-  assert.match(pdfViewerSource, /handlePdfFitWidth/);
+  assert.doesNotMatch(pdfViewerSource, />\s*Largeur\s*</);
+  assert.match(pdfViewerSource, /toolbarDividerClass/);
+  assert.match(pdfViewerSource, /Fullscreen/);
   assert.match(pdfViewerSource, /touch-target/);
   assert.match(pdfViewerSource, /pointer-events-none absolute inset-0/);
   assert.match(pdfViewerSource, /isPseudoFullscreen/);
