@@ -86,12 +86,12 @@ export default function LiveReactionBar({ onReaction, compact = false, activeRea
           aria-label="Ouvrir les réactions live"
           aria-expanded={open}
           aria-haspopup="menu"
-          className={`kbd-nav-focus relative shrink-0 flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${
+          className={`kbd-nav-focus relative flex h-12 min-h-12 w-12 min-w-12 shrink-0 flex-col items-center justify-center rounded-xl transition-all xl:h-[60px] xl:min-h-[60px] xl:w-[60px] xl:min-w-[60px] ${
             open ? "bg-indigo-500/10 border border-indigo-400/30 text-indigo-300" : "hover:bg-zinc-800 text-zinc-300"
           }`}
         >
-          <SmilePlus className="w-5 h-5 mb-1.5" />
-          <span className="text-[10px] font-bold">Réagir</span>
+          <SmilePlus className="mb-1 h-5 w-5 xl:mb-1.5" />
+          <span className="whitespace-nowrap text-[9px] font-bold xl:text-[10px]">Réagir</span>
         </button>
 
         {open && menuPosition && typeof document !== "undefined"

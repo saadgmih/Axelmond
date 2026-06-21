@@ -218,15 +218,15 @@ export default function VirtualClassroom({
       />
 
       <div
-        className={`live-classroom-main flex flex-1 min-h-0 w-full max-w-full relative box-border overflow-hidden flex-col lg:grid lg:items-stretch ${
-          ui.isSidebarOpen ? "lg:grid-cols-[minmax(0,1fr)_420px]" : "lg:grid-cols-1"
+        className={`live-classroom-main relative box-border flex min-h-0 w-full max-w-full flex-1 flex-col overflow-hidden 2xl:grid 2xl:items-stretch ${
+          ui.isSidebarOpen ? "2xl:grid-cols-[minmax(0,1fr)_420px]" : "2xl:grid-cols-1"
         }`}
       >
         {!ui.isSidebarOpen && (
           <button
             type="button"
             aria-label="Ouvrir le panneau interactif"
-            className="lg:hidden fixed right-0 top-1/2 z-40 -translate-y-1/2 rounded-l-xl border border-white/10 border-r-0 bg-zinc-900/95 px-2 py-4 text-zinc-200 shadow-xl backdrop-blur-md"
+            className="fixed right-0 top-1/2 z-40 -translate-y-1/2 rounded-l-xl border border-r-0 border-white/10 bg-zinc-900/95 px-2 py-4 text-zinc-200 shadow-xl backdrop-blur-md 2xl:hidden"
             onClick={() => ui.setIsSidebarOpen(true)}
           >
             <MoreVertical className="h-5 w-5" />
@@ -237,7 +237,7 @@ export default function VirtualClassroom({
           <button
             type="button"
             aria-label="Fermer le panneau interactif"
-            className="absolute inset-0 z-30 bg-black/40 lg:hidden"
+            className="absolute inset-0 z-30 bg-black/40 2xl:hidden"
             onClick={() => ui.setIsSidebarOpen(false)}
           />
         )}
@@ -304,7 +304,7 @@ export default function VirtualClassroom({
           ref={ui.sidebarRef}
           data-tv-zone="live-sidebar"
           data-live-sidebar
-          className={`live-classroom-sidebar absolute lg:static right-0 top-0 bottom-0 w-[min(100vw,420px)] lg:w-[420px] max-w-full lg:min-w-[420px] shrink-0 bg-zinc-900 border-l border-white/5 flex flex-col min-h-0 h-full max-h-full overflow-hidden transition-transform duration-300 ease-out z-40 box-border shadow-2xl lg:shadow-none ${ui.isSidebarOpen ? "translate-x-0 lg:flex" : "translate-x-full lg:hidden"}`}
+          className={`live-classroom-sidebar absolute bottom-0 right-0 top-0 z-40 box-border flex h-full max-h-full min-h-0 w-[min(100vw,420px)] max-w-full shrink-0 flex-col overflow-hidden border-l border-white/5 bg-zinc-900 shadow-2xl transition-transform duration-300 ease-out 2xl:static 2xl:w-[420px] 2xl:min-w-[420px] 2xl:shadow-none ${ui.isSidebarOpen ? "translate-x-0 2xl:flex" : "translate-x-full 2xl:hidden"}`}
         >
           <div
             className={`px-3 pt-4 pb-2 grid gap-1 shrink-0 border-b border-white/5 bg-zinc-900/50 ${

@@ -31,7 +31,7 @@ export default function LiveMediaControl({
       onClick={onClick}
       aria-label={ariaLabel}
       aria-pressed={enabled}
-      className={`kbd-nav-focus flex min-h-[52px] min-w-[64px] flex-col items-center justify-center rounded-2xl border px-2.5 py-2 transition-all sm:min-h-[56px] sm:min-w-[72px] ${
+      className={`kbd-nav-focus flex min-h-[52px] min-w-[60px] flex-col items-center justify-center rounded-xl border px-2 py-2 transition-all xl:min-h-[56px] xl:min-w-[72px] xl:rounded-2xl xl:px-2.5 ${
         enabled
           ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/15"
           : "border-red-500/40 bg-red-600/15 text-red-300 hover:bg-red-600/25"

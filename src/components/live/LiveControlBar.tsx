@@ -65,9 +65,9 @@ export default function LiveControlBar({
     <div
       ref={controlsRef}
       data-tv-zone="live-controls"
-      className="shrink-0 min-h-[80px] w-full max-w-full bg-zinc-900 border-b border-white/5 flex items-stretch z-30 px-2 sm:px-3 box-border py-2 gap-2"
+      className="z-30 box-border flex min-h-[72px] w-full max-w-full shrink-0 flex-wrap items-stretch justify-between gap-1 border-b border-white/5 bg-zinc-900 px-1 py-2 sm:flex-nowrap sm:justify-normal sm:gap-2 sm:px-2 xl:min-h-[80px] xl:px-3"
     >
-      <div className="flex shrink-0 items-center gap-2 border-r border-white/10 pr-2 sm:pr-3">
+      <div className="order-1 flex shrink-0 items-center gap-1 border-r border-white/10 pr-1 sm:order-none sm:gap-2 sm:pr-2 xl:pr-3">
         <LiveMediaControl
           label="Micro"
           enabledLabel="Activé"
@@ -90,12 +90,15 @@ export default function LiveControlBar({
         />
       </div>
 
-      <div className="flex min-w-0 flex-1 items-center overflow-x-auto hide-scrollbar gap-1.5 sm:gap-2">
-        <div className="hidden lg:block shrink-0">
+      <div
+        className="hide-scrollbar order-3 flex min-w-0 basis-full items-center justify-center gap-1 overflow-x-auto overscroll-x-contain border-t border-white/5 pt-1 sm:order-none sm:basis-auto sm:justify-normal sm:gap-1.5 sm:border-t-0 sm:pt-0 xl:gap-2"
+        aria-label="Commandes supplémentaires du live"
+      >
+        <div className="shrink-0">
           <LiveReactionBar compact activeReaction={localReaction} onReaction={onReaction} />
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <div className="flex shrink-0 items-center gap-1 xl:gap-2">
           <button
             type="button"
             data-tv-focusable
@@ -103,14 +106,14 @@ export default function LiveControlBar({
             onClick={onToggleScreenShare}
             aria-label={isScreenShareEnabled ? "Arrêter le partage d'écran" : "Partager l'écran"}
             aria-pressed={isScreenShareEnabled}
-            className={`kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${isScreenShareEnabled ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400" : "hover:bg-zinc-800 text-zinc-300"}`}
+            className={`kbd-nav-focus flex h-12 min-h-12 w-12 min-w-12 flex-col items-center justify-center rounded-xl transition-all xl:h-[60px] xl:min-h-[60px] xl:w-[60px] xl:min-w-[60px] ${isScreenShareEnabled ? "border border-emerald-500/20 bg-emerald-500/10 text-emerald-400" : "text-zinc-300 hover:bg-zinc-800"}`}
           >
             {isScreenShareEnabled ? (
-              <ScreenShareOff className="w-5 h-5 mb-1.5" />
+              <ScreenShareOff className="mb-1 h-5 w-5 xl:mb-1.5" />
             ) : (
-              <ScreenShare className="w-5 h-5 mb-1.5" />
+              <ScreenShare className="mb-1 h-5 w-5 xl:mb-1.5" />
             )}
-            <span className="text-[10px] font-bold">Partager</span>
+            <span className="whitespace-nowrap text-[9px] font-bold xl:text-[10px]">Partager</span>
           </button>
           <button
             type="button"
@@ -118,10 +121,10 @@ export default function LiveControlBar({
             tabIndex={0}
             onClick={onRaiseHand}
             aria-label="Lever la main (H)"
-            className="kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl hover:bg-zinc-800 text-zinc-300 transition-all group"
+            className="kbd-nav-focus group flex h-12 min-h-12 w-12 min-w-12 flex-col items-center justify-center rounded-xl text-zinc-300 transition-all hover:bg-zinc-800 xl:h-[60px] xl:min-h-[60px] xl:w-[60px] xl:min-w-[60px]"
           >
-            <Hand className="w-5 h-5 mb-1.5 group-hover:text-amber-400 transition-colors" />
-            <span className="text-[10px] font-bold">Main</span>
+            <Hand className="mb-1 h-5 w-5 transition-colors group-hover:text-amber-400 xl:mb-1.5" />
+            <span className="whitespace-nowrap text-[9px] font-bold xl:text-[10px]">Main</span>
           </button>
           <button
             type="button"
@@ -130,14 +133,14 @@ export default function LiveControlBar({
             onClick={onTogglePictureInPicture}
             aria-label={isPiPActive ? "Quitter Picture-in-Picture (P)" : "Activer Picture-in-Picture (P)"}
             aria-pressed={isPiPActive}
-            className={`kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${
+            className={`kbd-nav-focus flex h-12 min-h-12 w-12 min-w-12 flex-col items-center justify-center rounded-xl transition-all xl:h-[60px] xl:min-h-[60px] xl:w-[60px] xl:min-w-[60px] ${
               isPiPActive
                 ? "bg-indigo-500/10 border border-indigo-400/30 text-indigo-300"
                 : "hover:bg-zinc-800 text-zinc-300"
             }`}
           >
-            <PictureInPicture2 className="w-5 h-5 mb-1.5" />
-            <span className="text-[10px] font-bold">PiP</span>
+            <PictureInPicture2 className="mb-1 h-5 w-5 xl:mb-1.5" />
+            <span className="whitespace-nowrap text-[9px] font-bold xl:text-[10px]">PiP</span>
           </button>
           <button
             type="button"
@@ -146,14 +149,14 @@ export default function LiveControlBar({
             onClick={onToggleFocusMode}
             aria-label="Mode concentration"
             aria-pressed={focusMode}
-            className={`kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all hidden md:flex ${
+            className={`kbd-nav-focus flex h-12 min-h-12 w-12 min-w-12 flex-col items-center justify-center rounded-xl transition-all xl:h-[60px] xl:min-h-[60px] xl:w-[60px] xl:min-w-[60px] ${
               focusMode
                 ? "bg-emerald-500/10 border border-emerald-400/30 text-emerald-300"
                 : "hover:bg-zinc-800 text-zinc-300"
             }`}
           >
-            <Focus className="w-5 h-5 mb-1.5" />
-            <span className="text-[10px] font-bold">Focus</span>
+            <Focus className="mb-1 h-5 w-5 xl:mb-1.5" />
+            <span className="whitespace-nowrap text-[9px] font-bold xl:text-[10px]">Focus</span>
           </button>
           <button
             type="button"
@@ -161,15 +164,15 @@ export default function LiveControlBar({
             tabIndex={0}
             onClick={onToggleFullscreen}
             aria-label={isFullscreen ? "Quitter le plein écran (F)" : "Plein écran (F)"}
-            className="kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl hover:bg-zinc-800 text-zinc-300 transition-all hidden sm:flex"
+            className="kbd-nav-focus flex h-12 min-h-12 w-12 min-w-12 flex-col items-center justify-center rounded-xl text-zinc-300 transition-all hover:bg-zinc-800 xl:h-[60px] xl:min-h-[60px] xl:w-[60px] xl:min-w-[60px]"
           >
-            <Fullscreen className="w-5 h-5 mb-1.5" />
-            <span className="text-[10px] font-bold">Plein écran</span>
+            <Fullscreen className="mb-1 h-5 w-5 xl:mb-1.5" />
+            <span className="whitespace-nowrap text-[9px] font-bold xl:text-[10px]">Plein écran</span>
           </button>
         </div>
 
         {canModerate && (
-          <div className="flex items-center gap-2 ml-1 sm:ml-2 pl-1 sm:pl-2 border-l border-white/10 shrink-0">
+          <div className="ml-1 flex shrink-0 items-center gap-1 border-l border-white/10 pl-1 xl:ml-2 xl:gap-2 xl:pl-2">
             <button
               type="button"
               data-tv-focusable
@@ -177,23 +180,27 @@ export default function LiveControlBar({
               onClick={onRecordToggle}
               aria-label={isRecording ? "Arrêter l'enregistrement" : "Démarrer l'enregistrement"}
               aria-pressed={isRecording}
-              className={`kbd-nav-focus flex flex-col items-center justify-center min-w-[52px] min-h-[52px] w-[52px] h-[52px] sm:min-w-[60px] sm:min-h-[60px] sm:w-[60px] sm:h-[60px] rounded-xl transition-all ${isRecording ? "bg-red-500/10 border border-red-500/20 text-red-400" : "hover:bg-zinc-800 text-zinc-300"}`}
+              className={`kbd-nav-focus flex h-12 min-h-12 w-12 min-w-12 flex-col items-center justify-center rounded-xl transition-all xl:h-[60px] xl:min-h-[60px] xl:w-[60px] xl:min-w-[60px] ${isRecording ? "border border-red-500/20 bg-red-500/10 text-red-400" : "text-zinc-300 hover:bg-zinc-800"}`}
             >
-              {isRecording ? <CircleStop className="w-5 h-5 mb-1.5" /> : <CircleDot className="w-5 h-5 mb-1.5" />}
-              <span className="text-[10px] font-bold">Rec</span>
+              {isRecording ? (
+                <CircleStop className="mb-1 h-5 w-5 xl:mb-1.5" />
+              ) : (
+                <CircleDot className="mb-1 h-5 w-5 xl:mb-1.5" />
+              )}
+              <span className="whitespace-nowrap text-[9px] font-bold xl:text-[10px]">Rec</span>
             </button>
           </div>
         )}
       </div>
 
-      <div className="flex shrink-0 items-center border-l border-white/10 pl-2 sm:pl-3">
+      <div className="order-2 flex shrink-0 items-center border-l border-white/10 pl-1 sm:order-none sm:pl-2 xl:pl-3">
         <button
           type="button"
           data-tv-focusable
           tabIndex={0}
           onClick={onExit}
           aria-label="Quitter la salle live (L)"
-          className="kbd-nav-focus touch-target h-12 min-h-[48px] px-4 sm:px-5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-bold transition-all shadow-md flex items-center justify-center whitespace-nowrap"
+          className="kbd-nav-focus touch-target flex h-12 min-h-12 items-center justify-center whitespace-nowrap rounded-xl bg-red-600 px-3 text-xs font-bold text-white shadow-md transition-all hover:bg-red-500 sm:px-4 sm:text-sm xl:px-5"
         >
           Quitter
         </button>

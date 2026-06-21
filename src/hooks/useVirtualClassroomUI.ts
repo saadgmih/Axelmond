@@ -62,7 +62,7 @@ export function useVirtualClassroomUI({
 }: UseVirtualClassroomUIParams) {
   const [activeTab, setActiveTab] = useState("participants");
   const [isSidebarOpen, setIsSidebarOpen] = useState(() =>
-    typeof window !== "undefined" ? window.matchMedia("(min-width: 1024px)").matches : false,
+    typeof window !== "undefined" ? window.matchMedia("(min-width: 1536px)").matches : false,
   );
   const [stageVolume, setStageVolume] = useState(1);
   const [isStageVideoPaused, setIsStageVideoPaused] = useState(false);
@@ -108,7 +108,7 @@ export function useVirtualClassroomUI({
   }, [course.id, course.liveStartedAt]);
 
   useEffect(() => {
-    const media = window.matchMedia("(min-width: 1024px)");
+    const media = window.matchMedia("(min-width: 1536px)");
     const syncSidebar = (event?: MediaQueryListEvent) => {
       setIsSidebarOpen(event ? event.matches : media.matches);
     };
@@ -225,7 +225,7 @@ export function useVirtualClassroomUI({
           setIsSettingsOpen(false);
           return;
         }
-        if (isSidebarOpen && typeof window !== "undefined" && !window.matchMedia("(min-width: 1024px)").matches) {
+        if (isSidebarOpen && typeof window !== "undefined" && !window.matchMedia("(min-width: 1536px)").matches) {
           setIsSidebarOpen(false);
           return;
         }
