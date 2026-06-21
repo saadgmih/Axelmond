@@ -30,14 +30,14 @@ interface PdfLessonViewerProps {
 type ImageViewMode = "width" | "screen" | "actual";
 
 const viewerToolbarClass =
-  "sticky top-0 z-30 flex min-h-[76px] flex-wrap items-center justify-between gap-3 border-b border-[#202838] bg-[#0b1019] px-3 py-3 text-slate-200 shadow-[0_12px_32px_rgba(2,6,23,0.28)] sm:min-h-[104px] sm:flex-nowrap sm:gap-6 sm:px-6 sm:py-5";
+  "sticky top-0 z-30 flex min-h-[68px] flex-wrap items-center justify-between gap-3 border-b border-[#202838] bg-[#0b1019] px-3 py-2.5 text-slate-200 shadow-[0_12px_32px_rgba(2,6,23,0.28)] sm:min-h-[80px] sm:flex-nowrap sm:gap-4 sm:px-4 sm:py-3";
 const toolbarPillClass =
-  "flex h-12 shrink-0 items-center rounded-[18px] border border-[#222c3d] bg-[#121827] px-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.025),0_8px_24px_rgba(2,6,23,0.2)] sm:h-16 sm:rounded-[22px] sm:px-2";
+  "flex h-11 shrink-0 items-center rounded-[16px] border border-[#222c3d] bg-[#121827] px-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.025),0_8px_24px_rgba(2,6,23,0.2)] sm:h-14 sm:rounded-[18px]";
 const toolbarButtonClass =
-  "touch-target inline-flex h-11 min-h-11 w-11 min-w-11 shrink-0 items-center justify-center rounded-[14px] border border-[#222c3d] bg-[#121827] text-[#8175ff] shadow-[inset_0_1px_0_rgba(255,255,255,0.025),0_8px_22px_rgba(2,6,23,0.2)] transition-colors hover:border-violet-500/50 hover:bg-[#171e2e] hover:text-violet-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/80 disabled:cursor-not-allowed disabled:opacity-30 sm:h-16 sm:min-h-16 sm:w-16 sm:min-w-16 sm:rounded-[18px]";
+  "touch-target inline-flex h-11 min-h-11 w-11 min-w-11 shrink-0 items-center justify-center rounded-[13px] border border-[#222c3d] bg-[#121827] text-[#8175ff] shadow-[inset_0_1px_0_rgba(255,255,255,0.025),0_8px_22px_rgba(2,6,23,0.2)] transition-colors hover:border-violet-500/50 hover:bg-[#171e2e] hover:text-violet-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/80 disabled:cursor-not-allowed disabled:opacity-30 sm:h-12 sm:min-h-12 sm:w-12 sm:min-w-12 sm:rounded-[14px]";
 const toolbarPillButtonClass =
-  "touch-target inline-flex h-10 min-h-10 w-10 min-w-10 items-center justify-center rounded-xl text-[#8175ff] transition-colors hover:bg-white/[0.04] hover:text-violet-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/80 disabled:cursor-not-allowed disabled:opacity-25 sm:h-14 sm:min-h-14 sm:w-14 sm:min-w-14";
-const toolbarDividerClass = "h-8 w-px shrink-0 bg-[#273043] sm:mx-1 sm:h-14";
+  "touch-target inline-flex h-10 min-h-10 w-10 min-w-10 items-center justify-center rounded-xl text-[#8175ff] transition-colors hover:bg-white/[0.04] hover:text-violet-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/80 disabled:cursor-not-allowed disabled:opacity-25 sm:h-12 sm:min-h-12 sm:w-12 sm:min-w-12";
+const toolbarDividerClass = "h-7 w-px shrink-0 bg-[#273043] sm:h-10";
 
 function imageModeButtonClass(active: boolean) {
   return `${toolbarButtonClass} ${active ? "border-violet-500/50 bg-violet-500/10 text-violet-300" : ""}`;
@@ -328,7 +328,7 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
               title="Zoom arrière"
               aria-label="Zoom arrière"
             >
-              <ZoomOut className="h-5 w-5 sm:h-7 sm:w-7" strokeWidth={1.8} />
+              <ZoomOut className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
             </button>
             <button
               type="button"
@@ -337,7 +337,7 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
               title="Zoom avant"
               aria-label="Zoom avant"
             >
-              <ZoomIn className="h-5 w-5 sm:h-7 sm:w-7" strokeWidth={1.8} />
+              <ZoomIn className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
             </button>
 
             <span className={toolbarDividerClass} aria-hidden="true" />
@@ -383,9 +383,9 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
               aria-label={isExpandedView ? "Quitter le plein écran" : "Plein écran"}
             >
               {isExpandedView ? (
-                <Minimize2 className="h-5 w-5 sm:h-7 sm:w-7" strokeWidth={1.8} />
+                <Minimize2 className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
               ) : (
-                <Fullscreen className="h-5 w-5 sm:h-7 sm:w-7" strokeWidth={1.8} />
+                <Fullscreen className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
               )}
             </button>
 
@@ -463,9 +463,9 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
             title="Page précédente"
             aria-label="Page précédente"
           >
-            <ChevronLeft className="h-5 w-5 sm:h-7 sm:w-7" strokeWidth={1.8} />
+            <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
           </button>
-          <span className="min-w-[4.5rem] px-1 text-center text-base font-bold tabular-nums text-slate-100 sm:min-w-[6rem] sm:px-2 sm:text-xl">
+          <span className="min-w-[4.5rem] px-1 text-center text-base font-bold tabular-nums text-slate-100 sm:min-w-[5rem] sm:px-1.5 sm:text-lg">
             {pageNumber} <span className="mx-1 font-medium text-slate-500">/</span> {numPages || "?"}
           </span>
           <button
@@ -476,7 +476,7 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
             title="Page suivante"
             aria-label="Page suivante"
           >
-            <ChevronRight className="h-5 w-5 sm:h-7 sm:w-7" strokeWidth={1.8} />
+            <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
           </button>
         </div>
 
@@ -488,7 +488,7 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
             title="Zoom arrière"
             aria-label="Zoom arrière"
           >
-            <ZoomOut className="h-5 w-5 sm:h-7 sm:w-7" strokeWidth={1.8} />
+            <ZoomOut className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
           </button>
           <button
             type="button"
@@ -497,7 +497,7 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
             title="Zoom avant"
             aria-label="Zoom avant"
           >
-            <ZoomIn className="h-5 w-5 sm:h-7 sm:w-7" strokeWidth={1.8} />
+            <ZoomIn className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
           </button>
 
           <span className={toolbarDividerClass} aria-hidden="true" />
@@ -510,9 +510,9 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
             aria-label={isExpandedView ? "Quitter le plein écran" : "Plein écran"}
           >
             {isExpandedView ? (
-              <Minimize2 className="h-5 w-5 sm:h-7 sm:w-7" strokeWidth={1.8} />
+              <Minimize2 className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
             ) : (
-              <Fullscreen className="h-5 w-5 sm:h-7 sm:w-7" strokeWidth={1.8} />
+              <Fullscreen className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
             )}
           </button>
         </div>
