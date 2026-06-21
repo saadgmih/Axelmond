@@ -25,7 +25,7 @@ rulesTest("audit-log-retention", () => {
 
   assert.match(adminRoutesSource, /\/api\/admin\/audit-logs"/);
   assert.match(adminRoutesSource, /\/api\/admin\/audit-logs\/export"/);
-  assert.match(bootstrapSource, /startAuditLogRetention\(\)/);
+  assert.match(bootstrapSource, /startAuditLogRetention\(signal\)/);
 
   assert.equal(getAuditLogRetentionDays(), 365);
   assert.equal(parseAuditLogDate("2026-01-15T00:00:00.000Z")?.toISOString(), "2026-01-15T00:00:00.000Z");

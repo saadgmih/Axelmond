@@ -140,22 +140,59 @@ export async function purgeExpiredAuditLogs() {
 }
 
 let purgeTimer: ReturnType<typeof setInterval> | null = null;
+let activePurge: Promise<number> | null = null;
+let retentionStopped = true;
 
-export function startAuditLogRetention() {
+function runAuditLogPurge(): Promise<number> {
+  if (retentionStopped) return Promise.resolve(0);
+  if (activePurge) return activePurge;
+
+  const task = purgeExpiredAuditLogs();
+  activePurge = task;
+  const clearActivePurge = () => {
+    if (activePurge === task) activePurge = null;
+  };
+  void task.then(clearActivePurge, clearActivePurge);
+  return task;
+}
+
+async function runScheduledAuditLogPurge(signal?: AbortSignal) {
+  if (retentionStopped || signal?.aborted) return;
+  try {
+    await runAuditLogPurge();
+  } catch (err) {
+    if (!retentionStopped && !signal?.aborted) {
+      logSecurity("WARN", "Audit log purge failed", { error: String(err) });
+    }
+  }
+}
+
+export async function startAuditLogRetention(signal?: AbortSignal) {
+  if (signal?.aborted) return;
+  retentionStopped = false;
   if (purgeTimer) return;
-  void purgeExpiredAuditLogs();
   purgeTimer = setInterval(() => {
-    void purgeExpiredAuditLogs();
+    void runScheduledAuditLogPurge(signal);
   }, getAuditLogPurgeIntervalMs());
   if (purgeTimer && typeof purgeTimer === "object" && "unref" in purgeTimer) {
     (purgeTimer as NodeJS.Timeout).unref();
   }
+  await runScheduledAuditLogPurge(signal);
 }
 
-export function stopAuditLogRetention() {
-  if (!purgeTimer) return;
-  clearInterval(purgeTimer);
-  purgeTimer = null;
+export async function stopAuditLogRetention() {
+  retentionStopped = true;
+  if (purgeTimer) {
+    clearInterval(purgeTimer);
+    purgeTimer = null;
+  }
+  if (activePurge) {
+    try {
+      await activePurge;
+    } catch (err) {
+      logSecurity("WARN", "Audit log purge stopped after failure", { error: String(err) });
+    }
+  }
 }
 
 export function parseAuditLogDate(value: unknown): Date | undefined {

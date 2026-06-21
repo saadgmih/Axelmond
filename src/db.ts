@@ -131,9 +131,12 @@ export function getFixedDatabaseUrl(): string {
   return globalForPrisma.databaseUrl ?? buildFixedDatabaseUrl(connectionString).url;
 }
 
+type DatabaseConnectionCheck = { ok: boolean; schema: string; error?: string };
+
 export async function verifyDatabaseConnection(options?: {
   timeoutMs?: number;
-}): Promise<{ ok: boolean; schema: string; error?: string }> {
+  trackTask?: (task: Promise<DatabaseConnectionCheck>) => Promise<DatabaseConnectionCheck>;
+}): Promise<DatabaseConnectionCheck> {
   const schema = getActivePgSchema();
   const timeoutMs =
     options?.timeoutMs ??
@@ -141,11 +144,14 @@ export async function verifyDatabaseConnection(options?: {
 
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
+    const databaseCheck: Promise<DatabaseConnectionCheck> = (async () => {
+      await prisma.user.findFirst({ select: { id: true } });
+      return { ok: true, schema };
+    })();
+    const trackedDatabaseCheck = options?.trackTask ? options.trackTask(databaseCheck) : databaseCheck;
+
     return await Promise.race([
-      (async () => {
-        await prisma.user.findFirst({ select: { id: true } });
-        return { ok: true as const, schema };
-      })(),
+      trackedDatabaseCheck,
       new Promise<{ ok: false; schema: string; error: string }>((resolve) => {
         timer = setTimeout(
           () => resolve({ ok: false, schema, error: `Database verification timed out after ${timeoutMs}ms` }),

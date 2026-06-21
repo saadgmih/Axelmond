@@ -12,8 +12,8 @@ import { verifyDatabaseConnection } from "../db";
 import { getPayPalRuntimeEnv } from "../paypal-server";
 import { startPerformanceMonitor } from "../performance";
 import { initCache, startCachePruner, stopCachePruner, disconnectCache } from "../cache";
-import { startAuditLogRetention } from "../audit-log-service";
-import { startRefreshTokenCleanup } from "../auth-token-cleanup";
+import { startAuditLogRetention, stopAuditLogRetention } from "../audit-log-service";
+import { startRefreshTokenCleanup, stopRefreshTokenCleanup } from "../auth-token-cleanup";
 import { verifySmtpConnection, readSmtpBanner, getSmtpStartupSummary } from "../email";
 import { seedDatabase, synchronizePostgresSequences } from "./startup-db";
 import { apiErrorStatus, apiErrorMessage } from "./api-errors";
@@ -22,6 +22,7 @@ import { logDb, logEmail, startAuthUserCachePruner, stopAuthUserCachePruner } fr
 import { startupState } from "./startup-state";
 import { stopPerformanceMonitor } from "../performance";
 import { isVerboseStartup } from "./startup-logging";
+import { drainDatabaseForShutdown, isExpectedShutdownCancellation, startupLifecycle } from "./startup-lifecycle";
 
 loadEnv();
 
@@ -226,6 +227,7 @@ export async function startAxelmondServer() {
   });
 
   process.on("unhandledRejection", (reason) => {
+    if (isExpectedShutdownCancellation(reason)) return;
     logDb("ERROR", "Unhandled promise rejection — process staying alive", { reason: String(reason) });
   });
 
@@ -263,8 +265,14 @@ export async function startAxelmondServer() {
   const PORT = isPipe ? rawPort : Number(rawPort);
   const httpServer = createServer(app);
   setImmediate(() => {
-    void initMessagingSocket(httpServer, allowedOrigins, normalizeOriginUrl, isProduction).catch((err) => {
-      logDb("ERROR", "Messaging socket initialization failed", { error: String(err) });
+    if (startupLifecycle.signal.aborted) return;
+    const messagingStartup = startupLifecycle.trackCriticalTask(
+      initMessagingSocket(httpServer, allowedOrigins, normalizeOriginUrl, isProduction),
+    );
+    void messagingStartup.catch((err) => {
+      if (!startupLifecycle.signal.aborted) {
+        logDb("ERROR", "Messaging socket initialization failed", { error: String(err) });
+      }
     });
   });
   registerGracefulShutdown(httpServer, isProduction);
@@ -293,11 +301,22 @@ export async function startAxelmondServer() {
   });
 
   startupState.listening = true;
-  void runDeferredStartupTasks(securityTest);
+  const deferredStartup = startupLifecycle.trackCriticalTask(
+    runDeferredStartupTasks(securityTest, startupLifecycle.signal),
+  );
+  void deferredStartup.catch((err) => {
+    if (!isExpectedShutdownCancellation(err)) {
+      logDb("ERROR", "Deferred startup task failed", { error: String(err) });
+    }
+  });
 }
 
-async function verifyDatabaseAtStartup() {
-  const dbCheck = await verifyDatabaseConnection();
+async function verifyDatabaseAtStartup(signal: AbortSignal) {
+  if (signal.aborted) return;
+  const dbCheck = await verifyDatabaseConnection({
+    trackTask: (task) => startupLifecycle.trackCriticalTask(task),
+  });
+  if (signal.aborted) return;
   startupState.dbVerified = dbCheck.ok;
   if (dbCheck.ok) {
     logDb(
@@ -313,27 +332,38 @@ async function verifyDatabaseAtStartup() {
   }
 }
 
-async function runDeferredStartupTasks(securityTest: boolean) {
+async function runDeferredStartupTasks(securityTest: boolean, signal: AbortSignal) {
+  if (signal.aborted) return;
   await initCache();
+  if (signal.aborted) return;
   startCachePruner();
 
   try {
-    await verifyDatabaseAtStartup();
+    await verifyDatabaseAtStartup(signal);
   } catch (err) {
-    logDb("ERROR", "Database verification threw at startup", { error: String(err) });
+    if (!signal.aborted) {
+      logDb("ERROR", "Database verification threw at startup", { error: String(err) });
+    }
   }
+  if (signal.aborted) return;
 
   try {
     await seedDatabase();
   } catch (err) {
-    logDb("ERROR", "Startup seed failed — server continuing", { error: String(err) });
+    if (!signal.aborted) {
+      logDb("ERROR", "Startup seed failed — server continuing", { error: String(err) });
+    }
   }
+  if (signal.aborted) return;
 
   try {
     await synchronizePostgresSequences();
   } catch (err) {
-    logDb("WARN", "PostgreSQL sequence sync skipped", { error: String(err) });
+    if (!signal.aborted) {
+      logDb("WARN", "PostgreSQL sequence sync skipped", { error: String(err) });
+    }
   }
+  if (signal.aborted) return;
 
   if (securityTest) {
     logDb("INFO", "Security runtime test mode: skipping SMTP checks and background monitors");
@@ -341,15 +371,21 @@ async function runDeferredStartupTasks(securityTest: boolean) {
   }
 
   startAuthUserCachePruner();
-  startAuditLogRetention();
-  startRefreshTokenCleanup();
+  await Promise.all([startAuditLogRetention(signal), startRefreshTokenCleanup(signal)]);
+  if (signal.aborted) return;
   startPerformanceMonitor(Number(process.env.PERF_MONITOR_INTERVAL_MS) || 300_000);
 
-  void verifySmtpAtStartup();
+  void verifySmtpAtStartup(signal).catch((err) => {
+    if (!signal.aborted) {
+      logEmail("WARN", "Email service verification threw at startup", { error: String(err) });
+    }
+  });
 }
 
-async function verifySmtpAtStartup() {
+async function verifySmtpAtStartup(signal: AbortSignal) {
+  if (signal.aborted) return;
   const smtpCheck = await verifySmtpConnection();
+  if (signal.aborted) return;
   if (smtpCheck.ok) {
     logEmail(
       "INFO",
@@ -365,6 +401,7 @@ async function verifySmtpAtStartup() {
   if (!isVerboseStartup()) return;
 
   const smtpBanner = await readSmtpBanner();
+  if (signal.aborted) return;
   if (smtpBanner.ok) {
     logEmail("INFO", "SMTP banner received at startup", { smtp: smtpBanner.details, banner: smtpBanner.banner });
   } else {
@@ -376,36 +413,65 @@ async function verifySmtpAtStartup() {
 }
 
 function registerGracefulShutdown(httpServer: ReturnType<typeof createServer>, isProduction: boolean) {
-  let shuttingDown = false;
   const shutdownTimeoutMs = Number(process.env.GRACEFUL_SHUTDOWN_MS) || (isProduction ? 3_000 : 15_000);
 
   const shutdown = async (signal: string) => {
-    if (shuttingDown) return;
-    shuttingDown = true;
+    if (!startupLifecycle.beginShutdown(signal)) return;
+    const shutdownDeadline = Date.now() + shutdownTimeoutMs;
     logDb("INFO", "Graceful shutdown initiated", { signal, pid: process.pid, shutdownTimeoutMs });
+
+    const forcedShutdownTimer = setTimeout(() => {
+      logDb("ERROR", "Forced shutdown after timeout", { signal, shutdownTimeoutMs });
+      process.exit(1);
+    }, shutdownTimeoutMs);
+    forcedShutdownTimer.unref();
+
+    const httpClosePromise = new Promise<void>((resolve) => {
+      httpServer.close(() => {
+        logDb("INFO", "HTTP server closed", { signal });
+        resolve();
+      });
+      httpServer.closeAllConnections?.();
+    });
+
     stopPerformanceMonitor();
     stopCachePruner();
     stopAuthUserCachePruner();
-    try {
-      await disconnectCache();
-    } catch (err) {
-      logDb("WARN", "Cache disconnect failed during shutdown", { error: String(err) });
-    }
-    try {
-      const { disconnectDatabase } = await import("../db");
-      await disconnectDatabase();
-    } catch (err) {
-      logDb("WARN", "Database disconnect failed during shutdown", { error: String(err) });
-    }
-    httpServer.closeAllConnections?.();
-    httpServer.close(() => {
-      logDb("INFO", "HTTP server closed", { signal });
-      process.exit(0);
+
+    const remainingMs = Math.max(0, shutdownDeadline - Date.now());
+    const databaseDisconnected = await drainDatabaseForShutdown({
+      lifecycle: startupLifecycle,
+      signal,
+      timeoutMs: remainingMs,
+      stopDatabaseTasks: async () => {
+        await Promise.all([stopAuditLogRetention(), stopRefreshTokenCleanup()]);
+      },
+      disconnectDatabase: async () => {
+        try {
+          await disconnectCache();
+        } catch (err) {
+          logDb("WARN", "Cache disconnect failed during shutdown", { error: String(err) });
+        }
+        try {
+          const { disconnectDatabase } = await import("../db");
+          await disconnectDatabase();
+        } catch (err) {
+          logDb("WARN", "Database disconnect failed during shutdown", { error: String(err) });
+        }
+      },
     });
-    setTimeout(() => {
-      logDb("ERROR", "Forced shutdown after timeout", { signal, shutdownTimeoutMs });
-      process.exit(1);
-    }, shutdownTimeoutMs).unref();
+
+    if (!databaseDisconnected) {
+      logDb("WARN", "Database disconnect skipped because startup tasks are still active", {
+        signal,
+        shutdownTimeoutMs,
+      });
+      return;
+    }
+
+    await httpClosePromise;
+    clearTimeout(forcedShutdownTimer);
+    process.exit(0);
   };
   process.on("SIGTERM", () => void shutdown("SIGTERM"));
   process.on("SIGINT", () => void shutdown("SIGINT"));
