@@ -390,7 +390,7 @@ export default function StudentDashboardView({
 
           <p className="text-indigo-200 text-sm md:text-base leading-relaxed">
             Vous êtes inscrit en <strong>{currentUser ? currentUser.levelOrTitle : "Licence 3 d'Informatique"}</strong>{" "}
-            d'Axelmond Research Labs. Poursuivez vos modules interactifs, ou conversez avec votre tuteur IA.
+            de Performance Académique. Poursuivez vos modules interactifs, ou conversez avec votre tuteur IA.
           </p>
 
           <div className="pt-2 flex flex-wrap gap-3">
@@ -652,7 +652,7 @@ export default function StudentDashboardView({
                 onClick={() => navigateTo("catalog")}
                 className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-5 py-3 min-h-[44px] rounded-xl shadow-md cursor-pointer"
               >
-                Découvrir le catalogue d'Axelmond Research Labs
+                Découvrir le catalogue de Performance Académique
               </button>
             </div>
           ) : (

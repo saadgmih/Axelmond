@@ -167,8 +167,8 @@ const AXELMOND_LOGO_BADGE = `
         <table role="presentation" cellspacing="0" cellpadding="0" width="100%">
           <tr>
             <td align="center" style="padding-top:2px;">
-              <div style="font-family:Arial,Helvetica,sans-serif;font-size:26px;font-weight:900;color:#ffffff;letter-spacing:-1px;line-height:1;">A</div>
-              <div style="font-family:Arial,Helvetica,sans-serif;font-size:9px;font-weight:700;color:rgba(255,255,255,0.75);letter-spacing:2px;text-transform:uppercase;line-height:1;margin-top:3px;">LABS</div>
+              <div style="font-family:Arial,Helvetica,sans-serif;font-size:26px;font-weight:900;color:#ffffff;letter-spacing:-1px;line-height:1;">P</div>
+              <div style="font-family:Arial,Helvetica,sans-serif;font-size:9px;font-weight:700;color:rgba(255,255,255,0.75);letter-spacing:2px;text-transform:uppercase;line-height:1;margin-top:3px;">ACAD</div>
             </td>
           </tr>
         </table>
@@ -377,8 +377,8 @@ export function buildBaseEmailHtml(opts: BaseEmailOptions): string {
                       <!-- Brand name -->
                       <div class="header-logo-text"
                            style="font-family:Arial,Helvetica,sans-serif;font-size:20px;font-weight:900;letter-spacing:3px;color:#ffffff;text-transform:uppercase;line-height:1;margin-top:14px;">
-                        AXELMOND
-                        <span style="color:#ec4899;font-weight:300;letter-spacing:1px;">RESEARCH LABS</span>
+                        PERFORMANCE
+                        <span style="color:#ec4899;font-weight:300;letter-spacing:1px;">ACADÉMIQUE</span>
                       </div>
                       <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#7c8fa6;letter-spacing:2px;text-transform:uppercase;margin-top:5px;">
                         Research &nbsp;•&nbsp; Innovation &nbsp;•&nbsp; Education
@@ -442,14 +442,14 @@ export function buildBaseEmailHtml(opts: BaseEmailOptions): string {
                   <tr>
                     <td align="center">
                       <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:900;color:#e2e8f0;letter-spacing:.5px;">
-                        Axelmond Research Labs
+                        Performance Académique
                       </div>
                       <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#475569;margin-top:6px;letter-spacing:1px;text-transform:uppercase;">
                         Research &nbsp;•&nbsp; Innovation &nbsp;•&nbsp; Education
                       </div>
                       <div style="height:1px;background:linear-gradient(90deg,transparent,#1e2d4a 30%,#1e2d4a 70%,transparent);margin:14px 0;font-size:0;line-height:0;">&nbsp;</div>
                       <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#2d3f5a;line-height:1.6;">
-                        &copy; ${year} Axelmond Research Labs — Tous droits réservés.
+                        &copy; ${year} Performance Académique — Tous droits réservés.
                       </div>
                       <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#1e3047;margin-top:5px;">
                         &#x1F4E7; Ceci est un message automatique — merci de ne pas répondre à cet e-mail.
@@ -583,7 +583,7 @@ export function buildVerificationEmailContent(input: VerificationEmailContentInp
       Bonjour <strong style="color:#f1f5f9;">${escapeHtml(name)}</strong>,
     </p>
     <p style="margin:0 0 16px;color:#94a3b8;text-align:center;line-height:1.8;">
-      Bienvenue sur <strong style="color:#e2e8f0;">Axelmond Research Labs</strong>.<br/>
+      Bienvenue sur <strong style="color:#e2e8f0;">Performance Académique</strong>.<br/>
       Pour activer complètement votre compte universitaire, veuillez entrer le code de vérification ci-dessous.
     </p>
     ${codeBlock}
@@ -594,7 +594,7 @@ export function buildVerificationEmailContent(input: VerificationEmailContentInp
   const textLines = [
     `Bonjour ${name},`,
     "",
-    "Bienvenue sur Axelmond Research Labs.",
+    "Bienvenue sur Performance Académique.",
     "",
     "Pour activer votre compte universitaire, veuillez utiliser le code de vérification suivant :",
     "",
@@ -607,17 +607,17 @@ export function buildVerificationEmailContent(input: VerificationEmailContentInp
     "",
     "---",
     "",
-    "Axelmond Research Labs",
+    "Performance Académique",
     "Research • Innovation • Education",
     "",
-    `© ${now.getFullYear()} Axelmond Research Labs - Tous droits réservés`,
+    `© ${now.getFullYear()} Performance Académique - Tous droits réservés`,
     "Ceci est un message automatique — merci de ne pas répondre à cet e-mail.",
   ];
 
   return {
     text: textLines.join("\n"),
     html: buildBaseEmailHtml({
-      title: "Vérification de compte — Axelmond Research Labs",
+      title: "Vérification de compte — Performance Académique",
       headline: "Vérification de votre compte",
       bodyHtml,
       ctaButton: input.verifyUrl ? { href: input.verifyUrl, label: "Vérifier mon compte" } : undefined,
@@ -645,7 +645,7 @@ export async function sendVerificationEmail(input: VerificationEmailInput, env: 
     {
       from: env.EMAIL_FROM,
       to: input.to,
-      subject: "Votre code de vérification — Axelmond Research Labs",
+      subject: "Votre code de vérification — Performance Académique",
       text: content.text,
       html: content.html,
     },
@@ -699,7 +699,7 @@ export function buildResetPasswordEmailContent(input: {
     </p>
     <p style="margin:0 0 16px;color:#94a3b8;text-align:center;line-height:1.8;">
       Vous avez demandé la réinitialisation de votre mot de passe académique sur
-      <strong style="color:#e2e8f0;">Axelmond Research Labs</strong>.<br/>
+      <strong style="color:#e2e8f0;">Performance Académique</strong>.<br/>
       Saisissez le code de réinitialisation ci-dessous dans l'interface de connexion pour choisir un nouveau mot de passe.
     </p>
     ${codeBlock}
@@ -710,7 +710,7 @@ export function buildResetPasswordEmailContent(input: {
   const textLines = [
     `Bonjour ${name},`,
     "",
-    "Vous avez demandé la réinitialisation de votre mot de passe Axelmond Research Labs.",
+    "Vous avez demandé la réinitialisation de votre mot de passe Performance Académique.",
     "",
     "Veuillez utiliser le code de réinitialisation suivant :",
     "",
@@ -723,17 +723,17 @@ export function buildResetPasswordEmailContent(input: {
     "",
     "---",
     "",
-    "Axelmond Research Labs",
+    "Performance Académique",
     "Research • Innovation • Education",
     "",
-    `© ${now.getFullYear()} Axelmond Research Labs - Tous droits réservés`,
+    `© ${now.getFullYear()} Performance Académique - Tous droits réservés`,
     "Ceci est un message automatique — merci de ne pas répondre à cet e-mail.",
   ];
 
   return {
     text: textLines.join("\n"),
     html: buildBaseEmailHtml({
-      title: "Réinitialisation de votre mot de passe — Axelmond Research Labs",
+      title: "Réinitialisation de votre mot de passe — Performance Académique",
       headline: "Réinitialisation de votre mot de passe",
       bodyHtml,
       ctaButton: input.resetUrl ? { href: input.resetUrl, label: "Réinitialiser mon mot de passe" } : undefined,
@@ -759,7 +759,7 @@ export async function sendResetPasswordEmail(input: ResetPasswordEmailInput, env
     {
       from: env.EMAIL_FROM,
       to: input.to,
-      subject: "Réinitialisation de votre mot de passe — Axelmond Research Labs",
+      subject: "Réinitialisation de votre mot de passe — Performance Académique",
       text: content.text,
       html: content.html,
     },
@@ -794,7 +794,7 @@ export function buildEmailChangeContent(input: {
     </p>
     <p style="margin:0 0 16px;color:#94a3b8;text-align:center;line-height:1.8;">
       Une demande de changement d'adresse e-mail a été initiée pour votre compte
-      <strong style="color:#e2e8f0;">Axelmond Research Labs</strong>.
+      <strong style="color:#e2e8f0;">Performance Académique</strong>.
     </p>
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:18px 0;">
       <tr>
@@ -818,7 +818,7 @@ export function buildEmailChangeContent(input: {
   const textLines = [
     `Bonjour ${name},`,
     "",
-    "Une demande de changement d'adresse e-mail a été initiée pour votre compte Axelmond Research Labs.",
+    "Une demande de changement d'adresse e-mail a été initiée pour votre compte Performance Académique.",
     "",
     `Nouvelle adresse e-mail : ${input.newEmail}`,
     "",
@@ -831,17 +831,17 @@ export function buildEmailChangeContent(input: {
     "",
     "---",
     "",
-    "Axelmond Research Labs",
+    "Performance Académique",
     "Research • Innovation • Education",
     "",
-    `© ${now.getFullYear()} Axelmond Research Labs - Tous droits réservés`,
+    `© ${now.getFullYear()} Performance Académique - Tous droits réservés`,
     "Ceci est un message automatique — merci de ne pas répondre à cet e-mail.",
   ];
 
   return {
     text: textLines.join("\n"),
     html: buildBaseEmailHtml({
-      title: "Changement d'adresse e-mail — Axelmond Research Labs",
+      title: "Changement d'adresse e-mail — Performance Académique",
       headline: "Confirmation du changement d'e-mail",
       bodyHtml,
       ctaButton: { href: input.confirmUrl, label: "Confirmer mon nouvel e-mail" },
@@ -865,7 +865,7 @@ export async function sendEmailChangeEmail(input: EmailChangeEmailInput, env: No
     {
       from: env.EMAIL_FROM,
       to: input.to,
-      subject: "Confirmation du changement d'e-mail — Axelmond Research Labs",
+      subject: "Confirmation du changement d'e-mail — Performance Académique",
       text: content.text,
       html: content.html,
     },
@@ -894,7 +894,7 @@ export function buildInvitationEmailContent(input: { fullName: string; inviteCod
     </p>
     <p style="margin:0 0 20px;color:#94a3b8;text-align:center;line-height:1.8;">
       Vous avez été invité à rejoindre la plateforme académique
-      <strong style="color:#e2e8f0;">Axelmond Research Labs</strong>.<br/>
+      <strong style="color:#e2e8f0;">Performance Académique</strong>.<br/>
       Utilisez le code ci-dessous lors de votre inscription.
     </p>
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:18px 0;">
@@ -915,24 +915,24 @@ export function buildInvitationEmailContent(input: { fullName: string; inviteCod
   const textLines = [
     `Bonjour ${name},`,
     "",
-    "Vous êtes invité à rejoindre la plateforme académique Axelmond Research Labs.",
+    "Vous êtes invité à rejoindre la plateforme académique Performance Académique.",
     "",
     `Votre code d'invitation est : ${input.inviteCode}`,
     `Rejoignez la plateforme ici : ${input.inviteUrl}`,
     "",
     "---",
     "",
-    "Axelmond Research Labs",
+    "Performance Académique",
     "Research • Innovation • Education",
     "",
-    `© ${now.getFullYear()} Axelmond Research Labs - Tous droits réservés`,
+    `© ${now.getFullYear()} Performance Académique - Tous droits réservés`,
     "Ceci est un message automatique — merci de ne pas répondre à cet e-mail.",
   ];
 
   return {
     text: textLines.join("\n"),
     html: buildBaseEmailHtml({
-      title: "Invitation académique — Axelmond Research Labs",
+      title: "Invitation académique — Performance Académique",
       headline: "Invitation à rejoindre la plateforme",
       bodyHtml,
       ctaButton: { href: input.inviteUrl, label: "Rejoindre la plateforme" },
@@ -952,7 +952,7 @@ export async function sendInvitationEmail(input: InvitationEmailInput, env: Node
     {
       from: env.EMAIL_FROM,
       to: input.to,
-      subject: "Invitation à rejoindre Axelmond Research Labs",
+      subject: "Invitation à rejoindre Performance Académique",
       text: content.text,
       html: content.html,
     },
@@ -986,7 +986,7 @@ export function buildNotificationEmailContent(input: {
       Bonjour <strong style="color:#f1f5f9;">${escapeHtml(name)}</strong>,
     </p>
     <p style="margin:0 0 8px;color:#94a3b8;text-align:center;line-height:1.8;">
-      Vous avez une nouvelle notification de <strong style="color:#e2e8f0;">Axelmond Research Labs</strong>&nbsp;:
+      Vous avez une nouvelle notification de <strong style="color:#e2e8f0;">Performance Académique</strong>&nbsp;:
     </p>
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:18px 0;">
       <tr>
@@ -1004,24 +1004,24 @@ export function buildNotificationEmailContent(input: {
   const textLines = [
     `Bonjour ${name},`,
     "",
-    `Nouvelle notification de Axelmond Research Labs : ${input.messageTitle}`,
+    `Nouvelle notification de Performance Académique : ${input.messageTitle}`,
     "",
     input.messageBody,
     ...(safeActionUrl ? ["", `Lien d'action : ${safeActionUrl}`] : []),
     "",
     "---",
     "",
-    "Axelmond Research Labs",
+    "Performance Académique",
     "Research • Innovation • Education",
     "",
-    `© ${now.getFullYear()} Axelmond Research Labs - Tous droits réservés`,
+    `© ${now.getFullYear()} Performance Académique - Tous droits réservés`,
     "Ceci est un message automatique — merci de ne pas répondre à cet e-mail.",
   ];
 
   return {
     text: textLines.join("\n"),
     html: buildBaseEmailHtml({
-      title: `${input.messageTitle} — Axelmond Research Labs`,
+      title: `${input.messageTitle} — Performance Académique`,
       headline: input.messageTitle,
       bodyHtml,
       ctaButton: safeActionUrl ? { href: safeActionUrl, label: "Accéder à la notification" } : undefined,
@@ -1042,7 +1042,7 @@ export async function sendNotificationEmail(input: NotificationEmailInput, env: 
     {
       from: env.EMAIL_FROM,
       to: input.to,
-      subject: `Notification : ${input.messageTitle} — Axelmond Research Labs`,
+      subject: `Notification : ${input.messageTitle} — Performance Académique`,
       text: content.text,
       html: content.html,
     },
@@ -1077,7 +1077,7 @@ export async function sendAdminTestEmail(to: string, env: NodeJS.ProcessEnv = pr
       </tr>
     </table>
     <p style="margin:0;color:#64748b;font-size:13px;text-align:center;line-height:1.7;">
-      Si vous recevez cet e-mail, le serveur <strong style="color:#94a3b8;">Axelmond Research Labs</strong>
+      Si vous recevez cet e-mail, le serveur <strong style="color:#94a3b8;">Performance Académique</strong>
       peut envoyer des messages via Hostinger SMTP.
     </p>`;
 
@@ -1085,19 +1085,19 @@ export async function sendAdminTestEmail(to: string, env: NodeJS.ProcessEnv = pr
     {
       from: env.EMAIL_FROM,
       to,
-      subject: "Diagnostic SMTP — Axelmond Research Labs",
+      subject: "Diagnostic SMTP — Performance Académique",
       text: [
         "Bonjour,",
         "",
-        "Ceci est un e-mail de diagnostic envoyé depuis l'administration Axelmond Research Labs.",
+        "Ceci est un e-mail de diagnostic envoyé depuis l'administration Performance Académique.",
         "",
         "Si vous recevez ce message, la configuration SMTP Hostinger fonctionne.",
         "",
-        "Axelmond Research Labs",
+        "Performance Académique",
         "Ceci est un message automatique — merci de ne pas répondre à cet e-mail.",
       ].join("\n"),
       html: buildBaseEmailHtml({
-        title: "Diagnostic SMTP — Axelmond Research Labs",
+        title: "Diagnostic SMTP — Performance Académique",
         headline: "Test de configuration SMTP",
         bodyHtml,
         requestedAt: now,

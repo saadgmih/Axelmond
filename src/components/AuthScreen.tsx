@@ -332,7 +332,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
           <LogoSymbol className="w-24 h-24 text-indigo-400 flex-shrink-0 animate-in zoom-in duration-300" />
           <div>
             <h1 className="text-2xl font-black text-white tracking-tight select-none">
-              Axelmond <span className="text-indigo-400">Research Labs</span>
+              Performance <span className="text-indigo-400">Académique</span>
             </h1>
             <p className="text-slate-400 text-xs font-semibold max-w-sm mt-1">
               Plateforme Académique, Recherche et Innovation
@@ -409,7 +409,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                         ? "Réinitialiser le mot de passe"
                         : authMode === "login"
                           ? "Connexion à votre espace académique"
-                          : "Créer un compte universitaire Axelmond Research Labs"}
+                          : "Créer un compte universitaire Performance Académique"}
                 </h2>
                 <p className="text-xs text-slate-400">
                   {verificationEmail
@@ -641,7 +641,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                           id="auth-full-name"
                           type="text"
                           required
-                          placeholder={activeSector === "student" ? "ex: Étudiant Axelmond" : "ex: Pr. Louise Vitet"}
+                          placeholder={activeSector === "student" ? "ex: Étudiant Académique" : "ex: Pr. Louise Vitet"}
                           value={fullName}
                           onChange={(e) => setFullName(e.target.value)}
                           className="w-full bg-slate-900 border border-slate-800 focus:border-slate-700 px-4 py-3 pl-11 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-700 transition-all"

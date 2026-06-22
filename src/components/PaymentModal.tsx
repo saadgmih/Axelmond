@@ -102,7 +102,8 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
   const handleApplyPromo = () => {
     setPromoError("");
     setPromoSuccess("");
-    if (promoCode.trim().toUpperCase() === "AXELMOND20") {
+    const code = promoCode.trim().toUpperCase();
+    if (code === "AXELMOND20" || code === "PERFORMANCE20") {
       setAppliedDiscount(20);
       setPromoSuccess("Réduction de 20% appliquée.");
     } else if (promoCode.trim() !== "") {
@@ -277,7 +278,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                       <input
                         id="promo-code"
                         type="text"
-                        placeholder="AXELMOND20"
+                        placeholder="PERFORMANCE20"
                         value={promoCode}
                         onChange={(e) => setPromoCode(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && handleApplyPromo()}

@@ -136,7 +136,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
             Support & Relations
           </span>
           <h1 className="text-3xl md:text-4xl font-black tracking-tight leading-tight">
-            Contacter Axelmond Research Labs
+            Contacter Performance Académique
           </h1>
           <p className="text-slate-300 text-sm md:text-base leading-relaxed">
             Pour toute demande d'assistance technique, pédagogique, administrative ou pour des opportunités de
@@ -312,7 +312,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
               <p className="text-xs text-slate-400 leading-relaxed">
                 Les informations recueillies via ce formulaire sont cryptées de bout en bout et font l'objet d'un audit
                 de sécurité. Elles sont utilisées exclusivement pour traiter votre demande par l'administration
-                d'Axelmond Research Labs et ne seront jamais partagées avec des tiers.
+                de Performance Académique et ne seront jamais partagées avec des tiers.
               </p>
             </div>
           </div>
@@ -333,7 +333,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
                 <MapPin className="w-4 h-4 text-slate-500 mt-1 flex-shrink-0" />
                 <div>
                   <p className="font-bold text-slate-300">Adresse de l'Institut</p>
-                  <p className="text-xs text-slate-400">Axelmond Research Labs</p>
+                  <p className="text-xs text-slate-400">Performance Académique</p>
                   <p className="text-xs text-slate-400">Casablanca, Maroc</p>
                   <p className="text-[10px] text-slate-500 italic mt-1">
                     Adresse complète communiquée sur demande administrative.

@@ -93,7 +93,7 @@ function TopbarBrand({ role }: { role: "student" | "teacher" }) {
       </div>
       <div className="min-w-0">
         <p className="topbar-brand-kicker">{getBrandKicker(role)}</p>
-        <p className="topbar-brand-title">Axelmond Research Labs</p>
+        <p className="topbar-brand-title">Performance Académique</p>
         <p className="topbar-brand-subtitle hidden sm:block">{getBrandSubtitle(role)}</p>
       </div>
     </div>
@@ -296,7 +296,7 @@ export default function Topbar({
               Utilisateur actuel
             </span>
             <span className="mt-0.5 flex max-w-[220px] items-center justify-center gap-1.5 truncate text-sm font-black text-white lg:justify-end">
-              {currentUser ? currentUser.fullName : "Axelmond Research Labs"}
+              {currentUser ? currentUser.fullName : "Performance Académique"}
               <BadgeCheck className="h-4 w-4 shrink-0 text-violet-400" aria-hidden="true" />
             </span>
             <span className="mt-0.5 text-[11px] font-medium text-slate-400">
@@ -309,7 +309,7 @@ export default function Topbar({
           {role === "student" && (
             <div className="flex items-center gap-2 rounded-full border border-indigo-400/20 bg-indigo-500/10 px-3 py-1.5">
               <Sparkles className="h-4 w-4 text-indigo-300" />
-              <span className="font-mono text-xs font-extrabold text-indigo-200">{activeCredits} ARL</span>
+              <span className="font-mono text-xs font-extrabold text-indigo-200">{activeCredits} cr.</span>
             </div>
           )}
 
@@ -322,7 +322,7 @@ export default function Topbar({
             {currentUser?.avatarUrl ? (
               <img src={currentUser.avatarUrl} alt="" className="topbar-avatar-image object-cover" />
             ) : (
-              <div className="topbar-avatar-fallback">{currentUser ? getInitials(currentUser.fullName) : "AR"}</div>
+              <div className="topbar-avatar-fallback">{currentUser ? getInitials(currentUser.fullName) : "PA"}</div>
             )}
             <span className="topbar-avatar-online" aria-hidden="true" />
           </button>

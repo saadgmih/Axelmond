@@ -49,7 +49,7 @@ export default function RegisterScreen({ navigation }: Props) {
     <ScreenContainer>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          <BrandHeader subtitle="Rejoignez Axelmond Research Labs" compact />
+          <BrandHeader subtitle="Rejoignez Performance Académique" compact />
 
           <View style={styles.sectorRow}>
             {(["student", "teacher"] as const).map((value) => (

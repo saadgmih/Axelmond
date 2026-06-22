@@ -17,7 +17,7 @@ interface StudentProfileViewProps {
 }
 
 function getInitials(name: string) {
-  if (!name) return "AR";
+  if (!name) return "PA";
   const parts = name.trim().split(/\s+/);
   if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   return name.slice(0, 2).toUpperCase();
@@ -74,7 +74,7 @@ export default function StudentProfileView({
               <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-end">
                 <ProfileAvatarUpload
                   avatarUrl={currentUser?.avatarUrl}
-                  initials={currentUser ? getInitials(currentUser.fullName) : "AR"}
+                  initials={currentUser ? getInitials(currentUser.fullName) : "PA"}
                   statusMsg=""
                   accent="indigo"
                   layout="hero"
@@ -89,10 +89,10 @@ export default function StudentProfileView({
                     Profil Étudiant
                   </span>
                   <h1 className="text-2xl font-black tracking-tight md:text-3xl">
-                    {currentUser?.fullName || "Étudiant Axelmond"}
+                    {currentUser?.fullName || "Étudiant Performance Académique"}
                   </h1>
                   <p className="text-sm font-medium text-indigo-200/90">
-                    {currentUser?.levelOrTitle || "Licence 3 Informatique"} · Axelmond Research Labs
+                    {currentUser?.levelOrTitle || "Licence 3 Informatique"} · Performance Académique
                   </p>
                   <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
                     <span className="inline-flex items-center gap-1 rounded-lg border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-300">

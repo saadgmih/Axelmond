@@ -78,7 +78,7 @@ export default function PrivacyView() {
               </span>
             </h1>
             <p className="text-slate-400 text-sm md:text-base leading-relaxed max-w-2xl">
-              Ce document décrit la manière dont <strong className="text-white">Axelmond Research Labs</strong>{" "}
+              Ce document décrit la manière dont <strong className="text-white">Performance Académique</strong>{" "}
               collecte, utilise, protège et partage vos informations personnelles. Votre vie privée est une priorité
               absolue.
             </p>
@@ -114,7 +114,7 @@ export default function PrivacyView() {
           </div>
           <div className="hidden md:block h-8 w-px bg-emerald-800/40 mx-2" />
           <div className="text-[11px] text-emerald-600 leading-relaxed max-w-lg">
-            Axelmond Research Labs s'engage à respecter les obligations légales de la loi n° 09-08 et les bonnes
+            Performance Académique s'engage à respecter les obligations légales de la loi n° 09-08 et les bonnes
             pratiques en matière de protection des données personnelles des utilisateurs de la plateforme.
           </div>
         </div>
@@ -167,8 +167,8 @@ export default function PrivacyView() {
             inView={s1Ref.inView}
           >
             <p>
-              Dans le cadre de la gestion de votre compte et de la fourniture de nos services académiques, Axelmond
-              Research Labs collecte uniquement les données strictement nécessaires.
+              Dans le cadre de la gestion de votre compte et de la fourniture de nos services académiques, Performance
+              Académique collecte uniquement les données strictement nécessaires.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
@@ -228,7 +228,7 @@ export default function PrivacyView() {
               <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
               <p className="text-[12px] text-amber-200/80">
                 <strong className="text-amber-300">Aucune donnée sensible</strong> (numéro de carte bancaire, données de
-                santé, données biométriques) n'est stockée directement sur les serveurs d'Axelmond Research Labs. Les
+                santé, données biométriques) n'est stockée directement sur les serveurs de Performance Académique. Les
                 paiements sont traités exclusivement par un prestataire de paiement certifié.
               </p>
             </div>
@@ -381,8 +381,8 @@ export default function PrivacyView() {
             <div className="flex items-start gap-3 bg-emerald-950/20 border border-emerald-800/30 rounded-2xl px-5 py-4">
               <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-slate-300">
-                <strong className="text-white">Axelmond Research Labs ne vend jamais vos données personnelles</strong> à
-                des tiers, partenaires commerciaux ou régies publicitaires. Le partage de données est limité aux seuls
+                <strong className="text-white">Performance Académique ne vend jamais vos données personnelles</strong> à
+                des tiers, partenaires commerciaux ou régies publicitaires. Le partage de données is limité aux seuls
                 sous-traitants techniques nécessaires à la fourniture du service.
               </p>
             </div>
@@ -433,7 +433,7 @@ export default function PrivacyView() {
               ))}
             </div>
             <p className="text-[12px] text-slate-500">
-              En cas d'obligation légale (décision judiciaire, réquisition administrative), Axelmond Research Labs peut
+              En cas d'obligation légale (décision judiciaire, réquisition administrative), Performance Académique peut
               être tenu de communiquer certaines données aux autorités compétentes. Nous notifions les utilisateurs
               concernés dans les limites permises par la loi.
             </p>
@@ -600,7 +600,7 @@ export default function PrivacyView() {
             delay={50}
           >
             <p>
-              La plateforme Axelmond Research Labs utilise des cookies essentiels de sécurité et un stockage local
+              La plateforme Performance Académique utilise des cookies essentiels de sécurité et un stockage local
               minimal pour les préférences et l'affichage. Aucun cookie de traçage ou de publicité n'est utilisé.
             </p>
             <div className="space-y-3">
@@ -691,7 +691,7 @@ export default function PrivacyView() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <InstitutionalInfoRow
                 label="Responsable du traitement"
-                value="Axelmond Research Labs"
+                value="Performance Académique"
                 icon={<Shield className="w-3.5 h-3.5" />}
               />
               <InstitutionalInfoRow
@@ -732,7 +732,7 @@ export default function PrivacyView() {
         {/* ── FOOTER NOTE ────────────────────────────────────────────────── */}
         <div className="bg-slate-900/60 border border-slate-800/60 rounded-2xl px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-1">
-            <div className="text-white text-sm font-bold">Axelmond Research Labs — Politique de confidentialité</div>
+            <div className="text-white text-sm font-bold">Performance Académique — Politique de confidentialité</div>
             <div className="text-slate-500 text-[11px]">
               Dernière mise à jour : {lastUpdate} · Version {version} · Soumis au droit marocain et à la loi n° 09-08
             </div>

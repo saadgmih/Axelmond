@@ -13,9 +13,9 @@ export default function BrandHeader({ subtitle, compact }: BrandHeaderProps) {
   return (
     <View style={[styles.wrap, { marginBottom: compact ? spacing.md : spacing.lg }]}>
       <View style={[styles.badge, { backgroundColor: colors.cardGlow, borderColor: colors.border, borderRadius: radius.pill }]}>
-        <Text style={[styles.badgeText, { color: colors.primary }]}>Axelmond Research Labs</Text>
+        <Text style={[styles.badgeText, { color: colors.primary }]}>Performance Académique</Text>
       </View>
-      <Text style={[styles.brand, { color: colors.text, fontSize: compact ? 26 : 34 }]}>Axelmond</Text>
+      <Text style={[styles.brand, { color: colors.text, fontSize: compact ? 26 : 34 }]}>Performance Académique</Text>
       <View style={[styles.accentLine, { backgroundColor: colors.gradientEnd }]} />
       {subtitle ? <Text style={[styles.subtitle, { color: colors.textMuted }]}>{subtitle}</Text> : null}
     </View>

@@ -448,7 +448,7 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
       contentMarkdown:
         type === "pdf"
           ? contentMarkdown ||
-            "### Introduction théorique\nCe manuel a été rédigé par l'équipe enseignante d'Axelmond Research Labs."
+            "### Introduction théorique\nCe manuel a été rédigé par l'équipe enseignante de Performance Académique."
           : undefined,
     };
 

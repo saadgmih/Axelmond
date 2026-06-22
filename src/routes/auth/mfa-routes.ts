@@ -110,7 +110,7 @@ export function registerMfaRoutes(app: Express, ctx: RouteContext): void {
       challengeId,
       qrDataUrl,
       manualEntryKey: secret,
-      issuer: "Axelmond Research Labs",
+      issuer: "Performance Académique",
     });
   });
 

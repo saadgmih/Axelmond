@@ -28,7 +28,7 @@ export function getWebAuthnConfig(env: NodeJS.ProcessEnv = process.env) {
       rpID = "localhost";
     }
   }
-  const rpName = env.WEBAUTHN_RP_NAME?.trim() || "Axelmond Research Labs";
+  const rpName = env.WEBAUTHN_RP_NAME?.trim() || "Performance Académique";
   return { origin, rpID, rpName };
 }
 

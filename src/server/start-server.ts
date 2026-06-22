@@ -284,10 +284,10 @@ export async function startAxelmondServer() {
     const listenCallback = () => {
       if (isVerboseStartup()) {
         console.log(
-          `Axelmond Research Labs server running (pid=${process.pid}, target=${PORT}, NODE_ENV=${process.env.NODE_ENV || "development"})`,
+          `Performance Académique server running (pid=${process.pid}, target=${PORT}, NODE_ENV=${process.env.NODE_ENV || "development"})`,
         );
       } else {
-        console.log(`Axelmond server running on ${isPipe ? "pipe" : "port"} ${PORT}`);
+        console.log(`Performance Académique server running on ${isPipe ? "pipe" : "port"} ${PORT}`);
       }
       resolve();
     };

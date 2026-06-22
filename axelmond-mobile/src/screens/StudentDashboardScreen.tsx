@@ -41,7 +41,7 @@ export default function StudentDashboardScreen({ navigation }: Props) {
   return (
     <ScreenContainer
       title={`Bonjour, ${user?.fullName?.split(" ")[0] || "étudiant"}`}
-      subtitle="Votre espace académique Axelmond"
+      subtitle="Votre espace académique Performance Académique"
       loading={loading}
     >
       {error ? <Text style={[styles.error, { color: theme.colors.danger }]}>{error}</Text> : null}

@@ -52,7 +52,7 @@ export default function CourseDetailsScreen({ route }: Props) {
           {!enrolled ? (
             <View style={[styles.noteBox, { backgroundColor: theme.colors.cardGlow, borderColor: theme.colors.border }]}>
               <Text style={{ color: theme.colors.textSoft, lineHeight: 20 }}>
-                Ce module est visible dans le catalogue. L'inscription complète se fait via la plateforme web Axelmond.
+                Ce module est visible dans le catalogue. L'inscription complète se fait via la plateforme web Performance Académique.
               </Text>
             </View>
           ) : null}

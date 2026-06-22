@@ -33,7 +33,7 @@ export default function AITutorChat({
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "model",
-      text: `Bonjour ! Je suis l'assistant académique de l'université **Axelmond Research Labs** pour le module **${courseTitle}** (*${moduleTitle}*). 
+      text: `Bonjour ! Je suis l'assistant académique de **Performance Académique** pour le module **${courseTitle}** (*${moduleTitle}*). 
 
 Je peux vous expliquer n'importe quelle portion du module, décortiquer un morceau de code, ou concevoir un exercice d'entraînement supplémentaire sur mesure. Que souhaitez-vous étudier ?`,
     },
@@ -85,7 +85,7 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
         ...prev,
         {
           role: "model",
-          text: `Désolé, j'ai rencontré un problème pour me connecter aux services d'Axelmond Research Labs : ${message}. Veuillez réessayer.`,
+          text: `Désolé, j'ai rencontré un problème pour me connecter aux services de Performance Académique : ${message}. Veuillez réessayer.`,
         },
       ]);
     } finally {
@@ -131,7 +131,7 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
           >
             <div className="bg-slate-900 px-4 py-1.5 flex justify-between items-center text-slate-500 text-[10px] uppercase font-bold tracking-wider select-none border-b border-slate-900">
               <span>{language}</span>
-              <span className="text-indigo-400">Axelmond Research Labs Compiler</span>
+              <span className="text-indigo-400">Compiler Académique</span>
             </div>
             <pre className="p-4 overflow-x-auto whitespace-pre">
               <code>{code}</code>
@@ -229,7 +229,7 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
               ) : (
                 <>
                   <Sparkles className="w-3 h-3 text-indigo-500" aria-hidden="true" />
-                  Axelmond Research Labs Advisor
+                   Conseiller Performance Académique
                 </>
               )}
             </span>

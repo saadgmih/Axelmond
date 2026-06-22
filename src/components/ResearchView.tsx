@@ -417,7 +417,7 @@ const resources = [
   {
     icon: <FolderOpen className="w-5 h-5 text-violet-400" />,
     title: "Dépôt de publications",
-    desc: "Déposez et consultez les publications soumises par les membres d'Axelmond Research Labs.",
+    desc: "Déposez et consultez les publications soumises par les membres de Performance Académique.",
     badge: "Open Access · Archivage",
     border: "border-violet-800/30 bg-violet-950/15",
   },
@@ -559,8 +559,8 @@ export default function ResearchView() {
                 </span>
               </h1>
               <p className="text-slate-400 text-sm md:text-base leading-relaxed">
-                Cet espace centralise toutes les activités scientifiques d'
-                <strong className="text-white">Axelmond Research Labs</strong> : laboratoires, projets actifs,
+                Cet espace centralise toutes les activités scientifiques de{" "}
+                <strong className="text-white">Performance Académique</strong> : laboratoires, projets actifs,
                 publications, collaborations internationales et appels à projets. Dédié aux{" "}
                 <span className="text-indigo-300 font-semibold">professeurs</span>,{" "}
                 <span className="text-violet-300 font-semibold">chercheurs</span> et{" "}

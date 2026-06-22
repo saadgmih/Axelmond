@@ -63,7 +63,7 @@ export default function LegalView() {
             </h1>
             <p className="text-slate-400 text-sm md:text-base leading-relaxed">
               Les présentes mentions légales régissent les conditions générales d'édition et de publication de la
-              plateforme <strong className="text-white">Axelmond Research Labs</strong>, conformément aux dispositions
+              plateforme <strong className="text-white">Performance Académique</strong>, conformément aux dispositions
               légales en vigueur au Maroc.
             </p>
 
@@ -97,7 +97,7 @@ export default function LegalView() {
             <div className="w-full h-px bg-slate-800" />
             <div>
               <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Tous droits réservés</div>
-              <div className="text-white text-sm font-bold mt-0.5">© 2026 Axelmond Research Labs</div>
+              <div className="text-white text-sm font-bold mt-0.5">© 2026 Performance Académique</div>
             </div>
           </div>
         </div>
@@ -108,7 +108,7 @@ export default function LegalView() {
           <p className="text-[12px] text-slate-400 leading-relaxed">
             En application de la <strong className="text-white">loi n° 09-08</strong> relative à la protection des
             personnes physiques à l'égard du traitement des données à caractère personnel, les informations ci-dessous
-            permettent à tout utilisateur d'identifier l'éditeur responsable de la plateforme Axelmond Research Labs.
+            permettent à tout utilisateur d'identifier l'éditeur responsable de la plateforme Performance Académique.
           </p>
         </div>
       </InstitutionalHero>
@@ -128,7 +128,7 @@ export default function LegalView() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <InstitutionalInfoRow
                   label="Nom officiel"
-                  value="Axelmond Research Labs"
+                  value="Performance Académique"
                   icon={<Building2 className="w-3.5 h-3.5" />}
                 />
                 <InstitutionalInfoRow
@@ -185,9 +185,9 @@ export default function LegalView() {
                 <div className="space-y-4">
                   <p className="text-[13px] text-slate-300 leading-relaxed">
                     La responsabilité éditoriale et la supervision de la publication des contenus sur la plateforme
-                    Axelmond Research Labs sont assurées par{" "}
+                    Performance Académique sont assurées par{" "}
                     <strong className="text-white">l'administration de la plateforme</strong>, sous la direction de
-                    l'équipe de direction d'Axelmond Research Labs.
+                    l'équipe de direction de Performance Académique.
                   </p>
                   <p className="text-[13px] text-slate-300 leading-relaxed">
                     Le responsable de publication veille à la conformité des contenus publiés avec les réglementations
@@ -206,7 +206,7 @@ export default function LegalView() {
                 <div className="space-y-3">
                   <InstitutionalInfoRow
                     label="Entité responsable"
-                    value="Administration Axelmond Research Labs"
+                    value="Administration Performance Académique"
                     icon={<User className="w-3.5 h-3.5" />}
                   />
                   <InstitutionalInfoRow
@@ -245,7 +245,7 @@ export default function LegalView() {
                 accentClass="bg-sky-500/15 border border-sky-500/20"
               />
               <p className="text-[13px] text-slate-400 leading-relaxed mb-5">
-                La plateforme Axelmond Research Labs est hébergée sur une{" "}
+                La plateforme Performance Académique est hébergée sur une{" "}
                 <strong className="text-white">infrastructure sécurisée de niveau production</strong>, garantissant la
                 disponibilité continue, la protection intégrité et la confidentialité de l'ensemble des données de la
                 plateforme.
@@ -311,7 +311,7 @@ export default function LegalView() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-4">
                   <p className="text-[13px] text-slate-300 leading-relaxed">
-                    L'ensemble des éléments composant la plateforme Axelmond Research Labs — contenus pédagogiques,
+                    L'ensemble des éléments composant la plateforme Performance Académique — contenus pédagogiques,
                     modules, publications, documents, logos, marques, chartes graphiques, interfaces et code source —
                     est protégé par le <strong className="text-white">droit de la propriété intellectuelle</strong>{" "}
                     applicable.
@@ -320,9 +320,9 @@ export default function LegalView() {
                     color="text-amber-400"
                     items={[
                       "Les modules et supports pédagogiques sont protégés par le droit d'auteur",
-                      "Le nom « Axelmond Research Labs » et son logo sont des marques protégées",
+                      "Le nom « Performance Académique » et son logo sont des marques protégées",
                       "Les publications de recherche restent la propriété de leurs auteurs déclarés",
-                      "L'interface utilisateur et le code source sont la propriété exclusive d'ARL",
+                      "L'interface utilisateur et le code source sont la propriété exclusive de Performance Académique",
                       "Respect des licences Creative Commons pour les ressources tierces intégrées",
                     ]}
                   />
@@ -340,7 +340,7 @@ export default function LegalView() {
                         "Reproduction des contenus pédagogiques sans autorisation écrite",
                         "Diffusion ou redistribution des modules sur d'autres supports",
                         "Exploitation commerciale des ressources de la plateforme",
-                        "Utilisation du logo ou de la marque Axelmond sans accord préalable",
+                        "Utilisation du logo ou de la marque Performance Académique sans accord préalable",
                         "Extraction automatisée des contenus (scraping)",
                       ].map((item) => (
                         <li key={item} className="flex items-start gap-2 text-[12px] text-slate-300">
@@ -377,7 +377,7 @@ export default function LegalView() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
                 <div className="space-y-4">
                   <p className="text-[13px] text-slate-300 leading-relaxed">
-                    Axelmond Research Labs s'engage à mettre tout en œuvre pour garantir l'exactitude, la fiabilité et
+                    Performance Académique s'engage à mettre tout en œuvre pour garantir l'exactitude, la fiabilité et
                     la mise à jour régulière des informations publiées sur la plateforme. Néanmoins, des erreurs
                     ponctuelles ne peuvent être totalement exclues.
                   </p>
@@ -395,17 +395,17 @@ export default function LegalView() {
                   {[
                     {
                       title: "Interruptions techniques",
-                      desc: "ARL ne peut être tenu responsable des interruptions temporaires de service liées à des maintenances, défaillances techniques ou attaques informatiques indépendantes de sa volonté.",
+                      desc: "Performance Académique ne peut être tenu responsable des interruptions temporaires de service liées à des maintenances, défaillances techniques ou attaques informatiques indépendantes de sa volonté.",
                       border: "border-slate-700 bg-slate-800/30",
                     },
                     {
                       title: "Erreurs de contenu",
-                      desc: "ARL décline toute responsabilité pour les erreurs éventuelles dans les contenus fournis par les professeurs et chercheurs contributeurs indépendants.",
+                      desc: "Performance Académique décline toute responsabilité pour les erreurs éventuelles dans les contenus fournis par les professeurs et chercheurs contributeurs indépendants.",
                       border: "border-slate-700 bg-slate-800/30",
                     },
                     {
                       title: "Usage inapproprié",
-                      desc: "ARL ne peut être tenu responsable de l'utilisation contraire aux conditions d'utilisation faite par des tiers de la plateforme ou de ses ressources.",
+                      desc: "Performance Académique ne peut être tenu responsable de l'utilisation contraire aux conditions d'utilisation faite par des tiers de la plateforme ou de ses ressources.",
                       border: "border-slate-700 bg-slate-800/30",
                     },
                   ].map(({ title, desc, border }) => (
@@ -420,8 +420,8 @@ export default function LegalView() {
                 <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
                 <p className="text-[12px] text-slate-400 leading-relaxed">
                   <strong className="text-amber-300">Liens externes :</strong> La plateforme peut contenir des liens
-                  vers des sites ou services tiers (paiement, visioconférence, authentification, etc.). Axelmond
-                  Research Labs n'est pas responsable du contenu, de la politique de confidentialité ou des pratiques de
+                  vers des sites ou services tiers (paiement, visioconférence, authentification, etc.). Performance
+                  Académique n'est pas responsable du contenu, de la politique de confidentialité ou des pratiques de
                   ces sites externes. Consultez leurs mentions légales respectives avant tout usage.
                 </p>
               </div>
@@ -444,7 +444,7 @@ export default function LegalView() {
                 />
                 <p className="text-[13px] text-slate-400 leading-relaxed mb-6">
                   Conformément à la <strong className="text-white">loi n° 09-08</strong> et aux textes applicables en
-                  matière de protection des données personnelles au Maroc, Axelmond Research Labs s'engage à protéger
+                  matière de protection des données personnelles au Maroc, Performance Académique s'engage à protéger
                   vos données personnelles et à vous informer de vos droits. Consultez les documents ci-dessous pour
                   plus d'informations.
                 </p>
@@ -522,8 +522,8 @@ export default function LegalView() {
                 accentClass="bg-rose-500/15 border border-rose-500/20"
               />
               <p className="text-[13px] text-slate-400 leading-relaxed mb-6">
-                Pour toute demande juridique, administrative ou réglementaire concernant la plateforme Axelmond Research
-                Labs, utilisez les coordonnées officielles ci-dessous.
+                Pour toute demande juridique, administrative ou réglementaire concernant la plateforme Performance
+                Académique, utilisez les coordonnées officielles ci-dessous.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
@@ -556,7 +556,7 @@ export default function LegalView() {
                     icon: <PhoneCall className="w-5 h-5 text-sky-400" />,
                     title: "Demandes administratives",
                     contact: "verification@axelmond.com",
-                    objet: "Demande administrative — ARL",
+                    objet: "Demande administrative — Performance Académique",
                     delay: "10 jours ouvrables",
                     color: "border-sky-800/30 bg-sky-950/15",
                   },
@@ -668,9 +668,9 @@ export default function LegalView() {
               {/* Footer copyright */}
               <div className="border-t border-slate-800 pt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="space-y-0.5">
-                  <div className="text-white text-sm font-black">© 2026 Axelmond Research Labs</div>
+                  <div className="text-white text-sm font-black">© 2026 Performance Académique</div>
                   <div className="text-slate-500 text-[11px]">
-                    Tous droits réservés · Axelmond Research Labs · axelmond.com
+                    Tous droits réservés · Performance Académique · axelmond.com
                   </div>
                   <div className="text-slate-600 text-[10px]">
                     Research · Innovation · Education — Plateforme académique de nouvelle génération

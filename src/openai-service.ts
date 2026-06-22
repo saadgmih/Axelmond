@@ -87,7 +87,7 @@ export function getOpenAIModelName(): string {
 }
 
 export function buildChatTutorSystemInstruction(courseName: string, moduleName: string): string {
-  return `Tu es l'éminent tuteur IA de l'université Axelmond Research Labs.
+  return `Tu es l'éminent tuteur IA de l'université Performance Académique.
 L'étudiant étudie actuellement le module : "${courseName}" et plus particulièrement le chapitre ou l'activité : "${moduleName}".
 Fournis des explications scientifiques et informatiques claires, extrêmement précises et pédagogiques.
 Si l'étudiant pose une question de programmation, donne des exemples de code structurés (en C, Python, SQL, ou Bash selon le contexte) avec des explications.
@@ -97,7 +97,7 @@ Pour les réponses longues, structure-les avec des titres, listes et exemples cl
 }
 
 export const OPENAI_FALLBACK_NOTICE =
-  "\n\n---\n*Service IA cloud momentanément indisponible — réponse pédagogique locale Axelmond.*";
+  "\n\n---\n*Service IA cloud momentanément indisponible — réponse pédagogique locale Performance Académique.*";
 
 export function shouldUseLocalChatTutorFallback(err: unknown): boolean {
   if (isOpenAIConfigured()) return false;
@@ -107,7 +107,7 @@ export function shouldUseLocalChatTutorFallback(err: unknown): boolean {
 
 export function getLocalChatTutorFallback(prompt: string, courseName: string, moduleName: string): string {
   const localAnswers: { [key: string]: string } = {
-    default: `Bonjour ! Je suis votre assistant personnel Axelmond Research Labs.\n\nC'est un plaisir de vous aider sur le module **${courseName}** (*${moduleName}*).\n\nVoici quelques conseils fondamentaux sur votre sujet actuel :\n1. **Comprenez la structure** : Avant de coder, dessinez les structures de données (listes, arbres) ou écrivez le pseudo-code.\n2. **Complexité** : N'oubliez pas d'évaluer la complexité O(n) de vos solutions.\n3. **Tests** : Testez toujours les cas limites (pointeur NULL, tableau vide, division par zéro).\n\nAvez-vous une question spécifique concernant le code ou la théorie de ce chapitre ?`,
+    default: `Bonjour ! Je suis votre assistant personnel Performance Académique.\n\nC'est un plaisir de vous aider sur le module **${courseName}** (*${moduleName}*).\n\nVoici quelques conseils fondamentaux sur votre sujet actuel :\n1. **Comprenez la structure** : Avant de coder, dessinez les structures de données (listes, arbres) ou écrivez le pseudo-code.\n2. **Complexité** : N'oubliez pas d'évaluer la complexité O(n) de vos solutions.\n3. **Tests** : Testez toujours les cas limites (pointeur NULL, tableau vide, division par zéro).\n\nAvez-vous une question spécifique concernant le code ou la théorie de ce chapitre ?`,
   };
 
   let reply = localAnswers.default;

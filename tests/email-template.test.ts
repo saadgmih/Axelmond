@@ -12,7 +12,7 @@ rulesTest("email-template", () => {
   assert.match(withoutLink.text, /Bonjour Sophie/);
   assert.match(withoutLink.text, /123456/);
   assert.match(withoutLink.text, /15 minutes/);
-  assert.match(withoutLink.html, /Axelmond Research Labs/);
+  assert.match(withoutLink.html, /Performance Académique/);
   assert.match(withoutLink.html, /123456/);
   assert.match(withoutLink.html, /Sophie/);
   assert.doesNotMatch(withoutLink.html, /Vérifier mon compte/);

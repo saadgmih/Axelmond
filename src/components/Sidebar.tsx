@@ -213,7 +213,7 @@ export default function Sidebar({
         </div>
         <div className="min-w-0 flex-1 truncate text-left">
           <p className="truncate text-xs font-extrabold leading-none text-slate-100">
-            {currentUser?.fullName || "Axelmond Research Labs"}
+            {currentUser?.fullName || "Performance Académique"}
           </p>
           <span className="mt-1.5 block truncate text-[10px] font-bold uppercase tracking-wider text-slate-500">
             {role === "student"
@@ -287,13 +287,13 @@ export default function Sidebar({
             type="button"
             onClick={goHome}
             className="flex items-center gap-3.5 transition-opacity hover:opacity-95"
-            aria-label="Accueil Axelmond Research Labs"
+            aria-label="Accueil Performance Académique"
           >
             <LogoSymbol className="h-11 w-11 shrink-0 text-indigo-400" />
             <div className="select-none text-left">
-              <span className="block text-lg font-black leading-none tracking-tight text-white">Axelmond</span>
+              <span className="block text-lg font-black leading-none tracking-tight text-white">Performance</span>
               <span className="mt-1.5 block text-[10px] font-bold uppercase leading-none tracking-[0.24em] text-indigo-300">
-                Research Labs
+                Académique
               </span>
             </div>
           </button>

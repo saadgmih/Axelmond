@@ -109,7 +109,7 @@ export default function WebAppScreen() {
       {loading && !error && (
         <View style={styles.overlay} pointerEvents="none">
           <ActivityIndicator size="large" color="#818cf8" />
-          <Text style={styles.loadingText}>Chargement d&apos;Axelmond…</Text>
+          <Text style={styles.loadingText}>Chargement de Performance Académique…</Text>
         </View>
       )}
 

@@ -158,7 +158,7 @@ export function formatPayPalAmount(value: number): string {
 function getPayPalApplicationContext() {
   const appUrl = (process.env.APP_URL || "https://axelmond.com").replace(/\/$/, "");
   return {
-    brand_name: "Axelmond Research Labs",
+    brand_name: "Performance Académique",
     user_action: "PAY_NOW" as const,
     shipping_preference: "NO_SHIPPING" as const,
     landing_page: "NO_PREFERENCE" as const,

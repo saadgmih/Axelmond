@@ -29,7 +29,7 @@ export default function TeacherDashboardScreen({ navigation }: Props) {
   const totalStudentsEstimate = teacherCourses.reduce((sum, course) => sum + Math.max(course.progress, 0), 0);
 
   return (
-    <ScreenContainer title="Espace enseignant" subtitle="Pilotage pédagogique Axelmond" loading={loading}>
+    <ScreenContainer title="Espace enseignant" subtitle="Pilotage pédagogique Performance Académique" loading={loading}>
       {error ? <Text style={[styles.error, { color: theme.colors.danger }]}>{error}</Text> : null}
 
       <View style={styles.statsRow}>

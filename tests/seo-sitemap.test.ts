@@ -21,10 +21,10 @@ rulesTest("seo-sitemap", () => {
   assert.match(robots, /Allow: \//);
   assert.match(robots, /Sitemap: https:\/\/axelmond\.com\/sitemap\.xml/);
 
-  assert.match(indexHtml, /<title>Axelmond Research Labs/);
+  assert.match(indexHtml, /<title>Performance Académique/);
   assert.match(indexHtml, /name="description"/);
-  assert.match(indexHtml, /Axelmond Research Labs/);
-  assert.match(indexHtml, /<h1[^>]*>Axelmond Research Labs/);
+  assert.match(indexHtml, /Performance Académique/);
+  assert.match(indexHtml, /<h1[^>]*>Performance Académique/);
   assert.match(indexHtml, /rel="canonical" href="https:\/\/axelmond\.com\/"/);
   assert.match(indexHtml, /application\/ld\+json/);
 

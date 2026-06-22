@@ -5,6 +5,7 @@ type PromoCodeEntry = {
 
 const PROMO_CODES: Record<string, PromoCodeEntry> = {
   AXELMOND20: { discountPercent: 20, validUntil: "2026-12-31" },
+  PERFORMANCE20: { discountPercent: 20, validUntil: "2026-12-31" },
 };
 
 export const PROMO_CODE_MAX_LENGTH = 32;

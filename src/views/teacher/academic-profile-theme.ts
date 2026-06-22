@@ -80,7 +80,7 @@ export function getProfileRoleTheme(role: UserRole): ProfileRoleTheme {
       badgeText: "text-violet-200",
       accentRing: "ring-violet-500/30",
       icon: Shield,
-      subtitle: "Administration de la plateforme Axelmond",
+      subtitle: "Administration de la plateforme Performance Académique",
       uploadAccent: "violet",
       focusRing: "focus:ring-violet-500/15 focus:border-violet-500/50",
       sectionIcon: "text-violet-400",

@@ -336,15 +336,15 @@ export default function AboutView() {
           }}
         >
           <span className="text-[10px] font-black uppercase tracking-widest text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full inline-block mb-6">
-            À propos d'Axelmond Research Labs
+            À propos de Performance Académique
           </span>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-tight">
-                Axelmond{" "}
+                Performance{" "}
                 <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-pink-400 bg-clip-text text-transparent">
-                  Research Labs
+                  Académique
                 </span>
               </h1>
               <p className="text-slate-300 text-base md:text-lg leading-relaxed max-w-xl">
@@ -468,7 +468,7 @@ export default function AboutView() {
               <h2 className="text-2xl font-black text-white mt-1">Former. Innover. Rechercher.</h2>
             </div>
             <p className="text-slate-300 text-sm leading-relaxed">
-              Axelmond Research Labs a pour mission de rendre l'enseignement supérieur accessible, moderne et connecté.
+              Performance Académique a pour mission de rendre l'enseignement supérieur accessible, moderne et connecté.
               Nous fournissons aux institutions académiques les outils numériques nécessaires pour offrir une expérience
               d'apprentissage de niveau mondial — des modules interactifs jusqu'aux sessions live et aux profils de
               chercheurs.
@@ -540,7 +540,7 @@ export default function AboutView() {
             </span>
             <h2 className="text-3xl font-black text-white">La plateforme en chiffres</h2>
             <p className="text-slate-400 text-sm max-w-lg mx-auto">
-              Des données qui témoignent de l'engagement d'Axelmond Research Labs envers l'excellence académique.
+              Des données qui témoignent de l'engagement de Performance Académique envers l'excellence académique.
             </p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -657,7 +657,7 @@ export default function AboutView() {
                 </div>
                 <div className="space-y-4 text-sm text-slate-300 leading-relaxed">
                   <p>
-                    <strong className="text-white">Axelmond Research Labs</strong> est une plateforme numérique
+                    <strong className="text-white">Performance Académique</strong> est une plateforme numérique
                     académique de nouvelle génération, conçue pour réunir en un seul endroit tous les acteurs de
                     l'éducation supérieure et de la recherche scientifique. Elle s'adresse aux{" "}
                     <span className="text-indigo-300">étudiants</span>, aux{" "}

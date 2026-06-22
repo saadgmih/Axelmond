@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Axelmond Research Labs",
+    "name": "Performance Académique",
     "slug": "axelmond-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -16,8 +16,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.axelmond.researchlabs",
       "infoPlist": {
-        "NSCameraUsageDescription": "Axelmond utilise la caméra pour participer aux cours en direct.",
-        "NSMicrophoneUsageDescription": "Axelmond utilise le microphone pour participer aux cours en direct.",
+        "NSCameraUsageDescription": "L'application utilise la caméra pour participer aux cours en direct.",
+        "NSMicrophoneUsageDescription": "L'application utilise le microphone pour participer aux cours en direct.",
         "UIBackgroundModes": [
           "audio"
         ]
@@ -54,8 +54,8 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Axelmond utilise la caméra pour participer aux cours en direct.",
-          "microphonePermission": "Axelmond utilise le microphone pour participer aux cours en direct.",
+          "cameraPermission": "L'application utilise la caméra pour participer aux cours en direct.",
+          "microphonePermission": "L'application utilise le microphone pour participer aux cours en direct.",
           "recordAudioAndroid": true
         }
       ],
@@ -70,8 +70,8 @@
       [
         "@config-plugins/react-native-webrtc",
         {
-          "cameraPermission": "Axelmond utilise la caméra pour participer aux cours en direct.",
-          "microphonePermission": "Axelmond utilise le microphone pour participer aux cours en direct."
+          "cameraPermission": "L'application utilise la caméra pour participer aux cours en direct.",
+          "microphonePermission": "L'application utilise le microphone pour participer aux cours en direct."
         }
       ]
     ],

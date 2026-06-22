@@ -1,5 +1,5 @@
 // tests/load-report.ts
-// Rapport de charge Axelmond Research Labs — 100 / 500 / 1000 utilisateurs simultanés
+// Rapport de charge Performance Académique — 100 / 500 / 1000 utilisateurs simultanés
 //
 // Prérequis : le serveur doit tourner sur http://localhost:3000
 // Usage     : node_modules/.bin/tsx tests/load-report.ts
@@ -148,7 +148,7 @@ function buildMarkdownReport(results: ScenarioResult[]): string {
     .map((r) => `\n### ${r.connections} utilisateurs — \`${r.route}\`\n${r.issues.map((i) => `- ⚠️ ${i}`).join("\n")}`)
     .join("\n");
 
-  return `# Rapport de Charge — Axelmond Research Labs
+  return `# Rapport de Charge — Performance Académique
 
 > Généré le : ${now}  
 > Serveur   : ${BASE_URL}  
@@ -186,7 +186,7 @@ ${issues || "\n✅ Aucun problème détecté — tous les SLO sont respectés.\n
 ## Architecture de Scalabilité Validée
 
 \`\`\`
-Axelmond Research Labs — Protections actives :
+Performance Académique — Protections actives :
   ✅ Compression gzip            (réduction ~70% de la taille des réponses JSON)
   ✅ Rate limiting global        (100 req / 15min / IP — configurable via RATE_LIMIT_MAX_REQUESTS)
   ✅ Rate limiting auth strict   (10 req / 15min / IP — protection brute-force)
@@ -223,7 +223,7 @@ node_modules/.bin/pm2 monit
 }
 
 async function main() {
-  console.log("=== Rapport de Charge — Axelmond Research Labs ===");
+  console.log("=== Rapport de Charge — Performance Académique ===");
   console.log(`Serveur cible : ${BASE_URL}`);
   console.log(`Durée par scénario : ${DURATION_SECONDS}s`);
   console.log(`Scénarios : 100 / 500 / 1000 utilisateurs simultanés\n`);

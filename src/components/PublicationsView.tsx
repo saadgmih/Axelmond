@@ -405,7 +405,7 @@ const PubCard: React.FC<{
   onCopy: (text: string) => void;
   copied: string;
 }> = ({ pub, expanded, onToggle, onCopy, copied }) => {
-  const bibtex = `@article{${pub.authors[0].split(" ")[1].toLowerCase()}${pub.year},\n  title={${pub.title}},\n  author={${pub.authors.join(" and ")}},\n  year={${pub.year}},\n  ${pub.doi ? `doi={${pub.doi}}` : "note={Axelmond Research Labs}"}\n}`;
+  const bibtex = `@article{${pub.authors[0].split(" ")[1].toLowerCase()}${pub.year},\n  title={${pub.title}},\n  author={${pub.authors.join(" and ")}},\n  year={${pub.year}},\n  ${pub.doi ? `doi={${pub.doi}}` : "note={Performance Académique}"}\n}`;
   const apa = `${pub.authors.join(", ")} (${pub.year}). ${pub.title}. ${pub.lab}.${pub.doi ? ` https://doi.org/${pub.doi}` : ""}`;
 
   return (
@@ -810,7 +810,7 @@ export default function PublicationsView() {
             <div className="space-y-4">
               <span className="text-[10px] font-black uppercase tracking-widest text-violet-300 bg-violet-500/10 border border-violet-500/20 px-3 py-1 rounded-full inline-flex items-center gap-1.5">
                 <BookOpen className="w-3 h-3" />
-                Bibliothèque scientifique — Axelmond Research Labs
+                Bibliothèque scientifique — Performance Académique
               </span>
               <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
                 Publications{" "}
@@ -819,7 +819,7 @@ export default function PublicationsView() {
                 </span>
               </h1>
               <p className="text-slate-400 text-sm md:text-base leading-relaxed max-w-xl">
-                Explorez, déposez et gérez les travaux académiques d'Axelmond Research Labs. Articles, conférences,
+                Explorez, déposez et gérez les travaux académiques de Performance Académique. Articles, conférences,
                 ouvrages, prépublications et chapitres — consultables par domaine, auteur, laboratoire et statut
                 éditorial.
               </p>

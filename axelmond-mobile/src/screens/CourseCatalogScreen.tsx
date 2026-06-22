@@ -44,7 +44,7 @@ export default function CourseCatalogScreen(_props: Props) {
   }, [courses, query]);
 
   return (
-    <ScreenContainer title="Catalogue" subtitle="Modules académiques Axelmond" loading={loading}>
+    <ScreenContainer title="Catalogue" subtitle="Modules académiques Performance Académique" loading={loading}>
       <TextInput
         placeholder="Rechercher un cours..."
         placeholderTextColor={theme.colors.textMuted}

@@ -6,7 +6,7 @@ rulesTest("live-control-ui", () => {
   const liveControlSource = readFileSync("src/views/teacher/TeacherLiveControlView.tsx", "utf8");
   const themeSource = readFileSync("src/views/teacher/live-control-theme.ts", "utf8");
 
-  assert.match(liveControlSource, /Console de visioconférence Axelmond Research Labs/);
+  assert.match(liveControlSource, /Console de visioconférence Performance Académique/);
   assert.match(liveControlSource, /Module académique en direct/i);
   assert.match(liveControlSource, /Sujet de révision actif/i);
   assert.match(liveControlSource, /État de la diffusion en direct/i);

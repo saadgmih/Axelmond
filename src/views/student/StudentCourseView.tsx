@@ -512,7 +512,7 @@ export default function StudentCourseView({
                           <div className="space-y-0.5">
                             <h4 className="font-extrabold text-sm text-slate-800">Avez-vous compris cette leçon ?</h4>
                             <p className="text-xs text-slate-500">
-                              Marquez ce module comme terminé pour augmenter vos crédits Axelmond Research Labs.
+                              Marquez ce module comme terminé pour augmenter vos crédits Performance Académique.
                             </p>
                           </div>
 
@@ -534,8 +534,8 @@ export default function StudentCourseView({
                         <div className="bg-white border border-slate-100 rounded-2xl p-6 space-y-3.5">
                           <h3 className="font-extrabold text-slate-800">À propos de ce module vidéo</h3>
                           <p className="text-xs text-slate-500 leading-relaxed">
-                            Ce module vidéo interactif est préparé par la faculté d'informatique théorique d'Axelmond
-                            Research Labs. Il récapitule les grands principes scientifiques du sujet et contient de
+                            Ce module vidéo interactif est préparé par la faculté d'informatique théorique de Performance
+                            Académique. Il récapitule les grands principes scientifiques du sujet et contient de
                             précieux exercices pratiques à faire dans votre propre terminal.
                           </p>
                           <p className="text-xs text-slate-500 border-l-4 border-indigo-400 pl-4 py-1 italic bg-indigo-50/20">

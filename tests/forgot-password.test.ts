@@ -17,7 +17,7 @@ rulesTest("forgot-password", () => {
   assert.match(serverSource, /app\.post\("\/api\/auth\/reset-password",/);
   assert.match(serverSource, /"FORGOT_PASSWORD_REQUEST"/);
   assert.match(serverSource, /"RESET_PASSWORD_SUCCESS"/);
-  assert.match(serverSource, /Si un compte Axelmond Research Labs existe pour cette adresse/);
+  assert.match(serverSource, /Si un compte Performance Académique existe pour cette adresse/);
   assert.doesNotMatch(serverSource, /Aucun compte n'est associé à cette adresse e-mail/);
 
   // 3. Validate client-side API helper methods

@@ -284,7 +284,7 @@ export default function CookiesView() {
               </span>
             </h1>
             <p className="text-slate-400 text-sm md:text-base leading-relaxed">
-              <strong className="text-white">Axelmond Research Labs</strong> utilise des cookies et technologies
+              <strong className="text-white">Performance Académique</strong> utilise des cookies et technologies
               similaires pour assurer le bon fonctionnement de la plateforme, améliorer votre expérience d'apprentissage
               et renforcer la sécurité de votre compte.
             </p>
@@ -341,7 +341,7 @@ export default function CookiesView() {
             <strong className="text-amber-300">Bon à savoir :</strong> La plateforme utilise des cookies
             <strong className="text-white"> strictement essentiels</strong> pour sécuriser la session, ainsi que du
             stockage local pour les préférences. Aucun pixel de tracking, aucune régie publicitaire, aucun réseau social
-            n'est connecté à vos données de navigation sur Axelmond Research Labs.
+            n'est connecté à vos données de navigation sur Performance Académique.
           </p>
         </div>
       </InstitutionalHero>
@@ -411,7 +411,7 @@ export default function CookiesView() {
                     permettant de vous reconnaître et d'adapter son comportement à vos préférences.
                   </p>
                   <p className="text-[13px] text-slate-300 leading-relaxed">
-                    Dans le contexte d'Axelmond Research Labs, nous utilisons des{" "}
+                    Dans le contexte de Performance Académique, nous utilisons des{" "}
                     <strong className="text-white">cookies de sécurité</strong> pour la session et du{" "}
                     <strong className="text-white">stockage local</strong> pour les préférences non secrètes.
                   </p>
@@ -486,7 +486,7 @@ export default function CookiesView() {
                 accentClass="bg-sky-500/15 border border-sky-500/20"
               />
               <p className="text-[13px] text-slate-400 leading-relaxed mb-5">
-                Les cookies et technologies de stockage local utilisés par Axelmond Research Labs répondent
+                Les cookies et technologies de stockage local utilisés par Performance Académique répondent
                 exclusivement aux finalités académiques et techniques suivantes.
               </p>
               <div className="space-y-3">
@@ -594,7 +594,7 @@ export default function CookiesView() {
                     {
                       icon: <Shield className="w-5 h-5 text-emerald-400" />,
                       title: "Données sécurisées",
-                      desc: "Toutes les données sensibles restent sur les serveurs sécurisés d'Axelmond Research Labs et ne transitent jamais en clair.",
+                      desc: "Toutes les données sensibles restent sur les serveurs sécurisés de Performance Académique et ne transitent jamais en clair.",
                       border: "border-emerald-800/25 bg-emerald-950/10",
                     },
                   ].map(({ icon, title, desc, border }) => (
@@ -776,7 +776,7 @@ export default function CookiesView() {
               {/* Footer meta */}
               <div className="bg-slate-950/50 border border-slate-800/60 rounded-2xl px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="space-y-0.5">
-                  <div className="text-white text-sm font-bold">Axelmond Research Labs — Politique des cookies</div>
+                  <div className="text-white text-sm font-bold">Performance Académique — Politique des cookies</div>
                   <div className="text-slate-500 text-[11px]">
                     Dernière mise à jour : Juin 2026 · Droit marocain · Loi n° 09-08
                   </div>

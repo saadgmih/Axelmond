@@ -43,7 +43,7 @@ export const seedCourses: Course[] = [
     price: 160,
     iconName: "Code",
     color: "bg-blue-100",
-    instructor: "Équipe académique Axelmond",
+    instructor: "Équipe académique Performance Académique",
     description:
       "Les fondements de l'informatique. Apprenez à concevoir des algorithmes robustes, efficaces et à utiliser les structures de données majeures (piles, files, arbres binaires et graphes).",
     progress: 45,
@@ -152,7 +152,7 @@ export const seedCourses: Course[] = [
     price: 200,
     iconName: "Terminal",
     color: "bg-purple-100",
-    instructor: "Équipe académique Axelmond",
+    instructor: "Équipe académique Performance Académique",
     description:
       "Comprendre le fonctionnement intime du noyau Linux : scheduling de processus, gestion partagée de la mémoire vive et communication POSIX (sémaphores, tuyaux).",
     progress: 100,

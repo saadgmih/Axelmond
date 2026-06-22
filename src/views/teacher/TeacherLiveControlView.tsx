@@ -57,7 +57,7 @@ export default function TeacherLiveControlView({
               <Video className="h-7 w-7 text-white" />
             </div>
             <div>
-              <h1 className={liveControlUi.heroTitle}>Console de visioconférence Axelmond Research Labs</h1>
+              <h1 className={liveControlUi.heroTitle}>Console de visioconférence Performance Académique</h1>
               <p className={liveControlUi.heroSubtitle}>
                 Configurez et pilotez vos sessions de visioconférence académique
               </p>

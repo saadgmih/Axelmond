@@ -3,7 +3,7 @@ import QRCode from "qrcode";
 import { prisma } from "./db";
 import { decryptMfaSecret, encryptMfaSecret, generateRecoveryCodes, hashRecoveryCode } from "./mfa-crypto";
 
-const ISSUER = "Axelmond Research Labs";
+const ISSUER = "Performance Académique";
 
 export function generateTotpSecret(): string {
   return generateSecret();

@@ -83,7 +83,7 @@ export default function TermsView() {
               </span>
             </h1>
             <p className="text-slate-400 text-sm md:text-base leading-relaxed">
-              En accédant à la plateforme <strong className="text-white">Axelmond Research Labs</strong>, vous acceptez
+              En accédant à la plateforme <strong className="text-white">Performance Académique</strong>, vous acceptez
               les présentes conditions dans leur intégralité. Elles régissent l'ensemble de vos interactions avec la
               plateforme, ses services et sa communauté académique.
             </p>
@@ -119,7 +119,7 @@ export default function TermsView() {
             <div className="w-full h-px bg-slate-800" />
             <div className="space-y-1">
               <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Entité</div>
-              <div className="text-white text-sm font-bold">Axelmond Research Labs</div>
+              <div className="text-white text-sm font-bold">Performance Académique</div>
             </div>
           </div>
         </div>
@@ -204,7 +204,7 @@ export default function TermsView() {
                   </span>
                 </div>
                 <p className="text-[12px] text-slate-300 leading-relaxed">
-                  Axelmond Research Labs ne vous demandera <strong className="text-white">jamais</strong> votre mot de
+                  Performance Académique ne vous demandera <strong className="text-white">jamais</strong> votre mot de
                   passe par e-mail, chat ou téléphone. Méfiez-vous de toute demande en ce sens. Tout incident de
                   sécurité doit être rapporté sans délai.
                 </p>
@@ -488,10 +488,10 @@ export default function TermsView() {
                 <InstitutionalCheckList
                   color="text-amber-400"
                   items={[
-                    "Les modules et supports pédagogiques restent la propriété de leurs auteurs (professeurs/ARL).",
+                    "Les modules et supports pédagogiques restent la propriété de leurs auteurs (professeurs/Performance Académique).",
                     "Les publications de recherche restent la propriété intellectuelle de leurs auteurs.",
-                    "Le logo, le nom et l'identité visuelle Axelmond sont des marques protégées.",
-                    "Le code source de la plateforme est la propriété exclusive d'Axelmond Research Labs.",
+                    "Le logo, le nom et l'identité visuelle Performance Académique sont des marques protégées.",
+                    "Le code source de la plateforme est la propriété exclusive de Performance Académique.",
                   ]}
                 />
               </div>
@@ -571,7 +571,7 @@ export default function TermsView() {
             inView={s9.inView}
           >
             <p className="text-[13px] text-slate-300 leading-relaxed mb-5">
-              Axelmond Research Labs se réserve le droit de modifier les présentes conditions à tout moment, afin de
+              Performance Académique se réserve le droit de modifier les présentes conditions à tout moment, afin de
               refléter les évolutions de la plateforme, les obligations légales ou les changements de pratiques du
               secteur académique numérique.
             </p>
@@ -632,7 +632,7 @@ export default function TermsView() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 {[
-                  { label: "Entité responsable", value: "Axelmond Research Labs" },
+                  { label: "Entité responsable", value: "Performance Académique" },
                   { label: "Droit applicable", value: "Droit marocain · Loi n° 09-08" },
                   { label: "Dernière mise à jour", value: "Juin 2026 — Version v3.1.0" },
                   { label: "Juridiction", value: "Tribunaux compétents du ressort de Casablanca (Maroc)" },

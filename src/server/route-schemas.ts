@@ -116,7 +116,7 @@ export const chatTutorSchema = z.object({
 });
 
 export const PASSWORD_RESET_GENERIC_MESSAGE =
-  "Si un compte Axelmond Research Labs existe pour cette adresse, un code de réinitialisation a été envoyé.";
+  "Si un compte Performance Académique existe pour cette adresse, un code de réinitialisation a été envoyé.";
 
 export const courseSchema = z.object({
   title: z.string().min(2, "Le titre est requis").max(200).trim(),
