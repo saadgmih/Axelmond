@@ -60,6 +60,26 @@ export const courseResponseInclude = {
   courseModules: { orderBy: { sortOrder: "asc" as const } },
 } as const;
 
+export const courseListResponseInclude = {
+  discipline: { include: { domain: true } },
+  liveSessions: activeLiveSessionInclude,
+  courseModules: {
+    select: {
+      courseId: true,
+      id: true,
+      sortOrder: true,
+      title: true,
+      type: true,
+      duration: true,
+      attachmentUrl: true,
+      attachmentName: true,
+      sectionId: true,
+      published: true,
+    },
+    orderBy: { sortOrder: "asc" as const },
+  },
+} as const;
+
 export function getLiveStartedAt(course: any) {
   if (!course.isLiveNow) return null;
   const session = Array.isArray(course.liveSessions) ? course.liveSessions[0] : null;
@@ -148,7 +168,7 @@ export async function toCourseForUser(
   if (authUser.role !== "STUDENT") return toCourse(course);
 
   if (authUser.enrolledCourses.includes(course.id)) {
-    const refreshed = await attachSyncedCourseModules([course]);
+    const refreshed = await attachSyncedCourseModules([course], { includeContentMarkdown: true });
     course = refreshed[0] ?? course;
   }
 

@@ -73,6 +73,7 @@ export async function initMessagingSocket(
       credentials: true,
     },
     path: "/socket.io",
+    transports: ["websocket"],
     maxHttpBufferSize: Number(process.env.SOCKET_MAX_HTTP_BUFFER_BYTES) || 1_000_000,
     pingTimeout: Number(process.env.SOCKET_PING_TIMEOUT_MS) || 20_000,
     pingInterval: Number(process.env.SOCKET_PING_INTERVAL_MS) || 25_000,

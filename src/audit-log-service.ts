@@ -171,6 +171,11 @@ export async function startAuditLogRetention(signal?: AbortSignal) {
   if (signal?.aborted) return;
   retentionStopped = false;
   if (purgeTimer) return;
+  if (process.env.HOSTINGER_WEBAPP === "1") {
+    logSecurity("INFO", "Audit log retention interval disabled on Hostinger Web App");
+    await runScheduledAuditLogPurge(signal);
+    return;
+  }
   purgeTimer = setInterval(() => {
     void runScheduledAuditLogPurge(signal);
   }, getAuditLogPurgeIntervalMs());

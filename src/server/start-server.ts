@@ -384,6 +384,10 @@ async function runDeferredStartupTasks(securityTest: boolean, signal: AbortSigna
 
 async function verifySmtpAtStartup(signal: AbortSignal) {
   if (signal.aborted) return;
+  if (process.env.HOSTINGER_WEBAPP === "1") {
+    logEmail("INFO", "SMTP startup checks skipped on Hostinger Web App");
+    return;
+  }
   const smtpCheck = await verifySmtpConnection();
   if (signal.aborted) return;
   if (smtpCheck.ok) {

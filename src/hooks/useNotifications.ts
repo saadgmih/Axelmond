@@ -76,7 +76,7 @@ export function useNotifications(enabled: boolean) {
     };
 
     pollUnreadCount();
-    const timer = window.setInterval(pollUnreadCount, 120_000);
+    const timer = window.setInterval(pollUnreadCount, 300_000);
     const onVisibilityChange = () => {
       if (document.visibilityState === "visible") void refreshUnreadCount();
     };

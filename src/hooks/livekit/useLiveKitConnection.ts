@@ -377,7 +377,8 @@ export function useLiveKitConnection({
       return;
     }
     refreshLiveAttendanceReport(activeLiveCourse.id);
-    const interval = window.setInterval(() => refreshLiveAttendanceReport(activeLiveCourse.id), 15000);
+    const intervalDelay = currentUser && !isStudentRole(currentUser.role) ? 30000 : 90000;
+    const interval = window.setInterval(() => refreshLiveAttendanceReport(activeLiveCourse.id), intervalDelay);
     return () => window.clearInterval(interval);
-  }, [activeLiveCourse?.id]);
+  }, [activeLiveCourse?.id, currentUser?.role]);
 }

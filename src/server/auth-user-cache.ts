@@ -42,6 +42,7 @@ export function pruneAuthUserCache() {
 
 export function startAuthUserCachePruner() {
   if (pruneTimer) return;
+  if (process.env.HOSTINGER_WEBAPP === "1") return;
   pruneTimer = setInterval(() => pruneAuthUserCache(), 5 * 60 * 1000);
   if (pruneTimer && typeof pruneTimer === "object" && "unref" in pruneTimer) {
     (pruneTimer as NodeJS.Timeout).unref();

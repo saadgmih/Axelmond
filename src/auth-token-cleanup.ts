@@ -63,6 +63,11 @@ export async function startRefreshTokenCleanup(signal?: AbortSignal) {
   if (signal?.aborted) return;
   cleanupStopped = false;
   if (purgeTimer) return;
+  if (process.env.HOSTINGER_WEBAPP === "1") {
+    logSecurity("INFO", "Refresh token cleanup interval disabled on Hostinger Web App");
+    await runScheduledRefreshTokenPurge(signal);
+    return;
+  }
   purgeTimer = setInterval(() => {
     void runScheduledRefreshTokenPurge(signal);
   }, getPurgeIntervalMs());

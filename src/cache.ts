@@ -53,7 +53,23 @@ async function withCacheTimeout<T>(promise: Promise<T>, label: string): Promise<
   }
 }
 
+function isInfoIgnoredInProduction(level: string, message: string): boolean {
+  if (process.env.NODE_ENV !== "production" || level !== "INFO") {
+    return false;
+  }
+  const msg = message.toLowerCase();
+  return !(
+    msg.includes("loaded") ||
+    msg.includes("running") ||
+    msg.includes("shutdown") ||
+    msg.includes("verified") ||
+    msg.includes("started") ||
+    msg.includes("listening")
+  );
+}
+
 function logCache(level: "INFO" | "WARN", message: string, data?: unknown) {
+  if (isInfoIgnoredInProduction(level, message)) return;
   console.log(`[${new Date().toISOString()}] [${level}] [cache] ${message}${data ? " " + JSON.stringify(data) : ""}`);
 }
 
@@ -287,6 +303,10 @@ export async function initCache(): Promise<void> {
 
 export function startCachePruner() {
   if (backend.kind !== "memory" || pruneTimer) return;
+  if (process.env.HOSTINGER_WEBAPP === "1") {
+    logCache("INFO", "Cache pruner interval disabled on Hostinger Web App");
+    return;
+  }
   pruneTimer = setInterval(
     () => {
       if (backend.kind === "memory") {

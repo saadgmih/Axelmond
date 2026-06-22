@@ -83,7 +83,7 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
       const courses = await withCatalogTimeout(
         api.prisma.course.findMany({
           where,
-          include: api.courseResponseInclude,
+          include: api.courseListResponseInclude,
           orderBy: { id: "asc" },
         }),
         "course catalog query",

@@ -162,10 +162,30 @@ export async function syncPublishedLessonModulesForCourses(courseIds: number[]):
 
 export async function attachSyncedCourseModules<T extends { id: number; courseModules?: unknown[] }>(
   courses: T[],
+  options?: { includeContentMarkdown?: boolean },
 ): Promise<T[]> {
   if (courses.length === 0) return courses;
+
+  const selectFields: any = {
+    courseId: true,
+    id: true,
+    sortOrder: true,
+    title: true,
+    type: true,
+    duration: true,
+    attachmentUrl: true,
+    attachmentName: true,
+    sectionId: true,
+    published: true,
+  };
+
+  if (options?.includeContentMarkdown || (options?.includeContentMarkdown === undefined && courses.length === 1)) {
+    selectFields.contentMarkdown = true;
+  }
+
   const modules = await prisma.courseModule.findMany({
     where: { courseId: { in: courses.map((course) => course.id) } },
+    select: selectFields,
     orderBy: [{ courseId: "asc" }, { sortOrder: "asc" }, { id: "asc" }],
   });
   const modulesByCourseId = new Map<number, typeof modules>();

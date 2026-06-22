@@ -30,7 +30,7 @@ export function useMessagingSocket(enabled: boolean, handlers: MessagingSocketHa
       const socket = io(socketBaseUrl, {
         path: "/socket.io",
         auth: { token },
-        transports: ["websocket", "polling"],
+        transports: ["websocket"],
       });
       socketRef.current = socket;
 
