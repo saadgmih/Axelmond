@@ -1,17 +1,9 @@
 import type { Response } from "express";
-import { AUTH_LOCKOUT_WINDOW_MS, AUTH_MAX_ATTEMPTS } from "./server/route-schemas";
-
-function resolveAuthMaxAttempts(): number {
-  return Number(process.env.AUTH_MAX_ATTEMPTS) || AUTH_MAX_ATTEMPTS;
-}
-
-function resolveAuthLockoutWindowMs(): number {
-  return Number(process.env.AUTH_LOCKOUT_WINDOW_MS) || AUTH_LOCKOUT_WINDOW_MS;
-}
-
-export function authLockoutWindowSeconds(): number {
-  return Math.ceil(resolveAuthLockoutWindowMs() / 1000);
-}
+import {
+  getLoginLockoutMaxAttempts,
+  getLoginLockoutWindowMs,
+  getLoginLockoutWindowSeconds,
+} from "./auth-lockout-config";
 
 export interface LoginLockoutStatus {
   locked: boolean;
@@ -65,8 +57,8 @@ export function getEmailLoginLockoutStatus(
   return {
     locked: retryAfter > 0,
     retryAfter,
-    maxAttempts: resolveAuthMaxAttempts(),
-    lockoutWindowSeconds: authLockoutWindowSeconds(),
+    maxAttempts: getLoginLockoutMaxAttempts(),
+    lockoutWindowSeconds: getLoginLockoutWindowSeconds(),
   };
 }
 
@@ -88,8 +80,8 @@ export function recordEmailLoginFailure(
   }
 
   record.attempts += 1;
-  if (record.attempts >= resolveAuthMaxAttempts()) {
-    record.lockoutUntil = now + resolveAuthLockoutWindowMs();
+  if (record.attempts >= getLoginLockoutMaxAttempts()) {
+    record.lockoutUntil = now + getLoginLockoutWindowMs();
   }
 
   emailLockouts.set(key, record);

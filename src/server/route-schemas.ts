@@ -274,6 +274,14 @@ export const liveAttendanceLeaveSchema = z.object({
   courseId: z.number().int().positive(),
 });
 
-export const AUTH_LOCKOUT_WINDOW_MS = Number(process.env.AUTH_LOCKOUT_WINDOW_MS) || 20 * 1000;
-export const AUTH_MAX_ATTEMPTS = Number(process.env.AUTH_MAX_ATTEMPTS) || 10;
+import {
+  getLoginLockoutMaxAttempts,
+  getLoginLockoutWindowMs,
+  LOGIN_LOCKOUT_MAX_ATTEMPTS,
+  LOGIN_LOCKOUT_WINDOW_MS,
+} from "../auth-lockout-config";
+
+export const AUTH_LOCKOUT_WINDOW_MS = LOGIN_LOCKOUT_WINDOW_MS;
+export const AUTH_MAX_ATTEMPTS = LOGIN_LOCKOUT_MAX_ATTEMPTS;
+export { getLoginLockoutMaxAttempts, getLoginLockoutWindowMs };
 export const isSecurityRuntimeTest = process.env.SECURITY_RUNTIME_TEST === "1";

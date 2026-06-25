@@ -29,6 +29,7 @@ import { liveKitRateLimitKey } from "../livekit-rate-limit";
 import { adminRateLimitKey } from "../admin-rate-limit";
 import { PAYPAL_CSP_SCRIPT_SRC, PAYPAL_CSP_IMG_SRC, PAYPAL_CSP_FORM_ACTION, buildCspFrameSrc } from "../paypal-csp";
 import { parseTrustProxySetting, rateLimitIpKey } from "../client-ip";
+import { getLoginLockoutMaxAttempts, getLoginLockoutWindowMs } from "../auth-lockout-config";
 import { isDatabaseDisconnected } from "../db";
 import { shutdownGuardMiddleware } from "./shutdown-coordination";
 import { startupLifecycle } from "./startup-lifecycle";
@@ -131,8 +132,8 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
   const PORT = Number(options?.port ?? process.env.PORT) || 3000;
   const isSecurityRuntimeTest = process.env.SECURITY_RUNTIME_TEST === "1";
   const isProduction = process.env.NODE_ENV === "production";
-  const AUTH_MAX_ATTEMPTS = Number(process.env.AUTH_MAX_ATTEMPTS) || 10;
-  const AUTH_LOCKOUT_WINDOW_MS = Number(process.env.AUTH_LOCKOUT_WINDOW_MS) || 20 * 1000;
+  const AUTH_MAX_ATTEMPTS = getLoginLockoutMaxAttempts();
+  const AUTH_LOCKOUT_WINDOW_MS = getLoginLockoutWindowMs();
   const uploadThingCallbackUrl =
     process.env.UPLOADTHING_CALLBACK_URL ||
     (process.env.APP_URL ? `${process.env.APP_URL}/api/uploadthing` : undefined);

@@ -249,8 +249,8 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
 
     if (!isValidPassword) {
       const lockout = recordEmailLoginFailure(email, user.lockoutUntil);
-      const attempts = Math.min(user.failedLoginAttempts + 1, api.AUTH_MAX_ATTEMPTS);
-      const lockoutUntil = lockout.locked ? new Date(Date.now() + api.AUTH_LOCKOUT_WINDOW_MS) : null;
+      const attempts = Math.min(user.failedLoginAttempts + 1, api.getLoginLockoutMaxAttempts());
+      const lockoutUntil = lockout.locked ? new Date(Date.now() + api.getLoginLockoutWindowMs()) : null;
 
       await api.prisma.user.update({
         where: { id: user.id },
@@ -266,7 +266,7 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
         api.logSecurity("WARN", "Auth account lockout applied", {
           userId: user.id,
           attempts,
-          maxAttempts: api.AUTH_MAX_ATTEMPTS,
+          maxAttempts: api.getLoginLockoutMaxAttempts(),
           lockoutSeconds: lockout.lockoutWindowSeconds,
         });
       }
