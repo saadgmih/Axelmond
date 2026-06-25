@@ -120,12 +120,21 @@ function StatusPill({
   active: boolean;
 }) {
   return (
-    <div className="flex min-w-0 flex-1 flex-col gap-1 px-3 first:pl-0 last:pr-0 sm:px-4">
-      <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-        <Icon className="h-3 w-3" />
-        {label}
+    <div className="grid min-w-0 grid-cols-[2rem_minmax(0,1fr)] items-start gap-x-2.5 gap-y-1">
+      <div
+        className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400/90"
+        aria-hidden
+      >
+        <Icon className="h-3.5 w-3.5 shrink-0" />
       </div>
-      <p className={`text-xs font-bold ${active ? "text-emerald-400" : "text-amber-400"}`}>{value}</p>
+      <div className="min-w-0 pt-0.5">
+        <p className="text-[10px] font-bold uppercase leading-snug tracking-wider text-slate-400">{label}</p>
+        <p
+          className={`mt-1 break-words text-xs font-bold leading-snug ${active ? "text-emerald-400" : "text-amber-400"}`}
+        >
+          {value}
+        </p>
+      </div>
     </div>
   );
 }
@@ -287,44 +296,56 @@ export default function SecuritySettingsPanel({
         </div>
 
         <div className="border-b border-white/5 px-6 py-4 md:px-8">
-          <div className="rounded-2xl border border-emerald-500/20 border-l-4 border-l-emerald-500 bg-emerald-500/[0.06] p-4 md:p-5">
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-              <div className="flex items-start gap-3">
+          <div className="rounded-2xl border border-emerald-500/20 border-l-4 border-l-emerald-500 bg-emerald-500/[0.06] p-4 md:p-5 lg:p-6">
+            <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between xl:gap-8 2xl:gap-10">
+              <div className="flex min-w-0 items-start gap-3 xl:max-w-md xl:shrink-0">
                 <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-400">
                   <Shield className="h-4 w-4" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-bold text-white">
                     {accountProtected ? "Votre compte est bien protégé" : "Renforcez la protection de votre compte"}
                   </p>
-                  <p className="mt-0.5 text-xs text-slate-400">
+                  <p className="mt-0.5 text-xs leading-relaxed text-slate-400">
                     {accountProtected
                       ? "Toutes les protections essentielles sont activées."
                       : "Activez TOTP et une Passkey pour atteindre le score maximal."}
                   </p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3 sm:flex sm:divide-x sm:divide-white/10">
-                <StatusPill
-                  icon={Mail}
-                  label="Email vérifié"
-                  value={emailVerified ? "Activé" : "En attente"}
-                  active={emailVerified}
-                />
-                <StatusPill
-                  icon={Shield}
-                  label="TOTP"
-                  value={totpEnabled ? "Activé" : "Inactif"}
-                  active={totpEnabled}
-                />
-                <StatusPill
-                  icon={KeyRound}
-                  label="Passkeys"
-                  value={passkeyCount > 0 ? `${passkeyCount} enregistrée${passkeyCount > 1 ? "s" : ""}` : "Aucune"}
-                  active={passkeyCount > 0}
-                />
-                <StatusPill icon={Lock} label="Mot de passe" value="Fort" active />
-              </div>
+              <ul
+                className="grid w-full min-w-0 flex-1 grid-cols-1 gap-4 min-[360px]:grid-cols-2 lg:grid-cols-4 lg:gap-x-6 lg:gap-y-4 xl:gap-x-8 2xl:gap-x-10"
+                role="list"
+                aria-label="Statut des protections du compte"
+              >
+                <li className="min-w-0">
+                  <StatusPill
+                    icon={Mail}
+                    label="Email vérifié"
+                    value={emailVerified ? "Activé" : "En attente"}
+                    active={emailVerified}
+                  />
+                </li>
+                <li className="min-w-0">
+                  <StatusPill
+                    icon={Shield}
+                    label="TOTP"
+                    value={totpEnabled ? "Activé" : "Inactif"}
+                    active={totpEnabled}
+                  />
+                </li>
+                <li className="min-w-0">
+                  <StatusPill
+                    icon={KeyRound}
+                    label="Passkeys"
+                    value={passkeyCount > 0 ? `${passkeyCount} enregistrée${passkeyCount > 1 ? "s" : ""}` : "Aucune"}
+                    active={passkeyCount > 0}
+                  />
+                </li>
+                <li className="min-w-0">
+                  <StatusPill icon={Lock} label="Mot de passe" value="Fort" active />
+                </li>
+              </ul>
             </div>
           </div>
         </div>
