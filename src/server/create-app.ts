@@ -29,6 +29,9 @@ import { liveKitRateLimitKey } from "../livekit-rate-limit";
 import { adminRateLimitKey } from "../admin-rate-limit";
 import { PAYPAL_CSP_SCRIPT_SRC, PAYPAL_CSP_IMG_SRC, PAYPAL_CSP_FORM_ACTION, buildCspFrameSrc } from "../paypal-csp";
 import { parseTrustProxySetting, rateLimitIpKey } from "../client-ip";
+import { isDatabaseDisconnected } from "../db";
+import { shutdownGuardMiddleware } from "./shutdown-coordination";
+import { startupLifecycle } from "./startup-lifecycle";
 
 export type AxelmondApp = {
   app: express.Express;
@@ -124,6 +127,7 @@ function buildCspConnectSrc(allowedOrigins: Set<string>, isProduction: boolean):
 export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
   const app = express();
   app.set("trust proxy", parseTrustProxySetting(process.env.TRUST_PROXY));
+  app.use(shutdownGuardMiddleware);
   const PORT = Number(options?.port ?? process.env.PORT) || 3000;
   const isSecurityRuntimeTest = process.env.SECURITY_RUNTIME_TEST === "1";
   const isProduction = process.env.NODE_ENV === "production";
@@ -257,6 +261,21 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
 
   app.use(cookieParser());
   app.use(mobileClientSpoofGuard);
+
+  app.use("/api", (req, res, next) => {
+    if (startupLifecycle.isShuttingDown || isDatabaseDisconnected()) {
+      res
+        .status(503)
+        .setHeader("Connection", "close")
+        .json({
+          error: "Le service redémarre. Réessayez dans quelques secondes.",
+          code: "SERVICE_SHUTTING_DOWN",
+        });
+      return;
+    }
+    next();
+  });
+
   const routeCtx = createRouteContext(routeDeps);
 
   const paypalWebhookRateLimiter = rateLimit({

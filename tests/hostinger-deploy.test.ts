@@ -27,7 +27,7 @@ rulesTest("hostinger-deploy", () => {
 
   assert.match(startServer, /closeAllConnections/);
   assert.match(startServer, /shutdownTimeoutMs/);
-  assert.match(startServer, /isProduction \? 3_000 : 15_000/);
+  assert.match(startServer, /HOSTINGER_WEBAPP === "1" \? 8_000/);
 
   assert.match(ecosystem, /HOSTINGER_WEBAPP/);
   assert.match(legacyVpsDeploy, /deploy-hostinger\.sh is VPS-only/);
@@ -46,7 +46,7 @@ rulesTest("hostinger-deploy", () => {
   assert.match(hostingerEnv, /AUTH_USER_CACHE_MS/);
   assert.match(hostingerEnv, /DATABASE_POOL_MAX/);
   assert.match(hostingerEnv, /STARTUP_DB_TIMEOUT_MS/);
-  assert.match(hostingerEnv, /GRACEFUL_SHUTDOWN_MS:\s*"3000"/);
+  assert.match(hostingerEnv, /GRACEFUL_SHUTDOWN_MS:\s*"8000"/);
   assert.match(startServer, /startupState\.listening\s*=\s*true/);
   assert.match(startServer, /verifyDatabaseAtStartup/);
 

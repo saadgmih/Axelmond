@@ -50,9 +50,9 @@ rulesTest("startup-shutdown-race", async () => {
     );
 
     await queryStarted.promise;
+    lifecycle.beginShutdown("SIGTERM");
     const shutdown = drainDatabaseForShutdown({
       lifecycle,
-      signal: "SIGTERM",
       timeoutMs: 250,
       stopDatabaseTasks: async () => {
         events.push("maintenance-stopped");
@@ -78,12 +78,12 @@ rulesTest("startup-shutdown-race", async () => {
     assert.deepEqual(unhandledRejections, []);
 
     const timeoutLifecycle = new StartupLifecycle();
+    timeoutLifecycle.beginShutdown("SIGTERM");
     const releaseTimedOutTask = deferred();
     let disconnectedAfterTimeout = false;
     const timedOutTask = timeoutLifecycle.trackCriticalTask(releaseTimedOutTask.promise);
     const drained = await drainDatabaseForShutdown({
       lifecycle: timeoutLifecycle,
-      signal: "SIGTERM",
       timeoutMs: 10,
       stopDatabaseTasks: async () => undefined,
       disconnectDatabase: async () => {
@@ -100,12 +100,16 @@ rulesTest("startup-shutdown-race", async () => {
   }
 
   const startServer = fs.readFileSync("src/server/start-server.ts", "utf8");
+  const createApp = fs.readFileSync("src/server/create-app.ts", "utf8");
   const refreshCleanup = fs.readFileSync("src/auth-token-cleanup.ts", "utf8");
   const auditCleanup = fs.readFileSync("src/audit-log-service.ts", "utf8");
   const database = fs.readFileSync("src/db.ts", "utf8");
 
   assert.match(startServer, /startupLifecycle\.trackCriticalTask/);
+  assert.match(startServer, /waitForActiveHttpRequests/);
   assert.match(startServer, /drainDatabaseForShutdown/);
+  assert.match(createApp, /shutdownGuardMiddleware/);
+  assert.match(createApp, /isDatabaseDisconnected/);
   assert.match(startServer, /stopAuditLogRetention\(\)/);
   assert.match(startServer, /stopRefreshTokenCleanup\(\)/);
   assert.match(startServer, /isExpectedShutdownCancellation/);

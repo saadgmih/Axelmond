@@ -23,6 +23,10 @@ import { startupState } from "./startup-state";
 import { stopPerformanceMonitor } from "../performance";
 import { isVerboseStartup } from "./startup-logging";
 import { drainDatabaseForShutdown, isExpectedShutdownCancellation, startupLifecycle } from "./startup-lifecycle";
+import {
+  getActiveHttpRequestCount,
+  waitForActiveHttpRequests,
+} from "./shutdown-coordination";
 
 loadEnv();
 
@@ -417,36 +421,54 @@ async function verifySmtpAtStartup(signal: AbortSignal) {
 }
 
 function registerGracefulShutdown(httpServer: ReturnType<typeof createServer>, isProduction: boolean) {
-  const shutdownTimeoutMs = Number(process.env.GRACEFUL_SHUTDOWN_MS) || (isProduction ? 3_000 : 15_000);
+  const shutdownTimeoutMs =
+    Number(process.env.GRACEFUL_SHUTDOWN_MS) || (process.env.HOSTINGER_WEBAPP === "1" ? 8_000 : isProduction ? 5_000 : 15_000);
 
   const shutdown = async (signal: string) => {
     if (!startupLifecycle.beginShutdown(signal)) return;
-    const shutdownDeadline = Date.now() + shutdownTimeoutMs;
-    logDb("INFO", "Graceful shutdown initiated", { signal, pid: process.pid, shutdownTimeoutMs });
+    const shutdownStartedAt = Date.now();
+    logDb("INFO", "Graceful shutdown initiated", {
+      signal,
+      pid: process.pid,
+      shutdownTimeoutMs,
+      activeHttpRequests: getActiveHttpRequestCount(),
+    });
 
     const forcedShutdownTimer = setTimeout(() => {
-      logDb("ERROR", "Forced shutdown after timeout", { signal, shutdownTimeoutMs });
+      logDb("ERROR", "Forced shutdown after timeout", {
+        signal,
+        shutdownTimeoutMs,
+        activeHttpRequests: getActiveHttpRequestCount(),
+      });
       process.exit(1);
     }, shutdownTimeoutMs);
     forcedShutdownTimer.unref();
-
-    const httpClosePromise = new Promise<void>((resolve) => {
-      httpServer.close(() => {
-        logDb("INFO", "HTTP server closed", { signal });
-        resolve();
-      });
-      httpServer.closeAllConnections?.();
-    });
 
     stopPerformanceMonitor();
     stopCachePruner();
     stopAuthUserCachePruner();
 
-    const remainingMs = Math.max(0, shutdownDeadline - Date.now());
+    const httpClosed = new Promise<void>((resolve) => {
+      httpServer.close(() => {
+        logDb("INFO", "HTTP server closed", { signal, activeHttpRequests: getActiveHttpRequestCount() });
+        resolve();
+      });
+    });
+
+    const remainingAfterHttpClose = () => Math.max(0, shutdownTimeoutMs - (Date.now() - shutdownStartedAt));
+    const requestsDrained = await waitForActiveHttpRequests(remainingAfterHttpClose());
+    if (!requestsDrained) {
+      logDb("WARN", "Active HTTP requests still running before database shutdown", {
+        signal,
+        activeHttpRequests: getActiveHttpRequestCount(),
+      });
+      httpServer.closeAllConnections?.();
+      await waitForActiveHttpRequests(Math.min(remainingAfterHttpClose(), 1_000));
+    }
+
     const databaseDisconnected = await drainDatabaseForShutdown({
       lifecycle: startupLifecycle,
-      signal,
-      timeoutMs: remainingMs,
+      timeoutMs: remainingAfterHttpClose(),
       stopDatabaseTasks: async () => {
         await Promise.all([stopAuditLogRetention(), stopRefreshTokenCleanup()]);
       },
@@ -466,16 +488,17 @@ function registerGracefulShutdown(httpServer: ReturnType<typeof createServer>, i
     });
 
     if (!databaseDisconnected) {
-      logDb("WARN", "Database disconnect skipped because startup tasks are still active", {
+      logDb("WARN", "Database disconnect skipped because startup tasks did not finish in time", {
         signal,
         shutdownTimeoutMs,
+        activeHttpRequests: getActiveHttpRequestCount(),
       });
-      return;
     }
 
-    await httpClosePromise;
+    httpServer.closeAllConnections?.();
+    await httpClosed;
     clearTimeout(forcedShutdownTimer);
-    process.exit(0);
+    process.exit(databaseDisconnected ? 0 : 1);
   };
   process.on("SIGTERM", () => void shutdown("SIGTERM"));
   process.on("SIGINT", () => void shutdown("SIGINT"));

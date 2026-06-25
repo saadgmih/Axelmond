@@ -11,6 +11,7 @@ const globalForPrisma = globalThis as unknown as {
   pgPool?: Pool;
   pgSchema?: string;
   databaseUrl?: string;
+  databaseDisconnected?: boolean;
 };
 
 export const DEFAULT_PG_SCHEMA = "AxelmondResearchLab";
@@ -168,9 +169,19 @@ export async function verifyDatabaseConnection(options?: {
 }
 
 export async function disconnectDatabase() {
-  await prisma.$disconnect();
-  if (globalForPrisma.pgPool) {
-    await globalForPrisma.pgPool.end();
-    globalForPrisma.pgPool = undefined;
+  if (globalForPrisma.databaseDisconnected) return;
+  globalForPrisma.databaseDisconnected = true;
+
+  try {
+    await prisma.$disconnect();
+  } finally {
+    if (globalForPrisma.pgPool) {
+      await globalForPrisma.pgPool.end();
+      globalForPrisma.pgPool = undefined;
+    }
   }
+}
+
+export function isDatabaseDisconnected(): boolean {
+  return Boolean(globalForPrisma.databaseDisconnected);
 }

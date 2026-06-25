@@ -53,13 +53,11 @@ export function isExpectedShutdownCancellation(reason: unknown, lifecycle = star
 
 export async function drainDatabaseForShutdown(options: {
   lifecycle: StartupLifecycle;
-  signal: string;
   timeoutMs: number;
   stopDatabaseTasks: () => Promise<void>;
   disconnectDatabase: () => Promise<void>;
 }): Promise<boolean> {
-  const { lifecycle, signal, timeoutMs, stopDatabaseTasks, disconnectDatabase } = options;
-  lifecycle.beginShutdown(signal);
+  const { lifecycle, timeoutMs, stopDatabaseTasks, disconnectDatabase } = options;
 
   let timer: ReturnType<typeof setTimeout> | undefined;
   const drained = await Promise.race([
