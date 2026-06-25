@@ -1,7 +1,7 @@
 import express from "express";
 import crypto from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import rateLimit, { ipKeyGenerator } from "express-rate-limit";
+import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import compression from "compression";
@@ -28,6 +28,7 @@ import { emailRateLimitKey } from "../email-rate-limit";
 import { liveKitRateLimitKey } from "../livekit-rate-limit";
 import { adminRateLimitKey } from "../admin-rate-limit";
 import { PAYPAL_CSP_SCRIPT_SRC, PAYPAL_CSP_IMG_SRC, PAYPAL_CSP_FORM_ACTION, buildCspFrameSrc } from "../paypal-csp";
+import { parseTrustProxySetting, rateLimitIpKey } from "../client-ip";
 
 export type AxelmondApp = {
   app: express.Express;
@@ -122,6 +123,7 @@ function buildCspConnectSrc(allowedOrigins: Set<string>, isProduction: boolean):
 
 export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
   const app = express();
+  app.set("trust proxy", parseTrustProxySetting(process.env.TRUST_PROXY));
   const PORT = Number(options?.port ?? process.env.PORT) || 3000;
   const isSecurityRuntimeTest = process.env.SECURITY_RUNTIME_TEST === "1";
   const isProduction = process.env.NODE_ENV === "production";
@@ -262,7 +264,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     max: isSecurityRuntimeTest ? 9999 : Number(process.env.PAYPAL_WEBHOOK_RATE_LIMIT_MAX) || 120,
     standardHeaders: true,
     legacyHeaders: false,
-    keyGenerator: (req) => ipKeyGenerator(req.ip || ""),
+    keyGenerator: (req) => rateLimitIpKey(req),
     message: {
       error: "Trop de requêtes webhook PayPal. Veuillez patienter 15 minutes.",
       code: "PAYPAL_WEBHOOK_RATE_LIMIT_EXCEEDED",
@@ -281,7 +283,6 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
       },
     }),
   );
-  app.set("trust proxy", 1);
 
   const globalRateLimiter = rateLimit({
     windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
@@ -289,7 +290,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: "Trop de requêtes. Veuillez réessayer dans quelques minutes.", code: "RATE_LIMIT_EXCEEDED" },
-    skip: (req) => req.path === "/api/health" || req.path === "/api/live",
+    skip: (req) => req.path === "/health" || req.path === "/live" || req.path === "/paypal/webhook",
   });
 
   const authRateLimiter = rateLimit({
@@ -299,7 +300,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     legacyHeaders: false,
     keyGenerator: (req) => {
       const email = req.body?.email;
-      return email ? String(email).trim().toLowerCase() : ipKeyGenerator(req.ip || "");
+      return email ? String(email).trim().toLowerCase() : rateLimitIpKey(req);
     },
     message: {
       error: "Trop de tentatives d'authentification (20 maximum). Veuillez patienter 1 minute.",
@@ -452,7 +453,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
       const token = req.headers.authorization?.replace(/^Bearer\s+/i, "");
       const session = verifyAuthToken(token);
       if (session?.userId) return `chat-tutor:user:${session.userId}`;
-      return ipKeyGenerator(req.ip || "");
+      return rateLimitIpKey(req);
     },
     message: {
       error: "Trop de questions à l'assistant. Veuillez patienter 15 minutes.",
@@ -536,7 +537,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
       if (refreshToken) {
         return `refresh:${hashRefreshToken(refreshToken).slice(0, 24)}`;
       }
-      return ipKeyGenerator(req.ip || "");
+      return rateLimitIpKey(req);
     },
     message: {
       error: "Trop de tentatives de renouvellement de session. Réessayez plus tard.",

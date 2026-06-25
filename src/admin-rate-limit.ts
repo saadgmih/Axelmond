@@ -1,5 +1,5 @@
 import type { Request } from "express";
-import { ipKeyGenerator } from "express-rate-limit";
+import { rateLimitIpKey } from "./client-ip";
 import { verifyAuthToken } from "./auth-token";
 
 function readBearerToken(req: Request): string | undefined {
@@ -15,5 +15,5 @@ export function adminRateLimitKey(req: Request): string {
   if (session?.userId) {
     return `user:${session.userId}`;
   }
-  return `ip:${ipKeyGenerator(req.ip || "")}`;
+  return `ip:${rateLimitIpKey(req)}`;
 }
