@@ -108,6 +108,7 @@ export function getRedirectPathForRole(role: unknown, pathname: string): string 
 const RBAC_EXEMPT_AUTH_PATHS = new Set([
   "/api/auth/register",
   "/api/auth/login",
+  "/api/auth/login-status",
   "/api/auth/refresh",
   "/api/auth/logout",
   "/api/auth/verify-email",

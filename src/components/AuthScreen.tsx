@@ -16,12 +16,78 @@ import { useAccessibilityPreferences } from "../hooks/useAccessibilityPreference
 import AccessibilityControls from "./AccessibilityControls";
 
 // ─── Real-time Rate-Limit Countdown Banner ────────────────────────────────────
+const LOCKOUT_STORAGE_KEY = "axelmond-auth-lockout";
+
+interface RateLimitState {
+  seconds: number;
+  maxAttempts: number;
+  lockoutWindowSeconds: number;
+}
+
 interface RateLimitBannerProps {
   initialSeconds: number;
   maxAttempts?: number;
+  lockoutWindowSeconds?: number;
   onExpire: () => void;
 }
-function RateLimitBanner({ initialSeconds, maxAttempts = 20, onExpire }: RateLimitBannerProps) {
+
+function formatLockoutDuration(totalSeconds: number): string {
+  if (totalSeconds < 60) return `${totalSeconds} seconde${totalSeconds > 1 ? "s" : ""}`;
+  const minutes = Math.ceil(totalSeconds / 60);
+  return `${minutes} minute${minutes > 1 ? "s" : ""}`;
+}
+
+function persistLoginLockout(email: string, state: RateLimitState) {
+  try {
+    sessionStorage.setItem(
+      LOCKOUT_STORAGE_KEY,
+      JSON.stringify({
+        email: email.trim().toLowerCase(),
+        until: Date.now() + state.seconds * 1000,
+        maxAttempts: state.maxAttempts,
+        lockoutWindowSeconds: state.lockoutWindowSeconds,
+      }),
+    );
+  } catch {
+    // ignore storage failures
+  }
+}
+
+function readPersistedLoginLockout(email: string): RateLimitState | null {
+  try {
+    const raw = sessionStorage.getItem(LOCKOUT_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as {
+      email?: string;
+      until?: number;
+      maxAttempts?: number;
+      lockoutWindowSeconds?: number;
+    };
+    if (parsed.email !== email.trim().toLowerCase()) return null;
+    const remaining = Math.ceil(((parsed.until ?? 0) - Date.now()) / 1000);
+    if (remaining <= 0) {
+      sessionStorage.removeItem(LOCKOUT_STORAGE_KEY);
+      return null;
+    }
+    return {
+      seconds: remaining,
+      maxAttempts: parsed.maxAttempts ?? 10,
+      lockoutWindowSeconds: parsed.lockoutWindowSeconds ?? 20,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function clearPersistedLoginLockout() {
+  try {
+    sessionStorage.removeItem(LOCKOUT_STORAGE_KEY);
+  } catch {
+    // ignore storage failures
+  }
+}
+
+function RateLimitBanner({ initialSeconds, maxAttempts = 10, lockoutWindowSeconds = 20, onExpire }: RateLimitBannerProps) {
   const [secondsLeft, setSecondsLeft] = useState(initialSeconds);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -68,7 +134,7 @@ function RateLimitBanner({ initialSeconds, maxAttempts = 20, onExpire }: RateLim
               </div>
               <div className="rounded-lg border border-amber-700/30 bg-black/20 px-3 py-2">
                 <div className="text-[9px] uppercase tracking-widest text-amber-500 font-bold">Durée</div>
-                <div className="text-xs text-amber-100 font-black">1 minute</div>
+                <div className="text-xs text-amber-100 font-black">{formatLockoutDuration(lockoutWindowSeconds)}</div>
               </div>
             </div>
           </div>
@@ -105,7 +171,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
   const [verificationCode, setVerificationCode] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
-  const [rateLimitError, setRateLimitError] = useState<{ seconds: number } | null>(null);
+  const [rateLimitError, setRateLimitError] = useState<RateLimitState | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [mfaPending, setMfaPending] = useState<{
     mfaToken: string;
@@ -114,10 +180,55 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
   } | null>(null);
 
   const finishAuthSuccess = (user: AppUser) => {
+    clearPersistedLoginLockout();
     setSessionToken(user.token, user.csrfToken);
     setSuccessMsg("Connexion réussie ! Chargement de votre espace...");
     setTimeout(() => onLoginSuccess(user), 800);
   };
+
+  const applyLoginLockout = (emailAddr: string, state: RateLimitState) => {
+    setRateLimitError(state);
+    persistLoginLockout(emailAddr, state);
+    setErrorMsg("");
+  };
+
+  const syncLoginLockoutStatus = async (emailAddr: string) => {
+    const normalized = emailAddr.trim().toLowerCase();
+    if (!normalized.includes("@")) {
+      setRateLimitError(null);
+      return;
+    }
+
+    const persisted = readPersistedLoginLockout(normalized);
+    if (persisted) {
+      setRateLimitError(persisted);
+      return;
+    }
+
+    try {
+      const status = await api.getLoginLockoutStatus(normalized);
+      if (status.locked) {
+        applyLoginLockout(normalized, {
+          seconds: status.retryAfter,
+          maxAttempts: status.maxAttempts,
+          lockoutWindowSeconds: status.lockoutWindowSeconds,
+        });
+      } else {
+        setRateLimitError(null);
+        clearPersistedLoginLockout();
+      }
+    } catch {
+      // ignore polling errors on the login form
+    }
+  };
+
+  useEffect(() => {
+    if (authMode !== "login") {
+      setRateLimitError(null);
+      return;
+    }
+    void syncLoginLockoutStatus(email);
+  }, [email, authMode]);
 
   const handleMfaChallenge = (payload: any, fallbackEmail: string) => {
     if (payload?.mfaRequired && payload?.mfaToken) {
@@ -157,7 +268,10 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
     e.preventDefault();
     setErrorMsg("");
     setSuccessMsg("");
-    setRateLimitError(null);
+
+    if (rateLimitError) {
+      return;
+    }
 
     if (!email || !password) {
       setErrorMsg("Veuillez remplir tous les champs requis.");
@@ -178,11 +292,14 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
         setSuccessMsg("Saisissez le code reçu par e-mail.");
         return;
       }
-      // 429 Rate limit: show countdown banner
+      // 429 Rate limit: show countdown banner from backend state
       if (err.isRateLimit) {
-        const seconds = typeof err.retryAfter === "number" && err.retryAfter > 0 ? err.retryAfter : 1 * 60; // fallback: 1 min window
-        setRateLimitError({ seconds });
-        setErrorMsg("");
+        const seconds = typeof err.retryAfter === "number" && err.retryAfter > 0 ? err.retryAfter : 20;
+        applyLoginLockout(normalizedEmail, {
+          seconds,
+          maxAttempts: typeof err.maxAttempts === "number" ? err.maxAttempts : 10,
+          lockoutWindowSeconds: typeof err.lockoutWindowSeconds === "number" ? err.lockoutWindowSeconds : 20,
+        });
         return;
       }
       setErrorMsg(getClientErrorMessage(err, "Email ou mot de passe incorrect."));
@@ -428,8 +545,12 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
               {rateLimitError && (
                 <RateLimitBanner
                   initialSeconds={rateLimitError.seconds}
-                  maxAttempts={20}
-                  onExpire={() => setRateLimitError(null)}
+                  maxAttempts={rateLimitError.maxAttempts}
+                  lockoutWindowSeconds={rateLimitError.lockoutWindowSeconds}
+                  onExpire={() => {
+                    clearPersistedLoginLockout();
+                    setRateLimitError(null);
+                  }}
                 />
               )}
 
@@ -741,7 +862,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
 
                   <button
                     type="submit"
-                    disabled={isLoading}
+                    disabled={isLoading || (authMode === "login" && Boolean(rateLimitError))}
                     className={`w-full py-3.5 rounded-xl text-xs font-black uppercase tracking-wider text-white transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                       activeSector === "student"
                         ? "bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-900/30"

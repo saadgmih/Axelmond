@@ -42,6 +42,10 @@ export const loginSchema = z.object({
   role: z.enum(["STUDENT", "PROFESSOR", "RESEARCHER", "ADMIN"]),
 });
 
+export const loginLockoutStatusSchema = z.object({
+  email: z.string().email("Adresse email invalide").trim().toLowerCase(),
+});
+
 export const verifyEmailSchema = z.object({
   email: z.string().email("Adresse email invalide").trim().toLowerCase(),
   code: z.string().length(6, "Le code doit contenir 6 chiffres").regex(/^\d+$/, "Le code doit être numérique"),
@@ -270,6 +274,6 @@ export const liveAttendanceLeaveSchema = z.object({
   courseId: z.number().int().positive(),
 });
 
-export const AUTH_LOCKOUT_WINDOW_MS = Number(process.env.AUTH_LOCKOUT_WINDOW_MS) || 60 * 1000;
-export const AUTH_MAX_ATTEMPTS = Number(process.env.AUTH_MAX_ATTEMPTS) || 20;
+export const AUTH_LOCKOUT_WINDOW_MS = Number(process.env.AUTH_LOCKOUT_WINDOW_MS) || 20 * 1000;
+export const AUTH_MAX_ATTEMPTS = Number(process.env.AUTH_MAX_ATTEMPTS) || 10;
 export const isSecurityRuntimeTest = process.env.SECURITY_RUNTIME_TEST === "1";

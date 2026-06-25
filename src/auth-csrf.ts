@@ -9,6 +9,7 @@ const UNSAFE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 const CSRF_EXEMPT_PATHS = new Set([
   "/api/auth/login",
+  "/api/auth/login-status",
   "/api/auth/register",
   "/api/auth/verify-email",
   "/api/auth/resend-verification-code",

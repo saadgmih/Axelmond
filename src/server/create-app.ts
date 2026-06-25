@@ -127,8 +127,8 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
   const PORT = Number(options?.port ?? process.env.PORT) || 3000;
   const isSecurityRuntimeTest = process.env.SECURITY_RUNTIME_TEST === "1";
   const isProduction = process.env.NODE_ENV === "production";
-  const AUTH_MAX_ATTEMPTS = Number(process.env.AUTH_MAX_ATTEMPTS) || 20;
-  const AUTH_LOCKOUT_WINDOW_MS = Number(process.env.AUTH_LOCKOUT_WINDOW_MS) || 1 * 60 * 1000;
+  const AUTH_MAX_ATTEMPTS = Number(process.env.AUTH_MAX_ATTEMPTS) || 10;
+  const AUTH_LOCKOUT_WINDOW_MS = Number(process.env.AUTH_LOCKOUT_WINDOW_MS) || 20 * 1000;
   const uploadThingCallbackUrl =
     process.env.UPLOADTHING_CALLBACK_URL ||
     (process.env.APP_URL ? `${process.env.APP_URL}/api/uploadthing` : undefined);
@@ -303,7 +303,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
       return email ? String(email).trim().toLowerCase() : rateLimitIpKey(req);
     },
     message: {
-      error: "Trop de tentatives d'authentification (20 maximum). Veuillez patienter 1 minute.",
+      error: `Trop de tentatives d'authentification (${AUTH_MAX_ATTEMPTS} maximum). Veuillez patienter ${Math.ceil(AUTH_LOCKOUT_WINDOW_MS / 1000)} secondes.`,
       code: "AUTH_RATE_LIMIT_EXCEEDED",
     },
   });
@@ -546,7 +546,6 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
   });
 
   app.use("/api", globalRateLimiter);
-  app.use("/api/auth/login", authRateLimiter);
   app.use("/api/auth/register", authRateLimiter);
   app.use("/api/auth/refresh", refreshRateLimiter);
   app.use("/api/auth/resend-verification-code", emailVerificationSendRateLimiter);

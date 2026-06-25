@@ -67,7 +67,8 @@ rulesTest("security", () => {
   // 6. Brute force login limité et lockout
   assert.match(serverSource, /user\.lockoutUntil/);
   assert.match(serverSource, /failedLoginAttempts:\s*attempts/);
-  assert.ok(matchAppUse(serverSource, "/api/auth/login", "authRateLimiter"));
+  assert.match(serverSource, /recordEmailLoginFailure/);
+  assert.doesNotMatch(serverSource, /app\.use\("\/api\/auth\/login", authRateLimiter\)/);
 
   // 6b. Inscription publique validée par Zod (mot de passe fort + email normalisé)
   assert.ok(

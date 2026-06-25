@@ -1,6 +1,13 @@
 import type { Express } from "express";
 import type { RouteContext } from "../../server/route-context";
 import * as api from "../../server/route-deps";
+import {
+  clearEmailLoginLockout,
+  getEmailLoginLockoutStatus,
+  recordEmailLoginFailure,
+  sendLoginLockoutResponse,
+} from "../../auth-login-lockout";
+import { getClientIp } from "../../client-ip";
 
 export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): void {
   const { validateBody } = ctx.middleware;
@@ -178,6 +185,17 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
     }
   });
 
+  // POST /api/auth/login-status — état de blocage basé sur l'e-mail (fiable après refresh)
+
+  app.post("/api/auth/login-status", validateBody(api.loginLockoutStatusSchema), async (req, res) => {
+    const { email } = req.body;
+    const user = await api.prisma.user.findUnique({
+      where: { email },
+      select: { lockoutUntil: true },
+    });
+    res.json(getEmailLoginLockoutStatus(email, user?.lockoutUntil ?? null));
+  });
+
   // POST /api/auth/login
 
   app.post("/api/auth/login", validateBody(api.loginSchema), async (req, res) => {
@@ -197,30 +215,24 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
       include: api.APP_USER_BILLING_INCLUDE,
     });
 
+    const preLockout = getEmailLoginLockoutStatus(email, user?.lockoutUntil ?? null);
+    if (preLockout.locked) {
+      sendLoginLockoutResponse(res, preLockout);
+      return;
+    }
+
     // Pour éviter la fuite d'informations sur l'existence des emails, on simule une comparaison de hash
 
     if (!user) {
       await api.bcrypt.compare(password, "$2b$10$abcdefghijklmnopqrstuvwxyzeeeeeeeeeeeeeeeeeeeeeee");
 
+      const lockout = recordEmailLoginFailure(email);
+      if (lockout.locked) {
+        sendLoginLockoutResponse(res, lockout);
+        return;
+      }
+
       res.status(401).json({ error: "Identifiants incorrects" });
-
-      return;
-    }
-
-    // Vérifier le verrouillage brute-force
-
-    if (user.lockoutUntil && user.lockoutUntil > new Date()) {
-      const retryAfter = Math.ceil((user.lockoutUntil.getTime() - Date.now()) / 1000);
-
-      res.status(429).json({
-        error: "Compte temporairement verrouillé pour cause de tentatives excessives. Veuillez réessayer plus tard.",
-
-        isRateLimit: true,
-
-        retryAfter,
-
-        code: "AUTH_RATE_LIMIT_EXCEEDED",
-      });
 
       return;
     }
@@ -236,9 +248,9 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
     const isValidPassword = await api.bcrypt.compare(password, user.passwordHash);
 
     if (!isValidPassword) {
-      const attempts = user.failedLoginAttempts + 1;
-
-      const lockoutUntil = attempts >= api.AUTH_MAX_ATTEMPTS ? new Date(Date.now() + api.AUTH_LOCKOUT_WINDOW_MS) : null;
+      const lockout = recordEmailLoginFailure(email, user.lockoutUntil);
+      const attempts = Math.min(user.failedLoginAttempts + 1, api.AUTH_MAX_ATTEMPTS);
+      const lockoutUntil = lockout.locked ? new Date(Date.now() + api.AUTH_LOCKOUT_WINDOW_MS) : null;
 
       await api.prisma.user.update({
         where: { id: user.id },
@@ -255,11 +267,16 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
           userId: user.id,
           attempts,
           maxAttempts: api.AUTH_MAX_ATTEMPTS,
-          lockoutMinutes: Math.round(api.AUTH_LOCKOUT_WINDOW_MS / 60000),
+          lockoutSeconds: lockout.lockoutWindowSeconds,
         });
       }
 
-      api.alertFailedLogins(user.email, req.ip || "", attempts);
+      api.alertFailedLogins(user.email, getClientIp(req), attempts);
+
+      if (lockout.locked) {
+        sendLoginLockoutResponse(res, lockout);
+        return;
+      }
 
       res.status(401).json({ error: "Identifiants incorrects" });
 
@@ -281,6 +298,8 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
     }
 
     // Connexion réussie : Réinitialiser le compteur d'erreurs
+
+    clearEmailLoginLockout(email);
 
     await api.prisma.user.update({
       where: { id: user.id },
