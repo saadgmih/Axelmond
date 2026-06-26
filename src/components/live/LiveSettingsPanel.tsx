@@ -214,8 +214,8 @@ export default function LiveSettingsPanel({
                 }`}
               >
                 <span
-                  className={`absolute top-0.5 h-6 w-6 rounded-full bg-white transition-transform ${
-                    settings.focusMode ? "translate-x-5" : "translate-x-0.5"
+                  className={`absolute top-0.5 left-0.5 h-6 w-6 rounded-full bg-white transition-transform ${
+                    settings.focusMode ? "translate-x-5" : "translate-x-0"
                   }`}
                 />
               </span>
