@@ -110,7 +110,7 @@ export default function LiveControlBar({
       </div>
 
       <div
-        className="hide-scrollbar order-3 flex min-w-0 basis-full items-center justify-center gap-1 overflow-x-auto overscroll-x-contain border-t border-white/5 pt-1 sm:order-none sm:basis-auto sm:justify-normal sm:gap-1.5 sm:border-t-0 sm:pt-0 xl:gap-2"
+        className="hide-scrollbar order-3 flex min-w-0 basis-full items-center justify-start gap-1 overflow-x-auto overscroll-x-contain border-t border-white/5 pt-1 sm:order-none sm:basis-auto sm:justify-start sm:gap-1.5 sm:border-t-0 sm:pt-0 md:justify-center xl:gap-2"
         aria-label="Commandes supplémentaires du live"
       >
         <div className="shrink-0">

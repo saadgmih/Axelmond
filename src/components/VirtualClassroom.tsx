@@ -1,6 +1,6 @@
 import React from "react";
 import { Room } from "livekit-client";
-import { MicOff, MoreVertical, PictureInPicture2 } from "lucide-react";
+import { MicOff, MoreVertical, PictureInPicture2, X } from "lucide-react";
 import { Course } from "../types";
 import { LiveChatMessage } from "../livekit";
 import LiveSettingsPanel from "./live/LiveSettingsPanel";
@@ -313,6 +313,21 @@ export default function VirtualClassroom({
           data-live-sidebar
           className={`live-classroom-sidebar absolute bottom-0 right-0 top-0 z-40 box-border flex h-full max-h-full min-h-0 w-[min(100vw,420px)] max-w-full shrink-0 flex-col overflow-hidden border-l border-white/5 bg-zinc-900 shadow-2xl transition-transform duration-300 ease-out 2xl:static 2xl:w-[420px] 2xl:min-w-[420px] 2xl:shadow-none ${ui.isSidebarOpen ? "translate-x-0 2xl:flex" : "translate-x-full 2xl:hidden"}`}
         >
+          {/* Header mobile avec bouton Fermer */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-zinc-900/80 2xl:hidden shrink-0">
+            <span className="text-xs font-black text-zinc-300 uppercase tracking-wider">
+              {ui.visibleSidebarTabs.find((t) => t.id === ui.activeTab)?.label || "Panneau"}
+            </span>
+            <button
+              type="button"
+              onClick={() => ui.setIsSidebarOpen(false)}
+              className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+              aria-label="Fermer le panneau"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
           <div
             className={`px-3 pt-4 pb-2 grid gap-1 shrink-0 border-b border-white/5 bg-zinc-900/50 ${
               ui.visibleSidebarTabs.length <= 2
