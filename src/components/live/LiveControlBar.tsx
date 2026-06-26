@@ -66,6 +66,25 @@ export default function LiveControlBar({
   onReaction,
   onExit,
 }: LiveControlBarProps) {
+  const [recSeconds, setRecSeconds] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!isRecording) {
+      setRecSeconds(0);
+      return;
+    }
+    const timer = setInterval(() => {
+      setRecSeconds((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [isRecording]);
+
+  const formatRecTime = (totalSeconds: number) => {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+
   return (
     <div
       ref={controlsRef}
@@ -199,14 +218,20 @@ export default function LiveControlBar({
               onClick={onRecordToggle}
               aria-label={isRecording ? "Arrêter l'enregistrement" : "Démarrer l'enregistrement"}
               aria-pressed={isRecording}
-              className={`kbd-nav-focus flex h-12 min-h-12 w-12 min-w-12 flex-col items-center justify-center rounded-xl transition-all xl:h-[60px] xl:min-h-[60px] xl:w-[60px] xl:min-w-[60px] ${isRecording ? "border border-red-500/20 bg-red-500/10 text-red-400" : "text-zinc-300 hover:bg-zinc-800"}`}
+              className={`kbd-nav-focus flex h-12 min-h-12 flex-col items-center justify-center rounded-xl transition-all xl:h-[60px] xl:min-h-[60px] ${
+                isRecording
+                  ? "px-3 bg-red-600 border border-red-500 text-white font-bold animate-pulse"
+                  : "w-12 min-w-12 text-zinc-300 hover:bg-zinc-800"
+              }`}
             >
               {isRecording ? (
                 <CircleStop className="mb-1 h-5 w-5 xl:mb-1.5" />
               ) : (
                 <CircleDot className="mb-1 h-5 w-5 xl:mb-1.5" />
               )}
-              <span className="whitespace-nowrap text-[9px] font-bold xl:text-[10px]">Rec</span>
+              <span className="whitespace-nowrap text-[9px] font-bold xl:text-[10px]">
+                {isRecording ? `Rec en cours (${formatRecTime(recSeconds)})` : "Rec"}
+              </span>
             </button>
           </div>
         )}

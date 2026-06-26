@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useRef,
   useState,
   type Dispatch,
   type FormEvent,
@@ -12,7 +13,7 @@ import type { LiveParticipantCard } from "../../components/VirtualClassroom";
 import type { AppUser } from "../../components/AuthScreen";
 import { api } from "../../api";
 import { LiveChatMessage } from "../../livekit";
-import { Room } from "livekit-client";
+import { Room, Track, RoomEvent } from "livekit-client";
 import type { Course } from "../../types";
 import {
   DEFAULT_LIVE_CAMERA_FACING_MODE,
@@ -110,6 +111,19 @@ export function useLiveRoomControls({
 }: UseLiveRoomControlsOptions) {
   const [cameraDevices, setCameraDevices] = useState<LiveCameraDevice[]>([]);
   const [activeCameraDeviceId, setActiveCameraDeviceId] = useState<string | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        mediaRecorderRef.current.stop();
+      }
+      if (audioContextRef.current) {
+        audioContextRef.current.close().catch(() => undefined);
+      }
+    };
+  }, []);
 
   const refreshCameraDevices = useCallback(async (): Promise<LiveCameraDevice[]> => {
     if (!liveRoom || typeof navigator === "undefined" || !navigator.mediaDevices) {
@@ -356,17 +370,267 @@ export function useLiveRoomControls({
     publishLiveAction("REACTION", { reaction });
   };
 
-  const toggleLiveRecording = () => {
+  const toggleLiveRecording = async () => {
     const nextState = !isLiveRecording;
-    setIsLiveRecording(nextState);
-    publishLiveAction(nextState ? "RECORDING_REQUESTED" : "RECORDING_STOPPED", {
-      status: nextState ? "requested" : "stopped",
-    });
-    setLiveStatusMsg(
-      nextState
-        ? "Demande d'enregistrement enregistrée. L'archivage vidéo sera disponible prochainement."
-        : "Arrêt d'enregistrement enregistré.",
-    );
+
+    if (nextState) {
+      if (typeof MediaRecorder === "undefined") {
+        setLiveStatusMsg("L'enregistrement n'est pas pris en charge par votre navigateur.");
+        return;
+      }
+
+      if (!liveRoom) {
+        setLiveStatusMsg("Impossible de démarrer l'enregistrement : salon live non connecté.");
+        return;
+      }
+
+      try {
+        let displayStream: MediaStream | null = null;
+        let videoTrack: MediaStreamTrack | null = null;
+
+        // Try getDisplayMedia to capture the entire displayed live interface (tab/window/screen)
+        if (navigator.mediaDevices && typeof navigator.mediaDevices.getDisplayMedia === "function") {
+          try {
+            displayStream = await navigator.mediaDevices.getDisplayMedia({
+              video: {
+                displaySurface: "browser", // Prefer browser tab sharing
+              },
+              audio: false, // Handle all audio mixing manually via AudioContext
+            });
+          } catch (err: any) {
+            console.warn("[recording] getDisplayMedia was cancelled or failed:", err);
+            // If the user cancelled or denied the screen share permission
+            if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+              setLiveStatusMsg("Enregistrement annulé par l'utilisateur (accès écran refusé).");
+              return;
+            }
+          }
+        }
+
+        if (displayStream) {
+          videoTrack = displayStream.getVideoTracks()[0];
+          // Automatically stop recording if the user clicks the browser's native "Stop sharing" button
+          videoTrack.onended = () => {
+            if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+              mediaRecorderRef.current.stop();
+            }
+          };
+        } else {
+          // Fallback: Resolve active/featured WebRTC video track (screen share, camera)
+          const localScreenShare = liveRoom.localParticipant.getTrackPublication(Track.Source.ScreenShare)?.videoTrack;
+          if (localScreenShare?.mediaStreamTrack) {
+            videoTrack = localScreenShare.mediaStreamTrack;
+          }
+          if (!videoTrack) {
+            const localCamera = liveRoom.localParticipant.getTrackPublication(Track.Source.Camera)?.videoTrack;
+            if (localCamera?.mediaStreamTrack) {
+              videoTrack = localCamera.mediaStreamTrack;
+            }
+          }
+          if (!videoTrack) {
+            for (const participant of liveRoom.remoteParticipants.values()) {
+              const screenShare = participant.getTrackPublication(Track.Source.ScreenShare)?.videoTrack;
+              if (screenShare?.mediaStreamTrack) {
+                videoTrack = screenShare.mediaStreamTrack;
+                break;
+              }
+              const camera = participant.getTrackPublication(Track.Source.Camera)?.videoTrack;
+              if (camera?.mediaStreamTrack) {
+                videoTrack = camera.mediaStreamTrack;
+                break;
+              }
+            }
+          }
+        }
+
+        const audioSourceNodes = new Map<string, MediaStreamAudioSourceNode>();
+        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+        let audioStreamToRecord: MediaStream | null = null;
+        let audioContext: AudioContext | null = null;
+
+        if (AudioCtx) {
+          audioContext = new AudioCtx();
+          audioContextRef.current = audioContext;
+          const dest = audioContext.createMediaStreamDestination();
+
+          const updateAudioConnections = () => {
+            if (!liveRoom || !audioContext || audioContext.state === "closed") return;
+
+            // Collect all active audio tracks currently in the room
+            const activeTracks = new Map<string, MediaStreamTrack>();
+
+            // Local microphone
+            const localMic = liveRoom.localParticipant.getTrackPublication(Track.Source.Microphone);
+            if (localMic?.audioTrack?.mediaStreamTrack && !localMic.isMuted) {
+              activeTracks.set(localMic.audioTrack.mediaStreamTrack.id, localMic.audioTrack.mediaStreamTrack);
+            }
+
+            // Local screenshare audio
+            const localScreenAudio = liveRoom.localParticipant.getTrackPublication(Track.Source.ScreenShareAudio);
+            if (localScreenAudio?.audioTrack?.mediaStreamTrack && !localScreenAudio.isMuted) {
+              activeTracks.set(localScreenAudio.audioTrack.mediaStreamTrack.id, localScreenAudio.audioTrack.mediaStreamTrack);
+            }
+
+            // Remote microphones and screen share audio
+            for (const participant of liveRoom.remoteParticipants.values()) {
+              const micPub = participant.getTrackPublication(Track.Source.Microphone);
+              if (micPub?.audioTrack?.mediaStreamTrack && !micPub.isMuted) {
+                activeTracks.set(micPub.audioTrack.mediaStreamTrack.id, micPub.audioTrack.mediaStreamTrack);
+              }
+              const screenAudioPub = participant.getTrackPublication(Track.Source.ScreenShareAudio);
+              if (screenAudioPub?.audioTrack?.mediaStreamTrack && !screenAudioPub.isMuted) {
+                activeTracks.set(screenAudioPub.audioTrack.mediaStreamTrack.id, screenAudioPub.audioTrack.mediaStreamTrack);
+              }
+            }
+
+            // Connect newly added or unmuted tracks
+            for (const [trackId, track] of activeTracks.entries()) {
+              if (!audioSourceNodes.has(trackId)) {
+                try {
+                  const singleStream = new MediaStream([track]);
+                  const source = audioContext.createMediaStreamSource(singleStream);
+                  source.connect(dest);
+                  audioSourceNodes.set(trackId, source);
+                } catch (e) {
+                  console.warn(`[recording] Failed to connect audio track ${trackId}:`, e);
+                }
+              }
+            }
+
+            // Disconnect removed or muted tracks
+            for (const [trackId, sourceNode] of audioSourceNodes.entries()) {
+              if (!activeTracks.has(trackId)) {
+                try {
+                  sourceNode.disconnect();
+                } catch (e) {
+                  console.warn(`[recording] Failed to disconnect audio track ${trackId}:`, e);
+                }
+                audioSourceNodes.delete(trackId);
+              }
+            }
+          };
+
+          // Listen for room track subscription & publish changes to mix dynamically
+          liveRoom.on(RoomEvent.TrackSubscribed, updateAudioConnections);
+          liveRoom.on(RoomEvent.TrackUnsubscribed, updateAudioConnections);
+          liveRoom.on(RoomEvent.LocalTrackPublished, updateAudioConnections);
+          liveRoom.on(RoomEvent.LocalTrackUnpublished, updateAudioConnections);
+          liveRoom.on(RoomEvent.TrackMuted, updateAudioConnections);
+          liveRoom.on(RoomEvent.TrackMuted, updateAudioConnections);
+          liveRoom.on(RoomEvent.TrackUnmuted, updateAudioConnections);
+
+          // Initial mix setup
+          updateAudioConnections();
+          audioStreamToRecord = dest.stream;
+
+          // Keep a ref to the cleanup logic so the recorder's onstop handler can call it
+          (mediaRecorderRef as any)._cleanup = () => {
+            if (!liveRoom) return;
+            liveRoom.off(RoomEvent.TrackSubscribed, updateAudioConnections);
+            liveRoom.off(RoomEvent.TrackUnsubscribed, updateAudioConnections);
+            liveRoom.off(RoomEvent.LocalTrackPublished, updateAudioConnections);
+            liveRoom.off(RoomEvent.LocalTrackUnpublished, updateAudioConnections);
+            liveRoom.off(RoomEvent.TrackMuted, updateAudioConnections);
+            liveRoom.off(RoomEvent.TrackUnmuted, updateAudioConnections);
+
+            audioSourceNodes.forEach((node) => {
+              try {
+                node.disconnect();
+              } catch {}
+            });
+            audioSourceNodes.clear();
+
+            if (audioContext && audioContext.state !== "closed") {
+              audioContext.close().catch(() => undefined);
+            }
+            audioContextRef.current = null;
+          };
+        }
+
+        const tracksToRecord: MediaStreamTrack[] = [];
+        if (videoTrack) {
+          tracksToRecord.push(videoTrack);
+        }
+        if (audioStreamToRecord) {
+          tracksToRecord.push(...audioStreamToRecord.getAudioTracks());
+        }
+
+        if (tracksToRecord.length === 0) {
+          setLiveStatusMsg("Aucun flux audio ou vidéo disponible pour démarrer l'enregistrement.");
+          if ((mediaRecorderRef as any)._cleanup) {
+            (mediaRecorderRef as any)._cleanup();
+          }
+          if (displayStream) {
+            displayStream.getTracks().forEach((track) => track.stop());
+          }
+          return;
+        }
+
+        const streamToRecord = new MediaStream(tracksToRecord);
+
+        let mimeType = "video/webm";
+        if (MediaRecorder.isTypeSupported("video/webm;codecs=vp9,opus")) {
+          mimeType = "video/webm;codecs=vp9,opus";
+        } else if (MediaRecorder.isTypeSupported("video/webm;codecs=vp8,opus")) {
+          mimeType = "video/webm;codecs=vp8,opus";
+        } else if (MediaRecorder.isTypeSupported("video/mp4")) {
+          mimeType = "video/mp4";
+        }
+
+        const mediaRecorder = new MediaRecorder(streamToRecord, { mimeType });
+        mediaRecorderRef.current = mediaRecorder;
+        const chunks: Blob[] = [];
+
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) {
+            chunks.push(e.data);
+          }
+        };
+
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(chunks, { type: mimeType });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          const courseTitle = activeLiveCourse?.title?.replace(/[^a-zA-Z0-9]/g, "_") || "session_live";
+          const dateStr = new Date().toISOString().slice(0, 10);
+          a.download = `Enregistrement_${courseTitle}_${dateStr}.webm`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+
+          // Clean up dynamic audio mixer
+          if ((mediaRecorderRef as any)._cleanup) {
+            (mediaRecorderRef as any)._cleanup();
+            delete (mediaRecorderRef as any)._cleanup;
+          }
+
+          // Clean up display stream tracks (stop browser banner)
+          if (displayStream) {
+            displayStream.getTracks().forEach((track) => track.stop());
+          }
+
+          setIsLiveRecording(false);
+          setLiveStatusMsg("Enregistrement local terminé et téléchargé.");
+        };
+
+        mediaRecorder.start(1000);
+        setIsLiveRecording(true);
+        setLiveStatusMsg("Enregistrement local démarré");
+        void publishLiveAction("RECORDING_REQUESTED", { status: "requested" });
+      } catch (err) {
+        console.error("Failed to start recording:", err);
+        setLiveStatusMsg("Erreur lors de l'initialisation de l'enregistrement.");
+        setIsLiveRecording(false);
+      }
+    } else {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        mediaRecorderRef.current.stop();
+      }
+      setLiveStatusMsg("Enregistrement local arrêté. Téléchargement en cours...");
+      void publishLiveAction("RECORDING_STOPPED", { status: "stopped" });
+    }
   };
 
   const handleLiveModeration = async (action: string, participant: LiveParticipantCard) => {
