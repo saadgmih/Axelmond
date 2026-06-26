@@ -462,6 +462,15 @@ export function useLiveRoomControls({
           audioContextRef.current = audioContext;
           const dest = audioContext.createMediaStreamDestination();
 
+          // Resume the AudioContext immediately to make sure it is active and sending audio buffers
+          if (audioContext.state === "suspended") {
+            try {
+              await audioContext.resume();
+            } catch (e) {
+              console.warn("[recording] Failed to resume AudioContext:", e);
+            }
+          }
+
           const updateAudioConnections = () => {
             if (!liveRoom || !audioContext || audioContext.state === "closed") return;
 
@@ -568,17 +577,30 @@ export function useLiveRoomControls({
 
         const streamToRecord = new MediaStream(tracksToRecord);
 
-        // Find the best browser-supported MIME type
-        const candidateTypes = [
-          "video/mp4;codecs=avc1,mp4a.40.2",
-          "video/mp4;codecs=h264,aac",
-          "video/mp4;codecs=h264,opus",
-          "video/mp4",
-          "video/webm;codecs=vp9,opus",
-          "video/webm;codecs=vp8,opus",
-          "video/webm;codecs=h264,opus",
-          "video/webm",
-        ];
+        // Choose candidate MIME types dynamically based on track presence to prevent container corruption
+        let candidateTypes: string[] = [];
+        if (hasAudio) {
+          candidateTypes = [
+            "video/mp4;codecs=avc1,mp4a.40.2",
+            "video/mp4;codecs=h264,aac",
+            "video/mp4;codecs=h264,opus",
+            "video/mp4",
+            "video/webm;codecs=vp9,opus",
+            "video/webm;codecs=vp8,opus",
+            "video/webm;codecs=h264,opus",
+            "video/webm",
+          ];
+        } else {
+          candidateTypes = [
+            "video/mp4;codecs=avc1",
+            "video/mp4;codecs=h264",
+            "video/mp4",
+            "video/webm;codecs=vp9",
+            "video/webm;codecs=vp8",
+            "video/webm;codecs=h264",
+            "video/webm",
+          ];
+        }
 
         let selectedMimeType = "";
         for (const type of candidateTypes) {
@@ -606,6 +628,19 @@ export function useLiveRoomControls({
         mediaRecorder.ondataavailable = (e) => {
           if (e.data && e.data.size > 0) {
             chunks.push(e.data);
+            console.log(`[recording] Chunk received: size=${e.data.size} bytes, total=${chunks.length}`);
+          }
+        };
+
+        mediaRecorder.onerror = (e) => {
+          console.error("[recording] MediaRecorder error:", e);
+          setLiveStatusMsg("Erreur lors de l'enregistrement de la session.");
+          setIsLiveRecording(false);
+          if ((mediaRecorderRef as any)._cleanup) {
+            (mediaRecorderRef as any)._cleanup();
+          }
+          if (displayStream) {
+            displayStream.getTracks().forEach((track) => track.stop());
           }
         };
 
