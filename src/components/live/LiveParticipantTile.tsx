@@ -1,4 +1,4 @@
-import { memo, useCallback } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { Hand, Mic, MicOff, Wifi } from "lucide-react";
 import type { LiveParticipantCard } from "../VirtualClassroom";
 import LiveParticipantAvatar from "./LiveParticipantAvatar";
@@ -27,6 +27,9 @@ function LiveParticipantTile({
 }: LiveParticipantTileProps) {
   const hasVideo = Boolean(participant.videoTrack);
   const avatarSize = isSolo || isFeatured ? "xl" : "lg";
+  const tileRef = useRef<HTMLDivElement | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
   const setVideoRef = useCallback(
     (element: HTMLVideoElement | null) => {
       registerVideoRef(participant.identity, element);
@@ -34,15 +37,47 @@ function LiveParticipantTile({
     [participant.identity, registerVideoRef],
   );
 
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(document.fullscreenElement === tileRef.current);
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, []);
+
+  const handleDoubleClick = useCallback(() => {
+    if (!hasVideo) return;
+    const element = tileRef.current;
+    if (!element) return;
+
+    if (document.fullscreenElement === element) {
+      document.exitFullscreen().catch((err) => {
+        console.error("Error exiting fullscreen:", err);
+      });
+    } else {
+      element.requestFullscreen().catch((err) => {
+        console.error("Error entering fullscreen:", err);
+      });
+    }
+  }, [hasVideo]);
+
   return (
     <div
-      className={`relative rounded-2xl overflow-hidden border shadow-xl transition-all ${
-        isSolo
-          ? "h-full min-h-[240px]"
-          : isFeatured
-            ? "min-h-[220px] sm:min-h-[280px]"
-            : "min-h-[140px] sm:min-h-[180px]"
-      } ${isActive ? "border-indigo-400 ring-2 ring-indigo-500/40" : "border-white/10 bg-zinc-900/80"}`}
+      ref={tileRef}
+      onDoubleClick={handleDoubleClick}
+      className={`relative overflow-hidden border shadow-xl transition-all ${
+        isFullscreen
+          ? "rounded-none border-none w-full h-full bg-black"
+          : `${
+              isSolo
+                ? "h-full min-h-[240px]"
+                : isFeatured
+                  ? "min-h-[220px] sm:min-h-[280px]"
+                  : "min-h-[140px] sm:min-h-[180px]"
+            } rounded-2xl ${isActive ? "border-indigo-400 ring-2 ring-indigo-500/40" : "border-white/10 bg-zinc-900/80"}`
+      } ${hasVideo ? "cursor-pointer" : ""}`}
     >
       {hasVideo ? (
         <video
