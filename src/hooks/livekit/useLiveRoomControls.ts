@@ -443,6 +443,15 @@ export function useLiveRoomControls({
           }
         }
 
+        // Validate that we have a video track
+        if (!videoTrack) {
+          setLiveStatusMsg("Impossible de démarrer l'enregistrement : aucun flux vidéo disponible.");
+          if (displayStream) {
+            displayStream.getTracks().forEach((track) => track.stop());
+          }
+          return;
+        }
+
         const audioSourceNodes = new Map<string, MediaStreamAudioSourceNode>();
         const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
         let audioStreamToRecord: MediaStream | null = null;
@@ -547,37 +556,50 @@ export function useLiveRoomControls({
           };
         }
 
-        const tracksToRecord: MediaStreamTrack[] = [];
-        if (videoTrack) {
-          tracksToRecord.push(videoTrack);
-        }
+        const tracksToRecord: MediaStreamTrack[] = [videoTrack];
+        let hasAudio = false;
         if (audioStreamToRecord) {
-          tracksToRecord.push(...audioStreamToRecord.getAudioTracks());
-        }
-
-        if (tracksToRecord.length === 0) {
-          setLiveStatusMsg("Aucun flux audio ou vidéo disponible pour démarrer l'enregistrement.");
-          if ((mediaRecorderRef as any)._cleanup) {
-            (mediaRecorderRef as any)._cleanup();
+          const audioTracks = audioStreamToRecord.getAudioTracks();
+          if (audioTracks.length > 0) {
+            tracksToRecord.push(...audioTracks);
+            hasAudio = true;
           }
-          if (displayStream) {
-            displayStream.getTracks().forEach((track) => track.stop());
-          }
-          return;
         }
 
         const streamToRecord = new MediaStream(tracksToRecord);
 
-        let mimeType = "video/webm";
-        if (MediaRecorder.isTypeSupported("video/webm;codecs=vp9,opus")) {
-          mimeType = "video/webm;codecs=vp9,opus";
-        } else if (MediaRecorder.isTypeSupported("video/webm;codecs=vp8,opus")) {
-          mimeType = "video/webm;codecs=vp8,opus";
-        } else if (MediaRecorder.isTypeSupported("video/mp4")) {
-          mimeType = "video/mp4";
+        // Find the best browser-supported MIME type
+        const candidateTypes = [
+          "video/mp4;codecs=avc1,mp4a.40.2",
+          "video/mp4;codecs=h264,aac",
+          "video/mp4;codecs=h264,opus",
+          "video/mp4",
+          "video/webm;codecs=vp9,opus",
+          "video/webm;codecs=vp8,opus",
+          "video/webm;codecs=h264,opus",
+          "video/webm",
+        ];
+
+        let selectedMimeType = "";
+        for (const type of candidateTypes) {
+          if (MediaRecorder.isTypeSupported(type)) {
+            selectedMimeType = type;
+            break;
+          }
         }
 
-        const mediaRecorder = new MediaRecorder(streamToRecord, { mimeType });
+        let mediaRecorder: MediaRecorder;
+        if (selectedMimeType) {
+          try {
+            mediaRecorder = new MediaRecorder(streamToRecord, { mimeType: selectedMimeType });
+          } catch (e) {
+            console.warn(`[recording] Failed to create MediaRecorder with MIME type ${selectedMimeType}, falling back:`, e);
+            mediaRecorder = new MediaRecorder(streamToRecord);
+          }
+        } else {
+          mediaRecorder = new MediaRecorder(streamToRecord);
+        }
+
         mediaRecorderRef.current = mediaRecorder;
         const chunks: Blob[] = [];
 
@@ -588,36 +610,52 @@ export function useLiveRoomControls({
         };
 
         mediaRecorder.onstop = () => {
-          const blob = new Blob(chunks, { type: mimeType });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          const courseTitle = activeLiveCourse?.title?.replace(/[^a-zA-Z0-9]/g, "_") || "session_live";
-          const dateStr = new Date().toISOString().slice(0, 10);
-          a.download = `Enregistrement_${courseTitle}_${dateStr}.webm`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-
           // Clean up dynamic audio mixer
           if ((mediaRecorderRef as any)._cleanup) {
             (mediaRecorderRef as any)._cleanup();
             delete (mediaRecorderRef as any)._cleanup;
           }
 
-          // Clean up display stream tracks (stop browser banner)
+          // Clean up display stream tracks (stop browser sharing banner)
           if (displayStream) {
             displayStream.getTracks().forEach((track) => track.stop());
           }
 
           setIsLiveRecording(false);
+
+          if (chunks.length === 0) {
+            setLiveStatusMsg("Erreur : Aucun contenu n'a pu être enregistré.");
+            return;
+          }
+
+          const actualMimeType = mediaRecorder.mimeType || selectedMimeType || "video/webm";
+          const blob = new Blob(chunks, { type: actualMimeType });
+
+          if (blob.size === 0) {
+            setLiveStatusMsg("Erreur : Le fichier d'enregistrement est vide.");
+            return;
+          }
+
+          // Determine extension matching the actual container type
+          const extension = actualMimeType.toLowerCase().includes("video/mp4") ? "mp4" : "webm";
+
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          const courseTitle = activeLiveCourse?.title?.replace(/[^a-zA-Z0-9]/g, "_") || "session_live";
+          const dateStr = new Date().toISOString().slice(0, 10);
+          a.download = `Enregistrement_${courseTitle}_${dateStr}.${extension}`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+
           setLiveStatusMsg("Enregistrement local terminé et téléchargé.");
         };
 
         mediaRecorder.start(1000);
         setIsLiveRecording(true);
-        setLiveStatusMsg("Enregistrement local démarré");
+        setLiveStatusMsg(`Enregistrement local démarré${hasAudio ? " (avec audio)" : " (sans audio)"}`);
         void publishLiveAction("RECORDING_REQUESTED", { status: "requested" });
       } catch (err) {
         console.error("Failed to start recording:", err);
