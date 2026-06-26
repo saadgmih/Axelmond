@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useRef, useState } from "react";
-import { Hand, Mic, MicOff, Wifi } from "lucide-react";
+import { Hand, Mic, MicOff, Wifi, Monitor } from "lucide-react";
 import type { LiveParticipantCard } from "../VirtualClassroom";
 import LiveParticipantAvatar from "./LiveParticipantAvatar";
 
@@ -26,6 +26,7 @@ function LiveParticipantTile({
   registerVideoRef,
 }: LiveParticipantTileProps) {
   const hasVideo = Boolean(participant.videoTrack);
+  const isLocalScreenShare = participant.isLocal && participant.isScreenShare;
   const avatarSize = isSolo || isFeatured ? "xl" : "lg";
   const tileRef = useRef<HTMLDivElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -63,7 +64,7 @@ function LiveParticipantTile({
   }, []);
 
   const handleDoubleClick = useCallback(() => {
-    if (!hasVideo) return;
+    if (!hasVideo || isLocalScreenShare) return;
     const element = tileRef.current;
     if (!element) return;
 
@@ -94,7 +95,7 @@ function LiveParticipantTile({
         (element as any).msRequestFullscreen();
       }
     }
-  }, [hasVideo]);
+  }, [hasVideo, isLocalScreenShare]);
 
   return (
     <div
@@ -107,10 +108,10 @@ function LiveParticipantTile({
             ? "min-h-[220px] sm:min-h-[280px]"
             : "min-h-[140px] sm:min-h-[180px]"
       } ${isActive ? "border-indigo-400 ring-2 ring-indigo-500/40" : "border-white/10 bg-zinc-900/80"} ${
-        hasVideo ? "cursor-pointer" : ""
+        hasVideo && !isLocalScreenShare ? "cursor-pointer" : ""
       }`}
     >
-      {hasVideo ? (
+      {hasVideo && !isLocalScreenShare ? (
         <video
           ref={setVideoRef}
           autoPlay
@@ -118,6 +119,16 @@ function LiveParticipantTile({
           muted={participant.isLocal}
           className="absolute inset-0 h-full w-full object-cover bg-black"
         />
+      ) : isLocalScreenShare ? (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-zinc-950 via-[#0b1020] to-indigo-950/40 p-4 text-center">
+          <div className="rounded-full bg-indigo-500/10 p-4 text-indigo-400 mb-3 border border-indigo-500/20">
+            <Monitor className="h-8 w-8" />
+          </div>
+          <p className="text-sm font-bold text-white mb-1">Vous partagez votre écran</p>
+          <p className="text-xs text-zinc-400 max-w-[240px] leading-relaxed">
+            Pour éviter l'effet miroir infini, l'aperçu de votre écran est masqué pour vous. Les autres participants voient correctement votre partage.
+          </p>
+        </div>
       ) : (
         <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-zinc-950 via-[#0b1020] to-indigo-950/40">
           <LiveParticipantAvatar

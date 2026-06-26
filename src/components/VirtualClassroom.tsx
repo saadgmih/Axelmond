@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { Room } from "livekit-client";
 import { MicOff, MoreVertical, PictureInPicture2 } from "lucide-react";
 import { Course } from "../types";
@@ -35,6 +35,7 @@ export interface LiveParticipantCard {
   videoTrackSid?: string | null;
   videoTrack?: any;
   audioTrack?: any;
+  isScreenShare?: boolean;
 }
 
 export interface VirtualClassroomProps {

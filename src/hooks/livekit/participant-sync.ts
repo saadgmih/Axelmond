@@ -58,6 +58,7 @@ export function buildLiveParticipantCards(
     videoTrackSid: localVideoPublication?.trackSid || null,
     videoTrack: localVideoPublication?.videoTrack,
     audioTrack: localAudioPublication?.audioTrack,
+    isScreenShare: Boolean(localVideoPublication && localVideoPublication.source === Track.Source.ScreenShare),
   });
 
   room.remoteParticipants.forEach((participant) => {
@@ -89,6 +90,7 @@ export function buildLiveParticipantCards(
       videoTrackSid: videoPublication?.trackSid || null,
       videoTrack: videoPublication?.videoTrack,
       audioTrack: audioPublication?.audioTrack,
+      isScreenShare: Boolean(videoPublication && videoPublication.source === Track.Source.ScreenShare),
     });
   });
 
