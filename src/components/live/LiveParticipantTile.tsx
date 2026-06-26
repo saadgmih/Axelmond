@@ -27,6 +27,7 @@ function LiveParticipantTile({
 }: LiveParticipantTileProps) {
   const hasVideo = Boolean(participant.videoTrack);
   const avatarSize = isSolo || isFeatured ? "xl" : "lg";
+  const tileRef = useRef<HTMLDivElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -40,34 +41,66 @@ function LiveParticipantTile({
 
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(document.fullscreenElement === videoRef.current);
+      const activeFullscreenElement =
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement ||
+        (document as any).msFullscreenElement;
+      setIsFullscreen(activeFullscreenElement === tileRef.current);
     };
+
     document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    document.addEventListener("mozfullscreenchange", handleFullscreenChange);
+    document.addEventListener("MSFullscreenChange", handleFullscreenChange);
+
     return () => {
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
+      document.removeEventListener("mozfullscreenchange", handleFullscreenChange);
+      document.removeEventListener("MSFullscreenChange", handleFullscreenChange);
     };
   }, []);
 
   const handleDoubleClick = useCallback(() => {
     if (!hasVideo) return;
-    const element = videoRef.current;
+    const element = tileRef.current;
     if (!element) return;
 
-    if (document.fullscreenElement === element) {
-      document.exitFullscreen().catch((err) => {
-        console.error("Error exiting fullscreen:", err);
-      });
+    const activeFullscreenElement =
+      document.fullscreenElement ||
+      (document as any).webkitFullscreenElement ||
+      (document as any).mozFullScreenElement ||
+      (document as any).msFullscreenElement;
+
+    if (activeFullscreenElement === element) {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch((err) => console.error("Error exiting fullscreen:", err));
+      } else if ((document as any).webkitExitFullscreen) {
+        (document as any).webkitExitFullscreen();
+      } else if ((document as any).mozCancelFullScreen) {
+        (document as any).mozCancelFullScreen();
+      } else if ((document as any).msExitFullscreen) {
+        (document as any).msExitFullscreen();
+      }
     } else {
-      element.requestFullscreen().catch((err) => {
-        console.error("Error entering fullscreen:", err);
-      });
+      if (element.requestFullscreen) {
+        element.requestFullscreen().catch((err) => console.error("Error entering fullscreen:", err));
+      } else if ((element as any).webkitRequestFullscreen) {
+        (element as any).webkitRequestFullscreen();
+      } else if ((element as any).mozRequestFullScreen) {
+        (element as any).mozRequestFullScreen();
+      } else if ((element as any).msRequestFullscreen) {
+        (element as any).msRequestFullscreen();
+      }
     }
   }, [hasVideo]);
 
   return (
     <div
+      ref={tileRef}
       onDoubleClick={handleDoubleClick}
-      className={`relative rounded-2xl overflow-hidden border shadow-xl transition-all ${
+      className={`live-participant-tile-fullscreen relative rounded-2xl overflow-hidden border shadow-xl transition-all ${
         isSolo
           ? "h-full min-h-[240px]"
           : isFeatured
@@ -98,26 +131,36 @@ function LiveParticipantTile({
         </div>
       )}
 
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent px-3 pb-3 pt-10">
+      <div
+        className={`absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent pt-10 transition-all ${
+          isFullscreen ? "px-6 pb-6" : "px-3 pb-3"
+        }`}
+      >
         <div className="flex items-end justify-between gap-2 min-w-0">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-xs font-black text-white sm:text-sm">{participant.name}</p>
-            <p className="truncate text-[10px] text-zinc-300 sm:text-[11px]">{liveRoleLabel(participant.role)}</p>
+            <p className={`truncate font-black text-white ${isFullscreen ? "text-base sm:text-lg" : "text-xs sm:text-sm"}`}>
+              {participant.name}
+            </p>
+            <p className={`truncate text-zinc-300 ${isFullscreen ? "text-xs sm:text-sm" : "text-[10px] sm:text-[11px]"}`}>
+              {liveRoleLabel(participant.role)}
+            </p>
           </div>
-          <div className="flex shrink-0 items-center gap-1 pb-0.5">
+          <div className="flex shrink-0 items-center gap-1.5 pb-0.5">
             {participant.hasAudio ? (
-              <Mic className="h-3.5 w-3.5 text-emerald-400" />
+              <Mic className={`${isFullscreen ? "h-5 w-5" : "h-3.5 w-3.5"} text-emerald-400`} />
             ) : (
-              <MicOff className="h-3.5 w-3.5 text-red-400" />
+              <MicOff className={`${isFullscreen ? "h-5 w-5" : "h-3.5 w-3.5"} text-red-400`} />
             )}
-            {participant.handRaised && <Hand className="h-3.5 w-3.5 text-amber-400" />}
-            {isActive && <Wifi className="h-3.5 w-3.5 text-indigo-300" />}
+            {participant.handRaised && (
+              <Hand className={`${isFullscreen ? "h-5 w-5" : "h-3.5 w-3.5"} text-amber-400`} />
+            )}
+            {isActive && <Wifi className={`${isFullscreen ? "h-5 w-5" : "h-3.5 w-3.5"} text-indigo-300`} />}
           </div>
         </div>
       </div>
 
       {participant.reaction && (
-        <div className="absolute right-3 top-3 rounded-xl border border-white/10 bg-black/60 px-2.5 py-1 text-lg backdrop-blur-md">
+        <div className={`absolute right-3 top-3 rounded-xl border border-white/10 bg-black/60 px-2.5 py-1 backdrop-blur-md transition-all ${isFullscreen ? "text-2xl px-4 py-2" : "text-lg"}`}>
           {participant.reaction}
         </div>
       )}
