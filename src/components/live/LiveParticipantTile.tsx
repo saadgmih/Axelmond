@@ -27,11 +27,12 @@ function LiveParticipantTile({
 }: LiveParticipantTileProps) {
   const hasVideo = Boolean(participant.videoTrack);
   const avatarSize = isSolo || isFeatured ? "xl" : "lg";
-  const tileRef = useRef<HTMLDivElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const setVideoRef = useCallback(
     (element: HTMLVideoElement | null) => {
+      videoRef.current = element;
       registerVideoRef(participant.identity, element);
     },
     [participant.identity, registerVideoRef],
@@ -39,7 +40,7 @@ function LiveParticipantTile({
 
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(document.fullscreenElement === tileRef.current);
+      setIsFullscreen(document.fullscreenElement === videoRef.current);
     };
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     return () => {
@@ -49,7 +50,7 @@ function LiveParticipantTile({
 
   const handleDoubleClick = useCallback(() => {
     if (!hasVideo) return;
-    const element = tileRef.current;
+    const element = videoRef.current;
     if (!element) return;
 
     if (document.fullscreenElement === element) {
@@ -65,19 +66,16 @@ function LiveParticipantTile({
 
   return (
     <div
-      ref={tileRef}
       onDoubleClick={handleDoubleClick}
-      className={`relative overflow-hidden border shadow-xl transition-all ${
-        isFullscreen
-          ? "rounded-none border-none w-full h-full bg-black"
-          : `${
-              isSolo
-                ? "h-full min-h-[240px]"
-                : isFeatured
-                  ? "min-h-[220px] sm:min-h-[280px]"
-                  : "min-h-[140px] sm:min-h-[180px]"
-            } rounded-2xl ${isActive ? "border-indigo-400 ring-2 ring-indigo-500/40" : "border-white/10 bg-zinc-900/80"}`
-      } ${hasVideo ? "cursor-pointer" : ""}`}
+      className={`relative rounded-2xl overflow-hidden border shadow-xl transition-all ${
+        isSolo
+          ? "h-full min-h-[240px]"
+          : isFeatured
+            ? "min-h-[220px] sm:min-h-[280px]"
+            : "min-h-[140px] sm:min-h-[180px]"
+      } ${isActive ? "border-indigo-400 ring-2 ring-indigo-500/40" : "border-white/10 bg-zinc-900/80"} ${
+        hasVideo ? "cursor-pointer" : ""
+      }`}
     >
       {hasVideo ? (
         <video
