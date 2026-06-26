@@ -577,29 +577,57 @@ export function useLiveRoomControls({
 
         const streamToRecord = new MediaStream(tracksToRecord);
 
-        // Choose candidate MIME types dynamically based on track presence to prevent container corruption
+        // Choose candidate MIME types dynamically based on track presence and browser capabilities.
+        // Chrome on Windows has a bug in its experimental video/mp4 recorder causing 1-second corrupted files.
+        // Therefore, we prioritize standard WebM (VP8/VP9) on Chrome/Firefox/Edge for 100% stability,
+        // and prioritize MP4 (H.264/AAC) on Safari/WebKit where WebM is not natively supported for recording.
+        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
         let candidateTypes: string[] = [];
-        if (hasAudio) {
-          candidateTypes = [
-            "video/mp4;codecs=avc1,mp4a.40.2",
-            "video/mp4;codecs=h264,aac",
-            "video/mp4;codecs=h264,opus",
-            "video/mp4",
-            "video/webm;codecs=vp9,opus",
-            "video/webm;codecs=vp8,opus",
-            "video/webm;codecs=h264,opus",
-            "video/webm",
-          ];
+
+        if (isSafari) {
+          if (hasAudio) {
+            candidateTypes = [
+              "video/mp4;codecs=avc1,mp4a.40.2",
+              "video/mp4;codecs=h264,aac",
+              "video/mp4;codecs=h264,opus",
+              "video/mp4",
+              "video/webm;codecs=vp9,opus",
+              "video/webm;codecs=vp8,opus",
+              "video/webm",
+            ];
+          } else {
+            candidateTypes = [
+              "video/mp4;codecs=avc1",
+              "video/mp4;codecs=h264",
+              "video/mp4",
+              "video/webm;codecs=vp9",
+              "video/webm;codecs=vp8",
+              "video/webm",
+            ];
+          }
         } else {
-          candidateTypes = [
-            "video/mp4;codecs=avc1",
-            "video/mp4;codecs=h264",
-            "video/mp4",
-            "video/webm;codecs=vp9",
-            "video/webm;codecs=vp8",
-            "video/webm;codecs=h264",
-            "video/webm",
-          ];
+          // Chrome, Firefox, Edge, Opera, etc.
+          if (hasAudio) {
+            candidateTypes = [
+              "video/webm;codecs=vp9,opus",
+              "video/webm;codecs=vp8,opus",
+              "video/webm;codecs=h264,opus",
+              "video/webm",
+              "video/mp4;codecs=avc1,mp4a.40.2",
+              "video/mp4;codecs=h264,aac",
+              "video/mp4",
+            ];
+          } else {
+            candidateTypes = [
+              "video/webm;codecs=vp9",
+              "video/webm;codecs=vp8",
+              "video/webm;codecs=h264",
+              "video/webm",
+              "video/mp4;codecs=avc1",
+              "video/mp4;codecs=h264",
+              "video/mp4",
+            ];
+          }
         }
 
         let selectedMimeType = "";
@@ -607,6 +635,19 @@ export function useLiveRoomControls({
           if (MediaRecorder.isTypeSupported(type)) {
             selectedMimeType = type;
             break;
+          }
+        }
+
+        if (!selectedMimeType) {
+          // Absolute fallback
+          const absoluteFallback = hasAudio
+            ? ["video/webm", "video/mp4"]
+            : ["video/webm", "video/mp4"];
+          for (const type of absoluteFallback) {
+            if (MediaRecorder.isTypeSupported(type)) {
+              selectedMimeType = type;
+              break;
+            }
           }
         }
 
