@@ -190,11 +190,18 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
   // POST /api/auth/login-status — état de blocage basé sur l'e-mail (fiable après refresh)
 
   app.post("/api/auth/login-status", validateBody(api.loginLockoutStatusSchema), async (req, res) => {
-    const { email } = req.body;
+    const { email, role } = req.body;
     const user = await api.prisma.user.findUnique({
       where: { email },
-      select: { lockoutUntil: true },
+      select: { role: true, lockoutUntil: true },
     });
+    const requestedRole = api.normalizeRole(role);
+
+    if (user && requestedRole && !api.canLoginToRequestedRole(user.role, requestedRole)) {
+      res.json(getAccountLoginLockoutStatus(null));
+      return;
+    }
+
     res.json(user ? getAccountLoginLockoutStatus(user.lockoutUntil) : getEmailLoginLockoutStatus(email));
   });
 
@@ -216,12 +223,6 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
 
       include: api.APP_USER_BILLING_INCLUDE,
     });
-
-    const preLockout = user ? getAccountLoginLockoutStatus(user.lockoutUntil) : getEmailLoginLockoutStatus(email);
-    if (preLockout.locked) {
-      sendLoginLockoutResponse(res, preLockout);
-      return;
-    }
 
     // Pour éviter la fuite d'informations sur l'existence des emails, on simule une comparaison de hash
 
@@ -246,6 +247,12 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
 
       res.status(403).json({ error: "Ce compte n'est pas autorisé dans cet espace" });
 
+      return;
+    }
+
+    const preLockout = getAccountLoginLockoutStatus(user.lockoutUntil);
+    if (preLockout.locked) {
+      sendLoginLockoutResponse(res, preLockout);
       return;
     }
 

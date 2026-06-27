@@ -44,6 +44,7 @@ export const loginSchema = z.object({
 
 export const loginLockoutStatusSchema = z.object({
   email: z.string().email("Adresse email invalide").trim().toLowerCase(),
+  role: z.enum(["STUDENT", "PROFESSOR", "RESEARCHER", "ADMIN"]).optional(),
 });
 
 export const verifyEmailSchema = z.object({

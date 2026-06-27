@@ -144,6 +144,8 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
     setErrorMsg("");
   };
 
+  const getLoginRole = () => (activeSector === "student" ? "STUDENT" : "PROFESSOR");
+
   const syncLoginLockoutStatus = async (emailAddr: string) => {
     const normalized = emailAddr.trim().toLowerCase();
     if (!normalized.includes("@")) {
@@ -152,7 +154,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
     }
 
     try {
-      const status = await api.getLoginLockoutStatus(normalized);
+      const status = await api.getLoginLockoutStatus(normalized, getLoginRole());
       if (status.locked) {
         applyLoginLockout({
           seconds: status.retryAfter,
@@ -173,7 +175,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
       return;
     }
     void syncLoginLockoutStatus(email);
-  }, [email, authMode]);
+  }, [email, authMode, activeSector]);
 
   const handleMfaChallenge = (payload: any, fallbackEmail: string) => {
     if (payload?.mfaRequired && payload?.mfaToken) {
@@ -197,11 +199,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
     try {
       const { options, challengeId } = await api.beginPasskeyLogin(normalizedEmail || undefined);
       const response = await startAuthentication({ optionsJSON: options });
-      const user = await api.completePasskeyLogin(
-        challengeId,
-        response,
-        activeSector === "student" ? "STUDENT" : "PROFESSOR",
-      );
+      const user = await api.completePasskeyLogin(challengeId, response, getLoginRole());
       finishAuthSuccess(user);
     } catch (err: any) {
       setIsLoading(false);
@@ -226,7 +224,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
     setIsLoading(true);
     const normalizedEmail = email.trim().toLowerCase();
     try {
-      const user = await api.login(normalizedEmail, password, activeSector === "student" ? "STUDENT" : "PROFESSOR");
+      const user = await api.login(normalizedEmail, password, getLoginRole());
       if (handleMfaChallenge(user, normalizedEmail)) return;
       finishAuthSuccess(user);
     } catch (err: any) {
@@ -415,10 +413,10 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                 onClick={() => {
                   setActiveSector("student");
                   setVerificationEmail("");
-                  setAuthMode("register");
                   setErrorMsg("");
                   setRateLimitError(null);
                   setSuccessMsg("");
+                  setMfaPending(null);
                 }}
                 className={`kbd-nav-focus flex items-center justify-center gap-1.5 py-3.5 px-2 sm:px-4 rounded-2xl text-[10px] sm:text-xs font-extrabold tracking-wide uppercase transition-all ${
                   activeSector === "student"
@@ -435,10 +433,10 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                 onClick={() => {
                   setActiveSector("teacher");
                   setVerificationEmail("");
-                  setAuthMode("register");
                   setErrorMsg("");
                   setRateLimitError(null);
                   setSuccessMsg("");
+                  setMfaPending(null);
                 }}
                 className={`kbd-nav-focus flex items-center justify-center gap-1.5 py-3.5 px-2 sm:px-4 rounded-2xl text-[10px] sm:text-xs font-extrabold tracking-wide uppercase transition-all ${
                   activeSector === "teacher"

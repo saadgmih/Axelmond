@@ -320,13 +320,13 @@ export const api = {
     ),
   login: (email: string, password: string, role: string) =>
     request<any>("POST", "/api/auth/login", { email, password, role }),
-  getLoginLockoutStatus: (email: string) =>
+  getLoginLockoutStatus: (email: string, role?: string) =>
     request<{
       locked: boolean;
       retryAfter: number;
       maxAttempts: number;
       lockoutWindowSeconds: number;
-    }>("POST", "/api/auth/login-status", { email }),
+    }>("POST", "/api/auth/login-status", { email, ...(role ? { role } : {}) }),
   verifyMfaTotp: (mfaToken: string, code: string) =>
     request<any>("POST", "/api/auth/mfa/totp/verify", { mfaToken, code }),
   beginPasskeyLogin: (email?: string) =>
