@@ -5,15 +5,15 @@ Quand vous poussez sur `main`, Hostinger rebuild et redémarre l’app automatiq
 
 ## Paramètres recommandés (Settings / Build)
 
-| Champ | Valeur |
-|--------|--------|
-| Branche | `main` |
-| Install | `npm ci` |
-| Build | `npm run hostinger:build` |
-| Start | `npm start` |
-| Entry file | `dist/server.cjs` |
-| Output directory | `dist` |
-| Node.js | 20 ou 22 (selon `engines` dans `package.json`) |
+| Champ            | Valeur                                         |
+| ---------------- | ---------------------------------------------- |
+| Branche          | `main`                                         |
+| Install          | `npm ci`                                       |
+| Build            | `npm run hostinger:build`                      |
+| Start            | `npm start`                                    |
+| Entry file       | `dist/server.cjs`                              |
+| Output directory | `dist`                                         |
+| Node.js          | 20 ou 22 (selon `engines` dans `package.json`) |
 
 **Important :** ne pas utiliser `npm run start:cluster`, PM2, ni `prestart` — un seul process Node doit tourner.
 
@@ -24,12 +24,12 @@ Quand vous poussez sur `main`, Hostinger rebuild et redémarre l’app automatiq
 
 Ajouter dans **Environment variables** :
 
-| Variable | Valeur | Rôle |
-|----------|--------|------|
-| `HOSTINGER_WEBAPP` | `1` | Bloque PM2 / cluster, réduit pool DB, désactive le performance monitor |
-| `SKIP_PRISMA_POSTINSTALL` | `1` | Évite un 2ᵉ `prisma generate` pendant `npm ci` (le build le fait déjà) |
-| `GRACEFUL_SHUTDOWN_MS` | `3000` | Arrêt plus rapide à la fin d'un déploiement (moins de chevauchement) |
-| `DATABASE_POOL_MAX` | `3` | Réduit les connexions DB actives (moins de processus bloqués) |
+| Variable                  | Valeur | Rôle                                                                   |
+| ------------------------- | ------ | ---------------------------------------------------------------------- |
+| `HOSTINGER_WEBAPP`        | `1`    | Bloque PM2 / cluster, réduit pool DB, désactive le performance monitor |
+| `SKIP_PRISMA_POSTINSTALL` | `1`    | Évite un 2ᵉ `prisma generate` pendant `npm ci` (le build le fait déjà) |
+| `GRACEFUL_SHUTDOWN_MS`    | `3000` | Arrêt plus rapide à la fin d'un déploiement (moins de chevauchement)   |
+| `DATABASE_POOL_MAX`       | `3`    | Réduit les connexions DB actives (moins de processus bloqués)          |
 
 Générer le fichier d’import : `npm run hostinger:env` (inclut ces clés si le script est à jour).
 
@@ -62,19 +62,19 @@ Cela produit **`.hostinger-import.env`** (gitignored) : variables triées, sans 
 
 ### Variables attendues (37)
 
-| Groupe | Clés |
-|--------|------|
-| Runtime | `NODE_ENV`, `APP_URL`, `PORT`, `LOG_LEVEL`, `RUN_STARTUP_SEED`, `ALLOWED_ORIGINS`, `VITE_API_BASE_URL`, **`HOSTINGER_WEBAPP`**, **`SKIP_PRISMA_POSTINSTALL`**, **`GRACEFUL_SHUTDOWN_MS`** |
-| Auth | `AUTH_TOKEN_SECRET`, `EMAIL_VERIFICATION_SECRET`, **`MOBILE_CLIENT_SECRET`**, `AUTH_MAX_ATTEMPTS`, `AUTH_LOCKOUT_WINDOW_MS` |
-| WebAuthn | `WEBAUTHN_RP_ID` (ex. `axelmond.com`), optionnel `WEBAUTHN_RP_NAME` |
-| Base | `DATABASE_URL` (Neon + `?schema=AxelmondResearchLab&sslmode=require`) |
-| PayPal | `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID`, `PAYPAL_ENV=live`, `PAYPAL_CURRENCY_CODE`, `PAYPAL_MAD_TO_USD_RATE` |
-| LiveKit | `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` |
-| UploadThing | `UPLOADTHING_TOKEN`, `UPLOADTHING_IS_DEV=false`, `UPLOADTHING_CALLBACK_URL` |
-| Email | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM`, `EMAIL_VERIFICATION_URL` |
-| Push | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` |
-| AI | `OPENAI_API_KEY` |
-| Divers | `PROFESSOR_INVITE_CODES` |
+| Groupe      | Clés                                                                                                                                                                                      |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Runtime     | `NODE_ENV`, `APP_URL`, `PORT`, `LOG_LEVEL`, `RUN_STARTUP_SEED`, `ALLOWED_ORIGINS`, `VITE_API_BASE_URL`, **`HOSTINGER_WEBAPP`**, **`SKIP_PRISMA_POSTINSTALL`**, **`GRACEFUL_SHUTDOWN_MS`** |
+| Auth        | `AUTH_TOKEN_SECRET`, `EMAIL_VERIFICATION_SECRET`, **`MOBILE_CLIENT_SECRET`**                                                                                                              |
+| WebAuthn    | `WEBAUTHN_RP_ID` (ex. `axelmond.com`), optionnel `WEBAUTHN_RP_NAME`                                                                                                                       |
+| Base        | `DATABASE_URL` (Neon + `?schema=AxelmondResearchLab&sslmode=require`)                                                                                                                     |
+| PayPal      | `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID`, `PAYPAL_ENV=live`, `PAYPAL_CURRENCY_CODE`, `PAYPAL_MAD_TO_USD_RATE`                                                      |
+| LiveKit     | `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`                                                                                                                                    |
+| UploadThing | `UPLOADTHING_TOKEN`, `UPLOADTHING_IS_DEV=false`, `UPLOADTHING_CALLBACK_URL`                                                                                                               |
+| Email       | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM`, `EMAIL_VERIFICATION_URL`                                                                                                |
+| Push        | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`                                                                                                                                  |
+| AI          | `OPENAI_API_KEY`                                                                                                                                                                          |
+| Divers      | `PROFESSOR_INVITE_CODES`                                                                                                                                                                  |
 
 Sans ces variables, le build peut réussir mais l’app crash au démarrage → **503** ou erreur `Invalid production configuration`.
 
@@ -102,11 +102,11 @@ Symptôme : nginx affiche **504 Gateway Time-out** — le proxy ne reçoit aucun
 
 ### Causes fréquentes (logs)
 
-| Signal dans les logs | Signification |
-|----------------------|---------------|
-| `Graceful shutdown initiated {"signal":"SIGTERM"}` répété | Hostinger redéploie (souvent après **plusieurs push `main` rapprochés**) et tue l’ancien process |
-| `Axelmond server running` puis plus aucun log de démarrage | Le dernier process a été arrêté sans qu’un nouveau ne prenne le relais → site down |
-| `loadAvg1` très élevé (> 30) | Serveur surchargé — démarrage et réponses lents |
+| Signal dans les logs                                       | Signification                                                                                    |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `Graceful shutdown initiated {"signal":"SIGTERM"}` répété  | Hostinger redéploie (souvent après **plusieurs push `main` rapprochés**) et tue l’ancien process |
+| `Axelmond server running` puis plus aucun log de démarrage | Le dernier process a été arrêté sans qu’un nouveau ne prenne le relais → site down               |
+| `loadAvg1` très élevé (> 30)                               | Serveur surchargé — démarrage et réponses lents                                                  |
 
 ### Actions immédiates
 
@@ -123,27 +123,27 @@ Symptôme : nginx affiche **504 Gateway Time-out** — le proxy ne reçoit aucun
 
 ## En cas de 503 — Max Processes / ressources Node
 
-Hostinger affiche parfois **503 Service Unavailable** avec un message du type *Max Processes* ou *utilisation élevée des ressources*. Cela signifie que **trop de processus Node.js** tournent en même temps sur le compte — le proxy coupe l’accès avant même d’atteindre votre app.
+Hostinger affiche parfois **503 Service Unavailable** avec un message du type _Max Processes_ ou _utilisation élevée des ressources_. Cela signifie que **trop de processus Node.js** tournent en même temps sur le compte — le proxy coupe l’accès avant même d’atteindre votre app.
 
 ### Pourquoi cela arrive avec Axelmond
 
-| Cause | Détail |
-|--------|--------|
-| **Redéploiements rapprochés** | Chaque push sur `main` lance un rebuild + un nouveau `node dist/server.cjs` pendant que l’ancien reçoit encore `SIGTERM` → 2–4 processus Node simultanés. |
-| **PM2 en parallèle** | `npm run start:cluster` ou `deploy-hostinger.sh` lance PM2 **en plus** du gestionnaire Hostinger → explosion du nombre de workers. |
-| **Mauvaise commande Start** | Start = `node dist/server.cjs` **et** PM2, ou un script qui relance Node en boucle. |
-| **Build + runtime chevauchés** | Pendant `npm ci` / `npm run build`, `postinstall` (`prisma generate`) et le démarrage peuvent coexister brièvement avec l’ancienne instance. |
+| Cause                          | Détail                                                                                                                                                    |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Redéploiements rapprochés**  | Chaque push sur `main` lance un rebuild + un nouveau `node dist/server.cjs` pendant que l’ancien reçoit encore `SIGTERM` → 2–4 processus Node simultanés. |
+| **PM2 en parallèle**           | `npm run start:cluster` ou `deploy-hostinger.sh` lance PM2 **en plus** du gestionnaire Hostinger → explosion du nombre de workers.                        |
+| **Mauvaise commande Start**    | Start = `node dist/server.cjs` **et** PM2, ou un script qui relance Node en boucle.                                                                       |
+| **Build + runtime chevauchés** | Pendant `npm ci` / `npm run build`, `postinstall` (`prisma generate`) et le démarrage peuvent coexister brièvement avec l’ancienne instance.              |
 
 Les logs `Graceful shutdown initiated {"signal":"SIGTERM"}` répétés (comme lors des push `fe7b4fd` + `5cb066d` + `93464b6`) sont le signal typique d’un **chevauchement de processus**, pas d’un bug applicatif isolé.
 
 ### Configuration hPanel obligatoire
 
-| Champ | Valeur correcte | À éviter |
-|--------|-----------------|----------|
-| **Start command** | `npm start` | `pm2 start`, `npm run start:cluster` |
-| **Build command** | `npm run hostinger:build` | `npm run build` seul (sans migrate) |
-| **Instances / workers** | **1** (défaut Hostinger) | PM2 cluster, `instances: max` |
-| **Entry file** | `dist/server.cjs` | — |
+| Champ                   | Valeur correcte           | À éviter                             |
+| ----------------------- | ------------------------- | ------------------------------------ |
+| **Start command**       | `npm start`               | `pm2 start`, `npm run start:cluster` |
+| **Build command**       | `npm run hostinger:build` | `npm run build` seul (sans migrate)  |
+| **Instances / workers** | **1** (défaut Hostinger)  | PM2 cluster, `instances: max`        |
+| **Entry file**          | `dist/server.cjs`         | —                                    |
 
 Hostinger gère **un seul** process Node pour l’app — ne jamais ajouter PM2 sur cette offre.
 

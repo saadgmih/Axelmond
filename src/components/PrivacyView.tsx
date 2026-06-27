@@ -330,7 +330,7 @@ export default function PrivacyView() {
                 {
                   icon: <AlertTriangle className="w-4 h-4 text-amber-400" />,
                   title: "Protection brute-force",
-                  desc: "Rate-limiting sur toutes les routes d'authentification (20 tentatives / 1 min). Blocage automatique en cas d'abus.",
+                  desc: "Rate-limiting technique sur les routes sensibles d'authentification pour absorber les abus sans suspendre le compte.",
                   badge: "text-amber-300 border-amber-500/30 bg-amber-500/10",
                   badgeLabel: "Rate Limit",
                 },

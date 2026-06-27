@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { getClientErrorMessage } from "../client-errors";
 import { motion } from "motion/react";
 import { User, ShieldAlert, Mail, Lock, LogIn, UserPlus, KeyRound } from "lucide-react";
@@ -14,98 +14,6 @@ import LogoSymbol from "./LogoSymbol";
 import SkipLink from "./SkipLink";
 import { useAccessibilityPreferences } from "../hooks/useAccessibilityPreferences";
 import AccessibilityControls from "./AccessibilityControls";
-
-// ─── Real-time Rate-Limit Countdown Banner ────────────────────────────────────
-
-interface RateLimitState {
-  seconds: number;
-  maxAttempts: number;
-  lockoutWindowSeconds: number;
-}
-
-interface RateLimitBannerProps {
-  initialSeconds: number;
-  maxAttempts?: number;
-  lockoutWindowSeconds?: number;
-  onExpire: () => void;
-}
-
-function formatLockoutDuration(totalSeconds: number): string {
-  if (totalSeconds < 60) return `${totalSeconds} seconde${totalSeconds > 1 ? "s" : ""}`;
-  const minutes = Math.ceil(totalSeconds / 60);
-  return `${minutes} minute${minutes > 1 ? "s" : ""}`;
-}
-
-function RateLimitBanner({
-  initialSeconds,
-  maxAttempts = 10,
-  lockoutWindowSeconds = 30,
-  onExpire,
-}: RateLimitBannerProps) {
-  const [secondsLeft, setSecondsLeft] = useState(initialSeconds);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  useEffect(() => {
-    setSecondsLeft(initialSeconds);
-    intervalRef.current = setInterval(() => {
-      setSecondsLeft((s) => {
-        if (s <= 1) {
-          clearInterval(intervalRef.current!);
-          onExpire();
-          return 0;
-        }
-        return s - 1;
-      });
-    }, 1000);
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [initialSeconds]);
-
-  const mins = Math.floor(secondsLeft / 60)
-    .toString()
-    .padStart(2, "0");
-  const secs = (secondsLeft % 60).toString().padStart(2, "0");
-
-  return (
-    <div id="auth-rate-limit-banner" className="p-4 bg-amber-950/40 border border-amber-700/50 rounded-xl space-y-3">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start gap-3 min-w-0">
-          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center mt-0.5">
-            <ShieldAlert className="w-4 h-4 text-amber-400" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-amber-300 text-xs font-black uppercase tracking-wide">Accès temporairement suspendu</p>
-            <p className="text-amber-200/80 text-[11px] mt-1 leading-relaxed">
-              Trop de tentatives de connexion ont été détectées ({maxAttempts} tentatives maximum).
-              <br />
-              Pour protéger votre compte, la connexion est temporairement suspendue.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
-              <div className="rounded-lg border border-amber-700/30 bg-black/20 px-3 py-2">
-                <div className="text-[9px] uppercase tracking-widest text-amber-500 font-bold">Limite</div>
-                <div className="text-xs text-amber-100 font-black">{maxAttempts} tentatives</div>
-              </div>
-              <div className="rounded-lg border border-amber-700/30 bg-black/20 px-3 py-2">
-                <div className="text-[9px] uppercase tracking-widest text-amber-500 font-bold">Durée</div>
-                <div className="text-xs text-amber-100 font-black">{formatLockoutDuration(lockoutWindowSeconds)}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="rounded-xl border border-amber-700/40 bg-black/25 px-4 py-3 text-center sm:min-w-[150px]">
-          <div className="font-mono text-2xl font-black text-amber-300 tracking-widest tabular-nums">
-            {mins}:{secs}
-          </div>
-          <div className="text-[9px] uppercase tracking-widest text-amber-500 font-bold mt-0.5">Réessayer dans</div>
-        </div>
-      </div>
-      <p className="text-center text-[10px] text-amber-600 font-semibold">
-        Votre compte est protégé par notre système de sécurité avancé.
-      </p>
-    </div>
-  );
-}
 
 interface AuthScreenProps {
   onLoginSuccess: (user: AppUser) => void;
@@ -125,7 +33,6 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
   const [verificationCode, setVerificationCode] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
-  const [rateLimitError, setRateLimitError] = useState<RateLimitState | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [mfaPending, setMfaPending] = useState<{
     mfaToken: string;
@@ -139,43 +46,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
     setTimeout(() => onLoginSuccess(user), 800);
   };
 
-  const applyLoginLockout = (state: RateLimitState) => {
-    setRateLimitError(state);
-    setErrorMsg("");
-  };
-
   const getLoginRole = () => (activeSector === "student" ? "STUDENT" : "PROFESSOR");
-
-  const syncLoginLockoutStatus = async (emailAddr: string) => {
-    const normalized = emailAddr.trim().toLowerCase();
-    if (!normalized.includes("@")) {
-      setRateLimitError(null);
-      return;
-    }
-
-    try {
-      const status = await api.getLoginLockoutStatus(normalized, getLoginRole());
-      if (status.locked) {
-        applyLoginLockout({
-          seconds: status.retryAfter,
-          maxAttempts: status.maxAttempts,
-          lockoutWindowSeconds: status.lockoutWindowSeconds,
-        });
-      } else {
-        setRateLimitError(null);
-      }
-    } catch {
-      // ignore polling errors on the login form
-    }
-  };
-
-  useEffect(() => {
-    if (authMode !== "login") {
-      setRateLimitError(null);
-      return;
-    }
-    void syncLoginLockoutStatus(email);
-  }, [email, authMode, activeSector]);
 
   const handleMfaChallenge = (payload: any, fallbackEmail: string) => {
     if (payload?.mfaRequired && payload?.mfaToken) {
@@ -193,7 +64,6 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
   const handlePasskeyLogin = async () => {
     setErrorMsg("");
     setSuccessMsg("");
-    setRateLimitError(null);
     setIsLoading(true);
     const normalizedEmail = email.trim().toLowerCase();
     try {
@@ -212,10 +82,6 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
     setErrorMsg("");
     setSuccessMsg("");
 
-    if (rateLimitError) {
-      return;
-    }
-
     if (!email || !password) {
       setErrorMsg("Veuillez remplir tous les champs requis.");
       return;
@@ -233,16 +99,6 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
         setVerificationEmail(err.email || email.trim().toLowerCase());
         setVerificationCode("");
         setSuccessMsg("Saisissez le code reçu par e-mail.");
-        return;
-      }
-      // 429 Rate limit: show countdown banner from backend state
-      if (err.isRateLimit) {
-        const seconds = typeof err.retryAfter === "number" && err.retryAfter > 0 ? err.retryAfter : 30;
-        applyLoginLockout({
-          seconds,
-          maxAttempts: typeof err.maxAttempts === "number" ? err.maxAttempts : 10,
-          lockoutWindowSeconds: typeof err.lockoutWindowSeconds === "number" ? err.lockoutWindowSeconds : 30,
-        });
         return;
       }
       setErrorMsg(getClientErrorMessage(err, "Email ou mot de passe incorrect."));
@@ -414,7 +270,6 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                   setActiveSector("student");
                   setVerificationEmail("");
                   setErrorMsg("");
-                  setRateLimitError(null);
                   setSuccessMsg("");
                   setMfaPending(null);
                 }}
@@ -434,7 +289,6 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                   setActiveSector("teacher");
                   setVerificationEmail("");
                   setErrorMsg("");
-                  setRateLimitError(null);
                   setSuccessMsg("");
                   setMfaPending(null);
                 }}
@@ -484,20 +338,8 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                 </p>
               </div>
 
-              {/* 429 Rate-limit countdown banner */}
-              {rateLimitError && (
-                <RateLimitBanner
-                  initialSeconds={rateLimitError.seconds}
-                  maxAttempts={rateLimitError.maxAttempts}
-                  lockoutWindowSeconds={rateLimitError.lockoutWindowSeconds}
-                  onExpire={() => {
-                    setRateLimitError(null);
-                  }}
-                />
-              )}
-
               {/* 401 / validation error */}
-              {errorMsg && !rateLimitError && (
+              {errorMsg && (
                 <div
                   id="auth-error-msg"
                   role="alert"
@@ -804,7 +646,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
 
                   <button
                     type="submit"
-                    disabled={isLoading || (authMode === "login" && Boolean(rateLimitError))}
+                    disabled={isLoading}
                     className={`w-full py-3.5 rounded-xl text-xs font-black uppercase tracking-wider text-white transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                       activeSector === "student"
                         ? "bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-900/30"
@@ -844,7 +686,6 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                       setAuthMode(authMode === "login" ? "register" : "login");
                     }
                     setErrorMsg("");
-                    setRateLimitError(null);
                     setSuccessMsg("");
                   }}
                   className={`text-xs font-bold underline transition-colors ${

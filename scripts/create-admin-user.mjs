@@ -30,7 +30,6 @@ async function main() {
         emailVerified: true,
         levelOrTitle,
         failedLoginAttempts: 0,
-        lockoutUntil: null,
       },
       create: {
         email,

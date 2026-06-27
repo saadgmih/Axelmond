@@ -29,7 +29,6 @@ import { liveKitRateLimitKey } from "../livekit-rate-limit";
 import { adminRateLimitKey } from "../admin-rate-limit";
 import { PAYPAL_CSP_SCRIPT_SRC, PAYPAL_CSP_IMG_SRC, PAYPAL_CSP_FORM_ACTION, buildCspFrameSrc } from "../paypal-csp";
 import { parseTrustProxySetting, rateLimitIpKey } from "../client-ip";
-import { getLoginLockoutMaxAttempts, getLoginLockoutWindowMs } from "../auth-lockout-config";
 import { isDatabaseDisconnected } from "../db";
 import { shutdownGuardMiddleware } from "./shutdown-coordination";
 import { startupLifecycle } from "./startup-lifecycle";
@@ -125,8 +124,8 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
   const PORT = Number(options?.port ?? process.env.PORT) || 3000;
   const isSecurityRuntimeTest = process.env.SECURITY_RUNTIME_TEST === "1";
   const isProduction = process.env.NODE_ENV === "production";
-  const AUTH_MAX_ATTEMPTS = getLoginLockoutMaxAttempts();
-  const AUTH_LOCKOUT_WINDOW_MS = getLoginLockoutWindowMs();
+  const AUTH_RATE_LIMIT_MAX = 10;
+  const AUTH_RATE_LIMIT_WINDOW_MS = 30_000;
   const uploadThingCallbackUrl =
     process.env.UPLOADTHING_CALLBACK_URL ||
     (process.env.APP_URL ? `${process.env.APP_URL}/api/uploadthing` : undefined);
@@ -295,8 +294,8 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     skip: (req) => req.path === "/health" || req.path === "/live" || req.path === "/paypal/webhook",
   });
   const authRateLimiter = rateLimit({
-    windowMs: AUTH_LOCKOUT_WINDOW_MS,
-    max: AUTH_MAX_ATTEMPTS,
+    windowMs: AUTH_RATE_LIMIT_WINDOW_MS,
+    max: AUTH_RATE_LIMIT_MAX,
     standardHeaders: true,
     legacyHeaders: false,
     keyGenerator: (req) => {
@@ -304,7 +303,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
       return email ? String(email).trim().toLowerCase() : rateLimitIpKey(req);
     },
     message: {
-      error: `Trop de tentatives d'authentification (${AUTH_MAX_ATTEMPTS} maximum). Veuillez patienter ${Math.ceil(AUTH_LOCKOUT_WINDOW_MS / 1000)} secondes.`,
+      error: `Trop de requêtes d'authentification (${AUTH_RATE_LIMIT_MAX} maximum). Veuillez patienter ${Math.ceil(AUTH_RATE_LIMIT_WINDOW_MS / 1000)} secondes.`,
       code: "AUTH_RATE_LIMIT_EXCEEDED",
     },
   });

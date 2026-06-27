@@ -4,7 +4,6 @@ import type { RouteContext } from "../../server/route-context";
 import type { AppUser } from "../../server/route-types";
 import * as api from "../../server/route-deps";
 import { issueAuthenticatedSession } from "../../auth-session";
-import { clearEmailLoginLockout } from "../../auth-login-lockout";
 import { createSecurityChallenge, consumeSecurityChallenge } from "../../mfa-challenge";
 import { encryptMfaSecret, decryptMfaSecret } from "../../mfa-crypto";
 import { signMfaPendingToken, verifyMfaPendingToken } from "../../mfa-pending-token";
@@ -291,10 +290,9 @@ export function registerMfaRoutes(app: Express, ctx: RouteContext): void {
       return;
     }
 
-    clearEmailLoginLockout(result.user.email);
     await api.prisma.user.update({
       where: { id: result.user.id },
-      data: { failedLoginAttempts: 0, lockoutUntil: null },
+      data: { failedLoginAttempts: 0 },
     });
 
     const body = await issueAuthenticatedSession(req, res, api, result.user, "User logged in with passkey");

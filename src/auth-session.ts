@@ -29,7 +29,7 @@ export async function issueAuthenticatedSession(
 
   await api.prisma.user.update({
     where: { id: userId },
-    data: { failedLoginAttempts: 0, lockoutUntil: null },
+    data: { failedLoginAttempts: 0 },
   });
 
   api.invalidateAuthUserCache(userId);

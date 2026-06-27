@@ -42,11 +42,6 @@ export const loginSchema = z.object({
   role: z.enum(["STUDENT", "PROFESSOR", "RESEARCHER", "ADMIN"]),
 });
 
-export const loginLockoutStatusSchema = z.object({
-  email: z.string().email("Adresse email invalide").trim().toLowerCase(),
-  role: z.enum(["STUDENT", "PROFESSOR", "RESEARCHER", "ADMIN"]).optional(),
-});
-
 export const verifyEmailSchema = z.object({
   email: z.string().email("Adresse email invalide").trim().toLowerCase(),
   code: z.string().length(6, "Le code doit contenir 6 chiffres").regex(/^\d+$/, "Le code doit être numérique"),
@@ -275,14 +270,4 @@ export const liveAttendanceLeaveSchema = z.object({
   courseId: z.number().int().positive(),
 });
 
-import {
-  getLoginLockoutMaxAttempts,
-  getLoginLockoutWindowMs,
-  LOGIN_LOCKOUT_MAX_ATTEMPTS,
-  LOGIN_LOCKOUT_WINDOW_MS,
-} from "../auth-lockout-config";
-
-export const AUTH_LOCKOUT_WINDOW_MS = LOGIN_LOCKOUT_WINDOW_MS;
-export const AUTH_MAX_ATTEMPTS = LOGIN_LOCKOUT_MAX_ATTEMPTS;
-export { getLoginLockoutMaxAttempts, getLoginLockoutWindowMs };
 export const isSecurityRuntimeTest = process.env.SECURITY_RUNTIME_TEST === "1";

@@ -68,7 +68,6 @@ export function buildSecurityRuntimeServerEnv(port = DEFAULT_SECURITY_RUNTIME_PO
     RATE_LIMIT_MAX_REQUESTS: process.env.RATE_LIMIT_MAX_REQUESTS || "999999",
     CHAT_TUTOR_RATE_LIMIT_MAX: process.env.CHAT_TUTOR_RATE_LIMIT_MAX || "9999",
     UPLOAD_RATE_LIMIT_MAX: process.env.UPLOAD_RATE_LIMIT_MAX || "9999",
-    AUTH_MAX_ATTEMPTS: process.env.AUTH_MAX_ATTEMPTS || "999",
     AUTH_TOKEN_SECRET: process.env.AUTH_TOKEN_SECRET || "security-runtime-test-secret",
   };
 }

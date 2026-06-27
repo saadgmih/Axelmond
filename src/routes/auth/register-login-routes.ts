@@ -1,14 +1,6 @@
 import type { Express } from "express";
 import type { RouteContext } from "../../server/route-context";
 import * as api from "../../server/route-deps";
-import {
-  buildAccountLoginFailureUpdate,
-  clearEmailLoginLockout,
-  getAccountLoginLockoutStatus,
-  getEmailLoginLockoutStatus,
-  recordEmailLoginFailure,
-  sendLoginLockoutResponse,
-} from "../../auth-login-lockout";
 import { getClientIp } from "../../client-ip";
 
 export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): void {
@@ -187,24 +179,6 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
     }
   });
 
-  // POST /api/auth/login-status — état de blocage basé sur l'e-mail (fiable après refresh)
-
-  app.post("/api/auth/login-status", validateBody(api.loginLockoutStatusSchema), async (req, res) => {
-    const { email, role } = req.body;
-    const user = await api.prisma.user.findUnique({
-      where: { email },
-      select: { role: true, lockoutUntil: true },
-    });
-    const requestedRole = api.normalizeRole(role);
-
-    if (user && requestedRole && !api.canLoginToRequestedRole(user.role, requestedRole)) {
-      res.json(getAccountLoginLockoutStatus(null));
-      return;
-    }
-
-    res.json(user ? getAccountLoginLockoutStatus(user.lockoutUntil) : getEmailLoginLockoutStatus(email));
-  });
-
   // POST /api/auth/login
 
   app.post("/api/auth/login", validateBody(api.loginSchema), async (req, res) => {
@@ -229,18 +203,10 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
     if (!user) {
       await api.bcrypt.compare(password, "$2b$10$abcdefghijklmnopqrstuvwxyzeeeeeeeeeeeeeeeeeeeeeee");
 
-      const lockout = recordEmailLoginFailure(email);
-      if (lockout.locked) {
-        sendLoginLockoutResponse(res, lockout);
-        return;
-      }
-
       res.status(401).json({ error: "Identifiants incorrects" });
 
       return;
     }
-
-    clearEmailLoginLockout(email);
 
     if (!api.canLoginToRequestedRole(user.role, requestedRole)) {
       api.logSecurity("WARN", "Login sector mismatch", { userId: user.id, requestedRole, actualRole: user.role });
@@ -250,42 +216,20 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
       return;
     }
 
-    const preLockout = getAccountLoginLockoutStatus(user.lockoutUntil);
-    if (preLockout.locked) {
-      sendLoginLockoutResponse(res, preLockout);
-      return;
-    }
-
     const isValidPassword = await api.bcrypt.compare(password, user.passwordHash);
 
     if (!isValidPassword) {
-      const failure = buildAccountLoginFailureUpdate(user.failedLoginAttempts, user.lockoutUntil);
+      const failedLoginAttempts = user.failedLoginAttempts + 1;
 
       await api.prisma.user.update({
         where: { id: user.id },
 
         data: {
-          failedLoginAttempts: failure.failedLoginAttempts,
-
-          lockoutUntil: failure.lockoutUntil,
+          failedLoginAttempts,
         },
       });
 
-      if (failure.lockoutUntil) {
-        api.logSecurity("WARN", "Auth account lockout applied", {
-          userId: user.id,
-          attempts: failure.failedLoginAttempts,
-          maxAttempts: api.getLoginLockoutMaxAttempts(),
-          lockoutSeconds: failure.status.lockoutWindowSeconds,
-        });
-      }
-
-      api.alertFailedLogins(user.email, getClientIp(req), failure.failedLoginAttempts);
-
-      if (failure.status.locked) {
-        sendLoginLockoutResponse(res, failure.status);
-        return;
-      }
+      api.alertFailedLogins(user.email, getClientIp(req), failedLoginAttempts);
 
       res.status(401).json({ error: "Identifiants incorrects" });
 
@@ -308,15 +252,11 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
 
     // Connexion réussie : Réinitialiser le compteur d'erreurs
 
-    clearEmailLoginLockout(email);
-
     await api.prisma.user.update({
       where: { id: user.id },
 
       data: {
         failedLoginAttempts: 0,
-
-        lockoutUntil: null,
       },
     });
 

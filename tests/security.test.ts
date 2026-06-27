@@ -64,11 +64,10 @@ rulesTest("security", () => {
   assert.match(serverSource, /roomService\.removeParticipant/);
   assert.match(serverSource, /roomService\.mutePublishedTrack/);
 
-  // 6. Brute force login limité et lockout
-  assert.match(serverSource, /user\.lockoutUntil/);
-  assert.match(serverSource, /buildAccountLoginFailureUpdate\(user\.failedLoginAttempts,\s*user\.lockoutUntil\)/);
-  assert.match(serverSource, /failedLoginAttempts:\s*failure\.failedLoginAttempts/);
-  assert.match(serverSource, /recordEmailLoginFailure/);
+  // 6. Connexion sans verrouillage de compte persistant
+  assert.doesNotMatch(serverSource, /buildAccountLoginFailureUpdate|recordEmailLoginFailure/);
+  assert.doesNotMatch(serverSource, /sendLoginLockoutResponse|\/api\/auth\/login-status/);
+  assert.match(serverSource, /failedLoginAttempts:\s*0/);
   assert.doesNotMatch(serverSource, /app\.use\("\/api\/auth\/login", authRateLimiter\)/);
 
   // 6b. Inscription publique validée par Zod (mot de passe fort + email normalisé)

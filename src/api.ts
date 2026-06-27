@@ -10,7 +10,6 @@ const API_LONG_REQUEST_TIMEOUT_MS = Number((import.meta as any).env?.VITE_API_LO
 const LONG_REQUEST_PATH_PREFIXES = ["/api/paypal/", "/api/chat-tutor", "/api/contact", "/api/support"];
 const AUTH_PATHS_WITHOUT_REFRESH = new Set([
   "/api/auth/login",
-  "/api/auth/login-status",
   "/api/auth/register",
   "/api/auth/verify-email",
   "/api/auth/resend-verification-code",
@@ -208,7 +207,6 @@ async function request<T>(method: string, path: string, body?: unknown, allowCsr
         isRateLimit: true,
         retryAfter: bodyRetryAfter ?? retryAfterSeconds,
         maxAttempts: err?.maxAttempts,
-        lockoutWindowSeconds: err?.lockoutWindowSeconds,
       });
     }
     throw error;
@@ -320,13 +318,6 @@ export const api = {
     ),
   login: (email: string, password: string, role: string) =>
     request<any>("POST", "/api/auth/login", { email, password, role }),
-  getLoginLockoutStatus: (email: string, role?: string) =>
-    request<{
-      locked: boolean;
-      retryAfter: number;
-      maxAttempts: number;
-      lockoutWindowSeconds: number;
-    }>("POST", "/api/auth/login-status", { email, ...(role ? { role } : {}) }),
   verifyMfaTotp: (mfaToken: string, code: string) =>
     request<any>("POST", "/api/auth/mfa/totp/verify", { mfaToken, code }),
   beginPasskeyLogin: (email?: string) =>
