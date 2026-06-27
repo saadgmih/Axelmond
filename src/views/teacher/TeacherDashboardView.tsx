@@ -17,6 +17,7 @@ import {
   Target,
   Tag,
   TrendingUp,
+  UserMinus,
   UserPlus,
   Users,
   Video,
@@ -47,7 +48,10 @@ interface TeacherDashboardViewProps {
   setGradesCourseId: (id: number) => void;
   selectedGradesCourse: Course | null;
   gradesStatusMsg: string;
+  gradesRefreshKey: number;
   courseGrades: CourseGrade[];
+  removingEnrollmentKey: string | null;
+  handleRemoveStudentEnrollment: (courseId: number, studentId: string, studentName: string) => void | Promise<void>;
   getInitials: (name: string) => string;
   getGradeBadgeClass: (score: number | null) => string;
   onTeacherNavigate?: (view: string) => void;
@@ -200,7 +204,10 @@ export default function TeacherDashboardView({
   setGradesCourseId,
   selectedGradesCourse,
   gradesStatusMsg,
+  gradesRefreshKey,
   courseGrades,
+  removingEnrollmentKey,
+  handleRemoveStudentEnrollment,
   getInitials,
   getGradeBadgeClass,
   onTeacherNavigate,
@@ -209,6 +216,7 @@ export default function TeacherDashboardView({
   const [gradesByCourse, setGradesByCourse] = useState<Record<number, CourseGrade[]>>({});
   const [draftPrices, setDraftPrices] = useState<Record<number, number>>({});
   const managedCourseIds = managedCourses.map((course) => course.id).join(",");
+  const canRemoveEnrollment = currentUser.role === "ADMIN";
 
   useEffect(() => {
     let disposed = false;
@@ -245,7 +253,7 @@ export default function TeacherDashboardView({
     return () => {
       disposed = true;
     };
-  }, [managedCourseIds, managedCourses.length]);
+  }, [managedCourseIds, managedCourses.length, gradesRefreshKey]);
 
   const dashboard = useMemo(() => {
     const publishedModules = managedCourses.filter((course) => course.published).length;
@@ -823,30 +831,50 @@ export default function TeacherDashboardView({
               </div>
             )}
 
-            {courseGrades.map((grade) => (
-              <div
-                key={grade.studentId}
-                className="flex items-center justify-between gap-3 p-4 border border-slate-100 rounded-2xl hover:bg-slate-50/50"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-9 h-9 bg-indigo-50 text-indigo-700 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0">
-                    {getInitials(grade.studentName)}
+            {courseGrades.map((grade) => {
+              const removeKey = `${gradesCourseId}:${grade.studentId}`;
+              const isRemoving = removingEnrollmentKey === removeKey;
+              return (
+                <div
+                  key={grade.studentId}
+                  className="flex items-center justify-between gap-3 p-4 border border-slate-100 rounded-2xl hover:bg-slate-50/50"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-9 h-9 bg-indigo-50 text-indigo-700 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0">
+                      {getInitials(grade.studentName)}
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="text-xs font-bold text-slate-800 leading-tight truncate">{grade.studentName}</h4>
+                      <p className="text-[10px] text-slate-400 uppercase font-semibold">
+                        Inscrit à {grade.enrolledCoursesCount} module{grade.enrolledCoursesCount > 1 ? "s" : ""} ·{" "}
+                        {grade.completedQuizzesCount} quiz terminé{grade.completedQuizzesCount > 1 ? "s" : ""}
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <h4 className="text-xs font-bold text-slate-800 leading-tight truncate">{grade.studentName}</h4>
-                    <p className="text-[10px] text-slate-400 uppercase font-semibold">
-                      Inscrit à {grade.enrolledCoursesCount} module{grade.enrolledCoursesCount > 1 ? "s" : ""} ·{" "}
-                      {grade.completedQuizzesCount} quiz terminé{grade.completedQuizzesCount > 1 ? "s" : ""}
-                    </p>
+                  <div className="flex shrink-0 flex-col items-end gap-2 sm:flex-row sm:items-center">
+                    <span
+                      className={`text-xs font-extrabold px-2.5 py-1 rounded-lg whitespace-nowrap ${getGradeBadgeClass(grade.averageScoreOutOf20)}`}
+                    >
+                      {grade.averageScoreOutOf20 === null ? "Aucune note" : `Moyenne: ${grade.averageScoreOutOf20}/20`}
+                    </span>
+                    {canRemoveEnrollment && (
+                      <button
+                        type="button"
+                        disabled={isRemoving}
+                        onClick={() =>
+                          void handleRemoveStudentEnrollment(gradesCourseId, grade.studentId, grade.studentName)
+                        }
+                        className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-red-200 transition-colors hover:bg-red-500/20 disabled:cursor-wait disabled:opacity-60"
+                        title="Retirer cet étudiant du module"
+                      >
+                        <UserMinus className="h-3.5 w-3.5" />
+                        {isRemoving ? "Retrait..." : "Retirer"}
+                      </button>
+                    )}
                   </div>
                 </div>
-                <span
-                  className={`text-xs font-extrabold px-2.5 py-1 rounded-lg whitespace-nowrap ${getGradeBadgeClass(grade.averageScoreOutOf20)}`}
-                >
-                  {grade.averageScoreOutOf20 === null ? "Aucune note" : `Moyenne: ${grade.averageScoreOutOf20}/20`}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="p-4 bg-slate-50 rounded-2xl text-slate-500 text-[11px] leading-relaxed">

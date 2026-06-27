@@ -355,6 +355,14 @@ export const api = {
   getProfessorInvites: () => request<any[]>("GET", "/api/admin/professor-invites"),
   createProfessorInvite: (data?: { code?: string }) => request<any>("POST", "/api/admin/professor-invites", data),
   deleteProfessorInvite: (code: string) => request<any>("DELETE", `/api/admin/professor-invites/${code}`),
+  removeStudentFromCourse: (courseId: number, studentId: string) =>
+    request<{
+      ok: boolean;
+      courseId: number;
+      studentId: string;
+      removedEnrollmentId: string;
+      paidEnrollment: boolean;
+    }>("DELETE", `/api/admin/courses/${courseId}/enrollments/${studentId}`),
   getAcademicProfile: () => request<any>("GET", "/api/me/profile"),
   updateAcademicProfile: (data: {
     title?: string;

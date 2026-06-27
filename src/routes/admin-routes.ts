@@ -65,6 +65,92 @@ export function registerAdminRoutes(app: Express, ctx: RouteContext): void {
     res.json({ ok: true });
   });
 
+  app.delete("/api/admin/courses/:courseId/enrollments/:studentId", requireAuth, requireAdmin, async (req, res) => {
+    const authUser = getAuthUser(req);
+    const courseId = api.parsePositiveInt(req.params.courseId);
+    const studentId = String(req.params.studentId || "").trim();
+
+    if (!courseId || !studentId) {
+      res.status(400).json({ error: "Inscription à retirer invalide" });
+      return;
+    }
+
+    const [course, student, enrollment, paymentCount] = await Promise.all([
+      api.prisma.course.findUnique({
+        where: { id: courseId },
+        select: { id: true, title: true },
+      }),
+      api.prisma.user.findUnique({
+        where: { id: studentId },
+        select: { id: true, fullName: true, email: true, role: true },
+      }),
+      api.prisma.enrollment.findUnique({
+        where: { userId_courseId: { userId: studentId, courseId } },
+        select: { id: true, active: true },
+      }),
+      api.prisma.payment.count({
+        where: { userId: studentId, courseId },
+      }),
+    ]);
+
+    if (!course) {
+      res.status(404).json({ error: api.PUBLIC_API_ERRORS.courseNotFound });
+      return;
+    }
+
+    if (!student || student.role !== "STUDENT") {
+      res.status(404).json({ error: "Étudiant introuvable" });
+      return;
+    }
+
+    if (!enrollment || !enrollment.active) {
+      res.status(404).json({ error: "Inscription introuvable ou déjà retirée" });
+      return;
+    }
+
+    await api.prisma.enrollment.update({
+      where: { id: enrollment.id },
+      data: {
+        active: false,
+        endDate: new Date(),
+      },
+    });
+
+    api.invalidateAuthUserCache(student.id);
+    await api.invalidateStudentCatalogCache(student.id);
+    await api.logAudit(
+      authUser.id,
+      authUser.email,
+      "ADMIN_REMOVE_COURSE_ENROLLMENT",
+      "Enrollment",
+      enrollment.id,
+      {
+        courseId: course.id,
+        courseTitle: course.title,
+        studentId: student.id,
+        studentEmail: student.email,
+        studentName: student.fullName,
+        paidEnrollment: paymentCount > 0,
+      },
+      req.ip,
+    );
+
+    api.logSecurity("WARN", "Admin removed student enrollment", {
+      adminId: authUser.id,
+      studentId: student.id,
+      courseId: course.id,
+      paidEnrollment: paymentCount > 0,
+    });
+
+    res.json({
+      ok: true,
+      courseId: course.id,
+      studentId: student.id,
+      removedEnrollmentId: enrollment.id,
+      paidEnrollment: paymentCount > 0,
+    });
+  });
+
   app.get("/api/admin/email-delivery-logs", requireAuth, requireAdmin, async (_req, res) => {
     const logs = await api.prisma.emailDeliveryLog.findMany({
       orderBy: { createdAt: "desc" },

@@ -363,11 +363,36 @@ body {
   color: rgb(236 72 153);
 }
 
-/* Hovers overrides */
-.dark .hover\:bg-slate-50:hover,
-.dark .hover\:bg-slate-100:hover,
-.dark .hover\:bg-slate-800\/50:hover {
-  background-color: #1e293b !important;
+/* Neutral hover suppression: avoid grey flashes on the dark enterprise UI. */
+.dark :where(
+    [class*="hover:bg-slate-"],
+    [class*="hover:bg-gray-"],
+    [class*="hover:bg-zinc-"],
+    [class*="hover:bg-neutral-"],
+    [class*="hover:bg-stone-"]
+  ):hover {
+  background-color: rgba(99, 102, 241, 0.12) !important;
+}
+
+.dark :where(
+    .bg-white[class*="hover:bg-slate-"],
+    .bg-white[class*="hover:bg-gray-"],
+    .bg-white[class*="hover:bg-zinc-"],
+    .bg-white[class*="hover:bg-neutral-"],
+    .bg-white[class*="hover:bg-stone-"]
+  ):hover {
+  background-color: #0f172a !important;
+}
+
+.dark .group:hover
+  :where(
+    [class*="group-hover:bg-slate-"],
+    [class*="group-hover:bg-gray-"],
+    [class*="group-hover:bg-zinc-"],
+    [class*="group-hover:bg-neutral-"],
+    [class*="group-hover:bg-stone-"]
+  ) {
+  background-color: rgba(99, 102, 241, 0.12) !important;
 }
 
 /* Custom shadow refinement for dark ambiance */

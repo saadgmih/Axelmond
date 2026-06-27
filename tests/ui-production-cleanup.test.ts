@@ -10,6 +10,7 @@ rulesTest("ui-production-cleanup", () => {
   const topbarSource = fs.readFileSync("src/components/Topbar.tsx", "utf8");
   const tutorSource = fs.readFileSync("src/components/AITutorChat.tsx", "utf8");
   const paymentSource = fs.readFileSync("src/components/PaymentModal.tsx", "utf8");
+  const cssSource = fs.readFileSync("src/index.css", "utf8");
   const schema = fs.readFileSync("prisma/schema.prisma", "utf8");
 
   assert.doesNotMatch(topbarSource, /setTheme|theme:\s*"light"|Passer en mode clair|Passer en mode sombre|Sun|Moon/);
@@ -29,4 +30,9 @@ rulesTest("ui-production-cleanup", () => {
   assert.match(curriculumSource, /Crédits/);
   assert.match(curriculumSource, /formatMad|formatCredits|morocco-locale/);
   assert.match(appSource, /managedCourses/);
+  assert.match(cssSource, /Neutral hover suppression/);
+  assert.match(cssSource, /\[class\*="hover:bg-slate-"\]/);
+  assert.match(cssSource, /\[class\*="hover:bg-zinc-"\]/);
+  assert.match(cssSource, /rgba\(99,\s*102,\s*241,\s*0\.12\)/);
+  assert.doesNotMatch(cssSource, /\.dark \.hover\\:bg-slate-50:hover,[\s\S]*?background-color:\s*#1e293b\s*!important/);
 });

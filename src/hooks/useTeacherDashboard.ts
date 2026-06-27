@@ -35,6 +35,8 @@ export function useTeacherDashboard({
   const [gradesCourseId, setGradesCourseId] = useState<number>(1);
   const [courseGrades, setCourseGrades] = useState<CourseGrade[]>([]);
   const [gradesStatusMsg, setGradesStatusMsg] = useState("");
+  const [gradesRefreshKey, setGradesRefreshKey] = useState(0);
+  const [removingEnrollmentKey, setRemovingEnrollmentKey] = useState<string | null>(null);
   const [testEmailTo, setTestEmailTo] = useState("");
   const [testEmailStatusMsg, setTestEmailStatusMsg] = useState("");
   const [isSendingTestEmail, setIsSendingTestEmail] = useState(false);
@@ -72,6 +74,25 @@ export function useTeacherDashboard({
       disposed = true;
     };
   }, [role, gradesCourseId, courses.length]);
+
+  const refreshCourseGrades = async (courseId = gradesCourseId, options?: { quiet?: boolean }) => {
+    if (role !== "teacher" || !courseId) return [];
+    if (!options?.quiet) setGradesStatusMsg("Chargement des notes réelles...");
+    try {
+      const grades = await api.getCourseGrades(courseId);
+      if (courseId === gradesCourseId) {
+        setCourseGrades(grades);
+        setGradesStatusMsg(grades.length ? "" : "Aucun étudiant inscrit à ce module.");
+      }
+      return grades;
+    } catch (err: any) {
+      if (courseId === gradesCourseId) {
+        setCourseGrades([]);
+        setGradesStatusMsg(getClientErrorMessage(err, "Notes indisponibles."));
+      }
+      throw err;
+    }
+  };
 
   const refreshEmailDeliverySummary = async () => {
     if (currentUser?.role !== "ADMIN") return;
@@ -197,6 +218,34 @@ export function useTeacherDashboard({
     }
   };
 
+  const handleRemoveStudentEnrollment = async (courseId: number, studentId: string, studentName: string) => {
+    if (currentUser?.role !== "ADMIN") return;
+    const course = courses.find((item) => item.id === courseId);
+    const courseTitle = course?.title || "ce module";
+    const confirmed =
+      typeof window === "undefined" ||
+      window.confirm(
+        `Retirer ${studentName} de "${courseTitle}" ?\n\nL'étudiant perdra l'accès au module même s'il l'a déjà payé. Les paiements et factures restent conservés.`,
+      );
+    if (!confirmed) return;
+
+    const key = `${courseId}:${studentId}`;
+    setRemovingEnrollmentKey(key);
+    setGradesStatusMsg(`Retrait de ${studentName} du module...`);
+    try {
+      await api.removeStudentFromCourse(courseId, studentId);
+      setCourseGrades((prev) => prev.filter((grade) => grade.studentId !== studentId));
+      setGradesStatusMsg(`${studentName} a été retiré du module.`);
+      setGradesRefreshKey((value) => value + 1);
+      await refreshCourseGrades(courseId, { quiet: true });
+    } catch (err: any) {
+      setGradesStatusMsg(getClientErrorMessage(err, "Retrait de l'étudiant impossible"));
+      await refreshCourseGrades(courseId, { quiet: true }).catch(() => undefined);
+    } finally {
+      setRemovingEnrollmentKey(null);
+    }
+  };
+
   const formatEmailLogDate = (value?: string) => {
     if (!value) return "Aucun envoi";
     return new Date(value).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
@@ -219,6 +268,8 @@ export function useTeacherDashboard({
     setGradesCourseId,
     courseGrades,
     gradesStatusMsg,
+    gradesRefreshKey,
+    removingEnrollmentKey,
     testEmailTo,
     setTestEmailTo,
     testEmailStatusMsg,
@@ -234,6 +285,7 @@ export function useTeacherDashboard({
     refreshProfessorInvites,
     handleCreateProfessorInvite,
     handleDeleteProfessorInvite,
+    handleRemoveStudentEnrollment,
     handleUpdateCoursePrice,
     handleToggleCourseLive,
     handleUpdateCourseLiveSubject,
