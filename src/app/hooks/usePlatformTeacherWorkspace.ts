@@ -3,7 +3,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { useTeacherCurriculum } from "../../hooks/useTeacherCurriculum";
 import { useTeacherDashboard } from "../../hooks/useTeacherDashboard";
 import type { AppUser } from "../../shared/app-user";
-import type { ContentSection, Course, Discipline } from "../../types";
+import type { ContentSection, Course, Discipline, FacultyDomain } from "../../types";
 import type { flattenSections } from "../../hooks/useCourseContent";
 
 type CourseContentApi = {
@@ -17,6 +17,8 @@ export function usePlatformTeacherWorkspace(options: {
   role: string;
   courses: Course[];
   setCourses: Dispatch<SetStateAction<Course[]>>;
+  domains: FacultyDomain[];
+  setDomains: Dispatch<SetStateAction<FacultyDomain[]>>;
   allDisciplines: Discipline[];
   currentUser: AppUser | null;
   courseContent: CourseContentApi;
@@ -27,6 +29,8 @@ export function usePlatformTeacherWorkspace(options: {
     role,
     courses,
     setCourses,
+    domains,
+    setDomains,
     allDisciplines,
     currentUser,
     courseContent,
@@ -69,6 +73,8 @@ export function usePlatformTeacherWorkspace(options: {
     role,
     courses,
     setCourses,
+    domains,
+    setDomains,
     managedCourses,
     currentUser,
     setActiveLiveCourse,

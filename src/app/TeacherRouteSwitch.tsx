@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import {
+  LazyAdminAcademicTaxonomyView,
   LazyAdminProfessorAccessKeysView,
   LazyMessagesView,
   LazyTeacherAcademicProfileView,
@@ -66,6 +67,16 @@ export function TeacherRouteSwitch() {
           </Suspense>
         )}
         {teacherView === "access-keys" && currentUser.role !== "ADMIN" && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-5 text-sm font-semibold text-amber-900">
+            Cet espace est réservé aux administrateurs.
+          </div>
+        )}
+        {teacherView === "academic-taxonomy" && currentUser.role === "ADMIN" && (
+          <Suspense fallback={<RouteChunkFallback label="Chargement des domaines académiques…" />}>
+            <LazyAdminAcademicTaxonomyView domains={domains} courses={courses} {...teacherDashboardBindings} />
+          </Suspense>
+        )}
+        {teacherView === "academic-taxonomy" && currentUser.role !== "ADMIN" && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-5 text-sm font-semibold text-amber-900">
             Cet espace est réservé aux administrateurs.
           </div>

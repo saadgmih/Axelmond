@@ -138,6 +138,29 @@ export const coursePatchSchema = z.object({
   published: z.boolean().optional(),
 });
 
+export const academicDomainSchema = z.object({
+  name: z.string().min(2, "Le nom du domaine est requis").max(120).trim(),
+  slug: z.string().min(2).max(140).trim().optional().nullable(),
+  iconName: z.string().min(2).max(80).trim().optional().nullable(),
+  color: z.string().min(2).max(120).trim().optional().nullable(),
+  description: z.string().max(500).trim().optional().nullable(),
+  order: z.number().int().min(0).optional(),
+});
+
+export const academicDomainPatchSchema = academicDomainSchema.partial();
+
+export const academicDisciplineSchema = z.object({
+  name: z.string().min(2, "Le nom du sous-domaine est requis").max(120).trim(),
+  slug: z.string().min(2).max(140).trim().optional().nullable(),
+  order: z.number().int().min(0).optional(),
+});
+
+export const academicDisciplinePatchSchema = academicDisciplineSchema
+  .extend({
+    domainId: z.number().int().positive().optional(),
+  })
+  .partial();
+
 export const contactSchema = z.object({
   name: z.string().min(2, "Le nom doit contenir au moins 2 caractères").max(100).trim(),
   email: z.string().email("Adresse email invalide").trim().toLowerCase(),

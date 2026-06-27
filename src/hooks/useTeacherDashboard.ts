@@ -2,7 +2,23 @@ import { useEffect, useState, type Dispatch, type FormEvent, type SetStateAction
 import { getClientErrorMessage } from "../client-errors";
 import { api } from "../api";
 import type { AppUser } from "../components/AuthScreen";
-import type { Course, CourseGrade } from "../types";
+import type { Course, CourseGrade, FacultyDomain } from "../types";
+
+export interface AcademicDomainInput {
+  name: string;
+  slug?: string;
+  iconName?: string;
+  color?: string;
+  description?: string;
+  order?: number;
+}
+
+export interface AcademicDisciplineInput {
+  name: string;
+  slug?: string;
+  order?: number;
+  domainId?: number;
+}
 
 export interface ProfessorAccessKey {
   code: string;
@@ -18,6 +34,8 @@ export interface UseTeacherDashboardOptions {
   role: string;
   courses: Course[];
   setCourses: Dispatch<SetStateAction<Course[]>>;
+  domains: FacultyDomain[];
+  setDomains: Dispatch<SetStateAction<FacultyDomain[]>>;
   managedCourses: Course[];
   currentUser: AppUser | null;
   setActiveLiveCourse: Dispatch<SetStateAction<Course | null>>;
@@ -27,6 +45,8 @@ export function useTeacherDashboard({
   role,
   courses,
   setCourses,
+  domains,
+  setDomains,
   managedCourses,
   currentUser,
   setActiveLiveCourse,
@@ -46,6 +66,8 @@ export function useTeacherDashboard({
   const [accessKeyStatusMsg, setAccessKeyStatusMsg] = useState("");
   const [isLoadingAccessKeys, setIsLoadingAccessKeys] = useState(false);
   const [isCreatingAccessKey, setIsCreatingAccessKey] = useState(false);
+  const [taxonomyStatusMsg, setTaxonomyStatusMsg] = useState("");
+  const [isSavingTaxonomy, setIsSavingTaxonomy] = useState(false);
 
   useEffect(() => {
     if (courses.length && !courses.some((course) => course.id === gradesCourseId)) {
@@ -119,15 +141,30 @@ export function useTeacherDashboard({
     }
   };
 
+  const refreshAcademicTaxonomy = async (options?: { quiet?: boolean }) => {
+    if (currentUser?.role !== "ADMIN") return;
+    if (!options?.quiet) setTaxonomyStatusMsg("Synchronisation de la taxonomie...");
+    try {
+      const [domainData, courseData] = await Promise.all([api.getDomains(), api.getCourses()]);
+      setDomains(domainData);
+      setCourses(courseData);
+      if (!options?.quiet) setTaxonomyStatusMsg("");
+    } catch (err: any) {
+      setTaxonomyStatusMsg(getClientErrorMessage(err, "Taxonomie académique indisponible"));
+    }
+  };
+
   useEffect(() => {
     if (currentUser?.role === "ADMIN") {
       refreshEmailDeliverySummary();
       refreshProfessorInvites();
+      refreshAcademicTaxonomy({ quiet: true });
     } else {
       setEmailDeliverySummary(null);
       setEmailDeliveryStatusMsg("");
       setProfessorInvites([]);
       setAccessKeyStatusMsg("");
+      setTaxonomyStatusMsg("");
     }
   }, [currentUser?.id, currentUser?.role]);
 
@@ -218,6 +255,69 @@ export function useTeacherDashboard({
     }
   };
 
+  const runTaxonomyMutation = async (
+    pendingMessage: string,
+    successMessage: string,
+    mutation: () => Promise<unknown>,
+  ) => {
+    if (currentUser?.role !== "ADMIN") return;
+    setIsSavingTaxonomy(true);
+    setTaxonomyStatusMsg(pendingMessage);
+    try {
+      await mutation();
+      await refreshAcademicTaxonomy({ quiet: true });
+      setTaxonomyStatusMsg(successMessage);
+    } catch (err: any) {
+      setTaxonomyStatusMsg(getClientErrorMessage(err, "Action taxonomie impossible"));
+      await refreshAcademicTaxonomy({ quiet: true });
+    } finally {
+      setIsSavingTaxonomy(false);
+    }
+  };
+
+  const handleCreateAcademicDomain = (data: AcademicDomainInput) =>
+    runTaxonomyMutation("Création du domaine...", "Domaine créé.", () => api.createAcademicDomain(data));
+
+  const handleUpdateAcademicDomain = (domainId: number, data: AcademicDomainInput) =>
+    runTaxonomyMutation("Modification du domaine...", "Domaine modifié.", () =>
+      api.updateAcademicDomain(domainId, data),
+    );
+
+  const handleDeleteAcademicDomain = (domainId: number, domainName: string) => {
+    const domain = domains.find((item) => item.id === domainId);
+    const confirmed =
+      typeof window === "undefined" ||
+      window.confirm(
+        `Supprimer le domaine "${domainName}" ?\n\nLa suppression est refusée s'il contient encore des sous-domaines.`,
+      );
+    if (!confirmed) return;
+    return runTaxonomyMutation("Suppression du domaine...", "Domaine supprimé.", () =>
+      api.deleteAcademicDomain(domain?.id || domainId),
+    );
+  };
+
+  const handleCreateAcademicDiscipline = (domainId: number, data: AcademicDisciplineInput) =>
+    runTaxonomyMutation("Création du sous-domaine...", "Sous-domaine créé.", () =>
+      api.createAcademicDiscipline(domainId, data),
+    );
+
+  const handleUpdateAcademicDiscipline = (disciplineId: number, data: AcademicDisciplineInput) =>
+    runTaxonomyMutation("Modification du sous-domaine...", "Sous-domaine modifié.", () =>
+      api.updateAcademicDiscipline(disciplineId, data),
+    );
+
+  const handleDeleteAcademicDiscipline = (disciplineId: number, disciplineName: string) => {
+    const confirmed =
+      typeof window === "undefined" ||
+      window.confirm(
+        `Supprimer le sous-domaine "${disciplineName}" ?\n\nLa suppression est refusée si des modules sont encore rattachés.`,
+      );
+    if (!confirmed) return;
+    return runTaxonomyMutation("Suppression du sous-domaine...", "Sous-domaine supprimé.", () =>
+      api.deleteAcademicDiscipline(disciplineId),
+    );
+  };
+
   const handleRemoveStudentEnrollment = async (courseId: number, studentId: string, studentName: string) => {
     if (currentUser?.role !== "ADMIN") return;
     const course = courses.find((item) => item.id === courseId);
@@ -280,11 +380,20 @@ export function useTeacherDashboard({
     accessKeyStatusMsg,
     isLoadingAccessKeys,
     isCreatingAccessKey,
+    taxonomyStatusMsg,
+    isSavingTaxonomy,
     formatEmailLogDate,
     handleSendTestEmail,
     refreshProfessorInvites,
     handleCreateProfessorInvite,
     handleDeleteProfessorInvite,
+    refreshAcademicTaxonomy,
+    handleCreateAcademicDomain,
+    handleUpdateAcademicDomain,
+    handleDeleteAcademicDomain,
+    handleCreateAcademicDiscipline,
+    handleUpdateAcademicDiscipline,
+    handleDeleteAcademicDiscipline,
     handleRemoveStudentEnrollment,
     handleUpdateCoursePrice,
     handleToggleCourseLive,

@@ -172,6 +172,8 @@ export function usePlatformApp() {
     role,
     courses,
     setCourses,
+    domains,
+    setDomains,
     allDisciplines,
     currentUser,
     courseContent: {

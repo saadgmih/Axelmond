@@ -1,4 +1,5 @@
 import { purgeLegacySessionUserStorage } from "./session-storage";
+import type { Discipline, FacultyDomain } from "./types";
 
 const BASE_URL = ((import.meta as any).env?.VITE_API_BASE_URL || "").replace(/\/$/, "");
 const LEGACY_ACCESS_TOKEN_KEY = "axelmond_session_token";
@@ -355,6 +356,46 @@ export const api = {
   getProfessorInvites: () => request<any[]>("GET", "/api/admin/professor-invites"),
   createProfessorInvite: (data?: { code?: string }) => request<any>("POST", "/api/admin/professor-invites", data),
   deleteProfessorInvite: (code: string) => request<any>("DELETE", `/api/admin/professor-invites/${code}`),
+  createAcademicDomain: (data: {
+    name: string;
+    slug?: string;
+    iconName?: string;
+    color?: string;
+    description?: string;
+    order?: number;
+  }) => request<FacultyDomain>("POST", "/api/admin/academic-domains", data),
+  updateAcademicDomain: (
+    domainId: number,
+    data: {
+      name?: string;
+      slug?: string;
+      iconName?: string;
+      color?: string;
+      description?: string;
+      order?: number;
+    },
+  ) => request<FacultyDomain>("PUT", `/api/admin/academic-domains/${domainId}`, data),
+  deleteAcademicDomain: (domainId: number) =>
+    request<{ ok: boolean }>("DELETE", `/api/admin/academic-domains/${domainId}`),
+  createAcademicDiscipline: (
+    domainId: number,
+    data: {
+      name: string;
+      slug?: string;
+      order?: number;
+    },
+  ) => request<Discipline>("POST", `/api/admin/academic-domains/${domainId}/disciplines`, data),
+  updateAcademicDiscipline: (
+    disciplineId: number,
+    data: {
+      domainId?: number;
+      name?: string;
+      slug?: string;
+      order?: number;
+    },
+  ) => request<Discipline>("PUT", `/api/admin/academic-disciplines/${disciplineId}`, data),
+  deleteAcademicDiscipline: (disciplineId: number) =>
+    request<{ ok: boolean }>("DELETE", `/api/admin/academic-disciplines/${disciplineId}`),
   removeStudentFromCourse: (courseId: number, studentId: string) =>
     request<{
       ok: boolean;

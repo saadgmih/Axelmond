@@ -10,8 +10,36 @@ import {
   parseAuditLogDate,
 } from "../audit-log-service";
 
+function slugifyAcademicLabel(value: string, fallback: string) {
+  const source = (value || fallback).trim() || fallback;
+  const slug = source
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 140);
+  return slug || fallback;
+}
+
+async function nextFacultyDomainId() {
+  const aggregate = await api.prisma.facultyDomain.aggregate({ _max: { id: true } });
+  return (aggregate._max.id || 0) + 1;
+}
+
+async function nextDisciplineId() {
+  const aggregate = await api.prisma.discipline.aggregate({ _max: { id: true } });
+  return (aggregate._max.id || 0) + 1;
+}
+
+function taxonomyConflictMessage(err: unknown, fallback: string) {
+  const code = (err as { code?: string })?.code;
+  if (code === "P2002") return "Un domaine ou sous-domaine utilise déjà ce nom ou ce slug";
+  return fallback;
+}
+
 export function registerAdminRoutes(app: Express, ctx: RouteContext): void {
-  const { requireAuth, requireAdmin } = ctx.middleware;
+  const { requireAuth, requireAdmin, validateBody } = ctx.middleware;
 
   app.get("/api/admin/professor-invites", requireAuth, requireAdmin, async (_req, res) => {
     const invitations = await api.prisma.professorInviteCode.findMany({
@@ -149,6 +177,299 @@ export function registerAdminRoutes(app: Express, ctx: RouteContext): void {
       removedEnrollmentId: enrollment.id,
       paidEnrollment: paymentCount > 0,
     });
+  });
+
+  app.post(
+    "/api/admin/academic-domains",
+    requireAuth,
+    requireAdmin,
+    validateBody(api.academicDomainSchema),
+    async (req, res) => {
+      const authUser = getAuthUser(req);
+      const id = await nextFacultyDomainId();
+      const name = req.body.name;
+      const slug = slugifyAcademicLabel(req.body.slug || name, `domaine-${id}`);
+
+      try {
+        const domain = await api.prisma.facultyDomain.create({
+          data: {
+            id,
+            name,
+            slug,
+            iconName: req.body.iconName || "Layers",
+            color: req.body.color || "from-violet-600 to-indigo-600",
+            description: req.body.description || "Domaine académique personnalisé.",
+            order: req.body.order ?? id,
+          },
+          include: { disciplines: { orderBy: { order: "asc" } } },
+        });
+
+        await api.invalidatePublicCatalogCache();
+        await api.logAudit(
+          authUser.id,
+          authUser.email,
+          "ADMIN_CREATE_ACADEMIC_DOMAIN",
+          "FacultyDomain",
+          String(domain.id),
+          { name: domain.name, slug: domain.slug },
+          req.ip,
+        );
+
+        res.status(201).json(api.toDomain({ ...domain, courseCount: 0 }));
+      } catch (err: unknown) {
+        api.logDb("ERROR", "Academic domain creation failed", { error: String(err), name });
+        res.status((err as { code?: string })?.code === "P2002" ? 409 : 500).json({
+          error: taxonomyConflictMessage(err, "Création du domaine impossible"),
+        });
+      }
+    },
+  );
+
+  app.put(
+    "/api/admin/academic-domains/:domainId",
+    requireAuth,
+    requireAdmin,
+    validateBody(api.academicDomainPatchSchema),
+    async (req, res) => {
+      const authUser = getAuthUser(req);
+      const domainId = api.parsePositiveInt(req.params.domainId);
+      if (!domainId) {
+        res.status(400).json({ error: "Domaine académique invalide" });
+        return;
+      }
+
+      const existing = await api.prisma.facultyDomain.findUnique({ where: { id: domainId } });
+      if (!existing) {
+        res.status(404).json({ error: "Domaine académique introuvable" });
+        return;
+      }
+
+      const data: Record<string, unknown> = {};
+      if (req.body.name !== undefined) data.name = req.body.name;
+      if (req.body.slug !== undefined)
+        data.slug = slugifyAcademicLabel(req.body.slug || req.body.name || existing.name, existing.slug);
+      if (req.body.iconName !== undefined) data.iconName = req.body.iconName || existing.iconName;
+      if (req.body.color !== undefined) data.color = req.body.color || existing.color;
+      if (req.body.description !== undefined) data.description = req.body.description || existing.description;
+      if (req.body.order !== undefined) data.order = req.body.order;
+
+      try {
+        const domain = await api.prisma.facultyDomain.update({
+          where: { id: domainId },
+          data,
+          include: { disciplines: { orderBy: { order: "asc" } } },
+        });
+
+        await api.invalidatePublicCatalogCache();
+        await api.logAudit(
+          authUser.id,
+          authUser.email,
+          "ADMIN_UPDATE_ACADEMIC_DOMAIN",
+          "FacultyDomain",
+          String(domain.id),
+          { name: domain.name, slug: domain.slug },
+          req.ip,
+        );
+
+        res.json(api.toDomain(domain));
+      } catch (err: unknown) {
+        api.logDb("ERROR", "Academic domain update failed", { error: String(err), domainId });
+        res.status((err as { code?: string })?.code === "P2002" ? 409 : 500).json({
+          error: taxonomyConflictMessage(err, "Modification du domaine impossible"),
+        });
+      }
+    },
+  );
+
+  app.delete("/api/admin/academic-domains/:domainId", requireAuth, requireAdmin, async (req, res) => {
+    const authUser = getAuthUser(req);
+    const domainId = api.parsePositiveInt(req.params.domainId);
+    if (!domainId) {
+      res.status(400).json({ error: "Domaine académique invalide" });
+      return;
+    }
+
+    const domain = await api.prisma.facultyDomain.findUnique({
+      where: { id: domainId },
+      include: { _count: { select: { disciplines: true } } },
+    });
+    if (!domain) {
+      res.status(404).json({ error: "Domaine académique introuvable" });
+      return;
+    }
+    if (domain._count.disciplines > 0) {
+      res.status(409).json({ error: "Supprimez d'abord les sous-domaines de ce domaine" });
+      return;
+    }
+
+    await api.prisma.facultyDomain.delete({ where: { id: domainId } });
+    await api.invalidatePublicCatalogCache();
+    await api.logAudit(
+      authUser.id,
+      authUser.email,
+      "ADMIN_DELETE_ACADEMIC_DOMAIN",
+      "FacultyDomain",
+      String(domain.id),
+      { name: domain.name, slug: domain.slug },
+      req.ip,
+    );
+
+    res.json({ ok: true, domainId });
+  });
+
+  app.post(
+    "/api/admin/academic-domains/:domainId/disciplines",
+    requireAuth,
+    requireAdmin,
+    validateBody(api.academicDisciplineSchema),
+    async (req, res) => {
+      const authUser = getAuthUser(req);
+      const domainId = api.parsePositiveInt(req.params.domainId);
+      if (!domainId) {
+        res.status(400).json({ error: "Domaine académique invalide" });
+        return;
+      }
+
+      const domain = await api.prisma.facultyDomain.findUnique({ where: { id: domainId } });
+      if (!domain) {
+        res.status(404).json({ error: "Domaine académique introuvable" });
+        return;
+      }
+
+      const id = await nextDisciplineId();
+      const name = req.body.name;
+      const slug = slugifyAcademicLabel(req.body.slug || name, `sous-domaine-${id}`);
+
+      try {
+        const discipline = await api.prisma.discipline.create({
+          data: {
+            id,
+            domainId,
+            name,
+            slug,
+            order: req.body.order ?? id,
+          },
+          include: { domain: true },
+        });
+
+        await api.invalidatePublicCatalogCache();
+        await api.logAudit(
+          authUser.id,
+          authUser.email,
+          "ADMIN_CREATE_ACADEMIC_DISCIPLINE",
+          "Discipline",
+          String(discipline.id),
+          { name: discipline.name, slug: discipline.slug, domainId },
+          req.ip,
+        );
+
+        res.status(201).json(api.toDiscipline({ ...discipline, courseCount: 0 }));
+      } catch (err: unknown) {
+        api.logDb("ERROR", "Academic discipline creation failed", { error: String(err), domainId, name });
+        res.status((err as { code?: string })?.code === "P2002" ? 409 : 500).json({
+          error: taxonomyConflictMessage(err, "Création du sous-domaine impossible"),
+        });
+      }
+    },
+  );
+
+  app.put(
+    "/api/admin/academic-disciplines/:disciplineId",
+    requireAuth,
+    requireAdmin,
+    validateBody(api.academicDisciplinePatchSchema),
+    async (req, res) => {
+      const authUser = getAuthUser(req);
+      const disciplineId = api.parsePositiveInt(req.params.disciplineId);
+      if (!disciplineId) {
+        res.status(400).json({ error: "Sous-domaine académique invalide" });
+        return;
+      }
+
+      const existing = await api.prisma.discipline.findUnique({ where: { id: disciplineId } });
+      if (!existing) {
+        res.status(404).json({ error: "Sous-domaine académique introuvable" });
+        return;
+      }
+
+      if (req.body.domainId !== undefined) {
+        const domain = await api.prisma.facultyDomain.findUnique({ where: { id: Number(req.body.domainId) } });
+        if (!domain) {
+          res.status(404).json({ error: "Domaine cible introuvable" });
+          return;
+        }
+      }
+
+      const data: Record<string, unknown> = {};
+      if (req.body.name !== undefined) data.name = req.body.name;
+      if (req.body.slug !== undefined) {
+        data.slug = slugifyAcademicLabel(req.body.slug || req.body.name || existing.name, existing.slug);
+      }
+      if (req.body.order !== undefined) data.order = req.body.order;
+      if (req.body.domainId !== undefined) data.domainId = Number(req.body.domainId);
+
+      try {
+        const discipline = await api.prisma.discipline.update({
+          where: { id: disciplineId },
+          data,
+          include: { domain: true },
+        });
+
+        await api.invalidatePublicCatalogCache();
+        await api.logAudit(
+          authUser.id,
+          authUser.email,
+          "ADMIN_UPDATE_ACADEMIC_DISCIPLINE",
+          "Discipline",
+          String(discipline.id),
+          { name: discipline.name, slug: discipline.slug, domainId: discipline.domainId },
+          req.ip,
+        );
+
+        res.json(api.toDiscipline(discipline));
+      } catch (err: unknown) {
+        api.logDb("ERROR", "Academic discipline update failed", { error: String(err), disciplineId });
+        res.status((err as { code?: string })?.code === "P2002" ? 409 : 500).json({
+          error: taxonomyConflictMessage(err, "Modification du sous-domaine impossible"),
+        });
+      }
+    },
+  );
+
+  app.delete("/api/admin/academic-disciplines/:disciplineId", requireAuth, requireAdmin, async (req, res) => {
+    const authUser = getAuthUser(req);
+    const disciplineId = api.parsePositiveInt(req.params.disciplineId);
+    if (!disciplineId) {
+      res.status(400).json({ error: "Sous-domaine académique invalide" });
+      return;
+    }
+
+    const discipline = await api.prisma.discipline.findUnique({
+      where: { id: disciplineId },
+      include: { _count: { select: { courses: true } } },
+    });
+    if (!discipline) {
+      res.status(404).json({ error: "Sous-domaine académique introuvable" });
+      return;
+    }
+    if (discipline._count.courses > 0) {
+      res.status(409).json({ error: "Déplacez ou supprimez les modules attachés avant de supprimer ce sous-domaine" });
+      return;
+    }
+
+    await api.prisma.discipline.delete({ where: { id: disciplineId } });
+    await api.invalidatePublicCatalogCache();
+    await api.logAudit(
+      authUser.id,
+      authUser.email,
+      "ADMIN_DELETE_ACADEMIC_DISCIPLINE",
+      "Discipline",
+      String(discipline.id),
+      { name: discipline.name, slug: discipline.slug, domainId: discipline.domainId },
+      req.ip,
+    );
+
+    res.json({ ok: true, disciplineId });
   });
 
   app.get("/api/admin/email-delivery-logs", requireAuth, requireAdmin, async (_req, res) => {
