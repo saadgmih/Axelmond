@@ -45,7 +45,7 @@ const PRODUCTION_OVERRIDES = {
   SKIP_PRISMA_POSTINSTALL: "1",
   GRACEFUL_SHUTDOWN_MS: "8000",
   AUTH_MAX_ATTEMPTS: "10",
-  AUTH_LOCKOUT_WINDOW_MS: "20000",
+  AUTH_LOCKOUT_WINDOW_MS: "30000",
 };
 
 const required = [
@@ -80,10 +80,7 @@ function parseEnvFile(raw) {
     if (eq <= 0) continue;
     const key = trimmed.slice(0, eq).trim();
     let value = trimmed.slice(eq + 1).trim();
-    if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
       value = value.slice(1, -1);
     }
     entries.set(key, value);
@@ -142,10 +139,7 @@ const placeholderIssues = required.filter((key) => {
   return PLACEHOLDER_PATTERN.test(value) || value.includes("MY_");
 });
 if (placeholderIssues.length > 0) {
-  console.error(
-    "[hostinger-env] Placeholder values still set for:",
-    placeholderIssues.join(", "),
-  );
+  console.error("[hostinger-env] Placeholder values still set for:", placeholderIssues.join(", "));
   process.exit(1);
 }
 
@@ -164,9 +158,7 @@ if (
   process.exit(1);
 }
 
-const lines = [...entries.entries()]
-  .sort(([a], [b]) => a.localeCompare(b))
-  .map(([key, value]) => `${key}=${value}`);
+const lines = [...entries.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([key, value]) => `${key}=${value}`);
 
 fs.writeFileSync(outputPath, `${lines.join("\n")}\n`, "utf8");
 

@@ -2,7 +2,9 @@ import type { Express } from "express";
 import type { RouteContext } from "../../server/route-context";
 import * as api from "../../server/route-deps";
 import {
+  buildAccountLoginFailureUpdate,
   clearEmailLoginLockout,
+  getAccountLoginLockoutStatus,
   getEmailLoginLockoutStatus,
   recordEmailLoginFailure,
   sendLoginLockoutResponse,
@@ -193,7 +195,7 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
       where: { email },
       select: { lockoutUntil: true },
     });
-    res.json(getEmailLoginLockoutStatus(email, user?.lockoutUntil ?? null));
+    res.json(user ? getAccountLoginLockoutStatus(user.lockoutUntil) : getEmailLoginLockoutStatus(email));
   });
 
   // POST /api/auth/login
@@ -215,7 +217,7 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
       include: api.APP_USER_BILLING_INCLUDE,
     });
 
-    const preLockout = getEmailLoginLockoutStatus(email, user?.lockoutUntil ?? null);
+    const preLockout = user ? getAccountLoginLockoutStatus(user.lockoutUntil) : getEmailLoginLockoutStatus(email);
     if (preLockout.locked) {
       sendLoginLockoutResponse(res, preLockout);
       return;
@@ -237,6 +239,8 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
       return;
     }
 
+    clearEmailLoginLockout(email);
+
     if (!api.canLoginToRequestedRole(user.role, requestedRole)) {
       api.logSecurity("WARN", "Login sector mismatch", { userId: user.id, requestedRole, actualRole: user.role });
 
@@ -248,33 +252,31 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
     const isValidPassword = await api.bcrypt.compare(password, user.passwordHash);
 
     if (!isValidPassword) {
-      const lockout = recordEmailLoginFailure(email, user.lockoutUntil);
-      const attempts = Math.min(user.failedLoginAttempts + 1, api.getLoginLockoutMaxAttempts());
-      const lockoutUntil = lockout.locked ? new Date(Date.now() + api.getLoginLockoutWindowMs()) : null;
+      const failure = buildAccountLoginFailureUpdate(user.failedLoginAttempts, user.lockoutUntil);
 
       await api.prisma.user.update({
         where: { id: user.id },
 
         data: {
-          failedLoginAttempts: attempts,
+          failedLoginAttempts: failure.failedLoginAttempts,
 
-          lockoutUntil,
+          lockoutUntil: failure.lockoutUntil,
         },
       });
 
-      if (lockoutUntil) {
+      if (failure.lockoutUntil) {
         api.logSecurity("WARN", "Auth account lockout applied", {
           userId: user.id,
-          attempts,
+          attempts: failure.failedLoginAttempts,
           maxAttempts: api.getLoginLockoutMaxAttempts(),
-          lockoutSeconds: lockout.lockoutWindowSeconds,
+          lockoutSeconds: failure.status.lockoutWindowSeconds,
         });
       }
 
-      api.alertFailedLogins(user.email, getClientIp(req), attempts);
+      api.alertFailedLogins(user.email, getClientIp(req), failure.failedLoginAttempts);
 
-      if (lockout.locked) {
-        sendLoginLockoutResponse(res, lockout);
+      if (failure.status.locked) {
+        sendLoginLockoutResponse(res, failure.status);
         return;
       }
 

@@ -19,11 +19,11 @@ rulesTest("auth-lockout-config", () => {
   delete process.env.SECURITY_RUNTIME_TEST;
 
   assert.equal(LOGIN_LOCKOUT_MAX_ATTEMPTS, 10);
-  assert.equal(LOGIN_LOCKOUT_WINDOW_MS, 20_000);
-  assert.equal(LOGIN_LOCKOUT_WINDOW_SECONDS, 20);
+  assert.equal(LOGIN_LOCKOUT_WINDOW_MS, 30_000);
+  assert.equal(LOGIN_LOCKOUT_WINDOW_SECONDS, 30);
   assert.equal(getLoginLockoutMaxAttempts(), 10);
-  assert.equal(getLoginLockoutWindowMs(), 20_000);
-  assert.equal(getLoginLockoutWindowSeconds(), 20);
+  assert.equal(getLoginLockoutWindowMs(), 30_000);
+  assert.equal(getLoginLockoutWindowSeconds(), 30);
 
   process.env.SECURITY_RUNTIME_TEST = "1";
   process.env.AUTH_MAX_ATTEMPTS = "5";

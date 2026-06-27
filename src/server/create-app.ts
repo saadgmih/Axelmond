@@ -73,24 +73,20 @@ function addOriginPair(origins: Set<string>, origin: string) {
 
 function buildAllowedOrigins(port: number, isProduction: boolean): Set<string> {
   const origins = new Set<string>();
-
   if (process.env.APP_URL?.trim()) {
     addOriginPair(origins, process.env.APP_URL);
   }
-
   if (process.env.ALLOWED_ORIGINS?.trim()) {
     for (const part of process.env.ALLOWED_ORIGINS.split(",")) {
       addOriginPair(origins, part);
     }
   }
-
   if (!isProduction) {
     origins.add(`http://localhost:${port}`);
     origins.add(`http://127.0.0.1:${port}`);
     origins.add("http://localhost:5173");
     origins.add("http://127.0.0.1:5173");
   }
-
   return origins;
 }
 
@@ -110,18 +106,15 @@ function buildCspConnectSrc(allowedOrigins: Set<string>, isProduction: boolean):
     "https://www.paypal.com",
     "https://www.sandbox.paypal.com",
   ];
-
   if (!isProduction) {
     connectSrc.push("ws://localhost:*", "ws://127.0.0.1:*", "http://localhost:*", "http://127.0.0.1:*");
   }
-
   for (const origin of allowedOrigins) {
     connectSrc.push(origin);
     if (origin.startsWith("https://")) {
       connectSrc.push(origin.replace(/^https:/, "wss:"));
     }
   }
-
   return connectSrc;
 }
 
@@ -148,14 +141,11 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
   }
   const cspNonce = (_req: IncomingMessage, res: ServerResponse) =>
     `'nonce-${(res as express.Response).locals.cspNonce}'`;
-
   const cspFrameSrc = buildCspFrameSrc();
-
   app.use((_req, res, next) => {
     res.locals.cspNonce = crypto.randomBytes(16).toString("base64");
     next();
   });
-
   if (isProduction && process.env.APP_URL?.trim()) {
     const canonicalHost = canonicalSiteHostname(process.env.APP_URL);
     app.use((req, res, next) => {
@@ -262,23 +252,17 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
 
   app.use(cookieParser());
   app.use(mobileClientSpoofGuard);
-
   app.use("/api", (req, res, next) => {
     if (startupLifecycle.isShuttingDown || isDatabaseDisconnected()) {
-      res
-        .status(503)
-        .setHeader("Connection", "close")
-        .json({
-          error: "Le service redémarre. Réessayez dans quelques secondes.",
-          code: "SERVICE_SHUTTING_DOWN",
-        });
+      res.status(503).setHeader("Connection", "close").json({
+        error: "Le service redémarre. Réessayez dans quelques secondes.",
+        code: "SERVICE_SHUTTING_DOWN",
+      });
       return;
     }
     next();
   });
-
   const routeCtx = createRouteContext(routeDeps);
-
   const paypalWebhookRateLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: isSecurityRuntimeTest ? 9999 : Number(process.env.PAYPAL_WEBHOOK_RATE_LIMIT_MAX) || 120,
@@ -290,9 +274,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
       code: "PAYPAL_WEBHOOK_RATE_LIMIT_EXCEEDED",
     },
   });
-
   registerPayPalWebhook(app, routeCtx, paypalWebhookRateLimiter);
-
   app.use(express.json({ limit: JSON_BODY_LIMIT }));
   app.use(csrfProtection);
   app.use(
@@ -312,7 +294,6 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     message: { error: "Trop de requêtes. Veuillez réessayer dans quelques minutes.", code: "RATE_LIMIT_EXCEEDED" },
     skip: (req) => req.path === "/health" || req.path === "/live" || req.path === "/paypal/webhook",
   });
-
   const authRateLimiter = rateLimit({
     windowMs: AUTH_LOCKOUT_WINDOW_MS,
     max: AUTH_MAX_ATTEMPTS,
@@ -327,7 +308,6 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
       code: "AUTH_RATE_LIMIT_EXCEEDED",
     },
   });
-
   const emailVerificationSendRateLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 5,
@@ -339,7 +319,6 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
       code: "EMAIL_RATE_LIMIT_EXCEEDED",
     },
   });
-
   const emailVerificationCheckRateLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 10,
@@ -351,7 +330,6 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
       code: "EMAIL_RATE_LIMIT_EXCEEDED",
     },
   });
-
   const passwordResetRequestRateLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 5,

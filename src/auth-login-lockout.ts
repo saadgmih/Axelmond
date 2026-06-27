@@ -12,6 +12,12 @@ export interface LoginLockoutStatus {
   lockoutWindowSeconds: number;
 }
 
+export interface AccountLoginFailureUpdate {
+  failedLoginAttempts: number;
+  lockoutUntil: Date | null;
+  status: LoginLockoutStatus;
+}
+
 type EmailLockoutRecord = {
   attempts: number;
   lockoutUntil: number | null;
@@ -36,24 +42,7 @@ function retryAfterFromDbLockout(dbLockoutUntil: Date | null | undefined, now: n
   return Math.ceil((dbLockoutUntil.getTime() - now) / 1000);
 }
 
-export function getEmailLoginLockoutStatus(
-  email: string,
-  dbLockoutUntil?: Date | null,
-): LoginLockoutStatus {
-  const key = normalizeLoginEmail(email);
-  const now = Date.now();
-  let retryAfter = retryAfterFromDbLockout(dbLockoutUntil, now);
-
-  let record = emailLockouts.get(key);
-  if (record) {
-    const active = purgeExpiredRecord(key, record, now);
-    record = active ?? undefined;
-  }
-
-  if (record?.lockoutUntil && record.lockoutUntil > now) {
-    retryAfter = Math.max(retryAfter, Math.ceil((record.lockoutUntil - now) / 1000));
-  }
-
+function buildLoginLockoutStatus(retryAfter: number): LoginLockoutStatus {
   return {
     locked: retryAfter > 0,
     retryAfter,
@@ -62,13 +51,32 @@ export function getEmailLoginLockoutStatus(
   };
 }
 
-export function recordEmailLoginFailure(
-  email: string,
-  dbLockoutUntil?: Date | null,
-): LoginLockoutStatus {
+export function getAccountLoginLockoutStatus(dbLockoutUntil?: Date | null): LoginLockoutStatus {
+  const now = Date.now();
+  return buildLoginLockoutStatus(retryAfterFromDbLockout(dbLockoutUntil, now));
+}
+
+export function getEmailLoginLockoutStatus(email: string): LoginLockoutStatus {
   const key = normalizeLoginEmail(email);
   const now = Date.now();
-  const current = getEmailLoginLockoutStatus(email, dbLockoutUntil);
+  let record = emailLockouts.get(key);
+  if (record) {
+    const active = purgeExpiredRecord(key, record, now);
+    record = active ?? undefined;
+  }
+
+  let retryAfter = 0;
+  if (record?.lockoutUntil && record.lockoutUntil > now) {
+    retryAfter = Math.ceil((record.lockoutUntil - now) / 1000);
+  }
+
+  return buildLoginLockoutStatus(retryAfter);
+}
+
+export function recordEmailLoginFailure(email: string): LoginLockoutStatus {
+  const key = normalizeLoginEmail(email);
+  const now = Date.now();
+  const current = getEmailLoginLockoutStatus(email);
   if (current.locked) return current;
 
   let record = emailLockouts.get(key);
@@ -85,7 +93,35 @@ export function recordEmailLoginFailure(
   }
 
   emailLockouts.set(key, record);
-  return getEmailLoginLockoutStatus(email, dbLockoutUntil);
+  return getEmailLoginLockoutStatus(email);
+}
+
+export function buildAccountLoginFailureUpdate(
+  previousFailedLoginAttempts: number,
+  dbLockoutUntil?: Date | null,
+): AccountLoginFailureUpdate {
+  const now = Date.now();
+  const activeLockout = getAccountLoginLockoutStatus(dbLockoutUntil);
+  if (activeLockout.locked) {
+    return {
+      failedLoginAttempts: Math.max(previousFailedLoginAttempts, getLoginLockoutMaxAttempts()),
+      lockoutUntil: dbLockoutUntil ?? new Date(now + getLoginLockoutWindowMs()),
+      status: activeLockout,
+    };
+  }
+
+  const expiredLockout = Boolean(dbLockoutUntil && dbLockoutUntil.getTime() <= now);
+  const baseAttempts = expiredLockout ? 0 : Math.max(0, previousFailedLoginAttempts);
+  const failedLoginAttempts = Math.min(baseAttempts + 1, getLoginLockoutMaxAttempts());
+  const lockoutUntil =
+    failedLoginAttempts >= getLoginLockoutMaxAttempts() ? new Date(now + getLoginLockoutWindowMs()) : null;
+  const retryAfter = lockoutUntil ? Math.ceil((lockoutUntil.getTime() - now) / 1000) : 0;
+
+  return {
+    failedLoginAttempts,
+    lockoutUntil,
+    status: buildLoginLockoutStatus(retryAfter),
+  };
 }
 
 export function clearEmailLoginLockout(email: string): void {

@@ -1,7 +1,7 @@
 /** Canonical login lockout policy — do not override in production. */
 export const LOGIN_LOCKOUT_MAX_ATTEMPTS = 10;
-export const LOGIN_LOCKOUT_WINDOW_MS = 20_000;
-export const LOGIN_LOCKOUT_WINDOW_SECONDS = 20;
+export const LOGIN_LOCKOUT_WINDOW_MS = 30_000;
+export const LOGIN_LOCKOUT_WINDOW_SECONDS = 30;
 
 export function getLoginLockoutMaxAttempts(): number {
   if (process.env.SECURITY_RUNTIME_TEST === "1" && process.env.AUTH_MAX_ATTEMPTS) {

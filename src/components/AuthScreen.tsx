@@ -16,7 +16,6 @@ import { useAccessibilityPreferences } from "../hooks/useAccessibilityPreference
 import AccessibilityControls from "./AccessibilityControls";
 
 // ─── Real-time Rate-Limit Countdown Banner ────────────────────────────────────
-const LOCKOUT_STORAGE_KEY = "axelmond-auth-lockout";
 
 interface RateLimitState {
   seconds: number;
@@ -37,57 +36,12 @@ function formatLockoutDuration(totalSeconds: number): string {
   return `${minutes} minute${minutes > 1 ? "s" : ""}`;
 }
 
-function persistLoginLockout(email: string, state: RateLimitState) {
-  try {
-    sessionStorage.setItem(
-      LOCKOUT_STORAGE_KEY,
-      JSON.stringify({
-        email: email.trim().toLowerCase(),
-        until: Date.now() + state.seconds * 1000,
-        maxAttempts: state.maxAttempts,
-        lockoutWindowSeconds: state.lockoutWindowSeconds,
-      }),
-    );
-  } catch {
-    // ignore storage failures
-  }
-}
-
-function readPersistedLoginLockout(email: string): RateLimitState | null {
-  try {
-    const raw = sessionStorage.getItem(LOCKOUT_STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as {
-      email?: string;
-      until?: number;
-      maxAttempts?: number;
-      lockoutWindowSeconds?: number;
-    };
-    if (parsed.email !== email.trim().toLowerCase()) return null;
-    const remaining = Math.ceil(((parsed.until ?? 0) - Date.now()) / 1000);
-    if (remaining <= 0) {
-      sessionStorage.removeItem(LOCKOUT_STORAGE_KEY);
-      return null;
-    }
-    return {
-      seconds: remaining,
-      maxAttempts: parsed.maxAttempts ?? 10,
-      lockoutWindowSeconds: parsed.lockoutWindowSeconds ?? 20,
-    };
-  } catch {
-    return null;
-  }
-}
-
-function clearPersistedLoginLockout() {
-  try {
-    sessionStorage.removeItem(LOCKOUT_STORAGE_KEY);
-  } catch {
-    // ignore storage failures
-  }
-}
-
-function RateLimitBanner({ initialSeconds, maxAttempts = 10, lockoutWindowSeconds = 20, onExpire }: RateLimitBannerProps) {
+function RateLimitBanner({
+  initialSeconds,
+  maxAttempts = 10,
+  lockoutWindowSeconds = 30,
+  onExpire,
+}: RateLimitBannerProps) {
   const [secondsLeft, setSecondsLeft] = useState(initialSeconds);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -180,15 +134,13 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
   } | null>(null);
 
   const finishAuthSuccess = (user: AppUser) => {
-    clearPersistedLoginLockout();
     setSessionToken(user.token, user.csrfToken);
     setSuccessMsg("Connexion réussie ! Chargement de votre espace...");
     setTimeout(() => onLoginSuccess(user), 800);
   };
 
-  const applyLoginLockout = (emailAddr: string, state: RateLimitState) => {
+  const applyLoginLockout = (state: RateLimitState) => {
     setRateLimitError(state);
-    persistLoginLockout(emailAddr, state);
     setErrorMsg("");
   };
 
@@ -199,23 +151,16 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
       return;
     }
 
-    const persisted = readPersistedLoginLockout(normalized);
-    if (persisted) {
-      setRateLimitError(persisted);
-      return;
-    }
-
     try {
       const status = await api.getLoginLockoutStatus(normalized);
       if (status.locked) {
-        applyLoginLockout(normalized, {
+        applyLoginLockout({
           seconds: status.retryAfter,
           maxAttempts: status.maxAttempts,
           lockoutWindowSeconds: status.lockoutWindowSeconds,
         });
       } else {
         setRateLimitError(null);
-        clearPersistedLoginLockout();
       }
     } catch {
       // ignore polling errors on the login form
@@ -294,11 +239,11 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
       }
       // 429 Rate limit: show countdown banner from backend state
       if (err.isRateLimit) {
-        const seconds = typeof err.retryAfter === "number" && err.retryAfter > 0 ? err.retryAfter : 20;
-        applyLoginLockout(normalizedEmail, {
+        const seconds = typeof err.retryAfter === "number" && err.retryAfter > 0 ? err.retryAfter : 30;
+        applyLoginLockout({
           seconds,
           maxAttempts: typeof err.maxAttempts === "number" ? err.maxAttempts : 10,
-          lockoutWindowSeconds: typeof err.lockoutWindowSeconds === "number" ? err.lockoutWindowSeconds : 20,
+          lockoutWindowSeconds: typeof err.lockoutWindowSeconds === "number" ? err.lockoutWindowSeconds : 30,
         });
         return;
       }
@@ -548,7 +493,6 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                   maxAttempts={rateLimitError.maxAttempts}
                   lockoutWindowSeconds={rateLimitError.lockoutWindowSeconds}
                   onExpire={() => {
-                    clearPersistedLoginLockout();
                     setRateLimitError(null);
                   }}
                 />

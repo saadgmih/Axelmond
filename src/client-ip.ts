@@ -16,7 +16,7 @@ export function parseTrustProxySetting(raw?: string): number | boolean {
  * Prefers CF-Connecting-IP when present (authoritative on proxied zones).
  */
 export function getClientIp(req: Request): string {
-  const cfConnectingIp = req.headers["cf-connecting-ip"];
+  const cfConnectingIp = req.headers?.["cf-connecting-ip"];
   if (typeof cfConnectingIp === "string" && cfConnectingIp.trim()) {
     return cfConnectingIp.trim();
   }
