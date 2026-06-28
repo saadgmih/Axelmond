@@ -16,10 +16,12 @@ import { formatCredits, formatMad } from "../../../utils/morocco-locale";
 
 import { curriculumUi, getStepTheme, publishedBadge, publishedLabel } from "../curriculum-theme";
 import type { TeacherCurriculumViewProps } from "../curriculum-types";
+import AdminAcademicTaxonomyView from "../AdminAcademicTaxonomyView";
 
 export default function CurriculumModulesStep(props: TeacherCurriculumViewProps) {
   const {
     domains,
+    canManageAcademicTaxonomy,
     activeCurriculumStep,
     setActiveCurriculumStep,
     selectedChapterId: _selectedChapterId,
@@ -450,6 +452,12 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
           ))}
         </div>
       </div>
+
+      {canManageAcademicTaxonomy && (
+        <div className="xl:col-span-12">
+          <AdminAcademicTaxonomyView {...props} />
+        </div>
+      )}
     </div>
   );
 }

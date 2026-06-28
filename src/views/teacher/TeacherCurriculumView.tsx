@@ -7,15 +7,12 @@ import CurriculumChaptersStep from "./curriculum-steps/CurriculumChaptersStep";
 import CurriculumOutlineStep from "./curriculum-steps/CurriculumOutlineStep";
 import CurriculumMediaStep from "./curriculum-steps/CurriculumMediaStep";
 import CurriculumQuizStep from "./curriculum-steps/CurriculumQuizStep";
-import AdminAcademicTaxonomyView from "./AdminAcademicTaxonomyView";
 
 export default function TeacherCurriculumView(props: TeacherCurriculumViewProps) {
-  const { activeCurriculumStep, canManageAcademicTaxonomy } = props;
+  const { activeCurriculumStep } = props;
 
   return (
     <div className={curriculumUi.page}>
-      {canManageAcademicTaxonomy && <AdminAcademicTaxonomyView {...props} />}
-
       <CurriculumStepper {...props} />
 
       {activeCurriculumStep === 1 && <CurriculumModulesStep {...props} />}
