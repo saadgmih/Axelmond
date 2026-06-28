@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { BookOpen, FolderTree, Layers, Pencil, Plus, RefreshCw, Save, Trash2, X } from "lucide-react";
+import { BookOpen, FolderTree, Layers, Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import type { AcademicDisciplineInput, AcademicDomainInput } from "../../hooks/useTeacherDashboard";
 import type { Course, Discipline, FacultyDomain } from "../../types";
 
@@ -137,7 +137,6 @@ export default function AdminAcademicTaxonomyView({
   courses,
   taxonomyStatusMsg,
   isSavingTaxonomy,
-  refreshAcademicTaxonomy,
   handleCreateAcademicDomain,
   handleUpdateAcademicDomain,
   handleDeleteAcademicDomain,
@@ -251,7 +250,7 @@ export default function AdminAcademicTaxonomyView({
 
   return (
     <div className="space-y-6 rounded-2xl border border-slate-700/60 bg-[#07101f] p-4 text-slate-100 shadow-[0_24px_80px_rgba(2,6,23,0.45)] sm:p-6 lg:p-8">
-      <header className="flex flex-col gap-5 border-b border-slate-800/80 pb-6 lg:flex-row lg:items-center lg:justify-between">
+      <header className="border-b border-slate-800/80 pb-6">
         <div className="flex min-w-0 items-center gap-4">
           <span className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-800 text-white">
             <FolderTree className="h-7 w-7" />
@@ -262,15 +261,6 @@ export default function AdminAcademicTaxonomyView({
             <p className="mt-1 text-sm text-slate-400">{headerCopy.description}</p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => void refreshAcademicTaxonomy()}
-          disabled={isSavingTaxonomy}
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-600 bg-slate-900/70 px-4 text-sm font-bold text-slate-100 transition-colors hover:bg-slate-800 disabled:cursor-wait disabled:opacity-60"
-        >
-          <RefreshCw className={`h-4 w-4 ${isSavingTaxonomy ? "animate-spin" : ""}`} />
-          Actualiser
-        </button>
       </header>
 
       <section className="grid grid-cols-1 gap-3 md:grid-cols-3">
