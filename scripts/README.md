@@ -19,7 +19,7 @@ GitHub Actions (`.github/workflows/ci.yml`) sur chaque push/PR vers `main` :
 Local (hors Postgres) : `npm run ci:secrets` et `node scripts/check-migrations-ci.mjs` (mode offline).  
 Pipeline complet local si Postgres disponible : `npm run ci`.
 
-Image Docker : `docker build -t axelmond-research-lab .` puis `docker run --env-file .env -p 3000:3000 axelmond-research-lab`.
+Image Docker : `docker build -t performance-academique .` puis `docker run --env-file .env -p 3000:3000 performance-academique`.
 
 ## Référencés dans package.json
 

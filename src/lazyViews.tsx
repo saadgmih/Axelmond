@@ -39,7 +39,5 @@ export const LazyPrivacyView = lazy(() => import("./components/PrivacyView"));
 export const LazyTermsView = lazy(() => import("./components/TermsView"));
 export const LazyCookiesView = lazy(() => import("./components/CookiesView"));
 export const LazyLegalView = lazy(() => import("./components/LegalView"));
-export const LazyResearchView = lazy(() => import("./components/ResearchView"));
-export const LazyPublicationsView = lazy(() => import("./components/PublicationsView"));
 export const LazyContactView = lazy(() => import("./components/ContactView"));
 export const LazySupportView = lazy(() => import("./components/SupportView"));

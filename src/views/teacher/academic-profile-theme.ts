@@ -93,7 +93,7 @@ export function getProfileRoleTheme(role: UserRole): ProfileRoleTheme {
       badgeText: "text-cyan-200",
       accentRing: "ring-cyan-500/30",
       icon: GraduationCap,
-      subtitle: "Profil chercheur et publications",
+      subtitle: "Profil académique et ressources",
       uploadAccent: "teal",
       focusRing: "focus:ring-cyan-500/15 focus:border-cyan-500/50",
       sectionIcon: "text-cyan-400",

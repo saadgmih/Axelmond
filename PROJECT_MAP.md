@@ -1,4 +1,4 @@
-# Axelmond Research Labs — Project Map
+# Performance Académique — Project Map
 
 > Date : 2026-05-31
 > Platforme : Math • Science • Code • AI
@@ -284,7 +284,7 @@ Informatique et Intelligence Artificielle
 Architecture et Génie Civil
 Économie et Management
 Génie Électrique et Électronique
-Recherche et Innovation
+Accompagnement et Réussite
 ```
 
 Règles :
@@ -323,7 +323,7 @@ Flux :
 Register étudiant/professeur → User.emailVerified=false
 → génération code 6 chiffres
 → stockage PostgreSQL uniquement de EmailVerificationCode.codeHash
-→ envoi SMTP via Nodemailer/Hostinger avec template HTML responsive Axelmond Research Labs, bouton de vérification seulement si l'URL est publique
+→ envoi SMTP via Nodemailer/Hostinger avec template HTML responsive Performance Académique, bouton de vérification seulement si l'URL est publique
 → AuthScreen affiche "Vérifiez votre e-mail"
 → POST /api/auth/verify-email avec email + code
 → si code valide/non expiré (<15 min) et attempts <5 : emailVerified=true + token
@@ -390,7 +390,7 @@ Sécurité : aucun code ni secret SMTP n'est exposé côté frontend. Les routes
 ### Structure des dossiers projet
 
 ```
-axelmond-research-labs/
+performance-academique/
 ├── server.ts                   # Express API + Vite middleware + DB seeding
 ├── prisma/
 │   ├── schema.prisma           # PostgreSQL Prisma schema

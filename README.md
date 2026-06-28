@@ -1,6 +1,6 @@
-# Axelmond Research Labs
+# Performance Académique
 
-Research, innovation and education platform for academic computing, AI-assisted learning, live courses, and professor-managed curriculum content.
+Plateforme académique de formation, d'accompagnement pédagogique, de classes live et de gestion de contenus par les professeurs.
 
 ## Run Locally
 
@@ -47,12 +47,12 @@ http://localhost:3000
 SMTP sender:
 
 ```txt
-Axelmond Research Labs <verification@axelmond.com>
+Performance Académique <verification@axelmond.com>
 ```
 
 Signature:
 
 ```txt
-Axelmond Research Labs
-Research • Innovation • Education
+Performance Académique
+Apprendre • Progresser • Réussir
 ```

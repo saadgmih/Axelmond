@@ -205,7 +205,7 @@ export default function StudentCatalogView({
           {selectedDiscipline ? selectedDiscipline.name : selectedDomain ? selectedDomain.name : "Domaines académiques"}
         </h1>
         <p className="text-sm text-slate-500 leading-relaxed max-w-2xl">
-          Parcourez les domaines de recherche, choisissez une discipline, puis accédez aux modules publiés.
+          Parcourez les domaines académiques, choisissez une discipline, puis accédez aux modules publiés.
         </p>
       </div>
 

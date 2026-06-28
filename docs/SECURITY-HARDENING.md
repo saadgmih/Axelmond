@@ -1,4 +1,4 @@
-# Sécurité Axelmond Research Labs — durcissement anti-intrusion
+# Sécurité Performance Académique — durcissement anti-intrusion
 
 ## Score cible
 
@@ -71,7 +71,7 @@ git pull origin main
 npm install
 npm run deploy:migrate
 npm run build
-pm2 reload axelmond-research-labs
+pm2 reload performance-academique
 ```
 
 Migrations : voir [`docs/MIGRATIONS-RUNBOOK.md`](MIGRATIONS-RUNBOOK.md).

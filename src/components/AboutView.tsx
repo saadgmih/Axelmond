@@ -195,7 +195,7 @@ export default function AboutView() {
       accent: "bg-cyan-500/15 border border-cyan-500/20",
       title: "Profils Académiques Complets",
       description:
-        "Espaces personnalisés pour étudiants, professeurs et chercheurs avec biographies, publications et domaines de spécialité.",
+        "Espaces personnalisés pour étudiants et professeurs avec profils, progression et domaines de spécialité.",
     },
     {
       icon: <Lock className="w-5 h-5 text-orange-300" />,
@@ -218,7 +218,7 @@ export default function AboutView() {
       icon: <FlaskConical className="w-6 h-6 text-indigo-300" />,
       title: "Excellence Académique",
       description:
-        "Nous nous engageons à proposer des contenus de niveau universitaire et à maintenir les plus hauts standards pédagogiques et scientifiques.",
+        "Nous nous engageons à proposer des contenus de niveau universitaire et à maintenir les plus hauts standards pédagogiques.",
       gradient: "linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(79,70,229,0.05) 100%)",
       delay: 0,
     },
@@ -226,7 +226,7 @@ export default function AboutView() {
       icon: <Lightbulb className="w-6 h-6 text-amber-300" />,
       title: "Innovation Continue",
       description:
-        "La plateforme intègre les dernières avancées technologiques — IA générative, visioconférence temps réel, analyses avancées — au service de la pédagogie.",
+        "La plateforme intègre les outils numériques avancés — IA générative, visioconférence temps réel, analyses avancées — au service de la pédagogie.",
       gradient: "linear-gradient(135deg, rgba(245,158,11,0.15) 0%, rgba(217,119,6,0.05) 100%)",
       delay: 100,
     },
@@ -242,7 +242,7 @@ export default function AboutView() {
       icon: <Globe className="w-6 h-6 text-sky-300" />,
       title: "Accessibilité Universelle",
       description:
-        "Accessible sur tous les appareils, responsive et conçue pour s'adapter à chaque profil d'utilisateur, qu'il soit étudiant, enseignant ou chercheur.",
+        "Accessible sur tous les appareils, responsive et conçue pour s'adapter à chaque profil d'utilisateur, qu'il soit étudiant ou enseignant.",
       gradient: "linear-gradient(135deg, rgba(14,165,233,0.15) 0%, rgba(2,132,199,0.05) 100%)",
       delay: 300,
     },
@@ -272,7 +272,7 @@ export default function AboutView() {
     {
       value: 40,
       suffix: "+",
-      label: "Enseignants & Chercheurs",
+      label: "Enseignants",
       sublabel: "Profils académiques validés",
       color: "text-pink-400",
       bgColor: "bg-pink-950/30",
@@ -292,7 +292,7 @@ export default function AboutView() {
     {
       value: 15,
       suffix: "+",
-      label: "Domaines Scientifiques",
+      label: "Domaines Académiques",
       sublabel: "Sciences, Droit, Tech, Arts...",
       color: "text-amber-400",
       bgColor: "bg-amber-950/30",
@@ -348,28 +348,28 @@ export default function AboutView() {
                 </span>
               </h1>
               <p className="text-slate-300 text-base md:text-lg leading-relaxed max-w-xl">
-                Plateforme académique de nouvelle génération dédiée à la{" "}
-                <span className="text-indigo-300 font-semibold">recherche</span>,{" "}
-                <span className="text-violet-300 font-semibold">la formation</span> et{" "}
-                <span className="text-pink-300 font-semibold">l'innovation</span>. Conçue pour les étudiants, les
-                enseignants et les chercheurs.
+                Plateforme académique de nouvelle génération dédiée à{" "}
+                <span className="text-indigo-300 font-semibold">l'apprentissage</span>,{" "}
+                <span className="text-violet-300 font-semibold">la progression</span> et{" "}
+                <span className="text-pink-300 font-semibold">la réussite</span>. Conçue pour les étudiants et les
+                enseignants.
               </p>
 
               {/* Pillars row */}
               <div className="flex flex-wrap gap-3 pt-2">
                 {[
                   {
-                    label: "Research",
-                    icon: <Atom className="w-3.5 h-3.5" />,
+                    label: "Apprendre",
+                    icon: <BookOpen className="w-3.5 h-3.5" />,
                     color: "text-indigo-300 border-indigo-500/30 bg-indigo-500/10",
                   },
                   {
-                    label: "Innovation",
-                    icon: <Lightbulb className="w-3.5 h-3.5" />,
+                    label: "Progresser",
+                    icon: <TrendingUp className="w-3.5 h-3.5" />,
                     color: "text-amber-300 border-amber-500/30 bg-amber-500/10",
                   },
                   {
-                    label: "Education",
+                    label: "Réussir",
                     icon: <GraduationCap className="w-3.5 h-3.5" />,
                     color: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10",
                   },
@@ -394,14 +394,14 @@ export default function AboutView() {
                   </div>
                   <div>
                     <div className="text-white font-black text-sm">Portail Académique Unifié</div>
-                    <div className="text-slate-500 text-[11px]">Modules · Live · IA · Recherche</div>
+                    <div className="text-slate-500 text-[11px]">Modules · Live · IA · Suivi</div>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {[
                     { label: "Étudiants", val: "500+", color: "text-indigo-300" },
                     { label: "Modules", val: "120+", color: "text-violet-300" },
-                    { label: "Chercheurs", val: "40+", color: "text-pink-300" },
+                    { label: "Enseignants", val: "40+", color: "text-pink-300" },
                     { label: "Satisfaction", val: "98%", color: "text-emerald-300" },
                   ].map(({ label, val, color }) => (
                     <div key={label} className="bg-slate-950/60 border border-slate-800 rounded-xl p-3">
@@ -465,19 +465,19 @@ export default function AboutView() {
             </div>
             <div>
               <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Notre Mission</span>
-              <h2 className="text-2xl font-black text-white mt-1">Former. Innover. Rechercher.</h2>
+              <h2 className="text-2xl font-black text-white mt-1">Apprendre. Progresser. Réussir.</h2>
             </div>
             <p className="text-slate-300 text-sm leading-relaxed">
               Performance Académique a pour mission de rendre l'enseignement supérieur accessible, moderne et connecté.
               Nous fournissons aux institutions académiques les outils numériques nécessaires pour offrir une expérience
-              d'apprentissage de niveau mondial — des modules interactifs jusqu'aux sessions live et aux profils de
-              chercheurs.
+              d'apprentissage de niveau mondial — des modules interactifs jusqu'aux sessions live et aux profils
+              académiques.
             </p>
             <ul className="space-y-2 pt-1">
               {[
                 "Égalité d'accès à l'éducation de qualité",
                 "Outils pédagogiques de pointe",
-                "Collaboration université-entreprise-recherche",
+                "Collaboration école-étudiant-enseignant",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-2 text-sm text-slate-300">
                   <CheckCircle className="w-4 h-4 text-indigo-400 flex-shrink-0 mt-0.5" />
@@ -506,15 +506,15 @@ export default function AboutView() {
               <h2 className="text-2xl font-black text-white mt-1">L'université du futur, maintenant.</h2>
             </div>
             <p className="text-slate-300 text-sm leading-relaxed">
-              Nous imaginons un avenir où chaque étudiant, professeur et chercheur dispose d'une plateforme unifiée et
-              intelligente pour apprendre, enseigner et publier. Un hub académique mondial, connecté, sécurisé et
+              Nous imaginons un avenir où chaque étudiant et professeur dispose d'une plateforme unifiée et
+              intelligente pour apprendre, enseigner et progresser. Un hub académique mondial, connecté, sécurisé et
               enrichi par l'intelligence artificielle.
             </p>
             <ul className="space-y-2 pt-1">
               {[
                 "Plateforme académique de référence internationale",
                 "Intégration IA pour la personnalisation pédagogique",
-                "Écosystème ouvert de publications et de recherches",
+                "Écosystème ouvert de supports et d'évaluations",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-2 text-sm text-slate-300">
                   <CheckCircle className="w-4 h-4 text-violet-400 flex-shrink-0 mt-0.5" />
@@ -659,15 +659,15 @@ export default function AboutView() {
                   <p>
                     <strong className="text-white">Performance Académique</strong> est une plateforme numérique
                     académique de nouvelle génération, conçue pour réunir en un seul endroit tous les acteurs de
-                    l'éducation supérieure et de la recherche scientifique. Elle s'adresse aux{" "}
+                    l'éducation supérieure et de la réussite académique. Elle s'adresse aux{" "}
                     <span className="text-indigo-300">étudiants</span>, aux{" "}
                     <span className="text-pink-300">enseignants</span> et aux{" "}
-                    <span className="text-violet-300">chercheurs</span>.
+                    <span className="text-violet-300">administrateurs pédagogiques</span>.
                   </p>
                   <p>
                     La plateforme propose un catalogue de modules structurés par domaines et disciplines académiques, un
                     système de sessions en direct intégré, un tuteur IA, des évaluations automatisées et des profils
-                    académiques complets avec publications et spécialités de recherche.
+                    académiques complets avec spécialités, suivi et ressources pédagogiques.
                   </p>
                   <p>
                     Toute l'infrastructure repose sur une{" "}
@@ -768,7 +768,7 @@ export default function AboutView() {
             <h2 className="text-3xl font-black text-white">Prêt à explorer la plateforme ?</h2>
             <p className="text-slate-400 text-sm max-w-md mx-auto mt-3">
               Accédez à des centaines de modules académiques, participez aux sessions live et rejoignez une communauté
-              de chercheurs et d'étudiants passionnés.
+              d'enseignants et d'étudiants passionnés.
             </p>
           </div>
         </div>

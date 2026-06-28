@@ -1,6 +1,6 @@
-# Axelmond Research Labs — production image (API + Vite static bundle)
-# Build:  docker build -t axelmond-research-lab .
-# Run:    docker run --env-file .env -p 3000:3000 axelmond-research-lab
+# Performance Académique — production image (API + Vite static bundle)
+# Build:  docker build -t performance-academique .
+# Run:    docker run --env-file .env -p 3000:3000 performance-academique
 
 FROM node:22-bookworm-slim AS builder
 

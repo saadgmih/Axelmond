@@ -230,7 +230,7 @@ export default function TermsView() {
           >
             <p className="text-[13px] text-slate-400 leading-relaxed mb-5">
               La plateforme est un environnement académique exigeant. L'intégrité dans les évaluations, les travaux et
-              la recherche est une condition non négociable de l'accès aux services.
+              les contenus académiques est une condition non négociable de l'accès aux services.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
@@ -251,7 +251,7 @@ export default function TermsView() {
                 {
                   icon: <XCircle className="w-4 h-4 text-red-400" />,
                   title: "Falsification interdite",
-                  desc: "La falsification de résultats académiques, de données de recherche ou de toute production soumise sur la plateforme constitue une violation grave.",
+                  desc: "La falsification de résultats académiques, de données pédagogiques ou de toute production soumise sur la plateforme constitue une violation grave.",
                   border: "border-red-900/30",
                   bg: "bg-red-950/15",
                 },
@@ -489,7 +489,7 @@ export default function TermsView() {
                   color="text-amber-400"
                   items={[
                     "Les modules et supports pédagogiques restent la propriété de leurs auteurs (professeurs/Performance Académique).",
-                    "Les publications de recherche restent la propriété intellectuelle de leurs auteurs.",
+                    "Les ressources pédagogiques restent la propriété intellectuelle de leurs auteurs.",
                     "Le logo, le nom et l'identité visuelle Performance Académique sont des marques protégées.",
                     "Le code source de la plateforme est la propriété exclusive de Performance Académique.",
                   ]}

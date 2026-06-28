@@ -1,5 +1,5 @@
-const STATIC_CACHE = "axelmond-static-v1";
-const STATIC_ASSETS = ["/favicon.svg", "/logo-symbol.svg", "/manifest.json"];
+const STATIC_CACHE = "performance-academique-static-v1";
+const STATIC_ASSETS = ["/logo.png", "/logo-symbol.png", "/logo-full.png", "/manifest.json"];
 
 function sanitizeNotificationUrl(raw) {
   try {
@@ -59,7 +59,7 @@ self.addEventListener("fetch", (event) => {
 });
 
 self.addEventListener("push", (event) => {
-  let payload = { title: "Axelmond", body: "Nouvelle notification", url: "/" };
+  let payload = { title: "Performance Académique", body: "Nouvelle notification", url: "/" };
   try {
     if (event.data) payload = { ...payload, ...event.data.json() };
   } catch {
@@ -69,10 +69,10 @@ self.addEventListener("push", (event) => {
   const safeUrl = sanitizeNotificationUrl(payload.url);
 
   event.waitUntil(
-    self.registration.showNotification(payload.title || "Axelmond", {
+    self.registration.showNotification(payload.title || "Performance Académique", {
       body: payload.body || "",
-      icon: "/favicon.svg",
-      badge: "/favicon.svg",
+      icon: "/logo.png",
+      badge: "/logo-symbol.png",
       data: { url: safeUrl },
       tag: payload.notificationId || undefined,
       renotify: false,

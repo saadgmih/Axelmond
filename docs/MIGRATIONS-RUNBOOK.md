@@ -1,4 +1,4 @@
-# Runbook migrations Prisma — Axelmond Research Labs
+# Runbook migrations Prisma — Performance Académique
 
 > Schéma PostgreSQL : `AxelmondResearchLab` (via `?schema=AxelmondResearchLab` dans `DATABASE_URL`).
 

@@ -19,7 +19,7 @@ rulesTest("phase0-fixes", () => {
   assert.doesNotMatch(serverSource, /details:\s*err\.cause\.message/);
 
   assert.match(navigationSource, /INSTITUTIONAL_VIEWS\.has\(view\)/);
-  assert.match(appSource, /onClick=\{\(\) => navigateTo\("research"\)\}/);
+  assert.doesNotMatch(appSource, /onClick=\{\(\) => navigateTo\("research"\)\}/);
   assert.match(appSource, /onClick=\{\(\) => navigateTo\("privacy"\)\}/);
   assert.doesNotMatch(appSource, /onClick=\{\(\) => setCurrentView\("research"\)\}/);
 

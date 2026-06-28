@@ -1,4 +1,4 @@
-// PM2 Ecosystem — Axelmond Research Labs
+// PM2 Ecosystem — Performance Académique
 // Usage : pm2 start ecosystem.config.cjs [--env development]
 // Prérequis : npm run build (génère dist/server.cjs)
 //
@@ -24,7 +24,7 @@ const instances =
 module.exports = {
   apps: [
     {
-      name: "axelmond-research-labs",
+      name: "performance-academique",
       script: "./dist/server.cjs",
       instances,
       exec_mode: useCluster ? "cluster" : "fork",

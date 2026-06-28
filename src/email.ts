@@ -381,7 +381,7 @@ export function buildBaseEmailHtml(opts: BaseEmailOptions): string {
                         <span style="color:#ec4899;font-weight:300;letter-spacing:1px;">ACADÉMIQUE</span>
                       </div>
                       <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#7c8fa6;letter-spacing:2px;text-transform:uppercase;margin-top:5px;">
-                        Research &nbsp;•&nbsp; Innovation &nbsp;•&nbsp; Education
+                        Apprendre &nbsp;•&nbsp; Progresser &nbsp;•&nbsp; Réussir
                       </div>
                     </td>
                   </tr>
@@ -445,7 +445,7 @@ export function buildBaseEmailHtml(opts: BaseEmailOptions): string {
                         Performance Académique
                       </div>
                       <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#475569;margin-top:6px;letter-spacing:1px;text-transform:uppercase;">
-                        Research &nbsp;•&nbsp; Innovation &nbsp;•&nbsp; Education
+                        Apprendre &nbsp;•&nbsp; Progresser &nbsp;•&nbsp; Réussir
                       </div>
                       <div style="height:1px;background:linear-gradient(90deg,transparent,#1e2d4a 30%,#1e2d4a 70%,transparent);margin:14px 0;font-size:0;line-height:0;">&nbsp;</div>
                       <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#2d3f5a;line-height:1.6;">
@@ -608,7 +608,7 @@ export function buildVerificationEmailContent(input: VerificationEmailContentInp
     "---",
     "",
     "Performance Académique",
-    "Research • Innovation • Education",
+    "Apprendre • Progresser • Réussir",
     "",
     `© ${now.getFullYear()} Performance Académique - Tous droits réservés`,
     "Ceci est un message automatique — merci de ne pas répondre à cet e-mail.",
@@ -724,7 +724,7 @@ export function buildResetPasswordEmailContent(input: {
     "---",
     "",
     "Performance Académique",
-    "Research • Innovation • Education",
+    "Apprendre • Progresser • Réussir",
     "",
     `© ${now.getFullYear()} Performance Académique - Tous droits réservés`,
     "Ceci est un message automatique — merci de ne pas répondre à cet e-mail.",
@@ -832,7 +832,7 @@ export function buildEmailChangeContent(input: {
     "---",
     "",
     "Performance Académique",
-    "Research • Innovation • Education",
+    "Apprendre • Progresser • Réussir",
     "",
     `© ${now.getFullYear()} Performance Académique - Tous droits réservés`,
     "Ceci est un message automatique — merci de ne pas répondre à cet e-mail.",
@@ -923,7 +923,7 @@ export function buildInvitationEmailContent(input: { fullName: string; inviteCod
     "---",
     "",
     "Performance Académique",
-    "Research • Innovation • Education",
+    "Apprendre • Progresser • Réussir",
     "",
     `© ${now.getFullYear()} Performance Académique - Tous droits réservés`,
     "Ceci est un message automatique — merci de ne pas répondre à cet e-mail.",
@@ -1012,7 +1012,7 @@ export function buildNotificationEmailContent(input: {
     "---",
     "",
     "Performance Académique",
-    "Research • Innovation • Education",
+    "Apprendre • Progresser • Réussir",
     "",
     `© ${now.getFullYear()} Performance Académique - Tous droits réservés`,
     "Ceci est un message automatique — merci de ne pas répondre à cet e-mail.",

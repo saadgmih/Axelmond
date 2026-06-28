@@ -133,7 +133,7 @@ export default function LegalView() {
                 />
                 <InstitutionalInfoRow
                   label="Type"
-                  value="Plateforme académique de recherche, formation et innovation"
+                  value="Plateforme académique de formation, accompagnement et réussite"
                   icon={<BookOpen className="w-3.5 h-3.5" />}
                 />
                 <InstitutionalInfoRow
@@ -152,9 +152,9 @@ export default function LegalView() {
 
               <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {[
-                  { icon: "🔬", label: "Research", desc: "Plateforme de recherche académique avancée" },
-                  { icon: "📚", label: "Formation", desc: "Modules structurés multi-niveaux et disciplines" },
-                  { icon: "💡", label: "Innovation", desc: "IA, live, analytics et outils de pointe" },
+                  { icon: "🎓", label: "Formation", desc: "Modules structurés multi-niveaux et disciplines" },
+                  { icon: "📈", label: "Progression", desc: "Suivi pédagogique clair et mesurable" },
+                  { icon: "🏅", label: "Réussite", desc: "Accompagnement académique orienté résultats" },
                 ].map(({ icon, label, desc }) => (
                   <div
                     key={label}
@@ -199,7 +199,7 @@ export default function LegalView() {
                       "Supervision de la qualité des contenus pédagogiques publiés",
                       "Conformité des publications avec les règles académiques et légales",
                       "Gestion des droits d'accès aux ressources de la plateforme",
-                      "Coordination avec les professeurs et chercheurs contributeurs",
+                      "Coordination avec les professeurs contributeurs",
                     ]}
                   />
                 </div>
@@ -321,7 +321,7 @@ export default function LegalView() {
                     items={[
                       "Les modules et supports pédagogiques sont protégés par le droit d'auteur",
                       "Le nom « Performance Académique » et son logo sont des marques protégées",
-                      "Les publications de recherche restent la propriété de leurs auteurs déclarés",
+                      "Les ressources pédagogiques restent la propriété de leurs auteurs déclarés",
                       "L'interface utilisateur et le code source sont la propriété exclusive de Performance Académique",
                       "Respect des licences Creative Commons pour les ressources tierces intégrées",
                     ]}
@@ -673,7 +673,7 @@ export default function LegalView() {
                     Tous droits réservés · Performance Académique · axelmond.com
                   </div>
                   <div className="text-slate-600 text-[10px]">
-                    Research · Innovation · Education — Plateforme académique de nouvelle génération
+                    Apprendre · Progresser · Réussir — Plateforme académique de nouvelle génération
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">

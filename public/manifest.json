@@ -1,16 +1,16 @@
 {
   "name": "Performance Académique",
   "short_name": "Performance Académique",
-  "description": "Plateforme Académique Intelligente de Recherche, Formation et Innovation.",
+  "description": "Plateforme académique de formation, accompagnement pédagogique et réussite.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#020617",
   "icons": [
     {
-      "src": "/logo-symbol.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/logo-symbol.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any maskable"
     },
     {

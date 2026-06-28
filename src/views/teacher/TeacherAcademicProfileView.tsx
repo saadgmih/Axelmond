@@ -205,7 +205,7 @@ export default function TeacherAcademicProfileView({
                 />
                 <textarea
                   rows={3}
-                  placeholder="Domaines de recherche (séparés par des virgules)"
+                  placeholder="Domaines académiques (séparés par des virgules)"
                   value={academicProfileForm.researchDomains}
                   onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, researchDomains: e.target.value }))}
                   className={inputFocus}

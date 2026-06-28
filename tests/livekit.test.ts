@@ -12,12 +12,12 @@ rulesTest("livekit", () => {
 
   assert.deepEqual(
     getLiveKitConfig({
-      LIVEKIT_URL: "wss://axelmond-research-labs.livekit.cloud",
+      LIVEKIT_URL: "wss://performance-academique.livekit.cloud",
       LIVEKIT_API_KEY: "key",
       LIVEKIT_API_SECRET: "secret",
     }),
     {
-      url: "wss://axelmond-research-labs.livekit.cloud",
+      url: "wss://performance-academique.livekit.cloud",
       apiKey: "key",
       apiSecret: "secret",
     },
@@ -25,7 +25,7 @@ rulesTest("livekit", () => {
 
   assert.equal(
     getLiveKitConfig({
-      LIVEKIT_URL: "wss://axelmond-research-labs.livekit.cloud",
+      LIVEKIT_URL: "wss://performance-academique.livekit.cloud",
       LIVEKIT_API_KEY: "key",
     }),
     null,

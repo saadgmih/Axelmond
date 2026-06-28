@@ -21,7 +21,7 @@ async function delay(ms: number) {
 }
 
 async function main() {
-  console.log("=== Axelmond Research Labs — Campagne de Tests Live Multi-utilisateurs ===");
+  console.log("=== Performance Académique — Campagne de Tests Live Multi-utilisateurs ===");
 
   let serverProcess: any = null;
   const alreadyRunning = await isServerRunning();
@@ -144,7 +144,7 @@ async function main() {
   const reportContent = `# Rapport Final de Campagne de Tests Live Multi-utilisateurs
 
 > **Généré le** : ${new Date().toLocaleString("fr-FR")}  
-> **Plateforme** : Axelmond Research Labs — Système de Visioconférence (Live)  
+> **Plateforme** : Performance Académique — Système de Visioconférence (Live)
 > **Nombre de participants simulés** : 7 (4 Professeurs, 3 Étudiants)  
 > **Statut global** : ${playwrightSuccess ? "🟢 VALIDÉ" : "🔴 ÉCHECS DÉTECTÉS"}
 
@@ -205,7 +205,7 @@ ${
 ---
 
 ## 🏁 Validation Finale du Système Live
-Le système Live d'**Axelmond Research Labs** est déclaré **opérationnel, robuste et conforme** pour accueillir des sessions multi-utilisateurs de 7 participants simultanés. Les communications WebRTC LiveKit, les statuts de présence, la persistance du chat et les privilèges d'accès fonctionnent de manière fluide de bout en bout.
+Le système Live de **Performance Académique** est déclaré **opérationnel, robuste et conforme** pour accueillir des sessions multi-utilisateurs de 7 participants simultanés. Les communications WebRTC LiveKit, les statuts de présence, la persistance du chat et les privilèges d'accès fonctionnent de manière fluide de bout en bout.
 `;
 
   fs.writeFileSync(reportPath, reportContent, "utf-8");

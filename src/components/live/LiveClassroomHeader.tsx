@@ -43,7 +43,7 @@ export default function LiveClassroomHeader({
             )}
           </div>
           <p className="text-[11px] text-zinc-400 truncate font-medium">
-            Laboratoire : {course.liveSubject || "Session de recherche"} • Dr. {course.instructor}
+            Laboratoire : {course.liveSubject || "Session académique"} • Dr. {course.instructor}
           </p>
         </div>
       </div>

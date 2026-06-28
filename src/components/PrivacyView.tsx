@@ -194,7 +194,7 @@ export default function PrivacyView() {
                   items: [
                     "Photo de profil (facultatif)",
                     "Filière, niveau et biographie",
-                    "Domaines de recherche (chercheurs)",
+                    "Domaines académiques (professeurs)",
                   ],
                   color: "border-emerald-800/40 bg-emerald-950/20",
                   badge: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10",

@@ -12,14 +12,14 @@ export function AppFooter() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-slate-100 font-extrabold text-sm">
-            <img src="/logo.png" className="w-6 h-6 object-contain" alt="Axelmond Research Labs" />
-            <span>Axelmond Research Labs</span>
+            <img src="/logo.png" className="w-6 h-6 object-contain" alt="Performance Académique" />
+            <span>Performance Académique</span>
           </div>
           <p className="text-xs text-slate-400 leading-relaxed">
-            Plateforme Académique de Recherche, Formation et Innovation.
+            Plateforme académique de formation, progression et réussite.
           </p>
           <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-            Research • Innovation • Education
+            Apprendre • Progresser • Réussir
           </p>
         </div>
 
@@ -50,19 +50,19 @@ export function AppFooter() {
             </button>
             <button
               type="button"
-              aria-label="Aller à la recherche"
-              onClick={() => navigateTo("research")}
+              aria-label="Aller à la page à propos"
+              onClick={() => navigateTo("about")}
               className="kbd-nav-focus block hover:text-white"
             >
-              Recherche
+              À propos
             </button>
             <button
               type="button"
-              aria-label="Aller aux publications"
-              onClick={() => navigateTo("publications")}
+              aria-label="Aller au centre d'aide"
+              onClick={() => navigateTo("support")}
               className="kbd-nav-focus block hover:text-white"
             >
-              Publications
+              Centre d'aide
             </button>
           </div>
         </div>
@@ -152,7 +152,7 @@ export function AppFooter() {
         </div>
       </div>
       <div className="max-w-7xl mx-auto border-t border-slate-800 mt-8 pt-5 text-[10px] text-slate-500 font-bold uppercase tracking-widest">
-        © 2026 Axelmond Research Labs. Tous droits réservés.
+        © 2026 Performance Académique. Tous droits réservés.
       </div>
     </footer>
   );

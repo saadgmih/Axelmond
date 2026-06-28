@@ -244,14 +244,14 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
 
       <div className="w-full max-w-xl relative flex flex-col gap-6">
         <div className="flex flex-col items-center gap-4 text-center pb-2">
-          {/* Logo icône seule ARL - Centré, net et sans cadre blanc */}
+          {/* Logo icône seule - Centré, net et sans cadre blanc */}
           <LogoSymbol className="w-24 h-24 text-indigo-400 flex-shrink-0 animate-in zoom-in duration-300" />
           <div>
             <h1 className="text-2xl font-black text-white tracking-tight select-none">
               Performance <span className="text-indigo-400">Académique</span>
             </h1>
             <p className="text-slate-400 text-xs font-semibold max-w-sm mt-1">
-              Plateforme Académique, Recherche et Innovation
+              Plateforme académique de formation et réussite
             </p>
           </div>
         </div>

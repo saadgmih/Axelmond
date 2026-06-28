@@ -23,7 +23,7 @@ rulesTest("ui-production-cleanup", () => {
   assert.match(appSource, /Conditions d'utilisation/);
   assert.match(appSource, /Politique des cookies/);
   assert.match(appSource, /Mentions légales/);
-  assert.match(appSource, /Plateforme Académique de Recherche, Formation et Innovation/);
+  assert.match(appSource, /Plateforme académique de formation, progression et réussite/);
   assert.match(appSource, /avatarImage/);
   assert.match(schema, /avatarUrl\s+String\?/);
   assert.match(curriculumSource, /Titre du module/);

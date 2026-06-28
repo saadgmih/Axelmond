@@ -24,8 +24,8 @@ rulesTest("academic-taxonomy", () => {
     ],
   );
   assert.deepEqual(
-    domains.get("Recherche et Innovation")?.disciplines.map((discipline) => discipline.name),
-    ["Publications", "Projets de Recherche", "Laboratoires", "Conférences", "Innovation"],
+    domains.get("Accompagnement et Réussite")?.disciplines.map((discipline) => discipline.name),
+    ["Méthodologie", "Projets Pédagogiques", "Tutorat", "Ateliers", "Progression"],
   );
 
   assert.equal(

@@ -33,7 +33,7 @@ echo "==> npm run build"
 npm run build
 
 echo "==> pm2 start or reload"
-if npx pm2 describe axelmond-research-labs >/dev/null 2>&1; then
+if npx pm2 describe performance-academique >/dev/null 2>&1; then
   npx pm2 reload ecosystem.config.cjs --update-env
 else
   npx pm2 start ecosystem.config.cjs
@@ -51,7 +51,7 @@ PORT="${PORT:-3000}"
             sleep 1
           done
           if [ "$ready" -ne 1 ]; then
-            echo "ERROR: Node ne répond pas sur 127.0.0.1:${PORT} — voir npx pm2 logs axelmond-research-labs"
+            echo "ERROR: Node ne répond pas sur 127.0.0.1:${PORT} — voir npx pm2 logs performance-academique"
             npx pm2 status || true
             exit 1
           fi

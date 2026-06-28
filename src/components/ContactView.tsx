@@ -70,7 +70,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
     "Support Technique",
     "Questions Pédagogiques",
     "Facturation & Inscriptions",
-    "Partenariats & Recherche",
+    "Partenariats pédagogiques",
     "Autre Demande",
   ];
 
@@ -139,8 +139,8 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
             Contacter Performance Académique
           </h1>
           <p className="text-slate-300 text-sm md:text-base leading-relaxed">
-            Pour toute demande d'assistance technique, pédagogique, administrative ou pour des opportunités de
-            recherche, nos équipes sont à votre entière disposition.
+            Pour toute demande d'assistance technique, pédagogique, administrative ou pour des partenariats
+            académiques, nos équipes sont à votre entière disposition.
           </p>
         </div>
       </div>

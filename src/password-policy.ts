@@ -37,7 +37,7 @@ export async function isPasswordBreached(password: string, env: NodeJS.ProcessEn
 
   try {
     const response = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`, {
-      headers: { "Add-Padding": "true", "User-Agent": "Axelmond-Research-Labs-Password-Check" },
+      headers: { "Add-Padding": "true", "User-Agent": "Performance-Academique-Password-Check" },
       signal: controller.signal,
     });
     if (!response.ok) {

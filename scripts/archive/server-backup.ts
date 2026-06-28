@@ -1786,7 +1786,7 @@ const chatTutorSchema = z.object({
   })).max(CHAT_TUTOR_MAX_HISTORY_MESSAGES).optional(),
 });
 
-const PASSWORD_RESET_GENERIC_MESSAGE = "Si un compte Axelmond Research Labs existe pour cette adresse, un code de réinitialisation a été envoyé.";
+const PASSWORD_RESET_GENERIC_MESSAGE = "Si un compte Performance Académique existe pour cette adresse, un code de réinitialisation a été envoyé.";
 
 const courseSchema = z.object({
   title: z.string().min(2, "Le titre est requis").max(200).trim(),
@@ -2888,7 +2888,7 @@ app.post("/api/courses/:courseId/modules", requireAuth, requireRbac, async (req,
     type,
     duration,
     completed: false,
-    contentMarkdown: type === "pdf" ? (contentMarkdown || "### Introduction théorique\nCe manuel a été rédigé par l'équipe enseignante d'Axelmond Research Labs.") : undefined,
+    contentMarkdown: type === "pdf" ? (contentMarkdown || "### Introduction théorique\nCe manuel a été rédigé par l'équipe enseignante de Performance Académique.") : undefined,
   };
 
   course.modules.push(newModule);
@@ -5560,7 +5560,7 @@ async function setupApp() {
   const httpServer = createServer(app);
   initMessagingSocket(httpServer, allowedOrigins, normalizeOriginUrl);
   httpServer.listen(PORT, "0.0.0.0", () => {
-    console.log(`Axelmond Research Labs server running at http://localhost:${PORT}`);
+    console.log(`Performance Académique server running at http://localhost:${PORT}`);
   });
 }
 

@@ -81,7 +81,7 @@ Sans ces variables, le build peut réussir mais l’app crash au démarrage → 
 ## Vérifier un déploiement
 
 1. **Deployments** — statut `Completed` (pas `Failed`).
-2. **Runtime logs** — chercher `Axelmond Research Labs server running`.
+2. **Runtime logs** — chercher `Performance Académique server running`.
 3. Navigateur :
    - `https://axelmond.com/api/health` → `{"status":"UP",...}`
    - `https://axelmond.com/api/courses` → réponse JSON en < 10 s
@@ -105,7 +105,7 @@ Symptôme : nginx affiche **504 Gateway Time-out** — le proxy ne reçoit aucun
 | Signal dans les logs                                       | Signification                                                                                    |
 | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | `Graceful shutdown initiated {"signal":"SIGTERM"}` répété  | Hostinger redéploie (souvent après **plusieurs push `main` rapprochés**) et tue l’ancien process |
-| `Axelmond server running` puis plus aucun log de démarrage | Le dernier process a été arrêté sans qu’un nouveau ne prenne le relais → site down               |
+| `Performance Académique server running` puis plus aucun log de démarrage | Le dernier process a été arrêté sans qu’un nouveau ne prenne le relais → site down               |
 | `loadAvg1` très élevé (> 30)                               | Serveur surchargé — démarrage et réponses lents                                                  |
 
 ### Actions immédiates
@@ -119,7 +119,7 @@ Symptôme : nginx affiche **504 Gateway Time-out** — le proxy ne reçoit aucun
 
 - Regrouper les changements en **un seul push** quand possible.
 - Ne pas lancer PM2 en parallèle de l’app Hostinger.
-- Surveiller les Runtime logs : un seul `Axelmond server running on port 3000` stable, sans SIGTERM en boucle.
+- Surveiller les Runtime logs : un seul `Performance Académique server running on port 3000` stable, sans SIGTERM en boucle.
 
 ## En cas de 503 — Max Processes / ressources Node
 
@@ -153,7 +153,7 @@ Hostinger gère **un seul** process Node pour l’app — ne jamais ajouter PM2 
 2. Attendre **30–60 s** que tous les processus se terminent.
 3. Vérifier qu’aucun PM2 ne tourne (SSH, si accès) : `npx pm2 delete all` puis `npx pm2 kill` — **uniquement** si PM2 avait été lancé par erreur.
 4. **Restart** (pas Rebuild) une seule fois.
-5. Attendre `Axelmond server running on port 3000` **une seule fois** dans les Runtime logs.
+5. Attendre `Performance Académique server running on port 3000` **une seule fois** dans les Runtime logs.
 6. Tester `https://axelmond.com/api/live` puis `/api/health`.
 
 ### Prévention durable
