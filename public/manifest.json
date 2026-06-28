@@ -8,13 +8,13 @@
   "theme_color": "#020617",
   "icons": [
     {
-      "src": "/logo-symbol.png",
+      "src": "/performance-logo-symbol.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/logo.png",
+      "src": "/performance-logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

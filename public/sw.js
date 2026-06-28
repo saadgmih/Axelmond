@@ -1,5 +1,10 @@
-const STATIC_CACHE = "performance-academique-static-v1";
-const STATIC_ASSETS = ["/logo.png", "/logo-symbol.png", "/logo-full.png", "/manifest.json"];
+const STATIC_CACHE = "performance-academique-static-v2";
+const STATIC_ASSETS = [
+  "/performance-logo.png",
+  "/performance-logo-symbol.png",
+  "/performance-logo-full.png",
+  "/manifest.json",
+];
 
 function sanitizeNotificationUrl(raw) {
   try {
@@ -71,8 +76,8 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(payload.title || "Performance Académique", {
       body: payload.body || "",
-      icon: "/logo.png",
-      badge: "/logo-symbol.png",
+      icon: "/performance-logo.png",
+      badge: "/performance-logo-symbol.png",
       data: { url: safeUrl },
       tag: payload.notificationId || undefined,
       renotify: false,

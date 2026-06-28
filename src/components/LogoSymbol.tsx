@@ -7,7 +7,7 @@ interface LogoSymbolProps {
 export default function LogoSymbol({ className = "w-10 h-10" }: LogoSymbolProps) {
   return (
     <img
-      src="/logo-symbol.png"
+      src="/performance-logo-symbol.png"
       alt="Performance Académique"
       className={`${className} block object-contain select-none`}
       decoding="async"
