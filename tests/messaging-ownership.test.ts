@@ -64,8 +64,7 @@ rulesTest("messaging-ownership", () => {
   assert.match(platformPathsSource, /"messages"/);
   assert.match(platformPathsSource, /"notifications"/);
   assert.match(institutionalSwitchSource, /SupportView navigateTo/);
-  assert.match(appSource, /scrollToSupportReportForm/);
-  assert.match(appSource, /\/support#report/);
+  assert.doesNotMatch(appSource, /\/support#report/);
   assert.doesNotMatch(platformPathsSource, /"report-problem"/);
   assert.doesNotMatch(institutionalSwitchSource, /ReportProblemView/);
   assert.doesNotMatch(appSource, /navigateTo\("report-problem"\)/);

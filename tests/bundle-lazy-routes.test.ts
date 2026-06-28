@@ -48,7 +48,9 @@ rulesTest("bundle-lazy-routes", () => {
   assert.match(lazyViewsSource, /lazy\(\(\) => import\("\.\/components\/AboutView"\)\)/);
   assert.match(lazyViewsSource, /lazy\(\(\) => import\("\.\/components\/PrivacyView"\)\)/);
   assert.match(supportViewSource, /utils\/support-navigation/);
-  assert.match(appFooterSource, /utils\/support-navigation/);
+  assert.doesNotMatch(appFooterSource, /utils\/support-navigation/);
+  assert.equal((appFooterSource.match(/Centre d'aide/g) || []).length, 1);
+  assert.doesNotMatch(appFooterSource, /Signaler un problème/);
   assert.doesNotMatch(appFooterSource, /components\/SupportView/);
 
   assert.match(viteSource, /manualChunks/);

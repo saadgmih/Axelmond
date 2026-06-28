@@ -1,11 +1,10 @@
-import { scrollToSupportReportForm } from "../utils/support-navigation";
 import { usePlatformNavigation, usePlatformSession } from "./platform-app-slices";
 
 export function AppFooter() {
   const session = usePlatformSession();
   const navigation = usePlatformNavigation();
   const { role } = session;
-  const { navigateTo, handleTeacherViewChange, currentView } = navigation;
+  const { navigateTo, handleTeacherViewChange } = navigation;
 
   return (
     <footer className="shrink-0 border-t border-slate-800 bg-slate-950 py-10 px-4 sm:px-6 transition-colors">
@@ -56,14 +55,6 @@ export function AppFooter() {
             >
               À propos
             </button>
-            <button
-              type="button"
-              aria-label="Aller au centre d'aide"
-              onClick={() => navigateTo("support")}
-              className="kbd-nav-focus block hover:text-white"
-            >
-              Centre d'aide
-            </button>
           </div>
         </div>
 
@@ -85,30 +76,6 @@ export function AppFooter() {
               className="kbd-nav-focus block hover:text-white"
             >
               Contact
-            </button>
-            <button
-              type="button"
-              aria-label="Signaler un problème"
-              onClick={() => {
-                if (currentView !== "support") {
-                  navigateTo("support");
-                  window.history.replaceState(null, "", "/support#report");
-                } else {
-                  window.history.replaceState(null, "", "/support#report");
-                  scrollToSupportReportForm();
-                }
-              }}
-              className="kbd-nav-focus block hover:text-white"
-            >
-              Signaler un problème
-            </button>
-            <button
-              type="button"
-              aria-label="Aller à la page à propos"
-              onClick={() => navigateTo("about")}
-              className="kbd-nav-focus block hover:text-white"
-            >
-              À propos
             </button>
           </div>
         </div>

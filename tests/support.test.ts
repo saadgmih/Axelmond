@@ -39,8 +39,7 @@ rulesTest("support", () => {
   assert.match(ticketFormSource, /api\.createSupportTicket\(\{/);
   assert.match(ticketFormSource, /supportScreenshot/);
 
-  assert.match(appSource, /scrollToSupportReportForm/);
-  assert.match(appSource, /\/support#report/);
+  assert.doesNotMatch(appSource, /\/support#report/);
   assert.doesNotMatch(appSource, /navigateTo\("report-problem"\)/);
 
   console.log("Support center redesign tests passed successfully!");
