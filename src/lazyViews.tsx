@@ -15,7 +15,6 @@ export const LazyAuthScreen = lazy(() => import("./components/AuthScreen"));
 export const LazyTeacherWorkspace = lazy(() => import("./views/teacher/TeacherWorkspace"));
 export const LazyTeacherDashboardView = lazy(() => import("./views/teacher/TeacherDashboardView"));
 export const LazyAdminProfessorAccessKeysView = lazy(() => import("./views/teacher/AdminProfessorAccessKeysView"));
-export const LazyAdminAcademicTaxonomyView = lazy(() => import("./views/teacher/AdminAcademicTaxonomyView"));
 export const LazyTeacherAcademicProfileView = lazy(() => import("./views/teacher/TeacherAcademicProfileView"));
 export const LazyTeacherAccountSecurityView = lazy(() => import("./views/teacher/TeacherAccountSecurityView"));
 export const LazyTeacherCurriculumView = lazy(() => import("./views/teacher/TeacherCurriculumView"));

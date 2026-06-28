@@ -1,7 +1,9 @@
 import type { Dispatch, SetStateAction } from "react";
+import type { AdminAcademicTaxonomyViewProps } from "./AdminAcademicTaxonomyView";
 import type { Course, ContentSection, FacultyDomain, LessonContent } from "../../types";
 
-export interface TeacherCurriculumViewProps {
+export interface TeacherCurriculumViewProps extends AdminAcademicTaxonomyViewProps {
+  canManageAcademicTaxonomy: boolean;
   domains: FacultyDomain[];
   activeCurriculumStep: number;
   setActiveCurriculumStep: (value: number) => void;

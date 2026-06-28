@@ -3,7 +3,7 @@ import { BookOpen, FolderTree, Layers, Pencil, Plus, RefreshCw, Save, Trash2, X 
 import type { AcademicDisciplineInput, AcademicDomainInput } from "../../hooks/useTeacherDashboard";
 import type { Course, Discipline, FacultyDomain } from "../../types";
 
-interface AdminAcademicTaxonomyViewProps {
+export interface AdminAcademicTaxonomyViewProps {
   domains: FacultyDomain[];
   courses: Course[];
   taxonomyStatusMsg: string;

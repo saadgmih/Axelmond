@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import {
-  LazyAdminAcademicTaxonomyView,
   LazyAdminProfessorAccessKeysView,
   LazyMessagesView,
   LazyTeacherAcademicProfileView,
@@ -71,16 +70,6 @@ export function TeacherRouteSwitch() {
             Cet espace est réservé aux administrateurs.
           </div>
         )}
-        {teacherView === "academic-taxonomy" && currentUser.role === "ADMIN" && (
-          <Suspense fallback={<RouteChunkFallback label="Chargement des domaines académiques…" />}>
-            <LazyAdminAcademicTaxonomyView domains={domains} courses={courses} {...teacherDashboardBindings} />
-          </Suspense>
-        )}
-        {teacherView === "academic-taxonomy" && currentUser.role !== "ADMIN" && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-5 text-sm font-semibold text-amber-900">
-            Cet espace est réservé aux administrateurs.
-          </div>
-        )}
         {teacherView === "academic-profile" && (
           <Suspense fallback={<RouteChunkFallback label="Chargement du profil académique…" />}>
             <LazyTeacherAcademicProfileView
@@ -99,7 +88,13 @@ export function TeacherRouteSwitch() {
         )}
         {teacherView === "curriculum" && (
           <Suspense fallback={<RouteChunkFallback label="Chargement du curriculum…" />}>
-            <LazyTeacherCurriculumView domains={domains} {...curriculumBindings} />
+            <LazyTeacherCurriculumView
+              domains={domains}
+              courses={courses}
+              canManageAcademicTaxonomy={currentUser.role === "ADMIN"}
+              {...curriculumBindings}
+              {...teacherDashboardBindings}
+            />
           </Suspense>
         )}
         {teacherView === "schedule" && (

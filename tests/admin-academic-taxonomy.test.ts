@@ -10,6 +10,7 @@ rulesTest("admin-academic-taxonomy", () => {
   const apiClient = fs.readFileSync("src/api.ts", "utf8");
   const dashboardHook = fs.readFileSync("src/hooks/useTeacherDashboard.ts", "utf8");
   const taxonomyView = fs.readFileSync("src/views/teacher/AdminAcademicTaxonomyView.tsx", "utf8");
+  const curriculumView = fs.readFileSync("src/views/teacher/TeacherCurriculumView.tsx", "utf8");
   const teacherRouteSwitch = fs.readFileSync("src/app/TeacherRouteSwitch.tsx", "utf8");
   const sidebarConfig = fs.readFileSync("src/navigation/sidebar-config.ts", "utf8");
   const platformPaths = fs.readFileSync("src/navigation/platformPaths.ts", "utf8");
@@ -55,11 +56,15 @@ rulesTest("admin-academic-taxonomy", () => {
   assert.match(taxonomyView, /handleDeleteAcademicDomain/);
   assert.match(taxonomyView, /Déplacez d'abord les modules attachés/);
 
-  assert.match(teacherRouteSwitch, /LazyAdminAcademicTaxonomyView/);
-  assert.match(teacherRouteSwitch, /teacherView === "academic-taxonomy" && currentUser\.role === "ADMIN"/);
-  assert.match(sidebarConfig, /Domaines académiques/);
-  assert.match(platformPaths, /"academic-taxonomy"/);
-  assert.match(lazyViews, /AdminAcademicTaxonomyView/);
-  assert.match(prefetch, /"academic-taxonomy": \(\) => import\("\.\.\/views\/teacher\/AdminAcademicTaxonomyView"\)/);
+  assert.match(curriculumView, /AdminAcademicTaxonomyView/);
+  assert.match(curriculumView, /canManageAcademicTaxonomy/);
+  assert.match(teacherRouteSwitch, /teacherView === "curriculum"/);
+  assert.match(teacherRouteSwitch, /canManageAcademicTaxonomy=\{currentUser\.role === "ADMIN"\}/);
+  assert.match(teacherRouteSwitch, /\{\.\.\.teacherDashboardBindings\}/);
+  assert.doesNotMatch(teacherRouteSwitch, /teacherView === "academic-taxonomy"/);
+  assert.doesNotMatch(sidebarConfig, /Domaines académiques/);
+  assert.doesNotMatch(platformPaths, /"academic-taxonomy"/);
+  assert.doesNotMatch(lazyViews, /LazyAdminAcademicTaxonomyView/);
+  assert.doesNotMatch(prefetch, /"academic-taxonomy"/);
   assert.match(apiSource, /\/api\/admin\/academic-domains/);
 });

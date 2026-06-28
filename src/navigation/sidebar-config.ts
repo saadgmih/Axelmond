@@ -11,7 +11,6 @@ import {
   Video,
   ShieldAlert,
   KeyRound,
-  FolderTree,
 } from "lucide-react";
 import { getTeacherSpaceTitle } from "../rbac";
 import type { UserRole } from "../rbac";
@@ -162,28 +161,15 @@ function teacherItems(role?: UserRole): SidebarNavItem[] {
   ];
 
   if (role === "ADMIN") {
-    items.splice(
-      1,
-      0,
-      {
-        id: "nav-professor-access-keys",
-        label: "Codes d'accès professeur",
-        icon: KeyRound,
-        iconClassName: "text-emerald-400",
-        prefetch: () => prefetchTeacherView("access-keys"),
-        isActive: ({ teacherView }) => teacherView === "access-keys",
-        onSelect: ({ setTeacherView }) => setTeacherView("access-keys"),
-      },
-      {
-        id: "nav-academic-taxonomy",
-        label: "Domaines académiques",
-        icon: FolderTree,
-        iconClassName: "text-violet-400",
-        prefetch: () => prefetchTeacherView("academic-taxonomy"),
-        isActive: ({ teacherView }) => teacherView === "academic-taxonomy",
-        onSelect: ({ setTeacherView }) => setTeacherView("academic-taxonomy"),
-      },
-    );
+    items.splice(1, 0, {
+      id: "nav-professor-access-keys",
+      label: "Codes d'accès professeur",
+      icon: KeyRound,
+      iconClassName: "text-emerald-400",
+      prefetch: () => prefetchTeacherView("access-keys"),
+      isActive: ({ teacherView }) => teacherView === "access-keys",
+      onSelect: ({ setTeacherView }) => setTeacherView("access-keys"),
+    });
   }
 
   return items;
