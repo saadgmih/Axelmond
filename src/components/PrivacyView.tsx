@@ -202,7 +202,7 @@ export default function PrivacyView() {
                 {
                   category: "Données techniques",
                   items: [
-                    "Jeton de session (JWT, côté client)",
+                    "Cookies de session sécurisés et jeton CSRF",
                     "Adresse IP (logs serveur sécurisés)",
                     "Type de navigateur/appareil (anonymisé)",
                   ],
@@ -392,7 +392,7 @@ export default function PrivacyView() {
                 {
                   name: "Prestataire de paiement en ligne",
                   role: "Traitement sécurisé des paiements",
-                  data: "Adresse e-mail, montant de la transaction (aucune donnée bancaire stockée par ARL)",
+                  data: "Adresse e-mail, montant de la transaction (aucune donnée bancaire stockée par Performance Académique)",
                   policy: "Politique de confidentialité disponible auprès du prestataire de paiement",
                   color: "border-indigo-800/40 bg-indigo-950/20",
                   chip: "text-indigo-300 border-indigo-500/30 bg-indigo-500/10",
@@ -476,7 +476,7 @@ export default function PrivacyView() {
                 {
                   type: "Données de paiement",
                   duration: "10 ans (légal)",
-                  detail: "Factures et reçus conservés conformément aux obligations comptables françaises.",
+                  detail: "Factures et reçus conservés conformément aux obligations comptables applicables.",
                 },
                 {
                   type: "E-mails transactionnels",
@@ -525,7 +525,7 @@ export default function PrivacyView() {
                 {
                   icon: <Eye className="w-4 h-4 text-indigo-400" />,
                   right: "Droit d'accès",
-                  desc: "Obtenir une copie de toutes vos données personnelles détenues par ARL.",
+                  desc: "Obtenir une copie de toutes vos données personnelles détenues par Performance Académique.",
                   color: "border-indigo-800/30 bg-indigo-950/20",
                 },
                 {
@@ -573,11 +573,10 @@ export default function PrivacyView() {
             <div className="bg-slate-950/60 border border-slate-800 rounded-2xl px-5 py-4 space-y-2">
               <div className="text-white text-sm font-bold">Comment exercer vos droits ?</div>
               <p className="text-[12px] text-slate-400 leading-relaxed">
-                Envoyez votre demande par e-mail à{" "}
-                <strong className="text-indigo-300">verification@axelmond.com</strong> avec pour objet «&nbsp;Exercice
-                de droits — loi 09-08 — [Votre nom]&nbsp;». Nous nous engageons à vous répondre dans un délai de{" "}
-                <strong className="text-white">30 jours calendaires</strong> conformément à la loi n° 09-08. Une pièce
-                d'identité peut être demandée pour vérifier votre identité avant traitement.
+                Envoyez votre demande par e-mail à <strong className="text-indigo-300">privacy@axelmond.com</strong>{" "}
+                avec pour objet «&nbsp;Exercice de droits — loi 09-08 — [Votre nom]&nbsp;». Nous nous engageons à vous
+                répondre dans un délai de <strong className="text-white">30 jours calendaires</strong> conformément à la
+                loi n° 09-08. Une pièce d'identité peut être demandée pour vérifier votre identité avant traitement.
               </p>
               <p className="text-[11px] text-slate-500">
                 Vous avez également le droit d'introduire une réclamation auprès de la CNDP (Commission Nationale de
@@ -696,7 +695,7 @@ export default function PrivacyView() {
               />
               <InstitutionalInfoRow
                 label="Contact DPO / Confidentialité"
-                value="verification@axelmond.com"
+                value="privacy@axelmond.com"
                 icon={<Mail className="w-3.5 h-3.5" />}
               />
               <InstitutionalInfoRow

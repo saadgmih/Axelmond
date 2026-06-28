@@ -44,7 +44,10 @@ rulesTest("contact", () => {
   // 6. Check that ContactView uses API and renders the complete required elements
   assert.match(contactViewSource, /import\s*\{\s*api\s*\}\s*from\s*"\.\.\/api";/);
   assert.match(contactViewSource, /api\.submitContact\(\{/);
-  assert.match(contactViewSource, /verification@axelmond\.com/); // Required contact email
+  assert.match(contactViewSource, /contact@axelmond\.com/); // Required contact email
+  assert.match(contactViewSource, /support@axelmond\.com/);
+  assert.match(contactViewSource, /privacy@axelmond\.com/);
+  assert.match(contactViewSource, /legal@axelmond\.com/);
   assert.match(contactViewSource, /\+212\s*634772103/); // Required telephone number
   assert.match(contactViewSource, /Données Sécurisées/); // Data protection section
   assert.match(contactViewSource, /loi 09-08|loi n° 09-08/i);

@@ -156,22 +156,17 @@ export function getEmailErrorDetails(err: any) {
 
 // ─── Shared Email Design System ───────────────────────────────────────────────
 
+const PERFORMANCE_LOGO_URL = "https://axelmond.com/performance-logo-symbol.png";
+
 /**
- * Table-based logo badge — works in all email clients (Gmail, Outlook, Apple Mail).
- * SVG is stripped by Gmail and ignored by Outlook, so we use styled text instead.
+ * PNG logo badge — Gmail proxies remote images correctly and the alt text keeps the header readable.
  */
-const AXELMOND_LOGO_BADGE = `
+const PERFORMANCE_LOGO_BADGE = `
   <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 auto;">
     <tr>
-      <td style="width:72px;height:72px;background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#be185d 100%);border-radius:50%;text-align:center;vertical-align:middle;">
-        <table role="presentation" cellspacing="0" cellpadding="0" width="100%">
-          <tr>
-            <td align="center" style="padding-top:2px;">
-              <div style="font-family:Arial,Helvetica,sans-serif;font-size:26px;font-weight:900;color:#ffffff;letter-spacing:-1px;line-height:1;">P</div>
-              <div style="font-family:Arial,Helvetica,sans-serif;font-size:9px;font-weight:700;color:rgba(255,255,255,0.75);letter-spacing:2px;text-transform:uppercase;line-height:1;margin-top:3px;">ACAD</div>
-            </td>
-          </tr>
-        </table>
+      <td style="width:84px;height:84px;text-align:center;vertical-align:middle;">
+        <img src="${PERFORMANCE_LOGO_URL}" width="84" height="84" alt="Performance Académique"
+             style="display:block;width:84px;height:84px;border:0;outline:none;text-decoration:none;object-fit:contain;margin:0 auto;" />
       </td>
     </tr>
   </table>`;
@@ -196,6 +191,8 @@ function formatDateTime(date = new Date()): string {
 interface BaseEmailOptions {
   /** Page-level <title> */
   title: string;
+  /** Hidden inbox preview text used by Gmail and most modern clients. */
+  preheader?: string;
   /** Greeting headline shown in the body */
   headline: string;
   /** One or more paragraphs of body text (raw HTML allowed) */
@@ -217,12 +214,13 @@ interface BaseEmailOptions {
 }
 
 /**
- * Builds the unified, enterprise-quality Axelmond email HTML shell.
+ * Builds the unified Performance Académique email HTML shell.
  * All security emails should use this function for consistency.
  */
 export function buildBaseEmailHtml(opts: BaseEmailOptions): string {
   const {
     title,
+    preheader,
     headline,
     bodyHtml,
     ctaButton,
@@ -315,7 +313,7 @@ export function buildBaseEmailHtml(opts: BaseEmailOptions): string {
                     <td style="padding-left:10px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#fca5a5;line-height:1.7;">
                       <strong style="color:#fecaca;display:block;margin-bottom:3px;">Vous n'êtes pas à l'origine de cette demande ?</strong>
                       Ignorez cet e-mail en toute sécurité.${securityAlertDetail ? " " + escapeHtml(securityAlertDetail) : ""}
-                      Si vous pensez que votre compte est compromis, <strong>changez immédiatement votre mot de passe</strong> et contactez notre support.
+                      Si vous pensez que votre compte est compromis, contactez immédiatement notre support.
                     </td>
                   </tr>
                 </table>
@@ -347,6 +345,11 @@ export function buildBaseEmailHtml(opts: BaseEmailOptions): string {
     </style>
   </head>
   <body style="margin:0;padding:0;background-color:#060c1a;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+    ${
+      preheader
+        ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;font-size:1px;line-height:1px;mso-hide:all;">${escapeHtml(preheader)}</div>`
+        : ""
+    }
 
     <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color:#060c1a;"><tr><td><![endif]-->
 
@@ -373,7 +376,7 @@ export function buildBaseEmailHtml(opts: BaseEmailOptions): string {
                   <tr>
                     <td align="center" style="padding:28px 30px 24px;">
                       <!-- Logo badge (table-based, compatible all email clients) -->
-                      ${AXELMOND_LOGO_BADGE}
+                      ${PERFORMANCE_LOGO_BADGE}
                       <!-- Brand name -->
                       <div class="header-logo-text"
                            style="font-family:Arial,Helvetica,sans-serif;font-size:20px;font-weight:900;letter-spacing:3px;color:#ffffff;text-transform:uppercase;line-height:1;margin-top:14px;">
@@ -567,7 +570,7 @@ export function buildVerificationEmailContent(input: VerificationEmailContentInp
         <td align="center">
           <div style="display:inline-block;background:#020617;border:1px solid #4c1d95;border-radius:18px;padding:24px 32px;box-shadow:0 0 40px rgba(139,92,246,.2);">
             <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:#a78bfa;margin-bottom:10px;">
-              Code de vérification
+              Code personnel de vérification
             </div>
             <div class="code-display"
                  style="font-family:'Courier New',Courier,monospace;font-size:46px;font-weight:900;letter-spacing:14px;color:#ffffff;line-height:1;">
@@ -584,11 +587,11 @@ export function buildVerificationEmailContent(input: VerificationEmailContentInp
     </p>
     <p style="margin:0 0 16px;color:#94a3b8;text-align:center;line-height:1.8;">
       Bienvenue sur <strong style="color:#e2e8f0;">Performance Académique</strong>.<br/>
-      Pour activer complètement votre compte universitaire, veuillez entrer le code de vérification ci-dessous.
+      Saisissez ce code dans la page de connexion ou de vérification pour confirmer votre adresse e-mail.
     </p>
     ${codeBlock}
     <p style="margin:0;color:#64748b;font-size:13px;text-align:center;line-height:1.7;">
-      La vérification de votre compte est <strong style="color:#94a3b8;">obligatoire</strong> pour accéder à l'ensemble des fonctionnalités de la plateforme.
+      Ce code est personnel. <strong style="color:#cbd5e1;">Ne le partagez jamais</strong> : notre équipe ne vous le demandera jamais par e-mail, téléphone ou message.
     </p>`;
 
   const textLines = [
@@ -596,12 +599,14 @@ export function buildVerificationEmailContent(input: VerificationEmailContentInp
     "",
     "Bienvenue sur Performance Académique.",
     "",
-    "Pour activer votre compte universitaire, veuillez utiliser le code de vérification suivant :",
+    "Saisissez ce code dans la page de connexion ou de vérification pour confirmer votre adresse e-mail :",
     "",
     `CODE DE VÉRIFICATION : ${input.code}`,
     "",
     `Ce code est valable pendant ${input.expiresInMinutes} minutes.`,
     ...(input.verifyUrl ? ["", `Vérifier mon compte : ${input.verifyUrl}`] : []),
+    "",
+    "Ne partagez jamais ce code. L'équipe Performance Académique ne vous demandera jamais ce code par e-mail, téléphone ou message.",
     "",
     "Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet e-mail en toute sécurité.",
     "",
@@ -618,12 +623,13 @@ export function buildVerificationEmailContent(input: VerificationEmailContentInp
     text: textLines.join("\n"),
     html: buildBaseEmailHtml({
       title: "Vérification de compte — Performance Académique",
+      preheader: `Votre code de vérification Performance Académique est ${input.code}. Il expire dans ${input.expiresInMinutes} minutes.`,
       headline: "Vérification de votre compte",
       bodyHtml,
       ctaButton: input.verifyUrl ? { href: input.verifyUrl, label: "Vérifier mon compte" } : undefined,
-      validityNote: `Ce code est valable pendant ${input.expiresInMinutes} minutes à compter de sa génération.`,
+      validityNote: `Ce code est valable pendant ${input.expiresInMinutes} minutes. Après expiration, demandez un nouveau code depuis la page de connexion.`,
       showSecurityAlert: true,
-      securityAlertDetail: "Aucune action n'est requise de votre part.",
+      securityAlertDetail: "Aucune action n'est requise de votre part et votre compte reste protégé.",
       requestedAt: now,
     }),
   };
@@ -645,7 +651,7 @@ export async function sendVerificationEmail(input: VerificationEmailInput, env: 
     {
       from: env.EMAIL_FROM,
       to: input.to,
-      subject: "Votre code de vérification — Performance Académique",
+      subject: "Code de vérification de votre compte — Performance Académique",
       text: content.text,
       html: content.html,
     },
@@ -682,7 +688,7 @@ export function buildResetPasswordEmailContent(input: {
         <td align="center">
           <div style="display:inline-block;background:#020617;border:1px solid #9d174d;border-radius:18px;padding:24px 32px;box-shadow:0 0 40px rgba(244,63,94,.15);">
             <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:#f472b6;margin-bottom:10px;">
-              Code de réinitialisation
+              Code personnel de réinitialisation
             </div>
             <div class="code-display"
                  style="font-family:'Courier New',Courier,monospace;font-size:46px;font-weight:900;letter-spacing:14px;color:#ffffff;line-height:1;">
@@ -698,28 +704,31 @@ export function buildResetPasswordEmailContent(input: {
       Bonjour <strong style="color:#f1f5f9;">${escapeHtml(name)}</strong>,
     </p>
     <p style="margin:0 0 16px;color:#94a3b8;text-align:center;line-height:1.8;">
-      Vous avez demandé la réinitialisation de votre mot de passe académique sur
+      Vous avez demandé la réinitialisation de votre mot de passe sur
       <strong style="color:#e2e8f0;">Performance Académique</strong>.<br/>
-      Saisissez le code de réinitialisation ci-dessous dans l'interface de connexion pour choisir un nouveau mot de passe.
+      Saisissez ce code dans l'écran « Mot de passe oublié » pour choisir un nouveau mot de passe.
     </p>
     ${codeBlock}
     <p style="margin:0;color:#64748b;font-size:13px;text-align:center;line-height:1.7;">
-      Pour votre sécurité, ce code est à usage unique et expirera automatiquement.
+      Votre mot de passe ne sera pas modifié tant que ce code n'est pas validé.
     </p>`;
 
   const textLines = [
     `Bonjour ${name},`,
     "",
-    "Vous avez demandé la réinitialisation de votre mot de passe Performance Académique.",
+    "Vous avez demandé la réinitialisation de votre mot de passe sur Performance Académique.",
     "",
-    "Veuillez utiliser le code de réinitialisation suivant :",
+    "Saisissez ce code dans l'écran « Mot de passe oublié » pour choisir un nouveau mot de passe :",
     "",
     `CODE DE RÉINITIALISATION : ${input.code}`,
     "",
     `Ce code est valable pendant ${validity} minutes.`,
     ...(input.resetUrl ? ["", `Réinitialiser mon mot de passe : ${input.resetUrl}`] : []),
     "",
-    "Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail. Votre mot de passe reste sécurisé et aucun changement ne sera effectué.",
+    "Votre mot de passe ne sera pas modifié tant que ce code n'est pas validé.",
+    "Ne partagez jamais ce code. L'équipe Performance Académique ne vous demandera jamais ce code par e-mail, téléphone ou message.",
+    "",
+    "Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail. Votre compte reste protégé.",
     "",
     "---",
     "",
@@ -733,14 +742,14 @@ export function buildResetPasswordEmailContent(input: {
   return {
     text: textLines.join("\n"),
     html: buildBaseEmailHtml({
-      title: "Réinitialisation de votre mot de passe — Performance Académique",
-      headline: "Réinitialisation de votre mot de passe",
+      title: "Code de réinitialisation — Performance Académique",
+      preheader: `Votre code de réinitialisation Performance Académique est ${input.code}. Il expire dans ${validity} minutes.`,
+      headline: "Code de réinitialisation",
       bodyHtml,
       ctaButton: input.resetUrl ? { href: input.resetUrl, label: "Réinitialiser mon mot de passe" } : undefined,
-      validityNote: `Ce code de réinitialisation expire dans ${validity} minutes et est à usage unique.`,
+      validityNote: `Ce code expire dans ${validity} minutes et ne peut être utilisé qu'une seule fois.`,
       showSecurityAlert: true,
-      securityAlertDetail:
-        "Si vous n'avez pas demandé cette réinitialisation, veuillez ignorer ce message ou contacter notre équipe de support.",
+      securityAlertDetail: "Votre mot de passe ne sera pas modifié tant que ce code n'est pas validé.",
       requestedAt: now,
     }),
   };
@@ -759,7 +768,7 @@ export async function sendResetPasswordEmail(input: ResetPasswordEmailInput, env
     {
       from: env.EMAIL_FROM,
       to: input.to,
-      subject: "Réinitialisation de votre mot de passe — Performance Académique",
+      subject: "Code de réinitialisation de mot de passe — Performance Académique",
       text: content.text,
       html: content.html,
     },

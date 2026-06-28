@@ -144,7 +144,7 @@ export default function LegalView() {
                 />
                 <InstitutionalInfoRow
                   label="Contact général"
-                  value="verification@axelmond.com"
+                  value="contact@axelmond.com"
                   icon={<Mail className="w-3.5 h-3.5" />}
                   mono
                 />
@@ -216,7 +216,7 @@ export default function LegalView() {
                   />
                   <InstitutionalInfoRow
                     label="Contact éditorial"
-                    value="verification@axelmond.com"
+                    value="contact@axelmond.com"
                     icon={<Mail className="w-3.5 h-3.5" />}
                     mono
                   />
@@ -290,7 +290,7 @@ export default function LegalView() {
                   L'infrastructure d'hébergement est soumise aux mêmes exigences de conformité prévues par la loi n°
                   09-08 que la plateforme elle-même. Les données des utilisateurs sont traitées conformément aux
                   obligations réglementaires marocaines applicables. Pour toute question relative à l'hébergement,
-                  contactez <strong className="text-white">verification@axelmond.com</strong>.
+                  contactez <strong className="text-white">support@axelmond.com</strong>.
                 </p>
               </div>
             </InstitutionalCard>
@@ -386,7 +386,7 @@ export default function LegalView() {
                     items={[
                       "Contrôle éditorial régulier de l'exactitude des contenus académiques",
                       "Mise à jour continue des informations réglementaires et légales",
-                      "Signalement encouragé de toute erreur via verification@axelmond.com",
+                      "Signalement encouragé de toute erreur via support@axelmond.com",
                       "Correction des inexactitudes dans un délai raisonnable après signalement",
                     ]}
                   />
@@ -500,7 +500,7 @@ export default function LegalView() {
                   />
                   <InstitutionalInfoRow
                     label="Contact DPO / Confidentialité"
-                    value="verification@axelmond.com"
+                    value="privacy@axelmond.com"
                     icon={<Mail className="w-3.5 h-3.5" />}
                     mono
                   />
@@ -531,7 +531,7 @@ export default function LegalView() {
                   {
                     icon: <Mail className="w-5 h-5 text-rose-400" />,
                     title: "Demandes juridiques",
-                    contact: "verification@axelmond.com",
+                    contact: "legal@axelmond.com",
                     objet: "Demande juridique — Mentions légales",
                     delay: "10 jours ouvrables",
                     color: "border-rose-800/30 bg-rose-950/15",
@@ -539,7 +539,7 @@ export default function LegalView() {
                   {
                     icon: <Shield className="w-5 h-5 text-emerald-400" />,
                     title: "Demandes données personnelles",
-                    contact: "verification@axelmond.com",
+                    contact: "privacy@axelmond.com",
                     objet: "Exercice de droits — loi 09-08",
                     delay: "30 jours calendaires (loi 09-08)",
                     color: "border-emerald-800/30 bg-emerald-950/15",
@@ -547,7 +547,7 @@ export default function LegalView() {
                   {
                     icon: <Copyright className="w-5 h-5 text-amber-400" />,
                     title: "Droits d'auteur & PI",
-                    contact: "verification@axelmond.com",
+                    contact: "legal@axelmond.com",
                     objet: "Demande PI — Propriété intellectuelle",
                     delay: "15 jours ouvrables",
                     color: "border-amber-800/30 bg-amber-950/15",
@@ -555,7 +555,7 @@ export default function LegalView() {
                   {
                     icon: <PhoneCall className="w-5 h-5 text-sky-400" />,
                     title: "Demandes administratives",
-                    contact: "verification@axelmond.com",
+                    contact: "contact@axelmond.com",
                     objet: "Demande administrative — Performance Académique",
                     delay: "10 jours ouvrables",
                     color: "border-sky-800/30 bg-sky-950/15",

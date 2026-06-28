@@ -12,7 +12,12 @@ rulesTest("email-template", () => {
   assert.match(withoutLink.text, /Bonjour Sophie/);
   assert.match(withoutLink.text, /123456/);
   assert.match(withoutLink.text, /15 minutes/);
+  assert.match(withoutLink.text, /page de connexion ou de vérification/);
+  assert.match(withoutLink.text, /Ne partagez jamais ce code/);
   assert.match(withoutLink.html, /Performance Académique/);
+  assert.match(withoutLink.html, /performance-logo-symbol\.png/);
+  assert.match(withoutLink.html, /Code personnel de vérification/);
+  assert.match(withoutLink.html, /Ne le partagez jamais/);
   assert.match(withoutLink.html, /123456/);
   assert.match(withoutLink.html, /Sophie/);
   assert.doesNotMatch(withoutLink.html, /Vérifier mon compte/);
@@ -38,9 +43,13 @@ rulesTest("email-template", () => {
   assert.match(resetWithoutLink.text, /Bonjour Marc/);
   assert.match(resetWithoutLink.text, /987654/);
   assert.match(resetWithoutLink.text, /20 minutes/);
-  assert.match(resetWithoutLink.text, /réinitialisation de votre mot de passe/i);
+  assert.match(resetWithoutLink.text, /Mot de passe oublié/);
+  assert.match(resetWithoutLink.text, /Votre mot de passe ne sera pas modifié/);
+  assert.match(resetWithoutLink.text, /Ne partagez jamais ce code/);
   assert.match(resetWithoutLink.html, /987654/);
-  assert.match(resetWithoutLink.html, /réinitialisation de votre mot de passe/i);
+  assert.match(resetWithoutLink.html, /Code personnel de réinitialisation/);
+  assert.match(resetWithoutLink.html, /Mot de passe oublié/);
+  assert.match(resetWithoutLink.html, /Votre mot de passe ne sera pas modifié/);
   assert.doesNotMatch(resetWithoutLink.html, /Réinitialiser mon mot de passe/);
 
   const resetWithLink = buildResetPasswordEmailContent({

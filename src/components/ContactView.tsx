@@ -139,8 +139,8 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
             Contacter Performance Académique
           </h1>
           <p className="text-slate-300 text-sm md:text-base leading-relaxed">
-            Pour toute demande d'assistance technique, pédagogique, administrative ou pour des partenariats
-            académiques, nos équipes sont à votre entière disposition.
+            Pour toute demande d'assistance technique, pédagogique, administrative ou pour des partenariats académiques,
+            nos équipes sont à votre entière disposition.
           </p>
         </div>
       </div>
@@ -311,8 +311,8 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
               </h4>
               <p className="text-xs text-slate-400 leading-relaxed">
                 Les informations recueillies via ce formulaire sont cryptées de bout en bout et font l'objet d'un audit
-                de sécurité. Elles sont utilisées exclusivement pour traiter votre demande par l'administration
-                de Performance Académique et ne seront jamais partagées avec des tiers.
+                de sécurité. Elles sont utilisées exclusivement pour traiter votre demande par l'administration de
+                Performance Académique et ne seront jamais partagées avec des tiers.
               </p>
             </div>
           </div>
@@ -336,7 +336,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
                   <p className="text-xs text-slate-400">Performance Académique</p>
                   <p className="text-xs text-slate-400">Casablanca, Maroc</p>
                   <p className="text-[10px] text-slate-500 italic mt-1">
-                    Adresse complète communiquée sur demande administrative.
+                    Canal administratif principal : formulaire de contact ou adresse générale ci-dessous.
                   </p>
                 </div>
               </div>
@@ -358,19 +358,22 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
                 <div>
                   <p className="font-bold text-slate-300">Adresses Electroniques</p>
                   <p className="text-xs text-slate-450 hover:text-indigo-400 transition-colors">
-                    <a href="mailto:verification@axelmond.com">verification@axelmond.com</a> (Admin)
+                    <a href="mailto:contact@axelmond.com">contact@axelmond.com</a> (Contact général)
                   </p>
                   <p className="text-xs text-slate-450 hover:text-indigo-400 transition-colors mt-0.5">
-                    <a href="mailto:contact@axelmond.com">contact@axelmond.com</a> (Info)
-                  </p>
-                  <p className="text-xs text-slate-450 hover:text-indigo-400 transition-colors mt-0.5">
-                    <a href="mailto:support@axelmond.com">support@axelmond.com</a> (Support Technique)
+                    <a href="mailto:support@axelmond.com">support@axelmond.com</a> (Support technique)
                   </p>
                   <p className="text-xs text-slate-450 hover:text-indigo-400 transition-colors mt-0.5">
                     <a href="mailto:admissions@axelmond.com">admissions@axelmond.com</a> (Inscriptions)
                   </p>
                   <p className="text-xs text-slate-450 hover:text-indigo-400 transition-colors mt-0.5">
                     <a href="mailto:billing@axelmond.com">billing@axelmond.com</a> (Facturation)
+                  </p>
+                  <p className="text-xs text-slate-450 hover:text-indigo-400 transition-colors mt-0.5">
+                    <a href="mailto:privacy@axelmond.com">privacy@axelmond.com</a> (Données personnelles)
+                  </p>
+                  <p className="text-xs text-slate-450 hover:text-indigo-400 transition-colors mt-0.5">
+                    <a href="mailto:legal@axelmond.com">legal@axelmond.com</a> (Juridique)
                   </p>
                 </div>
               </div>

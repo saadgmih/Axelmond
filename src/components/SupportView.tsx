@@ -57,7 +57,7 @@ export default function SupportView({ navigateTo }: SupportViewProps) {
       category: "Compte",
       question: "Comment changer mon mot de passe ?",
       answer:
-        "Les professeurs et chercheurs peuvent changer leur mot de passe depuis leur profil académique. Les étudiants doivent contacter l'administration.",
+        "Tous les utilisateurs peuvent changer leur mot de passe depuis Sécurité du compte avec leur mot de passe actuel. Si vous n'avez plus accès à votre mot de passe, utilisez « Mot de passe oublié ? » sur la page de connexion.",
     },
     {
       category: "Compte",
@@ -170,7 +170,7 @@ export default function SupportView({ navigateTo }: SupportViewProps) {
           onClick={() => navigateTo("contact")}
           className="bg-slate-900 border border-slate-800 p-4 rounded-2xl text-left text-white hover:border-slate-600 flex items-center justify-between"
         >
-          <span className="text-xs font-bold">Contacter le secrétariat</span>
+          <span className="text-xs font-bold">Contacter l'équipe</span>
           <ArrowRight className="w-4 h-4 text-slate-500" />
         </button>
         <button

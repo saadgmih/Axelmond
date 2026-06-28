@@ -112,10 +112,10 @@ export default function CookiesView() {
       description:
         "Indispensables au fonctionnement sécurisé de la plateforme. Ils ne peuvent pas être désactivés sans compromettre votre accès aux services.",
       items: [
-        "Authentification et maintien de session (JWT)",
+        "Cookie de renouvellement de session HttpOnly",
         "Vérification de l'identité à chaque requête",
         "Sécurité des comptes (protection CSRF)",
-        "Mémorisation de vos préférences essentielles",
+        "Révocation de session à la déconnexion",
       ],
       border: "border-indigo-800/40",
       bg: "bg-indigo-950/20",
@@ -126,15 +126,15 @@ export default function CookiesView() {
     {
       emoji: "⚙️",
       icon: <Settings className="w-4 h-4" />,
-      category: "Cookies",
-      title: "Fonctionnels",
+      category: "Stockage local",
+      title: "Préférences locales",
       description:
-        "Améliorent votre expérience en mémorisant vos choix personnels. Peuvent être désactivés, mais certaines fonctionnalités seront réduites.",
+        "Mémorise uniquement des réglages d'interface non sensibles. La suppression de ce stockage réinitialise vos préférences visuelles.",
       items: [
-        "Préférence de langue d'affichage",
-        "Thème visuel (sombre / clair)",
-        "Paramètres d'accessibilité personnalisés",
-        "Dernière vue consultée pour reprise rapide",
+        "État réduit/affiché de la barre latérale",
+        "Position des contrôles flottants",
+        "Préférences d'accessibilité",
+        "Volume du lecteur vidéo de module",
       ],
       border: "border-violet-800/40",
       bg: "bg-violet-950/20",
@@ -145,15 +145,15 @@ export default function CookiesView() {
     {
       emoji: "📊",
       icon: <BarChart2 className="w-4 h-4" />,
-      category: "Cookies",
-      title: "Analytiques",
+      category: "Information",
+      title: "Aucun analytics tiers",
       description:
-        "Collectent des données agrégées et anonymisées pour comprendre l'usage de la plateforme et améliorer les performances pédagogiques.",
+        "Aucun cookie publicitaire, pixel social ou identifiant de suivi tiers n'est déposé par la plateforme.",
       items: [
-        "Statistiques d'utilisation des modules (anonymisées)",
-        "Analyse des temps de chargement et performances",
-        "Mesure du taux de complétion des modules",
-        "Identification des pages les plus consultées",
+        "Pas de cookie publicitaire",
+        "Pas de pixel de réseau social",
+        "Pas d'identifiant marketing",
+        "Logs techniques serveur limités à la sécurité et au diagnostic",
       ],
       border: "border-sky-800/40",
       bg: "bg-sky-950/20",
@@ -179,7 +179,7 @@ export default function CookiesView() {
     {
       icon: <Settings className="w-4 h-4 text-violet-400" />,
       label: "Mémoriser les préférences",
-      desc: "Vos choix d'interface (thème, langue, paramètres) sont retenus pour les sessions suivantes.",
+      desc: "Vos choix d'interface, d'accessibilité, de volume vidéo et de disposition sont retenus pour les sessions suivantes.",
       color: "border-violet-800/30 bg-violet-950/15",
     },
     {
@@ -199,20 +199,20 @@ export default function CookiesView() {
   const managementSteps = [
     {
       icon: <CheckCircle className="w-4 h-4 text-emerald-400" />,
-      title: "Accepter ou refuser",
-      desc: "Vous pouvez accepter ou refuser les cookies non essentiels (fonctionnels et analytiques) sans impacter votre accès aux fonctionnalités de base.",
+      title: "Comprendre l'essentiel",
+      desc: "Les cookies d'authentification et CSRF sont nécessaires au fonctionnement sécurisé du compte et ne sont pas utilisés pour le suivi publicitaire.",
       color: "border-emerald-800/30 bg-emerald-950/15",
     },
     {
       icon: <RefreshCw className="w-4 h-4 text-sky-400" />,
-      title: "Supprimer les cookies",
-      desc: "Depuis les paramètres de votre navigateur (Paramètres → Confidentialité → Cookies), vous pouvez supprimer tous les cookies stockés par la plateforme.",
+      title: "Supprimer cookies et stockage",
+      desc: "Depuis les paramètres du navigateur, vous pouvez supprimer les cookies et le stockage local de la plateforme. Vous serez alors déconnecté et vos préférences locales seront réinitialisées.",
       color: "border-sky-800/30 bg-sky-950/15",
     },
     {
       icon: <Sliders className="w-4 h-4 text-violet-400" />,
       title: "Modifier ses préférences",
-      desc: "Vos préférences en matière de cookies peuvent être modifiées à tout moment via les paramètres de votre profil ou les réglages de votre navigateur.",
+      desc: "Les préférences d'interface se modifient directement dans les contrôles du site : accessibilité, disposition, volume vidéo et paramètres live.",
       color: "border-violet-800/30 bg-violet-950/15",
     },
   ];
@@ -238,28 +238,40 @@ export default function CookiesView() {
       category: "Essentiel",
     },
     {
-      name: "access_token (session)",
-      type: "Mémoire navigateur",
-      duration: "15 min max, rechargé via cookie HttpOnly",
-      category: "Essentiel",
-    },
-    {
-      name: "user_preferences",
+      name: "axelmond_sidebar_collapsed",
       type: "localStorage",
-      duration: "Persistent (jusqu'à effacement manuel)",
+      duration: "Jusqu'à modification ou effacement navigateur",
       category: "Fonctionnel",
     },
     {
-      name: "analytics_session",
+      name: "axelmond_topbar_collapsed",
+      type: "localStorage",
+      duration: "Jusqu'à modification ou effacement navigateur",
+      category: "Fonctionnel",
+    },
+    {
+      name: "axelmond-a11y-preferences",
+      type: "localStorage",
+      duration: "Jusqu'à modification ou effacement navigateur",
+      category: "Fonctionnel",
+    },
+    {
+      name: "axelmond-course-video-volume",
+      type: "localStorage",
+      duration: "Jusqu'à modification ou effacement navigateur",
+      category: "Fonctionnel",
+    },
+    {
+      name: "axelmond-live-settings",
+      type: "localStorage",
+      duration: "Jusqu'à modification ou effacement navigateur",
+      category: "Fonctionnel",
+    },
+    {
+      name: "has_reloaded_chunk_error",
       type: "sessionStorage",
       duration: "Durée de la session navigateur",
-      category: "Analytique",
-    },
-    {
-      name: "theme_preference",
-      type: "localStorage",
-      duration: "Persistent (jusqu'à modification)",
-      category: "Fonctionnel",
+      category: "Essentiel",
     },
   ];
 
@@ -368,7 +380,7 @@ export default function CookiesView() {
                   {
                     icon: <Eye className="w-5 h-5 text-violet-400" />,
                     title: "Expérience améliorée",
-                    desc: "Ils mémorisent vos préférences d'affichage, votre langue et vos paramètres personnels pour vous offrir une expérience académique cohérente.",
+                    desc: "Ils mémorisent vos préférences d'affichage, d'accessibilité, de volume vidéo et de disposition pour vous offrir une expérience cohérente.",
                     border: "border-violet-800/30 bg-violet-950/15",
                   },
                   {
@@ -430,7 +442,7 @@ export default function CookiesView() {
                     },
                     {
                       label: "Contient",
-                      value: "Cookie de session HttpOnly, jeton CSRF, préférences UI",
+                      value: "Cookie HttpOnly, jeton CSRF, préférences UI non sensibles",
                       icon: <Info className="w-3.5 h-3.5 text-slate-500" />,
                     },
                     {
@@ -613,7 +625,7 @@ export default function CookiesView() {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {[
-                      "JWT signé côté serveur avec expiration courte (24h max)",
+                      "Jeton d'accès signé côté serveur avec expiration courte (15 min)",
                       "Hachage Argon2/bcrypt — aucun mot de passe en clair stocké",
                       "HTTPS/TLS obligatoire — toutes les communications chiffrées",
                       "Rate-limiting sur les routes d'authentification (anti-brute-force)",
@@ -646,32 +658,30 @@ export default function CookiesView() {
                 <div className="bg-slate-950/50 border border-slate-800 rounded-2xl p-5 space-y-3">
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-sky-400" />
-                    <span className="text-white text-sm font-bold">Cookies de session</span>
+                    <span className="text-white text-sm font-bold">Cookies d'authentification</span>
                     <span className="ml-auto text-[10px] font-black uppercase tracking-widest border px-2 py-0.5 rounded-full text-sky-300 border-sky-500/30 bg-sky-500/10">
                       Temporaire
                     </span>
                   </div>
                   <p className="text-[12px] text-slate-400 leading-relaxed">
-                    Ces cookies expirent automatiquement à la fermeture du navigateur ou lors de la déconnexion
-                    explicite. Ils ne laissent aucune trace après votre session.
+                    Le cookie de renouvellement et le jeton CSRF expirent au maximum après 7 jours ou immédiatement lors
+                    de la déconnexion explicite.
                   </p>
-                  <div className="text-[11px] text-slate-500">
-                    Exemple : jeton de session, état de navigation temporaire
-                  </div>
+                  <div className="text-[11px] text-slate-500">Exemple : refresh_token HttpOnly, csrf_token</div>
                 </div>
                 <div className="bg-slate-950/50 border border-slate-800 rounded-2xl p-5 space-y-3">
                   <div className="flex items-center gap-2">
                     <Database className="w-4 h-4 text-violet-400" />
-                    <span className="text-white text-sm font-bold">Cookies persistants</span>
+                    <span className="text-white text-sm font-bold">Stockage local de préférences</span>
                     <span className="ml-auto text-[10px] font-black uppercase tracking-widest border px-2 py-0.5 rounded-full text-violet-300 border-violet-500/30 bg-violet-500/10">
                       Persistant
                     </span>
                   </div>
                   <p className="text-[12px] text-slate-400 leading-relaxed">
-                    Certains cookies restent jusqu'à leur expiration programmée ou leur suppression manuelle, afin de
-                    mémoriser vos préférences entre les sessions.
+                    Le stockage local reste jusqu'à modification ou suppression manuelle, afin de mémoriser vos
+                    préférences entre les sessions.
                   </p>
-                  <div className="text-[11px] text-slate-500">Exemple : préférence de thème, langue d'affichage</div>
+                  <div className="text-[11px] text-slate-500">Exemple : accessibilité, disposition, volume vidéo</div>
                 </div>
               </div>
 
@@ -769,7 +779,7 @@ export default function CookiesView() {
                     Pour toute question relative aux cookies, à vos préférences ou à l'exercice de vos droits prévus par
                     la loi n° 09-08, notre équipe vous répond dans un délai de 10 jours ouvrables.
                   </p>
-                  <span className="text-[10px] font-black text-rose-300">verification@axelmond.com</span>
+                  <span className="text-[10px] font-black text-rose-300">privacy@axelmond.com</span>
                 </div>
               </div>
 
