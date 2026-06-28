@@ -97,6 +97,7 @@ export function useTeacherCurriculum({
   const [newQuestionExplanation, setNewQuestionExplanation] = useState("");
   const [quizManagerMsg, setQuizManagerMsg] = useState("");
   const [quizManagerError, setQuizManagerError] = useState("");
+  const quizStep = currentUser?.role === "ADMIN" ? 7 : 5;
 
   const { startRequest } = useAsyncEffectGuard();
   const scheduleClear = useAutoClearTimeout();
@@ -165,13 +166,13 @@ export function useTeacherCurriculum({
   );
 
   useEffect(() => {
-    if (role !== "teacher" || activeCurriculumStep !== 5 || !selectedQuizId) {
+    if (role !== "teacher" || activeCurriculumStep !== quizStep || !selectedQuizId) {
       setSelectedQuizDetail(null);
       return;
     }
     const request = startRequest();
     void loadSelectedQuizDetail(selectedQuizId, request);
-  }, [role, activeCurriculumStep, selectedQuizId, loadSelectedQuizDetail, startRequest]);
+  }, [role, activeCurriculumStep, quizStep, selectedQuizId, loadSelectedQuizDetail, startRequest]);
 
   useEffect(() => {
     if (allDisciplines.length > 0 && !allDisciplines.some((discipline) => discipline.id === newCourseDisciplineId)) {
@@ -196,10 +197,10 @@ export function useTeacherCurriculum({
   }, [role, managedCourseIds, newSectionCourseId, managedCourses, setCourseContentSections]);
 
   useEffect(() => {
-    if (role !== "teacher" || activeCurriculumStep !== 5 || !quizCourseId) return;
+    if (role !== "teacher" || activeCurriculumStep !== quizStep || !quizCourseId) return;
     const request = startRequest();
     void loadTeacherQuizzes(quizCourseId, request);
-  }, [role, activeCurriculumStep, quizCourseId, loadTeacherQuizzes, startRequest]);
+  }, [role, activeCurriculumStep, quizStep, quizCourseId, loadTeacherQuizzes, startRequest]);
 
   useEffect(() => {
     if (!currentUser || role === "student") return;

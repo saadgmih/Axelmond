@@ -3,7 +3,10 @@ import { BookOpen, FolderTree, Layers, Pencil, Plus, RefreshCw, Save, Trash2, X 
 import type { AcademicDisciplineInput, AcademicDomainInput } from "../../hooks/useTeacherDashboard";
 import type { Course, Discipline, FacultyDomain } from "../../types";
 
+type AcademicTaxonomyViewMode = "all" | "domains" | "disciplines";
+
 export interface AdminAcademicTaxonomyViewProps {
+  mode?: AcademicTaxonomyViewMode;
   domains: FacultyDomain[];
   courses: Course[];
   taxonomyStatusMsg: string;
@@ -129,6 +132,7 @@ function DisciplineInputGrid({
 }
 
 export default function AdminAcademicTaxonomyView({
+  mode = "all",
   domains,
   courses,
   taxonomyStatusMsg,
@@ -167,6 +171,26 @@ export default function AdminAcademicTaxonomyView({
       { label: "Modules", value: courses.length, icon: BookOpen, tone: "text-emerald-300 bg-emerald-500/10" },
     ];
   }, [courses.length, domains]);
+  const showDomainManagement = mode !== "disciplines";
+  const showDisciplineManagement = mode !== "domains";
+  const headerCopy =
+    mode === "domains"
+      ? {
+          eyebrow: "Étape 1",
+          title: "Domaines académiques",
+          description: "Créez et organisez les grandes familles avant les sous-domaines.",
+        }
+      : mode === "disciplines"
+        ? {
+            eyebrow: "Étape 2",
+            title: "Sous-domaines",
+            description: "Rattachez chaque sous-domaine à son domaine avant de créer les modules.",
+          }
+        : {
+            eyebrow: "Administration",
+            title: "Domaines & sous-domaines",
+            description: "Domaine → Sous-domaine → Modules",
+          };
 
   useEffect(() => {
     if (!domains.length) {
@@ -233,9 +257,9 @@ export default function AdminAcademicTaxonomyView({
             <FolderTree className="h-7 w-7" />
           </span>
           <div className="min-w-0">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-300">Administration</p>
-            <h1 className="text-2xl font-black text-white sm:text-3xl">Domaines & sous-domaines</h1>
-            <p className="mt-1 text-sm text-slate-400">Domaine → Sous-domaine → Modules</p>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-300">{headerCopy.eyebrow}</p>
+            <h1 className="text-2xl font-black text-white sm:text-3xl">{headerCopy.title}</h1>
+            <p className="mt-1 text-sm text-slate-400">{headerCopy.description}</p>
           </div>
         </div>
         <button
@@ -270,52 +294,61 @@ export default function AdminAcademicTaxonomyView({
         </p>
       )}
 
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <form onSubmit={submitDomain} className="rounded-xl border border-slate-700/60 bg-[#0b1528] p-5 space-y-4">
-          <div className="flex items-center gap-2">
-            <Plus className="h-4 w-4 text-violet-300" />
-            <h2 className="text-sm font-black text-white">Créer un domaine</h2>
-          </div>
-          <DomainInputGrid value={domainForm} onChange={setDomainForm} />
-          <button
-            type="submit"
-            disabled={isSavingTaxonomy}
-            className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-violet-600 px-4 text-sm font-black text-white transition-colors hover:bg-violet-500 disabled:cursor-wait disabled:opacity-60"
-          >
-            <Save className="h-4 w-4" />
-            Enregistrer le domaine
-          </button>
-        </form>
-
-        <form onSubmit={submitDiscipline} className="rounded-xl border border-slate-700/60 bg-[#0b1528] p-5 space-y-4">
-          <div className="flex items-center gap-2">
-            <Plus className="h-4 w-4 text-indigo-300" />
-            <h2 className="text-sm font-black text-white">Créer un sous-domaine</h2>
-          </div>
-          <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
-            <select
-              required
-              value={newDisciplineDomainId || ""}
-              onChange={(event) => setNewDisciplineDomainId(Number(event.target.value))}
-              className="min-h-11 rounded-lg border border-slate-700 bg-slate-950/80 px-3 text-sm font-bold text-white outline-none focus:border-violet-400"
+      <section
+        className={`grid grid-cols-1 gap-4 ${showDomainManagement && showDisciplineManagement ? "xl:grid-cols-2" : ""}`}
+      >
+        {showDomainManagement && (
+          <form onSubmit={submitDomain} className="rounded-xl border border-slate-700/60 bg-[#0b1528] p-5 space-y-4">
+            <div className="flex items-center gap-2">
+              <Plus className="h-4 w-4 text-violet-300" />
+              <h2 className="text-sm font-black text-white">Créer un domaine</h2>
+            </div>
+            <DomainInputGrid value={domainForm} onChange={setDomainForm} />
+            <button
+              type="submit"
+              disabled={isSavingTaxonomy}
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-violet-600 px-4 text-sm font-black text-white transition-colors hover:bg-violet-500 disabled:cursor-wait disabled:opacity-60"
             >
-              {domains.map((domain) => (
-                <option key={domain.id} value={domain.id}>
-                  {domain.name}
-                </option>
-              ))}
-            </select>
-            <DisciplineInputGrid value={disciplineForm} domains={domains} onChange={setDisciplineForm} />
-          </div>
-          <button
-            type="submit"
-            disabled={isSavingTaxonomy || !domains.length}
-            className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-indigo-600 px-4 text-sm font-black text-white transition-colors hover:bg-indigo-500 disabled:cursor-wait disabled:opacity-60"
+              <Save className="h-4 w-4" />
+              Enregistrer le domaine
+            </button>
+          </form>
+        )}
+
+        {showDisciplineManagement && (
+          <form
+            onSubmit={submitDiscipline}
+            className="rounded-xl border border-slate-700/60 bg-[#0b1528] p-5 space-y-4"
           >
-            <Save className="h-4 w-4" />
-            Enregistrer le sous-domaine
-          </button>
-        </form>
+            <div className="flex items-center gap-2">
+              <Plus className="h-4 w-4 text-indigo-300" />
+              <h2 className="text-sm font-black text-white">Créer un sous-domaine</h2>
+            </div>
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+              <select
+                required
+                value={newDisciplineDomainId || ""}
+                onChange={(event) => setNewDisciplineDomainId(Number(event.target.value))}
+                className="min-h-11 rounded-lg border border-slate-700 bg-slate-950/80 px-3 text-sm font-bold text-white outline-none focus:border-violet-400"
+              >
+                {domains.map((domain) => (
+                  <option key={domain.id} value={domain.id}>
+                    {domain.name}
+                  </option>
+                ))}
+              </select>
+              <DisciplineInputGrid value={disciplineForm} domains={domains} onChange={setDisciplineForm} />
+            </div>
+            <button
+              type="submit"
+              disabled={isSavingTaxonomy || !domains.length}
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-indigo-600 px-4 text-sm font-black text-white transition-colors hover:bg-indigo-500 disabled:cursor-wait disabled:opacity-60"
+            >
+              <Save className="h-4 w-4" />
+              Enregistrer le sous-domaine
+            </button>
+          </form>
+        )}
       </section>
 
       <section className="space-y-4">
@@ -330,7 +363,7 @@ export default function AdminAcademicTaxonomyView({
             return (
               <article key={domain.id} className="overflow-hidden rounded-xl border border-slate-700/60 bg-[#0b1528]">
                 <div className="flex flex-col gap-4 border-b border-slate-700/60 p-5 lg:flex-row lg:items-start lg:justify-between">
-                  {editingDomainId === domain.id ? (
+                  {showDomainManagement && editingDomainId === domain.id ? (
                     <form onSubmit={submitDomainEdit} className="flex-1 space-y-3">
                       <DomainInputGrid value={editingDomainForm} onChange={setEditingDomainForm} />
                       <div className="flex flex-wrap gap-2">
@@ -368,7 +401,7 @@ export default function AdminAcademicTaxonomyView({
                     </div>
                   )}
 
-                  {editingDomainId !== domain.id && (
+                  {showDomainManagement && editingDomainId !== domain.id && (
                     <div className="flex shrink-0 flex-wrap gap-2">
                       <button
                         type="button"
@@ -392,102 +425,104 @@ export default function AdminAcademicTaxonomyView({
                   )}
                 </div>
 
-                <div className="divide-y divide-slate-700/60">
-                  {domain.disciplines.length === 0 ? (
-                    <p className="px-5 py-5 text-sm font-semibold text-slate-500">Aucun sous-domaine.</p>
-                  ) : (
-                    domain.disciplines.map((discipline) => {
-                      const modules = coursesByDiscipline.get(discipline.id) || [];
-                      const canDeleteDiscipline = modules.length === 0;
-                      return (
-                        <div key={discipline.id} className="p-5">
-                          {editingDisciplineId === discipline.id ? (
-                            <form onSubmit={submitDisciplineEdit} className="space-y-3">
-                              <DisciplineInputGrid
-                                value={editingDisciplineForm}
-                                domains={domains}
-                                showDomainSelect
-                                onChange={setEditingDisciplineForm}
-                              />
-                              <div className="flex flex-wrap gap-2">
-                                <button
-                                  type="submit"
-                                  disabled={isSavingTaxonomy}
-                                  className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-indigo-600 px-3 text-xs font-black text-white hover:bg-indigo-500 disabled:cursor-wait disabled:opacity-60"
-                                >
-                                  <Save className="h-4 w-4" />
-                                  Sauvegarder
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setEditingDisciplineId(null)}
-                                  className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-600 px-3 text-xs font-bold text-slate-200 hover:bg-slate-800"
-                                >
-                                  <X className="h-4 w-4" />
-                                  Annuler
-                                </button>
-                              </div>
-                            </form>
-                          ) : (
-                            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                              <div className="min-w-0 space-y-2">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <p className="text-sm font-black text-white">{discipline.name}</p>
-                                  <span className="rounded-md bg-slate-900 px-2 py-1 text-[10px] font-bold text-slate-400">
-                                    {modules.length} module{modules.length !== 1 ? "s" : ""}
-                                  </span>
+                {showDisciplineManagement && (
+                  <div className="divide-y divide-slate-700/60">
+                    {domain.disciplines.length === 0 ? (
+                      <p className="px-5 py-5 text-sm font-semibold text-slate-500">Aucun sous-domaine.</p>
+                    ) : (
+                      domain.disciplines.map((discipline) => {
+                        const modules = coursesByDiscipline.get(discipline.id) || [];
+                        const canDeleteDiscipline = modules.length === 0;
+                        return (
+                          <div key={discipline.id} className="p-5">
+                            {editingDisciplineId === discipline.id ? (
+                              <form onSubmit={submitDisciplineEdit} className="space-y-3">
+                                <DisciplineInputGrid
+                                  value={editingDisciplineForm}
+                                  domains={domains}
+                                  showDomainSelect
+                                  onChange={setEditingDisciplineForm}
+                                />
+                                <div className="flex flex-wrap gap-2">
+                                  <button
+                                    type="submit"
+                                    disabled={isSavingTaxonomy}
+                                    className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-indigo-600 px-3 text-xs font-black text-white hover:bg-indigo-500 disabled:cursor-wait disabled:opacity-60"
+                                  >
+                                    <Save className="h-4 w-4" />
+                                    Sauvegarder
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditingDisciplineId(null)}
+                                    className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-600 px-3 text-xs font-bold text-slate-200 hover:bg-slate-800"
+                                  >
+                                    <X className="h-4 w-4" />
+                                    Annuler
+                                  </button>
                                 </div>
-                                {modules.length > 0 ? (
-                                  <div className="flex flex-wrap gap-2">
-                                    {modules.slice(0, 5).map((course) => (
-                                      <span
-                                        key={course.id}
-                                        className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1 text-[11px] font-semibold text-slate-300"
-                                      >
-                                        {course.title}
-                                      </span>
-                                    ))}
-                                    {modules.length > 5 && (
-                                      <span className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1 text-[11px] font-semibold text-slate-500">
-                                        +{modules.length - 5}
-                                      </span>
-                                    )}
+                              </form>
+                            ) : (
+                              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                                <div className="min-w-0 space-y-2">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <p className="text-sm font-black text-white">{discipline.name}</p>
+                                    <span className="rounded-md bg-slate-900 px-2 py-1 text-[10px] font-bold text-slate-400">
+                                      {modules.length} module{modules.length !== 1 ? "s" : ""}
+                                    </span>
                                   </div>
-                                ) : (
-                                  <p className="text-xs font-semibold text-slate-500">Aucun module rattaché.</p>
-                                )}
+                                  {modules.length > 0 ? (
+                                    <div className="flex flex-wrap gap-2">
+                                      {modules.slice(0, 5).map((course) => (
+                                        <span
+                                          key={course.id}
+                                          className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1 text-[11px] font-semibold text-slate-300"
+                                        >
+                                          {course.title}
+                                        </span>
+                                      ))}
+                                      {modules.length > 5 && (
+                                        <span className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1 text-[11px] font-semibold text-slate-500">
+                                          +{modules.length - 5}
+                                        </span>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <p className="text-xs font-semibold text-slate-500">Aucun module rattaché.</p>
+                                  )}
+                                </div>
+                                <div className="flex shrink-0 flex-wrap gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => beginEditDiscipline(discipline)}
+                                    className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-600 px-3 text-xs font-bold text-slate-200 transition-colors hover:bg-slate-800"
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                    Modifier
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={!canDeleteDiscipline || isSavingTaxonomy}
+                                    onClick={() => void handleDeleteAcademicDiscipline(discipline.id, discipline.name)}
+                                    title={
+                                      !canDeleteDiscipline
+                                        ? "Déplacez d'abord les modules attachés"
+                                        : "Supprimer le sous-domaine"
+                                    }
+                                    className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-rose-500/60 bg-rose-500/10 px-3 text-xs font-bold text-rose-200 transition-colors hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-40"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                    Supprimer
+                                  </button>
+                                </div>
                               </div>
-                              <div className="flex shrink-0 flex-wrap gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() => beginEditDiscipline(discipline)}
-                                  className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-600 px-3 text-xs font-bold text-slate-200 transition-colors hover:bg-slate-800"
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                  Modifier
-                                </button>
-                                <button
-                                  type="button"
-                                  disabled={!canDeleteDiscipline || isSavingTaxonomy}
-                                  onClick={() => void handleDeleteAcademicDiscipline(discipline.id, discipline.name)}
-                                  title={
-                                    !canDeleteDiscipline
-                                      ? "Déplacez d'abord les modules attachés"
-                                      : "Supprimer le sous-domaine"
-                                  }
-                                  className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-rose-500/60 bg-rose-500/10 px-3 text-xs font-bold text-rose-200 transition-colors hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-40"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                  Supprimer
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
               </article>
             );
           })

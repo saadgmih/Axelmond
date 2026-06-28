@@ -1,12 +1,13 @@
 import { FolderTree, Video, Plus, Trash2 } from "lucide-react";
 
-import { curriculumUi, getStepTheme } from "../curriculum-theme";
+import { curriculumUi, getMediaStep, getStepTheme } from "../curriculum-theme";
 import type { TeacherCurriculumViewProps } from "../curriculum-types";
 
 export default function CurriculumOutlineStep(props: TeacherCurriculumViewProps) {
   const {
     domains: _domains,
-    activeCurriculumStep,
+    canManageAcademicTaxonomy,
+    activeCurriculumStep: _activeCurriculumStep,
     setActiveCurriculumStep,
     selectedChapterId,
     setSelectedChapterId,
@@ -109,7 +110,8 @@ export default function CurriculumOutlineStep(props: TeacherCurriculumViewProps)
     handleToggleContentPublished: _handleToggleContentPublished,
     handleDeleteLessonContent: _handleDeleteLessonContent,
   } = props;
-  const stepTheme = getStepTheme(activeCurriculumStep);
+  const stepTheme = getStepTheme(3);
+  const mediaStep = getMediaStep(canManageAcademicTaxonomy);
   const inputFocus = `${curriculumUi.input} ${stepTheme.focus}`;
   return (
     <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
@@ -286,7 +288,7 @@ export default function CurriculumOutlineStep(props: TeacherCurriculumViewProps)
                         type="button"
                         onClick={() => {
                           handleSetUploadSectionId(section.id);
-                          setActiveCurriculumStep(4);
+                          setActiveCurriculumStep(mediaStep);
                         }}
                         className={`rounded-xl border p-2 text-[10px] font-bold transition-colors ${getStepTheme(4).chip} hover:opacity-90`}
                         title="Médias"

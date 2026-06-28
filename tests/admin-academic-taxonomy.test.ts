@@ -12,6 +12,9 @@ rulesTest("admin-academic-taxonomy", () => {
   const taxonomyView = fs.readFileSync("src/views/teacher/AdminAcademicTaxonomyView.tsx", "utf8");
   const curriculumView = fs.readFileSync("src/views/teacher/TeacherCurriculumView.tsx", "utf8");
   const curriculumModulesStep = fs.readFileSync("src/views/teacher/curriculum-steps/CurriculumModulesStep.tsx", "utf8");
+  const curriculumStepper = fs.readFileSync("src/views/teacher/curriculum-steps/CurriculumStepper.tsx", "utf8");
+  const curriculumTheme = fs.readFileSync("src/views/teacher/curriculum-theme.ts", "utf8");
+  const teacherCurriculumHook = fs.readFileSync("src/hooks/useTeacherCurriculum.tsx", "utf8");
   const teacherRouteSwitch = fs.readFileSync("src/app/TeacherRouteSwitch.tsx", "utf8");
   const sidebarConfig = fs.readFileSync("src/navigation/sidebar-config.ts", "utf8");
   const platformPaths = fs.readFileSync("src/navigation/platformPaths.ts", "utf8");
@@ -52,15 +55,25 @@ rulesTest("admin-academic-taxonomy", () => {
   assert.match(dashboardHook, /handleDeleteAcademicDiscipline/);
 
   assert.match(taxonomyView, /Domaine → Sous-domaine → Modules/);
+  assert.match(taxonomyView, /mode = "all"/);
+  assert.match(taxonomyView, /mode === "domains"/);
+  assert.match(taxonomyView, /mode === "disciplines"/);
   assert.match(taxonomyView, /coursesByDiscipline/);
   assert.match(taxonomyView, /handleCreateAcademicDiscipline/);
   assert.match(taxonomyView, /handleDeleteAcademicDomain/);
   assert.match(taxonomyView, /Déplacez d'abord les modules attachés/);
 
-  assert.match(curriculumModulesStep, /AdminAcademicTaxonomyView/);
-  assert.match(curriculumModulesStep, /canManageAcademicTaxonomy/);
-  assert.match(curriculumModulesStep, /<AdminAcademicTaxonomyView \{\.\.\.props\} \/>/);
-  assert.doesNotMatch(curriculumView, /AdminAcademicTaxonomyView/);
+  assert.match(curriculumTheme, /ADMIN_CURRICULUM_STEPS/);
+  assert.match(curriculumTheme, /label:\s*"Domaines"/);
+  assert.match(curriculumTheme, /label:\s*"Sous-domaines"/);
+  assert.match(curriculumTheme, /return canManageAcademicTaxonomy \? 3 : 1/);
+  assert.match(curriculumTheme, /return canManageAcademicTaxonomy \? 7 : 5/);
+  assert.match(curriculumStepper, /getCurriculumSteps\(canManageAcademicTaxonomy\)/);
+  assert.match(curriculumStepper, /s\.step <= moduleStep/);
+  assert.match(curriculumView, /<AdminAcademicTaxonomyView \{\.\.\.props\} mode="domains" \/>/);
+  assert.match(curriculumView, /<AdminAcademicTaxonomyView \{\.\.\.props\} mode="disciplines" \/>/);
+  assert.doesNotMatch(curriculumModulesStep, /AdminAcademicTaxonomyView/);
+  assert.match(teacherCurriculumHook, /currentUser\?\.role === "ADMIN" \? 7 : 5/);
   assert.match(teacherRouteSwitch, /teacherView === "curriculum"/);
   assert.match(teacherRouteSwitch, /canManageAcademicTaxonomy=\{currentUser\.role === "ADMIN"\}/);
   assert.match(teacherRouteSwitch, /\{\.\.\.teacherDashboardBindings\}/);

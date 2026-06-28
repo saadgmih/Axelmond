@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import { BookOpen, FolderTree, HelpCircle, Layers, Video } from "lucide-react";
 
-export type CurriculumStepId = 1 | 2 | 3 | 4 | 5;
+export type CurriculumStepId = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 export interface CurriculumStepConfig {
   step: CurriculumStepId;
@@ -98,6 +98,70 @@ export const CURRICULUM_STEPS: CurriculumStepConfig[] = [
     listActive: "border-violet-500/50 bg-violet-950/30 shadow-lg shadow-violet-900/20",
   },
 ];
+
+export const ADMIN_CURRICULUM_STEPS: CurriculumStepConfig[] = [
+  {
+    step: 1,
+    label: "Domaines",
+    desc: "Familles académiques",
+    icon: FolderTree,
+    active: "border-violet-400/70 bg-violet-950/50 text-white shadow-lg shadow-violet-500/15 ring-1 ring-violet-500/40",
+    completed: "border-emerald-500/40 bg-emerald-950/30 text-emerald-200",
+    badgeActive: "bg-violet-500 text-white shadow-md shadow-violet-500/40",
+    badgeCompleted: "bg-emerald-600 text-white",
+    button:
+      "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-lg shadow-violet-900/25",
+    focus: "focus:border-violet-400 focus:ring-violet-500/20",
+    panel: "border-l-4 border-l-violet-500",
+    chip: "bg-violet-950/80 text-violet-300 border-violet-500/30",
+    listActive: "border-violet-500/50 bg-violet-950/30 shadow-lg shadow-violet-900/20 ring-1 ring-violet-500/25",
+  },
+  {
+    step: 2,
+    label: "Sous-domaines",
+    desc: "Branches du domaine",
+    icon: Layers,
+    active: "border-indigo-400/70 bg-indigo-950/50 text-white shadow-lg shadow-indigo-500/15 ring-1 ring-indigo-500/40",
+    completed: "border-emerald-500/40 bg-emerald-950/30 text-emerald-200",
+    badgeActive: "bg-indigo-500 text-white shadow-md shadow-indigo-500/40",
+    badgeCompleted: "bg-emerald-600 text-white",
+    button:
+      "bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white shadow-lg shadow-indigo-900/25",
+    focus: "focus:border-indigo-400 focus:ring-indigo-500/20",
+    panel: "border-l-4 border-l-indigo-500",
+    chip: "bg-indigo-950/80 text-indigo-300 border-indigo-500/30",
+    listActive: "border-indigo-500/50 bg-indigo-950/30 shadow-lg shadow-indigo-900/20 ring-1 ring-indigo-500/25",
+  },
+  { ...CURRICULUM_STEPS[0], step: 3 },
+  { ...CURRICULUM_STEPS[1], step: 4 },
+  { ...CURRICULUM_STEPS[2], step: 5 },
+  { ...CURRICULUM_STEPS[3], step: 6 },
+  { ...CURRICULUM_STEPS[4], step: 7 },
+];
+
+export function getCurriculumSteps(canManageAcademicTaxonomy: boolean): CurriculumStepConfig[] {
+  return canManageAcademicTaxonomy ? ADMIN_CURRICULUM_STEPS : CURRICULUM_STEPS;
+}
+
+export function getModuleStep(canManageAcademicTaxonomy: boolean): number {
+  return canManageAcademicTaxonomy ? 3 : 1;
+}
+
+export function getSyllabusStep(canManageAcademicTaxonomy: boolean): number {
+  return canManageAcademicTaxonomy ? 4 : 2;
+}
+
+export function getStructureStep(canManageAcademicTaxonomy: boolean): number {
+  return canManageAcademicTaxonomy ? 5 : 3;
+}
+
+export function getMediaStep(canManageAcademicTaxonomy: boolean): number {
+  return canManageAcademicTaxonomy ? 6 : 4;
+}
+
+export function getQuizStep(canManageAcademicTaxonomy: boolean): number {
+  return canManageAcademicTaxonomy ? 7 : 5;
+}
 
 export function getStepTheme(step: number): CurriculumStepConfig {
   return CURRICULUM_STEPS.find((item) => item.step === step) ?? CURRICULUM_STEPS[0];

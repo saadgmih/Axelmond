@@ -1,12 +1,13 @@
 import { BookOpen, Check, Sparkles } from "lucide-react";
 import { formatCredits } from "../../../utils/morocco-locale";
 
-import { CURRICULUM_STEPS, curriculumUi, getStepTheme } from "../curriculum-theme";
+import { curriculumUi, getCurriculumSteps, getModuleStep, getStepTheme } from "../curriculum-theme";
 import type { TeacherCurriculumViewProps } from "../curriculum-types";
 
 type Props = Pick<
   TeacherCurriculumViewProps,
   | "activeCurriculumStep"
+  | "canManageAcademicTaxonomy"
   | "setActiveCurriculumStep"
   | "curriculumSuccessMsg"
   | "curriculumErrorMsg"
@@ -21,6 +22,7 @@ type Props = Pick<
 export default function CurriculumStepper(props: Props) {
   const {
     activeCurriculumStep,
+    canManageAcademicTaxonomy,
     setActiveCurriculumStep,
     curriculumSuccessMsg,
     curriculumErrorMsg,
@@ -31,6 +33,12 @@ export default function CurriculumStepper(props: Props) {
     handleSelectManagedCourse,
     loadTeacherQuizzes,
   } = props;
+  const curriculumSteps = getCurriculumSteps(canManageAcademicTaxonomy);
+  const moduleStep = getModuleStep(canManageAcademicTaxonomy);
+  const stepGridClass = canManageAcademicTaxonomy ? "xl:grid-cols-7" : "xl:grid-cols-5";
+  const heroDescription = canManageAcademicTaxonomy
+    ? "Parcourez les 7 étapes pour construire votre programme : domaines, sous-domaines, modules, chapitres, arborescence, médias et évaluations. Chaque étape a sa couleur pour repérer rapidement où vous travaillez."
+    : "Parcourez les 5 étapes pour construire votre module : catalogue, chapitres, arborescence, médias et évaluations. Chaque étape a sa couleur pour repérer rapidement où vous travaillez.";
 
   return (
     <>
@@ -44,10 +52,7 @@ export default function CurriculumStepper(props: Props) {
               Studio pédagogique
             </span>
             <h2 className={curriculumUi.heroTitle}>Gestion du programme pédagogique</h2>
-            <p className={curriculumUi.heroDesc}>
-              Parcourez les 5 étapes pour construire votre module : catalogue, chapitres, arborescence, médias et
-              évaluations. Chaque étape a sa couleur pour repérer rapidement où vous travaillez.
-            </p>
+            <p className={curriculumUi.heroDesc}>{heroDescription}</p>
           </div>
 
           {(curriculumSuccessMsg || curriculumErrorMsg) && (
@@ -62,16 +67,16 @@ export default function CurriculumStepper(props: Props) {
 
           <div className={`${curriculumUi.divider} pt-5 space-y-4`}>
             <p className={curriculumUi.progressLabel}>
-              Progression · étape {activeCurriculumStep} / {CURRICULUM_STEPS.length}
+              Progression · étape {activeCurriculumStep} / {curriculumSteps.length}
             </p>
             <div className={curriculumUi.progressTrack}>
               <div
                 className={curriculumUi.progressFill}
-                style={{ width: `${(activeCurriculumStep / CURRICULUM_STEPS.length) * 100}%` }}
+                style={{ width: `${(activeCurriculumStep / curriculumSteps.length) * 100}%` }}
               />
             </div>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-5">
-              {CURRICULUM_STEPS.map((s) => {
+            <div className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${stepGridClass}`}>
+              {curriculumSteps.map((s) => {
                 const Icon = s.icon;
                 const isActive = activeCurriculumStep === s.step;
                 const isCompleted = activeCurriculumStep > s.step;
@@ -80,10 +85,10 @@ export default function CurriculumStepper(props: Props) {
                     key={s.step}
                     type="button"
                     onClick={() => {
-                      if (managedCourses.length > 0 || s.step === 1) {
+                      if (managedCourses.length > 0 || s.step <= moduleStep) {
                         setActiveCurriculumStep(s.step);
                       } else {
-                        showCurriculumError("Veuillez d'abord créer un module à l'étape 1.");
+                        showCurriculumError("Veuillez d'abord créer un module à l'étape Modules.");
                       }
                     }}
                     className={`flex items-center gap-3 rounded-2xl border p-3 text-left transition-all duration-200 ${
@@ -116,7 +121,7 @@ export default function CurriculumStepper(props: Props) {
         </div>
       </div>
 
-      {managedCourses.length > 0 && activeCurriculumStep > 1 && (
+      {managedCourses.length > 0 && activeCurriculumStep > moduleStep && (
         <div className={`${curriculumUi.contextBanner} animate-in fade-in duration-200`}>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
@@ -159,7 +164,7 @@ export default function CurriculumStepper(props: Props) {
               </select>
               <button
                 type="button"
-                onClick={() => setActiveCurriculumStep(1)}
+                onClick={() => setActiveCurriculumStep(moduleStep)}
                 className={`rounded-xl px-4 py-2.5 text-xs font-black transition-colors ${getStepTheme(1).button}`}
               >
                 Changer de module
@@ -169,7 +174,7 @@ export default function CurriculumStepper(props: Props) {
         </div>
       )}
 
-      {managedCourses.length === 0 && activeCurriculumStep > 1 && (
+      {managedCourses.length === 0 && activeCurriculumStep > moduleStep && (
         <div className={`${curriculumUi.empty} max-w-xl mx-auto space-y-4 animate-in fade-in duration-200`}>
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-violet-500/30 bg-violet-950/50 text-violet-400">
             <Sparkles className="h-8 w-8" />
@@ -181,7 +186,7 @@ export default function CurriculumStepper(props: Props) {
           </p>
           <button
             type="button"
-            onClick={() => setActiveCurriculumStep(1)}
+            onClick={() => setActiveCurriculumStep(moduleStep)}
             className={`mx-auto inline-flex rounded-xl px-5 py-2.5 text-xs font-black transition-colors ${getStepTheme(1).button}`}
           >
             Aller à l&apos;étape Modules

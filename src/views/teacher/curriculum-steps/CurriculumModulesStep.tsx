@@ -14,15 +14,14 @@ import {
 } from "lucide-react";
 import { formatCredits, formatMad } from "../../../utils/morocco-locale";
 
-import { curriculumUi, getStepTheme, publishedBadge, publishedLabel } from "../curriculum-theme";
+import { curriculumUi, getStepTheme, getSyllabusStep, publishedBadge, publishedLabel } from "../curriculum-theme";
 import type { TeacherCurriculumViewProps } from "../curriculum-types";
-import AdminAcademicTaxonomyView from "../AdminAcademicTaxonomyView";
 
 export default function CurriculumModulesStep(props: TeacherCurriculumViewProps) {
   const {
     domains,
     canManageAcademicTaxonomy,
-    activeCurriculumStep,
+    activeCurriculumStep: _activeCurriculumStep,
     setActiveCurriculumStep,
     selectedChapterId: _selectedChapterId,
     setSelectedChapterId: _setSelectedChapterId,
@@ -125,7 +124,8 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
     handleToggleContentPublished: _handleToggleContentPublished,
     handleDeleteLessonContent: _handleDeleteLessonContent,
   } = props;
-  const stepTheme = getStepTheme(activeCurriculumStep);
+  const stepTheme = getStepTheme(1);
+  const syllabusStep = getSyllabusStep(canManageAcademicTaxonomy);
   const inputFocus = `${curriculumUi.input} ${stepTheme.focus}`;
   return (
     <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
@@ -439,7 +439,9 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                     </div>
 
                     <button
-                      onClick={() => handleSelectManagedCourse(course.id).then(() => setActiveCurriculumStep(2))}
+                      onClick={() =>
+                        handleSelectManagedCourse(course.id).then(() => setActiveCurriculumStep(syllabusStep))
+                      }
                       className={curriculumUi.manageBtn}
                     >
                       Gérer le programme
@@ -452,12 +454,6 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
           ))}
         </div>
       </div>
-
-      {canManageAcademicTaxonomy && (
-        <div className="xl:col-span-12">
-          <AdminAcademicTaxonomyView {...props} />
-        </div>
-      )}
     </div>
   );
 }

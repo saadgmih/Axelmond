@@ -6,7 +6,7 @@ import type { TeacherCurriculumViewProps } from "../curriculum-types";
 export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
   const {
     domains: _domains,
-    activeCurriculumStep,
+    activeCurriculumStep: _activeCurriculumStep,
     setActiveCurriculumStep: _setActiveCurriculumStep,
     selectedChapterId: _selectedChapterId,
     setSelectedChapterId: _setSelectedChapterId,
@@ -110,7 +110,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
     handleToggleContentPublished: _handleToggleContentPublished,
     handleDeleteLessonContent: _handleDeleteLessonContent,
   } = props;
-  const stepTheme = getStepTheme(activeCurriculumStep);
+  const stepTheme = getStepTheme(5);
   const inputFocus = `${curriculumUi.input} ${stepTheme.focus}`;
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">

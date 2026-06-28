@@ -1,12 +1,20 @@
 import { Layers, Video, Plus } from "lucide-react";
 
-import { curriculumUi, getStepTheme, publishedBadge, publishedLabel } from "../curriculum-theme";
+import {
+  curriculumUi,
+  getMediaStep,
+  getStepTheme,
+  getStructureStep,
+  publishedBadge,
+  publishedLabel,
+} from "../curriculum-theme";
 import type { TeacherCurriculumViewProps } from "../curriculum-types";
 
 export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps) {
   const {
     domains: _domains,
-    activeCurriculumStep,
+    canManageAcademicTaxonomy,
+    activeCurriculumStep: _activeCurriculumStep,
     setActiveCurriculumStep,
     selectedChapterId: _selectedChapterId,
     setSelectedChapterId: _setSelectedChapterId,
@@ -109,7 +117,9 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
     handleToggleContentPublished: _handleToggleContentPublished,
     handleDeleteLessonContent: _handleDeleteLessonContent,
   } = props;
-  const stepTheme = getStepTheme(activeCurriculumStep);
+  const stepTheme = getStepTheme(2);
+  const structureStep = getStructureStep(canManageAcademicTaxonomy);
+  const mediaStep = getMediaStep(canManageAcademicTaxonomy);
   const inputFocus = `${curriculumUi.input} ${stepTheme.focus}`;
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
@@ -217,7 +227,7 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
                     <button
                       onClick={() => {
                         handleAddChildSection(section);
-                        setActiveCurriculumStep(3);
+                        setActiveCurriculumStep(structureStep);
                       }}
                       className={`inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-[10px] font-black transition-colors ${getStepTheme(3).chip} hover:opacity-90`}
                     >
@@ -227,7 +237,7 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
                     <button
                       onClick={() => {
                         handleSetUploadSectionId(section.id);
-                        setActiveCurriculumStep(4);
+                        setActiveCurriculumStep(mediaStep);
                       }}
                       className={`inline-flex items-center gap-1 rounded-lg px-3 py-2 text-[10px] font-black text-white transition-colors ${getStepTheme(4).button}`}
                     >
