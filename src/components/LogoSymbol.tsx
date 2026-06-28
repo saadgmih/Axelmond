@@ -9,7 +9,8 @@ export default function LogoSymbol({ className = "w-10 h-10" }: LogoSymbolProps)
     <img
       src="/logo-symbol.png"
       alt="Performance Académique"
-      className={`${className} object-contain select-none`}
+      className={`${className} block object-contain select-none`}
+      decoding="async"
       draggable={false}
     />
   );
