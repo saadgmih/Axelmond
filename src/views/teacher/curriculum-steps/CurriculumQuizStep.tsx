@@ -5,9 +5,9 @@ import { curriculumUi, getStepTheme } from "../curriculum-theme";
 import type { TeacherCurriculumViewProps } from "../curriculum-types";
 
 const latexExamples = [
-  String.raw`$f(x)=\frac{x^2-1}{x-1}$`,
-  String.raw`$$A=\begin{pmatrix}1&2\\3&4\end{pmatrix}$$`,
-  String.raw`$\int_0^1 e^{-x^2}\,dx$`,
+  { label: "Fonction", source: String.raw`$f(x)=\frac{x^2-1}{x-1}$` },
+  { label: "Matrice", source: String.raw`$$A=\begin{pmatrix}1&2\\3&4\end{pmatrix}$$` },
+  { label: "Intégrale", source: String.raw`$\int_0^1 e^{-x^2}\,dx$` },
 ];
 
 export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
@@ -311,14 +311,22 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                   </div>
                 </div>
 
-                <div className="grid gap-2 sm:grid-cols-3">
+                <div className="grid min-w-0 grid-cols-1 gap-2 md:grid-cols-3">
                   {latexExamples.map((example) => (
-                    <code
-                      key={example}
-                      className="rounded-xl border border-slate-700/70 bg-slate-950/80 px-3 py-2 text-[10px] font-semibold text-slate-300"
+                    <div
+                      key={example.label}
+                      className="min-w-0 rounded-2xl border border-slate-700/70 bg-slate-950/75 p-3"
                     >
-                      {example}
-                    </code>
+                      <span className="block text-[9px] font-black uppercase tracking-wider text-violet-300">
+                        {example.label}
+                      </span>
+                      <div className="mt-2 min-w-0 overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/70 px-3 py-2 text-[11px] font-semibold text-slate-100">
+                        <LatexText value={example.source} compact />
+                      </div>
+                      <code className="mt-2 block max-w-full whitespace-normal break-all rounded-lg bg-slate-950/90 px-2 py-1.5 text-[9px] font-semibold leading-relaxed text-slate-500">
+                        {example.source}
+                      </code>
+                    </div>
                   ))}
                 </div>
               </div>

@@ -20,6 +20,8 @@ rulesTest("quiz-latex-rendering", () => {
   assert.match(teacherQuizSource, /LaTeX activé/);
   assert.match(teacherQuizSource, /Aperçu étudiant/);
   assert.match(teacherQuizSource, /\\begin\{pmatrix\}/);
+  assert.match(teacherQuizSource, /break-all/);
+  assert.match(teacherQuizSource, /overflow-x-auto/);
   assert.match(teacherQuizSource, /value=\{newQuestionText\}/);
   assert.match(teacherQuizSource, /value=\{option\}/);
   assert.match(teacherQuizSource, /value=\{newQuestionExplanation\}/);
