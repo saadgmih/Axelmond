@@ -123,6 +123,7 @@ export function toCourse(
     disciplineId: course.disciplineId,
     discipline: course.discipline ? toDiscipline(course.discipline) : undefined,
     price: course.price,
+    freeAccessDurationDays: course.freeAccessDurationDays ?? null,
     iconName: course.iconName,
     color: course.color,
     instructor: decodeStoredText(course.instructor),

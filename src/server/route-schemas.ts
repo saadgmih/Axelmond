@@ -1,6 +1,7 @@
 import express from "express";
 import { z } from "zod";
 import { DEFAULT_MODULE_CLASSIFICATION } from "../types";
+import { MIN_PAID_COURSE_PRICE, isValidCoursePrice } from "../utils/course-pricing";
 import {
   CHAT_TUTOR_MAX_HISTORY_MESSAGES,
   CHAT_TUTOR_MAX_PROMPT_CHARS,
@@ -118,21 +119,42 @@ export const chatTutorSchema = z.object({
 export const PASSWORD_RESET_GENERIC_MESSAGE =
   "Si un compte Performance Académique existe pour cette adresse, un code de réinitialisation a été envoyé.";
 
-export const courseSchema = z.object({
-  title: z.string().min(2, "Le titre est requis").max(200).trim(),
-  level: z.string().min(2).max(50).trim().optional().default(DEFAULT_MODULE_CLASSIFICATION),
-  credits: z.number().int().min(0),
-  duration: z.string().min(2).max(50).trim(),
-  category: z.string().max(100).trim().optional().nullable(),
-  disciplineId: z.number().int().positive(),
-  price: z.number().nonnegative(),
-  instructor: z.string().max(100).trim().optional().nullable(),
-  description: z.string().min(5, "La description est requise").max(2000).trim(),
-  published: z.boolean().default(false),
-});
+const freeAccessDurationDaysField = z.number().int().positive().nullable().optional();
+
+export const courseSchema = z
+  .object({
+    title: z.string().min(2, "Le titre est requis").max(200).trim(),
+    level: z.string().min(2).max(50).trim().optional().default(DEFAULT_MODULE_CLASSIFICATION),
+    credits: z.number().int().min(0),
+    duration: z.string().min(2).max(50).trim(),
+    category: z.string().max(100).trim().optional().nullable(),
+    disciplineId: z.number().int().positive(),
+    price: z
+      .number()
+      .nonnegative()
+      .refine(isValidCoursePrice, `Le prix doit être gratuit ou supérieur ou égal à ${MIN_PAID_COURSE_PRICE} DH.`),
+    freeAccessDurationDays: freeAccessDurationDaysField,
+    instructor: z.string().max(100).trim().optional().nullable(),
+    description: z.string().min(5, "La description est requise").max(2000).trim(),
+    published: z.boolean().default(false),
+  })
+  .superRefine((data, ctx) => {
+    if (data.price > 0 && data.freeAccessDurationDays != null) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["freeAccessDurationDays"],
+        message: "La durée de gratuité s'applique uniquement aux modules gratuits.",
+      });
+    }
+  });
 
 export const coursePatchSchema = z.object({
-  price: z.number().nonnegative().optional(),
+  price: z
+    .number()
+    .nonnegative()
+    .refine(isValidCoursePrice, `Le prix doit être gratuit ou supérieur ou égal à ${MIN_PAID_COURSE_PRICE} DH.`)
+    .optional(),
+  freeAccessDurationDays: freeAccessDurationDaysField,
   isLiveNow: z.boolean().optional(),
   liveSubject: z.string().max(200).trim().optional().nullable(),
   published: z.boolean().optional(),

@@ -14,6 +14,7 @@ enum UserRole {
   PROFESSOR
   RESEARCHER
   ADMIN
+
   @@schema("AxelmondResearchLab")
 }
 
@@ -22,6 +23,7 @@ enum LessonContentType {
   PDF
   IMAGE
   TEXT
+
   @@schema("AxelmondResearchLab")
 }
 
@@ -30,59 +32,60 @@ enum AttachmentType {
   PDF
   IMAGE
   FILE
+
   @@schema("AxelmondResearchLab")
 }
 
 model User {
-  id                     String                  @id @default(cuid())
-  email                  String                  @unique
-  passwordHash           String
-  fullName               String
-  role                   UserRole
-  emailVerified          Boolean                 @default(false)
-  levelOrTitle           String?
-  filiere                String?
-  avatarUrl              String?
-  failedLoginAttempts    Int                     @default(0)
-  lockoutUntil           DateTime?
-  totpEnabled            Boolean                 @default(false)
-  totpSecretEnc          String?
-  authTokenVersion       Int                     @default(0)
-  createdAt              DateTime                @default(now())
-  updatedAt              DateTime                @updatedAt
-  enrollments            Enrollment[]
-  liveSessions           LiveSession[]           @relation("ProfessorLiveSessions")
-  liveMessages           LiveMessage[]
-  usedInviteCodes        ProfessorInviteCode[]   @relation("UsedInviteCodes")
-  createdInviteCodes     ProfessorInviteCode[]   @relation("CreatedInviteCodes")
-  createdCourses         Course[]                @relation("CreatedCourses")
-  createdChapters        Chapter[]               @relation("CreatedChapters")
-  createdSections        ContentSection[]        @relation("CreatedSections")
-  createdContents        LessonContent[]         @relation("CreatedContents")
-  createdAttachments     Attachment[]            @relation("CreatedAttachments")
-  emailVerificationCodes EmailVerificationCode[]
-  emailDeliveryLogs      EmailDeliveryLog[]
-  academicProfile        AcademicProfile?
-  quizAttempts           QuizAttempt[]
-  moduleProgress         ModuleProgress[]
-  contentProgress        StudentContentProgress[]
-  refreshTokens          RefreshToken[]
-  auditLogs              AuditLog[]
-  liveAttendances        LiveAttendance[]
-  liveActionLogs         LiveActionLog[]         @relation("LiveActionActor")
-  scheduleSessions       ProfessorScheduleSession[]
-  studyScheduleSessions  StudentStudyScheduleSession[]
-  objectives             StudentObjective[]
+  id                       String                        @id @default(cuid())
+  email                    String                        @unique
+  passwordHash             String
+  fullName                 String
+  role                     UserRole
+  emailVerified            Boolean                       @default(false)
+  levelOrTitle             String?
+  filiere                  String?
+  avatarUrl                String?
+  failedLoginAttempts      Int                           @default(0)
+  lockoutUntil             DateTime?
+  totpEnabled              Boolean                       @default(false)
+  totpSecretEnc            String?
+  authTokenVersion         Int                           @default(0)
+  createdAt                DateTime                      @default(now())
+  updatedAt                DateTime                      @updatedAt
+  enrollments              Enrollment[]
+  liveSessions             LiveSession[]                 @relation("ProfessorLiveSessions")
+  liveMessages             LiveMessage[]
+  usedInviteCodes          ProfessorInviteCode[]         @relation("UsedInviteCodes")
+  createdInviteCodes       ProfessorInviteCode[]         @relation("CreatedInviteCodes")
+  createdCourses           Course[]                      @relation("CreatedCourses")
+  createdChapters          Chapter[]                     @relation("CreatedChapters")
+  createdSections          ContentSection[]              @relation("CreatedSections")
+  createdContents          LessonContent[]               @relation("CreatedContents")
+  createdAttachments       Attachment[]                  @relation("CreatedAttachments")
+  emailVerificationCodes   EmailVerificationCode[]
+  emailDeliveryLogs        EmailDeliveryLog[]
+  academicProfile          AcademicProfile?
+  quizAttempts             QuizAttempt[]
+  moduleProgress           ModuleProgress[]
+  contentProgress          StudentContentProgress[]
+  refreshTokens            RefreshToken[]
+  auditLogs                AuditLog[]
+  liveAttendances          LiveAttendance[]
+  liveActionLogs           LiveActionLog[]               @relation("LiveActionActor")
+  scheduleSessions         ProfessorScheduleSession[]
+  studyScheduleSessions    StudentStudyScheduleSession[]
+  objectives               StudentObjective[]
   conversationParticipants ConversationParticipant[]
-  sentMessages           Message[]               @relation("SentMessages")
-  messageReads           MessageRead[]
-  notifications          Notification[]
-  pushSubscriptions      PushSubscription[]
-  payments               Payment[]
-  invoiceRecords         Invoice[]
-  totpRecoveryCodes      TotpRecoveryCode[]
-  webAuthnCredentials    WebAuthnCredential[]
-  securityChallenges     SecurityChallenge[]
+  sentMessages             Message[]                     @relation("SentMessages")
+  messageReads             MessageRead[]
+  notifications            Notification[]
+  pushSubscriptions        PushSubscription[]
+  payments                 Payment[]
+  invoiceRecords           Invoice[]
+  totpRecoveryCodes        TotpRecoveryCode[]
+  webAuthnCredentials      WebAuthnCredential[]
+  securityChallenges       SecurityChallenge[]
 
   @@index([role])
   @@schema("AxelmondResearchLab")
@@ -103,25 +106,27 @@ model AcademicProfile {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@schema("AxelmondResearchLab")
 }
 
 enum EmailVerificationPurpose {
   EMAIL_VERIFY
   PASSWORD_RESET
+
   @@schema("AxelmondResearchLab")
 }
 
 model EmailVerificationCode {
-  id        String    @id @default(cuid())
+  id        String                   @id @default(cuid())
   userId    String
   purpose   EmailVerificationPurpose @default(EMAIL_VERIFY)
   codeHash  String
   expiresAt DateTime
   usedAt    DateTime?
-  attempts  Int       @default(0)
-  createdAt DateTime  @default(now())
-  user      User      @relation(fields: [userId], references: [id])
+  attempts  Int                      @default(0)
+  createdAt DateTime                 @default(now())
+  user      User                     @relation(fields: [userId], references: [id])
 
   @@index([userId, createdAt])
   @@index([userId, usedAt, createdAt])
@@ -173,6 +178,7 @@ model FacultyDomain {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   disciplines Discipline[]
+
   @@schema("AxelmondResearchLab")
 }
 
@@ -192,39 +198,40 @@ model Discipline {
 }
 
 model Course {
-  id           Int              @id @default(autoincrement())
-  title        String
-  level        String
-  credits      Int
-  duration     String
-  category     String
-  price        Float
-  iconName     String
-  color        String
-  instructor   String
-  description  String
-  progress     Int              @default(0)
-  isLiveNow    Boolean          @default(false)
-  liveSubject  String?
-  published    Boolean          @default(true)
-  disciplineId Int
-  createdById  String?
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
-  enrollments  Enrollment[]
-  liveSessions LiveSession[]
-  discipline   Discipline       @relation(fields: [disciplineId], references: [id])
-  createdBy    User?            @relation("CreatedCourses", fields: [createdById], references: [id])
-  chapters     Chapter[]
-  sections     ContentSection[]
-  contents     LessonContent[]
-  attachments  Attachment[]
-  quizzes      Quiz[]
-  quizAttempts QuizAttempt[]
-  moduleProgress ModuleProgress[]
-  contentProgress StudentContentProgress[]
-  payments       Payment[]
-  courseModules  CourseModule[]
+  id                     Int                      @id @default(autoincrement())
+  title                  String
+  level                  String
+  credits                Int
+  duration               String
+  category               String
+  price                  Float
+  freeAccessDurationDays Int?
+  iconName               String
+  color                  String
+  instructor             String
+  description            String
+  progress               Int                      @default(0)
+  isLiveNow              Boolean                  @default(false)
+  liveSubject            String?
+  published              Boolean                  @default(true)
+  disciplineId           Int
+  createdById            String?
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  enrollments            Enrollment[]
+  liveSessions           LiveSession[]
+  discipline             Discipline               @relation(fields: [disciplineId], references: [id])
+  createdBy              User?                    @relation("CreatedCourses", fields: [createdById], references: [id])
+  chapters               Chapter[]
+  sections               ContentSection[]
+  contents               LessonContent[]
+  attachments            Attachment[]
+  quizzes                Quiz[]
+  quizAttempts           QuizAttempt[]
+  moduleProgress         ModuleProgress[]
+  contentProgress        StudentContentProgress[]
+  payments               Payment[]
+  courseModules          CourseModule[]
 
   @@index([disciplineId])
   @@index([createdById])
@@ -236,16 +243,16 @@ model Course {
 model CourseModule {
   courseId        Int
   id              Int
-  sortOrder       Int      @default(0)
+  sortOrder       Int     @default(0)
   title           String
   type            String
-  duration        String   @default("")
+  duration        String  @default("")
   contentMarkdown String?
   attachmentUrl   String?
   attachmentName  String?
   sectionId       String?
-  published       Boolean  @default(true)
-  course          Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  published       Boolean @default(true)
+  course          Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@id([courseId, id])
   @@index([courseId, sortOrder])
@@ -361,15 +368,15 @@ model Enrollment {
 }
 
 model Quiz {
-  id        String         @id @default(cuid())
+  id        String          @id @default(cuid())
   courseId  Int
   moduleId  Int?
   sectionId String?
   title     String
-  published Boolean        @default(false)
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-  course    Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  published Boolean         @default(false)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  course    Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
   section   ContentSection? @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   questions QuizQuestion[]
   attempts  QuizAttempt[]
@@ -429,16 +436,16 @@ model QuizAnswer {
 }
 
 model LiveSession {
-  id          String        @id @default(cuid())
-  roomName    String        @unique
+  id          String           @id @default(cuid())
+  roomName    String           @unique
   title       String?
   courseId    Int
   professorId String?
-  isActive    Boolean       @default(true)
-  startTime   DateTime      @default(now())
+  isActive    Boolean          @default(true)
+  startTime   DateTime         @default(now())
   endTime     DateTime?
-  course      Course        @relation(fields: [courseId], references: [id])
-  professor   User?         @relation("ProfessorLiveSessions", fields: [professorId], references: [id])
+  course      Course           @relation(fields: [courseId], references: [id])
+  professor   User?            @relation("ProfessorLiveSessions", fields: [professorId], references: [id])
   messages    LiveMessage[]
   attendances LiveAttendance[]
   actionLogs  LiveActionLog[]
@@ -513,14 +520,14 @@ model LiveActionLog {
 }
 
 model RefreshToken {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   userId        String
-  token         String   @unique
+  token         String    @unique
   csrfTokenHash String?
   expiresAt     DateTime
-  createdAt     DateTime @default(now())
+  createdAt     DateTime  @default(now())
   revokedAt     DateTime?
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([userId, revokedAt, expiresAt])
@@ -577,23 +584,24 @@ enum ScheduleSessionType {
   TP
   LIVE
   EXAMEN
+
   @@schema("AxelmondResearchLab")
 }
 
 model ProfessorScheduleSession {
-  id          String               @id @default(cuid())
+  id          String              @id @default(cuid())
   professorId String
   dayOfWeek   Int
   title       String
   moduleName  String
   startTime   String
   endTime     String
-  sessionType ScheduleSessionType  @default(COURS)
+  sessionType ScheduleSessionType @default(COURS)
   roomOrLink  String?
   description String?
-  createdAt   DateTime             @default(now())
-  updatedAt   DateTime             @updatedAt
-  professor   User                 @relation(fields: [professorId], references: [id], onDelete: Cascade)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  professor   User                @relation(fields: [professorId], references: [id], onDelete: Cascade)
 
   @@index([professorId, dayOfWeek])
   @@schema("AxelmondResearchLab")
@@ -607,6 +615,7 @@ enum StudentStudySessionType {
   LIVE
   DEVOIR
   EXAMEN
+
   @@schema("AxelmondResearchLab")
 }
 
@@ -668,6 +677,7 @@ model StudentContentProgress {
 enum StudentObjectiveStatus {
   IN_PROGRESS
   COMPLETED
+
   @@schema("AxelmondResearchLab")
 }
 
@@ -677,6 +687,7 @@ enum StudentObjectiveType {
   RESUME
   REVISION
   AUTRE
+
   @@schema("AxelmondResearchLab")
 }
 
@@ -686,6 +697,7 @@ enum FocusContentType {
   AUDIO_REMINDER
   EDUCATIONAL_RESOURCE
   OTHER
+
   @@schema("AxelmondResearchLab")
 }
 
@@ -694,28 +706,29 @@ enum StudentObjectiveRecurrence {
   DAILY
   WEEKLY
   MONTHLY
+
   @@schema("AxelmondResearchLab")
 }
 
 model StudentObjective {
-  id                String                 @id @default(cuid())
-  studentId         String
-  title             String
-  description       String?
-  startAt           DateTime
-  endAt             DateTime
-  status            StudentObjectiveStatus @default(IN_PROGRESS)
-  objectiveType     StudentObjectiveType?
-  focusContentTitle String?
-  focusContentUrl   String?
-  focusContentType  FocusContentType?
-  recurrence        StudentObjectiveRecurrence @default(NONE)
-  recurrenceSourceId String?
+  id                  String                     @id @default(cuid())
+  studentId           String
+  title               String
+  description         String?
+  startAt             DateTime
+  endAt               DateTime
+  status              StudentObjectiveStatus     @default(IN_PROGRESS)
+  objectiveType       StudentObjectiveType?
+  focusContentTitle   String?
+  focusContentUrl     String?
+  focusContentType    FocusContentType?
+  recurrence          StudentObjectiveRecurrence @default(NONE)
+  recurrenceSourceId  String?
   recurrenceCreatedAt DateTime?
-  completedAt       DateTime?
-  createdAt         DateTime               @default(now())
-  updatedAt         DateTime               @updatedAt
-  student           User                   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  completedAt         DateTime?
+  createdAt           DateTime                   @default(now())
+  updatedAt           DateTime                   @updatedAt
+  student             User                       @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@index([studentId, status])
   @@index([studentId, recurrence])
@@ -730,6 +743,7 @@ enum MessageAttachmentKind {
   VIDEO
   AUDIO
   DOCUMENT
+
   @@schema("AxelmondResearchLab")
 }
 
@@ -835,12 +849,14 @@ model PushSubscription {
 enum PaymentProvider {
   PAYPAL
   MOCK
+
   @@schema("AxelmondResearchLab")
 }
 
 enum PaymentStatus {
   COMPLETED
   REFUNDED
+
   @@schema("AxelmondResearchLab")
 }
 

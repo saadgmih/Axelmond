@@ -39,6 +39,10 @@ export interface TeacherCurriculumViewProps extends AdminAcademicTaxonomyViewPro
   setNewCourseDuration: (value: string) => void;
   newCoursePrice: string;
   setNewCoursePrice: (value: string) => void;
+  newCourseIsFree: boolean;
+  setNewCourseIsFree: (value: boolean) => void;
+  newCourseFreeAccessDurationDays: string;
+  setNewCourseFreeAccessDurationDays: (value: string) => void;
   newCoursePublished: boolean;
   setNewCoursePublished: (value: boolean) => void;
   newSectionCourseId: number;
@@ -69,6 +73,8 @@ export interface TeacherCurriculumViewProps extends AdminAcademicTaxonomyViewPro
     credits: string;
     disciplineId: number;
     price: string;
+    isFree: boolean;
+    freeAccessDurationDays: string;
   };
   setEditCourseForm: Dispatch<
     SetStateAction<{
@@ -79,6 +85,8 @@ export interface TeacherCurriculumViewProps extends AdminAcademicTaxonomyViewPro
       credits: string;
       disciplineId: number;
       price: string;
+      isFree: boolean;
+      freeAccessDurationDays: string;
     }>
   >;
 

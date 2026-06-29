@@ -3,6 +3,7 @@ import { getClientErrorMessage } from "../client-errors";
 import { api } from "../api";
 import type { AppUser } from "../components/AuthScreen";
 import type { Course, CourseGrade, FacultyDomain } from "../types";
+import { normalizeCoursePrice } from "../utils/course-pricing";
 
 export interface AcademicDomainInput {
   name: string;
@@ -169,7 +170,7 @@ export function useTeacherDashboard({
   }, [currentUser?.id, currentUser?.role]);
 
   const handleUpdateCoursePrice = async (id: number, newPrice: number) => {
-    const normalized = Number(newPrice.toFixed(2));
+    const normalized = normalizeCoursePrice(newPrice);
     setCourses((prev) => prev.map((c) => (c.id === id ? { ...c, price: normalized } : c)));
     try {
       const updatedCourse = await api.updateCourse(id, { price: normalized });

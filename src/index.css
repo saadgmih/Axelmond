@@ -304,6 +304,16 @@ body {
   transition: none;
 }
 
+.course-price-slider-root.is-free .course-price-slider-active {
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.45), rgba(45, 212, 191, 0.35));
+  box-shadow: none;
+}
+
+.course-price-slider-root.is-free .course-price-slider-thumb {
+  background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.14);
+}
+
 .course-price-slider-root:focus-within .course-price-slider-thumb {
   transform: translate(-50%, -50%) scale(1.04);
   box-shadow:
@@ -329,6 +339,10 @@ body {
 
 .course-price-slider-input:focus {
   outline: none;
+}
+
+.course-price-slider-input:disabled {
+  cursor: not-allowed;
 }
 
 .dark .course-price-slider-input,

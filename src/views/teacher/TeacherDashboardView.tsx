@@ -27,6 +27,7 @@ import { api } from "../../api";
 import type { AppUser } from "../../components/AuthScreen";
 import CoursePriceSlider from "../../components/CoursePriceSlider";
 import type { AcademicProfilePayload, Course, CourseGrade } from "../../types";
+import { formatFreeAccessDurationLabel, isFreeCoursePrice } from "../../utils/course-pricing";
 import { formatCredits, formatMad } from "../../utils/morocco-locale";
 
 interface TeacherDashboardViewProps {
@@ -174,12 +175,15 @@ const TeacherTariffCard = memo(function TeacherTariffCard({
           </div>
         </div>
         <span className="shrink-0 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-2.5 py-1 font-mono text-xs font-black text-white">
-          {formatMad(displayPrice)}
+          {isFreeCoursePrice(displayPrice)
+            ? formatFreeAccessDurationLabel(course.freeAccessDurationDays)
+            : formatMad(displayPrice)}
         </span>
       </div>
       <CoursePriceSlider
         courseId={course.id}
         price={course.price}
+        freeAccessDurationDays={course.freeAccessDurationDays}
         courseTitle={course.title}
         onCommit={onSave}
         onDraftChange={(nextPrice) => onDraftChange(course.id, nextPrice)}

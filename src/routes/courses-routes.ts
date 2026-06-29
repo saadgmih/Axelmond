@@ -135,7 +135,18 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
   app.post("/api/courses", requireAuth, requireRbac, validateBody(api.courseSchema), async (req, res) => {
     const authUser = getAuthUser(req);
 
-    const { title, credits, duration, category, disciplineId, price, instructor, description, published } = req.body;
+    const {
+      title,
+      credits,
+      duration,
+      category,
+      disciplineId,
+      price,
+      freeAccessDurationDays,
+      instructor,
+      description,
+      published,
+    } = req.body;
 
     const discipline = await api.prisma.discipline.findUnique({ where: { id: Number(disciplineId) } });
 
@@ -160,6 +171,8 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
         disciplineId: discipline.id,
 
         price,
+
+        freeAccessDurationDays: price <= 0 ? (freeAccessDurationDays ?? null) : null,
 
         iconName: "Code",
 
@@ -487,7 +500,18 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
       return;
     }
 
-    const { title, credits, duration, category, disciplineId, price, instructor, description, published } = req.body;
+    const {
+      title,
+      credits,
+      duration,
+      category,
+      disciplineId,
+      price,
+      freeAccessDurationDays,
+      instructor,
+      description,
+      published,
+    } = req.body;
 
     const discipline = await api.prisma.discipline.findUnique({ where: { id: Number(disciplineId) } });
 
@@ -514,6 +538,8 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
         disciplineId: discipline.id,
 
         price,
+
+        freeAccessDurationDays: price <= 0 ? (freeAccessDurationDays ?? null) : null,
 
         instructor: instructor || authUser.fullName,
 
@@ -567,11 +593,22 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
         return;
       }
 
+      const nextPrice = typeof req.body.price === "number" ? req.body.price : course.price;
+      if (nextPrice > 0 && req.body.freeAccessDurationDays != null) {
+        res.status(400).json({ error: "La durée de gratuité s'applique uniquement aux modules gratuits." });
+        return;
+      }
+
+      const patchData = {
+        ...req.body,
+        ...(nextPrice > 0 ? { freeAccessDurationDays: null } : {}),
+      };
+
       const updatedCourse = await api.prisma.$transaction(async (tx) => {
         const updated = await tx.course.update({
           where: { id: course.id },
 
-          data: req.body,
+          data: patchData,
         });
 
         const shouldSyncLiveSession =
@@ -631,7 +668,7 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
         return tx.course.findUnique({ where: { id: course.id }, include: api.courseResponseInclude });
       });
 
-      await api.logAudit(authUser.id, authUser.email, "PATCH_COURSE", "Course", String(course.id), req.body, req.ip);
+      await api.logAudit(authUser.id, authUser.email, "PATCH_COURSE", "Course", String(course.id), patchData, req.ip);
 
       await api.invalidatePublicCatalogCache();
 

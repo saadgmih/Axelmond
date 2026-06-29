@@ -11,9 +11,22 @@ import {
   Clock,
   Award,
   ChevronRight,
+  Gift,
 } from "lucide-react";
 import { formatCredits, formatMad } from "../../../utils/morocco-locale";
-import { normalizeNumericInputValue } from "../../../utils/numeric-input";
+import {
+  COURSE_PRICE_STEP,
+  FREE_ACCESS_DURATION_OPTIONS,
+  FREE_ACCESS_UNLIMITED_VALUE,
+  FREE_COURSE_PRICE,
+  MIN_PAID_COURSE_PRICE,
+  formatFreeAccessDurationLabel,
+} from "../../../utils/course-pricing";
+import {
+  normalizeNumericInputValue,
+  numberFromNumericInput,
+  numericInputFromNumber,
+} from "../../../utils/numeric-input";
 
 import { curriculumUi, getStepTheme, getSyllabusStep, publishedBadge, publishedLabel } from "../curriculum-theme";
 import type { TeacherCurriculumViewProps } from "../curriculum-types";
@@ -56,6 +69,10 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
     setNewCourseDuration,
     newCoursePrice,
     setNewCoursePrice,
+    newCourseIsFree,
+    setNewCourseIsFree,
+    newCourseFreeAccessDurationDays,
+    setNewCourseFreeAccessDurationDays,
     newCoursePublished,
     setNewCoursePublished,
     newSectionCourseId,
@@ -128,6 +145,19 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
   const stepTheme = getStepTheme(1);
   const syllabusStep = getSyllabusStep(canManageAcademicTaxonomy);
   const inputFocus = `${curriculumUi.input} ${stepTheme.focus}`;
+  const paidCoursePriceInputValue = (value: string) =>
+    numberFromNumericInput(value, FREE_COURSE_PRICE) >= MIN_PAID_COURSE_PRICE
+      ? value
+      : numericInputFromNumber(MIN_PAID_COURSE_PRICE);
+  const priceModeButtonClass = (active: boolean) =>
+    `inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-black transition-colors ${
+      active
+        ? "border-violet-400 bg-violet-500/20 text-white"
+        : "border-slate-700 bg-slate-950/70 text-slate-400 hover:border-slate-500 hover:text-white"
+    }`;
+  const priceInputClass = (isDisabled: boolean, className: string) =>
+    `${className} ${isDisabled ? "cursor-not-allowed opacity-60" : ""}`;
+
   return (
     <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
       <div className={`xl:col-span-5 ${curriculumUi.panel} ${getStepTheme(1).panel} space-y-5 self-start`}>
@@ -213,21 +243,72 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
               </div>
             </label>
 
-            <label className="block space-y-1.5">
-              <span className={curriculumUi.label}>Tarif (DH)</span>
+            <div className="block space-y-2">
+              <span className={curriculumUi.label}>Tarif du module</span>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewCourseIsFree(true);
+                    setNewCoursePrice(numericInputFromNumber(FREE_COURSE_PRICE));
+                  }}
+                  className={priceModeButtonClass(newCourseIsFree)}
+                >
+                  <Gift className="h-3.5 w-3.5" />
+                  Gratuit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewCourseIsFree(false);
+                    setNewCoursePrice(paidCoursePriceInputValue(newCoursePrice));
+                  }}
+                  className={priceModeButtonClass(!newCourseIsFree)}
+                >
+                  <DollarSign className="h-3.5 w-3.5" />
+                  Payant
+                </button>
+              </div>
               <div className="relative">
                 <span className="absolute left-3 top-3 text-xs font-bold text-slate-400">DH</span>
                 <input
                   type="number"
-                  min="0"
-                  step="0.5"
-                  placeholder="ex: 0 ou 160"
-                  value={newCoursePrice}
+                  min={MIN_PAID_COURSE_PRICE}
+                  step={COURSE_PRICE_STEP}
+                  placeholder={`min. ${formatMad(MIN_PAID_COURSE_PRICE)}`}
+                  value={newCourseIsFree ? numericInputFromNumber(FREE_COURSE_PRICE) : newCoursePrice}
+                  disabled={newCourseIsFree}
                   onChange={(e) => setNewCoursePrice(normalizeNumericInputValue(e.target.value))}
-                  className={`${curriculumUi.inputIcon} pl-8 ${getStepTheme(1).focus}`}
+                  onBlur={() => {
+                    if (!newCourseIsFree) setNewCoursePrice(paidCoursePriceInputValue(newCoursePrice));
+                  }}
+                  className={priceInputClass(
+                    newCourseIsFree,
+                    `${curriculumUi.inputIcon} pl-8 ${getStepTheme(1).focus}`,
+                  )}
                 />
               </div>
-            </label>
+              <p className="text-[10px] font-semibold leading-relaxed text-slate-500">
+                Payant : minimum {formatMad(MIN_PAID_COURSE_PRICE)}. Gratuit : accès sans paiement.
+              </p>
+              {newCourseIsFree && (
+                <label className="block space-y-1.5">
+                  <span className={curriculumUi.label}>Durée de gratuité</span>
+                  <select
+                    value={newCourseFreeAccessDurationDays}
+                    onChange={(e) => setNewCourseFreeAccessDurationDays(e.target.value)}
+                    className={`${inputFocus} text-slate-700`}
+                  >
+                    <option value={FREE_ACCESS_UNLIMITED_VALUE}>Gratuité illimitée</option>
+                    {FREE_ACCESS_DURATION_OPTIONS.map((days) => (
+                      <option key={days} value={days}>
+                        {days} jours gratuits
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+            </div>
           </div>
 
           <label className={curriculumUi.checkbox}>
@@ -333,23 +414,87 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                         className={`${curriculumUi.input} ${getStepTheme(1).focus}`}
                       />
                     </label>
-                    <label className="space-y-1 block">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase">Prix (DH)</span>
+                    <div className="space-y-2 block">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase">Tarif du module</span>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setEditCourseForm((prev) => ({
+                              ...prev,
+                              isFree: true,
+                              price: numericInputFromNumber(FREE_COURSE_PRICE),
+                            }))
+                          }
+                          className={priceModeButtonClass(editCourseForm.isFree)}
+                        >
+                          <Gift className="h-3.5 w-3.5" />
+                          Gratuit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setEditCourseForm((prev) => ({
+                              ...prev,
+                              isFree: false,
+                              price: paidCoursePriceInputValue(prev.price),
+                            }))
+                          }
+                          className={priceModeButtonClass(!editCourseForm.isFree)}
+                        >
+                          <DollarSign className="h-3.5 w-3.5" />
+                          Payant
+                        </button>
+                      </div>
                       <input
                         type="number"
-                        min="0"
-                        step="0.5"
-                        placeholder="Prix"
-                        value={editCourseForm.price}
+                        min={MIN_PAID_COURSE_PRICE}
+                        step={COURSE_PRICE_STEP}
+                        placeholder={`min. ${formatMad(MIN_PAID_COURSE_PRICE)}`}
+                        value={editCourseForm.isFree ? numericInputFromNumber(FREE_COURSE_PRICE) : editCourseForm.price}
+                        disabled={editCourseForm.isFree}
                         onChange={(e) =>
                           setEditCourseForm((prev) => ({
                             ...prev,
                             price: normalizeNumericInputValue(e.target.value),
                           }))
                         }
-                        className={`${curriculumUi.input} ${getStepTheme(1).focus}`}
+                        onBlur={() =>
+                          setEditCourseForm((prev) =>
+                            prev.isFree ? prev : { ...prev, price: paidCoursePriceInputValue(prev.price) },
+                          )
+                        }
+                        className={priceInputClass(
+                          editCourseForm.isFree,
+                          `${curriculumUi.input} ${getStepTheme(1).focus}`,
+                        )}
                       />
-                    </label>
+                      <p className="text-[10px] font-semibold leading-relaxed text-slate-500">
+                        Payant : minimum {formatMad(MIN_PAID_COURSE_PRICE)}.
+                      </p>
+                      {editCourseForm.isFree && (
+                        <label className="block space-y-1.5">
+                          <span className="text-[9px] font-bold text-slate-400 uppercase">Durée de gratuité</span>
+                          <select
+                            value={editCourseForm.freeAccessDurationDays}
+                            onChange={(e) =>
+                              setEditCourseForm((prev) => ({
+                                ...prev,
+                                freeAccessDurationDays: e.target.value,
+                              }))
+                            }
+                            className={`${curriculumUi.input} ${getStepTheme(1).focus} text-slate-700`}
+                          >
+                            <option value={FREE_ACCESS_UNLIMITED_VALUE}>Gratuité illimitée</option>
+                            {FREE_ACCESS_DURATION_OPTIONS.map((days) => (
+                              <option key={days} value={days}>
+                                {days} jours gratuits
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      )}
+                    </div>
                     <label className="md:col-span-2 space-y-1 block">
                       <span className="text-[9px] font-bold text-slate-400 uppercase">Discipline</span>
                       <select
@@ -413,7 +558,9 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                     </span>
                     <span className={course.price > 0 ? curriculumUi.statPrice : curriculumUi.statPill}>
                       <DollarSign className="w-3.5 h-3.5" />
-                      {course.price > 0 ? formatMad(course.price) : "Accès gratuit"}
+                      {course.price > 0
+                        ? formatMad(course.price)
+                        : formatFreeAccessDurationLabel(course.freeAccessDurationDays)}
                     </span>
                   </div>
 

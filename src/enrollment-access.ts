@@ -39,6 +39,6 @@ export function getActiveEnrolledCourseIds(
   ];
 }
 
-export function buildEnrollmentEndDate(from = new Date()): Date {
-  return new Date(from.getTime() + COURSE_ENROLLMENT_ACCESS_MS);
+export function buildEnrollmentEndDate(from = new Date(), accessDays = COURSE_ENROLLMENT_ACCESS_DAYS): Date {
+  return new Date(from.getTime() + accessDays * 24 * 60 * 60 * 1000);
 }

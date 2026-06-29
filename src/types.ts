@@ -33,6 +33,7 @@ export interface Course {
   disciplineId: number;
   discipline?: Discipline;
   price: number;
+  freeAccessDurationDays?: number | null;
   iconName: "Code" | "Database" | "Terminal" | "Brain";
   color: string;
   instructor: string;

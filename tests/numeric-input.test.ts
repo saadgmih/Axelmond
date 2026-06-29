@@ -28,6 +28,10 @@ rulesTest("numeric-input", () => {
   assert.match(curriculumModulesSource, /normalizeNumericInputValue\(e\.target\.value\)/);
   assert.doesNotMatch(curriculumModulesSource, /parseInt\(e\.target\.value\)\s*\|\|\s*0/);
   assert.doesNotMatch(curriculumModulesSource, /parseFloat\(e\.target\.value\)\s*\|\|\s*0/);
-  assert.match(teacherCurriculumSource, /numberFromNumericInput\(newCoursePrice,\s*0\)/);
+  assert.match(teacherCurriculumSource, /newCourseIsFree/);
+  assert.match(teacherCurriculumSource, /newCourseFreeAccessDurationDays/);
+  assert.match(teacherCurriculumSource, /normalizeFreeAccessDurationDays/);
+  assert.match(teacherCurriculumSource, /normalizeCoursePriceForSave/);
+  assert.match(teacherCurriculumSource, /numberFromNumericInput\(newCoursePrice,\s*MIN_PAID_COURSE_PRICE\)/);
   assert.match(teacherCurriculumSource, /integerFromNumericInput\(newCourseCredits,\s*0\)/);
 });

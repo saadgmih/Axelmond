@@ -1,5 +1,6 @@
 import { buildCourseInvoiceId, serializeInvoiceRecord, type CoursePaymentEnrollmentInput } from "./course-payments";
 import { prisma } from "./db";
+import { buildEnrollmentEndDate } from "./enrollment-access";
 import { isFreeCourseCharge, resolveCourseChargeAmount } from "./promo-codes";
 import { PUBLIC_API_ERRORS } from "./public-api-errors";
 import { isStudentRole } from "./rbac";
@@ -57,6 +58,9 @@ export async function processFreeCourseEnrollment(params: {
 
   const invoiceId = buildCourseInvoiceId("FREE");
   const externalId = `free-enroll-${params.userId}-${params.courseId}`;
+  const enrollmentEndDate = course.freeAccessDurationDays
+    ? buildEnrollmentEndDate(new Date(), course.freeAccessDurationDays)
+    : null;
 
   try {
     const result = await params.persistCoursePaymentEnrollment({
@@ -69,6 +73,7 @@ export async function processFreeCourseEnrollment(params: {
       externalId,
       auditAction: "ENROLL_FREE",
       reqIp: params.reqIp,
+      enrollmentEndDate,
     });
 
     return {

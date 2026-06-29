@@ -235,6 +235,7 @@ export const api = {
     category?: string;
     disciplineId: number;
     price: number;
+    freeAccessDurationDays?: number | null;
     instructor?: string;
     description: string;
     published: boolean;
@@ -249,6 +250,7 @@ export const api = {
       duration?: string;
       disciplineId?: number;
       price?: number;
+      freeAccessDurationDays?: number | null;
       published?: boolean;
     },
   ) => request<any>("PUT", `/api/courses/${courseId}`, data),
@@ -296,7 +298,13 @@ export const api = {
     request<any>("POST", `/api/courses/${courseId}/modules`, data),
   updateCourse: (
     courseId: number,
-    data: { price?: number; isLiveNow?: boolean; liveSubject?: string | null; published?: boolean },
+    data: {
+      price?: number;
+      freeAccessDurationDays?: number | null;
+      isLiveNow?: boolean;
+      liveSubject?: string | null;
+      published?: boolean;
+    },
   ) => request<any>("PATCH", `/api/courses/${courseId}`, data),
   getPayPalConfig: () =>
     request<{ clientId: string; env: "sandbox" | "live"; currency: string }>("GET", "/api/paypal/config"),
