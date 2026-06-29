@@ -17,6 +17,7 @@ import {
   BookOpen,
   Cpu,
   PhoneCall,
+  MapPin,
 } from "lucide-react";
 import {
   InstitutionalPageRoot,
@@ -27,6 +28,11 @@ import {
   InstitutionalInfoRow,
   InstitutionalCheckList,
 } from "./legal/InstitutionalPageShell";
+import {
+  PERFORMANCE_ACADEMIQUE_ADDRESS,
+  PERFORMANCE_ACADEMIQUE_COORDINATES,
+  PERFORMANCE_ACADEMIQUE_LOCATION,
+} from "../utils/institution-location";
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function LegalView() {
@@ -146,6 +152,17 @@ export default function LegalView() {
                   label="Contact général"
                   value="contact@axelmond.com"
                   icon={<Mail className="w-3.5 h-3.5" />}
+                  mono
+                />
+                <InstitutionalInfoRow
+                  label="Adresse officielle"
+                  value={PERFORMANCE_ACADEMIQUE_ADDRESS}
+                  icon={<MapPin className="w-3.5 h-3.5" />}
+                />
+                <InstitutionalInfoRow
+                  label="Coordonnées GPS"
+                  value={PERFORMANCE_ACADEMIQUE_COORDINATES}
+                  icon={<MapPin className="w-3.5 h-3.5" />}
                   mono
                 />
               </div>
@@ -523,7 +540,8 @@ export default function LegalView() {
               />
               <p className="text-[13px] text-slate-400 leading-relaxed mb-6">
                 Pour toute demande juridique, administrative ou réglementaire concernant la plateforme Performance
-                Académique, utilisez les coordonnées officielles ci-dessous.
+                Académique, utilisez les coordonnées officielles ci-dessous. Adresse officielle :{" "}
+                <strong className="text-white">{PERFORMANCE_ACADEMIQUE_ADDRESS}</strong>.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
@@ -592,12 +610,23 @@ export default function LegalView() {
 
               <div className="bg-slate-950/50 border border-slate-800 rounded-2xl px-5 py-4 flex items-start gap-3">
                 <Info className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
-                <p className="text-[12px] text-slate-400 leading-relaxed">
-                  <strong className="text-white">Résolution amiable :</strong> En cas de litige relatif à
-                  l'interprétation ou à l'exécution des présentes mentions légales, les parties s'engagent à rechercher
-                  en priorité une solution amiable dans un délai de 30 jours avant tout recours judiciaire. Les
-                  tribunaux marocains sont seuls compétents en cas de litige persistant.
-                </p>
+                <div className="space-y-2 text-[12px] text-slate-400 leading-relaxed">
+                  <p>
+                    <strong className="text-white">Résolution amiable :</strong> En cas de litige relatif à
+                    l'interprétation ou à l'exécution des présentes mentions légales, les parties s'engagent à
+                    rechercher en priorité une solution amiable dans un délai de 30 jours avant tout recours judiciaire.
+                    Les tribunaux marocains sont seuls compétents en cas de litige persistant.
+                  </p>
+                  <a
+                    href={PERFORMANCE_ACADEMIQUE_LOCATION.googleMapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 font-bold text-indigo-300 transition-colors hover:text-indigo-200"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    Ouvrir l'adresse officielle dans Google Maps
+                  </a>
+                </div>
               </div>
             </InstitutionalCard>
           </InstitutionalFade>

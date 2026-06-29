@@ -10,6 +10,8 @@ rulesTest("footer-content-clarity", () => {
     "src/components/PrivacyView.tsx",
     "src/components/SupportView.tsx",
     "src/components/TermsView.tsx",
+    "src/app/AppFooter.tsx",
+    "src/utils/institution-location.ts",
   ];
 
   const footerSource = footerPageFiles.map((file) => fs.readFileSync(file, "utf8")).join("\n");
@@ -43,6 +45,14 @@ rulesTest("footer-content-clarity", () => {
   assert.match(legalViewSource, /legal@axelmond\.com/);
   assert.match(legalViewSource, /privacy@axelmond\.com/);
   assert.match(legalViewSource, /support@axelmond\.com/);
+  assert.match(legalViewSource, /PERFORMANCE_ACADEMIQUE_ADDRESS/);
+
+  const locationSource = fs.readFileSync("src/utils/institution-location.ts", "utf8");
+  assert.match(locationSource, /Hay Moulay Rachid 4/);
+  assert.match(locationSource, /Casablanca/);
+  assert.match(locationSource, /20670/);
+  assert.match(locationSource, /33\.567193/);
+  assert.match(locationSource, /-7\.541311/);
 
   const cookiesViewSource = fs.readFileSync("src/components/CookiesView.tsx", "utf8");
   assert.match(cookiesViewSource, /refresh_token/);

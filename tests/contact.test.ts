@@ -11,6 +11,7 @@ rulesTest("contact", () => {
   const appSource = readAppSources();
   const apiSource = fs.readFileSync("src/api.ts", "utf8");
   const contactViewSource = fs.readFileSync("src/components/ContactView.tsx", "utf8");
+  const locationSource = fs.readFileSync("src/utils/institution-location.ts", "utf8");
 
   // 1. Check contact validation schema in server.ts
   assert.match(serverSource, /export const contactSchema = z\.object\(\{/);
@@ -51,6 +52,14 @@ rulesTest("contact", () => {
   assert.match(contactViewSource, /\+212\s*634772103/); // Required telephone number
   assert.match(contactViewSource, /Données Sécurisées/); // Data protection section
   assert.match(contactViewSource, /loi 09-08|loi n° 09-08/i);
+  assert.match(contactViewSource, /Carte de localisation Performance Académique/);
+  assert.match(contactViewSource, /googleMapsEmbedUrl/);
+  assert.match(locationSource, /Hay Moulay Rachid 4/);
+  assert.match(locationSource, /Casablanca/);
+  assert.match(locationSource, /20670/);
+  assert.match(locationSource, /33\.567193/);
+  assert.match(locationSource, /-7\.541311/);
+  assert.match(locationSource, /google\.com\/maps/);
 
   console.log("Contact page redesign tests passed successfully!");
 });

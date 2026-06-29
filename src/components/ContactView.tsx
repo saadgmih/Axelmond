@@ -13,8 +13,14 @@ import {
   AlertCircle,
   ChevronDown,
   ChevronUp,
+  ExternalLink,
 } from "lucide-react";
 import { api } from "../api";
+import {
+  PERFORMANCE_ACADEMIQUE_ADDRESS,
+  PERFORMANCE_ACADEMIQUE_COORDINATES,
+  PERFORMANCE_ACADEMIQUE_LOCATION,
+} from "../utils/institution-location";
 
 interface ContactViewProps {
   currentUser: {
@@ -334,7 +340,8 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
                 <div>
                   <p className="font-bold text-slate-300">Adresse de l'Institut</p>
                   <p className="text-xs text-slate-400">Performance Académique</p>
-                  <p className="text-xs text-slate-400">Casablanca, Maroc</p>
+                  <p className="text-xs text-slate-400">{PERFORMANCE_ACADEMIQUE_ADDRESS}</p>
+                  <p className="text-[10px] text-slate-500 mt-1">GPS : {PERFORMANCE_ACADEMIQUE_COORDINATES}</p>
                   <p className="text-[10px] text-slate-500 italic mt-1">
                     Canal administratif principal : formulaire de contact ou adresse générale ci-dessous.
                   </p>
@@ -401,6 +408,44 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
                     Fermé le week-end et les jours fériés académiques
                   </p>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-900 text-white shadow-sm">
+            <div className="flex items-center justify-between gap-3 border-b border-slate-850 px-5 py-4">
+              <div>
+                <h2 className="text-sm font-black text-white">Localisation exacte</h2>
+                <p className="mt-0.5 text-[11px] text-slate-400">{PERFORMANCE_ACADEMIQUE_ADDRESS}</p>
+              </div>
+              <a
+                href={PERFORMANCE_ACADEMIQUE_LOCATION.googleMapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 transition-colors hover:bg-indigo-500/20"
+                aria-label="Ouvrir la localisation Performance Académique dans Google Maps"
+              >
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            </div>
+            <iframe
+              title="Carte de localisation Performance Académique"
+              src={PERFORMANCE_ACADEMIQUE_LOCATION.googleMapsEmbedUrl}
+              className="h-72 w-full border-0"
+              loading="lazy"
+              allowFullScreen
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+            <div className="grid grid-cols-1 gap-2 border-t border-slate-850 px-5 py-4 text-xs text-slate-400 sm:grid-cols-2">
+              <div>
+                <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">Adresse</span>
+                <span className="text-slate-300">{PERFORMANCE_ACADEMIQUE_ADDRESS}</span>
+              </div>
+              <div>
+                <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">
+                  Coordonnées GPS
+                </span>
+                <span className="font-mono text-slate-300">{PERFORMANCE_ACADEMIQUE_COORDINATES}</span>
               </div>
             </div>
           </div>
