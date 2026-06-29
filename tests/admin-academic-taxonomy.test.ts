@@ -70,6 +70,10 @@ rulesTest("admin-academic-taxonomy", () => {
   assert.match(curriculumTheme, /return canManageAcademicTaxonomy \? 7 : 5/);
   assert.match(curriculumStepper, /getCurriculumSteps\(canManageAcademicTaxonomy\)/);
   assert.match(curriculumStepper, /s\.step <= moduleStep/);
+  assert.doesNotMatch(curriculumStepper, /Progression · étape/);
+  assert.doesNotMatch(curriculumStepper, /progressTrack/);
+  assert.doesNotMatch(curriculumStepper, /isCompleted/);
+  assert.doesNotMatch(curriculumStepper, /<Check/);
   assert.match(curriculumView, /<AdminAcademicTaxonomyView \{\.\.\.props\} mode="domains" \/>/);
   assert.match(curriculumView, /<AdminAcademicTaxonomyView \{\.\.\.props\} mode="disciplines" \/>/);
   assert.doesNotMatch(curriculumModulesStep, /AdminAcademicTaxonomyView/);

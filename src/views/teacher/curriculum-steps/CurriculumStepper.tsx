@@ -1,4 +1,4 @@
-import { BookOpen, Check, Sparkles } from "lucide-react";
+import { BookOpen, Sparkles } from "lucide-react";
 import { formatCredits } from "../../../utils/morocco-locale";
 
 import { curriculumUi, getCurriculumSteps, getModuleStep, getStepTheme } from "../curriculum-theme";
@@ -65,21 +65,11 @@ export default function CurriculumStepper(props: Props) {
             </div>
           )}
 
-          <div className={`${curriculumUi.divider} pt-5 space-y-4`}>
-            <p className={curriculumUi.progressLabel}>
-              Progression · étape {activeCurriculumStep} / {curriculumSteps.length}
-            </p>
-            <div className={curriculumUi.progressTrack}>
-              <div
-                className={curriculumUi.progressFill}
-                style={{ width: `${(activeCurriculumStep / curriculumSteps.length) * 100}%` }}
-              />
-            </div>
+          <div className={`${curriculumUi.divider} pt-5`}>
             <div className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${stepGridClass}`}>
               {curriculumSteps.map((s) => {
                 const Icon = s.icon;
                 const isActive = activeCurriculumStep === s.step;
-                const isCompleted = activeCurriculumStep > s.step;
                 return (
                   <button
                     key={s.step}
@@ -92,15 +82,15 @@ export default function CurriculumStepper(props: Props) {
                       }
                     }}
                     className={`flex items-center gap-3 rounded-2xl border p-3 text-left transition-all duration-200 ${
-                      isActive ? s.active : isCompleted ? s.completed : curriculumUi.stepIdle
+                      isActive ? s.active : curriculumUi.stepIdle
                     }`}
                   >
                     <div
                       className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-bold ${
-                        isActive ? s.badgeActive : isCompleted ? s.badgeCompleted : "bg-slate-800 text-slate-500"
+                        isActive ? s.badgeActive : "bg-slate-800 text-slate-500"
                       }`}
                     >
-                      {isCompleted ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+                      <Icon className="h-4 w-4" />
                     </div>
                     <div className="min-w-0">
                       <p
