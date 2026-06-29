@@ -9,11 +9,13 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   PlayCircle,
+  Sigma,
   Video,
   X,
 } from "lucide-react";
 import AITutorChat from "../../components/AITutorChat";
 import { LayoutFloatingToggle } from "../../components/LayoutFloatingToggle";
+import LatexText from "../../components/LatexText";
 import PdfLessonViewer from "../../components/PdfLessonViewer";
 import PremiumVideoPlayer from "../../components/PremiumVideoPlayer";
 import { lessonContentIdFromModule } from "../../course-curriculum-utils";
@@ -534,9 +536,9 @@ export default function StudentCourseView({
                         <div className="bg-white border border-slate-100 rounded-2xl p-6 space-y-3.5">
                           <h3 className="font-extrabold text-slate-800">À propos de ce module vidéo</h3>
                           <p className="text-xs text-slate-500 leading-relaxed">
-                            Ce module vidéo interactif est préparé par la faculté d'informatique théorique de Performance
-                            Académique. Il récapitule les grands principes scientifiques du sujet et contient de
-                            précieux exercices pratiques à faire dans votre propre terminal.
+                            Ce module vidéo interactif est préparé par la faculté d'informatique théorique de
+                            Performance Académique. Il récapitule les grands principes scientifiques du sujet et
+                            contient de précieux exercices pratiques à faire dans votre propre terminal.
                           </p>
                           <p className="text-xs text-slate-500 border-l-4 border-indigo-400 pl-4 py-1 italic bg-indigo-50/20">
                             Astuce académique : Vous pouvez poser des questions précises sur le code vidéo s'affichant à
@@ -655,19 +657,35 @@ export default function StudentCourseView({
                 {/* CASE C: INTERACTIVE QUIZ */}
                 {!selectedLessonContent && selectedModule.type === "quiz" && (
                   <div className="space-y-6">
-                    <div className="bg-gradient-to-r from-purple-900 to-indigo-900 text-white rounded-2xl p-6 shadow-md border border-indigo-950 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider bg-indigo-950 px-2.5 py-1 rounded inline-block border border-indigo-900">
-                          CONTRÔLE DES CONNAISSANCES INTERACTIF
-                        </span>
-                        <h2 className="text-xl font-black">Évaluation de fin de module</h2>
-                        <p className="text-xs text-indigo-200 max-w-sm leading-relaxed">
-                          Le score minimal académique de validation requis est de 100%.
-                        </p>
+                    <div className="relative overflow-hidden rounded-3xl border border-violet-500/25 bg-slate-950 p-6 text-white shadow-md">
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.28),transparent_34%),linear-gradient(135deg,rgba(76,29,149,0.58),rgba(15,23,42,0.92)_45%,rgba(6,78,59,0.32))]" />
+                      <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="space-y-2">
+                          <span className="inline-flex items-center gap-2 rounded-full border border-violet-400/30 bg-violet-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-violet-200">
+                            <Sigma className="h-3.5 w-3.5" />
+                            Quiz scientifique avec LaTeX
+                          </span>
+                          <h2 className="text-xl font-black">Évaluation de fin de module</h2>
+                          <p className="max-w-lg text-xs leading-relaxed text-slate-300">
+                            Les formules, matrices, suites, intégrales et fonctions sont affichées en notation
+                            académique.
+                          </p>
+                        </div>
+
+                        <div className="grid min-w-[170px] grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-white/5 p-2 text-center backdrop-blur">
+                          <div className="rounded-xl bg-slate-950/70 px-3 py-2">
+                            <p className="text-[9px] font-black uppercase text-slate-400">Questions</p>
+                            <p className="mt-1 text-lg font-black text-white">{quizQuestions?.length ?? 0}</p>
+                          </div>
+                          <div className="rounded-xl bg-slate-950/70 px-3 py-2">
+                            <p className="text-[9px] font-black uppercase text-slate-400">Répondues</p>
+                            <p className="mt-1 text-lg font-black text-violet-200">{Object.keys(quizAnswers).length}</p>
+                          </div>
+                        </div>
                       </div>
 
                       {selectedModule.completed && selectedModule.score && (
-                        <div className="bg-white/10 border border-white/20 p-3 rounded-xl text-center self-start sm:self-auto min-w-[120px]">
+                        <div className="relative mt-4 w-fit min-w-[120px] rounded-xl border border-white/20 bg-white/10 p-3 text-center">
                           <p className="text-[10px] text-indigo-200 leading-none uppercase font-bold">Dernière Note</p>
                           <p className="text-3xl font-black text-white mt-1">{selectedModule.score}</p>
                         </div>
@@ -695,22 +713,27 @@ export default function StudentCourseView({
                       </div>
                     )}
 
-                    <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm">
+                    <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:p-8">
                       {/* Render questions list */}
                       {quizQuestions ? (
-                        <div className="space-y-8">
+                        <div className="space-y-5">
                           {quizQuestions.map((q, idx) => {
                             const isCorrect = quizAnswers[idx] === q.answer;
                             return (
                               <div
                                 key={idx}
-                                className="space-y-3 pb-6 border-b border-slate-100 last:border-none last:pb-0"
+                                className="overflow-hidden rounded-3xl border border-slate-200 bg-slate-50/70 shadow-sm"
                               >
-                                <h4 className="font-extrabold text-sm text-slate-800 leading-tight">
-                                  Question {idx + 1} : {q.question}
-                                </h4>
+                                <div className="border-b border-slate-200 bg-white px-4 py-4 sm:px-5">
+                                  <span className="mb-2 inline-flex rounded-full bg-violet-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-violet-700">
+                                    Question {idx + 1}
+                                  </span>
+                                  <div className="text-sm font-extrabold leading-relaxed text-slate-900 sm:text-base">
+                                    <LatexText value={q.question} />
+                                  </div>
+                                </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                                <div className="grid grid-cols-1 gap-3 p-4 md:grid-cols-2 sm:p-5">
                                   {q.options.map((option, oIdx) => {
                                     const isSelected = quizAnswers[idx] === option;
                                     return (
@@ -719,27 +742,45 @@ export default function StudentCourseView({
                                         type="button"
                                         disabled={quizSubmitted}
                                         onClick={() => handleQuizAnswerSelect(idx, option)}
-                                        className={`w-full text-left p-3.5 rounded-xl text-xs font-semibold flex items-center justify-between border cursor-pointer transition-all ${
+                                        className={`group flex min-h-[72px] w-full cursor-pointer items-start justify-between gap-3 rounded-2xl border p-3.5 text-left text-xs font-semibold transition-all ${
                                           isSelected
                                             ? quizSubmitted
                                               ? isCorrect
-                                                ? "bg-emerald-50 border-emerald-300 text-emerald-800"
-                                                : "bg-red-50 border-red-300 text-red-800"
-                                              : "bg-indigo-600 border-indigo-700 text-white shadow-sm"
+                                                ? "border-emerald-300 bg-emerald-50 text-emerald-900"
+                                                : "border-red-300 bg-red-50 text-red-900"
+                                              : "border-indigo-700 bg-indigo-600 text-white shadow-sm"
                                             : quizSubmitted && option === q.answer
-                                              ? "bg-emerald-50 border-emerald-300 text-emerald-800"
-                                              : "bg-slate-50 border-slate-200 hover:bg-slate-100/70 text-slate-700"
+                                              ? "border-emerald-300 bg-emerald-50 text-emerald-900"
+                                              : "border-slate-200 bg-white text-slate-700 hover:border-indigo-200 hover:bg-indigo-50/70"
                                         }`}
                                       >
-                                        <span>{option}</span>
+                                        <span
+                                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-[11px] font-black ${
+                                            isSelected
+                                              ? quizSubmitted
+                                                ? isCorrect
+                                                  ? "bg-emerald-600 text-white"
+                                                  : "bg-red-600 text-white"
+                                                : "bg-white/15 text-white"
+                                              : quizSubmitted && option === q.answer
+                                                ? "bg-emerald-600 text-white"
+                                                : "bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-indigo-700"
+                                          }`}
+                                        >
+                                          {String.fromCharCode(65 + oIdx)}
+                                        </span>
+
+                                        <span className="min-w-0 flex-1 leading-relaxed">
+                                          <LatexText value={option} compact />
+                                        </span>
 
                                         {/* Status indicators */}
                                         {isSelected &&
                                           quizSubmitted &&
                                           (isCorrect ? (
-                                            <CheckCircle className="w-4 h-4 text-emerald-600" />
+                                            <CheckCircle className="h-4 w-4 shrink-0 text-emerald-600" />
                                           ) : (
-                                            <X className="w-4 h-4 text-red-600" />
+                                            <X className="h-4 w-4 shrink-0 text-red-600" />
                                           ))}
                                       </button>
                                     );
@@ -748,13 +789,13 @@ export default function StudentCourseView({
 
                                 {/* Explanation notes */}
                                 {quizSubmitted && (
-                                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-600 leading-relaxed flex gap-2 pt-3">
+                                  <div className="mx-4 mb-4 flex gap-2 rounded-2xl border border-slate-200 bg-white p-3 text-xs leading-relaxed text-slate-600 sm:mx-5 sm:mb-5">
                                     <Info className="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" />
                                     <div>
                                       <strong className="text-slate-800 font-bold block mb-0.5">
                                         Explication académique :
                                       </strong>
-                                      {q.explanation}
+                                      <LatexText value={q.explanation} compact />
                                     </div>
                                   </div>
                                 )}

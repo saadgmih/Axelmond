@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "katex/dist/katex.min.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -62,6 +63,33 @@ body {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
+}
+
+.latex-content {
+  overflow-wrap: anywhere;
+  line-height: inherit;
+}
+
+.latex-content .katex {
+  font-size: 1.02em;
+}
+
+.latex-content .katex-display {
+  margin: 0.65rem 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.2rem 0;
+  text-align: left;
+}
+
+.latex-content--compact .katex-display {
+  margin: 0.35rem 0;
+}
+
+.latex-rendered-display {
+  display: block;
+  max-width: 100%;
 }
 
 /* ─── Global Axelmond scrollbars (WebKit + Firefox) ─────────────────────── */

@@ -1,7 +1,14 @@
-import { HelpCircle, X, ChevronRight } from "lucide-react";
+import { CheckCircle2, ChevronRight, HelpCircle, Sigma, Sparkles, X } from "lucide-react";
 
+import LatexText from "../../../components/LatexText";
 import { curriculumUi, getStepTheme } from "../curriculum-theme";
 import type { TeacherCurriculumViewProps } from "../curriculum-types";
+
+const latexExamples = [
+  String.raw`$f(x)=\frac{x^2-1}{x-1}$`,
+  String.raw`$$A=\begin{pmatrix}1&2\\3&4\end{pmatrix}$$`,
+  String.raw`$\int_0^1 e^{-x^2}\,dx$`,
+];
 
 export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
   const {
@@ -112,6 +119,11 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
   } = props;
   const stepTheme = getStepTheme(5);
   const inputFocus = `${curriculumUi.input} ${stepTheme.focus}`;
+  const hasQuestionDraft =
+    newQuestionText.trim().length > 0 ||
+    newQuestionOptions.some((option) => option.trim().length > 0) ||
+    newQuestionExplanation.trim().length > 0;
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
       <div className="lg:col-span-5 space-y-6">
@@ -273,15 +285,42 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
         {selectedQuizId ? (
           <>
             {/* Question Form */}
-            <div className={`${curriculumUi.panel} ${getStepTheme(5).panel} space-y-5`}>
-              <div>
-                <h3 className="text-sm font-black uppercase tracking-wider text-white">Ajouter une question</h3>
-                <p className="mt-1 text-xs font-medium text-slate-500">
-                  Quiz :{" "}
-                  <span className="font-bold text-violet-400">
-                    {teacherQuizzes.find((q) => q.id === selectedQuizId)?.title}
-                  </span>
-                </p>
+            <div className={`${curriculumUi.panel} ${getStepTheme(5).panel} space-y-5 overflow-hidden`}>
+              <div className="flex flex-col gap-4 rounded-2xl border border-violet-500/20 bg-gradient-to-br from-violet-950/60 via-slate-950 to-cyan-950/30 p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="space-y-1">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-violet-400/30 bg-violet-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-violet-200">
+                      <Sigma className="h-3.5 w-3.5" />
+                      LaTeX activé
+                    </div>
+                    <h3 className="text-base font-black text-white">Ajouter une question scientifique</h3>
+                    <p className="text-xs font-medium leading-relaxed text-slate-400">
+                      Quiz :{" "}
+                      <span className="font-bold text-violet-300">
+                        {teacherQuizzes.find((q) => q.id === selectedQuizId)?.title}
+                      </span>
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-slate-700/80 bg-slate-950/70 px-3 py-2 text-[10px] font-bold text-slate-300">
+                    <div className="flex items-center gap-1.5 text-cyan-300">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Aperçu instantané
+                    </div>
+                    <p className="mt-1 text-slate-500">Questions, choix et explications.</p>
+                  </div>
+                </div>
+
+                <div className="grid gap-2 sm:grid-cols-3">
+                  {latexExamples.map((example) => (
+                    <code
+                      key={example}
+                      className="rounded-xl border border-slate-700/70 bg-slate-950/80 px-3 py-2 text-[10px] font-semibold text-slate-300"
+                    >
+                      {example}
+                    </code>
+                  ))}
+                </div>
               </div>
 
               <form onSubmit={handleAddQuestion} className={`space-y-4 pt-3 ${curriculumUi.divider}`}>
@@ -291,11 +330,11 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                   </span>
                   <textarea
                     required
-                    rows={2}
-                    placeholder="Saisissez la question..."
+                    rows={4}
+                    placeholder={String.raw`Exemple : Calculer le déterminant de $$A=\begin{pmatrix}1&2\\3&4\end{pmatrix}$$`}
                     value={newQuestionText}
                     onChange={(e) => setNewQuestionText(e.target.value)}
-                    className={inputFocus}
+                    className={`${inputFocus} font-mono leading-relaxed`}
                   />
                 </label>
 
@@ -305,21 +344,39 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                   </span>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                     {newQuestionOptions.map((opt, idx) => (
-                      <div key={idx} className="relative flex items-center">
-                        <span className="absolute left-2 flex h-6 w-6 select-none items-center justify-center rounded-lg border border-violet-500/30 bg-violet-950/60 text-[10px] font-black text-violet-300">
-                          {String.fromCharCode(65 + idx)}
-                        </span>
-                        <input
+                      <div key={idx} className="rounded-2xl border border-slate-700/80 bg-slate-950/40 p-2.5">
+                        <div className="mb-2 flex items-center justify-between">
+                          <span className="flex h-6 w-6 select-none items-center justify-center rounded-lg border border-violet-500/30 bg-violet-950/60 text-[10px] font-black text-violet-300">
+                            {String.fromCharCode(65 + idx)}
+                          </span>
+                          {newQuestionAnswer === opt && opt.trim() && (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-black uppercase text-emerald-300">
+                              <CheckCircle2 className="h-3 w-3" />
+                              Correcte
+                            </span>
+                          )}
+                        </div>
+                        <textarea
                           required
-                          placeholder={`Option ${idx + 1}`}
+                          rows={2}
+                          placeholder={String.raw`Option ${String.fromCharCode(65 + idx)} avec LaTeX`}
                           value={opt}
                           onChange={(e) => {
                             const next = [...newQuestionOptions];
+                            const previousValue = next[idx];
                             next[idx] = e.target.value;
                             setNewQuestionOptions(next);
+                            if (newQuestionAnswer === previousValue) {
+                              setNewQuestionAnswer(e.target.value);
+                            }
                           }}
-                          className={`w-full rounded-xl border border-slate-700 bg-[#090d16] pl-10 pr-3 py-2.5 text-xs font-semibold text-slate-100 transition-all focus:bg-slate-950 focus:outline-none focus:ring-2 ${stepTheme.focus}`}
+                          className={`w-full rounded-xl border border-slate-700 bg-[#090d16] px-3 py-2.5 font-mono text-xs font-semibold leading-relaxed text-slate-100 transition-all focus:bg-slate-950 focus:outline-none focus:ring-2 ${stepTheme.focus}`}
                         />
+                        {opt.trim() && (
+                          <div className="mt-2 rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2 text-[11px] font-semibold text-slate-200">
+                            <LatexText value={opt} compact />
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -338,9 +395,12 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                     >
                       <option value="">-- Choisir la bonne option --</option>
                       {newQuestionOptions
-                        .filter((o) => o.trim())
-                        .map((o, idx) => (
-                          <option key={idx} value={o}>{`Option ${String.fromCharCode(65 + idx)}: ${o}`}</option>
+                        .map((option, index) => ({ option, index }))
+                        .filter(({ option }) => option.trim())
+                        .map(({ option, index }) => (
+                          <option key={`${index}-${option}`} value={option}>
+                            {`Option ${String.fromCharCode(65 + index)}`}
+                          </option>
                         ))}
                     </select>
                   </label>
@@ -349,15 +409,62 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                     <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
                       Explication didactique
                     </span>
-                    <input
+                    <textarea
                       required
-                      placeholder="Explication affichée après réponse..."
+                      rows={3}
+                      placeholder={String.raw`Exemple : $\det(A)=1\times4-2\times3=-2$`}
                       value={newQuestionExplanation}
                       onChange={(e) => setNewQuestionExplanation(e.target.value)}
-                      className={inputFocus}
+                      className={`${inputFocus} font-mono leading-relaxed`}
                     />
                   </label>
                 </div>
+
+                {hasQuestionDraft && (
+                  <div className="rounded-2xl border border-cyan-500/20 bg-cyan-950/10 p-4">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-cyan-300">
+                        Aperçu étudiant
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-500">Rendu KaTeX sécurisé</span>
+                    </div>
+                    <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
+                      {newQuestionText.trim() && (
+                        <div className="text-sm font-black leading-relaxed text-white">
+                          <LatexText value={newQuestionText} />
+                        </div>
+                      )}
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {newQuestionOptions
+                          .map((option, index) => ({ option, index }))
+                          .filter(({ option }) => option.trim())
+                          .map(({ option, index }) => (
+                            <div
+                              key={`${index}-${option}`}
+                              className={`rounded-xl border px-3 py-2 text-xs font-semibold ${
+                                newQuestionAnswer === option
+                                  ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-200"
+                                  : "border-slate-700 bg-slate-900/80 text-slate-200"
+                              }`}
+                            >
+                              <span className="mb-1 block text-[10px] font-black text-violet-300">
+                                Option {String.fromCharCode(65 + index)}
+                              </span>
+                              <LatexText value={option} compact />
+                            </div>
+                          ))}
+                      </div>
+                      {newQuestionExplanation.trim() && (
+                        <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-3 text-xs text-slate-300">
+                          <span className="mb-1 block text-[10px] font-black uppercase text-slate-500">
+                            Explication
+                          </span>
+                          <LatexText value={newQuestionExplanation} compact />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 <button
                   type="submit"
@@ -378,9 +485,9 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                 {(selectedQuizDetail?.questions || []).map((q: any, idx: number) => (
                   <div key={q.id} className={`${curriculumUi.card} space-y-3 relative`}>
                     <div className="flex items-start justify-between gap-4">
-                      <p className="flex-1 text-xs font-black text-slate-100">
-                        {idx + 1}. {q.question}
-                      </p>
+                      <div className="flex-1 text-xs font-black leading-relaxed text-slate-100">
+                        <span className="text-violet-300">{idx + 1}.</span> <LatexText value={q.question} compact />
+                      </div>
                       <button
                         onClick={() => handleDeleteQuestion(q.id)}
                         className="shrink-0 rounded p-1 text-slate-500 transition-colors hover:bg-red-950/50 hover:text-red-400"
@@ -390,7 +497,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 text-[11px] font-semibold text-slate-400">
+                    <div className="grid grid-cols-1 gap-2 text-[11px] font-semibold text-slate-400 sm:grid-cols-2">
                       {(q.options || []).map((opt: string, optIdx: number) => {
                         const isCorrect = opt === q.answer;
                         return (
@@ -409,7 +516,9 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                             >
                               {String.fromCharCode(65 + optIdx)}
                             </span>
-                            <span className="truncate">{opt}</span>
+                            <span className="min-w-0 flex-1 leading-relaxed">
+                              <LatexText value={opt} compact />
+                            </span>
                           </div>
                         );
                       })}
@@ -417,7 +526,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
 
                     <div className="rounded-xl border border-slate-700 bg-slate-900/60 p-3 text-[10px] font-medium text-slate-400">
                       <span className="font-black text-slate-300 uppercase text-[9px] block mb-1">Explication :</span>
-                      {q.explanation}
+                      <LatexText value={q.explanation} compact />
                     </div>
                   </div>
                 ))}
