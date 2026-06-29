@@ -90,7 +90,7 @@ function ensureFixedDatabaseConfig(): { url: string; schema: string } {
 
 function createPgPool(fixedDatabaseUrl: string, schema: string): Pool {
   const isHostinger = process.env.HOSTINGER_WEBAPP === "1";
-  const defaultPoolMax = isHostinger ? 3 : 5;
+  const defaultPoolMax = isHostinger ? 2 : 5;
   const pool = new Pool({
     connectionString: fixedDatabaseUrl,
     max: Number(process.env.DATABASE_POOL_MAX) || defaultPoolMax,

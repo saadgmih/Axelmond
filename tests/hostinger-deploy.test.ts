@@ -45,6 +45,8 @@ rulesTest("hostinger-deploy", () => {
   assert.match(hostingerEnv, /CACHE_TTL_SECONDS/);
   assert.match(hostingerEnv, /AUTH_USER_CACHE_MS/);
   assert.match(hostingerEnv, /DATABASE_POOL_MAX/);
+  assert.match(hostingerEnv, /DATABASE_POOL_MAX:\s*"2"/);
+  assert.match(hostingerEnv, /RUN_STARTUP_PURGES:\s*"false"/);
   assert.match(hostingerEnv, /STARTUP_DB_TIMEOUT_MS/);
   assert.match(hostingerEnv, /GRACEFUL_SHUTDOWN_MS:\s*"8000"/);
   assert.doesNotMatch(hostingerEnv, /AUTH_MAX_ATTEMPTS|AUTH_LOCKOUT_WINDOW_MS/);

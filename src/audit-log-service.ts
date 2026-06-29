@@ -1,5 +1,6 @@
 import { prisma } from "./db";
 import { logSecurity } from "./security-logger";
+import { shouldRunStartupMaintenancePurge } from "./startup-maintenance";
 
 const DEFAULT_RETENTION_DAYS = 365;
 const DEFAULT_PURGE_INTERVAL_MS = 24 * 60 * 60 * 1000;
@@ -173,6 +174,11 @@ export async function startAuditLogRetention(signal?: AbortSignal) {
   if (purgeTimer) return;
   if (process.env.HOSTINGER_WEBAPP === "1") {
     logSecurity("INFO", "Audit log retention interval disabled on Hostinger Web App");
+    if (!shouldRunStartupMaintenancePurge()) {
+      retentionStopped = true;
+      logSecurity("INFO", "Audit log startup purge skipped on Hostinger Web App");
+      return;
+    }
     await runScheduledAuditLogPurge(signal);
     return;
   }
