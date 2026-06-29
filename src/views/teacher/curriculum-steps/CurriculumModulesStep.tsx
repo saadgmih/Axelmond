@@ -13,6 +13,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { formatCredits, formatMad } from "../../../utils/morocco-locale";
+import { normalizeNumericInputValue } from "../../../utils/numeric-input";
 
 import { curriculumUi, getStepTheme, getSyllabusStep, publishedBadge, publishedLabel } from "../curriculum-theme";
 import type { TeacherCurriculumViewProps } from "../curriculum-types";
@@ -192,7 +193,7 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                 min="0"
                 placeholder="ex: 3"
                 value={newCourseCredits}
-                onChange={(e) => setNewCourseCredits(parseInt(e.target.value) || 0)}
+                onChange={(e) => setNewCourseCredits(normalizeNumericInputValue(e.target.value))}
                 className={inputFocus}
               />
             </label>
@@ -222,7 +223,7 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                   step="0.5"
                   placeholder="ex: 0 ou 160"
                   value={newCoursePrice}
-                  onChange={(e) => setNewCoursePrice(parseFloat(e.target.value) || 0)}
+                  onChange={(e) => setNewCoursePrice(normalizeNumericInputValue(e.target.value))}
                   className={`${curriculumUi.inputIcon} pl-8 ${getStepTheme(1).focus}`}
                 />
               </div>
@@ -324,7 +325,10 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                         placeholder="Crédits"
                         value={editCourseForm.credits}
                         onChange={(e) =>
-                          setEditCourseForm((prev) => ({ ...prev, credits: parseInt(e.target.value) || 0 }))
+                          setEditCourseForm((prev) => ({
+                            ...prev,
+                            credits: normalizeNumericInputValue(e.target.value),
+                          }))
                         }
                         className={`${curriculumUi.input} ${getStepTheme(1).focus}`}
                       />
@@ -338,7 +342,10 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                         placeholder="Prix"
                         value={editCourseForm.price}
                         onChange={(e) =>
-                          setEditCourseForm((prev) => ({ ...prev, price: parseFloat(e.target.value) || 0 }))
+                          setEditCourseForm((prev) => ({
+                            ...prev,
+                            price: normalizeNumericInputValue(e.target.value),
+                          }))
                         }
                         className={`${curriculumUi.input} ${getStepTheme(1).focus}`}
                       />

@@ -10,6 +10,7 @@ import {
 import { api, getFreshSessionToken } from "../api";
 import type { AppUser } from "../components/AuthScreen";
 import type { Course, ContentSection, FacultyDomain, LessonContent } from "../types";
+import { integerFromNumericInput, numberFromNumericInput, numericInputFromNumber } from "../utils/numeric-input";
 import { flattenSections } from "./useCourseContent";
 import { useAsyncEffectGuard, type AsyncRequestToken } from "./useAsyncEffectGuard";
 import { useAutoClearTimeout } from "./useAutoClearTimeout";
@@ -61,9 +62,9 @@ export function useTeacherCurriculum({
   const [newCourseDescription, setNewCourseDescription] = useState("");
   const [newCourseDisciplineId, setNewCourseDisciplineId] = useState(601);
   const [newCourseLevel, _setNewCourseLevel] = useState("Licence 1");
-  const [newCourseCredits, setNewCourseCredits] = useState(3);
+  const [newCourseCredits, setNewCourseCredits] = useState(numericInputFromNumber(3));
   const [newCourseDuration, setNewCourseDuration] = useState("20 heures");
-  const [newCoursePrice, setNewCoursePrice] = useState(0);
+  const [newCoursePrice, setNewCoursePrice] = useState(numericInputFromNumber(0));
   const [newCoursePublished, setNewCoursePublished] = useState(true);
   const [newSectionCourseId, setNewSectionCourseId] = useState<number>(1);
   const [newSectionTitle, setNewSectionTitle] = useState("");
@@ -82,9 +83,9 @@ export function useTeacherCurriculum({
     description: "",
     level: "",
     duration: "",
-    credits: 0,
+    credits: "",
     disciplineId: 0,
-    price: 0,
+    price: "",
   });
   const [teacherQuizzes, setTeacherQuizzes] = useState<any[]>([]);
   const [selectedQuizDetail, setSelectedQuizDetail] = useState<any | null>(null);
@@ -242,11 +243,11 @@ export function useTeacherCurriculum({
       const course = await api.createCourse({
         title: newCourseTitle,
         level: newCourseLevel,
-        credits: newCourseCredits,
+        credits: integerFromNumericInput(newCourseCredits, 0),
         duration: newCourseDuration,
         category: discipline.name,
         disciplineId: discipline.id,
-        price: newCoursePrice,
+        price: numberFromNumericInput(newCoursePrice, 0),
         instructor: currentUser?.fullName,
         description: newCourseDescription,
         published: newCoursePublished,
@@ -428,9 +429,9 @@ export function useTeacherCurriculum({
       description: course.description,
       level: course.level,
       duration: course.duration,
-      credits: course.credits,
+      credits: numericInputFromNumber(course.credits),
       disciplineId: course.disciplineId ?? allDisciplines[0]?.id ?? 0,
-      price: course.price,
+      price: numericInputFromNumber(course.price),
     });
   };
 
@@ -447,9 +448,9 @@ export function useTeacherCurriculum({
         description: editCourseForm.description.trim(),
         level: editCourseForm.level.trim(),
         duration: editCourseForm.duration.trim(),
-        credits: Number(editCourseForm.credits),
+        credits: integerFromNumericInput(editCourseForm.credits, 0),
         disciplineId: Number(editCourseForm.disciplineId),
-        price: Number(editCourseForm.price),
+        price: numberFromNumericInput(editCourseForm.price, 0),
       });
       setCourses((prev) => prev.map((item) => (item.id === updatedCourse.id ? updatedCourse : item)));
       setEditingCourse(null);
