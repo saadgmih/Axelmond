@@ -1,6 +1,10 @@
 import { purgeLegacySessionUserStorage } from "./session-storage";
 import type { Discipline, FacultyDomain } from "./types";
 
+export interface SiteSettings {
+  forceDesktopMode: boolean;
+}
+
 const BASE_URL = ((import.meta as any).env?.VITE_API_BASE_URL || "").replace(/\/$/, "");
 const LEGACY_ACCESS_TOKEN_KEY = "axelmond_session_token";
 const LEGACY_REFRESH_TOKEN_KEY = "axelmond_refresh_token";
@@ -216,6 +220,9 @@ async function request<T>(method: string, path: string, body?: unknown, allowCsr
 }
 
 export const api = {
+  getSiteSettings: () => request<SiteSettings>("GET", "/api/site-settings"),
+  getAdminSiteSettings: () => request<SiteSettings>("GET", "/api/admin/site-settings"),
+  updateAdminSiteSettings: (data: SiteSettings) => request<SiteSettings>("PUT", "/api/admin/site-settings", data),
   getDomains: () => request<any[]>("GET", "/api/domains"),
   getCourses: (filters?: { domainId?: number; disciplineId?: number }) => {
     const params = new URLSearchParams();

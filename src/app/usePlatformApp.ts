@@ -6,6 +6,7 @@ import { useNotifications } from "../hooks/useNotifications";
 import { usePushNotifications } from "../hooks/usePushNotifications";
 import { useMessagingSocket } from "../hooks/useMessagingSocket";
 import { scrollAppToTopDeferred } from "../utils/scroll-app-to-top";
+import { applyForceDesktopMode } from "../utils/force-desktop-mode";
 import { useCourseContent } from "../hooks/useCourseContent";
 import { useAppSession } from "../hooks/useAppSession";
 import { usePlatformNavigation } from "../hooks/usePlatformNavigation";
@@ -49,6 +50,7 @@ export function usePlatformApp() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [domains, setDomains] = useState<FacultyDomain[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSiteSettingsReady, setIsSiteSettingsReady] = useState(false);
 
   const {
     currentUser,
@@ -99,6 +101,27 @@ export function usePlatformApp() {
   useEffect(() => {
     document.documentElement.classList.add("dark");
     localStorage.removeItem("axelmond_theme");
+  }, []);
+
+  useEffect(() => {
+    let disposed = false;
+    api
+      .getSiteSettings()
+      .then((settings) => {
+        if (disposed) return;
+        applyForceDesktopMode(settings.forceDesktopMode);
+      })
+      .catch((err) => {
+        console.warn("[site-settings] Failed to load display settings", err);
+        if (!disposed) applyForceDesktopMode(false);
+      })
+      .finally(() => {
+        if (!disposed) setIsSiteSettingsReady(true);
+      });
+
+    return () => {
+      disposed = true;
+    };
   }, []);
 
   const [liveCourseId, setLiveCourseId] = useState<number>(1);
@@ -458,7 +481,7 @@ export function usePlatformApp() {
   const session = useMemo(
     () => ({
       currentUser,
-      isLoading,
+      isLoading: isLoading || !isSiteSettingsReady,
       isAuthReady,
       role,
       enrolledCourses,
@@ -479,6 +502,7 @@ export function usePlatformApp() {
     [
       currentUser,
       isLoading,
+      isSiteSettingsReady,
       isAuthReady,
       role,
       enrolledCourses,

@@ -136,6 +136,7 @@ export function isRbacExemptRoute(method: string, path: string): boolean {
       cleanPath === "/api/live" ||
       cleanPath === "/api/domains" ||
       cleanPath === "/api/courses" ||
+      cleanPath === "/api/site-settings" ||
       cleanPath === "/api/mobile/routes" ||
       cleanPath === "/api/paypal/config" ||
       /^\/api\/courses\/\d+$/.test(cleanPath))

@@ -893,6 +893,15 @@ model Invoice {
   @@schema("AxelmondResearchLab")
 }
 
+model SiteSetting {
+  key       String   @id
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@schema("AxelmondResearchLab")
+}
+
 model AuditLog {
   id         String   @id @default(cuid())
   userId     String?

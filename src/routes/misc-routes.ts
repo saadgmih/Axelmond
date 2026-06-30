@@ -8,6 +8,16 @@ import * as api from "../server/route-deps";
 export function registerMiscRoutes(app: Express, ctx: RouteContext): void {
   const { requireAuth, validateBody } = ctx.middleware;
 
+  app.get("/api/site-settings", async (_req, res) => {
+    try {
+      const settings = await api.getSiteSettings();
+      res.json(settings);
+    } catch (err) {
+      api.logDb("WARN", "Public site settings unavailable", { error: String(err) });
+      res.status(503).json({ error: "Réglages du site temporairement indisponibles" });
+    }
+  });
+
   // POST /api/contact
 
   app.post("/api/contact", requireAuth, validateBody(api.contactSchema), async (req, res) => {

@@ -43,6 +43,7 @@ export function TeacherRouteSwitch() {
     isTeacherLiveRoom,
   } = live;
   const { teacherDashboardBindings, academicProfileBindings, curriculumBindings } = bindings;
+  const { courses: _dashboardCourses, ...teacherDashboardBindingsWithoutCourses } = teacherDashboardBindings;
   const { handleUploadAvatarFile, handleDeleteAvatar, avatarStatusMsg } = ui;
 
   if (!currentUser) return null;
@@ -93,7 +94,7 @@ export function TeacherRouteSwitch() {
               courses={courses}
               canManageAcademicTaxonomy={currentUser.role === "ADMIN"}
               {...curriculumBindings}
-              {...teacherDashboardBindings}
+              {...teacherDashboardBindingsWithoutCourses}
             />
           </Suspense>
         )}

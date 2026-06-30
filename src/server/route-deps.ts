@@ -297,6 +297,7 @@ export { createPayPalOrder, capturePayPalOrder, isPayPalConfigured, logPayPalErr
 export { processPayPalCaptureEnrollment, toPayPalCaptureClientResponse } from "../paypal-enrollment";
 export { resolveCourseChargeAmount, isFreeCourseCharge } from "../promo-codes";
 export { processFreeCourseEnrollment } from "../course-free-enrollment";
+export { getSiteSettings, setForceDesktopMode } from "../site-settings";
 export {
   attachSyncedCourseModules,
   syncPublishedLessonModules,

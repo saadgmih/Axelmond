@@ -1,9 +1,10 @@
 import { useEffect, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
 import { getClientErrorMessage } from "../client-errors";
-import { api } from "../api";
+import { api, type SiteSettings } from "../api";
 import type { AppUser } from "../components/AuthScreen";
 import type { Course, CourseGrade, FacultyDomain } from "../types";
 import { normalizeCoursePrice } from "../utils/course-pricing";
+import { applyForceDesktopMode } from "../utils/force-desktop-mode";
 
 export interface AcademicDomainInput {
   name: string;
@@ -69,6 +70,10 @@ export function useTeacherDashboard({
   const [isCreatingAccessKey, setIsCreatingAccessKey] = useState(false);
   const [taxonomyStatusMsg, setTaxonomyStatusMsg] = useState("");
   const [isSavingTaxonomy, setIsSavingTaxonomy] = useState(false);
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>({ forceDesktopMode: false });
+  const [siteSettingsStatusMsg, setSiteSettingsStatusMsg] = useState("");
+  const [isLoadingSiteSettings, setIsLoadingSiteSettings] = useState(false);
+  const [isSavingSiteSettings, setIsSavingSiteSettings] = useState(false);
 
   useEffect(() => {
     if (courses.length && !courses.some((course) => course.id === gradesCourseId)) {
@@ -142,6 +147,20 @@ export function useTeacherDashboard({
     }
   };
 
+  const refreshSiteSettings = async () => {
+    if (currentUser?.role !== "ADMIN") return;
+    setIsLoadingSiteSettings(true);
+    try {
+      const settings = await api.getAdminSiteSettings();
+      setSiteSettings(settings);
+      setSiteSettingsStatusMsg("");
+    } catch (err: any) {
+      setSiteSettingsStatusMsg(getClientErrorMessage(err, "Réglage d'affichage indisponible"));
+    } finally {
+      setIsLoadingSiteSettings(false);
+    }
+  };
+
   const refreshAcademicTaxonomy = async (options?: { quiet?: boolean }) => {
     if (currentUser?.role !== "ADMIN") return;
     if (!options?.quiet) setTaxonomyStatusMsg("Synchronisation de la taxonomie...");
@@ -159,6 +178,7 @@ export function useTeacherDashboard({
     if (currentUser?.role === "ADMIN") {
       refreshEmailDeliverySummary();
       refreshProfessorInvites();
+      refreshSiteSettings();
       refreshAcademicTaxonomy({ quiet: true });
     } else {
       setEmailDeliverySummary(null);
@@ -166,6 +186,8 @@ export function useTeacherDashboard({
       setProfessorInvites([]);
       setAccessKeyStatusMsg("");
       setTaxonomyStatusMsg("");
+      setSiteSettings({ forceDesktopMode: false });
+      setSiteSettingsStatusMsg("");
     }
   }, [currentUser?.id, currentUser?.role]);
 
@@ -253,6 +275,25 @@ export function useTeacherDashboard({
     } catch (err: any) {
       setAccessKeyStatusMsg(getClientErrorMessage(err, "Suppression de la clé impossible"));
       await refreshProfessorInvites();
+    }
+  };
+
+  const handleUpdateForceDesktopMode = async (forceDesktopMode: boolean) => {
+    if (currentUser?.role !== "ADMIN") return;
+    setIsSavingSiteSettings(true);
+    setSiteSettingsStatusMsg(forceDesktopMode ? "Activation du mode ordinateur..." : "Retour au mode responsive...");
+    try {
+      const settings = await api.updateAdminSiteSettings({ forceDesktopMode });
+      setSiteSettings(settings);
+      applyForceDesktopMode(settings.forceDesktopMode);
+      setSiteSettingsStatusMsg(
+        settings.forceDesktopMode ? "Mode ordinateur forcé activé." : "Mode responsive restauré.",
+      );
+    } catch (err: any) {
+      setSiteSettingsStatusMsg(getClientErrorMessage(err, "Modification du réglage impossible"));
+      await refreshSiteSettings();
+    } finally {
+      setIsSavingSiteSettings(false);
     }
   };
 
@@ -381,6 +422,10 @@ export function useTeacherDashboard({
     accessKeyStatusMsg,
     isLoadingAccessKeys,
     isCreatingAccessKey,
+    siteSettings,
+    siteSettingsStatusMsg,
+    isLoadingSiteSettings,
+    isSavingSiteSettings,
     taxonomyStatusMsg,
     isSavingTaxonomy,
     formatEmailLogDate,
@@ -388,6 +433,8 @@ export function useTeacherDashboard({
     refreshProfessorInvites,
     handleCreateProfessorInvite,
     handleDeleteProfessorInvite,
+    refreshSiteSettings,
+    handleUpdateForceDesktopMode,
     refreshAcademicTaxonomy,
     handleCreateAcademicDomain,
     handleUpdateAcademicDomain,

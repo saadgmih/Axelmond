@@ -41,6 +41,48 @@ function taxonomyConflictMessage(err: unknown, fallback: string) {
 export function registerAdminRoutes(app: Express, ctx: RouteContext): void {
   const { requireAuth, requireAdmin, validateBody } = ctx.middleware;
 
+  app.get("/api/admin/site-settings", requireAuth, requireAdmin, async (_req, res) => {
+    try {
+      const settings = await api.getSiteSettings();
+      res.json(settings);
+    } catch (err) {
+      api.logDb("ERROR", "Admin site settings read failed", { error: String(err) });
+      res.status(503).json({ error: "Réglages du site indisponibles" });
+    }
+  });
+
+  app.put("/api/admin/site-settings", requireAuth, requireAdmin, async (req, res) => {
+    const authUser = getAuthUser(req);
+    const forceDesktopMode = req.body?.forceDesktopMode;
+    if (typeof forceDesktopMode !== "boolean") {
+      res.status(400).json({ error: "Paramètre d'affichage invalide" });
+      return;
+    }
+
+    try {
+      const settings = await api.setForceDesktopMode(forceDesktopMode);
+      await api.logAudit(
+        authUser.id,
+        authUser.email,
+        "ADMIN_UPDATE_SITE_SETTINGS",
+        "SiteSetting",
+        "forceDesktopMode",
+        { forceDesktopMode: settings.forceDesktopMode },
+        req.ip,
+      );
+      api.logSecurity("INFO", "Admin updated site display settings", {
+        userId: authUser.id,
+        forceDesktopMode: settings.forceDesktopMode,
+      });
+
+      res.json(settings);
+    } catch (err) {
+      const status = Number((err as { status?: number })?.status) || 503;
+      api.logDb("ERROR", "Admin site settings update failed", { error: String(err), forceDesktopMode });
+      res.status(status).json({ error: "Modification du réglage d'affichage impossible" });
+    }
+  });
+
   app.get("/api/admin/professor-invites", requireAuth, requireAdmin, async (_req, res) => {
     const invitations = await api.prisma.professorInviteCode.findMany({
       orderBy: { createdAt: "desc" },

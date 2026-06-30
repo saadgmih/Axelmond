@@ -976,6 +976,16 @@ body {
   -webkit-backdrop-filter: none;
 }
 
+html.force-desktop-mode,
+body.force-desktop-mode {
+  min-width: 1280px;
+  overflow-x: auto;
+}
+
+html.force-desktop-mode #root {
+  min-width: 1280px;
+}
+
 /* Fullscreen styles for participant tile */
 .live-participant-tile-fullscreen:fullscreen {
   position: fixed !important;

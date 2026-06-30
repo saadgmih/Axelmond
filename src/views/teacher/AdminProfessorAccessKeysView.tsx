@@ -6,6 +6,7 @@ import {
   Copy,
   FileKey2,
   KeyRound,
+  MonitorCog,
   Plus,
   RefreshCw,
   ShieldCheck,
@@ -19,9 +20,14 @@ interface AdminProfessorAccessKeysViewProps {
   accessKeyStatusMsg: string;
   isLoadingAccessKeys: boolean;
   isCreatingAccessKey: boolean;
+  siteSettings: { forceDesktopMode: boolean };
+  siteSettingsStatusMsg: string;
+  isLoadingSiteSettings: boolean;
+  isSavingSiteSettings: boolean;
   refreshProfessorInvites: () => void | Promise<void>;
   handleCreateProfessorInvite: () => void | Promise<void>;
   handleDeleteProfessorInvite: (code: string) => void | Promise<void>;
+  handleUpdateForceDesktopMode: (forceDesktopMode: boolean) => void | Promise<void>;
 }
 
 const PAGE_SIZE = 8;
@@ -45,9 +51,14 @@ export default function AdminProfessorAccessKeysView({
   accessKeyStatusMsg,
   isLoadingAccessKeys,
   isCreatingAccessKey,
+  siteSettings,
+  siteSettingsStatusMsg,
+  isLoadingSiteSettings,
+  isSavingSiteSettings,
   refreshProfessorInvites,
   handleCreateProfessorInvite,
   handleDeleteProfessorInvite,
+  handleUpdateForceDesktopMode,
 }: AdminProfessorAccessKeysViewProps) {
   const [copiedCode, setCopiedCode] = useState("");
   const [page, setPage] = useState(1);
@@ -173,6 +184,56 @@ export default function AdminProfessorAccessKeysView({
       </header>
 
       <div className="space-y-6 p-4 sm:p-6 lg:p-9">
+        <section className="flex flex-col gap-5 rounded-xl border border-slate-700/60 bg-[#0b1528] px-5 py-5 shadow-[0_16px_50px_rgba(2,6,23,0.22)] sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8 lg:py-7">
+          <div className="flex min-w-0 gap-4">
+            <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-500/10 text-sky-300 ring-1 ring-sky-400/20">
+              <MonitorCog className="h-6 w-6" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">Affichage global</p>
+              <h2 className="mt-1 text-xl font-black text-white">Forcer le mode ordinateur</h2>
+              <p className="mt-1.5 max-w-3xl text-sm leading-relaxed text-slate-400">
+                Désactivé, le site reste responsive. Activé, tous les appareils utilisent la largeur ordinateur fixe.
+              </p>
+              {siteSettingsStatusMsg && (
+                <p role="status" className="mt-3 text-sm font-semibold text-sky-200">
+                  {siteSettingsStatusMsg}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-3">
+            <span
+              className={`rounded-lg px-3 py-2 text-xs font-black uppercase tracking-wider ${
+                siteSettings.forceDesktopMode
+                  ? "bg-violet-500/15 text-violet-200 ring-1 ring-violet-400/30"
+                  : "bg-emerald-500/10 text-emerald-200 ring-1 ring-emerald-400/25"
+              }`}
+            >
+              {siteSettings.forceDesktopMode ? "Activé" : "Désactivé"}
+            </span>
+            <button
+              type="button"
+              aria-pressed={siteSettings.forceDesktopMode}
+              onClick={() => void handleUpdateForceDesktopMode(!siteSettings.forceDesktopMode)}
+              disabled={isLoadingSiteSettings || isSavingSiteSettings}
+              className={`relative h-11 w-[5.75rem] rounded-full border p-1 transition-colors ${
+                siteSettings.forceDesktopMode
+                  ? "border-violet-400/50 bg-violet-600/80"
+                  : "border-slate-600/70 bg-slate-800"
+              } disabled:cursor-wait disabled:opacity-60`}
+            >
+              <span
+                className={`block h-8 w-8 rounded-full bg-white shadow-[0_8px_20px_rgba(2,6,23,0.35)] transition-transform ${
+                  siteSettings.forceDesktopMode ? "translate-x-12" : "translate-x-0"
+                }`}
+              />
+              <span className="sr-only">Basculer le mode ordinateur forcé</span>
+            </button>
+          </div>
+        </section>
+
         <section className="grid grid-cols-1 overflow-hidden rounded-xl border border-slate-700/60 bg-[#0b1528] sm:grid-cols-3 sm:divide-x sm:divide-slate-700/60">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
