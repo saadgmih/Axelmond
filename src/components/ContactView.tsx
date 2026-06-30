@@ -152,7 +152,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
       </div>
 
       {/* Main Grid: Form (Left) & Info / FAQ (Right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start lg:items-stretch">
         {/* Left Column: Form & Security Box */}
         <div className="lg:col-span-7 space-y-6">
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-sm space-y-6 text-white">
@@ -303,31 +303,31 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
                   </>
                 )}
               </button>
-            </form>
-          </div>
 
-          {/* Security & GDPR Info Box */}
-          <div className="bg-slate-950/40 border border-slate-850 rounded-3xl p-5 flex items-start gap-4 text-white">
-            <div className="p-2.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-2xl flex-shrink-0">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-            <div className="space-y-1">
-              <h4 className="text-sm font-bold text-indigo-300">
-                Données Sécurisées & Protection des données (loi 09-08)
-              </h4>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Les informations recueillies via ce formulaire sont cryptées de bout en bout et font l'objet d'un audit
-                de sécurité. Elles sont utilisées exclusivement pour traiter votre demande par l'administration de
-                Performance Académique et ne seront jamais partagées avec des tiers.
-              </p>
-            </div>
+              {/* Security & GDPR Info Box */}
+              <div className="flex items-start gap-4 rounded-3xl border border-indigo-400/40 bg-slate-950/50 p-5 text-white shadow-sm">
+                <div className="flex-shrink-0 rounded-2xl border border-indigo-500/20 bg-indigo-500/10 p-2.5 text-indigo-400">
+                  <ShieldCheck className="h-6 w-6" />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="text-sm font-bold text-indigo-300">
+                    Données Sécurisées & Protection des données (loi 09-08)
+                  </h4>
+                  <p className="text-xs leading-relaxed text-slate-400">
+                    Les informations recueillies via ce formulaire sont cryptées de bout en bout et font l'objet d'un
+                    audit de sécurité. Elles sont utilisées exclusivement pour traiter votre demande par
+                    l'administration de Performance Académique et ne seront jamais partagées avec des tiers.
+                  </p>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
 
-        {/* Right Column: Contact Info & FAQ */}
-        <div className="lg:col-span-5 space-y-6">
+        {/* Right Column: Contact Info */}
+        <div className="lg:col-span-5 lg:flex">
           {/* Card: Contact coordinates */}
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-sm space-y-5 text-white">
+          <div className="flex h-full flex-col bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-sm space-y-5 text-white">
             <h2 className="text-lg font-bold text-white border-b border-slate-850 pb-3 flex items-center gap-2">
               <MapPin className="w-5 h-5 text-indigo-400" />
               Informations Institutionnelles
@@ -411,103 +411,105 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
               </div>
             </div>
           </div>
+        </div>
+      </div>
 
-          <div className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-900 text-white shadow-sm">
-            <div className="flex items-center justify-between gap-3 border-b border-slate-850 px-5 py-4">
-              <div>
-                <h2 className="text-sm font-black text-white">Localisation exacte</h2>
-                <p className="mt-0.5 text-[11px] text-slate-400">{PERFORMANCE_ACADEMIQUE_ADDRESS}</p>
-              </div>
-              <a
-                href={PERFORMANCE_ACADEMIQUE_LOCATION.googleMapsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 transition-colors hover:bg-indigo-500/20"
-                aria-label="Ouvrir la localisation Performance Académique dans Google Maps"
-              >
-                <ExternalLink className="h-4 w-4" />
-              </a>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start">
+        <div className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-900 text-white shadow-sm">
+          <div className="flex items-center justify-between gap-3 border-b border-slate-850 px-5 py-4">
+            <div>
+              <h2 className="text-sm font-black text-white">Localisation exacte</h2>
+              <p className="mt-0.5 text-[11px] text-slate-400">{PERFORMANCE_ACADEMIQUE_ADDRESS}</p>
             </div>
-            <iframe
-              title="Carte de localisation Performance Académique"
-              src={PERFORMANCE_ACADEMIQUE_LOCATION.googleMapsEmbedUrl}
-              className="h-72 w-full border-0"
-              loading="lazy"
-              allowFullScreen
-              referrerPolicy="no-referrer-when-downgrade"
-            />
-            <div className="grid grid-cols-1 gap-2 border-t border-slate-850 px-5 py-4 text-xs text-slate-400 sm:grid-cols-2">
-              <div>
-                <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">Adresse</span>
-                <span className="text-slate-300">{PERFORMANCE_ACADEMIQUE_ADDRESS}</span>
-              </div>
-              <div>
-                <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">
-                  Coordonnées GPS
-                </span>
-                <span className="font-mono text-slate-300">{PERFORMANCE_ACADEMIQUE_COORDINATES}</span>
-              </div>
+            <a
+              href={PERFORMANCE_ACADEMIQUE_LOCATION.googleMapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 transition-colors hover:bg-indigo-500/20"
+              aria-label="Ouvrir la localisation Performance Académique dans Google Maps"
+            >
+              <ExternalLink className="h-4 w-4" />
+            </a>
+          </div>
+          <iframe
+            title="Carte de localisation Performance Académique"
+            src={PERFORMANCE_ACADEMIQUE_LOCATION.googleMapsEmbedUrl}
+            className="h-80 w-full border-0 lg:h-96"
+            loading="lazy"
+            allowFullScreen
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+          <div className="grid grid-cols-1 gap-2 border-t border-slate-850 px-5 py-4 text-xs text-slate-400 sm:grid-cols-2">
+            <div>
+              <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">Adresse</span>
+              <span className="text-slate-300">{PERFORMANCE_ACADEMIQUE_ADDRESS}</span>
+            </div>
+            <div>
+              <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">
+                Coordonnées GPS
+              </span>
+              <span className="font-mono text-slate-300">{PERFORMANCE_ACADEMIQUE_COORDINATES}</span>
             </div>
           </div>
+        </div>
 
-          {/* Card: FAQ Accordion */}
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-sm space-y-4 text-white">
-            <h2 className="text-lg font-bold text-white border-b border-slate-850 pb-3 flex items-center gap-2">
-              <HelpCircle className="w-5 h-5 text-indigo-400" />
-              FAQ & Centre d'aide
-            </h2>
+        {/* Card: FAQ Accordion */}
+        <div className="flex h-full flex-col space-y-4 rounded-3xl border border-slate-800 bg-slate-900 p-6 text-white shadow-sm">
+          <h2 className="text-lg font-bold text-white border-b border-slate-850 pb-3 flex items-center gap-2">
+            <HelpCircle className="w-5 h-5 text-indigo-400" />
+            FAQ & Centre d'aide
+          </h2>
 
-            <div className="space-y-3">
-              {faqItems.map((item, index) => {
-                const isOpen = openFaqIndex === index;
-                return (
-                  <div
-                    key={index}
-                    className="border border-slate-850 rounded-xl overflow-hidden transition-all duration-200"
+          <div className="flex-1 space-y-3">
+            {faqItems.map((item, index) => {
+              const isOpen = openFaqIndex === index;
+              return (
+                <div
+                  key={index}
+                  className="border border-slate-850 rounded-xl overflow-hidden transition-all duration-200"
+                >
+                  <button
+                    type="button"
+                    onClick={() => toggleFaq(index)}
+                    className="w-full flex items-center justify-between p-3.5 text-left text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-850/50 transition-colors cursor-pointer"
                   >
-                    <button
-                      type="button"
-                      onClick={() => toggleFaq(index)}
-                      className="w-full flex items-center justify-between p-3.5 text-left text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-850/50 transition-colors cursor-pointer"
-                    >
-                      <span>{item.question}</span>
-                      {isOpen ? (
-                        <ChevronUp className="w-4 h-4 text-slate-500 flex-shrink-0 ml-2" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4 text-slate-500 flex-shrink-0 ml-2" />
-                      )}
-                    </button>
-                    {isOpen && (
-                      <div className="p-3.5 bg-slate-950/30 text-xs text-slate-400 border-t border-slate-850/50 leading-relaxed animate-in slide-in-from-top-1 duration-150">
-                        {item.answer}
-                      </div>
+                    <span>{item.question}</span>
+                    {isOpen ? (
+                      <ChevronUp className="w-4 h-4 text-slate-500 flex-shrink-0 ml-2" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-slate-500 flex-shrink-0 ml-2" />
                     )}
-                  </div>
-                );
-              })}
-            </div>
+                  </button>
+                  {isOpen && (
+                    <div className="p-3.5 bg-slate-950/30 text-xs text-slate-400 border-t border-slate-850/50 leading-relaxed animate-in slide-in-from-top-1 duration-150">
+                      {item.answer}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
 
-            {/* Quick Links Footer */}
-            <div className="pt-2 border-t border-slate-850 flex flex-wrap gap-x-4 gap-y-2 justify-between text-xs text-slate-450">
-              <button
-                onClick={() => navigateTo("catalog")}
-                className="hover:text-indigo-400 hover:underline cursor-pointer"
-              >
-                Catalogue
-              </button>
-              <button
-                onClick={() => navigateTo("profile")}
-                className="hover:text-indigo-400 hover:underline cursor-pointer"
-              >
-                Mon Profil
-              </button>
-              <button
-                onClick={() => navigateTo("support")}
-                className="hover:text-indigo-400 hover:underline cursor-pointer"
-              >
-                Support technique
-              </button>
-            </div>
+          {/* Quick Links Footer */}
+          <div className="pt-2 border-t border-slate-850 flex flex-wrap gap-x-4 gap-y-2 justify-between text-xs text-slate-450">
+            <button
+              onClick={() => navigateTo("catalog")}
+              className="hover:text-indigo-400 hover:underline cursor-pointer"
+            >
+              Catalogue
+            </button>
+            <button
+              onClick={() => navigateTo("profile")}
+              className="hover:text-indigo-400 hover:underline cursor-pointer"
+            >
+              Mon Profil
+            </button>
+            <button
+              onClick={() => navigateTo("support")}
+              className="hover:text-indigo-400 hover:underline cursor-pointer"
+            >
+              Support technique
+            </button>
           </div>
         </div>
       </div>

@@ -47,6 +47,8 @@ export const UPLOADTHING_CSP_FRAME_SRC = [
   "https://*.utfs.io",
 ] as const;
 
+export const GOOGLE_MAPS_CSP_FRAME_SRC = ["https://www.google.com", "https://maps.google.com"] as const;
+
 export function buildCspFrameSrc(): string[] {
-  return ["'self'", ...PAYPAL_CSP_FRAME_SRC, ...UPLOADTHING_CSP_FRAME_SRC];
+  return ["'self'", ...PAYPAL_CSP_FRAME_SRC, ...UPLOADTHING_CSP_FRAME_SRC, ...GOOGLE_MAPS_CSP_FRAME_SRC];
 }

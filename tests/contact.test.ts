@@ -12,6 +12,7 @@ rulesTest("contact", () => {
   const apiSource = fs.readFileSync("src/api.ts", "utf8");
   const contactViewSource = fs.readFileSync("src/components/ContactView.tsx", "utf8");
   const locationSource = fs.readFileSync("src/utils/institution-location.ts", "utf8");
+  const cspSource = fs.readFileSync("src/paypal-csp.ts", "utf8");
 
   // 1. Check contact validation schema in server.ts
   assert.match(serverSource, /export const contactSchema = z\.object\(\{/);
@@ -54,12 +55,17 @@ rulesTest("contact", () => {
   assert.match(contactViewSource, /loi 09-08|loi n° 09-08/i);
   assert.match(contactViewSource, /Carte de localisation Performance Académique/);
   assert.match(contactViewSource, /googleMapsEmbedUrl/);
+  assert.match(contactViewSource, /lg:grid-cols-2/);
   assert.match(locationSource, /Hay Moulay Rachid 4/);
   assert.match(locationSource, /Casablanca/);
   assert.match(locationSource, /20670/);
   assert.match(locationSource, /33\.567193/);
   assert.match(locationSource, /-7\.541311/);
   assert.match(locationSource, /google\.com\/maps/);
+  assert.match(locationSource, /maps\.google\.com\/maps/);
+  assert.match(cspSource, /GOOGLE_MAPS_CSP_FRAME_SRC/);
+  assert.match(cspSource, /https:\/\/www\.google\.com/);
+  assert.match(cspSource, /https:\/\/maps\.google\.com/);
 
   console.log("Contact page redesign tests passed successfully!");
 });

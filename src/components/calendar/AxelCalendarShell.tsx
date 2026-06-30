@@ -97,6 +97,11 @@ export default function AxelCalendarShell({
   const accentBg = accent === "pink" ? "bg-pink-500" : "bg-indigo-500";
   const accentRing = accent === "pink" ? "ring-pink-400/40" : "ring-indigo-400/40";
   const accentSoft = accent === "pink" ? "text-pink-200/90" : "text-indigo-200/90";
+  const viewSwitcherActive =
+    accent === "pink"
+      ? "border-pink-300/45 bg-gradient-to-b from-pink-500/24 via-pink-500/14 to-slate-900/70 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_10px_24px_rgba(190,24,93,0.18)]"
+      : "border-indigo-300/45 bg-gradient-to-b from-indigo-500/24 via-indigo-500/14 to-slate-900/70 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_10px_24px_rgba(79,70,229,0.18)]";
+  const viewSwitcherIconActive = accent === "pink" ? "text-pink-200" : "text-indigo-200";
 
   const year = focusDate.getFullYear();
   const monthIndex = focusDate.getMonth();
@@ -403,8 +408,8 @@ export default function AxelCalendarShell({
         )}
       </div>
 
-      <nav className="sticky bottom-0 z-20 rounded-2xl border border-white/[0.08] bg-[#020617]/95 p-2 backdrop-blur-md sm:static sm:bg-[#0f172a]/80">
-        <div className="grid grid-cols-4 gap-1">
+      <nav className="sticky bottom-0 z-20 rounded-3xl border border-white/[0.08] bg-[#020617]/92 p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_18px_36px_rgba(2,6,23,0.28)] backdrop-blur-xl sm:static sm:bg-[#0b1222]/88 sm:p-2">
+        <div className="grid grid-cols-4 gap-1.5">
           {(Object.keys(CALENDAR_VIEW_LABELS) as CalendarViewMode[]).map((mode) => {
             const Icon = viewIcons[mode];
             const active = viewMode === mode;
@@ -412,13 +417,24 @@ export default function AxelCalendarShell({
               <button
                 type="button"
                 key={mode}
+                aria-pressed={active}
                 onClick={() => setViewMode(mode)}
-                className={`flex flex-col items-center gap-1 rounded-xl px-2 py-2 text-[10px] font-bold transition sm:text-xs ${
-                  active ? "bg-white/10 text-white" : "text-slate-500 hover:bg-white/5 hover:text-slate-300"
+                className={`group flex min-h-[58px] flex-col items-center justify-center gap-1.5 rounded-2xl border px-2 py-2 text-[10px] font-black transition-all duration-200 sm:min-h-[64px] sm:text-xs ${
+                  active
+                    ? viewSwitcherActive
+                    : "border-transparent text-slate-500 hover:border-white/[0.08] hover:bg-white/[0.04] hover:text-slate-200"
                 }`}
               >
-                <Icon className={`h-4 w-4 ${active ? accentText : ""}`} />
-                {CALENDAR_VIEW_LABELS[mode]}
+                <span
+                  className={`inline-flex h-7 w-7 items-center justify-center rounded-xl border transition-colors ${
+                    active
+                      ? `border-white/10 bg-white/10 ${viewSwitcherIconActive}`
+                      : "border-transparent bg-transparent text-slate-500 group-hover:text-slate-300"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                </span>
+                <span className="leading-none">{CALENDAR_VIEW_LABELS[mode]}</span>
               </button>
             );
           })}
