@@ -91,7 +91,7 @@ src/App.tsx + AuthScreen.tsx → suppression de la classification d'études visi
 server.ts → neutralise les niveaux hérités (`Course.level`) avec `Module académique` et force les étudiants à l'étiquette `Étudiant`
 server.ts → `toCourse()` décode les textes stockés déjà échappés pour éviter `&amp;#x27;` dans l'interface
 src/App.tsx + src/index.css → Course price slider corrigé : déplacement local immédiat, sauvegarde backend différée, thumb rose aligné et carte de pilotage enterprise pour les modules/live
-server.ts + src/App.tsx → Professor/Researcher course ownership strict : chaque professeur/chercheur voit et pilote uniquement ses propres modules (`createdById`)
+server.ts + src/App.tsx → Professor/Researcher course ownership strict : chaque professeur/chercheur voit et pilote uniquement ses propres modules (`createdById`, avec fallback ancien `instructor`)
 src/App.tsx → Live subject input corrigé : brouillon local par module + réalignement automatique du module live sélectionné pour permettre la saisie sans valeur réinitialisée
 src/livekit.ts + server.ts + src/App.tsx → Default live subject globalisé : `Session académique en direct` remplace les sujets techniques spécifiques par défaut
 server.ts + src/components/VirtualClassroom.tsx → Live timer basé sur `LiveSession.startTime` (`liveStartedAt`) pour conserver le chrono depuis le début du live après arrivée ou reconnexion
@@ -779,7 +779,7 @@ Admin
 
 Courses
   GET    /api/domains                         → list FacultyDomain rows with Discipline children; public/student see published counters, professor/researcher see owned counters, admin sees all
-  GET    /api/courses                         → list persisted Course rows exposed as modules in UI; optional ?domainId= or ?disciplineId=; students/public see published only, professor/researcher see only createdById-owned modules, admin sees all
+  GET    /api/courses                         → list persisted Course rows exposed as modules in UI; optional ?domainId= or ?disciplineId=; students/public see published only, professor/researcher see only owned modules (`createdById`, fallback legacy `instructor`), admin sees all
   GET    /api/courses/:id                     → one persisted Course; unpublished visible only to PROFESSOR|RESEARCHER|ADMIN
   POST   /api/courses                         → [auth: PROFESSOR|RESEARCHER|ADMIN] create Course with required disciplineId
   PUT    /api/courses/:courseId               → [auth: PROFESSOR|RESEARCHER|ADMIN] update Course identity/metadata

@@ -25,7 +25,12 @@ export function registerCatalogRoutes(app: Express, ctx: RouteContext): void {
       authUser?.role === "ADMIN"
         ? {}
         : authUser && (authUser.role === "PROFESSOR" || authUser.role === "RESEARCHER")
-          ? { createdById: authUser.id }
+          ? {
+              OR: [
+                { createdById: authUser.id },
+                { createdById: null, instructor: authUser.fullName },
+              ],
+            }
           : { published: true };
 
     const [domains, courseCounts] = await Promise.all([

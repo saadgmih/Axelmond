@@ -13,6 +13,12 @@ type CourseContentApi = {
   refreshCourseContent: (courseId: number) => Promise<ContentSection[]>;
 };
 
+export function canManageWorkspaceCourse(course: Course, currentUser: AppUser | null): boolean {
+  if (!currentUser) return false;
+  if (currentUser.role === "ADMIN") return true;
+  return course.createdById === currentUser.id || course.instructor === currentUser.fullName;
+}
+
 export function usePlatformTeacherWorkspace(options: {
   role: string;
   courses: Course[];
@@ -41,9 +47,9 @@ export function usePlatformTeacherWorkspace(options: {
   const managedCourses = useMemo(
     () =>
       role === "teacher" && currentUser?.role !== "ADMIN"
-        ? courses.filter((course) => course.createdById === currentUser?.id)
+        ? courses.filter((course) => canManageWorkspaceCourse(course, currentUser))
         : courses,
-    [role, currentUser?.role, currentUser?.id, courses],
+    [role, currentUser?.role, currentUser?.id, currentUser?.fullName, courses],
   );
   const managedCourseIds = useMemo(() => managedCourses.map((course) => course.id).join(","), [managedCourses]);
 

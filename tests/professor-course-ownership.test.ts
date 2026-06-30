@@ -18,10 +18,12 @@ rulesTest("professor-course-ownership", () => {
 
   assert.match(
     serverSource,
-    /app\.get\("\/api\/courses"[\s\S]*?authUser && \(authUser\.role === "PROFESSOR" \|\| authUser\.role === "RESEARCHER"\)[\s\S]*?\{ createdById: authUser\.id \}/,
+    /app\.get\("\/api\/courses"[\s\S]*?authUser && \(authUser\.role === "PROFESSOR" \|\| authUser\.role === "RESEARCHER"\)[\s\S]*?OR:\s*\[[\s\S]*?\{ createdById: authUser\.id \}[\s\S]*?\{ createdById: null, instructor: authUser\.fullName \}/,
   );
   assert.doesNotMatch(serverSource, /OR:\s*\[\{ createdById: authUser\.id \},\s*\{ published: true \}\]/);
 
+  assert.match(appSource, /function canManageWorkspaceCourse/);
+  assert.match(appSource, /course\.createdById === currentUser\.id \|\| course\.instructor === currentUser\.fullName/);
   assert.match(appSource, /managedCourses\.map\(\(c\) =>/);
   assert.match(appSource, /<option key=\{c\.id\} value=\{c\.id\}/);
   assert.match(appSource, /quizCourseId/);

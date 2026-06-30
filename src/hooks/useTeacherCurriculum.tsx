@@ -269,14 +269,19 @@ export function useTeacherCurriculum({
         description: newCourseDescription,
         published: newCoursePublished,
       });
-      setCourses((prev) => [...prev, course]);
-      setNewSectionCourseId(course.id);
-      setUploadCourseId(course.id);
+      const normalizedCourse: Course = {
+        ...course,
+        createdById: course.createdById ?? currentUser?.id ?? null,
+        instructor: course.instructor || currentUser?.fullName || "",
+      };
+      setCourses((prev) => [...prev.filter((item) => item.id !== normalizedCourse.id), normalizedCourse]);
+      setNewSectionCourseId(normalizedCourse.id);
+      setUploadCourseId(normalizedCourse.id);
       setUploadSectionId("");
       setNewCourseTitle("");
       setNewCourseDescription("");
       setCourseContentSections([]);
-      showCurriculumSuccess(`Module « ${course.title} » créé avec succès.`);
+      showCurriculumSuccess(`Module « ${normalizedCourse.title} » créé avec succès.`);
     } catch (err: any) {
       console.error("Failed to create course:", err);
       showCurriculumError(getClientErrorMessage(err, "Création du module impossible."));
