@@ -117,7 +117,7 @@ function LiveParticipantTile({
           autoPlay
           playsInline
           muted={participant.isLocal}
-          className="absolute inset-0 h-full w-full object-cover bg-black"
+          className="absolute inset-0 h-full w-full bg-black object-contain"
         />
       ) : isLocalScreenShare ? (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-zinc-950 via-[#0b1020] to-indigo-950/40 p-4 text-center">

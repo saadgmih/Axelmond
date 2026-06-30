@@ -16,10 +16,12 @@ import { LiveChatMessage } from "../../livekit";
 import { Room, Track, RoomEvent } from "livekit-client";
 import type { Course } from "../../types";
 import {
+  buildLiveCameraCaptureOptions,
   DEFAULT_LIVE_CAMERA_FACING_MODE,
   liveCameraDeviceLabel,
   nextLiveCameraDevice,
   normalizeLiveCameraDevices,
+  restartLiveCameraTrack,
   type LiveCameraDevice,
 } from "../../live/live-camera";
 import {
@@ -202,9 +204,12 @@ export function useLiveRoomControls({
         const selectedDeviceExists = cameraDevices.some((device) => device.deviceId === activeCameraDeviceId);
         if (selectedDeviceExists && activeCameraDeviceId) {
           try {
-            await liveRoom.localParticipant.setCameraEnabled(true, {
-              deviceId: { exact: activeCameraDeviceId },
-            });
+            await restartLiveCameraTrack(
+              liveRoom,
+              buildLiveCameraCaptureOptions({
+                deviceId: { exact: activeCameraDeviceId },
+              }),
+            );
           } catch {
             setActiveCameraDeviceId(null);
           }
@@ -212,11 +217,14 @@ export function useLiveRoomControls({
 
         if (!liveRoom.localParticipant.isCameraEnabled) {
           try {
-            await liveRoom.localParticipant.setCameraEnabled(true, {
-              facingMode: DEFAULT_LIVE_CAMERA_FACING_MODE,
-            });
+            await restartLiveCameraTrack(
+              liveRoom,
+              buildLiveCameraCaptureOptions({
+                facingMode: DEFAULT_LIVE_CAMERA_FACING_MODE,
+              }),
+            );
           } catch {
-            await liveRoom.localParticipant.setCameraEnabled(true);
+            await restartLiveCameraTrack(liveRoom, buildLiveCameraCaptureOptions());
           }
         }
       } else {
@@ -240,7 +248,12 @@ export function useLiveRoomControls({
       const nextDevice = nextLiveCameraDevice(devices, currentDeviceId);
       if (!nextDevice) return;
 
-      await liveRoom.switchActiveDevice("videoinput", nextDevice.deviceId);
+      await restartLiveCameraTrack(
+        liveRoom,
+        buildLiveCameraCaptureOptions({
+          deviceId: { exact: nextDevice.deviceId },
+        }),
+      );
       setActiveCameraDeviceId(nextDevice.deviceId);
       setLiveStatusMsg(
         `${liveCameraDeviceLabel(

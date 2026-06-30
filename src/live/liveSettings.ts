@@ -1,4 +1,5 @@
 import { Room, VideoPresets } from "livekit-client";
+import { buildLiveCameraCaptureOptions, getLiveCameraMediaStreamTrack, restartLiveCameraTrack } from "./live-camera";
 
 export type LiveVideoQuality = "auto" | "1080p" | "720p" | "480p" | "360p";
 export type LiveLayoutMode = "teacher-only" | "tile" | "active-speaker";
@@ -81,15 +82,28 @@ export function persistLiveSettings(settings: LiveSettings) {
 
 export async function applyLiveVideoQuality(room: Room | null, quality: LiveVideoQuality, cameraEnabled: boolean) {
   if (!room || !cameraEnabled) return;
+  const activeDeviceId =
+    room.getActiveDevice("videoinput") || getLiveCameraMediaStreamTrack(room)?.getSettings().deviceId;
 
   if (quality === "auto") {
-    await room.localParticipant.setCameraEnabled(true);
+    await restartLiveCameraTrack(
+      room,
+      buildLiveCameraCaptureOptions({
+        deviceId: activeDeviceId ? { exact: activeDeviceId } : undefined,
+      }),
+    );
     return;
   }
 
   const resolution = QUALITY_RESOLUTION[quality];
   if (!resolution) return;
-  await room.localParticipant.setCameraEnabled(true, { resolution });
+  await restartLiveCameraTrack(
+    room,
+    buildLiveCameraCaptureOptions({
+      deviceId: activeDeviceId ? { exact: activeDeviceId } : undefined,
+      resolution,
+    }),
+  );
 }
 
 export function isTeacherLikeRole(role?: string) {
