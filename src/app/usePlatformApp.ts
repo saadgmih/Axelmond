@@ -478,10 +478,12 @@ export function usePlatformApp() {
     ],
   );
 
+  const sessionIsLoading = !isSiteSettingsReady || (Boolean(currentUser) && isLoading);
+
   const session = useMemo(
     () => ({
       currentUser,
-      isLoading: isLoading || !isSiteSettingsReady,
+      isLoading: sessionIsLoading,
       isAuthReady,
       role,
       enrolledCourses,
@@ -501,8 +503,7 @@ export function usePlatformApp() {
     }),
     [
       currentUser,
-      isLoading,
-      isSiteSettingsReady,
+      sessionIsLoading,
       isAuthReady,
       role,
       enrolledCourses,
