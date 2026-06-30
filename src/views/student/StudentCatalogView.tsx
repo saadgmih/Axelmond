@@ -165,6 +165,7 @@ interface StudentCatalogViewProps {
   selectedDomain: FacultyDomain | null;
   selectedDiscipline: Discipline | null;
   catalogCourses: Course[];
+  isDisciplineCoursesLoading: boolean;
   enrolledCourses: number[];
   getCourseIcon: CourseIconRenderer;
   getDomainIcon: DomainIconRenderer;
@@ -180,6 +181,7 @@ export default function StudentCatalogView({
   selectedDomain,
   selectedDiscipline,
   catalogCourses,
+  isDisciplineCoursesLoading,
   enrolledCourses,
   getCourseIcon,
   getDomainIcon,
@@ -304,7 +306,16 @@ export default function StudentCatalogView({
 
         {selectedDiscipline && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-3">
-            {catalogCourses.length === 0 && (
+            {catalogCourses.length === 0 && isDisciplineCoursesLoading && (
+              <div className="md:col-span-2 lg:col-span-3 bg-white rounded-2xl p-10 border border-slate-200 text-center">
+                <BookOpen className="w-10 h-10 text-slate-300 mx-auto animate-pulse" />
+                <h3 className="text-base font-black text-slate-800 mt-3">Chargement des modules...</h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  Synchronisation des modules publiés pour cette discipline.
+                </p>
+              </div>
+            )}
+            {catalogCourses.length === 0 && !isDisciplineCoursesLoading && (
               <div className="md:col-span-2 lg:col-span-3 bg-white rounded-2xl p-10 border border-slate-200 text-center">
                 <BookOpen className="w-10 h-10 text-slate-300 mx-auto" />
                 <h3 className="text-base font-black text-slate-800 mt-3">Aucun module publié dans cette discipline</h3>

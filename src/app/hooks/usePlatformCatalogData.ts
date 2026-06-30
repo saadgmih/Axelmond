@@ -13,6 +13,26 @@ function sleep(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
 
+export function mergeCatalogCourseRows(previous: Course[], courseData: Course[]): Course[] {
+  const byId = new Map(previous.map((course) => [course.id, course]));
+  courseData.forEach((course) => byId.set(course.id, course));
+  return [...byId.values()].sort((a, b) => a.id - b.id);
+}
+
+export function courseMatchesSelectedDiscipline(
+  course: Course,
+  selectedDisciplineId: number,
+  selectedDisciplineName?: string,
+): boolean {
+  const disciplineName = selectedDisciplineName?.trim().toLowerCase() || "";
+  const courseDisciplineName = course.discipline?.name?.trim().toLowerCase() || course.category.trim().toLowerCase();
+  return (
+    course.disciplineId === selectedDisciplineId ||
+    course.discipline?.id === selectedDisciplineId ||
+    (disciplineName.length > 0 && courseDisciplineName === disciplineName)
+  );
+}
+
 export function usePlatformCatalogData(
   isAuthReady: boolean,
   currentUser: AppUser | null,
@@ -24,10 +44,19 @@ export function usePlatformCatalogData(
 ) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDomainId, setSelectedDomainId] = useState<number | null>(null);
-  const [selectedDisciplineId, setSelectedDisciplineId] = useState<number | null>(null);
+  const [selectedDisciplineId, setSelectedDisciplineIdState] = useState<number | null>(null);
+  const [loadingDisciplineId, setLoadingDisciplineId] = useState<number | null>(null);
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const { startRequest } = useAsyncEffectGuard();
   const autoRetryTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const disciplineLoadSeqRef = useRef(0);
+
+  const mergeCatalogCourses = useCallback(
+    (courseData: Course[]) => {
+      setCourses((previous) => mergeCatalogCourseRows(previous, courseData));
+    },
+    [setCourses],
+  );
 
   const loadCatalog = useCallback(
     async (options?: { silent?: boolean }) => {
@@ -138,8 +167,47 @@ export function usePlatformCatalogData(
     [allDisciplines, selectedDisciplineId],
   );
 
+  const loadCatalogDiscipline = useCallback(
+    async (disciplineId: number) => {
+      if (!Number.isFinite(disciplineId) || disciplineId <= 0) return;
+      const requestId = ++disciplineLoadSeqRef.current;
+      setLoadingDisciplineId(disciplineId);
+
+      try {
+        if (currentUser) {
+          const token = await getFreshSessionToken();
+          if (disciplineLoadSeqRef.current !== requestId) return;
+          if (!token) throw new Error("Session authentifiée indisponible pour charger la discipline.");
+        }
+
+        const courseData = await api.getCourses({ disciplineId });
+        if (disciplineLoadSeqRef.current !== requestId) return;
+        mergeCatalogCourses(courseData);
+        setCatalogError(null);
+      } catch (err) {
+        if (disciplineLoadSeqRef.current !== requestId) return;
+        console.error("Failed to fetch discipline catalog:", err);
+        setCatalogError(getClientErrorMessage(err, "Impossible de charger les modules de cette discipline."));
+      } finally {
+        if (disciplineLoadSeqRef.current === requestId) {
+          setLoadingDisciplineId((current) => (current === disciplineId ? null : current));
+        }
+      }
+    },
+    [currentUser?.id, mergeCatalogCourses],
+  );
+
+  const setSelectedDisciplineId = useCallback(
+    (disciplineId: number | null) => {
+      setSelectedDisciplineIdState(disciplineId);
+      if (disciplineId) void loadCatalogDiscipline(disciplineId);
+    },
+    [loadCatalogDiscipline],
+  );
+
   const catalogCourses = useMemo(() => {
     const searchLower = searchQuery.toLowerCase();
+    const selectedDisciplineName = selectedDiscipline?.name.trim().toLowerCase() || "";
     return courses.filter((c) => {
       const matchesSearch =
         c.title.toLowerCase().includes(searchLower) ||
@@ -148,11 +216,13 @@ export function usePlatformCatalogData(
         c.discipline?.name.toLowerCase().includes(searchLower) ||
         c.discipline?.domain?.name.toLowerCase().includes(searchLower);
       if (!matchesSearch) return false;
-      if (selectedDisciplineId) return c.disciplineId === selectedDisciplineId;
+      if (selectedDisciplineId) {
+        return courseMatchesSelectedDiscipline(c, selectedDisciplineId, selectedDisciplineName);
+      }
       if (selectedDomainId) return c.discipline?.domainId === selectedDomainId;
       return true;
     });
-  }, [courses, searchQuery, selectedDisciplineId, selectedDomainId]);
+  }, [courses, searchQuery, selectedDisciplineId, selectedDomainId, selectedDiscipline?.name]);
 
   const catalogHasData = courses.length > 0 || domains.length > 0;
 
@@ -167,6 +237,7 @@ export function usePlatformCatalogData(
     selectedDomain,
     selectedDiscipline,
     catalogCourses,
+    isDisciplineCoursesLoading: loadingDisciplineId === selectedDisciplineId && selectedDisciplineId !== null,
     catalogError,
     catalogHasData,
     retryCatalogLoad,
