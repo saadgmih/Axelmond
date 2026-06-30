@@ -1,6 +1,6 @@
 import { useEffect, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
 import { getClientErrorMessage } from "../client-errors";
-import { api, type SiteSettings } from "../api";
+import { api, getFreshSessionToken, type SiteSettings } from "../api";
 import type { AppUser } from "../components/AuthScreen";
 import type { Course, CourseGrade, FacultyDomain } from "../types";
 import { normalizeCoursePrice } from "../utils/course-pricing";
@@ -165,6 +165,8 @@ export function useTeacherDashboard({
     if (currentUser?.role !== "ADMIN") return;
     if (!options?.quiet) setTaxonomyStatusMsg("Synchronisation de la taxonomie...");
     try {
+      const token = await getFreshSessionToken();
+      if (!token) throw new Error("Session administrateur indisponible pour charger la taxonomie.");
       const [domainData, courseData] = await Promise.all([api.getDomains(), api.getCourses()]);
       setDomains(domainData);
       setCourses(courseData);

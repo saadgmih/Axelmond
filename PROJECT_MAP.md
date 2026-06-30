@@ -92,6 +92,7 @@ server.ts → neutralise les niveaux hérités (`Course.level`) avec `Module aca
 server.ts → `toCourse()` décode les textes stockés déjà échappés pour éviter `&amp;#x27;` dans l'interface
 src/App.tsx + src/index.css → Course price slider corrigé : déplacement local immédiat, sauvegarde backend différée, thumb rose aligné et carte de pilotage enterprise pour les modules/live
 server.ts + src/App.tsx → Professor/Researcher course ownership strict : chaque professeur/chercheur voit et pilote uniquement ses propres modules (`createdById`, avec fallback ancien `instructor`)
+src/app/hooks/usePlatformCatalogData.ts + src/hooks/useTeacherDashboard.ts → catalogue/taxonomie staff : réhydrate le token avant `/api/courses` et `/api/domains` pour éviter un chargement public vide après refresh
 src/App.tsx → Live subject input corrigé : brouillon local par module + réalignement automatique du module live sélectionné pour permettre la saisie sans valeur réinitialisée
 src/livekit.ts + server.ts + src/App.tsx → Default live subject globalisé : `Session académique en direct` remplace les sujets techniques spécifiques par défaut
 server.ts + src/components/VirtualClassroom.tsx → Live timer basé sur `LiveSession.startTime` (`liveStartedAt`) pour conserver le chrono depuis le début du live après arrivée ou reconnexion

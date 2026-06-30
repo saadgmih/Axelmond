@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { getClientErrorMessage, isMfaSetupRequiredError, isTransientCatalogError } from "../../client-errors";
-import { api } from "../../api";
+import { api, getFreshSessionToken } from "../../api";
 import { useAsyncEffectGuard } from "../../hooks/useAsyncEffectGuard";
 import type { Course, FacultyDomain } from "../../types";
 import type { AppUser } from "../../components/AuthScreen";
@@ -44,6 +44,17 @@ export function usePlatformCatalogData(
         if (attempt > 0) {
           await sleep(CATALOG_RETRY_DELAYS_MS[attempt]);
           if (!request.isActive()) return;
+        }
+
+        if (currentUser) {
+          try {
+            const token = await getFreshSessionToken();
+            if (!request.isActive()) return;
+            if (!token) throw new Error("Session authentifiée indisponible pour charger le catalogue.");
+          } catch (err) {
+            lastError = err;
+            break;
+          }
         }
 
         const [coursesResult, domainsResult] = await Promise.allSettled([api.getCourses(), api.getDomains()]);

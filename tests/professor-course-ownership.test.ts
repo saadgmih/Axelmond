@@ -12,8 +12,10 @@ rulesTest("professor-course-ownership", () => {
   const appSource =
     readAppSources() +
     readCurriculumViewSources() +
+    readFileSync("src/app/hooks/usePlatformCatalogData.ts", "utf8") +
     readFileSync("src/views/teacher/TeacherLiveControlView.tsx", "utf8") +
     readFileSync("src/views/teacher/TeacherDashboardView.tsx", "utf8");
+  const dashboardHookSource = readFileSync("src/hooks/useTeacherDashboard.ts", "utf8");
   const projectMap = readFileSync("PROJECT_MAP.md", "utf8");
 
   assert.match(
@@ -24,6 +26,8 @@ rulesTest("professor-course-ownership", () => {
 
   assert.match(appSource, /function canManageWorkspaceCourse/);
   assert.match(appSource, /course\.createdById === currentUser\.id \|\| course\.instructor === currentUser\.fullName/);
+  assert.match(appSource, /currentUser[\s\S]*?getFreshSessionToken\(\)[\s\S]*?api\.getCourses\(\)/);
+  assert.match(dashboardHookSource, /getFreshSessionToken\(\)[\s\S]*?api\.getDomains\(\)[\s\S]*?api\.getCourses\(\)/);
   assert.match(appSource, /managedCourses\.map\(\(c\) =>/);
   assert.match(appSource, /<option key=\{c\.id\} value=\{c\.id\}/);
   assert.match(appSource, /quizCourseId/);
