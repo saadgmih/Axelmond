@@ -22,9 +22,12 @@ import "react-pdf/dist/Page/TextLayer.css";
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 interface PdfLessonViewerProps {
-  contentId: string;
+  contentId?: string;
   title: string;
   mediaType?: "PDF" | "IMAGE";
+  documentUrl?: string;
+  downloadFileName?: string;
+  allowDownload?: boolean;
 }
 
 type ImageViewMode = "width" | "screen" | "actual";
@@ -43,7 +46,14 @@ function imageModeButtonClass(active: boolean) {
   return `${toolbarButtonClass} ${active ? "border-violet-500/50 bg-violet-500/10 text-violet-300" : ""}`;
 }
 
-export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }: PdfLessonViewerProps) {
+export default function PdfLessonViewer({
+  contentId,
+  title,
+  mediaType = "PDF",
+  documentUrl,
+  downloadFileName,
+  allowDownload = false,
+}: PdfLessonViewerProps) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -240,13 +250,23 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
       setIsImagePanning(false);
 
       try {
-        const token = await getFreshSessionToken();
-        if (!token) throw new Error("Session expirée. Reconnectez-vous.");
+        let response: Response;
 
-        const response = await fetch(`/api/lesson-contents/${contentId}/document`, {
-          headers: { Authorization: `Bearer ${token}` },
-          signal: AbortSignal.timeout(30_000),
-        });
+        if (documentUrl) {
+          response = await fetch(documentUrl, {
+            signal: AbortSignal.timeout(30_000),
+          });
+        } else {
+          if (!contentId) throw new Error("Document introuvable.");
+
+          const token = await getFreshSessionToken();
+          if (!token) throw new Error("Session expirée. Reconnectez-vous.");
+
+          response = await fetch(`/api/lesson-contents/${contentId}/document`, {
+            headers: { Authorization: `Bearer ${token}` },
+            signal: AbortSignal.timeout(30_000),
+          });
+        }
 
         if (!response.ok) throw new Error("Impossible d'afficher ce contenu dans la plateforme.");
 
@@ -268,7 +288,7 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
       active = false;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [contentId]);
+  }, [contentId, documentUrl, mediaType]);
 
   useEffect(() => {
     if (mediaType !== "IMAGE" || !imageRenderWidth || !imageRenderHeight) return;
@@ -443,6 +463,7 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
 
   const baseReadingWidth = Math.max(containerDimensions.width - 32, 280);
   const renderWidth = Math.round(baseReadingWidth * scale);
+  const resolvedDownloadFileName = downloadFileName || `${title}.pdf`;
 
   return (
     <div
@@ -515,6 +536,18 @@ export default function PdfLessonViewer({ contentId, title, mediaType = "PDF" }:
               <Fullscreen className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
             )}
           </button>
+
+          {allowDownload ? (
+            <a
+              href={blobUrl}
+              download={resolvedDownloadFileName}
+              className={toolbarButtonClass}
+              title="Télécharger le PDF"
+              aria-label="Télécharger le PDF"
+            >
+              <Download className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+            </a>
+          ) : null}
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useInView } from "../hooks/useInView";
 import {
   Shield,
@@ -30,6 +30,8 @@ import {
   InstitutionalForbidList,
   InstitutionalSectionBlock,
 } from "./legal/InstitutionalPageShell";
+import LegalDocumentPdfPanel from "./legal/LegalDocumentPdfPanel";
+import { getLegalDocument, LEGAL_DOCUMENTS, type LegalDocumentKey } from "../data/legalDocuments";
 
 // ─── Rule card (icon + title + desc) ─────────────────────────────────────────
 const RuleCard: React.FC<{
@@ -50,6 +52,7 @@ const RuleCard: React.FC<{
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function TermsView() {
+  const [selectedLegalDocumentKey, setSelectedLegalDocumentKey] = useState<LegalDocumentKey | null>(null);
   const heroRef = useInView(0.1);
   const s1 = useInView();
   const s2 = useInView();
@@ -61,6 +64,7 @@ export default function TermsView() {
   const s8 = useInView();
   const s9 = useInView();
   const s10 = useInView();
+  const selectedLegalDocument = getLegalDocument(selectedLegalDocumentKey);
 
   return (
     <InstitutionalPageRoot>
@@ -648,37 +652,22 @@ export default function TermsView() {
               <div className="space-y-3">
                 <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Documents associés</div>
                 <div className="flex flex-wrap gap-3">
-                  {[
-                    {
-                      label: "Politique de confidentialité",
-                      view: "privacy",
-                      color: "text-indigo-300 border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20",
-                    },
-                    {
-                      label: "Politique des cookies",
-                      view: "cookies",
-                      color: "text-violet-300 border-violet-500/30 bg-violet-500/10 hover:bg-violet-500/20",
-                    },
-                    {
-                      label: "Centre d'aide",
-                      view: "support",
-                      color: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20",
-                    },
-                    {
-                      label: "Contact",
-                      view: "contact",
-                      color: "text-sky-300 border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20",
-                    },
-                  ].map(({ label, color }) => (
-                    <span
-                      key={label}
-                      className={`inline-flex items-center gap-1.5 text-xs font-bold border px-3 py-1.5 rounded-full cursor-pointer transition-colors ${color}`}
+                  {LEGAL_DOCUMENTS.map((document) => (
+                    <button
+                      type="button"
+                      key={document.key}
+                      onClick={() => setSelectedLegalDocumentKey(document.key)}
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 ${document.colorClass}`}
                     >
                       <ExternalLink className="w-3 h-3" />
-                      {label}
-                    </span>
+                      {document.label}
+                    </button>
                   ))}
                 </div>
+                <LegalDocumentPdfPanel
+                  document={selectedLegalDocument}
+                  onClose={() => setSelectedLegalDocumentKey(null)}
+                />
               </div>
 
               <div className="mt-6 bg-slate-950/40 border border-slate-800/60 rounded-2xl px-5 py-4 flex items-start gap-3">

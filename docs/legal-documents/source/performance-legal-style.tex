@@ -1,0 +1,139 @@
+\usepackage[a4paper,margin=1.55cm,headheight=18pt,footskip=18pt]{geometry}
+\usepackage{fontspec}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{setspace}
+
+\setmainfont{Arial}
+\setsansfont{Arial}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\renewcommand{\arraystretch}{1.25}
+\setlist[itemize]{leftmargin=1.2em,itemsep=3pt,topsep=4pt}
+
+\definecolor{PANavy}{HTML}{071120}
+\definecolor{PAPanel}{HTML}{101B2E}
+\definecolor{PABlue}{HTML}{149DFF}
+\definecolor{PAViolet}{HTML}{6C5CFF}
+\definecolor{PAGreen}{HTML}{14CBA8}
+\definecolor{PAInk}{HTML}{F8FBFF}
+\definecolor{PASlate}{HTML}{26364F}
+\definecolor{PALight}{HTML}{F3F7FE}
+\definecolor{PALine}{HTML}{D8E4F6}
+\definecolor{PAMuted}{HTML}{637089}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=PAViolet,
+  urlcolor=PABlue,
+  pdftitle={Performance Académique},
+  pdfauthor={Performance Académique}
+}
+
+\titleformat{\section}
+  {\Large\bfseries\sffamily\color{PANavy}}
+  {\colorbox{PAViolet}{\textcolor{white}{\makebox[1.1cm][c]{\thesection}}}}
+  {0.65em}
+  {}
+
+\titleformat{\subsection}
+  {\large\bfseries\sffamily\color{PASlate}}
+  {}
+  {0em}
+  {}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\textsf{\textbf{Performance Académique}}}
+\rhead{\textsf{\PATitle}}
+\cfoot{\textsf{\thepage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\newcommand{\SetDocMeta}[5]{
+  \def\PATitle{#1}
+  \def\PASubtitle{#2}
+  \def\PAVersion{#3}
+  \def\PADate{#4}
+  \def\PAAccent{#5}
+}
+
+\newcommand{\PABadge}[1]{%
+  \begingroup
+  \setlength{\fboxsep}{5pt}
+  \colorbox{PAViolet}{\textcolor{white}{\sffamily\bfseries\footnotesize #1}}
+  \endgroup
+}
+
+\newcommand{\PAInfoBox}[2]{%
+  \begingroup
+  \setlength{\fboxsep}{9pt}
+  \noindent\fcolorbox{PALine}{PALight}{%
+    \begin{minipage}{0.42\linewidth}
+      {\scriptsize\sffamily\bfseries\color{PAMuted}\MakeUppercase{#1}}\par
+      {\normalsize\sffamily\bfseries\color{PANavy}#2}
+    \end{minipage}
+  }
+  \endgroup
+}
+
+\newcommand{\PASectionNote}[1]{%
+  \begingroup
+  \setlength{\fboxsep}{10pt}
+  \noindent\fcolorbox{PALine}{PALight}{%
+    \begin{minipage}{0.94\linewidth}
+      {\sffamily\small\color{PASlate}#1}
+    \end{minipage}
+  }
+  \endgroup
+}
+
+\newcommand{\PAMakeCover}{%
+  \begin{titlepage}
+    \pagecolor{PANavy}
+    \color{PAInk}
+    \vspace*{0.8cm}
+    \begin{center}
+      \includegraphics[width=2.6cm]{../../../public/performance-logo-symbol.png}\par
+      \vspace{0.7cm}
+      {\sffamily\bfseries\Large Performance Académique}\par
+      \vspace{0.18cm}
+      {\sffamily\footnotesize\color{PABlue}Apprendre - Progresser - Réussir}\par
+      \vspace{1.3cm}
+      \PABadge{\PAVersion}\par
+      \vspace{0.55cm}
+      {\sffamily\bfseries\fontsize{28}{34}\selectfont \PATitle}\par
+      \vspace{0.35cm}
+      {\sffamily\large\color{PALight}\PASubtitle}\par
+      \vfill
+      \begin{tabular}{>{\bfseries\sffamily}p{4.2cm}p{8cm}}
+        Entité responsable & Performance Académique \\
+        Adresse & Hay Moulay Rachid 4, Casablanca 20670, Maroc \\
+        Portail & \href{https://axelmond.com}{www.axelmond.com} \\
+        Mise à jour & \PADate \\
+        Droit applicable & Droit marocain - Loi 09-08 \\
+      \end{tabular}
+      \vfill
+      {\sffamily\small\color{PAMuted}Document officiel de la plateforme Performance Académique.}
+    \end{center}
+  \end{titlepage}
+  \nopagecolor
+  \color{PASlate}
+}
+
+\newcommand{\PADocumentIntro}[1]{%
+  \PASectionNote{#1}
+  \vspace{0.45cm}
+}
+
+\newcommand{\PAContactBlock}{%
+  \section*{Coordonnees officielles}
+  \PASectionNote{Adresse: Hay Moulay Rachid 4, Casablanca 20670, Maroc. Coordonnées GPS: 33.567193, -7.541311. Contact général: \href{mailto:contact@axelmond.com}{contact@axelmond.com}. Contact juridique et données personnelles: \href{mailto:legal@axelmond.com}{legal@axelmond.com}.}
+}
