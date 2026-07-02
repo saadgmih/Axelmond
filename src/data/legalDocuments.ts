@@ -18,7 +18,7 @@ export const LEGAL_DOCUMENTS: LegalDocumentDefinition[] = [
     description: "Protection des données personnelles des utilisateurs.",
     url: "/legal-documents/privacy-policy.pdf",
     fileName: "performance-academique-politique-confidentialite.pdf",
-    colorClass: "text-indigo-300 border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20",
+    colorClass: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20",
   },
   {
     key: "cookies",
@@ -27,7 +27,7 @@ export const LEGAL_DOCUMENTS: LegalDocumentDefinition[] = [
     description: "Cookies essentiels, préférences et fonctionnement du portail.",
     url: "/legal-documents/cookies-policy.pdf",
     fileName: "performance-academique-politique-cookies.pdf",
-    colorClass: "text-violet-300 border-violet-500/30 bg-violet-500/10 hover:bg-violet-500/20",
+    colorClass: "text-teal-300 border-teal-500/30 bg-teal-500/10 hover:bg-teal-500/20",
   },
   {
     key: "support",
@@ -45,7 +45,7 @@ export const LEGAL_DOCUMENTS: LegalDocumentDefinition[] = [
     description: "Coordonnées officielles et canaux de support.",
     url: "/legal-documents/contact-sheet.pdf",
     fileName: "performance-academique-contact.pdf",
-    colorClass: "text-sky-300 border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20",
+    colorClass: "text-lime-300 border-lime-500/30 bg-lime-500/10 hover:bg-lime-500/20",
   },
 ];
 

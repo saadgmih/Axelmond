@@ -16,6 +16,7 @@
 }
 
 :root {
+  /* Palette verte Performance Académique : opaline, émeraude, jade et menthe. */
   --pa-brand-50: #ecfdfa;
   --pa-brand-100: #d0faf2;
   --pa-brand-200: #9cf2e5;
@@ -27,6 +28,105 @@
   --pa-brand-800: #075f52;
   --pa-brand-900: #064e43;
   --pa-brand-950: #042f29;
+  --pa-emerald-50: #ecfdf5;
+  --pa-emerald-100: #d1fae5;
+  --pa-emerald-200: #a7f3d0;
+  --pa-emerald-300: #6ee7b7;
+  --pa-emerald-400: #34d399;
+  --pa-emerald-500: #10b981;
+  --pa-emerald-600: #059669;
+  --pa-emerald-700: #047857;
+  --pa-emerald-800: #065f46;
+  --pa-emerald-900: #064e3b;
+  --pa-emerald-950: #022c22;
+  --pa-jade-50: #eefdf7;
+  --pa-jade-100: #d5faed;
+  --pa-jade-200: #aff4dd;
+  --pa-jade-300: #76e8c8;
+  --pa-jade-400: #36d6ad;
+  --pa-jade-500: #0fbf95;
+  --pa-jade-600: #079778;
+  --pa-jade-700: #087860;
+  --pa-jade-800: #0a604f;
+  --pa-jade-900: #0a5043;
+  --pa-jade-950: #033029;
+  --pa-mint-50: #f0fdf4;
+  --pa-mint-100: #dcfce7;
+  --pa-mint-200: #bbf7d0;
+  --pa-mint-300: #86efac;
+  --pa-mint-400: #4ade80;
+  --pa-mint-500: #22c55e;
+  --pa-mint-600: #16a34a;
+  --pa-mint-700: #15803d;
+  --pa-mint-800: #166534;
+  --pa-mint-900: #14532d;
+  --pa-mint-950: #052e16;
+  --pa-neutral-50: #f3fbf8;
+  --pa-neutral-100: #dcefe9;
+  --pa-neutral-200: #badcd3;
+  --pa-neutral-300: #8fbdb5;
+  --pa-neutral-400: #6aa198;
+  --pa-neutral-500: #4f8279;
+  --pa-neutral-600: #3c675f;
+  --pa-neutral-700: #2a514a;
+  --pa-neutral-800: #17362f;
+  --pa-neutral-900: #0b241f;
+  --pa-neutral-950: #031512;
+  --color-slate-50: var(--pa-neutral-50);
+  --color-slate-100: var(--pa-neutral-100);
+  --color-slate-200: var(--pa-neutral-200);
+  --color-slate-300: var(--pa-neutral-300);
+  --color-slate-400: var(--pa-neutral-400);
+  --color-slate-500: var(--pa-neutral-500);
+  --color-slate-600: var(--pa-neutral-600);
+  --color-slate-700: var(--pa-neutral-700);
+  --color-slate-800: var(--pa-neutral-800);
+  --color-slate-900: var(--pa-neutral-900);
+  --color-slate-950: var(--pa-neutral-950);
+  --color-gray-50: var(--pa-neutral-50);
+  --color-gray-100: var(--pa-neutral-100);
+  --color-gray-200: var(--pa-neutral-200);
+  --color-gray-300: var(--pa-neutral-300);
+  --color-gray-400: var(--pa-neutral-400);
+  --color-gray-500: var(--pa-neutral-500);
+  --color-gray-600: var(--pa-neutral-600);
+  --color-gray-700: var(--pa-neutral-700);
+  --color-gray-800: var(--pa-neutral-800);
+  --color-gray-900: var(--pa-neutral-900);
+  --color-gray-950: var(--pa-neutral-950);
+  --color-zinc-50: var(--pa-neutral-50);
+  --color-zinc-100: var(--pa-neutral-100);
+  --color-zinc-200: var(--pa-neutral-200);
+  --color-zinc-300: var(--pa-neutral-300);
+  --color-zinc-400: var(--pa-neutral-400);
+  --color-zinc-500: var(--pa-neutral-500);
+  --color-zinc-600: var(--pa-neutral-600);
+  --color-zinc-700: var(--pa-neutral-700);
+  --color-zinc-800: var(--pa-neutral-800);
+  --color-zinc-900: var(--pa-neutral-900);
+  --color-zinc-950: var(--pa-neutral-950);
+  --color-neutral-50: var(--pa-neutral-50);
+  --color-neutral-100: var(--pa-neutral-100);
+  --color-neutral-200: var(--pa-neutral-200);
+  --color-neutral-300: var(--pa-neutral-300);
+  --color-neutral-400: var(--pa-neutral-400);
+  --color-neutral-500: var(--pa-neutral-500);
+  --color-neutral-600: var(--pa-neutral-600);
+  --color-neutral-700: var(--pa-neutral-700);
+  --color-neutral-800: var(--pa-neutral-800);
+  --color-neutral-900: var(--pa-neutral-900);
+  --color-neutral-950: var(--pa-neutral-950);
+  --color-stone-50: var(--pa-neutral-50);
+  --color-stone-100: var(--pa-neutral-100);
+  --color-stone-200: var(--pa-neutral-200);
+  --color-stone-300: var(--pa-neutral-300);
+  --color-stone-400: var(--pa-neutral-400);
+  --color-stone-500: var(--pa-neutral-500);
+  --color-stone-600: var(--pa-neutral-600);
+  --color-stone-700: var(--pa-neutral-700);
+  --color-stone-800: var(--pa-neutral-800);
+  --color-stone-900: var(--pa-neutral-900);
+  --color-stone-950: var(--pa-neutral-950);
   --color-indigo-50: var(--pa-brand-50);
   --color-indigo-100: var(--pa-brand-100);
   --color-indigo-200: var(--pa-brand-200);
@@ -104,6 +204,116 @@
   --color-cyan-800: var(--pa-brand-800);
   --color-cyan-900: var(--pa-brand-900);
   --color-cyan-950: var(--pa-brand-950);
+  --color-teal-50: var(--pa-brand-50);
+  --color-teal-100: var(--pa-brand-100);
+  --color-teal-200: var(--pa-brand-200);
+  --color-teal-300: var(--pa-brand-300);
+  --color-teal-400: var(--pa-brand-400);
+  --color-teal-500: var(--pa-brand-500);
+  --color-teal-600: var(--pa-brand-600);
+  --color-teal-700: var(--pa-brand-700);
+  --color-teal-800: var(--pa-brand-800);
+  --color-teal-900: var(--pa-brand-900);
+  --color-teal-950: var(--pa-brand-950);
+  --color-emerald-50: var(--pa-emerald-50);
+  --color-emerald-100: var(--pa-emerald-100);
+  --color-emerald-200: var(--pa-emerald-200);
+  --color-emerald-300: var(--pa-emerald-300);
+  --color-emerald-400: var(--pa-emerald-400);
+  --color-emerald-500: var(--pa-emerald-500);
+  --color-emerald-600: var(--pa-emerald-600);
+  --color-emerald-700: var(--pa-emerald-700);
+  --color-emerald-800: var(--pa-emerald-800);
+  --color-emerald-900: var(--pa-emerald-900);
+  --color-emerald-950: var(--pa-emerald-950);
+  --color-green-50: var(--pa-emerald-50);
+  --color-green-100: var(--pa-emerald-100);
+  --color-green-200: var(--pa-emerald-200);
+  --color-green-300: var(--pa-emerald-300);
+  --color-green-400: var(--pa-emerald-400);
+  --color-green-500: var(--pa-emerald-500);
+  --color-green-600: var(--pa-emerald-600);
+  --color-green-700: var(--pa-emerald-700);
+  --color-green-800: var(--pa-emerald-800);
+  --color-green-900: var(--pa-emerald-900);
+  --color-green-950: var(--pa-emerald-950);
+  --color-lime-50: var(--pa-mint-50);
+  --color-lime-100: var(--pa-mint-100);
+  --color-lime-200: var(--pa-mint-200);
+  --color-lime-300: var(--pa-mint-300);
+  --color-lime-400: var(--pa-mint-400);
+  --color-lime-500: var(--pa-mint-500);
+  --color-lime-600: var(--pa-mint-600);
+  --color-lime-700: var(--pa-mint-700);
+  --color-lime-800: var(--pa-mint-800);
+  --color-lime-900: var(--pa-mint-900);
+  --color-lime-950: var(--pa-mint-950);
+  --color-yellow-50: var(--pa-mint-50);
+  --color-yellow-100: var(--pa-mint-100);
+  --color-yellow-200: var(--pa-mint-200);
+  --color-yellow-300: var(--pa-mint-300);
+  --color-yellow-400: var(--pa-mint-400);
+  --color-yellow-500: var(--pa-mint-500);
+  --color-yellow-600: var(--pa-mint-600);
+  --color-yellow-700: var(--pa-mint-700);
+  --color-yellow-800: var(--pa-mint-800);
+  --color-yellow-900: var(--pa-mint-900);
+  --color-yellow-950: var(--pa-mint-950);
+  --color-amber-50: var(--pa-mint-50);
+  --color-amber-100: var(--pa-mint-100);
+  --color-amber-200: var(--pa-mint-200);
+  --color-amber-300: var(--pa-mint-300);
+  --color-amber-400: var(--pa-mint-400);
+  --color-amber-500: var(--pa-mint-500);
+  --color-amber-600: var(--pa-mint-600);
+  --color-amber-700: var(--pa-mint-700);
+  --color-amber-800: var(--pa-mint-800);
+  --color-amber-900: var(--pa-mint-900);
+  --color-amber-950: var(--pa-mint-950);
+  --color-orange-50: var(--pa-jade-50);
+  --color-orange-100: var(--pa-jade-100);
+  --color-orange-200: var(--pa-jade-200);
+  --color-orange-300: var(--pa-jade-300);
+  --color-orange-400: var(--pa-jade-400);
+  --color-orange-500: var(--pa-jade-500);
+  --color-orange-600: var(--pa-jade-600);
+  --color-orange-700: var(--pa-jade-700);
+  --color-orange-800: var(--pa-jade-800);
+  --color-orange-900: var(--pa-jade-900);
+  --color-orange-950: var(--pa-jade-950);
+  --color-red-50: var(--pa-emerald-50);
+  --color-red-100: var(--pa-emerald-100);
+  --color-red-200: var(--pa-emerald-200);
+  --color-red-300: var(--pa-emerald-300);
+  --color-red-400: var(--pa-emerald-400);
+  --color-red-500: var(--pa-emerald-500);
+  --color-red-600: var(--pa-emerald-600);
+  --color-red-700: var(--pa-emerald-700);
+  --color-red-800: var(--pa-emerald-800);
+  --color-red-900: var(--pa-emerald-900);
+  --color-red-950: var(--pa-emerald-950);
+  --color-rose-50: var(--pa-emerald-50);
+  --color-rose-100: var(--pa-emerald-100);
+  --color-rose-200: var(--pa-emerald-200);
+  --color-rose-300: var(--pa-emerald-300);
+  --color-rose-400: var(--pa-emerald-400);
+  --color-rose-500: var(--pa-emerald-500);
+  --color-rose-600: var(--pa-emerald-600);
+  --color-rose-700: var(--pa-emerald-700);
+  --color-rose-800: var(--pa-emerald-800);
+  --color-rose-900: var(--pa-emerald-900);
+  --color-rose-950: var(--pa-emerald-950);
+  --color-fuchsia-50: var(--pa-jade-50);
+  --color-fuchsia-100: var(--pa-jade-100);
+  --color-fuchsia-200: var(--pa-jade-200);
+  --color-fuchsia-300: var(--pa-jade-300);
+  --color-fuchsia-400: var(--pa-jade-400);
+  --color-fuchsia-500: var(--pa-jade-500);
+  --color-fuchsia-600: var(--pa-jade-600);
+  --color-fuchsia-700: var(--pa-jade-700);
+  --color-fuchsia-800: var(--pa-jade-800);
+  --color-fuchsia-900: var(--pa-jade-900);
+  --color-fuchsia-950: var(--pa-jade-950);
   --app-content-max: 160rem;
   --touch-target-min: 44px;
   --sidebar-expanded-width: 16rem;
@@ -257,7 +467,7 @@ body {
 /* Custom dark interface variables and overrides */
 .dark {
   color-scheme: dark;
-  --scroll-track: rgba(15, 23, 42, 0.55);
+  --scroll-track: rgba(11, 36, 31, 0.55);
   --scroll-thumb: rgba(5, 194, 165, 0.34);
   --scroll-thumb-hover: rgba(5, 194, 165, 0.58);
   --scroll-thumb-active: rgba(5, 194, 165, 0.72);
@@ -265,22 +475,22 @@ body {
 
 /* Card backgrounds: turn raw white to premium slate-900 */
 .dark .bg-white {
-  background-color: #0f172a !important; /* slate-900 */
+  background-color: #0b241f !important; /* slate-900 */
 }
 
 /* App scaffold background: turn slate-50 to deep slate-950 */
 .dark .bg-slate-50 {
-  background-color: #020617 !important; /* slate-950 */
+  background-color: #031512 !important; /* slate-950 */
 }
 
 /* Table rows and list elements alternate backgrounds */
 .dark .bg-slate-50\/50 {
-  background-color: #0b0f19 !important;
+  background-color: #041f1b !important;
 }
 
 /* Gray accents */
 .dark .bg-slate-100 {
-  background-color: #1e293b !important; /* slate-800 */
+  background-color: #17362f !important; /* slate-800 */
 }
 
 .dark .bg-slate-100\/50 {
@@ -294,35 +504,35 @@ body {
 .dark .border-slate-205,
 .dark .border-slate-210,
 .dark .border-slate-220 {
-  border-color: #1e293b !important; /* slate-800 */
+  border-color: #17362f !important; /* slate-800 */
 }
 
 /* Typography styles matching and adaptations */
 .dark .text-slate-900 {
-  color: #f8fafc !important; /* slate-50 */
+  color: #f3fbf8 !important; /* slate-50 */
 }
 
 .dark .text-slate-800 {
-  color: #f1f5f9 !important; /* slate-100 */
+  color: #dcefe9 !important; /* slate-100 */
 }
 
 .dark .text-slate-700,
 .dark .text-slate-705 {
-  color: #cbd5e1 !important; /* slate-300 */
+  color: #badcd3 !important; /* slate-300 */
 }
 
 .dark .text-slate-600,
 .dark .text-slate-550 {
-  color: #94a3b8 !important; /* slate-400 */
+  color: #6aa198 !important; /* slate-400 */
 }
 
 .dark .text-slate-500,
 .dark .text-slate-450 {
-  color: #64748b !important; /* slate-500 */
+  color: #4f8279 !important; /* slate-500 */
 }
 
 .dark .text-slate-400 {
-  color: #94a3b8 !important;
+  color: #6aa198 !important;
 }
 
 /* Inputs, textareas & selectors styles */
@@ -330,13 +540,13 @@ body {
 .dark textarea, 
 .dark select {
   background-color: #090d16 !important;
-  color: #f8fafc !important;
-  border-color: #1e293b !important;
+  color: #f3fbf8 !important;
+  border-color: #17362f !important;
 }
 
 .dark input::placeholder, 
 .dark textarea::placeholder {
-  color: #475569 !important;
+  color: #3c675f !important;
 }
 
 .course-price-slider-root {
@@ -405,9 +615,9 @@ body {
 .course-price-slider-root:focus-within .course-price-slider-thumb {
   transform: translate(-50%, -50%) scale(1.04);
   box-shadow:
-    0 0 0 6px rgba(139, 92, 246, 0.28),
-    0 0 0 2px rgba(99, 102, 241, 0.45),
-    0 2px 16px rgba(230, 0, 126, 0.5);
+    0 0 0 6px rgba(5, 194, 165, 0.28),
+    0 0 0 2px rgba(4, 154, 132, 0.45),
+    0 2px 16px rgba(5, 194, 165, 0.5);
 }
 
 .course-price-slider-input {
@@ -466,7 +676,7 @@ body {
   margin-left: -4px;
   border-radius: 9999px;
   background: currentColor;
-  box-shadow: 0 0 0 2px rgb(15 23 42 / 0.85);
+  box-shadow: 0 0 0 2px rgb(11 36 31 / 0.85);
 }
 
 .video-volume-slider-vertical::-moz-range-track {
@@ -482,15 +692,15 @@ body {
   border: 0;
   border-radius: 9999px;
   background: currentColor;
-  box-shadow: 0 0 0 2px rgb(15 23 42 / 0.85);
+  box-shadow: 0 0 0 2px rgb(11 36 31 / 0.85);
 }
 
 .video-volume-slider-vertical.accent-indigo-500 {
-  color: rgb(99 102 241);
+  color: rgb(5 194 165);
 }
 
 .video-volume-slider-vertical.accent-pink-500 {
-  color: rgb(236 72 153);
+  color: rgb(16 185 129);
 }
 
 /* Neutral hover suppression: avoid grey flashes on the dark enterprise UI. */
@@ -501,7 +711,7 @@ body {
     [class*="hover:bg-neutral-"],
     [class*="hover:bg-stone-"]
   ):hover {
-  background-color: rgba(99, 102, 241, 0.12) !important;
+  background-color: rgba(5, 194, 165, 0.12) !important;
 }
 
 .dark :where(
@@ -511,7 +721,7 @@ body {
     .bg-white[class*="hover:bg-neutral-"],
     .bg-white[class*="hover:bg-stone-"]
   ):hover {
-  background-color: #0f172a !important;
+  background-color: #0b241f !important;
 }
 
 .dark .group:hover
@@ -522,7 +732,7 @@ body {
     [class*="group-hover:bg-neutral-"],
     [class*="group-hover:bg-stone-"]
   ) {
-  background-color: rgba(99, 102, 241, 0.12) !important;
+  background-color: rgba(5, 194, 165, 0.12) !important;
 }
 
 /* Custom shadow refinement for dark ambiance */
@@ -534,35 +744,35 @@ body {
 
 /* Modal layers backdrops */
 .dark .bg-slate-900\/50 {
-  background-color: rgba(2, 6, 23, 0.7) !important;
+  background-color: rgba(3, 21, 18, 0.7) !important;
 }
 
 /* AI Tutor Chat bubble message stylings */
 .dark .bg-indigo-50 {
-  background-color: #1e1b4b !important; /* indigo-950 */
-  color: #e0e7ff !important; /* indigo-100 */
+  background-color: #042f29 !important; /* opaline-950 */
+  color: #ccfbf1 !important; /* opaline-100 */
 }
 
 .dark .text-indigo-800 {
-  color: #818cf8 !important; /* indigo-400 */
+  color: #5ee6d2 !important; /* opaline-300 */
 }
 
 .dark .text-indigo-900 {
-  color: #cbd5e1 !important;
+  color: #badcd3 !important;
 }
 
 /* Bottom user card style adjustment in dark sidebar */
 .dark .bg-slate-950\/20 {
-  background-color: rgba(2, 6, 23, 0.6) !important;
+  background-color: rgba(3, 21, 18, 0.6) !important;
 }
 
 /* Keyboard / Smart TV focus — always visible, never removed */
 :where(button, a, input, select, textarea, [tabindex]:not([tabindex='-1'])):focus-visible,
 .kbd-nav-focus:focus-visible,
 [data-tv-focusable]:focus-visible {
-  outline: 3px solid #818cf8;
+  outline: 3px solid #05c2a5;
   outline-offset: 3px;
-  box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.35);
+  box-shadow: 0 0 0 6px rgba(5, 194, 165, 0.35);
 }
 
 [data-tv-focusable].tv-focus-active,
@@ -573,8 +783,8 @@ body {
 .dark :where(button, a, input, select, textarea, [tabindex]:not([tabindex='-1'])):focus-visible,
 .dark .kbd-nav-focus:focus-visible,
 .dark [data-tv-focusable]:focus-visible {
-  outline-color: #a5b4fc;
-  box-shadow: 0 0 0 6px rgba(129, 140, 248, 0.35);
+  outline-color: #5ee6d2;
+  box-shadow: 0 0 0 6px rgba(94, 230, 210, 0.35);
 }
 
 @media (pointer: coarse) {
@@ -600,10 +810,10 @@ body {
 @keyframes voice-search-glow {
   0%,
   100% {
-    box-shadow: 0 0 8px rgba(236, 72, 153, 0.35);
+    box-shadow: 0 0 8px rgba(5, 194, 165, 0.35);
   }
   50% {
-    box-shadow: 0 0 16px rgba(168, 85, 247, 0.55);
+    box-shadow: 0 0 16px rgba(34, 211, 187, 0.55);
   }
 }
 
@@ -626,14 +836,14 @@ body {
   top: -100%;
   z-index: 200;
   border-radius: 0.75rem;
-  border: 2px solid #818cf8;
-  background: #0f172a;
-  color: #f8fafc;
+  border: 2px solid #05c2a5;
+  background: #0b241f;
+  color: #f3fbf8;
   padding: 0.75rem 1rem;
   font-size: 0.75rem;
   font-weight: 800;
   text-decoration: none;
-  box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.35);
+  box-shadow: 0 0 0 4px rgba(5, 194, 165, 0.35);
 }
 
 .skip-link:focus,
@@ -644,10 +854,10 @@ body {
 /* High contrast mode (user toggle) */
 .a11y-high-contrast {
   color-scheme: dark;
-  --scroll-track: rgba(2, 6, 23, 0.85);
-  --scroll-thumb: rgba(253, 224, 71, 0.72);
-  --scroll-thumb-hover: rgba(253, 224, 71, 0.92);
-  --scroll-thumb-active: rgba(251, 191, 36, 1);
+  --scroll-track: rgba(3, 21, 18, 0.85);
+  --scroll-thumb: rgba(94, 230, 210, 0.78);
+  --scroll-thumb-hover: rgba(156, 242, 229, 0.94);
+  --scroll-thumb-active: rgba(5, 194, 165, 1);
 }
 
 .a11y-high-contrast .text-slate-400,
@@ -659,14 +869,14 @@ body {
 .a11y-high-contrast .border-slate-700,
 .a11y-high-contrast .border-slate-800,
 .a11y-high-contrast .border-slate-200 {
-  border-color: #cbd5e1 !important;
+  border-color: #badcd3 !important;
 }
 
 .a11y-high-contrast :where(button, a, input, select, textarea, [tabindex]:not([tabindex='-1'])):focus-visible,
 .a11y-high-contrast .kbd-nav-focus:focus-visible,
 .a11y-high-contrast [data-tv-focusable]:focus-visible {
-  outline-color: #fde047 !important;
-  box-shadow: 0 0 0 6px rgba(253, 224, 71, 0.45) !important;
+  outline-color: #9cf2e5 !important;
+  box-shadow: 0 0 0 6px rgba(156, 242, 229, 0.45) !important;
 }
 
 /* Reduced motion — system + user preference */
@@ -718,10 +928,10 @@ body {
 
 /* ─── Responsive glass sidebar ─────────────────────────────────────────── */
 .sidebar-glass {
-  background: linear-gradient(180deg, rgb(15 23 42 / 0.98) 0%, rgb(17 24 39 / 0.96) 100%);
+  background: linear-gradient(180deg, rgb(11 36 31 / 0.98) 0%, rgb(13 48 42 / 0.96) 100%);
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow:
-    0 20px 50px rgba(2, 6, 23, 0.45),
+    0 20px 50px rgba(3, 21, 18, 0.45),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
@@ -730,7 +940,7 @@ body {
 .sidebar-glass-flyout {
   border-radius: 0 1.25rem 1.25rem 0;
   box-shadow:
-    18px 0 40px rgba(2, 6, 23, 0.55),
+    18px 0 40px rgba(3, 21, 18, 0.55),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
@@ -754,18 +964,18 @@ body {
   border-radius: 1.25rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow:
-    0 24px 60px rgba(2, 6, 23, 0.65),
+    0 24px 60px rgba(3, 21, 18, 0.65),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .sidebar-drawer-backdrop {
-  background: rgba(2, 6, 23, 0.72);
+  background: rgba(3, 21, 18, 0.72);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
 
 .platform-topbar {
-  color: rgb(226 232 240);
+  color: rgb(220 239 233);
 }
 
 .platform-topbar-shell {
@@ -787,8 +997,8 @@ body {
   justify-content: center;
   border-radius: 9999px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(15, 23, 42, 0.95);
-  color: rgb(203 213 225);
+  background: rgba(11, 36, 31, 0.95);
+  color: rgb(186 220 211);
   box-shadow:
     0 10px 24px rgba(0, 0, 0, 0.35),
     0 0 0 1px rgba(255, 255, 255, 0.04);
@@ -807,7 +1017,7 @@ body {
 
 .layout-collapse-toggle:hover {
   color: rgb(255 255 255);
-  border-color: rgba(139, 92, 246, 0.35);
+  border-color: rgba(5, 194, 165, 0.35);
 }
 
 .sidebar-collapse-toggle--attached {
@@ -849,7 +1059,7 @@ body {
 
 .a11y-high-contrast .layout-collapse-toggle {
   border-color: rgb(255 255 255);
-  background: rgb(15 23 42);
+  background: rgb(11 36 31);
   box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
@@ -858,7 +1068,7 @@ body {
 .platform-topbar-console {
   border-radius: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.98));
+  background: linear-gradient(180deg, rgba(11, 36, 31, 0.96), rgba(3, 21, 18, 0.98));
   box-shadow:
     0 18px 40px rgba(0, 0, 0, 0.35),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -882,7 +1092,7 @@ body {
   justify-content: center;
   border-radius: 0.75rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(15, 23, 42, 0.85);
+  background: rgba(11, 36, 31, 0.85);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
@@ -891,7 +1101,7 @@ body {
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: rgba(196, 181, 253, 0.85);
+  color: rgba(156, 242, 229, 0.86);
 }
 
 .topbar-brand-title {
@@ -913,7 +1123,7 @@ body {
   margin-top: 0.125rem;
   font-size: 0.6875rem;
   font-weight: 500;
-  color: rgb(148 163 184);
+  color: rgb(106 161 152);
 }
 
 .topbar-console-action {
@@ -925,9 +1135,9 @@ body {
   gap: 0.25rem;
   border-radius: 0.75rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(15, 23, 42, 0.55);
+  background: rgba(11, 36, 31, 0.55);
   padding: 0.5rem 0.625rem;
-  color: rgb(226 232 240);
+  color: rgb(220 239 233);
   transition:
     border-color 0.15s ease,
     background-color 0.15s ease,
@@ -935,8 +1145,8 @@ body {
 }
 
 .topbar-console-action:hover {
-  border-color: rgba(139, 92, 246, 0.35);
-  background: rgba(76, 29, 149, 0.25);
+  border-color: rgba(5, 194, 165, 0.35);
+  background: rgba(4, 154, 132, 0.18);
   color: rgb(255 255 255);
 }
 
@@ -949,7 +1159,7 @@ body {
   font-size: 0.625rem;
   font-weight: 600;
   line-height: 1;
-  color: rgb(226 232 240);
+  color: rgb(220 239 233);
 }
 
 .topbar-role-pill {
@@ -978,12 +1188,12 @@ body {
   overflow: visible;
   border-radius: 9999px;
   border: 2px solid rgba(255, 255, 255, 0.12);
-  background: rgb(15 23 42);
+  background: rgb(11 36 31);
   transition: border-color 0.15s ease;
 }
 
 .topbar-avatar-button:hover {
-  border-color: rgba(139, 92, 246, 0.45);
+  border-color: rgba(5, 194, 165, 0.45);
 }
 
 .topbar-avatar-image,
@@ -997,7 +1207,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgb(79 70 229), rgb(147 51 234));
+  background: linear-gradient(135deg, rgb(5 194 165), rgb(4 120 87));
   font-size: 0.75rem;
   font-weight: 800;
   color: rgb(255 255 255);
@@ -1010,13 +1220,13 @@ body {
   height: 0.75rem;
   width: 0.75rem;
   border-radius: 9999px;
-  border: 2px solid rgb(2 6 23);
+  border: 2px solid rgb(3 21 18);
   background: rgb(0 230 118);
   box-shadow: 0 0 8px rgba(0, 230, 118, 0.55);
 }
 
 .a11y-high-contrast .platform-topbar-console {
-  background: rgb(15 23 42);
+  background: rgb(11 36 31);
   border-color: rgb(255 255 255);
   box-shadow: none;
   backdrop-filter: none;
@@ -1026,7 +1236,7 @@ body {
 .a11y-high-contrast .topbar-console-action,
 .a11y-high-contrast .topbar-brand-logo {
   border-color: rgb(255 255 255);
-  background: rgb(15 23 42);
+  background: rgb(11 36 31);
 }
 
 .sidebar-nav-scroll {
@@ -1058,7 +1268,7 @@ body {
 
 .a11y-high-contrast .sidebar-glass,
 .a11y-high-contrast .sidebar-glass-flyout {
-  background: #0f172a;
+  background: #0b241f;
   border-color: #fff;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;

@@ -4,8 +4,8 @@
   "description": "Plateforme académique de formation, accompagnement pédagogique et réussite.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#020617",
+  "background_color": "#042f29",
+  "theme_color": "#05C2A5",
   "icons": [
     {
       "src": "/performance-logo-symbol.png",

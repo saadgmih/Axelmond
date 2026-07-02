@@ -279,15 +279,15 @@ export function buildBaseEmailHtml(opts: BaseEmailOptions): string {
       <td style="padding:20px 0 0;">
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
           <tr>
-            <td style="background:#080d1c;border:1px solid #1e293b;border-radius:12px;padding:14px 20px;">
+            <td style="background:#041f1b;border:1px solid #075F52;border-radius:12px;padding:14px 20px;">
               <table role="presentation" cellspacing="0" cellpadding="0">
                 <tr>
                   <td style="width:20px;vertical-align:top;padding-top:1px;">
                     <span style="font-size:15px;">&#x1F4C5;</span>
                   </td>
-                  <td style="padding-left:8px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#64748b;line-height:1.6;">
-                    <strong style="color:#94a3b8;">Demande enregistrée le :</strong><br/>
-                    <span style="color:#cbd5e1;">${requestedAtStr}</span>
+                  <td style="padding-left:8px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#5c8d84;line-height:1.6;">
+                    <strong style="color:#8fbdb5;">Demande enregistrée le :</strong><br/>
+                    <span style="color:#d6f7f1;">${requestedAtStr}</span>
                   </td>
                 </tr>
               </table>
@@ -304,14 +304,14 @@ export function buildBaseEmailHtml(opts: BaseEmailOptions): string {
         <td style="padding:20px 0 0;">
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
             <tr>
-              <td style="background:#1a0a0a;border:1px solid #7f1d1d;border-left:4px solid #ef4444;border-radius:12px;padding:14px 20px;">
+              <td style="background:#041f1b;border:1px solid #075F52;border-left:4px solid #05C2A5;border-radius:12px;padding:14px 20px;">
                 <table role="presentation" cellspacing="0" cellpadding="0">
                   <tr>
                     <td style="width:22px;vertical-align:top;padding-top:1px;">
                       <span style="font-size:16px;">&#x26A0;&#xFE0F;</span>
                     </td>
-                    <td style="padding-left:10px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#fca5a5;line-height:1.7;">
-                      <strong style="color:#fecaca;display:block;margin-bottom:3px;">Vous n'êtes pas à l'origine de cette demande ?</strong>
+                    <td style="padding-left:10px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#99f6e4;line-height:1.7;">
+                      <strong style="color:#ccfbf1;display:block;margin-bottom:3px;">Vous n'êtes pas à l'origine de cette demande ?</strong>
                       Ignorez cet e-mail en toute sécurité.${securityAlertDetail ? " " + escapeHtml(securityAlertDetail) : ""}
                       Si vous pensez que votre compte est compromis, contactez immédiatement notre support.
                     </td>
@@ -344,27 +344,27 @@ export function buildBaseEmailHtml(opts: BaseEmailOptions): string {
       }
     </style>
   </head>
-  <body style="margin:0;padding:0;background-color:#060c1a;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+  <body style="margin:0;padding:0;background-color:#031512;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
     ${
       preheader
         ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;font-size:1px;line-height:1px;mso-hide:all;">${escapeHtml(preheader)}</div>`
         : ""
     }
 
-    <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color:#060c1a;"><tr><td><![endif]-->
+    <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color:#031512;"><tr><td><![endif]-->
 
     <table class="email-wrapper" role="presentation" width="100%" cellspacing="0" cellpadding="0"
-           style="background-color:#060c1a;padding:32px 16px;">
+           style="background-color:#031512;padding:32px 16px;">
       <tr>
         <td align="center">
 
           <!-- ═══ EMAIL CARD ═══ -->
           <table class="email-card" role="presentation" width="600" cellspacing="0" cellpadding="0"
-                 style="width:600px;max-width:100%;background:#0e1628;border:1px solid #1e2d4a;border-radius:24px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.6);">
+                 style="width:600px;max-width:100%;background:#06231f;border:1px solid #075F52;border-radius:24px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.6);">
 
             <!-- ── HEADER ── -->
             <tr>
-              <td style="background:linear-gradient(135deg,#071120 0%,#06382f 46%,#047967 100%);padding:0;">
+              <td style="background:linear-gradient(135deg,#031512 0%,#06382f 46%,#047967 100%);padding:0;">
                 <!-- Top accent line -->
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                   <tr>
@@ -383,7 +383,7 @@ export function buildBaseEmailHtml(opts: BaseEmailOptions): string {
                         PERFORMANCE
                         <span style="color:#05C2A5;font-weight:300;letter-spacing:1px;">ACADÉMIQUE</span>
                       </div>
-                      <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#7c8fa6;letter-spacing:2px;text-transform:uppercase;margin-top:5px;">
+                      <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#7dd3c7;letter-spacing:2px;text-transform:uppercase;margin-top:5px;">
                         Apprendre &nbsp;•&nbsp; Progresser &nbsp;•&nbsp; Réussir
                       </div>
                     </td>
@@ -399,7 +399,7 @@ export function buildBaseEmailHtml(opts: BaseEmailOptions): string {
 
                   <!-- Headline -->
                   <tr>
-                    <td style="font-family:Arial,Helvetica,sans-serif;font-size:26px;font-weight:900;color:#f1f5f9;text-align:center;padding-bottom:18px;line-height:1.25;">
+                    <td style="font-family:Arial,Helvetica,sans-serif;font-size:26px;font-weight:900;color:#ecfdfa;text-align:center;padding-bottom:18px;line-height:1.25;">
                       ${escapeHtml(headline)}
                     </td>
                   </tr>
@@ -417,7 +417,7 @@ export function buildBaseEmailHtml(opts: BaseEmailOptions): string {
 
                   <!-- Body content -->
                   <tr>
-                    <td style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.8;color:#94a3b8;text-align:left;">
+                    <td style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.8;color:#8fbdb5;text-align:left;">
                       ${bodyHtml}
                     </td>
                   </tr>
@@ -440,21 +440,21 @@ export function buildBaseEmailHtml(opts: BaseEmailOptions): string {
 
             <!-- ── FOOTER ── -->
             <tr>
-              <td style="background:#070d1c;border-top:1px solid #1a2640;padding:26px 36px;">
+              <td style="background:#041f1b;border-top:1px solid #064e43;padding:26px 36px;">
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                   <tr>
                     <td align="center">
-                      <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:900;color:#e2e8f0;letter-spacing:.5px;">
+                      <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:900;color:#ccfbf1;letter-spacing:.5px;">
                         Performance Académique
                       </div>
-                      <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#475569;margin-top:6px;letter-spacing:1px;text-transform:uppercase;">
+                      <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#5c8d84;margin-top:6px;letter-spacing:1px;text-transform:uppercase;">
                         Apprendre &nbsp;•&nbsp; Progresser &nbsp;•&nbsp; Réussir
                       </div>
                       <div style="height:1px;background:linear-gradient(90deg,transparent,#075F52 30%,#075F52 70%,transparent);margin:14px 0;font-size:0;line-height:0;">&nbsp;</div>
-                      <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#2d3f5a;line-height:1.6;">
+                      <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#446b62;line-height:1.6;">
                         &copy; ${year} Performance Académique — Tous droits réservés.
                       </div>
-                      <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#1e3047;margin-top:5px;">
+                      <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#33564f;margin-top:5px;">
                         &#x1F4E7; Ceci est un message automatique — merci de ne pas répondre à cet e-mail.
                       </div>
                     </td>
@@ -568,7 +568,7 @@ export function buildVerificationEmailContent(input: VerificationEmailContentInp
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:22px 0;">
       <tr>
         <td align="center">
-          <div style="display:inline-block;background:#020617;border:1px solid #05C2A5;border-radius:18px;padding:24px 32px;box-shadow:0 0 40px rgba(5,194,165,.2);">
+          <div style="display:inline-block;background:#02110f;border:1px solid #05C2A5;border-radius:18px;padding:24px 32px;box-shadow:0 0 40px rgba(5,194,165,.2);">
             <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:#5EE6D2;margin-bottom:10px;">
               Code personnel de vérification
             </div>
@@ -582,16 +582,16 @@ export function buildVerificationEmailContent(input: VerificationEmailContentInp
     </table>`;
 
   const bodyHtml = `
-    <p style="margin:0 0 16px;color:#cbd5e1;font-size:15px;text-align:center;">
-      Bonjour <strong style="color:#f1f5f9;">${escapeHtml(name)}</strong>,
+    <p style="margin:0 0 16px;color:#d6f7f1;font-size:15px;text-align:center;">
+      Bonjour <strong style="color:#ecfdfa;">${escapeHtml(name)}</strong>,
     </p>
-    <p style="margin:0 0 16px;color:#94a3b8;text-align:center;line-height:1.8;">
-      Bienvenue sur <strong style="color:#e2e8f0;">Performance Académique</strong>.<br/>
+    <p style="margin:0 0 16px;color:#8fbdb5;text-align:center;line-height:1.8;">
+      Bienvenue sur <strong style="color:#ccfbf1;">Performance Académique</strong>.<br/>
       Saisissez ce code dans la page de connexion ou de vérification pour confirmer votre adresse e-mail.
     </p>
     ${codeBlock}
-    <p style="margin:0;color:#64748b;font-size:13px;text-align:center;line-height:1.7;">
-      Ce code est personnel. <strong style="color:#cbd5e1;">Ne le partagez jamais</strong> : notre équipe ne vous le demandera jamais par e-mail, téléphone ou message.
+    <p style="margin:0;color:#5c8d84;font-size:13px;text-align:center;line-height:1.7;">
+      Ce code est personnel. <strong style="color:#d6f7f1;">Ne le partagez jamais</strong> : notre équipe ne vous le demandera jamais par e-mail, téléphone ou message.
     </p>`;
 
   const textLines = [
@@ -686,7 +686,7 @@ export function buildResetPasswordEmailContent(input: {
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:22px 0;">
       <tr>
         <td align="center">
-          <div style="display:inline-block;background:#020617;border:1px solid #05C2A5;border-radius:18px;padding:24px 32px;box-shadow:0 0 40px rgba(5,194,165,.18);">
+          <div style="display:inline-block;background:#02110f;border:1px solid #05C2A5;border-radius:18px;padding:24px 32px;box-shadow:0 0 40px rgba(5,194,165,.18);">
             <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:#5EE6D2;margin-bottom:10px;">
               Code personnel de réinitialisation
             </div>
@@ -700,16 +700,16 @@ export function buildResetPasswordEmailContent(input: {
     </table>`;
 
   const bodyHtml = `
-    <p style="margin:0 0 16px;color:#cbd5e1;font-size:15px;text-align:center;">
-      Bonjour <strong style="color:#f1f5f9;">${escapeHtml(name)}</strong>,
+    <p style="margin:0 0 16px;color:#d6f7f1;font-size:15px;text-align:center;">
+      Bonjour <strong style="color:#ecfdfa;">${escapeHtml(name)}</strong>,
     </p>
-    <p style="margin:0 0 16px;color:#94a3b8;text-align:center;line-height:1.8;">
+    <p style="margin:0 0 16px;color:#8fbdb5;text-align:center;line-height:1.8;">
       Vous avez demandé la réinitialisation de votre mot de passe sur
-      <strong style="color:#e2e8f0;">Performance Académique</strong>.<br/>
+      <strong style="color:#ccfbf1;">Performance Académique</strong>.<br/>
       Saisissez ce code dans l'écran « Mot de passe oublié » pour choisir un nouveau mot de passe.
     </p>
     ${codeBlock}
-    <p style="margin:0;color:#64748b;font-size:13px;text-align:center;line-height:1.7;">
+    <p style="margin:0;color:#5c8d84;font-size:13px;text-align:center;line-height:1.7;">
       Votre mot de passe ne sera pas modifié tant que ce code n'est pas validé.
     </p>`;
 
@@ -798,28 +798,28 @@ export function buildEmailChangeContent(input: {
   const validity = input.expiresInMinutes ?? 30;
 
   const bodyHtml = `
-    <p style="margin:0 0 16px;color:#cbd5e1;font-size:15px;text-align:center;">
-      Bonjour <strong style="color:#f1f5f9;">${escapeHtml(name)}</strong>,
+    <p style="margin:0 0 16px;color:#d6f7f1;font-size:15px;text-align:center;">
+      Bonjour <strong style="color:#ecfdfa;">${escapeHtml(name)}</strong>,
     </p>
-    <p style="margin:0 0 16px;color:#94a3b8;text-align:center;line-height:1.8;">
+    <p style="margin:0 0 16px;color:#8fbdb5;text-align:center;line-height:1.8;">
       Une demande de changement d'adresse e-mail a été initiée pour votre compte
-      <strong style="color:#e2e8f0;">Performance Académique</strong>.
+      <strong style="color:#ccfbf1;">Performance Académique</strong>.
     </p>
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:18px 0;">
       <tr>
         <td align="center">
-          <div style="display:inline-block;background:#080d1c;border:1px solid #1e3a5f;border-radius:12px;padding:14px 24px;max-width:340px;word-break:break-all;">
-            <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:#7c8fa6;margin-bottom:6px;">
+          <div style="display:inline-block;background:#041f1b;border:1px solid #075F52;border-radius:12px;padding:14px 24px;max-width:340px;word-break:break-all;">
+            <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:#7dd3c7;margin-bottom:6px;">
               Nouvelle adresse e-mail
             </div>
-            <div style="font-family:'Courier New',Courier,monospace;font-size:15px;font-weight:700;color:#93c5fd;">
+            <div style="font-family:'Courier New',Courier,monospace;font-size:15px;font-weight:700;color:#5EE6D2;">
               ${escapeHtml(input.newEmail)}
             </div>
           </div>
         </td>
       </tr>
     </table>
-    <p style="margin:0;color:#64748b;font-size:13px;text-align:center;line-height:1.7;">
+    <p style="margin:0;color:#5c8d84;font-size:13px;text-align:center;line-height:1.7;">
       Confirmez cette modification en cliquant sur le bouton ci-dessous.
       Si vous n'avez pas initié cette demande, ignorez cet e-mail et sécurisez votre compte.
     </p>`;
@@ -898,18 +898,18 @@ export function buildInvitationEmailContent(input: { fullName: string; inviteCod
   const now = new Date();
 
   const bodyHtml = `
-    <p style="margin:0 0 16px;color:#cbd5e1;font-size:15px;text-align:center;">
-      Bonjour <strong style="color:#f1f5f9;">${escapeHtml(name)}</strong>,
+    <p style="margin:0 0 16px;color:#d6f7f1;font-size:15px;text-align:center;">
+      Bonjour <strong style="color:#ecfdfa;">${escapeHtml(name)}</strong>,
     </p>
-    <p style="margin:0 0 20px;color:#94a3b8;text-align:center;line-height:1.8;">
+    <p style="margin:0 0 20px;color:#8fbdb5;text-align:center;line-height:1.8;">
       Vous avez été invité à rejoindre la plateforme académique
-      <strong style="color:#e2e8f0;">Performance Académique</strong>.<br/>
+      <strong style="color:#ccfbf1;">Performance Académique</strong>.<br/>
       Utilisez le code ci-dessous lors de votre inscription.
     </p>
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:18px 0;">
       <tr>
         <td align="center">
-          <div style="display:inline-block;background:#020617;border:1px solid #05C2A5;border-radius:14px;padding:18px 28px;box-shadow:0 0 30px rgba(5,194,165,.15);">
+          <div style="display:inline-block;background:#02110f;border:1px solid #05C2A5;border-radius:14px;padding:18px 28px;box-shadow:0 0 30px rgba(5,194,165,.15);">
             <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:#5EE6D2;margin-bottom:8px;">
               Code d'invitation
             </div>
@@ -991,19 +991,19 @@ export function buildNotificationEmailContent(input: {
   const now = new Date();
 
   const bodyHtml = `
-    <p style="margin:0 0 16px;color:#cbd5e1;font-size:15px;text-align:center;">
-      Bonjour <strong style="color:#f1f5f9;">${escapeHtml(name)}</strong>,
+    <p style="margin:0 0 16px;color:#d6f7f1;font-size:15px;text-align:center;">
+      Bonjour <strong style="color:#ecfdfa;">${escapeHtml(name)}</strong>,
     </p>
-    <p style="margin:0 0 8px;color:#94a3b8;text-align:center;line-height:1.8;">
-      Vous avez une nouvelle notification de <strong style="color:#e2e8f0;">Performance Académique</strong>&nbsp;:
+    <p style="margin:0 0 8px;color:#8fbdb5;text-align:center;line-height:1.8;">
+      Vous avez une nouvelle notification de <strong style="color:#ccfbf1;">Performance Académique</strong>&nbsp;:
     </p>
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:18px 0;">
       <tr>
         <td style="background:#061f1c;border-left:4px solid #05C2A5;border-radius:0 10px 10px 0;padding:16px 20px;">
-          <div style="font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:800;color:#e2e8f0;margin-bottom:8px;">
+          <div style="font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:800;color:#ccfbf1;margin-bottom:8px;">
             ${escapeHtml(input.messageTitle)}
           </div>
-          <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#94a3b8;line-height:1.7;">
+          <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#8fbdb5;line-height:1.7;">
             ${escapeHtml(input.messageBody)}
           </div>
         </td>
@@ -1070,13 +1070,13 @@ export async function sendAdminTestEmail(to: string, env: NodeJS.ProcessEnv = pr
   const now = new Date();
 
   const bodyHtml = `
-    <p style="margin:0 0 16px;color:#94a3b8;text-align:center;line-height:1.8;">
+    <p style="margin:0 0 16px;color:#8fbdb5;text-align:center;line-height:1.8;">
       Ceci est un e-mail de diagnostic envoyé depuis le panneau d'administration.
     </p>
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:18px 0;">
       <tr>
         <td align="center">
-          <div style="display:inline-block;background:#020617;border:1px solid #14532d;border-radius:14px;padding:18px 28px;box-shadow:0 0 30px rgba(34,197,94,.1);">
+          <div style="display:inline-block;background:#02110f;border:1px solid #14532d;border-radius:14px;padding:18px 28px;box-shadow:0 0 30px rgba(34,197,94,.1);">
             <div style="font-family:Arial,Helvetica,sans-serif;font-size:32px;text-align:center;">&#x2705;</div>
             <div style="font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:800;color:#4ade80;margin-top:8px;letter-spacing:.5px;">
               Configuration SMTP validée
@@ -1085,8 +1085,8 @@ export async function sendAdminTestEmail(to: string, env: NodeJS.ProcessEnv = pr
         </td>
       </tr>
     </table>
-    <p style="margin:0;color:#64748b;font-size:13px;text-align:center;line-height:1.7;">
-      Si vous recevez cet e-mail, le serveur <strong style="color:#94a3b8;">Performance Académique</strong>
+    <p style="margin:0;color:#5c8d84;font-size:13px;text-align:center;line-height:1.7;">
+      Si vous recevez cet e-mail, le serveur <strong style="color:#8fbdb5;">Performance Académique</strong>
       peut envoyer des messages via Hostinger SMTP.
     </p>`;
 

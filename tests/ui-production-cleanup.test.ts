@@ -33,6 +33,6 @@ rulesTest("ui-production-cleanup", () => {
   assert.match(cssSource, /Neutral hover suppression/);
   assert.match(cssSource, /\[class\*="hover:bg-slate-"\]/);
   assert.match(cssSource, /\[class\*="hover:bg-zinc-"\]/);
-  assert.match(cssSource, /rgba\(99,\s*102,\s*241,\s*0\.12\)/);
+  assert.match(cssSource, /rgba\(5,\s*194,\s*165,\s*0\.12\)/);
   assert.doesNotMatch(cssSource, /\.dark \.hover\\:bg-slate-50:hover,[\s\S]*?background-color:\s*#1e293b\s*!important/);
 });
