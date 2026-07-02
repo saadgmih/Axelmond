@@ -15,7 +15,7 @@ rulesTest("email-template", () => {
   assert.match(withoutLink.text, /page de connexion ou de vérification/);
   assert.match(withoutLink.text, /Ne partagez jamais ce code/);
   assert.match(withoutLink.html, /Performance Académique/);
-  assert.match(withoutLink.html, /performance-logo-symbol\.png/);
+  assert.match(withoutLink.html, /performance-logo-3d-symbol\.png/);
   assert.match(withoutLink.html, /Code personnel de vérification/);
   assert.match(withoutLink.html, /Ne le partagez jamais/);
   assert.match(withoutLink.html, /#05C2A5/);
