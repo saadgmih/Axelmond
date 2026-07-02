@@ -1,5 +1,6 @@
 import { usePlatformNavigation, usePlatformSession } from "./platform-app-slices";
 import { PERFORMANCE_ACADEMIQUE_ADDRESS } from "../utils/institution-location";
+import { DirectorFooterLine } from "../components/DirectorIdentity";
 
 export function AppFooter() {
   const session = usePlatformSession();
@@ -19,6 +20,7 @@ export function AppFooter() {
             Plateforme académique de formation, progression et réussite.
           </p>
           <p className="text-xs text-slate-500 leading-relaxed">{PERFORMANCE_ACADEMIQUE_ADDRESS}</p>
+          <DirectorFooterLine />
           <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
             Apprendre • Progresser • Réussir
           </p>

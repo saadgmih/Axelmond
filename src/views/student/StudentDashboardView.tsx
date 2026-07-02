@@ -26,6 +26,7 @@ import type { Course, CourseModule } from "../../types";
 import { formatCredits } from "../../utils/morocco-locale";
 import { prefetchCourseContent } from "../../utils/prefetch";
 import { useTvNavigation } from "../../hooks/useTvNavigation";
+import { DirectorWelcomeCard } from "../../components/DirectorIdentity";
 
 type NavigateTo = (view: string, targetCourse?: Course | null) => void;
 
@@ -416,6 +417,8 @@ export default function StudentDashboardView({
           </div>
         </div>
       </div>
+
+      <DirectorWelcomeCard tone="indigo" />
 
       <div ref={dashboardGridRef} data-tv-zone="student-dashboard" className="space-y-6 md:space-y-8">
         <section className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/40 p-5 sm:p-6 md:p-8 shadow-xl space-y-6">

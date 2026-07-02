@@ -14,6 +14,7 @@ import LogoSymbol from "./LogoSymbol";
 import SkipLink from "./SkipLink";
 import { useAccessibilityPreferences } from "../hooks/useAccessibilityPreferences";
 import AccessibilityControls from "./AccessibilityControls";
+import { DirectorAuthCard } from "./DirectorIdentity";
 
 interface AuthScreenProps {
   onLoginSuccess: (user: AppUser) => void;
@@ -255,6 +256,8 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
             </p>
           </div>
         </div>
+
+        <DirectorAuthCard />
 
         <motion.div
           initial={preferences.reduceMotion ? false : { opacity: 0, y: 15 }}

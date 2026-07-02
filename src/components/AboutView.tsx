@@ -23,6 +23,7 @@ import {
   BarChart,
 } from "lucide-react";
 import { InstitutionalPageRoot, InstitutionalHero } from "./legal/InstitutionalPageShell";
+import { DirectorFounderSection } from "./DirectorIdentity";
 
 // ─── Animated Counter hook ───────────────────────────────────────────────────
 function useCountUp(target: number, duration = 1800, start = false) {
@@ -447,6 +448,8 @@ export default function AboutView() {
       </InstitutionalHero>
 
       <div className="max-w-6xl mx-auto px-6 md:px-10 py-12 space-y-20">
+        <DirectorFounderSection />
+
         {/* ── MISSION & VISION ─────────────────────────────────────────────── */}
         <div ref={missionRef.ref} className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Mission */}
@@ -506,9 +509,9 @@ export default function AboutView() {
               <h2 className="text-2xl font-black text-white mt-1">L'université du futur, maintenant.</h2>
             </div>
             <p className="text-slate-300 text-sm leading-relaxed">
-              Nous imaginons un avenir où chaque étudiant et professeur dispose d'une plateforme unifiée et
-              intelligente pour apprendre, enseigner et progresser. Un hub académique mondial, connecté, sécurisé et
-              enrichi par l'intelligence artificielle.
+              Nous imaginons un avenir où chaque étudiant et professeur dispose d'une plateforme unifiée et intelligente
+              pour apprendre, enseigner et progresser. Un hub académique mondial, connecté, sécurisé et enrichi par
+              l'intelligence artificielle.
             </p>
             <ul className="space-y-2 pt-1">
               {[
