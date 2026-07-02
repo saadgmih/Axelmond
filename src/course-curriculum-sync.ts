@@ -1,4 +1,5 @@
 import { prisma } from "./db";
+import { cacheDelByPrefix } from "./cache";
 import { getNextCourseModuleId } from "./course-syllabus-modules";
 
 import {
@@ -24,6 +25,11 @@ export {
 };
 
 type CurriculumSyncClient = Pick<typeof prisma, "lessonContent" | "courseModule" | "quiz">;
+
+async function invalidateSyncedCourseModuleCaches(): Promise<void> {
+  await cacheDelByPrefix("api:courses:public:");
+  await cacheDelByPrefix("api:courses:student:");
+}
 
 /**
  * Mirror published curriculum lessonContent and quiz rows into courseModules so
@@ -152,6 +158,8 @@ export async function syncPublishedLessonModules(
       });
     }
   }
+
+  await invalidateSyncedCourseModuleCaches();
 }
 
 export async function syncPublishedLessonModulesForCourses(courseIds: number[]): Promise<void> {

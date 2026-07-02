@@ -157,6 +157,7 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
     }`;
   const priceInputClass = (isDisabled: boolean, className: string) =>
     `${className} ${isDisabled ? "cursor-not-allowed opacity-60" : ""}`;
+  const hasDisciplineOptions = allDisciplines.length > 0;
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
@@ -200,10 +201,13 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
             <label className="block space-y-1.5">
               <span className={curriculumUi.label}>Discipline</span>
               <select
-                value={newCourseDisciplineId}
+                value={hasDisciplineOptions ? newCourseDisciplineId : 0}
+                required
+                disabled={!hasDisciplineOptions}
                 onChange={(e) => setNewCourseDisciplineId(parseInt(e.target.value))}
-                className={`${inputFocus} text-slate-700`}
+                className={`${inputFocus} text-slate-700 ${hasDisciplineOptions ? "" : "cursor-not-allowed opacity-60"}`}
               >
+                {!hasDisciplineOptions && <option value={0}>Aucun sous-domaine disponible</option>}
                 {domains.map((domain) => (
                   <optgroup key={domain.id} label={domain.name} className="text-slate-800 font-bold">
                     {domain.disciplines.map((discipline) => (
@@ -321,7 +325,11 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
             Publier immédiatement le module
           </label>
 
-          <button type="submit" className={curriculumUi.createBtn}>
+          <button
+            type="submit"
+            disabled={!hasDisciplineOptions}
+            className={`${curriculumUi.createBtn} disabled:cursor-not-allowed disabled:opacity-50`}
+          >
             <Plus className="h-4 w-4" />
             Créer le module
           </button>

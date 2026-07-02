@@ -603,6 +603,10 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
 
       const isHomework = /devoir|homework|assignment/i.test(`${title} ${section.title}`);
 
+      if (content.published) {
+        await refreshStudentCourseModules(section.courseId);
+      }
+
       if (content.published && isHomework) {
         const course = await api.prisma.course.findUnique({ where: { id: section.courseId }, select: { title: true } });
 

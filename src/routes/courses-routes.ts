@@ -60,10 +60,7 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
           ? {}
           : authUser && (authUser.role === "PROFESSOR" || authUser.role === "RESEARCHER")
             ? {
-                OR: [
-                  { createdById: authUser.id },
-                  { createdById: null, instructor: authUser.fullName },
-                ],
+                OR: [{ createdById: authUser.id }, { createdById: null, instructor: authUser.fullName }],
               }
             : authUser?.role === "STUDENT"
               ? studentEnrolledIds.length > 0
@@ -481,6 +478,8 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
         include: api.courseResponseInclude,
       });
     });
+
+    await api.invalidatePublicCatalogCache();
 
     res.json(api.toCourse(updatedCourse));
   });

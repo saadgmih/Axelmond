@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
+import { useCallback, useEffect, useMemo, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
 import { getClientErrorMessage } from "../client-errors";
 import {
   bindUploadProgress,
@@ -67,7 +67,7 @@ export function useTeacherCurriculum({
   const [curriculumErrorMsg, setCurriculumErrorMsg] = useState("");
   const [newCourseTitle, setNewCourseTitle] = useState("");
   const [newCourseDescription, setNewCourseDescription] = useState("");
-  const [newCourseDisciplineId, setNewCourseDisciplineId] = useState(601);
+  const [newCourseDisciplineId, setNewCourseDisciplineId] = useState(0);
   const [newCourseLevel, _setNewCourseLevel] = useState("Licence 1");
   const [newCourseCredits, setNewCourseCredits] = useState(numericInputFromNumber(3));
   const [newCourseDuration, setNewCourseDuration] = useState("20 heures");
@@ -113,6 +113,7 @@ export function useTeacherCurriculum({
 
   const { startRequest } = useAsyncEffectGuard();
   const scheduleClear = useAutoClearTimeout();
+  const disciplineIdsKey = useMemo(() => allDisciplines.map((discipline) => discipline.id).join(","), [allDisciplines]);
 
   const showCurriculumSuccess = useCallback(
     (message: string) => {
@@ -187,10 +188,14 @@ export function useTeacherCurriculum({
   }, [role, activeCurriculumStep, quizStep, selectedQuizId, loadSelectedQuizDetail, startRequest]);
 
   useEffect(() => {
-    if (allDisciplines.length > 0 && !allDisciplines.some((discipline) => discipline.id === newCourseDisciplineId)) {
+    if (allDisciplines.length === 0) {
+      if (newCourseDisciplineId !== 0) setNewCourseDisciplineId(0);
+      return;
+    }
+    if (!allDisciplines.some((discipline) => discipline.id === newCourseDisciplineId)) {
       setNewCourseDisciplineId(allDisciplines[0].id);
     }
-  }, [allDisciplines.length, newCourseDisciplineId]);
+  }, [disciplineIdsKey, allDisciplines, newCourseDisciplineId]);
 
   useEffect(() => {
     if (role !== "teacher") return;
@@ -248,7 +253,10 @@ export function useTeacherCurriculum({
     e.preventDefault();
     if (!newCourseTitle.trim() || !newCourseDescription.trim()) return;
     const discipline = allDisciplines.find((item) => item.id === newCourseDisciplineId);
-    if (!discipline) return;
+    if (!discipline) {
+      showCurriculumError("Choisissez un sous-domaine valide avant de créer le module.");
+      return;
+    }
 
     try {
       const course = await api.createCourse({

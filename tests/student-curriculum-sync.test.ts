@@ -66,6 +66,8 @@ rulesTest("student-curriculum-sync", () => {
   assert.equal(modules[0]?.title, "Published");
 
   assert.match(syncSource, /syncPublishedLessonModules/);
+  assert.match(syncSource, /cacheDelByPrefix\("api:courses:public:"\)/);
+  assert.match(syncSource, /cacheDelByPrefix\("api:courses:student:"\)/);
   assert.match(syncSource, /client\.quiz\.findMany/);
   assert.match(syncSource, /type:\s*"quiz"/);
   assert.match(syncSource, /client\.quiz\.update\(\{ where:\s*\{ id:\s*quiz\.id \}, data:\s*\{ moduleId:/);
@@ -76,6 +78,10 @@ rulesTest("student-curriculum-sync", () => {
   assert.doesNotMatch(coursesRoutesSource, /syncPublishedLessonModules/);
   assert.match(catalogSource, /attachSyncedCourseModules/);
   assert.match(contentRoutesSource, /refreshStudentCourseModules/);
+  assert.match(
+    contentRoutesSource,
+    /if \(content\.published\) \{[\s\S]*?await refreshStudentCourseModules\(section\.courseId\)/,
+  );
   assert.match(uploadthingSource, /syncPublishedLessonModules/);
   assert.match(studentSessionSource, /api\.getCourse\(courseId\)/);
   assert.match(serverSource, /export \{[\s\S]*syncPublishedLessonModules/);

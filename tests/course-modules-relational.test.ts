@@ -12,6 +12,14 @@ rulesTest("course-modules-relational", () => {
   assert.doesNotMatch(schema, /modules\s+Json/);
   assert.match(coursesRoutes, /getNextCourseModuleId/);
   assert.match(coursesRoutes, /courseModule\.create/);
+  const legacyModuleRoute = coursesRoutes.slice(
+    coursesRoutes.indexOf('app.post("/api/courses/:courseId/modules"'),
+    coursesRoutes.indexOf(
+      "// PUT /api/courses/:courseId",
+      coursesRoutes.indexOf('app.post("/api/courses/:courseId/modules"'),
+    ),
+  );
+  assert.match(legacyModuleRoute, /await api\.invalidatePublicCatalogCache\(\)/);
   assert.doesNotMatch(
     coursesRoutes.slice(coursesRoutes.indexOf('app.post("/api/courses/:courseId/modules"')),
     /data:\s*\{\s*modules:/,
