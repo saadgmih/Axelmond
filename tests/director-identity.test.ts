@@ -3,13 +3,15 @@ import fs from "node:fs";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("director-identity", () => {
-  assert.equal(fs.existsSync("public/director-oussama-el-abboudi.jpg"), true);
-  assert.equal(fs.existsSync("public/director-oussama-el-abboudi-full.jpg"), true);
+  assert.equal(fs.existsSync("public/director-oussama-el-abboudi.png"), true);
+  assert.equal(fs.existsSync("public/director-oussama-el-abboudi-full.png"), true);
+  assert.equal(fs.existsSync("public/director-oussama-el-abboudi.jpg"), false);
+  assert.equal(fs.existsSync("public/director-oussama-el-abboudi-full.jpg"), false);
 
   const profileSource = fs.readFileSync("src/content/director-profile.ts", "utf8");
   assert.match(profileSource, /Pr\. Oussama El Abboudi/);
   assert.match(profileSource, /Former aujourd'hui les talents de demain/);
-  assert.match(profileSource, /\/director-oussama-el-abboudi\.jpg/);
+  assert.match(profileSource, /\/director-oussama-el-abboudi\.png/);
 
   const identitySource = fs.readFileSync("src/components/DirectorIdentity.tsx", "utf8");
   assert.match(identitySource, /DirectorSidebarCard/);

@@ -84,7 +84,7 @@ rulesTest("live-sync-validation", () => {
     {
       id: "axelmond-user-student-1-123-abc",
       tool: "draw",
-      color: "#8b5cf6",
+      color: "#05C2A5",
       width: 3,
       points: [{ x: 0.1, y: 0.2 }],
     },
@@ -96,7 +96,7 @@ rulesTest("live-sync-validation", () => {
     {
       id: "axelmond-user-prof-1-123-abc",
       tool: "draw",
-      color: "#8b5cf6",
+      color: "#05C2A5",
       width: 3,
       points: [{ x: 0.1, y: 0.2 }],
     },

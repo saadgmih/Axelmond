@@ -7,6 +7,7 @@ rulesTest("legal-documents-pdf", () => {
   const panelSource = fs.readFileSync("src/components/legal/LegalDocumentPdfPanel.tsx", "utf8");
   const viewerSource = fs.readFileSync("src/components/PdfLessonViewer.tsx", "utf8");
   const dataSource = fs.readFileSync("src/data/legalDocuments.ts", "utf8");
+  const legalStyleSource = fs.readFileSync("docs/legal-documents/source/performance-legal-style.tex", "utf8");
 
   for (const fileName of ["privacy-policy", "cookies-policy", "help-center", "contact-sheet"]) {
     assert.ok(fs.existsSync(`public/legal-documents/${fileName}.pdf`), `${fileName}.pdf must be public`);
@@ -21,6 +22,8 @@ rulesTest("legal-documents-pdf", () => {
   assert.match(dataSource, /\/legal-documents\/cookies-policy\.pdf/);
   assert.match(dataSource, /\/legal-documents\/help-center\.pdf/);
   assert.match(dataSource, /\/legal-documents\/contact-sheet\.pdf/);
+  assert.match(legalStyleSource, /05C2A5/);
+  assert.doesNotMatch(legalStyleSource, /6C5CFF|149DFF/);
 
   assert.match(termsSource, /LEGAL_DOCUMENTS\.map/);
   assert.match(termsSource, /setSelectedLegalDocumentKey\(document\.key\)/);

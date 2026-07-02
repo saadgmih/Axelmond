@@ -237,10 +237,10 @@ export function buildBaseEmailHtml(opts: BaseEmailOptions): string {
     ? `
       <tr>
         <td align="center" style="padding:24px 0 8px;">
-          <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escapeHtml(ctaButton.href)}" style="height:52px;v-text-anchor:middle;width:260px;" arcsize="24%" fillcolor="#ec4899"><w:anchorlock/><center style="color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:800;">${escapeHtml(ctaButton.label)}</center></v:roundrect><![endif]-->
+          <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escapeHtml(ctaButton.href)}" style="height:52px;v-text-anchor:middle;width:260px;" arcsize="24%" fillcolor="#05C2A5"><w:anchorlock/><center style="color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:800;">${escapeHtml(ctaButton.label)}</center></v:roundrect><![endif]-->
           <!--[if !mso]><!-->
           <a href="${escapeHtml(ctaButton.href)}"
-             style="display:inline-block;background:linear-gradient(135deg,#8b5cf6 0%,#ec4899 100%);color:#ffffff;text-decoration:none;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:800;letter-spacing:.5px;padding:16px 36px;border-radius:14px;box-shadow:0 8px 32px rgba(236,72,153,.35);mso-hide:all;">
+             style="display:inline-block;background:linear-gradient(135deg,#05C2A5 0%,#049A84 100%);color:#ffffff;text-decoration:none;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:800;letter-spacing:.5px;padding:16px 36px;border-radius:14px;box-shadow:0 8px 32px rgba(5,194,165,.35);mso-hide:all;">
             ${escapeHtml(ctaButton.label)}
           </a>
           <!--<![endif]-->
@@ -255,14 +255,14 @@ export function buildBaseEmailHtml(opts: BaseEmailOptions): string {
         <td style="padding:22px 0 0;">
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
             <tr>
-              <td style="background:#0c1228;border:1px solid #1e3a5f;border-radius:12px;padding:14px 20px;">
+              <td style="background:#061f1c;border:1px solid #0f766e;border-radius:12px;padding:14px 20px;">
                 <table role="presentation" cellspacing="0" cellpadding="0">
                   <tr>
                     <td style="width:20px;vertical-align:top;padding-top:1px;">
                       <span style="font-size:16px;">&#x23F1;</span>
                     </td>
-                    <td style="padding-left:8px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#93c5fd;line-height:1.6;">
-                      <strong style="color:#bfdbfe;">Validité :</strong> ${escapeHtml(validityNote)}
+                    <td style="padding-left:8px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#99f6e4;line-height:1.6;">
+                      <strong style="color:#ccfbf1;">Validité :</strong> ${escapeHtml(validityNote)}
                     </td>
                   </tr>
                 </table>
@@ -364,11 +364,11 @@ export function buildBaseEmailHtml(opts: BaseEmailOptions): string {
 
             <!-- ── HEADER ── -->
             <tr>
-              <td style="background:linear-gradient(135deg,#0d1b35 0%,#1e1b4b 40%,#2d1155 70%,#3b0764 100%);padding:0;">
+              <td style="background:linear-gradient(135deg,#071120 0%,#06382f 46%,#047967 100%);padding:0;">
                 <!-- Top accent line -->
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                   <tr>
-                    <td style="height:3px;background:linear-gradient(90deg,#6366f1 0%,#8b5cf6 35%,#ec4899 70%,#f97316 100%);font-size:0;line-height:0;">&nbsp;</td>
+                    <td style="height:3px;background:linear-gradient(90deg,#042F29 0%,#05C2A5 45%,#9CF2E5 100%);font-size:0;line-height:0;">&nbsp;</td>
                   </tr>
                 </table>
                 <!-- Logo + Brand name -->
@@ -381,7 +381,7 @@ export function buildBaseEmailHtml(opts: BaseEmailOptions): string {
                       <div class="header-logo-text"
                            style="font-family:Arial,Helvetica,sans-serif;font-size:20px;font-weight:900;letter-spacing:3px;color:#ffffff;text-transform:uppercase;line-height:1;margin-top:14px;">
                         PERFORMANCE
-                        <span style="color:#ec4899;font-weight:300;letter-spacing:1px;">ACADÉMIQUE</span>
+                        <span style="color:#05C2A5;font-weight:300;letter-spacing:1px;">ACADÉMIQUE</span>
                       </div>
                       <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#7c8fa6;letter-spacing:2px;text-transform:uppercase;margin-top:5px;">
                         Apprendre &nbsp;•&nbsp; Progresser &nbsp;•&nbsp; Réussir
@@ -409,7 +409,7 @@ export function buildBaseEmailHtml(opts: BaseEmailOptions): string {
                     <td style="padding-bottom:22px;">
                       <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                         <tr>
-                          <td style="height:1px;background:linear-gradient(90deg,transparent,#2d3f60 30%,#3d2f70 60%,transparent);font-size:0;line-height:0;">&nbsp;</td>
+                          <td style="height:1px;background:linear-gradient(90deg,transparent,#075F52 30%,#05C2A5 60%,transparent);font-size:0;line-height:0;">&nbsp;</td>
                         </tr>
                       </table>
                     </td>
@@ -450,7 +450,7 @@ export function buildBaseEmailHtml(opts: BaseEmailOptions): string {
                       <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#475569;margin-top:6px;letter-spacing:1px;text-transform:uppercase;">
                         Apprendre &nbsp;•&nbsp; Progresser &nbsp;•&nbsp; Réussir
                       </div>
-                      <div style="height:1px;background:linear-gradient(90deg,transparent,#1e2d4a 30%,#1e2d4a 70%,transparent);margin:14px 0;font-size:0;line-height:0;">&nbsp;</div>
+                      <div style="height:1px;background:linear-gradient(90deg,transparent,#075F52 30%,#075F52 70%,transparent);margin:14px 0;font-size:0;line-height:0;">&nbsp;</div>
                       <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#2d3f5a;line-height:1.6;">
                         &copy; ${year} Performance Académique — Tous droits réservés.
                       </div>
@@ -568,8 +568,8 @@ export function buildVerificationEmailContent(input: VerificationEmailContentInp
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:22px 0;">
       <tr>
         <td align="center">
-          <div style="display:inline-block;background:#020617;border:1px solid #4c1d95;border-radius:18px;padding:24px 32px;box-shadow:0 0 40px rgba(139,92,246,.2);">
-            <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:#a78bfa;margin-bottom:10px;">
+          <div style="display:inline-block;background:#020617;border:1px solid #05C2A5;border-radius:18px;padding:24px 32px;box-shadow:0 0 40px rgba(5,194,165,.2);">
+            <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:#5EE6D2;margin-bottom:10px;">
               Code personnel de vérification
             </div>
             <div class="code-display"
@@ -686,8 +686,8 @@ export function buildResetPasswordEmailContent(input: {
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:22px 0;">
       <tr>
         <td align="center">
-          <div style="display:inline-block;background:#020617;border:1px solid #9d174d;border-radius:18px;padding:24px 32px;box-shadow:0 0 40px rgba(244,63,94,.15);">
-            <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:#f472b6;margin-bottom:10px;">
+          <div style="display:inline-block;background:#020617;border:1px solid #05C2A5;border-radius:18px;padding:24px 32px;box-shadow:0 0 40px rgba(5,194,165,.18);">
+            <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:#5EE6D2;margin-bottom:10px;">
               Code personnel de réinitialisation
             </div>
             <div class="code-display"
@@ -909,8 +909,8 @@ export function buildInvitationEmailContent(input: { fullName: string; inviteCod
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:18px 0;">
       <tr>
         <td align="center">
-          <div style="display:inline-block;background:#020617;border:1px solid #4c1d95;border-radius:14px;padding:18px 28px;box-shadow:0 0 30px rgba(139,92,246,.15);">
-            <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:#a78bfa;margin-bottom:8px;">
+          <div style="display:inline-block;background:#020617;border:1px solid #05C2A5;border-radius:14px;padding:18px 28px;box-shadow:0 0 30px rgba(5,194,165,.15);">
+            <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:#5EE6D2;margin-bottom:8px;">
               Code d'invitation
             </div>
             <div style="font-family:'Courier New',Courier,monospace;font-size:24px;font-weight:800;letter-spacing:4px;color:#ffffff;">
@@ -999,7 +999,7 @@ export function buildNotificationEmailContent(input: {
     </p>
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:18px 0;">
       <tr>
-        <td style="background:#0c1228;border-left:4px solid #6366f1;border-radius:0 10px 10px 0;padding:16px 20px;">
+        <td style="background:#061f1c;border-left:4px solid #05C2A5;border-radius:0 10px 10px 0;padding:16px 20px;">
           <div style="font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:800;color:#e2e8f0;margin-bottom:8px;">
             ${escapeHtml(input.messageTitle)}
           </div>

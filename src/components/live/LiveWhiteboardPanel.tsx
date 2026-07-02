@@ -84,7 +84,7 @@ export default function LiveWhiteboardPanel({
     const { x, y } = getCoordinates(event, canvas);
     isDrawingRef.current = true;
     currentPointsRef.current = [{ x, y }];
-    context.strokeStyle = tool === "shapes" ? "#22d3ee" : "#8b5cf6";
+    context.strokeStyle = tool === "shapes" ? "#5EE6D2" : "#05C2A5";
     context.lineWidth = (tool === "shapes" ? 2 : 3) * zoom;
     context.lineCap = "round";
     context.beginPath();
@@ -114,7 +114,7 @@ export default function LiveWhiteboardPanel({
     onStrokeComplete({
       id: createWhiteboardStrokeId(localIdentity),
       tool,
-      color: tool === "shapes" ? "#22d3ee" : "#8b5cf6",
+      color: tool === "shapes" ? "#5EE6D2" : "#05C2A5",
       width: (tool === "shapes" ? 2 : 3) * zoom,
       points: normalizedPoints,
     });

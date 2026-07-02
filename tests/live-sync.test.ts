@@ -33,7 +33,7 @@ rulesTest("live-sync", () => {
   const stroke: LiveWhiteboardStroke = {
     id: "stroke-1",
     tool: "draw",
-    color: "#8b5cf6",
+    color: "#05C2A5",
     width: 3,
     points: [
       { x: 0.1, y: 0.2 },

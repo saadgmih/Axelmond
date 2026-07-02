@@ -18,9 +18,11 @@ rulesTest("email-template", () => {
   assert.match(withoutLink.html, /performance-logo-symbol\.png/);
   assert.match(withoutLink.html, /Code personnel de vérification/);
   assert.match(withoutLink.html, /Ne le partagez jamais/);
+  assert.match(withoutLink.html, /#05C2A5/);
   assert.match(withoutLink.html, /123456/);
   assert.match(withoutLink.html, /Sophie/);
   assert.doesNotMatch(withoutLink.html, /Vérifier mon compte/);
+  assert.doesNotMatch(withoutLink.html, /#8b5cf6|#ec4899|#6366f1|#4c1d95|#9d174d/);
 
   const withLink = buildVerificationEmailContent({
     fullName: "Sophie Martin",
