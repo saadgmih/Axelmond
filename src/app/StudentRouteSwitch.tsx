@@ -8,6 +8,7 @@ import {
   LazyStudentAccountSecurityView,
   LazyStudentStudyPlanView,
   RouteChunkFallback,
+  LazyStudentCharityView,
 } from "../lazyViews";
 import { getCourseIcon, getDomainIcon } from "./catalogIcons";
 import { NotificationsRoutePanel } from "./NotificationsRoutePanel";
@@ -155,6 +156,11 @@ export function StudentRouteSwitch() {
         </Suspense>
       )}
       {currentView === "notifications" && <NotificationsRoutePanel />}
+      {currentView === "charity" && (
+        <Suspense fallback={<RouteChunkFallback label="Chargement de Lajr wa Tawab…" />}>
+          <LazyStudentCharityView />
+        </Suspense>
+      )}
       {currentView === "live" && !activeLiveCourse && (
         <div className="mx-auto max-w-xl p-8 text-center text-slate-300">
           <p className="text-sm font-semibold">Aucune session live disponible pour le moment.</p>

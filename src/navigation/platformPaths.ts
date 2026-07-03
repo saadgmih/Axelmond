@@ -20,11 +20,13 @@ export const STUDENT_VIEWS = new Set([
   "objectives",
   "messages",
   "notifications",
+  "charity",
 ]);
 
 export const TEACHER_VIEWS = new Set([
   "dashboard",
   "access-keys",
+  "charity",
   "curriculum",
   "live-control",
   "academic-profile",

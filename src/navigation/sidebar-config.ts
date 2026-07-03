@@ -11,6 +11,7 @@ import {
   Video,
   ShieldAlert,
   KeyRound,
+  HandHeart,
 } from "lucide-react";
 import { getTeacherSpaceTitle } from "../rbac";
 import type { UserRole } from "../rbac";
@@ -79,6 +80,15 @@ function studentItems(): SidebarNavItem[] {
       isActive: ({ currentView }) =>
         currentView === "study-plan" || currentView === "study-schedule" || currentView === "objectives",
       onSelect: ({ navigateTo }) => navigateTo("study-plan"),
+    },
+    {
+      id: "nav-charity",
+      label: "Lajr wa Tawab",
+      icon: HandHeart,
+      iconClassName: "text-teal-300",
+      prefetch: () => prefetchStudentView("charity"),
+      isActive: ({ currentView }) => currentView === "charity",
+      onSelect: ({ navigateTo }) => navigateTo("charity"),
     },
     {
       id: "nav-notifications",
@@ -150,6 +160,15 @@ function teacherItems(role?: UserRole): SidebarNavItem[] {
       onSelect: ({ setTeacherView }) => setTeacherView("live-control"),
     },
     {
+      id: "nav-charity",
+      label: "Lajr wa Tawab",
+      icon: HandHeart,
+      iconClassName: "text-teal-300",
+      prefetch: () => prefetchTeacherView("charity"),
+      isActive: ({ teacherView }) => teacherView === "charity",
+      onSelect: ({ setTeacherView }) => setTeacherView("charity"),
+    },
+    {
       id: "nav-notifications",
       label: "Notifications",
       icon: Bell,
@@ -161,7 +180,7 @@ function teacherItems(role?: UserRole): SidebarNavItem[] {
   ];
 
   if (role === "ADMIN") {
-    items.splice(1, 0, {
+    items.splice(2, 0, {
       id: "nav-professor-access-keys",
       label: "Codes d'accès professeur",
       icon: KeyRound,

@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import {
   LazyAdminProfessorAccessKeysView,
+  LazyAdminCharityView,
+  LazyStudentCharityView,
   LazyMessagesView,
   LazyTeacherAcademicProfileView,
   LazyTeacherAccountSecurityView,
@@ -70,6 +72,16 @@ export function TeacherRouteSwitch() {
           <div className="rounded-lg border border-lime-200 bg-lime-50 p-5 text-sm font-semibold text-lime-900">
             Cet espace est réservé aux administrateurs.
           </div>
+        )}
+        {teacherView === "charity" && currentUser.role === "ADMIN" && (
+          <Suspense fallback={<RouteChunkFallback label="Chargement de Lajr wa Tawab…" />}>
+            <LazyAdminCharityView enabled />
+          </Suspense>
+        )}
+        {teacherView === "charity" && currentUser.role !== "ADMIN" && (
+          <Suspense fallback={<RouteChunkFallback label="Chargement de Lajr wa Tawab…" />}>
+            <LazyStudentCharityView />
+          </Suspense>
         )}
         {teacherView === "academic-profile" && (
           <Suspense fallback={<RouteChunkFallback label="Chargement du profil académique…" />}>

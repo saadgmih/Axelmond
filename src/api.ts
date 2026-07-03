@@ -593,6 +593,36 @@ export const api = {
     prompt: string;
     chatHistory?: Array<{ role: "user" | "model" | "assistant"; text: string }>;
   }) => request<{ text: string }>("POST", "/api/chat-tutor", data),
+
+  getCharityAccessStatus: () =>
+    request<{ pageEnabled: boolean; hasAccess: boolean; needsCode: boolean }>("GET", "/api/charity/access-status"),
+  verifyCharityCode: (code: string) =>
+    request<{ ok: boolean; hasAccess: boolean }>("POST", "/api/charity/verify-code", { code }),
+  getCharityContent: () => request<any>("GET", "/api/charity/content"),
+  pledgeCharityDonation: (data: { campaignId: string; amount: number }) =>
+    request<any>("POST", "/api/charity/donations", data),
+
+  getAdminCharitySettings: () => request<any>("GET", "/api/admin/charity/settings"),
+  updateAdminCharitySettings: (pageEnabled: boolean) =>
+    request<any>("PUT", "/api/admin/charity/settings", { pageEnabled }),
+  getAdminCharityAccessCodes: () => request<any[]>("GET", "/api/admin/charity/access-codes"),
+  createAdminCharityAccessCode: (data?: { deactivateOthers?: boolean }) =>
+    request<any>("POST", "/api/admin/charity/access-codes", data),
+  deactivateAdminCharityAccessCode: (id: string) =>
+    request<any>("PATCH", `/api/admin/charity/access-codes/${id}/deactivate`),
+  getAdminCharityCodeUsages: (id: string) => request<any[]>("GET", `/api/admin/charity/access-codes/${id}/usages`),
+  getAdminCharityEvents: () => request<any[]>("GET", "/api/admin/charity/events"),
+  createAdminCharityEvent: (data: Record<string, unknown>) => request<any>("POST", "/api/admin/charity/events", data),
+  updateAdminCharityEvent: (id: string, data: Record<string, unknown>) =>
+    request<any>("PUT", `/api/admin/charity/events/${id}`, data),
+  deleteAdminCharityEvent: (id: string) => request<{ ok: boolean }>("DELETE", `/api/admin/charity/events/${id}`),
+  getAdminCharityCampaigns: () => request<any[]>("GET", "/api/admin/charity/campaigns"),
+  createAdminCharityCampaign: (data: { title: string; description: string; isActive?: boolean }) =>
+    request<any>("POST", "/api/admin/charity/campaigns", data),
+  updateAdminCharityCampaign: (id: string, data: Record<string, unknown>) =>
+    request<any>("PUT", `/api/admin/charity/campaigns/${id}`, data),
+  deleteAdminCharityCampaign: (id: string) => request<{ ok: boolean }>("DELETE", `/api/admin/charity/campaigns/${id}`),
+  getAdminCharityDonations: () => request<any[]>("GET", "/api/admin/charity/donations"),
 };
 
 export function setSessionToken(token: string | undefined, csrfToken?: string) {

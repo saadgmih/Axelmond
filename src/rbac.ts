@@ -373,5 +373,9 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
     return normalized === "STUDENT";
   }
 
+  if (cleanPath.startsWith("/api/charity/")) {
+    return true;
+  }
+
   return false;
 }

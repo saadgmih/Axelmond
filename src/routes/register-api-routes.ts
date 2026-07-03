@@ -12,6 +12,8 @@ import { registerPaymentsRoutes } from "./payments-routes";
 import { registerProfileRoutes } from "./profile-routes";
 import { registerQuizRoutes } from "./quiz-routes";
 import { registerMessagingRoutes } from "./messaging-routes";
+import { registerCharityRoutes } from "./charity-routes";
+import { registerCharityAdminRoutes } from "./charity-admin-routes";
 import { registerMobileApiRoutes } from "./mobile-api-routes";
 import type { RouteContext } from "../server/route-context";
 
@@ -22,6 +24,8 @@ export function registerApiRoutes(app: Express, ctx: RouteContext): void {
   registerContentRoutes(app, ctx);
   registerQuizRoutes(app, ctx);
   registerAdminRoutes(app, ctx);
+  registerCharityRoutes(app, ctx);
+  registerCharityAdminRoutes(app, ctx);
   registerAuthRoutes(app, ctx);
   registerProfileRoutes(app, ctx);
   registerObjectivesRoutes(app, ctx);
