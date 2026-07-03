@@ -16,16 +16,13 @@ rulesTest("director-identity", () => {
   assert.match(profileSource, /\/director-oussama-footer\.png/);
 
   const identitySource = fs.readFileSync("src/components/DirectorIdentity.tsx", "utf8");
-  assert.match(identitySource, /DirectorSidebarCard/);
-  assert.match(identitySource, /DirectorWelcomeCard/);
+  assert.doesNotMatch(identitySource, /DirectorSidebarCard/);
+  assert.doesNotMatch(identitySource, /DirectorWelcomeCard/);
   assert.match(identitySource, /DirectorFounderSection/);
   assert.match(identitySource, /DirectorAuthCard/);
   assert.match(identitySource, /DirectorFooterLine/);
 
   const expectedIntegrations = [
-    ["src/components/Sidebar.tsx", /DirectorSidebarCard/],
-    ["src/views/student/StudentDashboardView.tsx", /DirectorWelcomeCard/],
-    ["src/views/teacher/TeacherDashboardView.tsx", /DirectorWelcomeCard/],
     ["src/components/AboutView.tsx", /DirectorFounderSection/],
     ["src/components/AuthScreen.tsx", /DirectorAuthCard/],
     ["src/app/AppFooter.tsx", /DirectorFooterLine/],
@@ -33,5 +30,15 @@ rulesTest("director-identity", () => {
 
   for (const [file, pattern] of expectedIntegrations) {
     assert.match(fs.readFileSync(file, "utf8"), pattern);
+  }
+
+  const removedIntegrations = [
+    ["src/components/Sidebar.tsx", /DirectorSidebarCard/],
+    ["src/views/student/StudentDashboardView.tsx", /DirectorWelcomeCard/],
+    ["src/views/teacher/TeacherDashboardView.tsx", /DirectorWelcomeCard/],
+  ] as const;
+
+  for (const [file, pattern] of removedIntegrations) {
+    assert.doesNotMatch(fs.readFileSync(file, "utf8"), pattern);
   }
 });

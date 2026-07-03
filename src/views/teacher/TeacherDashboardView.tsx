@@ -24,7 +24,6 @@ import {
   Zap,
 } from "lucide-react";
 import { api } from "../../api";
-import { DirectorWelcomeCard } from "../../components/DirectorIdentity";
 import type { AppUser } from "../../components/AuthScreen";
 import CoursePriceSlider from "../../components/CoursePriceSlider";
 import type { AcademicProfilePayload, Course, CourseGrade } from "../../types";
@@ -454,8 +453,6 @@ export default function TeacherDashboardView({
           </p>
         </div>
       </div>
-
-      <DirectorWelcomeCard tone="emerald" />
 
       {currentUser.role === "ADMIN" && (
         <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-5">

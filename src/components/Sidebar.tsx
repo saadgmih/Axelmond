@@ -10,7 +10,6 @@ import { useSidebarConversations } from "../hooks/useSidebarConversations";
 import { useSidebarLayout } from "../hooks/useSidebarLayout";
 import { getSidebarNavItems, getSidebarRoleIcon, type SidebarNavContext } from "../navigation/sidebar-config";
 import { SidebarNavButton } from "./sidebar/SidebarNavButton";
-import { DirectorSidebarCard } from "./DirectorIdentity";
 
 interface SidebarProps {
   currentView: string;
@@ -299,8 +298,6 @@ export default function Sidebar({
           </button>
         </div>
       </div>
-
-      <DirectorSidebarCard />
 
       <div className="sidebar-glass-section space-y-2 border-b border-white/10 px-4 py-4">
         <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
