@@ -5,7 +5,7 @@ import type { useInView } from "../../hooks/useInView";
 type InViewRef = ReturnType<typeof useInView<HTMLDivElement>>;
 
 export const InstitutionalPageRoot: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="min-h-full bg-[var(--pa-site-background)] text-white">{children}</div>
+  <div className="min-h-full bg-slate-950 text-white">{children}</div>
 );
 
 export const InstitutionalFade: React.FC<{

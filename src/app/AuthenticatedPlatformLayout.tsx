@@ -31,7 +31,7 @@ export function AuthenticatedPlatformLayout() {
   const { isDrawer } = useSidebarLayout();
 
   return (
-    <div className="flex h-[100dvh] max-h-[100dvh] overflow-hidden bg-[var(--pa-site-background)] font-sans">
+    <div className="flex h-[100dvh] max-h-[100dvh] overflow-hidden bg-slate-950 font-sans">
       {live.needsLiveKitSession && session.currentUser && (
         <Suspense fallback={null}>
           <LazyLiveKitSessionHost
@@ -113,7 +113,7 @@ export function AuthenticatedPlatformLayout() {
         <main
           id="main-content"
           tabIndex={-1}
-          className={`flex-1 relative bg-[var(--pa-site-background)] outline-none min-h-0 ${ui.lockMainScroll ? "overflow-hidden" : "overflow-y-auto"}`}
+          className={`flex-1 relative bg-slate-950 outline-none min-h-0 ${ui.lockMainScroll ? "overflow-hidden" : "overflow-y-auto"}`}
         >
           {INSTITUTIONAL_VIEWS.has(currentView) ? (
             <InstitutionalViewSwitch

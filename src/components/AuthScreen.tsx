@@ -238,7 +238,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--pa-site-background)] flex flex-col justify-center items-center p-4 py-8 md:py-12 relative overflow-y-auto font-sans">
+    <div className="min-h-screen bg-slate-900 flex flex-col justify-center items-center p-4 py-8 md:py-12 relative overflow-y-auto font-sans">
       <SkipLink href="#auth-main" />
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none"></div>

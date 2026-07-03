@@ -16,7 +16,6 @@ const readPngInfo = (filePath: string) => {
 rulesTest("brand-green-theme", () => {
   const cssSource = fs.readFileSync("src/index.css", "utf8");
   assert.match(cssSource, /--pa-brand-500:\s*#05c2a5/i);
-  assert.match(cssSource, /--pa-site-background:\s*#22d3bb/i);
   assert.match(cssSource, /--color-indigo-500:\s*var\(--pa-brand-500\)/);
   assert.match(cssSource, /--color-violet-500:\s*var\(--pa-brand-500\)/);
   assert.match(cssSource, /--color-pink-500:\s*var\(--pa-brand-500\)/);
@@ -47,19 +46,6 @@ rulesTest("brand-green-theme", () => {
   assert.match(emailSource, /performance-logo-3d-symbol\.png/);
   assert.doesNotMatch(emailSource, /performance-logo-symbol\.png/);
   assert.doesNotMatch(emailSource, /#8b5cf6|#ec4899|#6366f1|#4c1d95|#9d174d|#93c5fd|#ef4444|#7f1d1d|#fca5a5/i);
-
-  const indexHtmlSource = fs.readFileSync("index.html", "utf8");
-  assert.match(indexHtmlSource, /background:\s*#22d3bb/i);
-
-  for (const file of [
-    "src/app/AuthenticatedPlatformLayout.tsx",
-    "src/app/PlatformAppRoot.tsx",
-    "src/components/AuthScreen.tsx",
-    "src/components/GlobalErrorBoundary.tsx",
-    "src/components/legal/InstitutionalPageShell.tsx",
-  ]) {
-    assert.match(fs.readFileSync(file, "utf8"), /bg-\[var\(--pa-site-background\)\]/);
-  }
 
   const manifestSource = fs.readFileSync("public/manifest.json", "utf8");
   assert.match(manifestSource, /"theme_color":\s*"#05C2A5"/);
