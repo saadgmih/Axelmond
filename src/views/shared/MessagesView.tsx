@@ -80,7 +80,7 @@ function renderAttachment(message: ChatMessage, role: "student" | "teacher", min
       href={attachment.url}
       target="_blank"
       rel="noreferrer"
-      className="mt-2 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs font-semibold text-indigo-200 hover:bg-black/30"
+      className="mt-2 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs font-semibold text-emerald-200 hover:bg-black/30"
     >
       <FileText className="h-4 w-4" />
       {attachment.fileName}
@@ -109,7 +109,7 @@ const ConversationListItem = memo(function ConversationListItem({
       className={`flex w-full items-start gap-3 border-b border-white/[0.05] px-4 py-3 text-left transition ${active ? "bg-white/10" : "hover:bg-white/5"}`}
     >
       <div
-        className={`flex h-11 w-11 items-center justify-center rounded-full ${active ? (role === "teacher" ? "bg-pink-600/30" : "bg-indigo-600/30") : "bg-slate-700"} text-sm font-black text-white`}
+        className={`flex h-11 w-11 items-center justify-center rounded-full ${active ? (role === "teacher" ? "bg-emerald-600/30" : "bg-emerald-600/30") : "bg-slate-700"} text-sm font-black text-white`}
       >
         {conversation.peer?.avatarUrl ? (
           <img src={conversation.peer.avatarUrl} alt="" className="h-full w-full rounded-full object-cover" />
@@ -193,8 +193,8 @@ const MessageBubble = memo(function MessageBubble({
           <div
             className={`max-w-[85%] rounded-2xl px-4 py-3 shadow-lg ${
               mine
-                ? "rounded-br-md bg-indigo-600 text-white"
-                : "rounded-bl-md border border-white/10 bg-[#0f172a] text-slate-100"
+                ? "rounded-br-md bg-emerald-600 text-white"
+                : "rounded-bl-md border border-white/10 bg-[#0b241f] text-slate-100"
             }`}
           >
             <p className="whitespace-pre-wrap text-sm">{message.body}</p>
@@ -211,11 +211,11 @@ const MessageBubble = memo(function MessageBubble({
       <div
         className={`relative rounded-2xl shadow-lg ${
           isAudioOnly ? "w-auto min-w-[200px] max-w-[min(85%,280px)] px-4 py-3" : "max-w-[85%] px-4 py-3"
-        } ${mine ? "rounded-br-md bg-indigo-600 text-white" : "rounded-bl-md border border-white/10 bg-[#0f172a] text-slate-100"}`}
+        } ${mine ? "rounded-br-md bg-emerald-600 text-white" : "rounded-bl-md border border-white/10 bg-[#0b241f] text-slate-100"}`}
       >
         {message.body && <p className="whitespace-pre-wrap text-sm">{message.body}</p>}
         {renderAttachment(message, role, mine)}
-        <div className={`mt-2 flex items-center gap-1.5 text-[10px] ${mine ? "text-indigo-100/80" : "text-slate-500"}`}>
+        <div className={`mt-2 flex items-center gap-1.5 text-[10px] ${mine ? "text-emerald-100/80" : "text-slate-500"}`}>
           <span>{message.sentAtLabel}</span>
           {mine &&
             (message.seenByOthers ? (
@@ -231,7 +231,7 @@ const MessageBubble = memo(function MessageBubble({
               aria-label="Supprimer ce message"
               title="Supprimer (disponible 4 jours après l'envoi)"
               className={`ml-1 inline-flex h-6 w-6 items-center justify-center rounded-md transition-colors disabled:opacity-50 ${
-                mine ? "text-indigo-100/80 hover:bg-white/15 hover:text-white" : "text-slate-400 hover:bg-white/10"
+                mine ? "text-emerald-100/80 hover:bg-white/15 hover:text-white" : "text-slate-400 hover:bg-white/10"
               }`}
             >
               {deleting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
@@ -531,8 +531,8 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
 
   const accentBtn =
     role === "teacher"
-      ? "bg-gradient-to-r from-pink-600 to-indigo-600 hover:from-pink-500 hover:to-indigo-500"
-      : "bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500";
+      ? "bg-gradient-to-r from-emerald-600 to-emerald-600 hover:from-emerald-500 hover:to-emerald-500"
+      : "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500";
 
   return (
     <div className={scheduleUi.page}>
@@ -555,7 +555,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
 
       {error && <div className={scheduleUi.alertError}>{error}</div>}
 
-      <div className="grid min-h-[70vh] grid-cols-1 overflow-hidden rounded-3xl border border-white/[0.08] bg-[#0f172a]/80 shadow-2xl shadow-black/30 lg:grid-cols-[340px_1fr]">
+      <div className="grid min-h-[70vh] grid-cols-1 overflow-hidden rounded-3xl border border-white/[0.08] bg-[#0b241f]/80 shadow-2xl shadow-black/30 lg:grid-cols-[340px_1fr]">
         <aside
           className={`border-b border-white/[0.08] lg:border-b-0 lg:border-r ${selectedId ? "hidden lg:flex" : "flex"} flex-col`}
         >
@@ -571,7 +571,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
               />
             </label>
             {userResults.length > 0 && (
-              <div className="mt-3 max-h-40 overflow-y-auto rounded-xl border border-white/[0.08] bg-[#020617]/80">
+              <div className="mt-3 max-h-40 overflow-y-auto rounded-xl border border-white/[0.08] bg-[#031512]/80">
                 {userResults.map((user) => (
                   <button
                     key={user.id}
@@ -619,7 +619,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
           </div>
         </aside>
 
-        <section className={`${selectedId ? "flex" : "hidden lg:flex"} min-h-[420px] flex-col bg-[#020617]/40`}>
+        <section className={`${selectedId ? "flex" : "hidden lg:flex"} min-h-[420px] flex-col bg-[#031512]/40`}>
           {!selectedConversation ? (
             <div className="flex flex-1 items-center justify-center p-8 text-center text-slate-500">
               Sélectionnez une conversation ou créez-en une nouvelle.
@@ -682,7 +682,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
                   <div className="mb-3 space-y-1.5">
                     <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
                       <div
-                        className={`h-full rounded-full transition-all duration-200 ${role === "teacher" ? "bg-pink-500" : "bg-indigo-500"}`}
+                        className={`h-full rounded-full transition-all duration-200 ${role === "teacher" ? "bg-emerald-500" : "bg-emerald-500"}`}
                         style={{ width: uploadProgressBarWidth(uploadProgress) }}
                       />
                     </div>
@@ -796,7 +796,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
                     key={user.id}
                     type="button"
                     onClick={() => startConversation(user.id)}
-                    className="flex w-full items-center gap-3 rounded-xl border border-white/[0.08] bg-[#020617]/70 px-3 py-3 text-left hover:border-indigo-500/30"
+                    className="flex w-full items-center gap-3 rounded-xl border border-white/[0.08] bg-[#031512]/70 px-3 py-3 text-left hover:border-emerald-500/30"
                   >
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-700 text-xs font-bold">
                       {peerInitials(user.fullName)}

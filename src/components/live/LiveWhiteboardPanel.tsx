@@ -133,7 +133,7 @@ export default function LiveWhiteboardPanel({
           onClick={() => setTool("draw")}
           className={`rounded-xl border px-3 py-2 text-[11px] font-bold transition ${
             tool === "draw"
-              ? "border-indigo-400/40 bg-indigo-500/10 text-indigo-200"
+              ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-200"
               : "border-white/10 bg-zinc-900 text-zinc-300"
           }`}
         >
@@ -145,7 +145,7 @@ export default function LiveWhiteboardPanel({
           onClick={() => setTool("shapes")}
           className={`rounded-xl border px-3 py-2 text-[11px] font-bold transition ${
             tool === "shapes"
-              ? "border-cyan-400/40 bg-cyan-500/10 text-cyan-200"
+              ? "border-teal-400/40 bg-teal-500/10 text-teal-200"
               : "border-white/10 bg-zinc-900 text-zinc-300"
           }`}
         >

@@ -64,9 +64,9 @@ export default function StudentProfileView({
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300">
       {/* Hero */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-950 via-indigo-900 to-slate-900 text-white shadow-xl border border-indigo-950/50">
-        <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-indigo-500/10 blur-3xl" />
-        <div className="absolute -left-10 bottom-0 h-40 w-40 rounded-full bg-purple-500/10 blur-2xl" />
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-indigo-900 to-slate-900 text-white shadow-xl border border-emerald-950/50">
+        <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl" />
+        <div className="absolute -left-10 bottom-0 h-40 w-40 rounded-full bg-teal-500/10 blur-2xl" />
 
         <div className="relative z-10 p-6 md:p-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -84,14 +84,14 @@ export default function StudentProfileView({
                 />
 
                 <div className="space-y-2 text-center sm:text-left">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-400/30 bg-indigo-500/20 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-indigo-200">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/20 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-emerald-200">
                     <GraduationCap className="h-3 w-3" />
                     Profil Étudiant
                   </span>
                   <h1 className="text-2xl font-black tracking-tight md:text-3xl">
                     {currentUser?.fullName || "Étudiant Performance Académique"}
                   </h1>
-                  <p className="text-sm font-medium text-indigo-200/90">
+                  <p className="text-sm font-medium text-emerald-200/90">
                     {currentUser?.levelOrTitle || "Licence 3 Informatique"} · Performance Académique
                   </p>
                   <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
@@ -104,16 +104,16 @@ export default function StudentProfileView({
               </div>
 
               {avatarStatusMsg && (
-                <p className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-center text-xs font-semibold text-indigo-100 sm:text-left">
+                <p className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-center text-xs font-semibold text-emerald-100 sm:text-left">
                   {avatarStatusMsg}
                 </p>
               )}
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm lg:min-w-[220px]">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-300/80">Compte</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-300/80">Compte</p>
               <p className="mt-1 text-sm font-bold text-white">{currentUser?.fullName || "—"}</p>
-              <p className="mt-2 truncate text-xs font-medium text-indigo-200/80">{currentUser?.email}</p>
+              <p className="mt-2 truncate text-xs font-medium text-emerald-200/80">{currentUser?.email}</p>
             </div>
           </div>
         </div>
@@ -127,14 +127,14 @@ export default function StudentProfileView({
             value: stats.totalCredits,
             suffix: "/ 30",
             icon: Sparkles,
-            accent: "from-indigo-500 to-indigo-600",
+            accent: "from-emerald-500 to-emerald-600",
           },
           {
             label: "Modules inscrits",
             value: stats.enrolledCount,
             suffix: " actifs",
             icon: BookOpen,
-            accent: "from-violet-500 to-purple-600",
+            accent: "from-teal-500 to-teal-600",
           },
           {
             label: "Progression moy.",
@@ -148,7 +148,7 @@ export default function StudentProfileView({
             value: stats.completedQuizzes,
             suffix: "",
             icon: CheckCircle2,
-            accent: "from-amber-500 to-orange-600",
+            accent: "from-lime-500 to-orange-600",
           },
         ].map((item) => (
           <div
@@ -183,7 +183,7 @@ export default function StudentProfileView({
                 <h2 className="text-lg font-black text-slate-900">Progression académique</h2>
                 <p className="mt-0.5 text-xs text-slate-500">Suivi de vos modules inscrits</p>
               </div>
-              <div className="rounded-xl bg-indigo-50 p-2.5 text-indigo-600">
+              <div className="rounded-xl bg-emerald-50 p-2.5 text-emerald-600">
                 <BookOpen className="h-5 w-5" />
               </div>
             </div>
@@ -199,13 +199,13 @@ export default function StudentProfileView({
                           {formatCredits(course.credits)} · {course.level}
                         </p>
                       </div>
-                      <span className="shrink-0 rounded-lg bg-white px-2.5 py-1 text-xs font-black text-indigo-700 shadow-sm">
+                      <span className="shrink-0 rounded-lg bg-white px-2.5 py-1 text-xs font-black text-emerald-700 shadow-sm">
                         {course.progress}%
                       </span>
                     </div>
                     <div className="h-2.5 overflow-hidden rounded-full bg-slate-200">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500"
+                        className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500"
                         style={{ width: `${course.progress}%` }}
                       />
                     </div>
@@ -232,7 +232,7 @@ export default function StudentProfileView({
                 <h2 className="text-lg font-black text-slate-900">Historique des paiements</h2>
                 <p className="mt-0.5 text-xs text-slate-500">Reçus et transactions de vos inscriptions</p>
               </div>
-              <div className="rounded-xl bg-indigo-50 p-2.5 text-indigo-600">
+              <div className="rounded-xl bg-emerald-50 p-2.5 text-emerald-600">
                 <CreditCard className="h-5 w-5" />
               </div>
             </div>
@@ -259,7 +259,7 @@ export default function StudentProfileView({
                           <td className="px-6 py-4 font-semibold text-slate-800">{formatInvoiceReference(inv.id)}</td>
                           <td className="px-4 py-4">{inv.date}</td>
                           <td className="px-4 py-4 font-semibold text-slate-900">{inv.courseTitle}</td>
-                          <td className="px-4 py-4 text-right font-mono font-bold text-indigo-700">
+                          <td className="px-4 py-4 text-right font-mono font-bold text-emerald-700">
                             {formatMad(inv.amount)}
                           </td>
                           <td className="px-6 py-4 text-center">
@@ -287,7 +287,7 @@ export default function StudentProfileView({
                       </div>
                       <div className="mt-3 flex items-center justify-between text-xs">
                         <span className="text-slate-500">{inv.date}</span>
-                        <span className="font-mono font-black text-indigo-700">{formatMad(inv.amount)}</span>
+                        <span className="font-mono font-black text-emerald-700">{formatMad(inv.amount)}</span>
                       </div>
                     </div>
                   ))}
@@ -306,7 +306,7 @@ export default function StudentProfileView({
           <section className="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:col-span-4">
             <div className="border-b border-slate-100 px-6 py-5">
               <h3 className="flex items-center gap-2 text-sm font-black text-slate-900">
-                <Award className="h-4 w-4 text-amber-500" />
+                <Award className="h-4 w-4 text-lime-500" />
                 Statut académique
               </h3>
             </div>
@@ -316,13 +316,13 @@ export default function StudentProfileView({
                   value: stats.validatedModules,
                   title: "Modules validés",
                   desc: "Leçons marquées comme terminées",
-                  color: "bg-amber-50 text-amber-700 border-amber-100",
+                  color: "bg-lime-50 text-lime-700 border-lime-100",
                 },
                 {
                   value: stats.completedQuizzes,
                   title: "Quiz complétés",
                   desc: "Évaluations réussies ou soumises",
-                  color: "bg-indigo-50 text-indigo-700 border-indigo-100",
+                  color: "bg-emerald-50 text-emerald-700 border-emerald-100",
                 },
                 {
                   value: stats.enrolledCount,

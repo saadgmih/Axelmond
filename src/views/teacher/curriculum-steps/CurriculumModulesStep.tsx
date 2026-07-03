@@ -152,7 +152,7 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
   const priceModeButtonClass = (active: boolean) =>
     `inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-black transition-colors ${
       active
-        ? "border-violet-400 bg-violet-500/20 text-white"
+        ? "border-teal-400 bg-teal-500/20 text-white"
         : "border-slate-700 bg-slate-950/70 text-slate-400 hover:border-slate-500 hover:text-white"
     }`;
   const priceInputClass = (isDisabled: boolean, className: string) =>
@@ -164,7 +164,7 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
       <div className={`xl:col-span-5 ${curriculumUi.panel} ${getStepTheme(1).panel} space-y-5 self-start`}>
         <div>
           <h3 className={curriculumUi.panelTitle}>
-            <FilePlus className="h-5 w-5 text-violet-400" />
+            <FilePlus className="h-5 w-5 text-teal-400" />
             Créer un module
           </h3>
         </div>
@@ -320,7 +320,7 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
               type="checkbox"
               checked={newCoursePublished}
               onChange={(e) => setNewCoursePublished(e.target.checked)}
-              className="h-4 w-4 cursor-pointer rounded accent-indigo-600"
+              className="h-4 w-4 cursor-pointer rounded accent-emerald-600"
             />
             Publier immédiatement le module
           </label>
@@ -363,7 +363,7 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
               {editingCourse?.id === course.id ? (
                 <form onSubmit={handleSaveEditCourse} className="space-y-4">
                   <div className={`flex items-center justify-between ${curriculumUi.divider} pb-2`}>
-                    <p className="text-[10px] font-black uppercase tracking-wider text-indigo-400">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-emerald-400">
                       Modifier le module
                     </p>
                   </div>
@@ -549,7 +549,7 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
 
                     <span className={publishedBadge(course.published ?? false)}>
                       <span
-                        className={`h-1.5 w-1.5 rounded-full ${course.published ? "bg-emerald-400" : "bg-amber-400"}`}
+                        className={`h-1.5 w-1.5 rounded-full ${course.published ? "bg-emerald-400" : "bg-lime-400"}`}
                       />
                       {publishedLabel(course.published ?? false)}
                     </span>

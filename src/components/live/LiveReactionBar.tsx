@@ -87,7 +87,7 @@ export default function LiveReactionBar({ onReaction, compact = false, activeRea
           aria-expanded={open}
           aria-haspopup="menu"
           className={`kbd-nav-focus relative flex h-12 min-h-12 w-12 min-w-12 shrink-0 flex-col items-center justify-center rounded-xl transition-all xl:h-[60px] xl:min-h-[60px] xl:w-[60px] xl:min-w-[60px] ${
-            open ? "bg-indigo-500/10 border border-indigo-400/30 text-indigo-300" : "hover:bg-zinc-800 text-zinc-300"
+            open ? "bg-emerald-500/10 border border-emerald-400/30 text-emerald-300" : "hover:bg-zinc-800 text-zinc-300"
           }`}
         >
           <SmilePlus className="mb-1 h-5 w-5 xl:mb-1.5" />
@@ -114,8 +114,8 @@ export default function LiveReactionBar({ onReaction, compact = false, activeRea
                       aria-pressed={isActive}
                       className={`flex h-10 min-w-10 items-center justify-center rounded-xl border text-lg transition hover:scale-105 ${
                         isActive
-                          ? "border-indigo-400/50 bg-indigo-500/20 ring-2 ring-indigo-400/30"
-                          : "border-white/10 bg-zinc-950/80 hover:border-indigo-400/30 hover:bg-indigo-500/10"
+                          ? "border-emerald-400/50 bg-emerald-500/20 ring-2 ring-emerald-400/30"
+                          : "border-white/10 bg-zinc-950/80 hover:border-emerald-400/30 hover:bg-emerald-500/10"
                       }`}
                       aria-label={isActive ? `Retirer la réaction ${reaction}` : `Réagir ${reaction}`}
                     >
@@ -140,7 +140,7 @@ export default function LiveReactionBar({ onReaction, compact = false, activeRea
             key={reaction}
             type="button"
             onClick={() => onReaction(reaction)}
-            className="flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/10 bg-zinc-950/80 text-lg transition hover:scale-105 hover:border-indigo-400/30 hover:bg-indigo-500/10"
+            className="flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/10 bg-zinc-950/80 text-lg transition hover:scale-105 hover:border-emerald-400/30 hover:bg-emerald-500/10"
             aria-label={`Réagir ${reaction}`}
           >
             {reaction}

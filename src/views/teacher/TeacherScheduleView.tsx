@@ -64,7 +64,7 @@ export default function TeacherScheduleView(props: TeacherScheduleViewProps) {
       {errorMsg && <div className={scheduleUi.alertError}>{errorMsg}</div>}
 
       {isLoading ? (
-        <div className="rounded-2xl border border-white/[0.08] bg-[#0f172a]/70 px-6 py-10 text-center text-sm font-semibold text-slate-400">
+        <div className="rounded-2xl border border-white/[0.08] bg-[#0b241f]/70 px-6 py-10 text-center text-sm font-semibold text-slate-400">
           Chargement de votre emploi du temps...
         </div>
       ) : (

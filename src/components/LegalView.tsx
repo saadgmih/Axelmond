@@ -51,8 +51,8 @@ export default function LegalView() {
       <InstitutionalHero
         heroRef={heroRef}
         gradientClass="via-slate-900/50"
-        topBlobClass="top-0 right-0 w-[480px] h-[480px] bg-indigo-600/5 rounded-full translate-x-60 -translate-y-60"
-        bottomBlobClass="bottom-0 left-0 w-80 h-80 bg-violet-600/5 rounded-full -translate-x-40 translate-y-40"
+        topBlobClass="top-0 right-0 w-[480px] h-[480px] bg-emerald-600/5 rounded-full translate-x-60 -translate-y-60"
+        bottomBlobClass="bottom-0 left-0 w-80 h-80 bg-teal-600/5 rounded-full -translate-x-40 translate-y-40"
       >
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
           {/* Left */}
@@ -77,7 +77,7 @@ export default function LegalView() {
               {[
                 { label: "Droit marocain", color: "text-slate-300 border-slate-600 bg-slate-700/30" },
                 { label: "Loi 09-08", color: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10" },
-                { label: "CNDP", color: "text-sky-300 border-sky-500/30 bg-sky-500/10" },
+                { label: "CNDP", color: "text-teal-300 border-teal-500/30 bg-teal-500/10" },
               ].map(({ label, color }) => (
                 <span
                   key={label}
@@ -129,7 +129,7 @@ export default function LegalView() {
                 emoji="🏢"
                 icon={<Building2 className="w-5 h-5" />}
                 title="Éditeur de la plateforme"
-                accentClass="bg-indigo-500/15 border border-indigo-500/20"
+                accentClass="bg-emerald-500/15 border border-emerald-500/20"
               />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <InstitutionalInfoRow
@@ -196,7 +196,7 @@ export default function LegalView() {
                 emoji="👤"
                 icon={<User className="w-5 h-5" />}
                 title="Responsable de publication"
-                accentClass="bg-violet-500/15 border border-violet-500/20"
+                accentClass="bg-teal-500/15 border border-teal-500/20"
               />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-4">
@@ -211,7 +211,7 @@ export default function LegalView() {
                     en vigueur, les règles académiques et les standards de qualité de la plateforme.
                   </p>
                   <InstitutionalCheckList
-                    color="text-violet-400"
+                    color="text-teal-400"
                     items={[
                       "Supervision de la qualité des contenus pédagogiques publiés",
                       "Conformité des publications avec les règles académiques et légales",
@@ -237,8 +237,8 @@ export default function LegalView() {
                     icon={<Mail className="w-3.5 h-3.5" />}
                     mono
                   />
-                  <div className="bg-violet-950/20 border border-violet-800/30 rounded-xl px-4 py-3 flex items-start gap-2.5">
-                    <Info className="w-3.5 h-3.5 text-violet-400 flex-shrink-0 mt-0.5" />
+                  <div className="bg-teal-950/20 border border-teal-800/30 rounded-xl px-4 py-3 flex items-start gap-2.5">
+                    <Info className="w-3.5 h-3.5 text-teal-400 flex-shrink-0 mt-0.5" />
                     <p className="text-[11px] text-slate-400">
                       Toute demande de rectification ou de suppression de contenu peut être adressée directement au
                       responsable de publication via l'adresse de contact officielle.
@@ -259,7 +259,7 @@ export default function LegalView() {
                 emoji="🌐"
                 icon={<Server className="w-5 h-5" />}
                 title="Hébergement"
-                accentClass="bg-sky-500/15 border border-sky-500/20"
+                accentClass="bg-teal-500/15 border border-teal-500/20"
               />
               <p className="text-[13px] text-slate-400 leading-relaxed mb-5">
                 La plateforme Performance Académique est hébergée sur une{" "}
@@ -270,10 +270,10 @@ export default function LegalView() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
                 {[
                   {
-                    icon: <Cpu className="w-4 h-4 text-sky-400" />,
+                    icon: <Cpu className="w-4 h-4 text-teal-400" />,
                     label: "Infrastructure",
                     value: "Serveurs cloud sécurisés",
-                    border: "border-sky-800/30 bg-sky-950/15",
+                    border: "border-teal-800/30 bg-teal-950/15",
                   },
                   {
                     icon: <Shield className="w-4 h-4 text-emerald-400" />,
@@ -282,16 +282,16 @@ export default function LegalView() {
                     border: "border-emerald-800/30 bg-emerald-950/15",
                   },
                   {
-                    icon: <Globe className="w-4 h-4 text-violet-400" />,
+                    icon: <Globe className="w-4 h-4 text-teal-400" />,
                     label: "Disponibilité",
                     value: "99,9 % uptime SLA",
-                    border: "border-violet-800/30 bg-violet-950/15",
+                    border: "border-teal-800/30 bg-teal-950/15",
                   },
                   {
-                    icon: <Lock className="w-4 h-4 text-amber-400" />,
+                    icon: <Lock className="w-4 h-4 text-lime-400" />,
                     label: "Confidentialité",
                     value: "Données chiffrées en transit",
-                    border: "border-amber-800/30 bg-amber-950/15",
+                    border: "border-lime-800/30 bg-lime-950/15",
                   },
                 ].map(({ icon, label, value, border }) => (
                   <div key={label} className={`rounded-2xl border p-4 space-y-2 ${border}`}>
@@ -302,7 +302,7 @@ export default function LegalView() {
                 ))}
               </div>
               <div className="bg-slate-950/50 border border-slate-800 rounded-2xl p-5 flex items-start gap-3">
-                <Info className="w-4 h-4 text-sky-400 flex-shrink-0 mt-0.5" />
+                <Info className="w-4 h-4 text-teal-400 flex-shrink-0 mt-0.5" />
                 <p className="text-[12px] text-slate-400 leading-relaxed">
                   L'infrastructure d'hébergement est soumise aux mêmes exigences de conformité prévues par la loi n°
                   09-08 que la plateforme elle-même. Les données des utilisateurs sont traitées conformément aux
@@ -323,7 +323,7 @@ export default function LegalView() {
                 emoji="©️"
                 icon={<Copyright className="w-5 h-5" />}
                 title="Propriété intellectuelle"
-                accentClass="bg-amber-500/15 border border-amber-500/20"
+                accentClass="bg-lime-500/15 border border-lime-500/20"
               />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-4">
@@ -334,7 +334,7 @@ export default function LegalView() {
                     applicable.
                   </p>
                   <InstitutionalCheckList
-                    color="text-amber-400"
+                    color="text-lime-400"
                     items={[
                       "Les modules et supports pédagogiques sont protégés par le droit d'auteur",
                       "Le nom « Performance Académique » et son logo sont des marques protégées",
@@ -433,10 +433,10 @@ export default function LegalView() {
                   ))}
                 </div>
               </div>
-              <div className="bg-amber-950/15 border border-amber-800/25 rounded-2xl px-5 py-4 flex items-start gap-3">
-                <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+              <div className="bg-lime-950/15 border border-lime-800/25 rounded-2xl px-5 py-4 flex items-start gap-3">
+                <AlertTriangle className="w-4 h-4 text-lime-400 flex-shrink-0 mt-0.5" />
                 <p className="text-[12px] text-slate-400 leading-relaxed">
-                  <strong className="text-amber-300">Liens externes :</strong> La plateforme peut contenir des liens
+                  <strong className="text-lime-300">Liens externes :</strong> La plateforme peut contenir des liens
                   vers des sites ou services tiers (paiement, visioconférence, authentification, etc.). Performance
                   Académique n'est pas responsable du contenu, de la politique de confidentialité ou des pratiques de
                   ces sites externes. Consultez leurs mentions légales respectives avant tout usage.
@@ -472,24 +472,24 @@ export default function LegalView() {
                       emoji: "🔏",
                       title: "Politique de confidentialité",
                       desc: "Données collectées, finalités, durées de conservation, droits des utilisateurs et contact DPO.",
-                      color: "border-indigo-800/40 bg-indigo-950/20",
-                      chip: "text-indigo-300 border-indigo-500/30 bg-indigo-500/10",
+                      color: "border-emerald-800/40 bg-emerald-950/20",
+                      chip: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10",
                       label: "→ Lire la politique",
                     },
                     {
                       emoji: "🍪",
                       title: "Politique des cookies",
                       desc: "Types de cookies, finalités, durées de conservation et gestion de vos préférences.",
-                      color: "border-amber-800/40 bg-amber-950/20",
-                      chip: "text-amber-300 border-amber-500/30 bg-amber-500/10",
+                      color: "border-lime-800/40 bg-lime-950/20",
+                      chip: "text-lime-300 border-lime-500/30 bg-lime-500/10",
                       label: "→ Gérer les cookies",
                     },
                     {
                       emoji: "📋",
                       title: "Conditions d'utilisation",
                       desc: "Règles d'usage, responsabilités, sanctions et droits des utilisateurs de la plateforme.",
-                      color: "border-violet-800/40 bg-violet-950/20",
-                      chip: "text-violet-300 border-violet-500/30 bg-violet-500/10",
+                      color: "border-teal-800/40 bg-teal-950/20",
+                      chip: "text-teal-300 border-teal-500/30 bg-teal-500/10",
                       label: "→ Lire les conditions",
                     },
                   ].map(({ emoji, title, desc, color, chip, label }) => (
@@ -536,7 +536,7 @@ export default function LegalView() {
                 emoji="📧"
                 icon={<Mail className="w-5 h-5" />}
                 title="Contact légal"
-                accentClass="bg-rose-500/15 border border-rose-500/20"
+                accentClass="bg-emerald-500/15 border border-emerald-500/20"
               />
               <p className="text-[13px] text-slate-400 leading-relaxed mb-6">
                 Pour toute demande juridique, administrative ou réglementaire concernant la plateforme Performance
@@ -547,12 +547,12 @@ export default function LegalView() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
                 {[
                   {
-                    icon: <Mail className="w-5 h-5 text-rose-400" />,
+                    icon: <Mail className="w-5 h-5 text-emerald-400" />,
                     title: "Demandes juridiques",
                     contact: "legal@axelmond.com",
                     objet: "Demande juridique — Mentions légales",
                     delay: "10 jours ouvrables",
-                    color: "border-rose-800/30 bg-rose-950/15",
+                    color: "border-emerald-800/30 bg-emerald-950/15",
                   },
                   {
                     icon: <Shield className="w-5 h-5 text-emerald-400" />,
@@ -563,20 +563,20 @@ export default function LegalView() {
                     color: "border-emerald-800/30 bg-emerald-950/15",
                   },
                   {
-                    icon: <Copyright className="w-5 h-5 text-amber-400" />,
+                    icon: <Copyright className="w-5 h-5 text-lime-400" />,
                     title: "Droits d'auteur & PI",
                     contact: "legal@axelmond.com",
                     objet: "Demande PI — Propriété intellectuelle",
                     delay: "15 jours ouvrables",
-                    color: "border-amber-800/30 bg-amber-950/15",
+                    color: "border-lime-800/30 bg-lime-950/15",
                   },
                   {
-                    icon: <PhoneCall className="w-5 h-5 text-sky-400" />,
+                    icon: <PhoneCall className="w-5 h-5 text-teal-400" />,
                     title: "Demandes administratives",
                     contact: "contact@axelmond.com",
                     objet: "Demande administrative — Performance Académique",
                     delay: "10 jours ouvrables",
-                    color: "border-sky-800/30 bg-sky-950/15",
+                    color: "border-teal-800/30 bg-teal-950/15",
                   },
                 ].map(({ icon, title, contact, objet, delay, color }) => (
                   <div key={title} className={`rounded-2xl border p-5 space-y-3 ${color}`}>
@@ -589,7 +589,7 @@ export default function LegalView() {
                         <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold w-14 flex-shrink-0">
                           Email
                         </span>
-                        <code className="text-indigo-300 text-[11px] font-mono">{contact}</code>
+                        <code className="text-emerald-300 text-[11px] font-mono">{contact}</code>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold w-14 flex-shrink-0">
@@ -621,7 +621,7 @@ export default function LegalView() {
                     href={PERFORMANCE_ACADEMIQUE_LOCATION.googleMapsUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 font-bold text-indigo-300 transition-colors hover:text-indigo-200"
+                    className="inline-flex items-center gap-1.5 font-bold text-emerald-300 transition-colors hover:text-emerald-200"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     Ouvrir l'adresse officielle dans Google Maps
@@ -667,21 +667,21 @@ export default function LegalView() {
                   {[
                     {
                       label: "Politique de confidentialité",
-                      color: "text-indigo-300 border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20",
+                      color: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20",
                     },
                     {
                       label: "Conditions d'utilisation",
-                      color: "text-violet-300 border-violet-500/30 bg-violet-500/10 hover:bg-violet-500/20",
+                      color: "text-teal-300 border-teal-500/30 bg-teal-500/10 hover:bg-teal-500/20",
                     },
                     {
                       label: "Politique des cookies",
-                      color: "text-amber-300 border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20",
+                      color: "text-lime-300 border-lime-500/30 bg-lime-500/10 hover:bg-lime-500/20",
                     },
                     {
                       label: "Centre d'aide",
                       color: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20",
                     },
-                    { label: "Contact", color: "text-sky-300 border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20" },
+                    { label: "Contact", color: "text-teal-300 border-teal-500/30 bg-teal-500/10 hover:bg-teal-500/20" },
                   ].map(({ label, color }) => (
                     <span
                       key={label}
@@ -712,7 +712,7 @@ export default function LegalView() {
                   <span className="text-[10px] font-black uppercase tracking-widest border px-2.5 py-1 rounded-full text-emerald-300 border-emerald-500/30 bg-emerald-500/10">
                     Loi 09-08
                   </span>
-                  <span className="text-[10px] font-black uppercase tracking-widest border px-2.5 py-1 rounded-full text-sky-300 border-sky-500/30 bg-sky-500/10">
+                  <span className="text-[10px] font-black uppercase tracking-widest border px-2.5 py-1 rounded-full text-teal-300 border-teal-500/30 bg-teal-500/10">
                     CNDP
                   </span>
                 </div>

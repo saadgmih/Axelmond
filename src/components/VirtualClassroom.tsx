@@ -169,9 +169,9 @@ export default function VirtualClassroom({
       <span className="sr-only">Rapport de présence</span>
 
       {ui.pipError && (
-        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-50 bg-zinc-900 border border-amber-500/40 shadow-2xl rounded-xl p-4 flex items-center gap-4 max-w-md animate-in slide-in-from-bottom-4 fade-in duration-300">
-          <div className="bg-amber-500/20 p-2 rounded-full">
-            <PictureInPicture2 className="w-5 h-5 text-amber-300" />
+        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-50 bg-zinc-900 border border-lime-500/40 shadow-2xl rounded-xl p-4 flex items-center gap-4 max-w-md animate-in slide-in-from-bottom-4 fade-in duration-300">
+          <div className="bg-lime-500/20 p-2 rounded-full">
+            <PictureInPicture2 className="w-5 h-5 text-lime-300" />
           </div>
           <div className="flex-1">
             <h4 className="text-xs font-bold text-white mb-0.5">Picture-in-Picture</h4>
@@ -348,7 +348,7 @@ export default function VirtualClassroom({
                 aria-selected={ui.activeTab === tab.id}
                 className={`kbd-nav-focus flex flex-col items-center justify-center py-2 rounded-lg transition-all min-h-[52px] ${
                   ui.activeTab === tab.id
-                    ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shadow-inner"
+                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-inner"
                     : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50"
                 }`}
               >

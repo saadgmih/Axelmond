@@ -101,7 +101,7 @@ function DarkInput({
       <Icon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
       <input
         {...props}
-        className="w-full rounded-xl border border-white/10 bg-[#0c0d18] py-2.5 pl-10 pr-10 text-sm text-white placeholder:text-slate-500 focus:border-violet-500/50 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
+        className="w-full rounded-xl border border-white/10 bg-[#0c0d18] py-2.5 pl-10 pr-10 text-sm text-white placeholder:text-slate-500 focus:border-teal-500/50 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
       />
       {trailing ? <div className="absolute right-3 top-1/2 -translate-y-1/2">{trailing}</div> : null}
     </div>
@@ -130,7 +130,7 @@ function StatusPill({
       <div className="min-w-0 pt-0.5">
         <p className="text-[10px] font-bold uppercase leading-snug tracking-wider text-slate-400">{label}</p>
         <p
-          className={`mt-1 break-words text-xs font-bold leading-snug ${active ? "text-emerald-400" : "text-amber-400"}`}
+          className={`mt-1 break-words text-xs font-bold leading-snug ${active ? "text-emerald-400" : "text-lime-400"}`}
         >
           {value}
         </p>
@@ -281,7 +281,7 @@ export default function SecuritySettingsPanel({
         <div className="border-b border-white/5 px-6 py-6 md:px-8">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 shadow-lg shadow-violet-900/40">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-600 to-emerald-600 shadow-lg shadow-teal-900/40">
                 <ShieldCheck className="h-6 w-6 text-white" />
               </div>
               <div>
@@ -354,14 +354,14 @@ export default function SecuritySettingsPanel({
           {(message || error) && (
             <div
               role="alert"
-              className={`mb-6 rounded-xl px-4 py-3 text-xs ${error ? "border border-rose-500/30 bg-rose-500/10 text-rose-300" : "border border-emerald-500/30 bg-emerald-500/10 text-emerald-300"}`}
+              className={`mb-6 rounded-xl px-4 py-3 text-xs ${error ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border border-emerald-500/30 bg-emerald-500/10 text-emerald-300"}`}
             >
               {error || message}
             </div>
           )}
 
           {recoveryCodes && (
-            <div className="mb-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-100">
+            <div className="mb-6 rounded-2xl border border-lime-500/30 bg-lime-500/10 p-4 text-xs text-lime-100">
               <p className="font-bold">Codes de secours — enregistrez-les maintenant :</p>
               <ul className="mt-2 grid grid-cols-2 gap-1 font-mono sm:grid-cols-4">
                 {recoveryCodes.map((code) => (
@@ -374,7 +374,7 @@ export default function SecuritySettingsPanel({
           <div className="grid gap-6 lg:grid-cols-2 lg:items-stretch">
             <section className="flex h-full flex-col rounded-2xl border border-white/10 bg-[#0a0b14] p-5 md:p-6">
               <div className="mb-5 flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/15 text-violet-400">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-500/15 text-teal-400">
                   <Smartphone className="h-5 w-5" />
                 </div>
                 <div>
@@ -397,7 +397,7 @@ export default function SecuritySettingsPanel({
                   <button
                     type="button"
                     onClick={() => void handleSetupTotp()}
-                    className="rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-900/30"
+                    className="rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-teal-900/30"
                   >
                     Activer l&apos;authenticator
                   </button>
@@ -424,7 +424,7 @@ export default function SecuritySettingsPanel({
                     />
                     <button
                       type="submit"
-                      className="w-full rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 py-2.5 text-xs font-bold text-white"
+                      className="w-full rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 py-2.5 text-xs font-bold text-white"
                     >
                       Confirmer l&apos;activation
                     </button>
@@ -449,7 +449,7 @@ export default function SecuritySettingsPanel({
                     />
                     <button
                       type="submit"
-                      className="mt-auto inline-flex items-center gap-2 rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-2.5 text-xs font-bold text-rose-300 transition hover:bg-rose-500/15"
+                      className="mt-auto inline-flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2.5 text-xs font-bold text-emerald-300 transition hover:bg-emerald-500/15"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                       Désactiver TOTP
@@ -461,7 +461,7 @@ export default function SecuritySettingsPanel({
 
             <section className="flex h-full flex-col rounded-2xl border border-white/10 bg-[#0a0b14] p-5 md:p-6">
               <div className="mb-5 flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/15 text-violet-400">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-500/15 text-teal-400">
                   <KeyRound className="h-5 w-5" />
                 </div>
                 <div>
@@ -486,7 +486,7 @@ export default function SecuritySettingsPanel({
                 <button
                   type="button"
                   onClick={() => void handleRegisterPasskey()}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-violet-900/30"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-teal-900/30"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Ajouter une Passkey
@@ -518,13 +518,13 @@ export default function SecuritySettingsPanel({
                     className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#0c0d18] px-3 py-3"
                   >
                     <div className="flex min-w-0 items-center gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/10 text-violet-400">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-500/10 text-teal-400">
                         <Monitor className="h-5 w-5" />
                       </div>
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                           <p className="truncate text-sm font-bold text-white">{passkey.deviceName}</p>
-                          <span className="rounded-md bg-violet-500/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-violet-300">
+                          <span className="rounded-md bg-teal-500/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-teal-300">
                             Actif
                           </span>
                         </div>
@@ -535,7 +535,7 @@ export default function SecuritySettingsPanel({
                     <button
                       type="button"
                       onClick={() => void handleDeletePasskey(passkey.id)}
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-rose-500/30 bg-rose-500/10 text-rose-400 transition hover:bg-rose-500/15"
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 transition hover:bg-emerald-500/15"
                       aria-label={`Supprimer ${passkey.deviceName}`}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -553,7 +553,7 @@ export default function SecuritySettingsPanel({
             <div className="rounded-2xl border border-white/10 bg-[#0a0b14] p-5 md:p-6 lg:col-span-2">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/15 text-violet-400">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-500/15 text-teal-400">
                     <Lock className="h-5 w-5" />
                   </div>
                   <div>
@@ -591,14 +591,14 @@ export default function SecuritySettingsPanel({
       {(message || error) && (
         <div
           role="alert"
-          className={`rounded-xl px-4 py-3 text-xs ${error ? "border border-rose-200 bg-rose-50 text-rose-700" : "border border-emerald-200 bg-emerald-50 text-emerald-700"}`}
+          className={`rounded-xl px-4 py-3 text-xs ${error ? "border border-emerald-200 bg-emerald-50 text-emerald-700" : "border border-emerald-200 bg-emerald-50 text-emerald-700"}`}
         >
           {error || message}
         </div>
       )}
 
       {recoveryCodes && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900">
+        <div className="rounded-xl border border-lime-200 bg-lime-50 p-4 text-xs text-lime-900">
           <p className="font-bold">Codes de secours — enregistrez-les maintenant :</p>
           <ul className="mt-2 grid grid-cols-2 gap-1 font-mono">
             {recoveryCodes.map((code) => (
@@ -610,7 +610,7 @@ export default function SecuritySettingsPanel({
 
       <section className="space-y-3">
         <div className="flex items-center gap-2">
-          <Smartphone className="h-4 w-4 text-indigo-600" />
+          <Smartphone className="h-4 w-4 text-emerald-600" />
           <h4 className="text-sm font-black text-slate-900">Authenticator (TOTP)</h4>
         </div>
         <p className="text-xs text-slate-500">
@@ -621,7 +621,7 @@ export default function SecuritySettingsPanel({
           <button
             type="button"
             onClick={() => void handleSetupTotp()}
-            className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white"
+            className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white"
           >
             Activer l&apos;authenticator
           </button>
@@ -637,7 +637,7 @@ export default function SecuritySettingsPanel({
               placeholder="Code à 6 chiffres"
               className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
             />
-            <button type="submit" className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white">
+            <button type="submit" className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white">
               Confirmer l&apos;activation
             </button>
           </form>
@@ -661,7 +661,7 @@ export default function SecuritySettingsPanel({
             />
             <button
               type="submit"
-              className="rounded-xl border border-rose-200 px-4 py-2 text-xs font-bold text-rose-700"
+              className="rounded-xl border border-emerald-200 px-4 py-2 text-xs font-bold text-emerald-700"
             >
               Désactiver TOTP
             </button>
@@ -671,7 +671,7 @@ export default function SecuritySettingsPanel({
 
       <section className="space-y-3 border-t border-slate-100 pt-6">
         <div className="flex items-center gap-2">
-          <KeyRound className="h-4 w-4 text-indigo-600" />
+          <KeyRound className="h-4 w-4 text-emerald-600" />
           <h4 className="text-sm font-black text-slate-900">Passkeys (WebAuthn)</h4>
         </div>
         <p className="text-xs text-slate-500">
@@ -709,7 +709,7 @@ export default function SecuritySettingsPanel({
                 <p className="font-bold text-slate-800">{passkey.deviceName}</p>
                 <p className="text-slate-500">Ajoutée le {new Date(passkey.createdAt).toLocaleDateString("fr-FR")}</p>
               </div>
-              <button type="button" onClick={() => void handleDeletePasskey(passkey.id)} className="text-rose-600">
+              <button type="button" onClick={() => void handleDeletePasskey(passkey.id)} className="text-emerald-600">
                 <Trash2 className="h-4 w-4" />
               </button>
             </li>
@@ -721,7 +721,7 @@ export default function SecuritySettingsPanel({
       </section>
 
       <div className="flex items-start gap-2 rounded-xl border border-slate-100 bg-slate-50 p-3 text-[11px] text-slate-500">
-        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-indigo-500" />
+        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
         Secrets TOTP chiffrés et clés publiques WebAuthn stockés de façon sécurisée sur nos serveurs — sans API externe
         ni abonnement.
       </div>

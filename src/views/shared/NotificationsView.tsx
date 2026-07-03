@@ -53,12 +53,12 @@ const NotificationListItem = memo(function NotificationListItem({
           if (!notification.isRead) onMarkRead(notification.id);
           if (notification.actionUrl && onNavigate) onNavigate(notification);
         }}
-        className={`flex w-full items-start gap-4 px-5 py-4 text-left transition hover:bg-white/[0.03] ${notification.isRead ? "opacity-70" : "bg-indigo-500/5"}`}
+        className={`flex w-full items-start gap-4 px-5 py-4 text-left transition hover:bg-white/[0.03] ${notification.isRead ? "opacity-70" : "bg-emerald-500/5"}`}
       >
         <div
-          className={`mt-1 flex h-10 w-10 items-center justify-center rounded-2xl ${notification.isRead ? "bg-slate-800" : "bg-indigo-600/20"}`}
+          className={`mt-1 flex h-10 w-10 items-center justify-center rounded-2xl ${notification.isRead ? "bg-slate-800" : "bg-emerald-600/20"}`}
         >
-          <Bell className={`h-4 w-4 ${notification.isRead ? "text-slate-400" : "text-indigo-300"}`} />
+          <Bell className={`h-4 w-4 ${notification.isRead ? "text-slate-400" : "text-emerald-300"}`} />
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -123,7 +123,7 @@ export default function NotificationsView({
       )}
       {error && <div className={scheduleUi.alertError}>{error}</div>}
 
-      <div className="rounded-3xl border border-white/[0.08] bg-[#0f172a]/80 shadow-2xl shadow-black/30">
+      <div className="rounded-3xl border border-white/[0.08] bg-[#0b241f]/80 shadow-2xl shadow-black/30">
         {loading ? (
           <div className="flex items-center justify-center p-10 text-slate-400">
             <Loader2 className="h-6 w-6 animate-spin" />

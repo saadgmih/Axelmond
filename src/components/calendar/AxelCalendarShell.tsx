@@ -53,7 +53,7 @@ const viewIcons: Record<CalendarViewMode, typeof Grid3X3> = {
 };
 
 const addActionButtonClass =
-  "inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 px-3 py-2 text-xs font-bold text-white shadow-lg shadow-indigo-950/30 transition-all hover:from-indigo-500 hover:to-cyan-500 active:scale-[0.98]";
+  "inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-cyan-600 px-3 py-2 text-xs font-bold text-white shadow-lg shadow-emerald-950/30 transition-all hover:from-emerald-500 hover:to-cyan-500 active:scale-[0.98]";
 
 function sessionsForDay(
   sessions: CalendarSessionMarker[],
@@ -93,15 +93,15 @@ export default function AxelCalendarShell({
   const [viewMode, setViewMode] = useState<CalendarViewMode>("year");
   const [focusDate, setFocusDate] = useState(() => new Date(today.getFullYear(), today.getMonth(), today.getDate()));
 
-  const accentText = accent === "pink" ? "text-pink-300" : "text-indigo-300";
-  const accentBg = accent === "pink" ? "bg-pink-500" : "bg-indigo-500";
-  const accentRing = accent === "pink" ? "ring-pink-400/40" : "ring-indigo-400/40";
-  const accentSoft = accent === "pink" ? "text-pink-200/90" : "text-indigo-200/90";
+  const accentText = accent === "pink" ? "text-emerald-300" : "text-emerald-300";
+  const accentBg = accent === "pink" ? "bg-emerald-500" : "bg-emerald-500";
+  const accentRing = accent === "pink" ? "ring-emerald-400/40" : "ring-emerald-400/40";
+  const accentSoft = accent === "pink" ? "text-emerald-200/90" : "text-emerald-200/90";
   const viewSwitcherActive =
     accent === "pink"
-      ? "border-pink-300/45 bg-gradient-to-b from-pink-500/24 via-pink-500/14 to-slate-900/70 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_10px_24px_rgba(190,24,93,0.18)]"
-      : "border-indigo-300/45 bg-gradient-to-b from-indigo-500/24 via-indigo-500/14 to-slate-900/70 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_10px_24px_rgba(79,70,229,0.18)]";
-  const viewSwitcherIconActive = accent === "pink" ? "text-pink-200" : "text-indigo-200";
+      ? "border-emerald-300/45 bg-gradient-to-b from-emerald-500/24 via-pink-500/14 to-slate-900/70 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_10px_24px_rgba(190,24,93,0.18)]"
+      : "border-emerald-300/45 bg-gradient-to-b from-emerald-500/24 via-indigo-500/14 to-slate-900/70 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_10px_24px_rgba(79,70,229,0.18)]";
+  const viewSwitcherIconActive = accent === "pink" ? "text-emerald-200" : "text-emerald-200";
 
   const year = focusDate.getFullYear();
   const monthIndex = focusDate.getMonth();
@@ -130,8 +130,8 @@ export default function AxelCalendarShell({
       <button
         type="button"
         key={month}
-        className={`rounded-2xl border border-white/[0.08] bg-[#0f172a]/80 p-2.5 text-left transition hover:border-white/15 hover:bg-[#111827] ${
-          isCurrentMonth ? "ring-1 ring-indigo-500/30" : ""
+        className={`rounded-2xl border border-white/[0.08] bg-[#0b241f]/80 p-2.5 text-left transition hover:border-white/15 hover:bg-[#111827] ${
+          isCurrentMonth ? "ring-1 ring-emerald-500/30" : ""
         }`}
         onClick={() => {
           selectDate(new Date(year, month, 1));
@@ -169,7 +169,7 @@ export default function AxelCalendarShell({
                 {visible ? cell.date.getDate() : ""}
                 {visible && daySessions.length > 0 && !cell.isToday && (
                   <span
-                    className={`absolute bottom-0 h-1 w-1 rounded-full ${accent === "pink" ? "bg-pink-400" : "bg-indigo-400"}`}
+                    className={`absolute bottom-0 h-1 w-1 rounded-full ${accent === "pink" ? "bg-emerald-400" : "bg-emerald-400"}`}
                   />
                 )}
               </span>
@@ -208,8 +208,8 @@ export default function AxelCalendarShell({
               !cell.inCurrentMonth
                 ? "border-transparent bg-transparent opacity-35"
                 : selected
-                  ? `border-indigo-400/40 bg-indigo-500/10 ring-1 ${accentRing}`
-                  : "border-white/[0.06] bg-[#020617]/50 hover:border-white/15 hover:bg-[#0f172a]"
+                  ? `border-emerald-400/40 bg-emerald-500/10 ring-1 ${accentRing}`
+                  : "border-white/[0.06] bg-[#031512]/50 hover:border-white/15 hover:bg-[#0b241f]"
             }`}
           >
             <span
@@ -296,7 +296,7 @@ export default function AxelCalendarShell({
         )}
       </div>
 
-      <div className="rounded-2xl border border-white/[0.08] bg-[#0f172a]/80 p-3 sm:p-4 md:p-5">
+      <div className="rounded-2xl border border-white/[0.08] bg-[#0b241f]/80 p-3 sm:p-4 md:p-5">
         {viewMode === "year" && (
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 sm:gap-3">
             {MONTH_LABELS_SHORT.map((_, index) => renderMiniMonth(index))}
@@ -321,8 +321,8 @@ export default function AxelCalendarShell({
                   }}
                   className={`rounded-xl border p-3 text-left transition ${
                     isSameDay(date, focusDate)
-                      ? "border-indigo-400/40 bg-indigo-500/10"
-                      : "border-white/[0.08] bg-[#020617]/60 hover:border-white/15"
+                      ? "border-emerald-400/40 bg-emerald-500/10"
+                      : "border-white/[0.08] bg-[#031512]/60 hover:border-white/15"
                   }`}
                 >
                   <p className={`text-xs font-black ${scheduleDay >= 5 ? accentText : "text-white"}`}>
@@ -384,7 +384,7 @@ export default function AxelCalendarShell({
                 <button
                   type="button"
                   key={session.id}
-                  className="w-full rounded-xl border border-white/[0.08] bg-[#020617]/70 p-4 text-left transition hover:border-indigo-400/30"
+                  className="w-full rounded-xl border border-white/[0.08] bg-[#031512]/70 p-4 text-left transition hover:border-emerald-400/30"
                   onClick={() => onSessionClick?.(session.id)}
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -393,7 +393,7 @@ export default function AxelCalendarShell({
                       {session.moduleName && <p className="text-xs text-slate-400">{session.moduleName}</p>}
                     </div>
                     {session.sessionTypeLabel && (
-                      <span className="rounded-full border border-indigo-400/20 bg-indigo-500/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-indigo-200">
+                      <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-emerald-200">
                         {session.sessionTypeLabel}
                       </span>
                     )}
@@ -408,7 +408,7 @@ export default function AxelCalendarShell({
         )}
       </div>
 
-      <nav className="sticky bottom-0 z-20 rounded-3xl border border-white/[0.08] bg-[#020617]/92 p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_18px_36px_rgba(2,6,23,0.28)] backdrop-blur-xl sm:static sm:bg-[#0b1222]/88 sm:p-2">
+      <nav className="sticky bottom-0 z-20 rounded-3xl border border-white/[0.08] bg-[#031512]/92 p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_18px_36px_rgba(2,6,23,0.28)] backdrop-blur-xl sm:static sm:bg-[#0b1222]/88 sm:p-2">
         <div className="grid grid-cols-4 gap-1.5">
           {(Object.keys(CALENDAR_VIEW_LABELS) as CalendarViewMode[]).map((mode) => {
             const Icon = viewIcons[mode];

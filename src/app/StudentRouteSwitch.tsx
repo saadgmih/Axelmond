@@ -87,7 +87,7 @@ export function StudentRouteSwitch() {
           <button
             type="button"
             onClick={() => navigateTo("dashboard")}
-            className="mt-4 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white"
+            className="mt-4 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white"
           >
             Retour au tableau de bord
           </button>
@@ -102,7 +102,7 @@ export function StudentRouteSwitch() {
           <button
             type="button"
             onClick={() => navigateTo("dashboard")}
-            className="mt-4 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white"
+            className="mt-4 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white"
           >
             Retour au tableau de bord
           </button>
@@ -161,7 +161,7 @@ export function StudentRouteSwitch() {
           <button
             type="button"
             onClick={() => navigateTo("dashboard")}
-            className="mt-4 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white"
+            className="mt-4 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white"
           >
             Retour au tableau de bord
           </button>

@@ -42,13 +42,13 @@ export default function PasswordStrengthMeter({ password = "", isDark = true }: 
   if (password.length > 0) {
     if (metCount <= 2) {
       strengthLabel = "Faible";
-      strengthColor = "bg-rose-500";
-      textColor = "text-rose-500";
+      strengthColor = "bg-emerald-500";
+      textColor = "text-emerald-500";
       width = "25%";
     } else if (metCount === 3) {
       strengthLabel = "Moyen";
-      strengthColor = "bg-amber-500";
-      textColor = "text-amber-500";
+      strengthColor = "bg-lime-500";
+      textColor = "text-lime-500";
       width = "50%";
     } else if (metCount === 4) {
       strengthLabel = "Fort";

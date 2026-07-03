@@ -37,13 +37,13 @@ const viewerToolbarClass =
 const toolbarPillClass =
   "flex h-11 shrink-0 items-center rounded-[16px] border border-[#222c3d] bg-[#121827] px-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.025),0_8px_24px_rgba(2,6,23,0.2)] sm:h-14 sm:rounded-[18px]";
 const toolbarButtonClass =
-  "touch-target inline-flex h-11 min-h-11 w-11 min-w-11 shrink-0 items-center justify-center rounded-[13px] border border-[#222c3d] bg-[#121827] text-[#8175ff] shadow-[inset_0_1px_0_rgba(255,255,255,0.025),0_8px_22px_rgba(2,6,23,0.2)] transition-colors hover:border-violet-500/50 hover:bg-[#171e2e] hover:text-violet-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/80 disabled:cursor-not-allowed disabled:opacity-30 sm:h-12 sm:min-h-12 sm:w-12 sm:min-w-12 sm:rounded-[14px]";
+  "touch-target inline-flex h-11 min-h-11 w-11 min-w-11 shrink-0 items-center justify-center rounded-[13px] border border-[#222c3d] bg-[#121827] text-[#8175ff] shadow-[inset_0_1px_0_rgba(255,255,255,0.025),0_8px_22px_rgba(2,6,23,0.2)] transition-colors hover:border-teal-500/50 hover:bg-[#171e2e] hover:text-teal-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/80 disabled:cursor-not-allowed disabled:opacity-30 sm:h-12 sm:min-h-12 sm:w-12 sm:min-w-12 sm:rounded-[14px]";
 const toolbarPillButtonClass =
-  "touch-target inline-flex h-10 min-h-10 w-10 min-w-10 items-center justify-center rounded-xl text-[#8175ff] transition-colors hover:bg-white/[0.04] hover:text-violet-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/80 disabled:cursor-not-allowed disabled:opacity-25 sm:h-12 sm:min-h-12 sm:w-12 sm:min-w-12";
+  "touch-target inline-flex h-10 min-h-10 w-10 min-w-10 items-center justify-center rounded-xl text-[#8175ff] transition-colors hover:bg-white/[0.04] hover:text-teal-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/80 disabled:cursor-not-allowed disabled:opacity-25 sm:h-12 sm:min-h-12 sm:w-12 sm:min-w-12";
 const toolbarDividerClass = "h-7 w-px shrink-0 bg-[#273043] sm:h-10";
 
 function imageModeButtonClass(active: boolean) {
-  return `${toolbarButtonClass} ${active ? "border-violet-500/50 bg-violet-500/10 text-violet-300" : ""}`;
+  return `${toolbarButtonClass} ${active ? "border-teal-500/50 bg-teal-500/10 text-teal-300" : ""}`;
 }
 
 export default function PdfLessonViewer({
@@ -299,7 +299,7 @@ export default function PdfLessonViewer({
     return (
       <div className="flex h-[70vh] items-center justify-center rounded-2xl border border-slate-200 bg-slate-50">
         <div className="text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
           <p className="mt-3 text-sm font-medium text-slate-600">Chargement du contenu…</p>
         </div>
       </div>
@@ -308,16 +308,16 @@ export default function PdfLessonViewer({
 
   if (error || !blobUrl) {
     return (
-      <div className="space-y-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-5">
+      <div className="space-y-4 rounded-2xl border border-lime-200 bg-lime-50 px-4 py-5">
         <div className="flex items-start gap-3">
           {mediaType === "IMAGE" ? (
-            <Camera className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+            <Camera className="mt-0.5 h-5 w-5 shrink-0 text-lime-600" />
           ) : (
-            <FileText className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+            <FileText className="mt-0.5 h-5 w-5 shrink-0 text-lime-600" />
           )}
           <div>
-            <p className="text-sm font-semibold text-amber-900">{title}</p>
-            <p className="mt-1 text-sm text-amber-800">{error || "Aperçu indisponible."}</p>
+            <p className="text-sm font-semibold text-lime-900">{title}</p>
+            <p className="mt-1 text-sm text-lime-800">{error || "Aperçu indisponible."}</p>
           </div>
         </div>
       </div>
@@ -562,11 +562,11 @@ export default function PdfLessonViewer({
             onLoadSuccess={onDocumentLoadSuccess}
             loading={
               <div className="flex h-[50vh] w-full items-center justify-center">
-                <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+                <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
               </div>
             }
             error={
-              <div className="flex h-[50vh] w-full items-center justify-center text-sm font-semibold text-rose-500">
+              <div className="flex h-[50vh] w-full items-center justify-center text-sm font-semibold text-emerald-500">
                 Impossible de lire ce PDF.
               </div>
             }

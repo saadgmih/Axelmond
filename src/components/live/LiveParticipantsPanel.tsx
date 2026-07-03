@@ -23,11 +23,11 @@ export default function LiveParticipantsPanel({
   return (
     <div className="space-y-4 animate-in fade-in duration-300">
       {raisedHandParticipants.length > 0 && (
-        <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-amber-300">Mains levées</p>
+        <div className="rounded-xl border border-lime-500/20 bg-lime-500/10 p-3">
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-lime-300">Mains levées</p>
           <div className="space-y-2">
             {raisedHandParticipants.map((participant) => (
-              <div key={participant.identity} className="flex items-center gap-2 text-xs font-semibold text-amber-100">
+              <div key={participant.identity} className="flex items-center gap-2 text-xs font-semibold text-lime-100">
                 <Hand className="h-4 w-4" />
                 <span>{participant.name}</span>
               </div>
@@ -41,7 +41,7 @@ export default function LiveParticipantsPanel({
           value={participantQuery}
           onChange={(event) => onParticipantQueryChange(event.target.value)}
           placeholder="Rechercher un participant..."
-          className="w-full bg-zinc-900 border border-white/5 rounded-xl pl-9 pr-3 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500 transition-colors"
+          className="w-full bg-zinc-900 border border-white/5 rounded-xl pl-9 pr-3 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition-colors"
         />
       </div>
       <div className="space-y-1.5">
@@ -55,7 +55,7 @@ export default function LiveParticipantsPanel({
             className="group relative rounded-xl hover:bg-zinc-800/50 p-2.5 flex items-center justify-between transition-colors border border-transparent hover:border-white/5"
           >
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 flex items-center justify-center text-xs font-bold shrink-0">
+              <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 flex items-center justify-center text-xs font-bold shrink-0">
                 {participant.initials}
               </div>
               <div className="min-w-0">
@@ -65,7 +65,7 @@ export default function LiveParticipantsPanel({
             </div>
 
             <div className="flex items-center gap-2 shrink-0 ml-2">
-              {participant.handRaised && <Hand className="w-3.5 h-3.5 text-amber-400" />}
+              {participant.handRaised && <Hand className="w-3.5 h-3.5 text-lime-400" />}
               {participant.hasAudio ? (
                 <Mic className="w-3.5 h-3.5 text-zinc-500" />
               ) : (

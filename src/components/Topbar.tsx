@@ -74,7 +74,7 @@ function TopbarConsoleAction({
       <span className="relative inline-flex">
         {children}
         {badge != null && badge > 0 && (
-          <span className="absolute -right-2 -top-2 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-violet-500 px-1 text-[10px] font-black leading-none text-white shadow-lg shadow-violet-900/40">
+          <span className="absolute -right-2 -top-2 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-teal-500 px-1 text-[10px] font-black leading-none text-white shadow-lg shadow-teal-900/40">
             {badge > 99 ? "99+" : badge}
           </span>
         )}
@@ -88,7 +88,7 @@ function TopbarBrand({ role }: { role: "student" | "teacher" }) {
   return (
     <div className="topbar-brand">
       <div className="topbar-brand-logo">
-        <LogoSymbol className={`h-7 w-7 ${role === "teacher" ? "text-pink-400" : "text-indigo-400"}`} />
+        <LogoSymbol className={`h-7 w-7 ${role === "teacher" ? "text-emerald-400" : "text-emerald-400"}`} />
       </div>
       <div className="min-w-0">
         <p className="topbar-brand-kicker">{getBrandKicker(role)}</p>
@@ -110,17 +110,17 @@ function RolePill({
 }) {
   const tone =
     role === "student"
-      ? "border-indigo-400/25 bg-indigo-500/15 text-indigo-100"
+      ? "border-emerald-400/25 bg-emerald-500/15 text-emerald-100"
       : getTeacherRoleBadgeTone(userRole) === "admin"
-        ? "border-violet-400/25 bg-violet-500/15 text-violet-100"
-        : "border-pink-400/25 bg-pink-500/15 text-pink-100";
+        ? "border-teal-400/25 bg-teal-500/15 text-teal-100"
+        : "border-emerald-400/25 bg-emerald-500/15 text-emerald-100";
 
   const iconTone =
     role === "student"
-      ? "text-indigo-300"
+      ? "text-emerald-300"
       : getTeacherRoleBadgeTone(userRole) === "admin"
-        ? "text-violet-300"
-        : "text-pink-300";
+        ? "text-teal-300"
+        : "text-emerald-300";
 
   return (
     <button
@@ -188,14 +188,14 @@ export default function Topbar({
             setSearchQuery(e.target.value);
           }}
           aria-label="Rechercher dans le catalogue"
-          className={`kbd-nav-focus min-h-[44px] w-full rounded-xl border border-slate-700 bg-slate-900/80 py-2.5 pl-9 text-xs text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-            isListening ? "border-pink-500/40 pr-[7.5rem] ring-2 ring-pink-500/40" : "pr-12"
+          className={`kbd-nav-focus min-h-[44px] w-full rounded-xl border border-slate-700 bg-slate-900/80 py-2.5 pl-9 text-xs text-white focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
+            isListening ? "border-emerald-500/40 pr-[7.5rem] ring-2 ring-emerald-500/40" : "pr-12"
           }`}
         />
         <div className="absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center gap-1">
           {isListening && (
             <span
-              className="voice-search-listening-label hidden text-[10px] font-bold uppercase tracking-wide text-pink-400 sm:inline"
+              className="voice-search-listening-label hidden text-[10px] font-bold uppercase tracking-wide text-emerald-400 sm:inline"
               aria-live="polite"
             >
               Écoute...
@@ -209,8 +209,8 @@ export default function Topbar({
             title={isListening ? "Arrêter l'écoute" : "Recherche vocale"}
             className={`touch-target kbd-nav-focus flex h-9 min-w-9 items-center justify-center rounded-lg border transition-all ${
               isListening
-                ? "voice-search-mic-active border-pink-500/50 bg-pink-950/60 text-pink-400 shadow-[0_0_12px_rgba(236,72,153,0.35)]"
-                : "border-transparent bg-transparent text-slate-400 hover:border-violet-500/30 hover:bg-violet-950/40 hover:text-violet-400"
+                ? "voice-search-mic-active border-emerald-500/50 bg-emerald-950/60 text-emerald-400 shadow-[0_0_12px_rgba(236,72,153,0.35)]"
+                : "border-transparent bg-transparent text-slate-400 hover:border-teal-500/30 hover:bg-teal-950/40 hover:text-teal-400"
             }`}
           >
             <Mic className={`h-4 w-4 ${isListening ? "voice-search-mic-pulse" : ""}`} />
@@ -218,7 +218,7 @@ export default function Topbar({
         </div>
       </div>
       {voiceSearchError && (
-        <p role="alert" className="text-[10px] font-semibold leading-snug text-amber-300">
+        <p role="alert" className="text-[10px] font-semibold leading-snug text-lime-300">
           {voiceSearchError}
         </p>
       )}
@@ -287,12 +287,12 @@ export default function Topbar({
           <div className="hidden h-12 w-px bg-white/10 lg:block" aria-hidden="true" />
 
           <div className="flex min-w-0 flex-col items-center text-center lg:items-end lg:text-right">
-            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-300/80">
+            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-teal-300/80">
               Utilisateur actuel
             </span>
             <span className="mt-0.5 flex max-w-[220px] items-center justify-center gap-1.5 truncate text-sm font-black text-white lg:justify-end">
               {currentUser ? currentUser.fullName : "Performance Académique"}
-              <BadgeCheck className="h-4 w-4 shrink-0 text-violet-400" aria-hidden="true" />
+              <BadgeCheck className="h-4 w-4 shrink-0 text-teal-400" aria-hidden="true" />
             </span>
             <span className="mt-0.5 text-[11px] font-medium text-slate-400">
               {getAccessLabel(role, currentUser?.role)}
@@ -302,9 +302,9 @@ export default function Topbar({
           <RolePill role={role} userRole={currentUser?.role} onClick={openProfile} />
 
           {role === "student" && (
-            <div className="flex items-center gap-2 rounded-full border border-indigo-400/20 bg-indigo-500/10 px-3 py-1.5">
-              <Sparkles className="h-4 w-4 text-indigo-300" />
-              <span className="font-mono text-xs font-extrabold text-indigo-200">{activeCredits} cr.</span>
+            <div className="flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1.5">
+              <Sparkles className="h-4 w-4 text-emerald-300" />
+              <span className="font-mono text-xs font-extrabold text-emerald-200">{activeCredits} cr.</span>
             </div>
           )}
 

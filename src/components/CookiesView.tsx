@@ -117,9 +117,9 @@ export default function CookiesView() {
         "Sécurité des comptes (protection CSRF)",
         "Révocation de session à la déconnexion",
       ],
-      border: "border-indigo-800/40",
-      bg: "bg-indigo-950/20",
-      titleColor: "text-indigo-300",
+      border: "border-emerald-800/40",
+      bg: "bg-emerald-950/20",
+      titleColor: "text-emerald-300",
       chipColor: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10",
       required: true,
     },
@@ -136,10 +136,10 @@ export default function CookiesView() {
         "Préférences d'accessibilité",
         "Volume du lecteur vidéo de module",
       ],
-      border: "border-violet-800/40",
-      bg: "bg-violet-950/20",
-      titleColor: "text-violet-300",
-      chipColor: "text-amber-300 border-amber-500/30 bg-amber-500/10",
+      border: "border-teal-800/40",
+      bg: "bg-teal-950/20",
+      titleColor: "text-teal-300",
+      chipColor: "text-lime-300 border-lime-500/30 bg-lime-500/10",
       required: false,
     },
     {
@@ -155,20 +155,20 @@ export default function CookiesView() {
         "Pas d'identifiant marketing",
         "Logs techniques serveur limités à la sécurité et au diagnostic",
       ],
-      border: "border-sky-800/40",
-      bg: "bg-sky-950/20",
-      titleColor: "text-sky-300",
-      chipColor: "text-amber-300 border-amber-500/30 bg-amber-500/10",
+      border: "border-teal-800/40",
+      bg: "bg-teal-950/20",
+      titleColor: "text-teal-300",
+      chipColor: "text-lime-300 border-lime-500/30 bg-lime-500/10",
       required: false,
     },
   ];
 
   const purposes = [
     {
-      icon: <Fingerprint className="w-4 h-4 text-indigo-400" />,
+      icon: <Fingerprint className="w-4 h-4 text-emerald-400" />,
       label: "Maintenir la connexion utilisateur",
       desc: "Votre session reste active entre les pages sans vous obliger à vous reconnecter à chaque navigation.",
-      color: "border-indigo-800/30 bg-indigo-950/15",
+      color: "border-emerald-800/30 bg-emerald-950/15",
     },
     {
       icon: <Lock className="w-4 h-4 text-emerald-400" />,
@@ -177,22 +177,22 @@ export default function CookiesView() {
       color: "border-emerald-800/30 bg-emerald-950/15",
     },
     {
-      icon: <Settings className="w-4 h-4 text-violet-400" />,
+      icon: <Settings className="w-4 h-4 text-teal-400" />,
       label: "Mémoriser les préférences",
       desc: "Vos choix d'interface, d'accessibilité, de volume vidéo et de disposition sont retenus pour les sessions suivantes.",
-      color: "border-violet-800/30 bg-violet-950/15",
+      color: "border-teal-800/30 bg-teal-950/15",
     },
     {
-      icon: <BarChart2 className="w-4 h-4 text-sky-400" />,
+      icon: <BarChart2 className="w-4 h-4 text-teal-400" />,
       label: "Optimiser les performances",
       desc: "Réduction des temps de chargement et amélioration de la réactivité de la plateforme.",
-      color: "border-sky-800/30 bg-sky-950/15",
+      color: "border-teal-800/30 bg-teal-950/15",
     },
     {
-      icon: <Eye className="w-4 h-4 text-pink-400" />,
+      icon: <Eye className="w-4 h-4 text-emerald-400" />,
       label: "Améliorer l'expérience utilisateur",
       desc: "Personnalisation de l'interface et adaptation du parcours pédagogique selon votre profil.",
-      color: "border-pink-800/30 bg-pink-950/15",
+      color: "border-emerald-800/30 bg-emerald-950/15",
     },
   ];
 
@@ -204,16 +204,16 @@ export default function CookiesView() {
       color: "border-emerald-800/30 bg-emerald-950/15",
     },
     {
-      icon: <RefreshCw className="w-4 h-4 text-sky-400" />,
+      icon: <RefreshCw className="w-4 h-4 text-teal-400" />,
       title: "Supprimer cookies et stockage",
       desc: "Depuis les paramètres du navigateur, vous pouvez supprimer les cookies et le stockage local de la plateforme. Vous serez alors déconnecté et vos préférences locales seront réinitialisées.",
-      color: "border-sky-800/30 bg-sky-950/15",
+      color: "border-teal-800/30 bg-teal-950/15",
     },
     {
-      icon: <Sliders className="w-4 h-4 text-violet-400" />,
+      icon: <Sliders className="w-4 h-4 text-teal-400" />,
       title: "Modifier ses préférences",
       desc: "Les préférences d'interface se modifient directement dans les contrôles du site : accessibilité, disposition, volume vidéo et paramètres live.",
-      color: "border-violet-800/30 bg-violet-950/15",
+      color: "border-teal-800/30 bg-teal-950/15",
     },
   ];
 
@@ -281,17 +281,17 @@ export default function CookiesView() {
         heroRef={heroRef}
         gradientClass="via-orange-950/10"
         topBlobClass="top-0 right-0 w-[480px] h-[480px] bg-orange-600/5 rounded-full translate-x-60 -translate-y-60"
-        bottomBlobClass="bottom-0 left-0 w-80 h-80 bg-amber-600/5 rounded-full -translate-x-40 translate-y-40"
+        bottomBlobClass="bottom-0 left-0 w-80 h-80 bg-lime-600/5 rounded-full -translate-x-40 translate-y-40"
       >
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
           {/* Left */}
           <div className="space-y-5 max-w-2xl">
-            <span className="text-[10px] font-black uppercase tracking-widest text-amber-300 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full inline-block">
+            <span className="text-[10px] font-black uppercase tracking-widest text-lime-300 bg-lime-500/10 border border-lime-500/20 px-3 py-1 rounded-full inline-block">
               Document juridique — Portail académique
             </span>
             <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
               Politique des{" "}
-              <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-amber-300 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-lime-400 via-orange-400 to-lime-300 bg-clip-text text-transparent">
                 cookies
               </span>
             </h1>
@@ -306,8 +306,8 @@ export default function CookiesView() {
                   label: "Sans tracking publicitaire",
                   color: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10",
                 },
-                { label: "Loi 09-08", color: "text-sky-300 border-sky-500/30 bg-sky-500/10" },
-                { label: "CNDP", color: "text-violet-300 border-violet-500/30 bg-violet-500/10" },
+                { label: "Loi 09-08", color: "text-teal-300 border-teal-500/30 bg-teal-500/10" },
+                { label: "CNDP", color: "text-teal-300 border-teal-500/30 bg-teal-500/10" },
               ].map(({ label, color }) => (
                 <span
                   key={label}
@@ -347,10 +347,10 @@ export default function CookiesView() {
         </div>
 
         {/* Info note */}
-        <div className="mt-8 bg-amber-950/20 border border-amber-800/30 rounded-2xl px-5 py-4 flex items-start gap-3">
-          <Cookie className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+        <div className="mt-8 bg-lime-950/20 border border-lime-800/30 rounded-2xl px-5 py-4 flex items-start gap-3">
+          <Cookie className="w-4 h-4 text-lime-400 flex-shrink-0 mt-0.5" />
           <p className="text-[12px] text-slate-400 leading-relaxed">
-            <strong className="text-amber-300">Bon à savoir :</strong> La plateforme utilise des cookies
+            <strong className="text-lime-300">Bon à savoir :</strong> La plateforme utilise des cookies
             <strong className="text-white"> strictement essentiels</strong> pour sécuriser la session, ainsi que du
             stockage local pour les préférences. Aucun pixel de tracking, aucune régie publicitaire, aucun réseau social
             n'est connecté à vos données de navigation sur Performance Académique.
@@ -366,22 +366,22 @@ export default function CookiesView() {
               <InstitutionalSectionHeading
                 number="01"
                 title="Introduction"
-                icon={<Info className="w-5 h-5 text-amber-300" />}
-                accentClass="bg-amber-500/15 border border-amber-500/20"
+                icon={<Info className="w-5 h-5 text-lime-300" />}
+                accentClass="bg-lime-500/15 border border-lime-500/20"
               />
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
                   {
-                    icon: <Globe className="w-5 h-5 text-indigo-400" />,
+                    icon: <Globe className="w-5 h-5 text-emerald-400" />,
                     title: "Bon fonctionnement",
                     desc: "Les cookies permettent à la plateforme de fonctionner correctement — gestion des sessions, authentification sécurisée et navigation fluide entre les pages.",
-                    border: "border-indigo-800/30 bg-indigo-950/15",
+                    border: "border-emerald-800/30 bg-emerald-950/15",
                   },
                   {
-                    icon: <Eye className="w-5 h-5 text-violet-400" />,
+                    icon: <Eye className="w-5 h-5 text-teal-400" />,
                     title: "Expérience améliorée",
                     desc: "Ils mémorisent vos préférences d'affichage, d'accessibilité, de volume vidéo et de disposition pour vous offrir une expérience cohérente.",
-                    border: "border-violet-800/30 bg-violet-950/15",
+                    border: "border-teal-800/30 bg-teal-950/15",
                   },
                   {
                     icon: <Shield className="w-5 h-5 text-emerald-400" />,
@@ -475,8 +475,8 @@ export default function CookiesView() {
               <InstitutionalSectionHeading
                 number="03"
                 title="Types de cookies utilisés"
-                icon={<Settings className="w-5 h-5 text-violet-300" />}
-                accentClass="bg-violet-500/15 border border-violet-500/20"
+                icon={<Settings className="w-5 h-5 text-teal-300" />}
+                accentClass="bg-teal-500/15 border border-teal-500/20"
               />
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 {cookieTypes.map((ct, i) => (
@@ -494,8 +494,8 @@ export default function CookiesView() {
               <InstitutionalSectionHeading
                 number="04"
                 title="Finalités des cookies"
-                icon={<Globe className="w-5 h-5 text-sky-300" />}
-                accentClass="bg-sky-500/15 border border-sky-500/20"
+                icon={<Globe className="w-5 h-5 text-teal-300" />}
+                accentClass="bg-teal-500/15 border border-teal-500/20"
               />
               <p className="text-[13px] text-slate-400 leading-relaxed mb-5">
                 Les cookies et technologies de stockage local utilisés par Performance Académique répondent
@@ -562,10 +562,10 @@ export default function CookiesView() {
                 </div>
               </div>
 
-              <div className="mt-4 bg-amber-950/15 border border-amber-800/25 rounded-xl px-4 py-3 flex items-start gap-2.5">
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 mt-0.5" />
+              <div className="mt-4 bg-lime-950/15 border border-lime-800/25 rounded-xl px-4 py-3 flex items-start gap-2.5">
+                <AlertTriangle className="w-3.5 h-3.5 text-lime-400 flex-shrink-0 mt-0.5" />
                 <p className="text-[11px] text-slate-400">
-                  <strong className="text-amber-300">Attention :</strong> La désactivation des cookies
+                  <strong className="text-lime-300">Attention :</strong> La désactivation des cookies
                   <strong className="text-white"> essentiels</strong> empêchera votre connexion à la plateforme. Seuls
                   les cookies fonctionnels et analytiques peuvent être refusés sans impacter l'accès aux services de
                   base.
@@ -598,10 +598,10 @@ export default function CookiesView() {
                       border: "border-red-800/25 bg-red-950/10",
                     },
                     {
-                      icon: <Lock className="w-5 h-5 text-amber-400" />,
+                      icon: <Lock className="w-5 h-5 text-lime-400" />,
                       title: "Secrets serveur protégés",
                       desc: "Aucune clé secrète de serveur, clé API ou credential d'intégration n'est jamais transmise ni stockée côté client.",
-                      border: "border-amber-800/25 bg-amber-950/10",
+                      border: "border-lime-800/25 bg-lime-950/10",
                     },
                     {
                       icon: <Shield className="w-5 h-5 text-emerald-400" />,
@@ -651,15 +651,15 @@ export default function CookiesView() {
               <InstitutionalSectionHeading
                 number="07"
                 title="Durée de conservation"
-                icon={<Clock className="w-5 h-5 text-pink-300" />}
-                accentClass="bg-pink-500/15 border border-pink-500/20"
+                icon={<Clock className="w-5 h-5 text-emerald-300" />}
+                accentClass="bg-emerald-500/15 border border-emerald-500/20"
               />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
                 <div className="bg-slate-950/50 border border-slate-800 rounded-2xl p-5 space-y-3">
                   <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-sky-400" />
+                    <Clock className="w-4 h-4 text-teal-400" />
                     <span className="text-white text-sm font-bold">Cookies d'authentification</span>
-                    <span className="ml-auto text-[10px] font-black uppercase tracking-widest border px-2 py-0.5 rounded-full text-sky-300 border-sky-500/30 bg-sky-500/10">
+                    <span className="ml-auto text-[10px] font-black uppercase tracking-widest border px-2 py-0.5 rounded-full text-teal-300 border-teal-500/30 bg-teal-500/10">
                       Temporaire
                     </span>
                   </div>
@@ -671,9 +671,9 @@ export default function CookiesView() {
                 </div>
                 <div className="bg-slate-950/50 border border-slate-800 rounded-2xl p-5 space-y-3">
                   <div className="flex items-center gap-2">
-                    <Database className="w-4 h-4 text-violet-400" />
+                    <Database className="w-4 h-4 text-teal-400" />
                     <span className="text-white text-sm font-bold">Stockage local de préférences</span>
-                    <span className="ml-auto text-[10px] font-black uppercase tracking-widest border px-2 py-0.5 rounded-full text-violet-300 border-violet-500/30 bg-violet-500/10">
+                    <span className="ml-auto text-[10px] font-black uppercase tracking-widest border px-2 py-0.5 rounded-full text-teal-300 border-teal-500/30 bg-teal-500/10">
                       Persistant
                     </span>
                   </div>
@@ -706,7 +706,7 @@ export default function CookiesView() {
                     {retentionData.map(({ name, type, duration, category }) => (
                       <tr key={name} className="hover:bg-slate-800/20 transition-colors">
                         <td className="px-4 py-3">
-                          <code className="text-[11px] text-amber-300 bg-amber-900/20 border border-amber-800/30 px-2 py-0.5 rounded-md font-mono">
+                          <code className="text-[11px] text-lime-300 bg-lime-900/20 border border-lime-800/30 px-2 py-0.5 rounded-md font-mono">
                             {name}
                           </code>
                         </td>
@@ -722,8 +722,8 @@ export default function CookiesView() {
                               category === "Essentiel"
                                 ? "text-emerald-300 border-emerald-500/30 bg-emerald-500/10"
                                 : category === "Fonctionnel"
-                                  ? "text-violet-300 border-violet-500/30 bg-violet-500/10"
-                                  : "text-sky-300 border-sky-500/30 bg-sky-500/10"
+                                  ? "text-teal-300 border-teal-500/30 bg-teal-500/10"
+                                  : "text-teal-300 border-teal-500/30 bg-teal-500/10"
                             }`}
                           >
                             {category}
@@ -745,18 +745,18 @@ export default function CookiesView() {
               <InstitutionalSectionHeading
                 number="08"
                 title="Contact"
-                icon={<Mail className="w-5 h-5 text-rose-300" />}
-                accentClass="bg-rose-500/15 border border-rose-500/20"
+                icon={<Mail className="w-5 h-5 text-emerald-300" />}
+                accentClass="bg-emerald-500/15 border border-emerald-500/20"
               />
               <p className="text-[13px] text-slate-400 leading-relaxed mb-6">
                 Pour toute question relative à notre politique de cookies, à l'exercice de vos droits ou à la protection
                 de vos données personnelles, plusieurs canaux sont à votre disposition.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                <div className="bg-indigo-950/20 border border-indigo-800/30 rounded-2xl p-5 space-y-3">
+                <div className="bg-emerald-950/20 border border-emerald-800/30 rounded-2xl p-5 space-y-3">
                   <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-xl bg-slate-900/60 flex items-center justify-center">
-                      <ExternalLink className="w-4 h-4 text-indigo-400" />
+                      <ExternalLink className="w-4 h-4 text-emerald-400" />
                     </div>
                     <span className="text-white text-sm font-bold">Politique de confidentialité</span>
                   </div>
@@ -764,14 +764,14 @@ export default function CookiesView() {
                     Consultez notre politique de confidentialité complète pour comprendre comment nous collectons,
                     utilisons et protégeons vos données personnelles.
                   </p>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-indigo-300 border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-1 rounded-full inline-block">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-emerald-300 border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 rounded-full inline-block">
                     → Politique de confidentialité
                   </span>
                 </div>
-                <div className="bg-rose-950/20 border border-rose-800/30 rounded-2xl p-5 space-y-3">
+                <div className="bg-emerald-950/20 border border-emerald-800/30 rounded-2xl p-5 space-y-3">
                   <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-xl bg-slate-900/60 flex items-center justify-center">
-                      <Mail className="w-4 h-4 text-rose-400" />
+                      <Mail className="w-4 h-4 text-emerald-400" />
                     </div>
                     <span className="text-white text-sm font-bold">Nous contacter</span>
                   </div>
@@ -779,7 +779,7 @@ export default function CookiesView() {
                     Pour toute question relative aux cookies, à vos préférences ou à l'exercice de vos droits prévus par
                     la loi n° 09-08, notre équipe vous répond dans un délai de 10 jours ouvrables.
                   </p>
-                  <span className="text-[10px] font-black text-rose-300">privacy@axelmond.com</span>
+                  <span className="text-[10px] font-black text-emerald-300">privacy@axelmond.com</span>
                 </div>
               </div>
 
@@ -795,7 +795,7 @@ export default function CookiesView() {
                   <span className="text-[10px] font-black uppercase tracking-widest border px-2.5 py-1 rounded-full text-emerald-300 border-emerald-500/30 bg-emerald-500/10">
                     Loi 09-08
                   </span>
-                  <span className="text-[10px] font-black uppercase tracking-widest border px-2.5 py-1 rounded-full text-sky-300 border-sky-500/30 bg-sky-500/10">
+                  <span className="text-[10px] font-black uppercase tracking-widest border px-2.5 py-1 rounded-full text-teal-300 border-teal-500/30 bg-teal-500/10">
                     ePrivacy
                   </span>
                 </div>

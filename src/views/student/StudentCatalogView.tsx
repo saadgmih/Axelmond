@@ -26,7 +26,7 @@ const CatalogCourseCard = memo(function CatalogCourseCard({
   return (
     <div
       className={`bg-white rounded-2xl border ${
-        isEnrolled ? "border-indigo-200 bg-indigo-50/10 shadow-sm" : "border-slate-200"
+        isEnrolled ? "border-emerald-200 bg-emerald-50/10 shadow-sm" : "border-slate-200"
       } overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col h-full`}
       onMouseEnter={() => {
         if (isEnrolled) prefetchCourseContent(course.id);
@@ -48,7 +48,7 @@ const CatalogCourseCard = memo(function CatalogCourseCard({
         <div className="space-y-1">
           <h3 className="font-extrabold text-base text-slate-800 leading-tight">{course.title}</h3>
           <p className="text-xs text-slate-400 font-medium">Enseignant : {course.instructor}</p>
-          <p className="text-[10px] text-indigo-600 font-black uppercase tracking-wide">
+          <p className="text-[10px] text-emerald-600 font-black uppercase tracking-wide">
             {course.discipline?.domain?.name} • {course.discipline?.name || course.category}
           </p>
         </div>
@@ -72,14 +72,14 @@ const CatalogCourseCard = memo(function CatalogCourseCard({
           <>
             <div>
               <span className="text-xs text-slate-500 block leading-none">Abonnement mensuel</span>
-              <span className="text-lg font-black text-indigo-700 font-mono">{formatMad(course.price)}</span>
+              <span className="text-lg font-black text-emerald-700 font-mono">{formatMad(course.price)}</span>
             </div>
             <button
               type="button"
               data-tv-focusable
               tabIndex={0}
               onClick={() => setCourseToPurchase(course)}
-              className="kbd-nav-focus touch-target bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md shadow-indigo-100 flex items-center gap-1.5 cursor-pointer"
+              className="kbd-nav-focus touch-target bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md shadow-emerald-100 flex items-center gap-1.5 cursor-pointer"
               aria-label={`S'abonner au module ${course.title}`}
             >
               <Lock className="w-3.5 h-3.5" /> S'abonner
@@ -96,7 +96,7 @@ const CatalogCourseCard = memo(function CatalogCourseCard({
               data-tv-focusable
               tabIndex={0}
               onClick={() => navigateTo("course", course)}
-              className="kbd-nav-focus touch-target border border-indigo-200 text-indigo-700 hover:bg-indigo-50 bg-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all cursor-pointer"
+              className="kbd-nav-focus touch-target border border-emerald-200 text-emerald-700 hover:bg-emerald-50 bg-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all cursor-pointer"
               aria-label={`Accéder au module ${course.title}`}
             >
               Accéder au module
@@ -123,7 +123,7 @@ const DomainCatalogCard = memo(function DomainCatalogCard({
       data-tv-focusable
       tabIndex={0}
       onClick={onSelect}
-      className="kbd-nav-focus h-full w-full min-h-0 text-left bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all overflow-hidden group flex flex-col"
+      className="kbd-nav-focus h-full w-full min-h-0 text-left bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all overflow-hidden group flex flex-col"
     >
       <div className={`h-2 shrink-0 bg-gradient-to-r ${domain.color}`} />
       <div className="flex flex-1 flex-col p-6">
@@ -151,7 +151,7 @@ const DomainCatalogCard = memo(function DomainCatalogCard({
           <span className="text-[11px] font-bold uppercase text-slate-400">
             {domain.courseCount || 0} modules publiés
           </span>
-          <span className="flex items-center gap-1 text-xs font-bold text-indigo-600">
+          <span className="flex items-center gap-1 text-xs font-bold text-emerald-600">
             Explorer <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </span>
         </div>
@@ -200,7 +200,7 @@ export default function StudentCatalogView({
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 animate-in fade-in duration-200">
       <div className="space-y-2">
-        <span className="text-xs font-bold text-indigo-600 uppercase tracking-widest bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full inline-block">
+        <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full inline-block">
           Portail académique
         </span>
         <h1 className="text-3xl font-black text-slate-800">
@@ -236,7 +236,7 @@ export default function StudentCatalogView({
               className={`${catalogCrumbClass} ${
                 selectedDiscipline
                   ? "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                  : "bg-indigo-600 text-white border-indigo-700 shadow-sm"
+                  : "bg-emerald-600 text-white border-emerald-700 shadow-sm"
               }`}
             >
               {selectedDomain.name}
@@ -245,7 +245,7 @@ export default function StudentCatalogView({
           {selectedDiscipline && (
             <span
               aria-current="page"
-              className={`${catalogCrumbClass} bg-indigo-600 text-white border-indigo-700 shadow-sm`}
+              className={`${catalogCrumbClass} bg-emerald-600 text-white border-emerald-700 shadow-sm`}
             >
               {selectedDiscipline.name}
             </span>
@@ -284,7 +284,7 @@ export default function StudentCatalogView({
                   setSearchQuery("");
                 }}
                 onMouseEnter={() => prefetchCatalogDiscipline(discipline.id)}
-                className="kbd-nav-focus touch-target text-left bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all group"
+                className="kbd-nav-focus touch-target text-left bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all group"
               >
                 <div className="flex items-center justify-between gap-3">
                   <div>

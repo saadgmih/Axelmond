@@ -93,7 +93,7 @@ rulesTest("student-objectives-ownership", () => {
   assert.doesNotMatch(studyPlanViewSource, /onAddObjective=/);
   assert.match(studyPlanViewSource, /onCreateSessionForDay=/);
   assert.match(studyPlanViewSource, /activeTab === "calendar"/);
-  assert.equal((studyPlanViewSource.match(/bg-gradient-to-r from-indigo-600 to-cyan-600/g) ?? []).length, 2);
+  assert.equal((studyPlanViewSource.match(/bg-gradient-to-r from-emerald-600 to-teal-600/g) ?? []).length, 2);
   assert.match(statsSectionSource, /Streak/);
   assert.match(objectiveFormSource, /Récurrence/);
   assert.match(studyPlanViewSource, /Objectifs en cours/);

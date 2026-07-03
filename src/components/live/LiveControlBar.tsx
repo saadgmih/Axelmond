@@ -120,7 +120,7 @@ export default function LiveControlBar({
             onClick={onSwitchCamera}
             aria-label="Changer de caméra avant ou arrière"
             title="Changer de caméra"
-            className="kbd-nav-focus flex h-12 min-h-12 w-12 min-w-12 flex-col items-center justify-center rounded-xl text-indigo-200 transition-all hover:bg-indigo-500/10 xl:h-[60px] xl:min-h-[60px] xl:w-[60px] xl:min-w-[60px]"
+            className="kbd-nav-focus flex h-12 min-h-12 w-12 min-w-12 flex-col items-center justify-center rounded-xl text-emerald-200 transition-all hover:bg-emerald-500/10 xl:h-[60px] xl:min-h-[60px] xl:w-[60px] xl:min-w-[60px]"
           >
             <SwitchCamera className="mb-1 h-5 w-5 xl:mb-1.5" />
             <span className="whitespace-nowrap text-[9px] font-bold xl:text-[10px]">Inverser</span>
@@ -161,7 +161,7 @@ export default function LiveControlBar({
             aria-label="Lever la main (H)"
             className="kbd-nav-focus group flex h-12 min-h-12 w-12 min-w-12 flex-col items-center justify-center rounded-xl text-zinc-300 transition-all hover:bg-zinc-800 xl:h-[60px] xl:min-h-[60px] xl:w-[60px] xl:min-w-[60px]"
           >
-            <Hand className="mb-1 h-5 w-5 transition-colors group-hover:text-amber-400 xl:mb-1.5" />
+            <Hand className="mb-1 h-5 w-5 transition-colors group-hover:text-lime-400 xl:mb-1.5" />
             <span className="whitespace-nowrap text-[9px] font-bold xl:text-[10px]">Main</span>
           </button>
           <button
@@ -173,7 +173,7 @@ export default function LiveControlBar({
             aria-pressed={isPiPActive}
             className={`kbd-nav-focus flex h-12 min-h-12 w-12 min-w-12 flex-col items-center justify-center rounded-xl transition-all xl:h-[60px] xl:min-h-[60px] xl:w-[60px] xl:min-w-[60px] ${
               isPiPActive
-                ? "bg-indigo-500/10 border border-indigo-400/30 text-indigo-300"
+                ? "bg-emerald-500/10 border border-emerald-400/30 text-emerald-300"
                 : "hover:bg-zinc-800 text-zinc-300"
             }`}
           >

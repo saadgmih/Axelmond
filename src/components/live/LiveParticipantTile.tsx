@@ -107,7 +107,7 @@ function LiveParticipantTile({
           : isFeatured
             ? "min-h-[220px] sm:min-h-[280px]"
             : "min-h-[140px] sm:min-h-[180px]"
-      } ${isActive ? "border-indigo-400 ring-2 ring-indigo-500/40" : "border-white/10 bg-zinc-900/80"} ${
+      } ${isActive ? "border-emerald-400 ring-2 ring-emerald-500/40" : "border-white/10 bg-zinc-900/80"} ${
         hasVideo && !isLocalScreenShare ? "cursor-pointer" : ""
       }`}
     >
@@ -120,8 +120,8 @@ function LiveParticipantTile({
           className="absolute inset-0 h-full w-full bg-black object-contain"
         />
       ) : isLocalScreenShare ? (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-zinc-950 via-[#0b1020] to-indigo-950/40 p-4 text-center">
-          <div className="rounded-full bg-indigo-500/10 p-4 text-indigo-400 mb-3 border border-indigo-500/20">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-zinc-950 via-[#0b1020] to-emerald-950/40 p-4 text-center">
+          <div className="rounded-full bg-emerald-500/10 p-4 text-emerald-400 mb-3 border border-emerald-500/20">
             <Monitor className="h-8 w-8" />
           </div>
           <p className="text-sm font-bold text-white mb-1">Vous partagez votre écran</p>
@@ -130,7 +130,7 @@ function LiveParticipantTile({
           </p>
         </div>
       ) : (
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-zinc-950 via-[#0b1020] to-indigo-950/40">
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-zinc-950 via-[#0b1020] to-emerald-950/40">
           <LiveParticipantAvatar
             name={participant.name}
             initials={participant.initials}
@@ -163,9 +163,9 @@ function LiveParticipantTile({
               <MicOff className={`${isFullscreen ? "h-5 w-5" : "h-3.5 w-3.5"} text-red-400`} />
             )}
             {participant.handRaised && (
-              <Hand className={`${isFullscreen ? "h-5 w-5" : "h-3.5 w-3.5"} text-amber-400`} />
+              <Hand className={`${isFullscreen ? "h-5 w-5" : "h-3.5 w-3.5"} text-lime-400`} />
             )}
-            {isActive && <Wifi className={`${isFullscreen ? "h-5 w-5" : "h-3.5 w-3.5"} text-indigo-300`} />}
+            {isActive && <Wifi className={`${isFullscreen ? "h-5 w-5" : "h-3.5 w-3.5"} text-emerald-300`} />}
           </div>
         </div>
       </div>

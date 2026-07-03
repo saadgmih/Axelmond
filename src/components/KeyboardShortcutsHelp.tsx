@@ -92,7 +92,7 @@ export default function KeyboardShortcutsHelp({ open, onClose }: KeyboardShortcu
       <div className="w-full max-w-2xl max-h-[min(90vh,720px)] overflow-y-auto rounded-3xl border border-slate-700 bg-slate-900 text-white shadow-2xl">
         <div className="sticky top-0 flex items-center justify-between gap-4 border-b border-slate-800 bg-slate-900/95 px-6 py-4 backdrop-blur">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/20 text-indigo-300">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-300">
               <Keyboard className="h-5 w-5" />
             </div>
             <div>
@@ -116,7 +116,7 @@ export default function KeyboardShortcutsHelp({ open, onClose }: KeyboardShortcu
         <div className="space-y-6 p-6">
           {GROUPS.map((group) => (
             <section key={group.title}>
-              <h3 className="mb-3 text-[10px] font-black uppercase tracking-widest text-indigo-300">{group.title}</h3>
+              <h3 className="mb-3 text-[10px] font-black uppercase tracking-widest text-emerald-300">{group.title}</h3>
               <ul className="space-y-2">
                 {group.items.map((item) => (
                   <li
@@ -124,7 +124,7 @@ export default function KeyboardShortcutsHelp({ open, onClose }: KeyboardShortcu
                     className="flex flex-col gap-1 rounded-xl border border-slate-800 bg-slate-950/60 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <span className="text-sm text-slate-200">{item.label}</span>
-                    <kbd className="inline-flex w-fit rounded-lg border border-slate-700 bg-slate-800 px-2.5 py-1 font-mono text-[11px] font-bold text-indigo-200">
+                    <kbd className="inline-flex w-fit rounded-lg border border-slate-700 bg-slate-800 px-2.5 py-1 font-mono text-[11px] font-bold text-emerald-200">
                       {item.keys}
                     </kbd>
                   </li>

@@ -227,10 +227,10 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
               <div className={`flex-1 px-5 py-4 sm:px-6 ${scrollAreaClass}`}>
                 <div className="space-y-4">
                   {/* Price card */}
-                  <div className="relative overflow-hidden rounded-2xl border border-indigo-400/15 bg-gradient-to-br from-indigo-500/[0.12] via-slate-900/40 to-violet-500/[0.08] p-4 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
+                  <div className="relative overflow-hidden rounded-2xl border border-emerald-400/15 bg-gradient-to-br from-emerald-500/[0.12] via-slate-900/40 to-teal-500/[0.08] p-4 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
                     <div className="flex items-end justify-between gap-3">
                       <div className="min-w-0 space-y-1">
-                        <p className="text-[11px] font-bold uppercase tracking-widest text-indigo-300/80">
+                        <p className="text-[11px] font-bold uppercase tracking-widest text-emerald-300/80">
                           Abonnement mensuel
                         </p>
                         <p className="text-xs text-slate-400">Résiliable en 1 clic</p>
@@ -255,11 +255,11 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
 
                     <div className="mt-3 flex flex-wrap gap-2 border-t border-white/[0.06] pt-3">
                       <span className="inline-flex items-center gap-1 rounded-lg bg-black/20 px-2 py-1 text-[10px] font-semibold text-slate-300">
-                        <BookOpen className="h-3 w-3 text-indigo-300" />
+                        <BookOpen className="h-3 w-3 text-emerald-300" />
                         {formatCredits(course.credits)}
                       </span>
                       <span className="inline-flex items-center gap-1 rounded-lg bg-black/20 px-2 py-1 text-[10px] font-semibold text-slate-300">
-                        <Clock className="h-3 w-3 text-indigo-300" />
+                        <Clock className="h-3 w-3 text-emerald-300" />
                         {course.duration}
                       </span>
                     </div>
@@ -282,12 +282,12 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                         value={promoCode}
                         onChange={(e) => setPromoCode(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && handleApplyPromo()}
-                        className="w-full rounded-xl border border-white/10 bg-white/[0.04] py-2.5 pl-10 pr-[5.5rem] font-mono text-sm uppercase text-white placeholder:text-slate-600 focus:border-indigo-400/40 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        className="w-full rounded-xl border border-white/10 bg-white/[0.04] py-2.5 pl-10 pr-[5.5rem] font-mono text-sm uppercase text-white placeholder:text-slate-600 focus:border-emerald-400/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                       />
                       <button
                         type="button"
                         onClick={handleApplyPromo}
-                        className="absolute right-1 top-1 bottom-1 rounded-lg bg-indigo-600 px-3 text-[11px] font-bold text-white transition-colors hover:bg-indigo-500"
+                        className="absolute right-1 top-1 bottom-1 rounded-lg bg-emerald-600 px-3 text-[11px] font-bold text-white transition-colors hover:bg-emerald-500"
                       >
                         Appliquer
                       </button>
@@ -334,21 +334,21 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
 
                         {!paypalConfig && !configError && (
                           <div className="flex items-center justify-center gap-2.5 rounded-2xl border border-white/[0.06] bg-white/[0.02] py-7">
-                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-400/80 border-t-transparent" />
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-400/80 border-t-transparent" />
                             <span className="text-xs font-medium text-slate-400">Initialisation PayPal…</span>
                           </div>
                         )}
 
                         {paypalConfig && (
-                          <div className="axelmond-paypal-shell relative rounded-2xl border border-indigo-400/15 bg-gradient-to-br from-indigo-500/[0.1] via-slate-900/50 to-violet-500/[0.08] p-3 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
+                          <div className="axelmond-paypal-shell relative rounded-2xl border border-emerald-400/15 bg-gradient-to-br from-emerald-500/[0.1] via-slate-900/50 to-teal-500/[0.08] p-3 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
                             {paypalConfig.currency !== PLATFORM_CURRENCY_CODE && (
-                              <div className="mb-3 flex items-start gap-2.5 rounded-xl border border-indigo-400/20 bg-indigo-500/10 px-3 py-2.5">
-                                <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-indigo-300" />
-                                <p className="text-[11px] leading-relaxed text-indigo-100/90">
+                              <div className="mb-3 flex items-start gap-2.5 rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-3 py-2.5">
+                                <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-300" />
+                                <p className="text-[11px] leading-relaxed text-emerald-100/90">
                                   Tarif affiché en{" "}
                                   <span className="font-semibold text-white">{PLATFORM_CURRENCY_CODE}</span>.
                                   Encaissement sécurisé en{" "}
-                                  <span className="font-semibold text-indigo-200">{paypalConfig.currency}</span>
+                                  <span className="font-semibold text-emerald-200">{paypalConfig.currency}</span>
                                   {displayedCheckoutAmount ? ` (~${displayedCheckoutAmount})` : ""}.
                                 </p>
                               </div>
@@ -395,7 +395,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                             </PayPalScriptProvider>
 
                             <p className="mt-3 flex items-center justify-center gap-1.5 text-[10px] font-medium text-slate-500">
-                              <CreditCard className="h-3 w-3 text-indigo-400/80" />
+                              <CreditCard className="h-3 w-3 text-emerald-400/80" />
                               Carte ou compte PayPal — traitement chiffré
                             </p>
                           </div>
@@ -433,7 +433,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
             <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
               <div className="relative h-14 w-14">
                 <div className="absolute inset-0 rounded-full border-2 border-white/10" />
-                <div className="absolute inset-0 animate-spin rounded-full border-2 border-indigo-400 border-t-transparent" />
+                <div className="absolute inset-0 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent" />
               </div>
               <h3 className="mt-5 text-lg font-bold text-white">Validation en cours</h3>
               <p className="mt-1.5 max-w-[260px] text-sm text-slate-400">
@@ -468,7 +468,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
               <button
                 type="button"
                 onClick={onClose}
-                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-600/20 transition-all hover:bg-indigo-500"
+                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 transition-all hover:bg-emerald-500"
               >
                 Accéder au module
                 <ArrowRight className="h-4 w-4" />

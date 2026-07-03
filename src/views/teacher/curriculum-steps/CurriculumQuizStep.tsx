@@ -142,7 +142,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                   setQuizPartId("");
                   setQuizSubpartId("");
                 }}
-                className={`inline-flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-[10px] font-black uppercase transition-colors ${getStepTheme(5).chip} hover:bg-violet-950/80`}
+                className={`inline-flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-[10px] font-black uppercase transition-colors ${getStepTheme(5).chip} hover:bg-teal-950/80`}
               >
                 Nouveau quiz
               </button>
@@ -286,24 +286,24 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
           <>
             {/* Question Form */}
             <div className={`${curriculumUi.panel} ${getStepTheme(5).panel} space-y-5 overflow-hidden`}>
-              <div className="flex flex-col gap-4 rounded-2xl border border-violet-500/20 bg-gradient-to-br from-violet-950/60 via-slate-950 to-cyan-950/30 p-4">
+              <div className="flex flex-col gap-4 rounded-2xl border border-teal-500/20 bg-gradient-to-br from-teal-950/60 via-slate-950 to-cyan-950/30 p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="space-y-1">
-                    <div className="inline-flex items-center gap-2 rounded-full border border-violet-400/30 bg-violet-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-violet-200">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-teal-400/30 bg-teal-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-teal-200">
                       <Sigma className="h-3.5 w-3.5" />
                       LaTeX activé
                     </div>
                     <h3 className="text-base font-black text-white">Ajouter une question scientifique</h3>
                     <p className="text-xs font-medium leading-relaxed text-slate-400">
                       Quiz :{" "}
-                      <span className="font-bold text-violet-300">
+                      <span className="font-bold text-teal-300">
                         {teacherQuizzes.find((q) => q.id === selectedQuizId)?.title}
                       </span>
                     </p>
                   </div>
 
                   <div className="rounded-2xl border border-slate-700/80 bg-slate-950/70 px-3 py-2 text-[10px] font-bold text-slate-300">
-                    <div className="flex items-center gap-1.5 text-cyan-300">
+                    <div className="flex items-center gap-1.5 text-teal-300">
                       <Sparkles className="h-3.5 w-3.5" />
                       Aperçu instantané
                     </div>
@@ -317,7 +317,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                       key={example.label}
                       className="min-w-0 rounded-2xl border border-slate-700/70 bg-slate-950/75 p-3"
                     >
-                      <span className="block text-[9px] font-black uppercase tracking-wider text-violet-300">
+                      <span className="block text-[9px] font-black uppercase tracking-wider text-teal-300">
                         {example.label}
                       </span>
                       <div className="mt-2 min-w-0 overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/70 px-3 py-2 text-[11px] font-semibold text-slate-100">
@@ -354,7 +354,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                     {newQuestionOptions.map((opt, idx) => (
                       <div key={idx} className="rounded-2xl border border-slate-700/80 bg-slate-950/40 p-2.5">
                         <div className="mb-2 flex items-center justify-between">
-                          <span className="flex h-6 w-6 select-none items-center justify-center rounded-lg border border-violet-500/30 bg-violet-950/60 text-[10px] font-black text-violet-300">
+                          <span className="flex h-6 w-6 select-none items-center justify-center rounded-lg border border-teal-500/30 bg-teal-950/60 text-[10px] font-black text-teal-300">
                             {String.fromCharCode(65 + idx)}
                           </span>
                           {newQuestionAnswer === opt && opt.trim() && (
@@ -378,7 +378,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                               setNewQuestionAnswer(e.target.value);
                             }
                           }}
-                          className={`w-full rounded-xl border border-slate-700 bg-[#090d16] px-3 py-2.5 font-mono text-xs font-semibold leading-relaxed text-slate-100 transition-all focus:bg-slate-950 focus:outline-none focus:ring-2 ${stepTheme.focus}`}
+                          className={`w-full rounded-xl border border-slate-700 bg-[#031512] px-3 py-2.5 font-mono text-xs font-semibold leading-relaxed text-slate-100 transition-all focus:bg-slate-950 focus:outline-none focus:ring-2 ${stepTheme.focus}`}
                         />
                         {opt.trim() && (
                           <div className="mt-2 rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2 text-[11px] font-semibold text-slate-200">
@@ -429,9 +429,9 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                 </div>
 
                 {hasQuestionDraft && (
-                  <div className="rounded-2xl border border-cyan-500/20 bg-cyan-950/10 p-4">
+                  <div className="rounded-2xl border border-teal-500/20 bg-teal-950/10 p-4">
                     <div className="mb-3 flex items-center justify-between gap-3">
-                      <span className="text-[10px] font-black uppercase tracking-wider text-cyan-300">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-teal-300">
                         Aperçu étudiant
                       </span>
                       <span className="text-[10px] font-bold text-slate-500">Rendu KaTeX sécurisé</span>
@@ -455,7 +455,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                                   : "border-slate-700 bg-slate-900/80 text-slate-200"
                               }`}
                             >
-                              <span className="mb-1 block text-[10px] font-black text-violet-300">
+                              <span className="mb-1 block text-[10px] font-black text-teal-300">
                                 Option {String.fromCharCode(65 + index)}
                               </span>
                               <LatexText value={option} compact />
@@ -494,7 +494,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                   <div key={q.id} className={`${curriculumUi.card} space-y-3 relative`}>
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 text-xs font-black leading-relaxed text-slate-100">
-                        <span className="text-violet-300">{idx + 1}.</span> <LatexText value={q.question} compact />
+                        <span className="text-teal-300">{idx + 1}.</span> <LatexText value={q.question} compact />
                       </div>
                       <button
                         onClick={() => handleDeleteQuestion(q.id)}
@@ -553,7 +553,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
           <div
             className={`${curriculumUi.panel} flex h-full flex-col items-center justify-center gap-2 py-16 text-center`}
           >
-            <HelpCircle className="h-10 w-10 text-violet-500/50" />
+            <HelpCircle className="h-10 w-10 text-teal-500/50" />
             <h4 className="text-sm font-black text-slate-200">Aucun quiz sélectionné</h4>
             <p className="text-xs text-slate-400 font-medium max-w-xs leading-relaxed">
               Sélectionnez un quiz existant dans la colonne de gauche ou créez-en un nouveau pour commencer à y insérer

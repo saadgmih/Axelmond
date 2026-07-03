@@ -33,7 +33,7 @@ export default function LivePollPanel({
           <input
             value={pollQuestion}
             onChange={(event) => onQuestionChange(event.target.value)}
-            className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3 py-2.5 text-sm text-white focus:border-indigo-500 focus:outline-none"
+            className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3 py-2.5 text-sm text-white focus:border-emerald-500 focus:outline-none"
           />
         </label>
       ) : (
@@ -60,16 +60,16 @@ export default function LivePollPanel({
               className={`relative w-full overflow-hidden rounded-xl border px-3 py-3 text-left transition ${
                 isMyVote
                   ? "border-emerald-400/40 bg-emerald-500/10"
-                  : "border-white/10 bg-zinc-900 hover:border-indigo-400/30 disabled:cursor-not-allowed disabled:opacity-70"
+                  : "border-white/10 bg-zinc-900 hover:border-emerald-400/30 disabled:cursor-not-allowed disabled:opacity-70"
               }`}
             >
               <div
-                className="absolute inset-y-0 left-0 bg-indigo-500/15 transition-all"
+                className="absolute inset-y-0 left-0 bg-emerald-500/15 transition-all"
                 style={{ width: `${ratio}%` }}
               />
               <div className="relative flex items-center justify-between gap-3">
                 <span className="text-xs font-semibold text-zinc-100">{option}</span>
-                <span className="text-[10px] font-black text-indigo-300">
+                <span className="text-[10px] font-black text-emerald-300">
                   {ratio}% ({votes})
                 </span>
               </div>
@@ -83,7 +83,7 @@ export default function LivePollPanel({
           <button
             type="button"
             onClick={onPublishPoll}
-            className="flex-1 rounded-xl border border-indigo-400/30 bg-indigo-500/10 py-2.5 text-xs font-bold text-indigo-200 transition hover:bg-indigo-500/20"
+            className="flex-1 rounded-xl border border-emerald-400/30 bg-emerald-500/10 py-2.5 text-xs font-bold text-emerald-200 transition hover:bg-emerald-500/20"
           >
             {pollActive ? "Relancer le sondage" : "Lancer le sondage"}
           </button>

@@ -6,19 +6,19 @@ type AccentVariant = "indigo" | "pink" | "violet" | "teal";
 
 const accentStyles: Record<AccentVariant, { button: string; ring: string; frame: string }> = {
   indigo: {
-    button: "bg-indigo-600 hover:bg-indigo-700",
-    ring: "ring-indigo-500/20",
-    frame: "border-white/20 bg-gradient-to-tr from-indigo-500 to-purple-600",
+    button: "bg-emerald-600 hover:bg-emerald-700",
+    ring: "ring-emerald-500/20",
+    frame: "border-white/20 bg-gradient-to-tr from-emerald-500 to-teal-600",
   },
   pink: {
-    button: "bg-pink-600 hover:bg-pink-700",
-    ring: "ring-pink-500/20",
-    frame: "border-white/20 bg-gradient-to-tr from-pink-500 to-rose-600",
+    button: "bg-emerald-600 hover:bg-emerald-700",
+    ring: "ring-emerald-500/20",
+    frame: "border-white/20 bg-gradient-to-tr from-emerald-500 to-emerald-600",
   },
   violet: {
-    button: "bg-violet-600 hover:bg-violet-700",
-    ring: "ring-violet-500/20",
-    frame: "border-white/15 bg-gradient-to-tr from-violet-600 to-purple-700",
+    button: "bg-teal-600 hover:bg-teal-700",
+    ring: "ring-teal-500/20",
+    frame: "border-white/15 bg-gradient-to-tr from-teal-600 to-teal-700",
   },
   teal: {
     button: "bg-teal-600 hover:bg-teal-700",
@@ -29,24 +29,24 @@ const accentStyles: Record<AccentVariant, { button: string; ring: string; frame:
 
 const darkAccentStyles: Record<AccentVariant, { button: string; ring: string; frame: string }> = {
   indigo: {
-    button: "bg-indigo-600 hover:bg-indigo-500",
-    ring: "ring-indigo-500/25",
-    frame: "border-white/15 bg-gradient-to-br from-indigo-950 to-[#020617]",
+    button: "bg-emerald-600 hover:bg-emerald-500",
+    ring: "ring-emerald-500/25",
+    frame: "border-white/15 bg-gradient-to-br from-emerald-950 to-[#031512]",
   },
   pink: {
-    button: "bg-pink-600 hover:bg-pink-500",
-    ring: "ring-pink-500/25",
-    frame: "border-white/15 bg-gradient-to-br from-pink-950 to-[#020617]",
+    button: "bg-emerald-600 hover:bg-emerald-500",
+    ring: "ring-emerald-500/25",
+    frame: "border-white/15 bg-gradient-to-br from-emerald-950 to-[#031512]",
   },
   violet: {
-    button: "bg-violet-600 hover:bg-violet-500",
-    ring: "ring-violet-500/25",
-    frame: "border-white/15 bg-gradient-to-br from-violet-950 to-[#020617]",
+    button: "bg-teal-600 hover:bg-teal-500",
+    ring: "ring-teal-500/25",
+    frame: "border-white/15 bg-gradient-to-br from-teal-950 to-[#031512]",
   },
   teal: {
     button: "bg-teal-600 hover:bg-teal-500",
     ring: "ring-teal-500/25",
-    frame: "border-white/15 bg-gradient-to-br from-teal-950 to-[#020617]",
+    frame: "border-white/15 bg-gradient-to-br from-teal-950 to-[#031512]",
   },
 };
 
@@ -108,7 +108,7 @@ export default function ProfileAvatarUpload({
           type="button"
           onClick={() => inputRef.current?.click()}
           aria-label="Choisir une photo de profil"
-          className="group relative shrink-0 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60"
+          className="group relative shrink-0 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60"
         >
           <div
             className={`relative overflow-hidden rounded-2xl border-4 shadow-2xl ring-4 ${theme.frame} ${theme.ring}`}
@@ -157,7 +157,7 @@ export default function ProfileAvatarUpload({
             onClick={onDelete}
             className={`inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-[11px] font-semibold transition-colors ${
               isHero
-                ? "text-indigo-200/70 hover:text-red-200"
+                ? "text-emerald-200/70 hover:text-red-200"
                 : isDark
                   ? "text-slate-500 hover:bg-red-950/30 hover:text-red-300"
                   : "text-slate-500 hover:bg-red-50 hover:text-red-600"
@@ -171,7 +171,7 @@ export default function ProfileAvatarUpload({
         {statusMsg && !isHero && (
           <p
             className={`w-full rounded-xl px-3 py-2 text-center text-[11px] font-semibold ${
-              isDark ? "bg-indigo-950/40 text-indigo-300" : "bg-slate-50 text-slate-500"
+              isDark ? "bg-emerald-950/40 text-emerald-300" : "bg-slate-50 text-slate-500"
             }`}
           >
             {statusMsg}
@@ -195,7 +195,7 @@ export default function ProfileAvatarUpload({
       {isUploading && isEditorOpen && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/40">
           <div className="rounded-2xl bg-white px-5 py-4 text-xs font-bold text-slate-700 shadow-xl">
-            <Upload className="mx-auto mb-2 h-5 w-5 animate-pulse text-indigo-600" />
+            <Upload className="mx-auto mb-2 h-5 w-5 animate-pulse text-emerald-600" />
             Téléversement en cours...
           </div>
         </div>

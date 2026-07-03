@@ -29,7 +29,7 @@ export function ObjectiveCard({
           className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${
             completed
               ? "border border-emerald-400/20 bg-emerald-500/10 text-emerald-200"
-              : "border border-amber-400/20 bg-amber-500/10 text-amber-200"
+              : "border border-lime-400/20 bg-lime-500/10 text-lime-200"
           }`}
         >
           {objective.statusLabel}
@@ -39,7 +39,7 @@ export function ObjectiveCard({
       {objective.description && <p className={`${scheduleUi.sessionMeta} line-clamp-3`}>{objective.description}</p>}
 
       {objective.recurrence && objective.recurrence !== "NONE" && (
-        <p className="inline-flex w-fit items-center gap-1 rounded-full border border-violet-400/20 bg-violet-500/10 px-2 py-1 text-[10px] font-black uppercase tracking-widest text-violet-200">
+        <p className="inline-flex w-fit items-center gap-1 rounded-full border border-teal-400/20 bg-teal-500/10 px-2 py-1 text-[10px] font-black uppercase tracking-widest text-teal-200">
           <RotateCcw className="h-3 w-3" />
           {objective.recurrenceLabel}
         </p>
@@ -47,18 +47,18 @@ export function ObjectiveCard({
 
       <div className="grid grid-cols-1 gap-2 text-[11px] font-semibold text-slate-400 sm:grid-cols-2">
         <p className="inline-flex items-center gap-1">
-          <Clock3 className="h-3.5 w-3.5 text-indigo-300" />
+          <Clock3 className="h-3.5 w-3.5 text-emerald-300" />
           Début : {formatDateTime(objective.startAt)}
         </p>
         <p className="inline-flex items-center gap-1">
-          <Target className="h-3.5 w-3.5 text-violet-300" />
+          <Target className="h-3.5 w-3.5 text-teal-300" />
           Fin : {formatDateTime(objective.endAt)}
         </p>
       </div>
 
       {(objective.focusContentTitle || objective.focusContentUrl) && (
-        <div className="rounded-xl border border-cyan-400/10 bg-cyan-500/5 p-3">
-          <p className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-cyan-200">
+        <div className="rounded-xl border border-teal-400/10 bg-teal-500/5 p-3">
+          <p className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-teal-200">
             <Headphones className="h-3.5 w-3.5" />
             Écoute / concentration
           </p>
@@ -73,7 +73,7 @@ export function ObjectiveCard({
               href={objective.focusContentUrl}
               target="_blank"
               rel="noreferrer"
-              className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-cyan-200 hover:text-cyan-100"
+              className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-teal-200 hover:text-teal-100"
             >
               Ouvrir le contenu
               <ExternalLink className="h-3 w-3" />

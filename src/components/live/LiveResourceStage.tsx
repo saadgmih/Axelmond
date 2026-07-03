@@ -16,7 +16,7 @@ export default function LiveResourceStage({ resource, canModerate, onDismiss }: 
     <div className="absolute inset-0 z-20 flex flex-col bg-zinc-950">
       <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 bg-zinc-900/95 px-4 py-3 backdrop-blur-md">
         <div className="min-w-0 flex items-center gap-2">
-          <FileText className="h-4 w-4 shrink-0 text-indigo-300" />
+          <FileText className="h-4 w-4 shrink-0 text-emerald-300" />
           <div className="min-w-0">
             <p className="truncate text-sm font-bold text-white">{resource.title}</p>
             <p className="truncate text-[10px] text-zinc-400">Partagé par {resource.sharedBy}</p>
@@ -62,7 +62,7 @@ export default function LiveResourceStage({ resource, canModerate, onDismiss }: 
           />
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-4 px-6 text-center">
-            <Link2 className="h-10 w-10 text-indigo-300" />
+            <Link2 className="h-10 w-10 text-emerald-300" />
             <div className="max-w-lg space-y-2">
               <p className="text-sm font-bold text-white">{resource.title}</p>
               <p className="text-xs text-zinc-400">
@@ -74,7 +74,7 @@ export default function LiveResourceStage({ resource, canModerate, onDismiss }: 
               href={safeUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-indigo-500"
+              className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-emerald-500"
             >
               <ExternalLink className="h-4 w-4" />
               Ouvrir la ressource

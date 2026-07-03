@@ -134,7 +134,7 @@ export default function CoursePriceSlider({
           onClick={() => commitPriceMode(isFree ? MIN_PAID_COURSE_PRICE : draft)}
           className={`rounded-xl border px-3 py-2 text-xs font-black transition-colors ${
             !isFree
-              ? "border-violet-400/50 bg-violet-500/15 text-violet-100"
+              ? "border-teal-400/50 bg-teal-500/15 text-teal-100"
               : "border-white/10 bg-slate-900/60 text-slate-400 hover:border-white/20 hover:text-white"
           }`}
         >

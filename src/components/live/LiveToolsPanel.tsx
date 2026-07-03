@@ -63,7 +63,7 @@ export default function LiveToolsPanel({
         <button
           type="button"
           onClick={onShareResource}
-          className="w-full rounded-xl border border-indigo-400/30 bg-indigo-500/10 py-2.5 text-xs font-bold text-indigo-200"
+          className="w-full rounded-xl border border-emerald-400/30 bg-emerald-500/10 py-2.5 text-xs font-bold text-emerald-200"
         >
           <FileUp className="mr-2 inline h-4 w-4" />
           Partager au module

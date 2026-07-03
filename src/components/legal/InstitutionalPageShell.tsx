@@ -73,7 +73,7 @@ export const InstitutionalInfoRow: React.FC<{
     <div className="min-w-0">
       <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">{label}</div>
       <div
-        className={`text-slate-200 text-sm font-semibold mt-0.5 break-all ${mono ? "font-mono text-indigo-300" : ""}`}
+        className={`text-slate-200 text-sm font-semibold mt-0.5 break-all ${mono ? "font-mono text-emerald-300" : ""}`}
       >
         {value}
       </div>
@@ -83,7 +83,7 @@ export const InstitutionalInfoRow: React.FC<{
 
 export const InstitutionalCheckList: React.FC<{ items: string[]; color?: string }> = ({
   items,
-  color = "text-indigo-400",
+  color = "text-emerald-400",
 }) => (
   <ul className="space-y-2.5">
     {items.map((item) => (
@@ -97,7 +97,7 @@ export const InstitutionalCheckList: React.FC<{ items: string[]; color?: string 
 
 export const InstitutionalBulletList: React.FC<{ items: string[]; color?: string }> = ({
   items,
-  color = "text-indigo-400",
+  color = "text-emerald-400",
 }) => (
   <ul className="space-y-2">
     {items.map((item) => (

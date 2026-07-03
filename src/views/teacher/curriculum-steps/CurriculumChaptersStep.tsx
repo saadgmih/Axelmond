@@ -126,7 +126,7 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
       <div className={`lg:col-span-5 ${curriculumUi.panel} ${getStepTheme(2).panel} space-y-5 self-start`}>
         <div>
           <h3 className={curriculumUi.panelTitle}>
-            <Plus className="h-5 w-5 text-cyan-400" />
+            <Plus className="h-5 w-5 text-teal-400" />
             Ajouter un chapitre
           </h3>
           <p className={curriculumUi.panelSubtitle}>Créez un chapitre de premier niveau pour structurer ce module.</p>
@@ -154,7 +154,7 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
               type="checkbox"
               checked={newSectionPublished}
               onChange={(e) => setNewSectionPublished(e.target.checked)}
-              className={`h-4 w-4 cursor-pointer accent-indigo-600`}
+              className={`h-4 w-4 cursor-pointer accent-emerald-600`}
             />
             Publier immédiatement le chapitre
           </label>
@@ -213,7 +213,7 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
                       className={
                         section.published
                           ? curriculumUi.unpublishBtn
-                          : `${curriculumUi.ghostBtn} border-cyan-500/30 text-cyan-300`
+                          : `${curriculumUi.ghostBtn} border-teal-500/30 text-teal-300`
                       }
                     >
                       {section.published ? "Dépublier" : "Publier"}

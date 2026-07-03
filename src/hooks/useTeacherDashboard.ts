@@ -401,7 +401,7 @@ export function useTeacherDashboard({
   const getGradeBadgeClass = (score: number | null) => {
     if (score === null) return "text-slate-500 bg-slate-100";
     if (score >= 16) return "text-emerald-700 bg-emerald-50";
-    if (score >= 10) return "text-indigo-700 bg-indigo-50";
+    if (score >= 10) return "text-emerald-700 bg-emerald-50";
     return "text-red-700 bg-red-50";
   };
 

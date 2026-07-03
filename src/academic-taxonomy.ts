@@ -24,7 +24,7 @@ export const ACADEMIC_DOMAINS: AcademicDomainSeed[] = [
     name: "Mathématiques",
     slug: "mathematiques",
     iconName: "Calculator",
-    color: "from-indigo-600 to-blue-600",
+    color: "from-emerald-600 to-emerald-600",
     description: "Fondements théoriques, modélisation et méthodes quantitatives.",
     order: 1,
     disciplines: [
@@ -88,7 +88,7 @@ export const ACADEMIC_DOMAINS: AcademicDomainSeed[] = [
     name: "Médecine et Pharmacie",
     slug: "medecine-pharmacie",
     iconName: "HeartPulse",
-    color: "from-rose-600 to-red-600",
+    color: "from-emerald-600 to-red-600",
     description: "Santé, corps humain, médicaments et pratiques cliniques.",
     order: 5,
     disciplines: [
@@ -104,7 +104,7 @@ export const ACADEMIC_DOMAINS: AcademicDomainSeed[] = [
     name: "Informatique et Intelligence Artificielle",
     slug: "informatique-intelligence-artificielle",
     iconName: "BrainCircuit",
-    color: "from-violet-600 to-fuchsia-600",
+    color: "from-teal-600 to-teal-600",
     description: "Logiciel, données, sécurité, apprentissage automatique et IA.",
     order: 6,
     disciplines: [
@@ -138,7 +138,7 @@ export const ACADEMIC_DOMAINS: AcademicDomainSeed[] = [
     name: "Économie et Management",
     slug: "economie-management",
     iconName: "BriefcaseBusiness",
-    color: "from-amber-600 to-orange-600",
+    color: "from-lime-600 to-orange-600",
     description: "Organisation, finance, marchés, gestion et entrepreneuriat.",
     order: 8,
     disciplines: [
@@ -155,7 +155,7 @@ export const ACADEMIC_DOMAINS: AcademicDomainSeed[] = [
     name: "Génie Électrique et Électronique",
     slug: "genie-electrique-electronique",
     iconName: "CircuitBoard",
-    color: "from-blue-700 to-indigo-700",
+    color: "from-emerald-700 to-emerald-700",
     description: "Électronique, contrôle, télécommunications et systèmes embarqués.",
     order: 9,
     disciplines: [
@@ -170,7 +170,7 @@ export const ACADEMIC_DOMAINS: AcademicDomainSeed[] = [
     name: "Accompagnement et Réussite",
     slug: "accompagnement-reussite",
     iconName: "Lightbulb",
-    color: "from-pink-600 to-purple-600",
+    color: "from-emerald-600 to-teal-600",
     description: "Méthodes d'apprentissage, tutorat, ateliers et progression.",
     order: 10,
     disciplines: [

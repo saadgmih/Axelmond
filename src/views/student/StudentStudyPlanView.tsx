@@ -82,7 +82,7 @@ export default function StudentStudyPlanView({ role, currentView }: StudentStudy
   return (
     <div className={scheduleUi.page} data-tv-zone="student-study-plan">
       <section className={scheduleUi.hero}>
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-indigo-600/25 via-violet-600/15 to-cyan-600/10" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-emerald-600/25 via-violet-600/15 to-cyan-600/10" />
         <div className={scheduleUi.heroInner}>
           <div>
             <h1 className={scheduleUi.heroTitle}>Plan d&apos;étude &amp; Objectifs</h1>
@@ -95,7 +95,7 @@ export default function StudentStudyPlanView({ role, currentView }: StudentStudy
             <div className="flex flex-wrap items-center justify-end gap-2">
               <button
                 type="button"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 px-5 py-3 text-xs font-bold text-white shadow-lg shadow-indigo-950/30 transition-all hover:from-indigo-500 hover:to-cyan-500 active:scale-[0.98]"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-5 py-3 text-xs font-bold text-white shadow-lg shadow-emerald-950/30 transition-all hover:from-emerald-500 hover:to-teal-500 active:scale-[0.98]"
                 onClick={() => schedule.openCreateForm()}
               >
                 <Plus className="h-4 w-4" />
@@ -103,7 +103,7 @@ export default function StudentStudyPlanView({ role, currentView }: StudentStudy
               </button>
               <button
                 type="button"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 px-5 py-3 text-xs font-bold text-white shadow-lg shadow-indigo-950/30 transition-all hover:from-indigo-500 hover:to-cyan-500 active:scale-[0.98]"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-5 py-3 text-xs font-bold text-white shadow-lg shadow-emerald-950/30 transition-all hover:from-emerald-500 hover:to-teal-500 active:scale-[0.98]"
                 onClick={objectives.openCreateForm}
               >
                 <Plus className="h-4 w-4" />
@@ -115,7 +115,7 @@ export default function StudentStudyPlanView({ role, currentView }: StudentStudy
       </section>
 
       <nav
-        className="flex flex-wrap gap-2 rounded-2xl border border-white/[0.08] bg-[#0f172a]/70 p-2"
+        className="flex flex-wrap gap-2 rounded-2xl border border-white/[0.08] bg-[#0b241f]/70 p-2"
         aria-label="Sections du plan d'étude"
       >
         {STUDY_PLAN_TABS.map((tab) => (
@@ -125,7 +125,7 @@ export default function StudentStudyPlanView({ role, currentView }: StudentStudy
             onClick={() => selectTab(tab.id)}
             className={`rounded-xl px-4 py-2.5 text-xs font-bold transition-all ${
               activeTab === tab.id
-                ? "bg-indigo-600 text-white shadow-md shadow-indigo-950/40"
+                ? "bg-emerald-600 text-white shadow-md shadow-emerald-950/40"
                 : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
             }`}
           >
@@ -140,7 +140,7 @@ export default function StudentStudyPlanView({ role, currentView }: StudentStudy
       {activeTab === "calendar" && (
         <>
           {isLoading ? (
-            <div className="rounded-2xl border border-white/[0.08] bg-[#0f172a]/70 px-6 py-10 text-center text-sm font-semibold text-slate-400">
+            <div className="rounded-2xl border border-white/[0.08] bg-[#0b241f]/70 px-6 py-10 text-center text-sm font-semibold text-slate-400">
               Chargement du calendrier...
             </div>
           ) : (
@@ -165,7 +165,7 @@ export default function StudentStudyPlanView({ role, currentView }: StudentStudy
       {activeTab === "sessions" && (
         <>
           {schedule.isLoading ? (
-            <div className="rounded-2xl border border-white/[0.08] bg-[#0f172a]/70 px-6 py-10 text-center text-sm font-semibold text-slate-400">
+            <div className="rounded-2xl border border-white/[0.08] bg-[#0b241f]/70 px-6 py-10 text-center text-sm font-semibold text-slate-400">
               Chargement de vos séances...
             </div>
           ) : schedule.sessions.length === 0 ? (
@@ -190,7 +190,7 @@ export default function StudentStudyPlanView({ role, currentView }: StudentStudy
       {activeTab === "objectives" && (
         <>
           {objectives.isLoading ? (
-            <div className="rounded-2xl border border-white/[0.08] bg-[#0f172a]/70 px-6 py-10 text-center text-sm font-semibold text-slate-400">
+            <div className="rounded-2xl border border-white/[0.08] bg-[#0b241f]/70 px-6 py-10 text-center text-sm font-semibold text-slate-400">
               Chargement de vos objectifs...
             </div>
           ) : (

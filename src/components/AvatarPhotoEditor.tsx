@@ -22,7 +22,7 @@ interface AvatarPhotoEditorProps {
 export default function AvatarPhotoEditor({
   file,
   isOpen,
-  accentClass = "bg-indigo-600 hover:bg-indigo-700",
+  accentClass = "bg-emerald-600 hover:bg-emerald-700",
   onCancel,
   onConfirm,
 }: AvatarPhotoEditorProps) {
@@ -175,7 +175,7 @@ export default function AvatarPhotoEditor({
                 step={0.01}
                 value={crop.zoom}
                 onChange={(e) => updateCrop({ zoom: Number(e.target.value) })}
-                className="w-full accent-indigo-500"
+                className="w-full accent-emerald-500"
               />
               <button
                 type="button"

@@ -24,7 +24,7 @@ const DEFAULT_DOMAIN_FORM: AcademicDomainInput = {
   name: "",
   description: "",
   iconName: "Layers",
-  color: "from-violet-600 to-indigo-600",
+  color: "from-teal-600 to-emerald-600",
   order: undefined,
 };
 
@@ -52,19 +52,19 @@ function DomainInputGrid({
         value={value.name}
         onChange={(event) => onChange({ ...value, name: event.target.value })}
         placeholder="Nom du domaine"
-        className="min-h-11 rounded-lg border border-slate-700 bg-slate-950/80 px-3 text-sm font-bold text-white outline-none focus:border-violet-400 lg:col-span-2"
+        className="min-h-11 rounded-lg border border-slate-700 bg-slate-950/80 px-3 text-sm font-bold text-white outline-none focus:border-teal-400 lg:col-span-2"
       />
       <input
         value={value.description || ""}
         onChange={(event) => onChange({ ...value, description: event.target.value })}
         placeholder="Description"
-        className="min-h-11 rounded-lg border border-slate-700 bg-slate-950/80 px-3 text-sm font-semibold text-slate-100 outline-none focus:border-violet-400 lg:col-span-2"
+        className="min-h-11 rounded-lg border border-slate-700 bg-slate-950/80 px-3 text-sm font-semibold text-slate-100 outline-none focus:border-teal-400 lg:col-span-2"
       />
       <input
         value={value.iconName || ""}
         onChange={(event) => onChange({ ...value, iconName: event.target.value })}
         placeholder="Icône"
-        className="min-h-11 rounded-lg border border-slate-700 bg-slate-950/80 px-3 text-sm font-semibold text-slate-100 outline-none focus:border-violet-400"
+        className="min-h-11 rounded-lg border border-slate-700 bg-slate-950/80 px-3 text-sm font-semibold text-slate-100 outline-none focus:border-teal-400"
       />
       <input
         type="number"
@@ -72,7 +72,7 @@ function DomainInputGrid({
         value={toOrderValue(value.order)}
         onChange={(event) => onChange({ ...value, order: parseOrderValue(event.target.value) })}
         placeholder="Ordre"
-        className="min-h-11 rounded-lg border border-slate-700 bg-slate-950/80 px-3 text-sm font-semibold text-slate-100 outline-none focus:border-violet-400"
+        className="min-h-11 rounded-lg border border-slate-700 bg-slate-950/80 px-3 text-sm font-semibold text-slate-100 outline-none focus:border-teal-400"
       />
     </div>
   );
@@ -95,7 +95,7 @@ function DisciplineInputGrid({
         <select
           value={value.domainId || domains[0]?.id || ""}
           onChange={(event) => onChange({ ...value, domainId: Number(event.target.value) })}
-          className="min-h-11 rounded-lg border border-slate-700 bg-slate-950/80 px-3 text-sm font-bold text-white outline-none focus:border-violet-400"
+          className="min-h-11 rounded-lg border border-slate-700 bg-slate-950/80 px-3 text-sm font-bold text-white outline-none focus:border-teal-400"
         >
           {domains.map((domain) => (
             <option key={domain.id} value={domain.id}>
@@ -109,7 +109,7 @@ function DisciplineInputGrid({
         value={value.name}
         onChange={(event) => onChange({ ...value, name: event.target.value })}
         placeholder="Nom du sous-domaine"
-        className={`min-h-11 rounded-lg border border-slate-700 bg-slate-950/80 px-3 text-sm font-bold text-white outline-none focus:border-violet-400 ${
+        className={`min-h-11 rounded-lg border border-slate-700 bg-slate-950/80 px-3 text-sm font-bold text-white outline-none focus:border-teal-400 ${
           showDomainSelect ? "lg:col-span-2" : "lg:col-span-3"
         }`}
       />
@@ -117,7 +117,7 @@ function DisciplineInputGrid({
         value={value.slug || ""}
         onChange={(event) => onChange({ ...value, slug: event.target.value })}
         placeholder="Slug optionnel"
-        className="min-h-11 rounded-lg border border-slate-700 bg-slate-950/80 px-3 text-sm font-semibold text-slate-100 outline-none focus:border-violet-400"
+        className="min-h-11 rounded-lg border border-slate-700 bg-slate-950/80 px-3 text-sm font-semibold text-slate-100 outline-none focus:border-teal-400"
       />
       <input
         type="number"
@@ -125,7 +125,7 @@ function DisciplineInputGrid({
         value={toOrderValue(value.order)}
         onChange={(event) => onChange({ ...value, order: parseOrderValue(event.target.value) })}
         placeholder="Ordre"
-        className="min-h-11 rounded-lg border border-slate-700 bg-slate-950/80 px-3 text-sm font-semibold text-slate-100 outline-none focus:border-violet-400"
+        className="min-h-11 rounded-lg border border-slate-700 bg-slate-950/80 px-3 text-sm font-semibold text-slate-100 outline-none focus:border-teal-400"
       />
     </div>
   );
@@ -165,8 +165,8 @@ export default function AdminAcademicTaxonomyView({
   const stats = useMemo(() => {
     const disciplineCount = domains.reduce((sum, domain) => sum + domain.disciplines.length, 0);
     return [
-      { label: "Domaines", value: domains.length, icon: FolderTree, tone: "text-violet-300 bg-violet-500/10" },
-      { label: "Sous-domaines", value: disciplineCount, icon: Layers, tone: "text-indigo-300 bg-indigo-500/10" },
+      { label: "Domaines", value: domains.length, icon: FolderTree, tone: "text-teal-300 bg-teal-500/10" },
+      { label: "Sous-domaines", value: disciplineCount, icon: Layers, tone: "text-emerald-300 bg-emerald-500/10" },
       { label: "Modules", value: courses.length, icon: BookOpen, tone: "text-emerald-300 bg-emerald-500/10" },
     ];
   }, [courses.length, domains]);
@@ -252,11 +252,11 @@ export default function AdminAcademicTaxonomyView({
     <div className="space-y-6 rounded-2xl border border-slate-700/60 bg-[#07101f] p-4 text-slate-100 shadow-[0_24px_80px_rgba(2,6,23,0.45)] sm:p-6 lg:p-8">
       <header className="border-b border-slate-800/80 pb-6">
         <div className="flex min-w-0 items-center gap-4">
-          <span className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-800 text-white">
+          <span className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-emerald-800 text-white">
             <FolderTree className="h-7 w-7" />
           </span>
           <div className="min-w-0">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-300">{headerCopy.eyebrow}</p>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-teal-300">{headerCopy.eyebrow}</p>
             <h1 className="text-2xl font-black text-white sm:text-3xl">{headerCopy.title}</h1>
             <p className="mt-1 text-sm text-slate-400">{headerCopy.description}</p>
           </div>
@@ -279,7 +279,7 @@ export default function AdminAcademicTaxonomyView({
       </section>
 
       {taxonomyStatusMsg && (
-        <p className="rounded-lg border border-violet-500/30 bg-violet-500/10 px-4 py-3 text-sm font-semibold text-violet-200">
+        <p className="rounded-lg border border-teal-500/30 bg-teal-500/10 px-4 py-3 text-sm font-semibold text-teal-200">
           {taxonomyStatusMsg}
         </p>
       )}
@@ -290,14 +290,14 @@ export default function AdminAcademicTaxonomyView({
         {showDomainManagement && (
           <form onSubmit={submitDomain} className="rounded-xl border border-slate-700/60 bg-[#0b1528] p-5 space-y-4">
             <div className="flex items-center gap-2">
-              <Plus className="h-4 w-4 text-violet-300" />
+              <Plus className="h-4 w-4 text-teal-300" />
               <h2 className="text-sm font-black text-white">Créer un domaine</h2>
             </div>
             <DomainInputGrid value={domainForm} onChange={setDomainForm} />
             <button
               type="submit"
               disabled={isSavingTaxonomy}
-              className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-violet-600 px-4 text-sm font-black text-white transition-colors hover:bg-violet-500 disabled:cursor-wait disabled:opacity-60"
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-teal-600 px-4 text-sm font-black text-white transition-colors hover:bg-teal-500 disabled:cursor-wait disabled:opacity-60"
             >
               <Save className="h-4 w-4" />
               Enregistrer le domaine
@@ -311,7 +311,7 @@ export default function AdminAcademicTaxonomyView({
             className="rounded-xl border border-slate-700/60 bg-[#0b1528] p-5 space-y-4"
           >
             <div className="flex items-center gap-2">
-              <Plus className="h-4 w-4 text-indigo-300" />
+              <Plus className="h-4 w-4 text-emerald-300" />
               <h2 className="text-sm font-black text-white">Créer un sous-domaine</h2>
             </div>
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
@@ -319,7 +319,7 @@ export default function AdminAcademicTaxonomyView({
                 required
                 value={newDisciplineDomainId || ""}
                 onChange={(event) => setNewDisciplineDomainId(Number(event.target.value))}
-                className="min-h-11 rounded-lg border border-slate-700 bg-slate-950/80 px-3 text-sm font-bold text-white outline-none focus:border-violet-400"
+                className="min-h-11 rounded-lg border border-slate-700 bg-slate-950/80 px-3 text-sm font-bold text-white outline-none focus:border-teal-400"
               >
                 {domains.map((domain) => (
                   <option key={domain.id} value={domain.id}>
@@ -332,7 +332,7 @@ export default function AdminAcademicTaxonomyView({
             <button
               type="submit"
               disabled={isSavingTaxonomy || !domains.length}
-              className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-indigo-600 px-4 text-sm font-black text-white transition-colors hover:bg-indigo-500 disabled:cursor-wait disabled:opacity-60"
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-black text-white transition-colors hover:bg-emerald-500 disabled:cursor-wait disabled:opacity-60"
             >
               <Save className="h-4 w-4" />
               Enregistrer le sous-domaine
@@ -360,7 +360,7 @@ export default function AdminAcademicTaxonomyView({
                         <button
                           type="submit"
                           disabled={isSavingTaxonomy}
-                          className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-violet-600 px-3 text-xs font-black text-white hover:bg-violet-500 disabled:cursor-wait disabled:opacity-60"
+                          className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-teal-600 px-3 text-xs font-black text-white hover:bg-teal-500 disabled:cursor-wait disabled:opacity-60"
                         >
                           <Save className="h-4 w-4" />
                           Sauvegarder
@@ -379,7 +379,7 @@ export default function AdminAcademicTaxonomyView({
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="text-lg font-black text-white">{domain.name}</h3>
-                        <span className="rounded-full border border-violet-500/30 bg-violet-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-violet-200">
+                        <span className="rounded-full border border-teal-500/30 bg-teal-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-teal-200">
                           {domain.disciplines.length} sous-domaine{domain.disciplines.length !== 1 ? "s" : ""}
                         </span>
                       </div>
@@ -406,7 +406,7 @@ export default function AdminAcademicTaxonomyView({
                         disabled={!canDeleteDomain || isSavingTaxonomy}
                         onClick={() => void handleDeleteAcademicDomain(domain.id, domain.name)}
                         title={!canDeleteDomain ? "Supprimez d'abord les sous-domaines" : "Supprimer le domaine"}
-                        className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-rose-500/60 bg-rose-500/10 px-3 text-xs font-bold text-rose-200 transition-colors hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-40"
+                        className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-emerald-500/60 bg-emerald-500/10 px-3 text-xs font-bold text-emerald-200 transition-colors hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         <Trash2 className="h-4 w-4" />
                         Supprimer
@@ -437,7 +437,7 @@ export default function AdminAcademicTaxonomyView({
                                   <button
                                     type="submit"
                                     disabled={isSavingTaxonomy}
-                                    className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-indigo-600 px-3 text-xs font-black text-white hover:bg-indigo-500 disabled:cursor-wait disabled:opacity-60"
+                                    className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-emerald-600 px-3 text-xs font-black text-white hover:bg-emerald-500 disabled:cursor-wait disabled:opacity-60"
                                   >
                                     <Save className="h-4 w-4" />
                                     Sauvegarder
@@ -499,7 +499,7 @@ export default function AdminAcademicTaxonomyView({
                                         ? "Déplacez d'abord les modules attachés"
                                         : "Supprimer le sous-domaine"
                                     }
-                                    className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-rose-500/60 bg-rose-500/10 px-3 text-xs font-bold text-rose-200 transition-colors hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-40"
+                                    className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-emerald-500/60 bg-emerald-500/10 px-3 text-xs font-bold text-emerald-200 transition-colors hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-40"
                                   >
                                     <Trash2 className="h-4 w-4" />
                                     Supprimer

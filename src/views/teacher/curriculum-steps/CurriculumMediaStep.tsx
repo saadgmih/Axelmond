@@ -119,7 +119,7 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
       <div className={`lg:col-span-5 ${curriculumUi.panel} ${getStepTheme(4).panel} space-y-5 self-start`}>
         <div>
           <h3 className={curriculumUi.panelTitle}>
-            <FileText className="h-5 w-5 text-amber-400" />
+            <FileText className="h-5 w-5 text-lime-400" />
             Ajouter des médias
           </h3>
           <p className={curriculumUi.panelSubtitle}>Uploadez vidéos, PDF ou images dans la section cible.</p>
@@ -144,7 +144,7 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
           </div>
 
           {/* Cascading selectors */}
-          <div className="grid grid-cols-2 gap-3 rounded-2xl border border-amber-500/20 bg-amber-950/20 p-3">
+          <div className="grid grid-cols-2 gap-3 rounded-2xl border border-lime-500/20 bg-lime-950/20 p-3">
             <label className="block space-y-1">
               <span className="text-[9px] font-black text-slate-400 uppercase">Chapitre</span>
               <select
@@ -156,7 +156,7 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
                   setUploadSubpartId("");
                   setUploadSectionId(value);
                 }}
-                className="w-full rounded-xl border border-slate-700 bg-[#090d16] px-2 py-2 text-[11px] text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-400/30"
+                className="w-full rounded-xl border border-slate-700 bg-[#031512] px-2 py-2 text-[11px] text-slate-100 focus:outline-none focus:ring-2 focus:ring-lime-400/30"
               >
                 <option value="">Module uniquement</option>
                 {chapterSections.map((section) => (
@@ -178,7 +178,7 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
                   setUploadSectionId(value || uploadChapterId);
                 }}
                 disabled={!uploadChapterId}
-                className="w-full rounded-xl border border-slate-700 bg-[#090d16] px-2 py-2 text-[11px] text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-400/30 disabled:bg-slate-900"
+                className="w-full rounded-xl border border-slate-700 bg-[#031512] px-2 py-2 text-[11px] text-slate-100 focus:outline-none focus:ring-2 focus:ring-lime-400/30 disabled:bg-slate-900"
               >
                 <option value="">Partie facultative</option>
                 {uploadPartOptions.map((section) => (
@@ -196,7 +196,7 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
               <select
                 value={uploadType}
                 onChange={(e) => setUploadType(e.target.value as any)}
-                className={`w-full rounded-xl border border-slate-700 bg-[#090d16] px-3 py-3 text-xs font-semibold text-slate-100 focus:bg-slate-950 focus:outline-none focus:ring-4 ${stepTheme.focus}`}
+                className={`w-full rounded-xl border border-slate-700 bg-[#031512] px-3 py-3 text-xs font-semibold text-slate-100 focus:bg-slate-950 focus:outline-none focus:ring-4 ${stepTheme.focus}`}
               >
                 <option value="VIDEO">Vidéo (.mp4, WebM)</option>
                 <option value="PDF">Document PDF</option>
@@ -220,11 +220,11 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
           {/* Styled File Input Container */}
           <label className="block space-y-1 cursor-pointer">
             <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Fichier média</span>
-            <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-amber-500/30 bg-amber-950/20 p-4 text-center transition-colors hover:bg-amber-950/30 group">
-              <Download className="h-8 w-8 text-amber-400 transition-colors group-hover:text-amber-300" />
+            <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-lime-500/30 bg-lime-950/20 p-4 text-center transition-colors hover:bg-lime-950/30 group">
+              <Download className="h-8 w-8 text-lime-400 transition-colors group-hover:text-lime-300" />
               <div className="text-xs text-slate-400">
                 {uploadFile ? (
-                  <p className="max-w-[280px] truncate font-mono text-[11px] font-bold text-amber-300">
+                  <p className="max-w-[280px] truncate font-mono text-[11px] font-bold text-lime-300">
                     {uploadFile.name} ({(uploadFile.size / (1024 * 1024)).toFixed(2)} Mo)
                   </p>
                 ) : (
@@ -251,7 +251,7 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
               type="checkbox"
               checked={uploadPublished}
               onChange={(e) => setUploadPublished(e.target.checked)}
-              className={`h-4 w-4 cursor-pointer accent-indigo-600`}
+              className={`h-4 w-4 cursor-pointer accent-emerald-600`}
             />
             Publier le média après l'upload
           </label>
@@ -264,8 +264,8 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
           </button>
 
           {uploadStatusMsg && (
-            <div className="flex items-center justify-center gap-2 rounded-xl border border-amber-500/30 bg-amber-950/40 p-3 text-center text-xs font-bold text-amber-300 animate-pulse">
-              <span className="h-2.5 w-2.5 shrink-0 animate-ping rounded-full bg-amber-400" />
+            <div className="flex items-center justify-center gap-2 rounded-xl border border-lime-500/30 bg-lime-950/40 p-3 text-center text-xs font-bold text-lime-300 animate-pulse">
+              <span className="h-2.5 w-2.5 shrink-0 animate-ping rounded-full bg-lime-400" />
               {uploadStatusMsg}
             </div>
           )}
@@ -284,7 +284,7 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
         <div className="space-y-4 max-h-[600px] overflow-y-auto pr-1">
           {selectedManagedContents.length === 0 ? (
             <div className={curriculumUi.empty}>
-              <FileText className="mx-auto mb-2 h-8 w-8 text-amber-300" />
+              <FileText className="mx-auto mb-2 h-8 w-8 text-lime-300" />
               <p className="text-xs font-semibold text-slate-500">
                 {uploadSectionId
                   ? "Aucun média attaché à cette section."

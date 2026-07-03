@@ -67,7 +67,7 @@ export function TeacherRouteSwitch() {
           </Suspense>
         )}
         {teacherView === "access-keys" && currentUser.role !== "ADMIN" && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-5 text-sm font-semibold text-amber-900">
+          <div className="rounded-lg border border-lime-200 bg-lime-50 p-5 text-sm font-semibold text-lime-900">
             Cet espace est réservé aux administrateurs.
           </div>
         )}

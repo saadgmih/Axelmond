@@ -40,9 +40,9 @@ export default function PremiumVideoPlayer({
   } = useCourseVideoPlayer(src);
 
   const isStudent = activeSector === "student";
-  const themeAccentClass = isStudent ? "accent-indigo-500" : "accent-pink-500";
-  const playButtonThemeClass = isStudent ? "text-indigo-600 fill-indigo-600" : "text-pink-600 fill-pink-600";
-  const controlFocusClass = isStudent ? "focus:ring-indigo-400" : "focus:ring-pink-400";
+  const themeAccentClass = isStudent ? "accent-emerald-500" : "accent-emerald-500";
+  const playButtonThemeClass = isStudent ? "text-emerald-600 fill-indigo-600" : "text-emerald-600 fill-pink-600";
+  const controlFocusClass = isStudent ? "focus:ring-emerald-400" : "focus:ring-emerald-400";
   const [controlsVisible, setControlsVisible] = useState(true);
   const [overlayVisible, setOverlayVisible] = useState(true);
   const hideControlsTimeoutRef = useRef<number | null>(null);
@@ -140,7 +140,7 @@ export default function PremiumVideoPlayer({
             <button
               type="button"
               onClick={togglePlay}
-              className={`${overlayButtonClass} bg-white/95 text-indigo-900 rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-slate-100 hover:scale-105 transition-all`}
+              className={`${overlayButtonClass} bg-white/95 text-emerald-900 rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-slate-100 hover:scale-105 transition-all`}
             >
               <PlayCircle className={`${overlayIconClass} ml-0.5 ${playButtonThemeClass}`} />
             </button>

@@ -27,8 +27,8 @@ export function SidebarNavButton({
 }: SidebarNavButtonProps) {
   const activeClass =
     accent === "student"
-      ? "bg-indigo-600 text-white shadow-lg shadow-indigo-950/40"
-      : "bg-pink-600 text-white shadow-lg shadow-pink-950/40";
+      ? "bg-emerald-600 text-white shadow-lg shadow-emerald-950/40"
+      : "bg-emerald-600 text-white shadow-lg shadow-emerald-950/40";
 
   return (
     <button

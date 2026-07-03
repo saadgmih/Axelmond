@@ -155,7 +155,7 @@ export default function AccessibilityControls({ labeled = false }: Accessibility
               aria-pressed={preferences.reduceMotion}
               className={`kbd-nav-focus flex w-full items-center gap-3 rounded-xl border px-3 py-3 text-left text-xs font-semibold transition-colors ${
                 preferences.reduceMotion
-                  ? "border-cyan-400/50 bg-cyan-950/30 text-cyan-200"
+                  ? "border-teal-400/50 bg-teal-950/30 text-teal-200"
                   : "border-slate-700 bg-slate-950/60 text-slate-200 hover:border-slate-600"
               }`}
             >
@@ -169,7 +169,7 @@ export default function AccessibilityControls({ labeled = false }: Accessibility
             </button>
 
             <div className="rounded-xl border border-slate-800 bg-slate-950/50 px-3 py-2.5 text-[10px] leading-relaxed text-slate-400">
-              <Eye className="mb-1 inline h-3.5 w-3.5 text-violet-400" aria-hidden="true" /> Tab / Shift+Tab pour
+              <Eye className="mb-1 inline h-3.5 w-3.5 text-teal-400" aria-hidden="true" /> Tab / Shift+Tab pour
               naviguer. Esc ferme les fenêtres. La recherche vocale est disponible dans le catalogue.
             </div>
           </div>
@@ -186,7 +186,7 @@ export default function AccessibilityControls({ labeled = false }: Accessibility
       className={
         labeled
           ? "topbar-console-action kbd-nav-focus touch-target"
-          : "kbd-nav-focus touch-target flex h-10 min-w-10 items-center justify-center rounded-xl border border-slate-700 bg-slate-900/70 text-slate-300 transition-colors hover:border-violet-500/40 hover:bg-violet-950/40 hover:text-violet-300"
+          : "kbd-nav-focus touch-target flex h-10 min-w-10 items-center justify-center rounded-xl border border-slate-700 bg-slate-900/70 text-slate-300 transition-colors hover:border-teal-500/40 hover:bg-teal-950/40 hover:text-teal-300"
       }
       aria-label="Options d'accessibilité"
       aria-expanded={open}

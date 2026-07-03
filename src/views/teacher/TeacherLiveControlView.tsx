@@ -23,7 +23,7 @@ function WebcamDecor() {
     <div className={liveControlUi.webcamWrap} aria-hidden="true">
       <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-slate-800 via-slate-950 to-black shadow-2xl shadow-black/60" />
       <div className="absolute left-1/2 top-[38%] h-10 w-10 -translate-x-1/2 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 ring-4 ring-slate-800" />
-      <div className="absolute left-1/2 top-[38%] h-5 w-5 -translate-x-1/2 rounded-full bg-gradient-to-br from-indigo-900 to-violet-950 ring-2 ring-violet-500/30" />
+      <div className="absolute left-1/2 top-[38%] h-5 w-5 -translate-x-1/2 rounded-full bg-gradient-to-br from-emerald-900 to-teal-950 ring-2 ring-teal-500/30" />
       <div className="absolute bottom-4 left-1/2 h-2 w-12 -translate-x-1/2 rounded-full bg-slate-800" />
       <div className="absolute -right-1 bottom-8 h-8 w-3 rounded-full bg-slate-900" />
     </div>
@@ -70,7 +70,7 @@ export default function TeacherLiveControlView({
           <section className={liveControlUi.section}>
             <div className={liveControlUi.sectionHead}>
               <div className={liveControlUi.sectionIconPink}>
-                <GraduationCap className="h-5 w-5 text-pink-400" />
+                <GraduationCap className="h-5 w-5 text-emerald-400" />
               </div>
               <div>
                 <h2 className={liveControlUi.sectionTitle}>Module académique en direct</h2>
@@ -98,7 +98,7 @@ export default function TeacherLiveControlView({
           <section className={liveControlUi.section}>
             <div className={liveControlUi.sectionHead}>
               <div className={liveControlUi.sectionIconPink}>
-                <Pencil className="h-5 w-5 text-violet-400" />
+                <Pencil className="h-5 w-5 text-teal-400" />
               </div>
               <div>
                 <h2 className={liveControlUi.sectionTitle}>Sujet de révision actif</h2>
@@ -123,7 +123,7 @@ export default function TeacherLiveControlView({
               />
             </div>
             <p className={liveControlUi.syncNote}>
-              <Sparkles className="h-3.5 w-3.5 shrink-0 text-violet-400" />
+              <Sparkles className="h-3.5 w-3.5 shrink-0 text-teal-400" />
               Ce message se synchronise instantanément sur l&apos;écran des étudiants inscrits.
             </p>
           </section>

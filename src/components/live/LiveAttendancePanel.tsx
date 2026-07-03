@@ -50,7 +50,7 @@ export default function LiveAttendancePanel({
         </div>
         <div className="p-4 rounded-xl bg-zinc-900 border border-white/5 shadow-sm text-center">
           <p className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider mb-1">Durée Moy.</p>
-          <p className="text-2xl font-bold text-blue-400 mt-2 font-mono">
+          <p className="text-2xl font-bold text-emerald-400 mt-2 font-mono">
             {formatLiveDuration(attendanceReport?.summary?.averageDurationSeconds || elapsedSeconds)}
           </p>
         </div>
@@ -71,7 +71,7 @@ export default function LiveAttendancePanel({
                 <p className="text-xs font-bold text-zinc-200">{row.name}</p>
                 <p className="text-[10px] text-zinc-500 font-medium">{liveRoleLabel(row.role)}</p>
               </div>
-              <span className="text-[10px] font-mono font-bold text-indigo-300 bg-indigo-500/10 px-2 py-1 rounded">
+              <span className="text-[10px] font-mono font-bold text-emerald-300 bg-emerald-500/10 px-2 py-1 rounded">
                 {formatLiveDuration(rowDurationSeconds(row))}
               </span>
             </div>

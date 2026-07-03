@@ -8,7 +8,7 @@ export default function LiveConnectionNotice({ message, variant = "info" }: Live
     variant === "success"
       ? "border-emerald-400/20 bg-black/75 text-emerald-50"
       : variant === "warning"
-        ? "border-amber-400/25 bg-black/80 text-amber-50"
+        ? "border-lime-400/25 bg-black/80 text-lime-50"
         : "border-white/10 bg-black/75 text-zinc-100";
 
   return (

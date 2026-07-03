@@ -78,7 +78,7 @@ export class GlobalErrorBoundary extends Component<Props, State> {
                 sessionStorage.removeItem("has_reloaded_chunk_error");
                 window.location.reload();
               }}
-              className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-3 rounded-xl w-full transition-colors shadow-lg"
+              className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl w-full transition-colors shadow-lg"
             >
               Rafraîchir l'application
             </button>

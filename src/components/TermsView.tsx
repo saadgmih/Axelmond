@@ -71,18 +71,18 @@ export default function TermsView() {
       <InstitutionalHero
         heroRef={heroRef}
         gradientClass="via-violet-950/15"
-        topBlobClass="top-0 right-0 w-[500px] h-[500px] bg-violet-600/6 rounded-full translate-x-60 -translate-y-60"
-        bottomBlobClass="bottom-0 left-0 w-80 h-80 bg-indigo-600/6 rounded-full -translate-x-40 translate-y-40"
+        topBlobClass="top-0 right-0 w-[500px] h-[500px] bg-teal-600/6 rounded-full translate-x-60 -translate-y-60"
+        bottomBlobClass="bottom-0 left-0 w-80 h-80 bg-emerald-600/6 rounded-full -translate-x-40 translate-y-40"
       >
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
           {/* Left */}
           <div className="space-y-5 max-w-2xl">
-            <span className="text-[10px] font-black uppercase tracking-widest text-violet-300 bg-violet-500/10 border border-violet-500/20 px-3 py-1 rounded-full inline-block">
+            <span className="text-[10px] font-black uppercase tracking-widest text-teal-300 bg-teal-500/10 border border-teal-500/20 px-3 py-1 rounded-full inline-block">
               Document juridique — Portail académique
             </span>
             <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
               Conditions{" "}
-              <span className="bg-gradient-to-r from-violet-400 via-indigo-400 to-indigo-300 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-teal-400 via-indigo-400 to-emerald-300 bg-clip-text text-transparent">
                 d'utilisation
               </span>
             </h1>
@@ -95,9 +95,9 @@ export default function TermsView() {
             {/* Pill tags */}
             <div className="flex flex-wrap gap-2 pt-1">
               {[
-                { label: "Droit marocain", color: "text-sky-300 border-sky-500/30 bg-sky-500/10" },
+                { label: "Droit marocain", color: "text-teal-300 border-teal-500/30 bg-teal-500/10" },
                 { label: "Loi 09-08", color: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10" },
-                { label: "Acceptation implicite", color: "text-violet-300 border-violet-500/30 bg-violet-500/10" },
+                { label: "Acceptation implicite", color: "text-teal-300 border-teal-500/30 bg-teal-500/10" },
               ].map(({ label, color }) => (
                 <span
                   key={label}
@@ -118,7 +118,7 @@ export default function TermsView() {
             <div className="w-full h-px bg-slate-800" />
             <div className="space-y-1">
               <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Version</div>
-              <div className="text-violet-300 font-black text-sm">v3.1.0</div>
+              <div className="text-teal-300 font-black text-sm">v3.1.0</div>
             </div>
             <div className="w-full h-px bg-slate-800" />
             <div className="space-y-1">
@@ -130,9 +130,9 @@ export default function TermsView() {
 
         {/* Acceptance note */}
         <div className="mt-8 bg-slate-900/60 border border-slate-800 rounded-2xl px-5 py-4 flex items-start gap-3">
-          <Info className="w-4 h-4 text-violet-400 flex-shrink-0 mt-0.5" />
+          <Info className="w-4 h-4 text-teal-400 flex-shrink-0 mt-0.5" />
           <p className="text-[12px] text-slate-400 leading-relaxed">
-            <strong className="text-violet-300">Acceptation :</strong> La création d'un compte ou la simple navigation
+            <strong className="text-teal-300">Acceptation :</strong> La création d'un compte ou la simple navigation
             sur les pages protégées de la plateforme vaut acceptation pleine et entière des présentes conditions
             d'utilisation. En cas de désaccord, veuillez cesser toute utilisation de la plateforme et contacter{" "}
             <strong className="text-white">contact@axelmond.com</strong>.
@@ -147,24 +147,24 @@ export default function TermsView() {
           <InstitutionalSectionBlock
             number="01"
             title="Règles générales"
-            icon={<FileText className="w-5 h-5 text-indigo-300" />}
-            accentClass="bg-indigo-500/15 border border-indigo-500/20"
+            icon={<FileText className="w-5 h-5 text-emerald-300" />}
+            accentClass="bg-emerald-500/15 border border-emerald-500/20"
             inView={s1.inView}
           >
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <RuleCard
-                icon={<Users className="w-4 h-4 text-indigo-300" />}
+                icon={<Users className="w-4 h-4 text-emerald-300" />}
                 title="Accès réservé"
                 description="L'utilisation de la plateforme est exclusivement réservée aux utilisateurs authentifiés disposant d'un rôle académique valide : étudiant, professeur ou administrateur."
-                border="border-indigo-800/30"
-                bg="bg-indigo-950/20"
+                border="border-emerald-800/30"
+                bg="bg-emerald-950/20"
               />
               <RuleCard
-                icon={<GraduationCap className="w-4 h-4 text-violet-300" />}
+                icon={<GraduationCap className="w-4 h-4 text-teal-300" />}
                 title="Communauté académique"
                 description="Chaque utilisateur s'engage à respecter la communauté académique — ses membres, ses contenus et son environnement d'apprentissage — avec courtoisie et professionnalisme."
-                border="border-violet-800/30"
-                bg="bg-violet-950/20"
+                border="border-teal-800/30"
+                bg="bg-teal-950/20"
               />
               <RuleCard
                 icon={<Shield className="w-4 h-4 text-emerald-300" />}
@@ -182,14 +182,14 @@ export default function TermsView() {
           <InstitutionalSectionBlock
             number="02"
             title="Responsabilité du compte"
-            icon={<Lock className="w-5 h-5 text-violet-300" />}
-            accentClass="bg-violet-500/15 border border-violet-500/20"
+            icon={<Lock className="w-5 h-5 text-teal-300" />}
+            accentClass="bg-teal-500/15 border border-teal-500/20"
             inView={s2.inView}
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <InstitutionalCheckList
-                  color="text-violet-400"
+                  color="text-teal-400"
                   items={[
                     "Vous êtes entièrement responsable de la confidentialité de vos identifiants de connexion (email et mot de passe).",
                     "Le partage de votre compte avec un tiers est strictement interdit, quelle qu'en soit la raison.",
@@ -200,10 +200,10 @@ export default function TermsView() {
                   ]}
                 />
               </div>
-              <div className="bg-amber-950/20 border border-amber-800/30 rounded-2xl p-5 space-y-3 self-start">
+              <div className="bg-lime-950/20 border border-lime-800/30 rounded-2xl p-5 space-y-3 self-start">
                 <div className="flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-400" />
-                  <span className="text-amber-300 text-xs font-black uppercase tracking-wide">
+                  <AlertTriangle className="w-4 h-4 text-lime-400" />
+                  <span className="text-lime-300 text-xs font-black uppercase tracking-wide">
                     Avertissement important
                   </span>
                 </div>
@@ -212,8 +212,8 @@ export default function TermsView() {
                   passe par e-mail, chat ou téléphone. Méfiez-vous de toute demande en ce sens. Tout incident de
                   sécurité doit être rapporté sans délai.
                 </p>
-                <div className="pt-1 border-t border-amber-800/30">
-                  <div className="text-[10px] uppercase tracking-widest text-amber-600 font-bold mb-1">
+                <div className="pt-1 border-t border-lime-800/30">
+                  <div className="text-[10px] uppercase tracking-widest text-lime-600 font-bold mb-1">
                     Contact sécurité
                   </div>
                   <div className="text-white text-xs font-bold">support@axelmond.com</div>
@@ -228,8 +228,8 @@ export default function TermsView() {
           <InstitutionalSectionBlock
             number="03"
             title="Intégrité académique"
-            icon={<GraduationCap className="w-5 h-5 text-pink-300" />}
-            accentClass="bg-pink-500/15 border border-pink-500/20"
+            icon={<GraduationCap className="w-5 h-5 text-emerald-300" />}
+            accentClass="bg-emerald-500/15 border border-emerald-500/20"
             inView={s3.inView}
           >
             <p className="text-[13px] text-slate-400 leading-relaxed mb-5">
@@ -246,11 +246,11 @@ export default function TermsView() {
                   bg: "bg-red-950/15",
                 },
                 {
-                  icon: <Copyright className="w-4 h-4 text-amber-400" />,
+                  icon: <Copyright className="w-4 h-4 text-lime-400" />,
                   title: "Droits d'auteur respectés",
                   desc: "Vous vous engagez à citer correctement toutes les sources utilisées dans vos travaux, modules ou publications partagés sur la plateforme.",
-                  border: "border-amber-900/30",
-                  bg: "bg-amber-950/15",
+                  border: "border-lime-900/30",
+                  bg: "bg-lime-950/15",
                 },
                 {
                   icon: <XCircle className="w-4 h-4 text-red-400" />,
@@ -340,18 +340,18 @@ export default function TermsView() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {[
                 {
-                  icon: <Lock className="w-4 h-4 text-indigo-300" />,
+                  icon: <Lock className="w-4 h-4 text-emerald-300" />,
                   title: "Contrôle des accès",
                   desc: "RBAC strict sur toutes les routes. Chaque action est vérifiée selon votre rôle — étudiant, professeur ou admin.",
-                  border: "border-indigo-800/30",
-                  bg: "bg-indigo-950/20",
+                  border: "border-emerald-800/30",
+                  bg: "bg-emerald-950/20",
                 },
                 {
-                  icon: <Activity className="w-4 h-4 text-violet-300" />,
+                  icon: <Activity className="w-4 h-4 text-teal-300" />,
                   title: "Journalisation",
                   desc: "Toutes les actions sensibles (connexion, modification, suppression) sont enregistrées dans un journal d'audit sécurisé.",
-                  border: "border-violet-800/30",
-                  bg: "bg-violet-950/20",
+                  border: "border-teal-800/30",
+                  bg: "bg-teal-950/20",
                 },
                 {
                   icon: <Eye className="w-4 h-4 text-emerald-300" />,
@@ -361,11 +361,11 @@ export default function TermsView() {
                   bg: "bg-emerald-950/20",
                 },
                 {
-                  icon: <AlertTriangle className="w-4 h-4 text-amber-300" />,
+                  icon: <AlertTriangle className="w-4 h-4 text-lime-300" />,
                   title: "Surveillance active",
                   desc: "Détection en temps réel des activités suspectes, rate-limiting sur les routes d'auth, blocage automatique des abus.",
-                  border: "border-amber-800/30",
-                  bg: "bg-amber-950/20",
+                  border: "border-lime-800/30",
+                  bg: "bg-lime-950/20",
                 },
               ].map(({ icon, title, desc, border, bg }) => (
                 <div
@@ -419,10 +419,10 @@ export default function TermsView() {
                 {[
                   {
                     level: "Suspension temporaire",
-                    icon: <Clock className="w-4 h-4 text-amber-400" />,
+                    icon: <Clock className="w-4 h-4 text-lime-400" />,
                     desc: "Blocage d'accès de 7 à 30 jours en cas de première violation significative ou de comportement inapproprié répété.",
-                    color: "border-amber-800/40 bg-amber-950/20",
-                    chip: "text-amber-300 border-amber-500/30 bg-amber-500/10",
+                    color: "border-lime-800/40 bg-lime-950/20",
+                    chip: "text-lime-300 border-lime-500/30 bg-lime-500/10",
                   },
                   {
                     level: "Suspension définitive",
@@ -440,10 +440,10 @@ export default function TermsView() {
                   },
                   {
                     level: "Annulation de résultats académiques",
-                    icon: <AlertOctagon className="w-4 h-4 text-rose-400" />,
+                    icon: <AlertOctagon className="w-4 h-4 text-emerald-400" />,
                     desc: "Annulation des notes, résultats de quiz et certifications obtenus en cas de fraude académique avérée (plagiat, triche, falsification).",
-                    color: "border-rose-800/40 bg-rose-950/20",
-                    chip: "text-rose-300 border-rose-500/30 bg-rose-500/10",
+                    color: "border-emerald-800/40 bg-emerald-950/20",
+                    chip: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10",
                   },
                 ].map(({ level, icon, desc, color, chip }) => (
                   <div key={level} className={`rounded-2xl border p-4 space-y-2.5 ${color}`}>
@@ -461,11 +461,11 @@ export default function TermsView() {
               </div>
 
               <div className="bg-slate-900/60 border border-slate-800 rounded-2xl px-5 py-4 flex items-start gap-3">
-                <Info className="w-4 h-4 text-sky-400 flex-shrink-0 mt-0.5" />
+                <Info className="w-4 h-4 text-teal-400 flex-shrink-0 mt-0.5" />
                 <p className="text-[12px] text-slate-400">
                   <strong className="text-white">Procédure de contestation :</strong> Tout utilisateur sanctionné peut
                   contester la décision dans un délai de <strong className="text-white">14 jours</strong> en écrivant à{" "}
-                  <strong className="text-indigo-300">legal@axelmond.com</strong>. Une réponse motivée sera apportée
+                  <strong className="text-emerald-300">legal@axelmond.com</strong>. Une réponse motivée sera apportée
                   sous 10 jours ouvrables.
                 </p>
               </div>
@@ -478,8 +478,8 @@ export default function TermsView() {
           <InstitutionalSectionBlock
             number="07"
             title="Propriété intellectuelle"
-            icon={<Copyright className="w-5 h-5 text-amber-300" />}
-            accentClass="bg-amber-500/15 border border-amber-500/20"
+            icon={<Copyright className="w-5 h-5 text-lime-300" />}
+            accentClass="bg-lime-500/15 border border-lime-500/20"
             inView={s7.inView}
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -490,7 +490,7 @@ export default function TermsView() {
                   applicable.
                 </p>
                 <InstitutionalCheckList
-                  color="text-amber-400"
+                  color="text-lime-400"
                   items={[
                     "Les modules et supports pédagogiques restent la propriété de leurs auteurs (professeurs/Performance Académique).",
                     "Les ressources pédagogiques restent la propriété intellectuelle de leurs auteurs.",
@@ -526,15 +526,15 @@ export default function TermsView() {
           <InstitutionalSectionBlock
             number="08"
             title="Disponibilité du service"
-            icon={<Server className="w-5 h-5 text-sky-300" />}
-            accentClass="bg-sky-500/15 border border-sky-500/20"
+            icon={<Server className="w-5 h-5 text-teal-300" />}
+            accentClass="bg-teal-500/15 border border-teal-500/20"
             inView={s8.inView}
           >
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
               {[
                 { metric: "99,9 %", label: "Objectif d'uptime annuel", color: "text-emerald-400" },
-                { metric: "< 4 h/mois", label: "Maintenance planifiée max.", color: "text-sky-400" },
-                { metric: "48 h", label: "Préavis avant maintenance", color: "text-violet-400" },
+                { metric: "< 4 h/mois", label: "Maintenance planifiée max.", color: "text-teal-400" },
+                { metric: "48 h", label: "Préavis avant maintenance", color: "text-teal-400" },
               ].map(({ metric, label, color }) => (
                 <div key={label} className="bg-slate-950/60 border border-slate-800 rounded-2xl p-4 text-center">
                   <div className={`text-2xl font-black tabular-nums ${color}`}>{metric}</div>
@@ -557,7 +557,7 @@ export default function TermsView() {
                   key={item}
                   className="flex items-start gap-2.5 bg-slate-900/40 border border-slate-800 rounded-xl px-4 py-3"
                 >
-                  <Info className="w-3.5 h-3.5 text-sky-400 flex-shrink-0 mt-0.5" />
+                  <Info className="w-3.5 h-3.5 text-teal-400 flex-shrink-0 mt-0.5" />
                   <span className="text-[12px] text-slate-400">{item}</span>
                 </div>
               ))}
@@ -591,13 +591,13 @@ export default function TermsView() {
                   step: "02",
                   title: "Délai de prise d'effet",
                   desc: "Les nouvelles conditions entrent en vigueur 15 jours calendaires après la notification initiale.",
-                  color: "text-sky-400",
+                  color: "text-teal-400",
                 },
                 {
                   step: "03",
                   title: "Acceptation ou résiliation",
                   desc: "Continuer à utiliser la plateforme vaut acceptation. En cas de refus, le compte peut être clôturé à la demande.",
-                  color: "text-violet-400",
+                  color: "text-teal-400",
                 },
               ].map(({ step, title, desc, color }) => (
                 <div key={step} className="bg-slate-950/50 border border-slate-800 rounded-2xl p-5 space-y-3">
@@ -630,8 +630,8 @@ export default function TermsView() {
               <InstitutionalSectionHeading
                 number="10"
                 title="Informations légales"
-                icon={<BookOpen className="w-5 h-5 text-rose-300" />}
-                accentClass="bg-rose-500/15 border border-rose-500/20"
+                icon={<BookOpen className="w-5 h-5 text-emerald-300" />}
+                accentClass="bg-emerald-500/15 border border-emerald-500/20"
               />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
@@ -657,7 +657,7 @@ export default function TermsView() {
                       type="button"
                       key={document.key}
                       onClick={() => setSelectedLegalDocumentKey(document.key)}
-                      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 ${document.colorClass}`}
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 ${document.colorClass}`}
                     >
                       <ExternalLink className="w-3 h-3" />
                       {document.label}
@@ -671,11 +671,11 @@ export default function TermsView() {
               </div>
 
               <div className="mt-6 bg-slate-950/40 border border-slate-800/60 rounded-2xl px-5 py-4 flex items-start gap-3">
-                <Mail className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
+                <Mail className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
                 <p className="text-[12px] text-slate-400 leading-relaxed">
                   Pour toute question juridique relative à ces conditions ou pour exercer vos droits, écrivez à{" "}
                   <strong className="text-white">legal@axelmond.com</strong> avec pour objet{" "}
-                  <em className="text-rose-300">«&nbsp;Question juridique — CGU&nbsp;»</em>. Délai de réponse : 10 jours
+                  <em className="text-emerald-300">«&nbsp;Question juridique — CGU&nbsp;»</em>. Délai de réponse : 10 jours
                   ouvrables.
                 </p>
               </div>

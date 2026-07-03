@@ -136,9 +136,9 @@ export function ObjectivesFormModal({
             </select>
           </label>
 
-          <div className="rounded-2xl border border-cyan-400/10 bg-cyan-500/5 p-4">
+          <div className="rounded-2xl border border-teal-400/10 bg-teal-500/5 p-4">
             <div className="mb-4">
-              <h3 className="text-sm font-black text-cyan-100">Écoute / concentration</h3>
+              <h3 className="text-sm font-black text-teal-100">Écoute / concentration</h3>
               <p className="mt-1 text-[11px] font-semibold text-slate-400">
                 Vous pouvez ajouter un lien ou un contenu à écouter pendant le travail. Podcast, vidéo éducative, rappel
                 audio ou autre: le choix vous appartient.

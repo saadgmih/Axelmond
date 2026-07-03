@@ -44,7 +44,7 @@ export default function LiveChatPanel({
           aria-pressed={chatView === "messages"}
           className={`rounded-xl border px-3 py-2.5 text-xs font-bold transition ${
             chatView === "messages"
-              ? "border-indigo-400/40 bg-indigo-500/10 text-indigo-200"
+              ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-200"
               : "border-white/10 bg-zinc-900 text-zinc-400 hover:text-zinc-200"
           }`}
         >
@@ -56,7 +56,7 @@ export default function LiveChatPanel({
           aria-pressed={chatView === "tutor"}
           className={`rounded-xl border px-3 py-2.5 text-xs font-bold transition flex items-center justify-center gap-1.5 ${
             chatView === "tutor"
-              ? "border-indigo-400/40 bg-indigo-500/10 text-indigo-200"
+              ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-200"
               : "border-white/10 bg-zinc-900 text-zinc-400 hover:text-zinc-200"
           }`}
         >
@@ -95,7 +95,7 @@ export default function LiveChatPanel({
             <select
               value={privateTarget}
               onChange={(event) => onPrivateTargetChange(event.target.value)}
-              className="w-full bg-zinc-900 border border-white/5 rounded-lg px-3 py-2 text-xs text-white mb-4 focus:outline-none focus:border-indigo-500"
+              className="w-full bg-zinc-900 border border-white/5 rounded-lg px-3 py-2 text-xs text-white mb-4 focus:outline-none focus:border-emerald-500"
             >
               <option value="">Sélectionner un destinataire...</option>
               {connectedParticipants
@@ -132,12 +132,12 @@ export default function LiveChatPanel({
                 value={chatDraft}
                 onChange={(event) => onChatDraftChange(event.target.value)}
                 placeholder="Tapez votre message..."
-                className="w-full bg-zinc-900 border border-white/10 rounded-xl pl-9 pr-12 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors shadow-inner"
+                className="w-full bg-zinc-900 border border-white/10 rounded-xl pl-9 pr-12 py-3 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors shadow-inner"
               />
               <button
                 type="submit"
                 disabled={!chatDraft.trim()}
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 touch-target p-2 bg-indigo-500 hover:bg-indigo-600 disabled:bg-transparent disabled:text-zinc-600 text-white rounded-lg transition-colors flex items-center justify-center"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 touch-target p-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-transparent disabled:text-zinc-600 text-white rounded-lg transition-colors flex items-center justify-center"
               >
                 <Send className="w-4 h-4" />
               </button>

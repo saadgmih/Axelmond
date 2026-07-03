@@ -168,12 +168,12 @@ const DashboardCourseCard = memo(function DashboardCourseCard({
             <span className="text-slate-400 font-semibold">
               {completedChapters} / {totalChapters} chapitres
             </span>
-            <span className="text-indigo-300 font-bold font-mono">{course.progress}%</span>
+            <span className="text-emerald-300 font-bold font-mono">{course.progress}%</span>
           </div>
           <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-300 ${
-                course.progress === 100 ? "bg-emerald-500" : "bg-indigo-500"
+                course.progress === 100 ? "bg-emerald-500" : "bg-emerald-500"
               }`}
               style={{ width: `${course.progress}%` }}
             />
@@ -185,7 +185,7 @@ const DashboardCourseCard = memo(function DashboardCourseCard({
         <span className="text-[11px] font-bold text-slate-500 uppercase">{formatCredits(course.credits)}</span>
         <button
           onClick={() => navigateTo("course", course)}
-          className="text-xs font-bold text-indigo-300 hover:text-indigo-200 flex items-center gap-1 cursor-pointer min-h-[44px]"
+          className="text-xs font-bold text-emerald-300 hover:text-emerald-200 flex items-center gap-1 cursor-pointer min-h-[44px]"
         >
           Étudier le syllabus <ChevronRight className="w-4 h-4" />
         </button>
@@ -294,7 +294,7 @@ export default function StudentDashboardView({
 
       icon: BookOpen,
 
-      accent: "text-indigo-300",
+      accent: "text-emerald-300",
     },
 
     {
@@ -306,7 +306,7 @@ export default function StudentDashboardView({
 
       icon: TrendingUp,
 
-      accent: "text-sky-300",
+      accent: "text-teal-300",
     },
 
     {
@@ -330,7 +330,7 @@ export default function StudentDashboardView({
 
       icon: HelpCircle,
 
-      accent: "text-violet-300",
+      accent: "text-teal-300",
     },
 
     {
@@ -343,7 +343,7 @@ export default function StudentDashboardView({
 
       icon: Target,
 
-      accent: "text-amber-300",
+      accent: "text-lime-300",
     },
 
     {
@@ -355,7 +355,7 @@ export default function StudentDashboardView({
 
       icon: GraduationCap,
 
-      accent: "text-pink-300",
+      accent: "text-emerald-300",
     },
 
     {
@@ -375,13 +375,13 @@ export default function StudentDashboardView({
 
   return (
     <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-200">
-      <div className="bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-lg border border-indigo-950">
+      <div className="bg-gradient-to-r from-emerald-900 via-indigo-800 to-slate-900 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-lg border border-emerald-950">
         <div className="absolute right-0 top-0 w-1/3 h-full opacity-10 pointer-events-none">
           <Cpu className="w-full h-full text-white" />
         </div>
 
         <div className="relative z-10 max-w-2xl space-y-3">
-          <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full inline-block">
+          <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full inline-block">
             Espace Étudiant Actif
           </span>
 
@@ -389,7 +389,7 @@ export default function StudentDashboardView({
             Bonjour, {currentUser ? currentUser.fullName.split(" ")[0] : "Étudiant"}.
           </h1>
 
-          <p className="text-indigo-200 text-sm md:text-base leading-relaxed">
+          <p className="text-emerald-200 text-sm md:text-base leading-relaxed">
             Vous êtes inscrit en <strong>{currentUser ? currentUser.levelOrTitle : "Licence 3 d'Informatique"}</strong>{" "}
             de Performance Académique. Poursuivez vos modules interactifs, ou conversez avec votre tuteur IA.
           </p>
@@ -400,7 +400,7 @@ export default function StudentDashboardView({
               data-tv-focusable
               tabIndex={0}
               onClick={() => navigateTo("catalog")}
-              className="kbd-nav-focus touch-target bg-white text-indigo-900 hover:bg-slate-100 px-5 py-2.5 min-h-[44px] rounded-xl font-bold text-xs transition-colors shadow-sm"
+              className="kbd-nav-focus touch-target bg-white text-emerald-900 hover:bg-slate-100 px-5 py-2.5 min-h-[44px] rounded-xl font-bold text-xs transition-colors shadow-sm"
             >
               Parcourir le catalogue
             </button>
@@ -410,7 +410,7 @@ export default function StudentDashboardView({
               data-tv-focusable
               tabIndex={0}
               onClick={() => navigateTo("profile")}
-              className="kbd-nav-focus touch-target bg-indigo-600/50 hover:bg-indigo-600/70 text-white border border-indigo-500/30 px-5 py-2.5 min-h-[44px] rounded-xl font-bold text-xs transition-colors"
+              className="kbd-nav-focus touch-target bg-emerald-600/50 hover:bg-emerald-600/70 text-white border border-emerald-500/30 px-5 py-2.5 min-h-[44px] rounded-xl font-bold text-xs transition-colors"
             >
               Consulter mes notes académiques
             </button>
@@ -418,14 +418,14 @@ export default function StudentDashboardView({
         </div>
       </div>
 
-      <DirectorWelcomeCard tone="indigo" />
+      <DirectorWelcomeCard tone="emerald" />
 
       <div ref={dashboardGridRef} data-tv-zone="student-dashboard" className="space-y-6 md:space-y-8">
-        <section className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/40 p-5 sm:p-6 md:p-8 shadow-xl space-y-6">
+        <section className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/40 p-5 sm:p-6 md:p-8 shadow-xl space-y-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-2 min-w-0">
               <h3 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
-                <Activity className="w-5 h-5 text-indigo-400 shrink-0" />
+                <Activity className="w-5 h-5 text-emerald-400 shrink-0" />
                 Ma progression académique
               </h3>
 
@@ -441,13 +441,13 @@ export default function StudentDashboardView({
                   if (!target) return;
                   navigateTo("course", target.course);
                 }}
-                className="inline-flex items-center justify-center gap-2 self-start rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs px-5 py-3 min-h-[44px] transition-colors shadow-lg shadow-indigo-950/40"
+                className="inline-flex items-center justify-center gap-2 self-start rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs px-5 py-3 min-h-[44px] transition-colors shadow-lg shadow-emerald-950/40"
               >
                 <PlayCircle className="w-4 h-4 shrink-0" />
 
                 <span className="text-left">
                   Continuer le cours
-                  <span className="block text-[10px] font-semibold text-indigo-100/90 truncate max-w-[220px] sm:max-w-[280px]">
+                  <span className="block text-[10px] font-semibold text-emerald-100/90 truncate max-w-[220px] sm:max-w-[280px]">
                     {progress.continueTarget.nextModule
                       ? progress.continueTarget.nextModule.title
                       : progress.continueTarget.course.title}
@@ -486,7 +486,7 @@ export default function StudentDashboardView({
             <div className="h-2.5 w-full rounded-full bg-slate-800 overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-500 ${
-                  progress.globalProgress >= 100 ? "bg-emerald-500" : "bg-gradient-to-r from-indigo-500 to-sky-400"
+                  progress.globalProgress >= 100 ? "bg-emerald-500" : "bg-gradient-to-r from-emerald-500 to-sky-400"
                 }`}
                 style={{
                   width: `${Math.min(100, Math.max(0, progress.globalProgress))}%`,
@@ -550,12 +550,12 @@ export default function StudentDashboardView({
                           <div className="flex items-center gap-2 pt-1">
                             <div className="h-1.5 flex-1 max-w-[180px] rounded-full bg-slate-800 overflow-hidden">
                               <div
-                                className="h-full rounded-full bg-indigo-500"
+                                className="h-full rounded-full bg-emerald-500"
                                 style={{ width: `${course.progress}%` }}
                               />
                             </div>
 
-                            <span className="text-[11px] font-bold text-indigo-300 font-mono">{course.progress}%</span>
+                            <span className="text-[11px] font-bold text-emerald-300 font-mono">{course.progress}%</span>
                           </div>
                         </div>
                       </div>
@@ -565,7 +565,7 @@ export default function StudentDashboardView({
                         data-tv-focusable
                         tabIndex={0}
                         onClick={() => navigateTo("course", course)}
-                        className="kbd-nav-focus touch-target self-start sm:self-center inline-flex items-center gap-1.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-200 text-xs font-bold px-4 py-2.5 min-h-[44px] transition-colors"
+                        className="kbd-nav-focus touch-target self-start sm:self-center inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-200 text-xs font-bold px-4 py-2.5 min-h-[44px] transition-colors"
                         aria-label={`Continuer le module ${course.title}`}
                       >
                         Continuer
@@ -623,7 +623,7 @@ export default function StudentDashboardView({
         <div className="space-y-4">
           <div className="flex justify-between items-center gap-3 flex-wrap">
             <h2 className="text-xl font-black text-slate-100 flex items-center gap-2">
-              <Layers className="w-5 h-5 text-indigo-400" />
+              <Layers className="w-5 h-5 text-emerald-400" />
               Mes Modules d'Étude Actifs ({enrolledList.length})
             </h2>
 
@@ -632,9 +632,9 @@ export default function StudentDashboardView({
 
           {showEnrollmentLoading ? (
             <div className="rounded-2xl py-20 text-center border border-slate-800/60 bg-slate-900/40 shadow-sm flex flex-col items-center justify-center">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-slate-900/40 text-indigo-400 rounded-full flex items-center justify-center mb-6 shadow-inner border border-indigo-500/20 relative">
-                <div className="absolute inset-0 rounded-full border-4 border-indigo-500/20 border-t-indigo-500 animate-spin" />
-                <BookOpen className="w-8 h-8 sm:w-10 sm:h-10 animate-pulse text-indigo-500" />
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-slate-900/40 text-emerald-400 rounded-full flex items-center justify-center mb-6 shadow-inner border border-emerald-500/20 relative">
+                <div className="absolute inset-0 rounded-full border-4 border-emerald-500/20 border-t-indigo-500 animate-spin" />
+                <BookOpen className="w-8 h-8 sm:w-10 sm:h-10 animate-pulse text-emerald-500" />
               </div>
               <h3 className="text-lg font-black text-slate-100 mb-2 animate-pulse">Chargement de votre espace...</h3>
               <p className="text-sm text-slate-400 max-w-sm mx-auto">
@@ -653,7 +653,7 @@ export default function StudentDashboardView({
 
               <button
                 onClick={() => navigateTo("catalog")}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-5 py-3 min-h-[44px] rounded-xl shadow-md cursor-pointer"
+                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-5 py-3 min-h-[44px] rounded-xl shadow-md cursor-pointer"
               >
                 Découvrir le catalogue de Performance Académique
               </button>

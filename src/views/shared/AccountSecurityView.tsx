@@ -15,8 +15,8 @@ interface AccountSecurityViewProps {
 const defaultHeaderClassName =
   "relative overflow-hidden rounded-3xl border border-slate-800/80 bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 p-6 text-white shadow-xl md:p-8";
 const defaultIconClassName =
-  "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 shadow-lg shadow-violet-900/40";
-const defaultBadgeClassName = "text-[10px] font-bold uppercase tracking-[0.2em] text-violet-300/80";
+  "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-600 to-emerald-600 shadow-lg shadow-teal-900/40";
+const defaultBadgeClassName = "text-[10px] font-bold uppercase tracking-[0.2em] text-teal-300/80";
 
 export default function AccountSecurityView({
   currentUser,

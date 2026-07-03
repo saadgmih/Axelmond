@@ -178,7 +178,7 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
 
         iconName: "Code",
 
-        color: "bg-blue-100",
+        color: "bg-emerald-100",
 
         instructor: instructor || authUser.fullName,
 

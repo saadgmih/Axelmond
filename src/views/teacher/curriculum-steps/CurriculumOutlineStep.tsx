@@ -158,7 +158,7 @@ export default function CurriculumOutlineStep(props: TeacherCurriculumViewProps)
                 setNewSectionMode(val ? "subpart" : "part");
               }}
               disabled={!selectedChapterId}
-              className={`w-full rounded-xl border border-slate-700 bg-[#090d16] px-3 py-3 text-xs font-semibold text-slate-100 transition-all focus:bg-slate-950 focus:outline-none focus:ring-4 disabled:bg-slate-900 disabled:text-slate-600 ${stepTheme.focus}`}
+              className={`w-full rounded-xl border border-slate-700 bg-[#031512] px-3 py-3 text-xs font-semibold text-slate-100 transition-all focus:bg-slate-950 focus:outline-none focus:ring-4 disabled:bg-slate-900 disabled:text-slate-600 ${stepTheme.focus}`}
             >
               <option value="">-- Sous-section de chapitre (crée une Partie) --</option>
               {managedSections
@@ -190,7 +190,7 @@ export default function CurriculumOutlineStep(props: TeacherCurriculumViewProps)
               type="checkbox"
               checked={newSectionPublished}
               onChange={(e) => setNewSectionPublished(e.target.checked)}
-              className={`h-4 w-4 cursor-pointer accent-indigo-600`}
+              className={`h-4 w-4 cursor-pointer accent-emerald-600`}
             />
             Publier immédiatement après création
           </label>
@@ -240,8 +240,8 @@ export default function CurriculumOutlineStep(props: TeacherCurriculumViewProps)
                         : isChapter
                           ? "border-slate-700 bg-slate-800/60"
                           : isPart
-                            ? "border-violet-500/20 bg-slate-900/60 shadow-sm"
-                            : "border-cyan-500/20 bg-slate-900/40"
+                            ? "border-teal-500/20 bg-slate-900/60 shadow-sm"
+                            : "border-teal-500/20 bg-slate-900/40"
                     }`}
                     style={{ marginLeft: `${Math.min(indent, 80)}px` }}
                   >

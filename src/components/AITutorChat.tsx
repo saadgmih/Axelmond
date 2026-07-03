@@ -131,7 +131,7 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
           >
             <div className="bg-slate-900 px-4 py-1.5 flex justify-between items-center text-slate-500 text-[10px] uppercase font-bold tracking-wider select-none border-b border-slate-900">
               <span>{language}</span>
-              <span className="text-indigo-400">Compiler Académique</span>
+              <span className="text-emerald-400">Compiler Académique</span>
             </div>
             <pre className="p-4 overflow-x-auto whitespace-pre">
               <code>{code}</code>
@@ -153,7 +153,7 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
               } else if (subPart.startsWith("* ")) {
                 return (
                   <span key={subIndex} className="block pl-4 my-1 relative">
-                    <span className="absolute left-0 text-indigo-500">•</span>
+                    <span className="absolute left-0 text-emerald-500">•</span>
                     {subPart.slice(2)}
                   </span>
                 );
@@ -178,12 +178,12 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
       {/* Header */}
       <div
         className={`px-5 py-4 text-white flex items-center justify-between shadow-sm flex-shrink-0 ${
-          isLive ? "bg-zinc-900 border-b border-white/10" : "bg-gradient-to-r from-slate-900 to-indigo-900"
+          isLive ? "bg-zinc-900 border-b border-white/10" : "bg-gradient-to-r from-slate-900 to-emerald-900"
         }`}
       >
         <div className="flex items-center gap-2.5 min-w-0">
           <div
-            className="w-10 h-10 bg-indigo-500/20 rounded-full flex items-center justify-center text-indigo-300 border border-indigo-500/30 shrink-0"
+            className="w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-300 border border-emerald-500/30 shrink-0"
             aria-hidden="true"
           >
             <Brain className="w-5 h-5" />
@@ -191,18 +191,18 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
           <div className="min-w-0">
             <h3 className="font-bold text-base text-white flex items-center gap-1.5">
               Tuteur Académique
-              <span className="text-[10px] bg-indigo-500 text-white font-mono uppercase px-1.5 py-0.5 rounded tracking-widest font-bold">
+              <span className="text-[10px] bg-emerald-500 text-white font-mono uppercase px-1.5 py-0.5 rounded tracking-widest font-bold">
                 IA
               </span>
             </h3>
-            <p className="text-xs text-indigo-200 truncate">En ligne • Prêt à répondre</p>
+            <p className="text-xs text-emerald-200 truncate">En ligne • Prêt à répondre</p>
           </div>
         </div>
         {onClose && (
           <button
             type="button"
             onClick={onClose}
-            className="kbd-nav-focus touch-target p-2 rounded-full text-indigo-200 hover:text-white hover:bg-white/10 transition-colors"
+            className="kbd-nav-focus touch-target p-2 rounded-full text-emerald-200 hover:text-white hover:bg-white/10 transition-colors"
             aria-label="Fermer le tuteur académique IA"
           >
             <X className="w-4 h-4" />
@@ -228,7 +228,7 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
                 "Vous (Étudiant)"
               ) : (
                 <>
-                  <Sparkles className="w-3 h-3 text-indigo-500" aria-hidden="true" />
+                  <Sparkles className="w-3 h-3 text-emerald-500" aria-hidden="true" />
                    Conseiller Performance Académique
                 </>
               )}
@@ -236,7 +236,7 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
             <div
               className={`p-4 rounded-2xl max-w-[92%] text-sm leading-relaxed shadow-sm ${
                 msg.role === "user"
-                  ? "bg-indigo-600 text-white rounded-tr-none"
+                  ? "bg-emerald-600 text-white rounded-tr-none"
                   : isLive
                     ? "bg-zinc-900 text-zinc-100 border border-white/10 rounded-tl-none"
                     : "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-800 rounded-tl-none"
@@ -252,8 +252,8 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
             <span className="text-[10px] text-slate-400 mb-1 px-1 font-semibold">Tuteur IA réfléchit...</span>
             <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-tl-none flex items-center gap-2 text-slate-500 text-xs shadow-sm">
               <span className="flex h-2 w-2 relative" aria-hidden="true">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-600"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
               </span>
               Calcul du modèle de raisonnement académique...
             </div>
@@ -273,7 +273,7 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
           <p
             className={`font-bold uppercase flex items-center gap-1.5 px-1 ${isLive ? "text-[11px] text-zinc-400" : "text-[11px] text-slate-500"}`}
           >
-            <GraduationCap className="w-4 h-4 text-indigo-400" aria-hidden="true" /> Suggestions de questions
+            <GraduationCap className="w-4 h-4 text-emerald-400" aria-hidden="true" /> Suggestions de questions
           </p>
           <div className="flex flex-col gap-1.5">
             {suggestions.map((sug, i) => (
@@ -284,13 +284,13 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
                 aria-label={`Suggestion : ${sug.label}`}
                 className={`kbd-nav-focus w-full text-left font-medium px-3 py-3 rounded-xl transition-all flex items-center justify-between group ${
                   isLive
-                    ? "bg-zinc-950 text-sm text-indigo-100 border border-white/10 hover:border-indigo-400/40 hover:bg-indigo-500/10"
-                    : "bg-white dark:bg-slate-900 text-xs text-indigo-700 dark:text-indigo-300 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 hover:bg-indigo-50/40 dark:hover:bg-indigo-950/40"
+                    ? "bg-zinc-950 text-sm text-emerald-100 border border-white/10 hover:border-emerald-400/40 hover:bg-emerald-500/10"
+                    : "bg-white dark:bg-slate-900 text-xs text-emerald-700 dark:text-emerald-300 border border-slate-200 dark:border-slate-800 hover:border-emerald-400 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/40"
                 }`}
               >
                 <span className="pr-2">{sug.label}</span>
                 <ArrowRight
-                  className="w-4 h-4 shrink-0 text-zinc-500 group-hover:text-indigo-300 group-hover:translate-x-0.5 transition-all"
+                  className="w-4 h-4 shrink-0 text-zinc-500 group-hover:text-emerald-300 group-hover:translate-x-0.5 transition-all"
                   aria-hidden="true"
                 />
               </button>
@@ -322,17 +322,17 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
             onChange={(e) => setInput(e.target.value)}
             disabled={isLoading}
             placeholder="Posez une question sur ce chapitre ou exercice..."
-            className={`kbd-nav-focus flex-1 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 ${
+            className={`kbd-nav-focus flex-1 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50 ${
               isLive
-                ? "bg-zinc-950 border border-white/10 text-white placeholder-zinc-500 focus:border-indigo-500"
-                : "bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white placeholder-slate-400 focus:bg-white dark:focus:bg-slate-900 focus:border-indigo-600"
+                ? "bg-zinc-950 border border-white/10 text-white placeholder-zinc-500 focus:border-emerald-500"
+                : "bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white placeholder-slate-400 focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-600"
             }`}
           />
           <button
             type="submit"
             disabled={!input.trim() || isLoading}
             aria-label="Envoyer la question au tuteur IA"
-            className="kbd-nav-focus touch-target min-h-[48px] min-w-[48px] p-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-all shadow-md disabled:opacity-50 disabled:shadow-none"
+            className="kbd-nav-focus touch-target min-h-[48px] min-w-[48px] p-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition-all shadow-md disabled:opacity-50 disabled:shadow-none"
           >
             <Send className="w-4 h-4" aria-hidden="true" />
           </button>

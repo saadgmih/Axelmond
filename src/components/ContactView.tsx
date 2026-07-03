@@ -136,9 +136,9 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-8 animate-in fade-in duration-200">
       {/* Title Header Card */}
-      <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-slate-900 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-lg border border-indigo-950">
+      <div className="bg-gradient-to-r from-emerald-950 via-slate-900 to-slate-900 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-lg border border-emerald-950">
         <div className="relative z-10 max-w-3xl space-y-3">
-          <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full inline-block">
+          <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full inline-block">
             Support & Relations
           </span>
           <h1 className="text-3xl md:text-4xl font-black tracking-tight leading-tight">
@@ -157,7 +157,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
         <div className="lg:col-span-7 space-y-6">
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-sm space-y-6 text-white">
             <h2 className="text-xl font-bold text-white border-b border-slate-850 pb-3 flex items-center gap-2">
-              <Mail className="w-5 h-5 text-indigo-400" />
+              <Mail className="w-5 h-5 text-emerald-400" />
               Formulaire d'Assistance
             </h2>
 
@@ -188,7 +188,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Votre nom complet"
-                    className="w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     disabled={isLoading}
                   />
                   {validationErrors.name && (
@@ -207,7 +207,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="adresse@mail.com"
-                    className="w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     disabled={isLoading}
                   />
                   {validationErrors.email && (
@@ -229,7 +229,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
                     id="contact-category"
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-3 py-2.5 border rounded-xl text-sm bg-slate-950 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2.5 border rounded-xl text-sm bg-slate-950 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     disabled={isLoading}
                   >
                     {categories.map((cat) => (
@@ -257,7 +257,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
                     placeholder="Sujet de votre message"
-                    className="w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     disabled={isLoading}
                   />
                   {validationErrors.subject && (
@@ -277,7 +277,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Décrivez votre demande en détail (minimum 10 caractères)..."
                   rows={6}
-                  className="w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   disabled={isLoading}
                 />
                 {validationErrors.message && (
@@ -289,7 +289,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-750 text-white font-bold py-3 px-4 rounded-xl text-sm transition-all shadow-md focus:outline-none cursor-pointer disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-750 text-white font-bold py-3 px-4 rounded-xl text-sm transition-all shadow-md focus:outline-none cursor-pointer disabled:opacity-50"
               >
                 {isLoading ? (
                   <>
@@ -305,12 +305,12 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
               </button>
 
               {/* Security & GDPR Info Box */}
-              <div className="flex items-start gap-4 rounded-3xl border border-indigo-400/40 bg-slate-950/50 p-5 text-white shadow-sm">
-                <div className="flex-shrink-0 rounded-2xl border border-indigo-500/20 bg-indigo-500/10 p-2.5 text-indigo-400">
+              <div className="flex items-start gap-4 rounded-3xl border border-emerald-400/40 bg-slate-950/50 p-5 text-white shadow-sm">
+                <div className="flex-shrink-0 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-2.5 text-emerald-400">
                   <ShieldCheck className="h-6 w-6" />
                 </div>
                 <div className="space-y-1">
-                  <h4 className="text-sm font-bold text-indigo-300">
+                  <h4 className="text-sm font-bold text-emerald-300">
                     Données Sécurisées & Protection des données (loi 09-08)
                   </h4>
                   <p className="text-xs leading-relaxed text-slate-400">
@@ -329,7 +329,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
           {/* Card: Contact coordinates */}
           <div className="flex h-full flex-col bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-sm space-y-5 text-white">
             <h2 className="text-lg font-bold text-white border-b border-slate-850 pb-3 flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-indigo-400" />
+              <MapPin className="w-5 h-5 text-emerald-400" />
               Informations Institutionnelles
             </h2>
 
@@ -364,22 +364,22 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
                 <Mail className="w-4 h-4 text-slate-500 mt-1 flex-shrink-0" />
                 <div>
                   <p className="font-bold text-slate-300">Adresses Electroniques</p>
-                  <p className="text-xs text-slate-450 hover:text-indigo-400 transition-colors">
+                  <p className="text-xs text-slate-450 hover:text-emerald-400 transition-colors">
                     <a href="mailto:contact@axelmond.com">contact@axelmond.com</a> (Contact général)
                   </p>
-                  <p className="text-xs text-slate-450 hover:text-indigo-400 transition-colors mt-0.5">
+                  <p className="text-xs text-slate-450 hover:text-emerald-400 transition-colors mt-0.5">
                     <a href="mailto:support@axelmond.com">support@axelmond.com</a> (Support technique)
                   </p>
-                  <p className="text-xs text-slate-450 hover:text-indigo-400 transition-colors mt-0.5">
+                  <p className="text-xs text-slate-450 hover:text-emerald-400 transition-colors mt-0.5">
                     <a href="mailto:admissions@axelmond.com">admissions@axelmond.com</a> (Inscriptions)
                   </p>
-                  <p className="text-xs text-slate-450 hover:text-indigo-400 transition-colors mt-0.5">
+                  <p className="text-xs text-slate-450 hover:text-emerald-400 transition-colors mt-0.5">
                     <a href="mailto:billing@axelmond.com">billing@axelmond.com</a> (Facturation)
                   </p>
-                  <p className="text-xs text-slate-450 hover:text-indigo-400 transition-colors mt-0.5">
+                  <p className="text-xs text-slate-450 hover:text-emerald-400 transition-colors mt-0.5">
                     <a href="mailto:privacy@axelmond.com">privacy@axelmond.com</a> (Données personnelles)
                   </p>
-                  <p className="text-xs text-slate-450 hover:text-indigo-400 transition-colors mt-0.5">
+                  <p className="text-xs text-slate-450 hover:text-emerald-400 transition-colors mt-0.5">
                     <a href="mailto:legal@axelmond.com">legal@axelmond.com</a> (Juridique)
                   </p>
                 </div>
@@ -390,7 +390,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
                 <Globe className="w-4 h-4 text-slate-500 flex-shrink-0" />
                 <div>
                   <p className="font-bold text-slate-300">Portail Universitaire</p>
-                  <p className="text-xs text-slate-450 hover:text-indigo-400 transition-colors">
+                  <p className="text-xs text-slate-450 hover:text-emerald-400 transition-colors">
                     <a href="https://www.axelmond.com" target="_blank" rel="noopener noreferrer">
                       www.axelmond.com
                     </a>
@@ -425,7 +425,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
               href={PERFORMANCE_ACADEMIQUE_LOCATION.googleMapsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 transition-colors hover:bg-indigo-500/20"
+              className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 transition-colors hover:bg-emerald-500/20"
               aria-label="Ouvrir la localisation Performance Académique dans Google Maps"
             >
               <ExternalLink className="h-4 w-4" />
@@ -456,7 +456,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
         {/* Card: FAQ Accordion */}
         <div className="flex h-full flex-col space-y-4 rounded-3xl border border-slate-800 bg-slate-900 p-6 text-white shadow-sm">
           <h2 className="text-lg font-bold text-white border-b border-slate-850 pb-3 flex items-center gap-2">
-            <HelpCircle className="w-5 h-5 text-indigo-400" />
+            <HelpCircle className="w-5 h-5 text-emerald-400" />
             FAQ & Centre d'aide
           </h2>
 
@@ -494,19 +494,19 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
           <div className="pt-2 border-t border-slate-850 flex flex-wrap gap-x-4 gap-y-2 justify-between text-xs text-slate-450">
             <button
               onClick={() => navigateTo("catalog")}
-              className="hover:text-indigo-400 hover:underline cursor-pointer"
+              className="hover:text-emerald-400 hover:underline cursor-pointer"
             >
               Catalogue
             </button>
             <button
               onClick={() => navigateTo("profile")}
-              className="hover:text-indigo-400 hover:underline cursor-pointer"
+              className="hover:text-emerald-400 hover:underline cursor-pointer"
             >
               Mon Profil
             </button>
             <button
               onClick={() => navigateTo("support")}
-              className="hover:text-indigo-400 hover:underline cursor-pointer"
+              className="hover:text-emerald-400 hover:underline cursor-pointer"
             >
               Support technique
             </button>

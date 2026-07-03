@@ -143,7 +143,7 @@ export default function SupportTicketForm({
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Récapitulatif du ticket</p>
             <p className="text-xs">
               <span className="text-slate-500">Numéro :</span>{" "}
-              <span className="font-bold text-indigo-300">{formatTicketReference(createdTicket.id)}</span>
+              <span className="font-bold text-emerald-300">{formatTicketReference(createdTicket.id)}</span>
             </p>
             <p className="text-xs">
               <span className="text-slate-500">Sujet :</span>{" "}
@@ -151,7 +151,7 @@ export default function SupportTicketForm({
             </p>
             <p className="text-xs">
               <span className="text-slate-500">Statut :</span>{" "}
-              <span className="text-indigo-300">{createdTicket.status}</span>
+              <span className="text-emerald-300">{createdTicket.status}</span>
             </p>
           </div>
         </div>
@@ -173,7 +173,7 @@ export default function SupportTicketForm({
             id="ticket-category"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="w-full px-3 py-2.5 border rounded-xl text-xs bg-slate-950 border-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full px-3 py-2.5 border rounded-xl text-xs bg-slate-950 border-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-lime-500"
             disabled={isSubmitting}
           >
             <option value="Support Technique">Bug ou dysfonctionnement technique</option>
@@ -194,7 +194,7 @@ export default function SupportTicketForm({
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             placeholder="Ex : La vidéo du module 3 ne se lance pas"
-            className="w-full px-4 py-2.5 border border-slate-800 rounded-xl text-xs bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full px-4 py-2.5 border border-slate-800 rounded-xl text-xs bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-lime-500"
             disabled={isSubmitting}
           />
           {validationErrors.subject && <p className="text-red-400 text-xs">{validationErrors.subject}</p>}
@@ -210,7 +210,7 @@ export default function SupportTicketForm({
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Étapes pour reproduire, message d'erreur affiché, navigateur utilisé..."
             rows={6}
-            className="w-full px-4 py-2.5 border border-slate-800 rounded-xl text-xs bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full px-4 py-2.5 border border-slate-800 rounded-xl text-xs bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-lime-500"
             disabled={isSubmitting}
           />
           {validationErrors.description && <p className="text-red-400 text-xs">{validationErrors.description}</p>}
@@ -263,15 +263,15 @@ export default function SupportTicketForm({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isSubmitting || uploadProgress !== null}
-                className="w-full border border-dashed border-slate-700 hover:border-amber-500/50 bg-slate-950/40 p-4 rounded-xl flex flex-col items-center gap-2"
+                className="w-full border border-dashed border-slate-700 hover:border-lime-500/50 bg-slate-950/40 p-4 rounded-xl flex flex-col items-center gap-2"
               >
                 {uploadProgress !== null ? (
                   <>
-                    <Loader2 className="w-5 h-5 text-amber-400 animate-spin" />
+                    <Loader2 className="w-5 h-5 text-lime-400 animate-spin" />
                     <div className="w-full space-y-2">
                       <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
                         <div
-                          className="h-full rounded-full bg-amber-400 transition-all duration-200"
+                          className="h-full rounded-full bg-lime-400 transition-all duration-200"
                           style={{ width: uploadProgressBarWidth(uploadProgress) }}
                         />
                       </div>
@@ -295,7 +295,7 @@ export default function SupportTicketForm({
         <button
           type="submit"
           disabled={isSubmitting || uploadProgress !== null}
-          className="w-full flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 px-4 rounded-xl text-xs disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-2 bg-lime-600 hover:bg-lime-500 text-white font-bold py-3 px-4 rounded-xl text-xs disabled:opacity-50"
         >
           {isSubmitting ? (
             <>

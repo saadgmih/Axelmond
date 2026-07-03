@@ -15,6 +15,6 @@ rulesTest("live-control-ui", () => {
   assert.match(liveControlSource, /handleUpdateCourseLiveSubject/);
   assert.match(liveControlSource, /handleToggleCourseLive/);
   assert.match(liveControlSource, /liveControlUi/);
-  assert.match(themeSource, /#070b14/);
+  assert.match(themeSource, /#0a1f1a/);
   assert.doesNotMatch(liveControlSource, /bg-white border border-slate-200/);
 });

@@ -46,14 +46,14 @@ export default function PrivacyView() {
   const version = "v2.1.0";
 
   const toc = [
-    { num: "01", label: "Données collectées", href: "#s1", color: "text-indigo-400" },
-    { num: "02", label: "Utilisation des données", href: "#s2", color: "text-violet-400" },
+    { num: "01", label: "Données collectées", href: "#s1", color: "text-emerald-400" },
+    { num: "02", label: "Utilisation des données", href: "#s2", color: "text-teal-400" },
     { num: "03", label: "Protection des données", href: "#s3", color: "text-emerald-400" },
-    { num: "04", label: "Partage des informations", href: "#s4", color: "text-amber-400" },
-    { num: "05", label: "Conservation", href: "#s5", color: "text-sky-400" },
-    { num: "06", label: "Droits des utilisateurs", href: "#s6", color: "text-pink-400" },
+    { num: "04", label: "Partage des informations", href: "#s4", color: "text-lime-400" },
+    { num: "05", label: "Conservation", href: "#s5", color: "text-teal-400" },
+    { num: "06", label: "Droits des utilisateurs", href: "#s6", color: "text-emerald-400" },
     { num: "07", label: "Cookies", href: "#s7", color: "text-orange-400" },
-    { num: "08", label: "Contact & DPO", href: "#s8", color: "text-rose-400" },
+    { num: "08", label: "Contact & DPO", href: "#s8", color: "text-emerald-400" },
   ];
 
   return (
@@ -61,19 +61,19 @@ export default function PrivacyView() {
       <InstitutionalHero
         heroRef={heroRef}
         gradientClass="via-indigo-950/20"
-        topBlobClass="top-0 right-0 w-96 h-96 bg-indigo-600/8 rounded-full translate-x-48 -translate-y-48"
-        bottomBlobClass="bottom-0 left-0 w-64 h-64 bg-violet-600/8 rounded-full -translate-x-32 translate-y-32"
+        topBlobClass="top-0 right-0 w-96 h-96 bg-emerald-600/8 rounded-full translate-x-48 -translate-y-48"
+        bottomBlobClass="bottom-0 left-0 w-64 h-64 bg-teal-600/8 rounded-full -translate-x-32 translate-y-32"
         translateY="20px"
         transition="opacity 0.65s ease, transform 0.65s ease"
       >
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
           <div className="space-y-4">
-            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full inline-block">
+            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full inline-block">
               Document juridique
             </span>
             <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
               Politique de{" "}
-              <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
                 confidentialité
               </span>
             </h1>
@@ -92,7 +92,7 @@ export default function PrivacyView() {
               </div>
               <div className="text-white font-black text-sm">{lastUpdate}</div>
               <div className="flex items-center justify-end gap-2">
-                <InstitutionalChip label={version} color="text-indigo-300 border-indigo-500/30 bg-indigo-500/10" />
+                <InstitutionalChip label={version} color="text-emerald-300 border-emerald-500/30 bg-emerald-500/10" />
                 <InstitutionalChip label="Loi 09-08" color="text-emerald-300 border-emerald-500/30 bg-emerald-500/10" />
               </div>
             </div>
@@ -132,7 +132,7 @@ export default function PrivacyView() {
           }}
         >
           <div className="flex items-center gap-2 mb-5">
-            <FileText className="w-4 h-4 text-indigo-400" />
+            <FileText className="w-4 h-4 text-emerald-400" />
             <h2 className="text-sm font-black text-white uppercase tracking-wider">Table des matières</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -162,8 +162,8 @@ export default function PrivacyView() {
             number="01"
             title="Données collectées"
             icon={<Database className="w-4 h-4" />}
-            accent="text-indigo-400"
-            bgAccent="bg-indigo-950/20"
+            accent="text-emerald-400"
+            bgAccent="bg-emerald-950/20"
             inView={s1Ref.inView}
           >
             <p>
@@ -180,14 +180,14 @@ export default function PrivacyView() {
                     "Adresse e-mail universitaire",
                     "Rôle académique (étudiant, professeur ou administrateur)",
                   ],
-                  color: "border-indigo-800/40 bg-indigo-950/20",
-                  badge: "text-indigo-300 border-indigo-500/30 bg-indigo-500/10",
+                  color: "border-emerald-800/40 bg-emerald-950/20",
+                  badge: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10",
                 },
                 {
                   category: "Données pédagogiques",
                   items: ["Modules inscrits et progression", "Résultats de quiz et évaluations", "Modules complétés"],
-                  color: "border-violet-800/40 bg-violet-950/20",
-                  badge: "text-violet-300 border-violet-500/30 bg-violet-500/10",
+                  color: "border-teal-800/40 bg-teal-950/20",
+                  badge: "text-teal-300 border-teal-500/30 bg-teal-500/10",
                 },
                 {
                   category: "Données de profil",
@@ -206,8 +206,8 @@ export default function PrivacyView() {
                     "Adresse IP (logs serveur sécurisés)",
                     "Type de navigateur/appareil (anonymisé)",
                   ],
-                  color: "border-amber-800/40 bg-amber-950/20",
-                  badge: "text-amber-300 border-amber-500/30 bg-amber-500/10",
+                  color: "border-lime-800/40 bg-lime-950/20",
+                  badge: "text-lime-300 border-lime-500/30 bg-lime-500/10",
                 },
               ].map(({ category, items, color, badge }) => (
                 <div key={category} className={`rounded-2xl border p-4 space-y-2.5 ${color}`}>
@@ -224,10 +224,10 @@ export default function PrivacyView() {
               ))}
             </div>
 
-            <div className="flex items-start gap-3 bg-amber-950/20 border border-amber-800/30 rounded-xl px-4 py-3 mt-2">
-              <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
-              <p className="text-[12px] text-amber-200/80">
-                <strong className="text-amber-300">Aucune donnée sensible</strong> (numéro de carte bancaire, données de
+            <div className="flex items-start gap-3 bg-lime-950/20 border border-lime-800/30 rounded-xl px-4 py-3 mt-2">
+              <AlertTriangle className="w-4 h-4 text-lime-400 flex-shrink-0 mt-0.5" />
+              <p className="text-[12px] text-lime-200/80">
+                <strong className="text-lime-300">Aucune donnée sensible</strong> (numéro de carte bancaire, données de
                 santé, données biométriques) n'est stockée directement sur les serveurs de Performance Académique. Les
                 paiements sont traités exclusivement par un prestataire de paiement certifié.
               </p>
@@ -242,8 +242,8 @@ export default function PrivacyView() {
             number="02"
             title="Utilisation des données"
             icon={<Eye className="w-4 h-4" />}
-            accent="text-violet-400"
-            bgAccent="bg-violet-950/20"
+            accent="text-teal-400"
+            bgAccent="bg-teal-950/20"
             inView={s2Ref.inView}
             delay={50}
           >
@@ -254,12 +254,12 @@ export default function PrivacyView() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
               {[
                 {
-                  icon: <UserCheck className="w-4 h-4 text-violet-400" />,
+                  icon: <UserCheck className="w-4 h-4 text-teal-400" />,
                   title: "Gestion du compte",
                   desc: "Authentification, vérification de l'email, gestion des rôles et des autorisations d'accès.",
                 },
                 {
-                  icon: <Globe className="w-4 h-4 text-indigo-400" />,
+                  icon: <Globe className="w-4 h-4 text-emerald-400" />,
                   title: "Fourniture des services",
                   desc: "Accès aux modules, sessions live, quiz, tuteur IA, profils académiques et paiements.",
                 },
@@ -277,7 +277,7 @@ export default function PrivacyView() {
               ))}
             </div>
             <InstitutionalBulletList
-              color="text-violet-400"
+              color="text-teal-400"
               items={[
                 "Envoi d'e-mails de vérification et de notifications de service (aucun e-mail marketing sans consentement explicite)",
                 "Génération des factures et reçus de paiement associés à vos inscriptions aux modules",
@@ -314,38 +314,38 @@ export default function PrivacyView() {
                   badgeLabel: "Argon2 / bcrypt",
                 },
                 {
-                  icon: <Shield className="w-4 h-4 text-indigo-400" />,
+                  icon: <Shield className="w-4 h-4 text-emerald-400" />,
                   title: "Authentification JWT sécurisée",
                   desc: "Sessions signées avec durée d'expiration courte. Les jetons sont vérifiés côté serveur à chaque requête.",
-                  badge: "text-indigo-300 border-indigo-500/30 bg-indigo-500/10",
+                  badge: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10",
                   badgeLabel: "JWT + expiration",
                 },
                 {
-                  icon: <Server className="w-4 h-4 text-violet-400" />,
+                  icon: <Server className="w-4 h-4 text-teal-400" />,
                   title: "RBAC strict (contrôle d'accès)",
                   desc: "Chaque route est protégée par un contrôle de rôle. Un étudiant ne peut jamais accéder aux données d'un autre utilisateur.",
-                  badge: "text-violet-300 border-violet-500/30 bg-violet-500/10",
+                  badge: "text-teal-300 border-teal-500/30 bg-teal-500/10",
                   badgeLabel: "RBAC",
                 },
                 {
-                  icon: <AlertTriangle className="w-4 h-4 text-amber-400" />,
+                  icon: <AlertTriangle className="w-4 h-4 text-lime-400" />,
                   title: "Protection brute-force",
                   desc: "Rate-limiting technique sur les routes sensibles d'authentification pour absorber les abus sans suspendre le compte.",
-                  badge: "text-amber-300 border-amber-500/30 bg-amber-500/10",
+                  badge: "text-lime-300 border-lime-500/30 bg-lime-500/10",
                   badgeLabel: "Rate Limit",
                 },
                 {
-                  icon: <Lock className="w-4 h-4 text-sky-400" />,
+                  icon: <Lock className="w-4 h-4 text-teal-400" />,
                   title: "Chiffrement en transit (HTTPS)",
                   desc: "Toutes les communications entre le client et le serveur transitent exclusivement via HTTPS/TLS.",
-                  badge: "text-sky-300 border-sky-500/30 bg-sky-500/10",
+                  badge: "text-teal-300 border-teal-500/30 bg-teal-500/10",
                   badgeLabel: "HTTPS/TLS",
                 },
                 {
-                  icon: <FileText className="w-4 h-4 text-rose-400" />,
+                  icon: <FileText className="w-4 h-4 text-emerald-400" />,
                   title: "Audit log complet",
                   desc: "Chaque action sensible (connexion, modification, suppression) est enregistrée dans un journal d'audit sécurisé.",
-                  badge: "text-rose-300 border-rose-500/30 bg-rose-500/10",
+                  badge: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10",
                   badgeLabel: "Audit Trail",
                 },
               ].map(({ icon, title, desc, badge, badgeLabel }) => (
@@ -373,8 +373,8 @@ export default function PrivacyView() {
             number="04"
             title="Partage des informations"
             icon={<Share2 className="w-4 h-4" />}
-            accent="text-amber-400"
-            bgAccent="bg-amber-950/20"
+            accent="text-lime-400"
+            bgAccent="bg-lime-950/20"
             inView={s4Ref.inView}
             delay={50}
           >
@@ -394,16 +394,16 @@ export default function PrivacyView() {
                   role: "Traitement sécurisé des paiements",
                   data: "Adresse e-mail, montant de la transaction (aucune donnée bancaire stockée par Performance Académique)",
                   policy: "Politique de confidentialité disponible auprès du prestataire de paiement",
-                  color: "border-indigo-800/40 bg-indigo-950/20",
-                  chip: "text-indigo-300 border-indigo-500/30 bg-indigo-500/10",
+                  color: "border-emerald-800/40 bg-emerald-950/20",
+                  chip: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10",
                 },
                 {
                   name: "Prestataire de visioconférence",
                   role: "Infrastructure de sessions en direct",
                   data: "Identifiant de session anonymisé pour la connexion aux sessions live",
                   policy: "Politique de confidentialité disponible auprès du prestataire de visioconférence",
-                  color: "border-violet-800/40 bg-violet-950/20",
-                  chip: "text-violet-300 border-violet-500/30 bg-violet-500/10",
+                  color: "border-teal-800/40 bg-teal-950/20",
+                  chip: "text-teal-300 border-teal-500/30 bg-teal-500/10",
                 },
                 {
                   name: "Prestataire d'hébergement de fichiers",
@@ -418,8 +418,8 @@ export default function PrivacyView() {
                   role: "Tuteur IA pédagogique",
                   data: "Questions posées au tuteur IA (aucune donnée d'identité transmise, contenu du module uniquement)",
                   policy: "Politique de confidentialité disponible auprès du prestataire d'assistance IA",
-                  color: "border-amber-800/40 bg-amber-950/20",
-                  chip: "text-amber-300 border-amber-500/30 bg-amber-500/10",
+                  color: "border-lime-800/40 bg-lime-950/20",
+                  chip: "text-lime-300 border-lime-500/30 bg-lime-500/10",
                 },
               ].map(({ name, role, data, policy, color, chip }) => (
                 <div key={name} className={`rounded-2xl border p-4 ${color}`}>
@@ -447,8 +447,8 @@ export default function PrivacyView() {
             number="05"
             title="Conservation des données"
             icon={<Clock className="w-4 h-4" />}
-            accent="text-sky-400"
-            bgAccent="bg-sky-950/20"
+            accent="text-teal-400"
+            bgAccent="bg-teal-950/20"
             inView={s5Ref.inView}
             delay={50}
           >
@@ -511,8 +511,8 @@ export default function PrivacyView() {
             number="06"
             title="Droits des utilisateurs"
             icon={<UserCheck className="w-4 h-4" />}
-            accent="text-pink-400"
-            bgAccent="bg-pink-950/20"
+            accent="text-emerald-400"
+            bgAccent="bg-emerald-950/20"
             inView={s6Ref.inView}
             delay={50}
           >
@@ -523,28 +523,28 @@ export default function PrivacyView() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
               {[
                 {
-                  icon: <Eye className="w-4 h-4 text-indigo-400" />,
+                  icon: <Eye className="w-4 h-4 text-emerald-400" />,
                   right: "Droit d'accès",
                   desc: "Obtenir une copie de toutes vos données personnelles détenues par Performance Académique.",
-                  color: "border-indigo-800/30 bg-indigo-950/20",
+                  color: "border-emerald-800/30 bg-emerald-950/20",
                 },
                 {
-                  icon: <RefreshCw className="w-4 h-4 text-violet-400" />,
+                  icon: <RefreshCw className="w-4 h-4 text-teal-400" />,
                   right: "Droit de rectification",
                   desc: "Corriger ou mettre à jour vos informations personnelles inexactes ou incomplètes.",
-                  color: "border-violet-800/30 bg-violet-950/20",
+                  color: "border-teal-800/30 bg-teal-950/20",
                 },
                 {
-                  icon: <Trash2 className="w-4 h-4 text-rose-400" />,
+                  icon: <Trash2 className="w-4 h-4 text-emerald-400" />,
                   right: "Droit à l'effacement",
                   desc: 'Demander la suppression de vos données ("droit à l\'oubli") sous conditions légales.',
-                  color: "border-rose-800/30 bg-rose-950/20",
+                  color: "border-emerald-800/30 bg-emerald-950/20",
                 },
                 {
-                  icon: <Lock className="w-4 h-4 text-amber-400" />,
+                  icon: <Lock className="w-4 h-4 text-lime-400" />,
                   right: "Droit à la limitation",
                   desc: "Restreindre le traitement de vos données dans certains cas prévus par la loi 09-08.",
-                  color: "border-amber-800/30 bg-amber-950/20",
+                  color: "border-lime-800/30 bg-lime-950/20",
                 },
                 {
                   icon: <Download className="w-4 h-4 text-emerald-400" />,
@@ -553,10 +553,10 @@ export default function PrivacyView() {
                   color: "border-emerald-800/30 bg-emerald-950/20",
                 },
                 {
-                  icon: <AlertTriangle className="w-4 h-4 text-sky-400" />,
+                  icon: <AlertTriangle className="w-4 h-4 text-teal-400" />,
                   right: "Droit d'opposition",
                   desc: "Vous opposer au traitement de vos données à des fins spécifiques.",
-                  color: "border-sky-800/30 bg-sky-950/20",
+                  color: "border-teal-800/30 bg-teal-950/20",
                 },
               ].map(({ icon, right, desc, color }) => (
                 <div key={right} className={`rounded-2xl border p-4 space-y-2 ${color}`}>
@@ -573,7 +573,7 @@ export default function PrivacyView() {
             <div className="bg-slate-950/60 border border-slate-800 rounded-2xl px-5 py-4 space-y-2">
               <div className="text-white text-sm font-bold">Comment exercer vos droits ?</div>
               <p className="text-[12px] text-slate-400 leading-relaxed">
-                Envoyez votre demande par e-mail à <strong className="text-indigo-300">privacy@axelmond.com</strong>{" "}
+                Envoyez votre demande par e-mail à <strong className="text-emerald-300">privacy@axelmond.com</strong>{" "}
                 avec pour objet «&nbsp;Exercice de droits — loi 09-08 — [Votre nom]&nbsp;». Nous nous engageons à vous
                 répondre dans un délai de <strong className="text-white">30 jours calendaires</strong> conformément à la
                 loi n° 09-08. Une pièce d'identité peut être demandée pour vérifier votre identité avant traitement.
@@ -610,7 +610,7 @@ export default function PrivacyView() {
                   purpose: "Jeton de renouvellement de session protégé contre la lecture JavaScript.",
                   duration: "7 jours maximum ou jusqu'à déconnexion",
                   necessary: true,
-                  color: "border-indigo-800/30 bg-indigo-950/20",
+                  color: "border-emerald-800/30 bg-emerald-950/20",
                 },
                 {
                   name: "csrf_token",
@@ -618,7 +618,7 @@ export default function PrivacyView() {
                   purpose: "Protection des requêtes sensibles contre les attaques CSRF.",
                   duration: "7 jours maximum ou jusqu'à déconnexion",
                   necessary: true,
-                  color: "border-sky-800/30 bg-sky-950/20",
+                  color: "border-teal-800/30 bg-teal-950/20",
                 },
                 {
                   name: "Profil utilisateur (session)",
@@ -627,7 +627,7 @@ export default function PrivacyView() {
                     "Profil rechargé via GET /api/auth/me après cookie HttpOnly; aucune PII persistée en localStorage.",
                   duration: "Durée de la session navigateur",
                   necessary: true,
-                  color: "border-indigo-800/30 bg-indigo-950/20",
+                  color: "border-emerald-800/30 bg-emerald-950/20",
                 },
                 {
                   name: "Données de progression des modules",
@@ -636,7 +636,7 @@ export default function PrivacyView() {
                     "Progression dans les modules, scores de quiz et statuts de complétion conservés de manière sécurisée.",
                   duration: "Durée de vie du compte (voir §05)",
                   necessary: true,
-                  color: "border-violet-800/30 bg-violet-950/20",
+                  color: "border-teal-800/30 bg-teal-950/20",
                 },
               ].map(({ name, type, purpose, duration, necessary, color }) => (
                 <div key={name} className={`rounded-2xl border p-4 space-y-3 ${color}`}>
@@ -678,8 +678,8 @@ export default function PrivacyView() {
             number="08"
             title="Contact &amp; DPO"
             icon={<Mail className="w-4 h-4" />}
-            accent="text-rose-400"
-            bgAccent="bg-rose-950/20"
+            accent="text-emerald-400"
+            bgAccent="bg-emerald-950/20"
             inView={s8Ref.inView}
             delay={50}
           >
@@ -714,8 +714,8 @@ export default function PrivacyView() {
               vous avez le droit d'introduire une réclamation auprès d'une autorité de contrôle compétente :
             </p>
             <div className="bg-slate-950/60 border border-slate-800 rounded-2xl px-5 py-4 flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center flex-shrink-0">
-                <Globe className="w-5 h-5 text-indigo-400" />
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                <Globe className="w-5 h-5 text-emerald-400" />
               </div>
               <div>
                 <div className="text-white font-bold text-sm">
@@ -738,7 +738,7 @@ export default function PrivacyView() {
           </div>
           <div className="flex flex-wrap gap-2">
             <InstitutionalChip label="Loi 09-08" color="text-emerald-300 border-emerald-500/30 bg-emerald-500/10" />
-            <InstitutionalChip label={version} color="text-indigo-300 border-indigo-500/30 bg-indigo-500/10" />
+            <InstitutionalChip label={version} color="text-emerald-300 border-emerald-500/30 bg-emerald-500/10" />
           </div>
         </div>
       </div>

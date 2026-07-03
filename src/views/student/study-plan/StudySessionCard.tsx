@@ -20,7 +20,7 @@ export function StudySessionCard({
             <span className={`${scheduleUi.typeBadge} mt-2 inline-flex`}>{session.sessionTypeLabel}</span>
           )}
         </div>
-        <span className="rounded-full border border-indigo-400/20 bg-indigo-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-indigo-200">
+        <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-200">
           {session.dayLabel}
         </span>
       </div>
@@ -29,7 +29,7 @@ export function StudySessionCard({
       {session.description && <p className={`${scheduleUi.sessionMeta} line-clamp-3`}>{session.description}</p>}
 
       <p className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-400">
-        <Clock3 className="h-3.5 w-3.5 text-indigo-300" />
+        <Clock3 className="h-3.5 w-3.5 text-emerald-300" />
         {session.startTime} – {session.endTime}
       </p>
 

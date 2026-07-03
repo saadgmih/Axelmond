@@ -102,7 +102,7 @@ const FeatureCard: React.FC<{
       <div className="flex items-start justify-between gap-3">
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${accent}`}>{icon}</div>
         {badge && (
-          <span className="text-[9px] font-black uppercase tracking-widest bg-indigo-500/15 text-indigo-300 border border-indigo-500/20 px-2 py-0.5 rounded-full flex-shrink-0">
+          <span className="text-[9px] font-black uppercase tracking-widest bg-emerald-500/15 text-emerald-300 border border-emerald-500/20 px-2 py-0.5 rounded-full flex-shrink-0">
             {badge}
           </span>
         )}
@@ -154,31 +154,31 @@ export default function AboutView() {
 
   const features = [
     {
-      icon: <BookOpen className="w-5 h-5 text-indigo-300" />,
-      accent: "bg-indigo-500/15 border border-indigo-500/20",
+      icon: <BookOpen className="w-5 h-5 text-emerald-300" />,
+      accent: "bg-emerald-500/15 border border-emerald-500/20",
       title: "Modules Structurés Multi-niveaux",
       description:
         "Catalogue organisé par domaines, disciplines et niveaux académiques avec chapitres, sections et contenus riches (texte, vidéo, quiz).",
     },
     {
-      icon: <Video className="w-5 h-5 text-pink-300" />,
-      accent: "bg-pink-500/15 border border-pink-500/20",
+      icon: <Video className="w-5 h-5 text-emerald-300" />,
+      accent: "bg-emerald-500/15 border border-emerald-500/20",
       title: "Sessions en direct",
       description:
         "Visioconférences académiques intégrées avec partage d'écran, chat en direct et gestion des participants.",
       badge: "Live",
     },
     {
-      icon: <Brain className="w-5 h-5 text-violet-300" />,
-      accent: "bg-violet-500/15 border border-violet-500/20",
+      icon: <Brain className="w-5 h-5 text-teal-300" />,
+      accent: "bg-teal-500/15 border border-teal-500/20",
       title: "Tuteur IA Personnalisé",
       description:
         "Assistant pédagogique intelligent, disponible dans les modules pour répondre aux questions et approfondir les concepts.",
       badge: "IA",
     },
     {
-      icon: <Award className="w-5 h-5 text-amber-300" />,
-      accent: "bg-amber-500/15 border border-amber-500/20",
+      icon: <Award className="w-5 h-5 text-lime-300" />,
+      accent: "bg-lime-500/15 border border-lime-500/20",
       title: "Évaluations & Quizzes",
       description:
         "Système d'examens intégré avec correction automatique, feedback détaillé et suivi de progression par module.",
@@ -192,8 +192,8 @@ export default function AboutView() {
       badge: "Sécurisé",
     },
     {
-      icon: <Layers className="w-5 h-5 text-cyan-300" />,
-      accent: "bg-cyan-500/15 border border-cyan-500/20",
+      icon: <Layers className="w-5 h-5 text-teal-300" />,
+      accent: "bg-teal-500/15 border border-teal-500/20",
       title: "Profils Académiques Complets",
       description:
         "Espaces personnalisés pour étudiants et professeurs avec profils, progression et domaines de spécialité.",
@@ -206,8 +206,8 @@ export default function AboutView() {
         "Abonnements à l'accès aux modules avec facturation automatique, reçus archivés et traitement chiffré des transactions.",
     },
     {
-      icon: <Activity className="w-5 h-5 text-rose-300" />,
-      accent: "bg-rose-500/15 border border-rose-500/20",
+      icon: <Activity className="w-5 h-5 text-emerald-300" />,
+      accent: "bg-emerald-500/15 border border-emerald-500/20",
       title: "Tableau de Bord Analytique",
       description:
         "Statistiques de progression, taux de complétion, scores de quiz et métriques pédagogiques pour l'enseignant.",
@@ -216,7 +216,7 @@ export default function AboutView() {
 
   const values = [
     {
-      icon: <FlaskConical className="w-6 h-6 text-indigo-300" />,
+      icon: <FlaskConical className="w-6 h-6 text-emerald-300" />,
       title: "Excellence Académique",
       description:
         "Nous nous engageons à proposer des contenus de niveau universitaire et à maintenir les plus hauts standards pédagogiques.",
@@ -224,7 +224,7 @@ export default function AboutView() {
       delay: 0,
     },
     {
-      icon: <Lightbulb className="w-6 h-6 text-amber-300" />,
+      icon: <Lightbulb className="w-6 h-6 text-lime-300" />,
       title: "Innovation Continue",
       description:
         "La plateforme intègre les outils numériques avancés — IA générative, visioconférence temps réel, analyses avancées — au service de la pédagogie.",
@@ -240,7 +240,7 @@ export default function AboutView() {
       delay: 200,
     },
     {
-      icon: <Globe className="w-6 h-6 text-sky-300" />,
+      icon: <Globe className="w-6 h-6 text-teal-300" />,
       title: "Accessibilité Universelle",
       description:
         "Accessible sur tous les appareils, responsive et conçue pour s'adapter à chaque profil d'utilisateur, qu'il soit étudiant ou enseignant.",
@@ -255,9 +255,9 @@ export default function AboutView() {
       suffix: "+",
       label: "Étudiants Inscrits",
       sublabel: "Toutes filières confondues",
-      color: "text-indigo-400",
-      bgColor: "bg-indigo-950/30",
-      borderColor: "border-indigo-900/40",
+      color: "text-emerald-400",
+      bgColor: "bg-emerald-950/30",
+      borderColor: "border-emerald-900/40",
       icon: <Users className="w-5 h-5" />,
     },
     {
@@ -265,9 +265,9 @@ export default function AboutView() {
       suffix: "+",
       label: "Modules Disponibles",
       sublabel: "Classés par domaine & niveau",
-      color: "text-violet-400",
-      bgColor: "bg-violet-950/30",
-      borderColor: "border-violet-900/40",
+      color: "text-teal-400",
+      bgColor: "bg-teal-950/30",
+      borderColor: "border-teal-900/40",
       icon: <BookOpen className="w-5 h-5" />,
     },
     {
@@ -275,9 +275,9 @@ export default function AboutView() {
       suffix: "+",
       label: "Enseignants",
       sublabel: "Profils académiques validés",
-      color: "text-pink-400",
-      bgColor: "bg-pink-950/30",
-      borderColor: "border-pink-900/40",
+      color: "text-emerald-400",
+      bgColor: "bg-emerald-950/30",
+      borderColor: "border-emerald-900/40",
       icon: <GraduationCap className="w-5 h-5" />,
     },
     {
@@ -295,9 +295,9 @@ export default function AboutView() {
       suffix: "+",
       label: "Domaines Académiques",
       sublabel: "Sciences, Droit, Tech, Arts...",
-      color: "text-amber-400",
-      bgColor: "bg-amber-950/30",
-      borderColor: "border-amber-900/40",
+      color: "text-lime-400",
+      bgColor: "bg-lime-950/30",
+      borderColor: "border-lime-900/40",
       icon: <Atom className="w-5 h-5" />,
     },
     {
@@ -305,9 +305,9 @@ export default function AboutView() {
       suffix: "+",
       label: "Modules Complétés",
       sublabel: "Par les étudiants inscrits",
-      color: "text-cyan-400",
-      bgColor: "bg-cyan-950/30",
-      borderColor: "border-cyan-900/40",
+      color: "text-teal-400",
+      bgColor: "bg-teal-950/30",
+      borderColor: "border-teal-900/40",
       icon: <TrendingUp className="w-5 h-5" />,
     },
   ];
@@ -322,12 +322,12 @@ export default function AboutView() {
         translateY="30px"
         extraBlobs={
           <div
-            className="absolute top-1/2 left-0 w-64 h-64 bg-pink-600/5 rounded-full blur-3xl pointer-events-none"
+            className="absolute top-1/2 left-0 w-64 h-64 bg-emerald-600/5 rounded-full blur-3xl pointer-events-none"
             aria-hidden
           />
         }
-        topBlobClass="top-0 left-1/4 w-96 h-96 bg-indigo-600/10 rounded-full"
-        bottomBlobClass="bottom-0 right-1/4 w-80 h-80 bg-violet-600/10 rounded-full"
+        topBlobClass="top-0 left-1/4 w-96 h-96 bg-emerald-600/10 rounded-full"
+        bottomBlobClass="bottom-0 right-1/4 w-80 h-80 bg-teal-600/10 rounded-full"
       >
         <div
           style={{
@@ -336,7 +336,7 @@ export default function AboutView() {
             transition: "opacity 0.7s ease, transform 0.7s ease",
           }}
         >
-          <span className="text-[10px] font-black uppercase tracking-widest text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full inline-block mb-6">
+          <span className="text-[10px] font-black uppercase tracking-widest text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full inline-block mb-6">
             À propos de Performance Académique
           </span>
 
@@ -344,15 +344,15 @@ export default function AboutView() {
             <div className="space-y-6">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-tight">
                 Performance{" "}
-                <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-pink-400 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-emerald-400 via-violet-400 to-emerald-400 bg-clip-text text-transparent">
                   Académique
                 </span>
               </h1>
               <p className="text-slate-300 text-base md:text-lg leading-relaxed max-w-xl">
                 Plateforme académique de nouvelle génération dédiée à{" "}
-                <span className="text-indigo-300 font-semibold">l'apprentissage</span>,{" "}
-                <span className="text-violet-300 font-semibold">la progression</span> et{" "}
-                <span className="text-pink-300 font-semibold">la réussite</span>. Conçue pour les étudiants et les
+                <span className="text-emerald-300 font-semibold">l'apprentissage</span>,{" "}
+                <span className="text-teal-300 font-semibold">la progression</span> et{" "}
+                <span className="text-emerald-300 font-semibold">la réussite</span>. Conçue pour les étudiants et les
                 enseignants.
               </p>
 
@@ -362,12 +362,12 @@ export default function AboutView() {
                   {
                     label: "Apprendre",
                     icon: <BookOpen className="w-3.5 h-3.5" />,
-                    color: "text-indigo-300 border-indigo-500/30 bg-indigo-500/10",
+                    color: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10",
                   },
                   {
                     label: "Progresser",
                     icon: <TrendingUp className="w-3.5 h-3.5" />,
-                    color: "text-amber-300 border-amber-500/30 bg-amber-500/10",
+                    color: "text-lime-300 border-lime-500/30 bg-lime-500/10",
                   },
                   {
                     label: "Réussir",
@@ -390,8 +390,8 @@ export default function AboutView() {
             <div className="hidden lg:flex flex-col gap-4">
               <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 backdrop-blur-sm space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center">
-                    <BrainCircuit className="w-5 h-5 text-indigo-400" />
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
+                    <BrainCircuit className="w-5 h-5 text-emerald-400" />
                   </div>
                   <div>
                     <div className="text-white font-black text-sm">Portail Académique Unifié</div>
@@ -400,9 +400,9 @@ export default function AboutView() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { label: "Étudiants", val: "500+", color: "text-indigo-300" },
-                    { label: "Modules", val: "120+", color: "text-violet-300" },
-                    { label: "Enseignants", val: "40+", color: "text-pink-300" },
+                    { label: "Étudiants", val: "500+", color: "text-emerald-300" },
+                    { label: "Modules", val: "120+", color: "text-teal-300" },
+                    { label: "Enseignants", val: "40+", color: "text-emerald-300" },
                     { label: "Satisfaction", val: "98%", color: "text-emerald-300" },
                   ].map(({ label, val, color }) => (
                     <div key={label} className="bg-slate-950/60 border border-slate-800 rounded-xl p-3">
@@ -434,7 +434,7 @@ export default function AboutView() {
                       </div>
                       <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full"
+                          className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"
                           style={{ width: `${val}%`, transition: "width 1.5s ease" }}
                         />
                       </div>
@@ -454,7 +454,7 @@ export default function AboutView() {
         <div ref={missionRef.ref} className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Mission */}
           <div
-            className="relative overflow-hidden rounded-3xl border border-indigo-900/40 p-8 space-y-4"
+            className="relative overflow-hidden rounded-3xl border border-emerald-900/40 p-8 space-y-4"
             style={{
               background: "linear-gradient(135deg, rgba(79,70,229,0.12) 0%, rgba(30,27,75,0.3) 100%)",
               opacity: missionRef.inView ? 1 : 0,
@@ -462,12 +462,12 @@ export default function AboutView() {
               transition: "opacity 0.6s ease, transform 0.6s ease",
             }}
           >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full -translate-y-16 translate-x-16 pointer-events-none" />
-            <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center">
-              <GraduationCap className="w-6 h-6 text-indigo-400" />
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full -translate-y-16 translate-x-16 pointer-events-none" />
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
+              <GraduationCap className="w-6 h-6 text-emerald-400" />
             </div>
             <div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Notre Mission</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Notre Mission</span>
               <h2 className="text-2xl font-black text-white mt-1">Apprendre. Progresser. Réussir.</h2>
             </div>
             <p className="text-slate-300 text-sm leading-relaxed">
@@ -483,7 +483,7 @@ export default function AboutView() {
                 "Collaboration école-étudiant-enseignant",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-2 text-sm text-slate-300">
-                  <CheckCircle className="w-4 h-4 text-indigo-400 flex-shrink-0 mt-0.5" />
+                  <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
                   {item}
                 </li>
               ))}
@@ -492,20 +492,20 @@ export default function AboutView() {
 
           {/* Vision */}
           <div
-            className="relative overflow-hidden rounded-3xl border border-violet-900/40 p-8 space-y-4"
+            className="relative overflow-hidden rounded-3xl border border-teal-900/40 p-8 space-y-4"
             style={{
-              background: "linear-gradient(135deg, rgba(139,92,246,0.12) 0%, rgba(30,27,75,0.3) 100%)",
+              background: "linear-gradient(135deg, rgba(5, 194, 165,0.12) 0%, rgba(30,27,75,0.3) 100%)",
               opacity: missionRef.inView ? 1 : 0,
               transform: missionRef.inView ? "translateX(0)" : "translateX(30px)",
               transition: "opacity 0.6s ease 0.15s, transform 0.6s ease 0.15s",
             }}
           >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/10 rounded-full -translate-y-16 translate-x-16 pointer-events-none" />
-            <div className="w-12 h-12 rounded-2xl bg-violet-500/20 border border-violet-500/30 flex items-center justify-center">
-              <Lightbulb className="w-6 h-6 text-violet-400" />
+            <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/10 rounded-full -translate-y-16 translate-x-16 pointer-events-none" />
+            <div className="w-12 h-12 rounded-2xl bg-teal-500/20 border border-teal-500/30 flex items-center justify-center">
+              <Lightbulb className="w-6 h-6 text-teal-400" />
             </div>
             <div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-violet-400">Notre Vision</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-teal-400">Notre Vision</span>
               <h2 className="text-2xl font-black text-white mt-1">L'université du futur, maintenant.</h2>
             </div>
             <p className="text-slate-300 text-sm leading-relaxed">
@@ -520,7 +520,7 @@ export default function AboutView() {
                 "Écosystème ouvert de supports et d'évaluations",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-2 text-sm text-slate-300">
-                  <CheckCircle className="w-4 h-4 text-violet-400 flex-shrink-0 mt-0.5" />
+                  <CheckCircle className="w-4 h-4 text-teal-400 flex-shrink-0 mt-0.5" />
                   {item}
                 </li>
               ))}
@@ -538,7 +538,7 @@ export default function AboutView() {
               transition: "opacity 0.6s ease, transform 0.6s ease",
             }}
           >
-            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full inline-block">
+            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full inline-block">
               Chiffres Clés
             </span>
             <h2 className="text-3xl font-black text-white">La plateforme en chiffres</h2>
@@ -574,7 +574,7 @@ export default function AboutView() {
               transition: "opacity 0.6s ease, transform 0.6s ease",
             }}
           >
-            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full inline-block">
+            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full inline-block">
               Nos Valeurs
             </span>
             <h2 className="text-3xl font-black text-white">Ce qui nous guide</h2>
@@ -607,7 +607,7 @@ export default function AboutView() {
               transition: "opacity 0.6s ease, transform 0.6s ease",
             }}
           >
-            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full inline-block">
+            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full inline-block">
               Fonctionnalités
             </span>
             <h2 className="text-3xl font-black text-white">Une plateforme complète</h2>
@@ -644,14 +644,14 @@ export default function AboutView() {
             }}
           >
             {/* Background decorative elements */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/5 rounded-full -translate-y-32 translate-x-32 pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-violet-600/5 rounded-full translate-y-32 -translate-x-32 pointer-events-none" />
+            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-600/5 rounded-full -translate-y-32 translate-x-32 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-teal-600/5 rounded-full translate-y-32 -translate-x-32 pointer-events-none" />
 
             <div className="relative p-8 md:p-12 grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
               {/* Left: Main text */}
               <div className="lg:col-span-2 space-y-6">
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full inline-block mb-4">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full inline-block mb-4">
                     Présentation Générale
                   </span>
                   <h2 className="text-3xl md:text-4xl font-black text-white leading-tight">
@@ -663,9 +663,9 @@ export default function AboutView() {
                     <strong className="text-white">Performance Académique</strong> est une plateforme numérique
                     académique de nouvelle génération, conçue pour réunir en un seul endroit tous les acteurs de
                     l'éducation supérieure et de la réussite académique. Elle s'adresse aux{" "}
-                    <span className="text-indigo-300">étudiants</span>, aux{" "}
-                    <span className="text-pink-300">enseignants</span> et aux{" "}
-                    <span className="text-violet-300">administrateurs pédagogiques</span>.
+                    <span className="text-emerald-300">étudiants</span>, aux{" "}
+                    <span className="text-emerald-300">enseignants</span> et aux{" "}
+                    <span className="text-teal-300">administrateurs pédagogiques</span>.
                   </p>
                   <p>
                     La plateforme propose un catalogue de modules structurés par domaines et disciplines académiques, un
@@ -688,14 +688,14 @@ export default function AboutView() {
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {[
-                      { label: "Interface moderne", color: "text-cyan-300 bg-cyan-900/20 border-cyan-800/40" },
+                      { label: "Interface moderne", color: "text-teal-300 bg-teal-900/20 border-teal-800/40" },
                       { label: "API sécurisée", color: "text-emerald-300 bg-emerald-900/20 border-emerald-800/40" },
-                      { label: "Données protégées", color: "text-indigo-300 bg-indigo-900/20 border-indigo-800/40" },
-                      { label: "Sessions en direct", color: "text-pink-300 bg-pink-900/20 border-pink-800/40" },
-                      { label: "Tuteur IA", color: "text-violet-300 bg-violet-900/20 border-violet-800/40" },
-                      { label: "Paiement en ligne", color: "text-amber-300 bg-amber-900/20 border-amber-800/40" },
+                      { label: "Données protégées", color: "text-emerald-300 bg-emerald-900/20 border-emerald-800/40" },
+                      { label: "Sessions en direct", color: "text-emerald-300 bg-emerald-900/20 border-emerald-800/40" },
+                      { label: "Tuteur IA", color: "text-teal-300 bg-teal-900/20 border-teal-800/40" },
+                      { label: "Paiement en ligne", color: "text-lime-300 bg-lime-900/20 border-lime-800/40" },
                       { label: "Médias pédagogiques", color: "text-orange-300 bg-orange-900/20 border-orange-800/40" },
-                      { label: "Authentification renforcée", color: "text-rose-300 bg-rose-900/20 border-rose-800/40" },
+                      { label: "Authentification renforcée", color: "text-emerald-300 bg-emerald-900/20 border-emerald-800/40" },
                     ].map(({ label, color }) => (
                       <span key={label} className={`text-[10px] font-bold border px-2.5 py-1 rounded-lg ${color}`}>
                         {label}
@@ -709,7 +709,7 @@ export default function AboutView() {
               <div className="space-y-4">
                 {[
                   {
-                    icon: <Cpu className="w-4 h-4 text-indigo-400" />,
+                    icon: <Cpu className="w-4 h-4 text-emerald-400" />,
                     title: "Architecture",
                     value: "Full-stack TypeScript",
                     sub: "Monorepo React + Express",
@@ -721,13 +721,13 @@ export default function AboutView() {
                     sub: "RBAC · JWT · Argon2 · Rate Limit",
                   },
                   {
-                    icon: <Globe className="w-4 h-4 text-sky-400" />,
+                    icon: <Globe className="w-4 h-4 text-teal-400" />,
                     title: "Disponibilité",
                     value: "99.9% Uptime",
                     sub: "Monitoring continu + alertes",
                   },
                   {
-                    icon: <BarChart className="w-4 h-4 text-violet-400" />,
+                    icon: <BarChart className="w-4 h-4 text-teal-400" />,
                     title: "Conformité",
                     value: "Loi 09-08",
                     sub: "Données protégées · Audit trail",
@@ -754,18 +754,18 @@ export default function AboutView() {
 
         {/* ── CTA FOOTER ───────────────────────────────────────────────────── */}
         <div
-          className="relative overflow-hidden rounded-3xl border border-indigo-900/40 p-8 md:p-10 text-center space-y-5"
+          className="relative overflow-hidden rounded-3xl border border-emerald-900/40 p-8 md:p-10 text-center space-y-5"
           style={{
             background:
-              "linear-gradient(135deg, rgba(79,70,229,0.15) 0%, rgba(139,92,246,0.10) 50%, rgba(236,72,153,0.10) 100%)",
+              "linear-gradient(135deg, rgba(79,70,229,0.15) 0%, rgba(5, 194, 165,0.10) 50%, rgba(236,72,153,0.10) 100%)",
           }}
         >
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-0 left-1/4 w-64 h-64 bg-indigo-500/5 rounded-full blur-2xl" />
-            <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-violet-500/5 rounded-full blur-2xl" />
+            <div className="absolute top-0 left-1/4 w-64 h-64 bg-emerald-500/5 rounded-full blur-2xl" />
+            <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-teal-500/5 rounded-full blur-2xl" />
           </div>
           <div className="relative">
-            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full inline-block mb-4">
+            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full inline-block mb-4">
               Rejoindre la communauté
             </span>
             <h2 className="text-3xl font-black text-white">Prêt à explorer la plateforme ?</h2>

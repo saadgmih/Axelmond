@@ -34,9 +34,9 @@ export default function PrivilegedMfaSetupBanner({ role }: PrivilegedMfaSetupBan
   return (
     <div
       role="status"
-      className="flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-amber-950/30 px-4 py-3 text-sm text-amber-100 shadow-lg shadow-amber-950/10"
+      className="flex items-start gap-3 rounded-2xl border border-lime-500/30 bg-lime-950/30 px-4 py-3 text-sm text-lime-100 shadow-lg shadow-lime-950/10"
     >
-      <Shield className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" aria-hidden />
+      <Shield className="mt-0.5 h-5 w-5 shrink-0 text-lime-400" aria-hidden />
       <p>
         Renforcez la sécurité de votre compte en activant l&apos;authentification multi-facteurs (TOTP ou Passkey)
         ci-dessous, quand vous le souhaitez.

@@ -40,11 +40,11 @@ function getInitials(name: string) {
 
 function roleBadgeClass(role: "student" | "teacher", userRole?: AppUser["role"]) {
   if (role === "student") {
-    return "bg-indigo-500/10 border-indigo-400/20 text-indigo-200";
+    return "bg-emerald-500/10 border-emerald-400/20 text-emerald-200";
   }
   const tone = getTeacherRoleBadgeTone(userRole);
-  if (tone === "admin") return "bg-violet-500/10 border-violet-400/20 text-violet-200";
-  return "bg-pink-500/10 border-pink-400/20 text-pink-200";
+  if (tone === "admin") return "bg-teal-500/10 border-teal-400/20 text-teal-200";
+  return "bg-emerald-500/10 border-emerald-400/20 text-emerald-200";
 }
 
 export default function Sidebar({
@@ -181,7 +181,7 @@ export default function Sidebar({
                     <span className="flex h-full w-full items-center justify-center">{initials}</span>
                   )}
                   {conversation.unreadCount > 0 && (
-                    <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-slate-900 bg-sky-400" />
+                    <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-slate-900 bg-teal-400" />
                   )}
                 </div>
                 <span className="truncate text-sm font-medium text-slate-300">{peerName}</span>
@@ -230,7 +230,7 @@ export default function Sidebar({
         }}
         title="Se déconnecter"
         aria-label="Se déconnecter"
-        className="touch-target shrink-0 rounded-xl p-2.5 text-slate-400 transition-all hover:bg-white/5 hover:text-rose-400"
+        className="touch-target shrink-0 rounded-xl p-2.5 text-slate-400 transition-all hover:bg-white/5 hover:text-emerald-400"
       >
         <LogOut className="h-4 w-4" />
       </button>
@@ -289,10 +289,10 @@ export default function Sidebar({
             className="flex items-center gap-3.5 transition-opacity hover:opacity-95"
             aria-label="Accueil Performance Académique"
           >
-            <LogoSymbol className="h-11 w-11 shrink-0 text-indigo-400" />
+            <LogoSymbol className="h-11 w-11 shrink-0 text-emerald-400" />
             <div className="select-none text-left">
               <span className="block text-lg font-black leading-none tracking-tight text-white">Performance</span>
-              <span className="mt-1.5 block text-[10px] font-bold uppercase leading-none tracking-[0.24em] text-indigo-300">
+              <span className="mt-1.5 block text-[10px] font-bold uppercase leading-none tracking-[0.24em] text-emerald-300">
                 Académique
               </span>
             </div>

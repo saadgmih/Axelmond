@@ -239,7 +239,7 @@ export function registerAdminRoutes(app: Express, ctx: RouteContext): void {
             name,
             slug,
             iconName: req.body.iconName || "Layers",
-            color: req.body.color || "from-violet-600 to-indigo-600",
+            color: req.body.color || "from-teal-600 to-emerald-600",
             description: req.body.description || "Domaine académique personnalisé.",
             order: req.body.order ?? id,
           },

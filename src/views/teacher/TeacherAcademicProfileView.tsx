@@ -64,7 +64,7 @@ export default function TeacherAcademicProfileView({
 
   return (
     <div
-      className={`${profileUi.page} rounded-2xl border border-white/[0.06] bg-[#020617] p-5 shadow-2xl shadow-black/20 sm:rounded-3xl sm:p-6 md:p-8 2xl:p-10`}
+      className={`${profileUi.page} rounded-2xl border border-white/[0.06] bg-[#031512] p-5 shadow-2xl shadow-black/20 sm:rounded-3xl sm:p-6 md:p-8 2xl:p-10`}
     >
       {/* Hero banner */}
       <div className={profileUi.hero}>
@@ -105,16 +105,16 @@ export default function TeacherAcademicProfileView({
               </div>
 
               {avatarStatusMsg && (
-                <p className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-center text-xs font-semibold text-indigo-100 sm:text-left">
+                <p className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-center text-xs font-semibold text-emerald-100 sm:text-left">
                   {avatarStatusMsg}
                 </p>
               )}
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm lg:min-w-[220px]">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-300/80">Compte</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-300/80">Compte</p>
               <p className="mt-1 text-sm font-bold text-white">{displayName}</p>
-              <p className="mt-2 truncate text-xs font-medium text-indigo-200/80">{displayEmail}</p>
+              <p className="mt-2 truncate text-xs font-medium text-emerald-200/80">{displayEmail}</p>
             </div>
           </div>
         </div>
@@ -129,12 +129,12 @@ export default function TeacherAcademicProfileView({
       {role === "ADMIN" && (
         <div className={profileUi.adminBanner}>
           <div className="flex items-start gap-4">
-            <div className="rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 p-2.5 text-white shadow-lg shadow-violet-900/40">
+            <div className="rounded-xl bg-gradient-to-br from-teal-600 to-emerald-600 p-2.5 text-white shadow-lg shadow-teal-900/40">
               <Shield className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-sm font-black text-violet-100">Espace administrateur</h3>
-              <p className="mt-1 text-xs leading-relaxed text-violet-300/80">
+              <h3 className="text-sm font-black text-teal-100">Espace administrateur</h3>
+              <p className="mt-1 text-xs leading-relaxed text-teal-300/80">
                 Votre profil académique est partagé avec les enseignants. Utilisez le tableau de bord pour la gestion
                 des modules, le suivi des étudiants et la configuration de la plateforme.
               </p>

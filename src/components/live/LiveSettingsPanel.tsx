@@ -75,7 +75,7 @@ export default function LiveSettingsPanel({
       >
         <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-white/10 bg-zinc-950/95 px-5 py-4 backdrop-blur-md">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-indigo-300">Live</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-300">Live</p>
             <h2 id="live-settings-title" className="text-lg font-bold text-white">
               Paramètres Live
             </h2>
@@ -93,7 +93,7 @@ export default function LiveSettingsPanel({
         <div className="space-y-6 p-5">
           <section aria-labelledby="live-quality-heading">
             <div className="mb-3 flex items-center gap-2">
-              <Video className="h-4 w-4 text-indigo-400" />
+              <Video className="h-4 w-4 text-emerald-400" />
               <h3 id="live-quality-heading" className="text-sm font-bold text-white">
                 Qualité vidéo
               </h3>
@@ -109,7 +109,7 @@ export default function LiveSettingsPanel({
                     aria-pressed={selected}
                     className={`rounded-xl border px-3 py-2.5 text-left transition-all ${
                       selected
-                        ? "border-indigo-400 bg-indigo-500/15 text-white shadow-[0_0_0_1px_rgba(129,140,248,0.35)]"
+                        ? "border-emerald-400 bg-emerald-500/15 text-white shadow-[0_0_0_1px_rgba(129,140,248,0.35)]"
                         : "border-white/10 bg-zinc-900/70 text-zinc-300 hover:border-white/20 hover:bg-zinc-800"
                     }`}
                   >
@@ -125,7 +125,7 @@ export default function LiveSettingsPanel({
 
           <section aria-labelledby="live-layout-heading">
             <div className="mb-3 flex items-center gap-2">
-              <Grid3X3 className="h-4 w-4 text-indigo-400" />
+              <Grid3X3 className="h-4 w-4 text-emerald-400" />
               <h3 id="live-layout-heading" className="text-sm font-bold text-white">
                 Vue mosaïque
               </h3>
@@ -142,11 +142,11 @@ export default function LiveSettingsPanel({
                     aria-pressed={selected}
                     className={`flex w-full items-start gap-3 rounded-xl border px-3 py-3 text-left transition-all ${
                       selected
-                        ? "border-indigo-400 bg-indigo-500/10 text-white"
+                        ? "border-emerald-400 bg-emerald-500/10 text-white"
                         : "border-white/10 bg-zinc-900/70 text-zinc-300 hover:border-white/20 hover:bg-zinc-800"
                     }`}
                   >
-                    <Icon className="mt-0.5 h-4 w-4 shrink-0 text-indigo-300" />
+                    <Icon className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />
                     <span>
                       <span className="block text-sm font-bold">{option.label}</span>
                       <span className="mt-0.5 block text-[11px] text-zinc-400">{option.description}</span>
@@ -159,7 +159,7 @@ export default function LiveSettingsPanel({
 
           <section aria-labelledby="live-pip-heading">
             <div className="mb-3 flex items-center gap-2">
-              <MonitorPlay className="h-4 w-4 text-indigo-400" />
+              <MonitorPlay className="h-4 w-4 text-emerald-400" />
               <h3 id="live-pip-heading" className="text-sm font-bold text-white">
                 Picture-in-Picture
               </h3>
@@ -170,7 +170,7 @@ export default function LiveSettingsPanel({
               disabled={!pipSupported}
               className={`w-full rounded-xl border px-4 py-3 text-left transition-all ${
                 pipSupported
-                  ? "border-white/10 bg-zinc-900/70 text-zinc-200 hover:border-indigo-400/40 hover:bg-zinc-800"
+                  ? "border-white/10 bg-zinc-900/70 text-zinc-200 hover:border-emerald-400/40 hover:bg-zinc-800"
                   : "border-white/5 bg-zinc-900/40 text-zinc-500 cursor-not-allowed"
               }`}
             >
@@ -187,7 +187,7 @@ export default function LiveSettingsPanel({
 
           <section aria-labelledby="live-focus-heading">
             <div className="mb-3 flex items-center gap-2">
-              <Focus className="h-4 w-4 text-indigo-400" />
+              <Focus className="h-4 w-4 text-emerald-400" />
               <h3 id="live-focus-heading" className="text-sm font-bold text-white">
                 Mode concentration
               </h3>
@@ -224,17 +224,17 @@ export default function LiveSettingsPanel({
 
           <section aria-labelledby="live-subtitles-heading">
             <div className="mb-3 flex items-center gap-2">
-              <Captions className="h-4 w-4 text-indigo-400" />
+              <Captions className="h-4 w-4 text-emerald-400" />
               <h3 id="live-subtitles-heading" className="text-sm font-bold text-white">
                 Sous-titres
               </h3>
             </div>
-            <div className="rounded-xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-amber-100">
+            <div className="rounded-xl border border-lime-400/20 bg-lime-500/10 px-4 py-3 text-lime-100">
               <div className="flex items-center gap-2 text-sm font-bold">
                 <Sparkles className="h-4 w-4" />
                 Bientôt disponible
               </div>
-              <p className="mt-1 text-[11px] text-amber-100/80">
+              <p className="mt-1 text-[11px] text-lime-100/80">
                 Architecture préparée pour la transcription IA multilingue.
               </p>
             </div>
@@ -250,7 +250,7 @@ export default function LiveSettingsPanel({
                     onClick={() => onSubtitleLanguageChange(option.value)}
                     className={`rounded-xl border px-3 py-2 text-sm font-semibold ${
                       selected
-                        ? "border-indigo-400/40 bg-indigo-500/10 text-white"
+                        ? "border-emerald-400/40 bg-emerald-500/10 text-white"
                         : "border-white/10 bg-zinc-900/50 text-zinc-400"
                     }`}
                   >
@@ -279,7 +279,7 @@ export default function LiveSettingsPanel({
                 ["Esc", "Fermer"],
               ].map(([key, label]) => (
                 <div key={key} className="flex items-center gap-2">
-                  <kbd className="rounded-md border border-white/10 bg-zinc-950 px-2 py-0.5 font-mono text-[10px] text-indigo-200">
+                  <kbd className="rounded-md border border-white/10 bg-zinc-950 px-2 py-0.5 font-mono text-[10px] text-emerald-200">
                     {key}
                   </kbd>
                   <span>{label}</span>

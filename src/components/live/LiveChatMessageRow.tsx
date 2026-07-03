@@ -15,7 +15,7 @@ function LiveChatMessageRow({ message }: LiveChatMessageRowProps) {
       <div
         className={`px-3 py-2 rounded-2xl max-w-[85%] text-sm shadow-sm ${
           message.isMe
-            ? "bg-indigo-600 text-white rounded-tr-sm"
+            ? "bg-emerald-600 text-white rounded-tr-sm"
             : "bg-zinc-800 text-zinc-100 rounded-tl-sm border border-white/5"
         }`}
       >

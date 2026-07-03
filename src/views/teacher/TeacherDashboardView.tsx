@@ -131,17 +131,17 @@ const TeacherModuleProgressRow = memo(function TeacherModuleProgressRow({
         <div className="flex items-center gap-2">
           <div className="h-1.5 flex-1 max-w-xs rounded-full bg-slate-800 overflow-hidden">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-pink-500 to-indigo-500"
+              className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500"
               style={{ width: `${row.contentProgress}%` }}
             />
           </div>
-          <span className="text-[11px] font-bold text-pink-200 font-mono">{row.contentProgress}%</span>
+          <span className="text-[11px] font-bold text-emerald-200 font-mono">{row.contentProgress}%</span>
         </div>
       </div>
       <button
         type="button"
         onClick={() => onNavigate?.("curriculum")}
-        className="self-start lg:self-center inline-flex items-center gap-1.5 rounded-xl border border-pink-500/30 bg-pink-500/10 hover:bg-pink-500/20 text-pink-100 text-xs font-bold px-4 py-2.5 min-h-[44px] transition-colors"
+        className="self-start lg:self-center inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-100 text-xs font-bold px-4 py-2.5 min-h-[44px] transition-colors"
       >
         Gérer
         <ChevronRight className="w-4 h-4" />
@@ -162,11 +162,11 @@ const TeacherTariffCard = memo(function TeacherTariffCard({
   onSave: (courseId: number, price: number) => void | Promise<void>;
 }) {
   return (
-    <div className="space-y-4 rounded-2xl border border-white/[0.08] bg-[#020617]/70 p-5 transition-colors hover:border-white/[0.12]">
+    <div className="space-y-4 rounded-2xl border border-white/[0.08] bg-[#031512]/70 p-5 transition-colors hover:border-white/[0.12]">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
-          <div className="shrink-0 rounded-xl border border-violet-500/25 bg-violet-600/15 p-2">
-            <Code2 className="h-4 w-4 text-violet-400" />
+          <div className="shrink-0 rounded-xl border border-teal-500/25 bg-teal-600/15 p-2">
+            <Code2 className="h-4 w-4 text-teal-400" />
           </div>
           <div className="min-w-0">
             <h4 className="truncate text-sm font-extrabold leading-snug text-white">{course.title}</h4>
@@ -175,7 +175,7 @@ const TeacherTariffCard = memo(function TeacherTariffCard({
             </p>
           </div>
         </div>
-        <span className="shrink-0 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-2.5 py-1 font-mono text-xs font-black text-white">
+        <span className="shrink-0 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 px-2.5 py-1 font-mono text-xs font-black text-white">
           {isFreeCoursePrice(displayPrice)
             ? formatFreeAccessDurationLabel(course.freeAccessDurationDays)
             : formatMad(displayPrice)}
@@ -374,28 +374,28 @@ export default function TeacherDashboardView({
       value: String(dashboard.enrolledStudents),
       hint: "sur vos modules gérés",
       icon: Users,
-      accent: "text-violet-300",
+      accent: "text-teal-300",
     },
     {
       label: "Modules publiés",
       value: String(dashboard.publishedModules),
       hint: `${managedCourses.length} module${managedCourses.length !== 1 ? "s" : ""} au total`,
       icon: BookOpen,
-      accent: "text-pink-300",
+      accent: "text-emerald-300",
     },
     {
       label: "Chapitres publiés",
       value: String(dashboard.publishedChapters),
       hint: `${dashboard.publishedContents} contenu${dashboard.publishedContents !== 1 ? "s" : ""} publié${dashboard.publishedContents !== 1 ? "s" : ""}`,
       icon: Layers,
-      accent: "text-sky-300",
+      accent: "text-teal-300",
     },
     {
       label: "Quiz créés",
       value: String(dashboard.quizzesCreated),
       hint: "dans vos syllabus",
       icon: HelpCircle,
-      accent: "text-indigo-300",
+      accent: "text-emerald-300",
     },
     {
       label: "Sessions live",
@@ -416,14 +416,14 @@ export default function TeacherDashboardView({
       value: dashboard.passRate !== null ? `${dashboard.passRate}%` : "—",
       hint: "quiz ≥ 10/20",
       icon: Target,
-      accent: "text-amber-300",
+      accent: "text-lime-300",
     },
     {
       label: "Note moyenne",
       value: dashboard.averageGrade !== null ? `${dashboard.averageGrade}/20` : "—",
       hint: "moyenne des tentatives enregistrées",
       icon: GraduationCap,
-      accent: "text-fuchsia-300",
+      accent: "text-teal-300",
     },
   ];
 
@@ -437,37 +437,37 @@ export default function TeacherDashboardView({
   return (
     <div className="space-y-8">
       {/* Header Welcome Card */}
-      <div className="bg-gradient-to-r from-pink-900 via-purple-900 to-slate-900 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-lg border border-pink-950">
+      <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-lg border border-emerald-950">
         <div className="absolute right-0 top-0 w-1/3 h-full opacity-10 pointer-events-none">
           <GraduationCap className="w-full h-full text-white" />
         </div>
         <div className="relative z-10 max-w-2xl space-y-3">
-          <span className="bg-pink-500/20 text-pink-300 border border-pink-500/30 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full inline-block">
+          <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full inline-block">
             Espace Enseignant
           </span>
           <h1 className="text-3xl md:text-4xl font-black tracking-tight leading-tight">
             Ravi de vous revoir, {currentUser.fullName.split(" ")[0]}.
           </h1>
-          <p className="text-pink-100 text-sm md:text-base leading-relaxed">
+          <p className="text-emerald-100 text-sm md:text-base leading-relaxed">
             Gérez le cursus académique, ajustez les informations tarifaires, ajoutez des modules ou des examens
             d'évaluation et suivez la progression en temps réel de votre promotion d'étudiants.
           </p>
         </div>
       </div>
 
-      <DirectorWelcomeCard tone="pink" />
+      <DirectorWelcomeCard tone="emerald" />
 
       {currentUser.role === "ADMIN" && (
         <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-5">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-slate-100">
             <div>
               <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
-                <Mail className="w-5 h-5 text-pink-600" />
+                <Mail className="w-5 h-5 text-emerald-600" />
                 Vérification e-mail
               </h3>
               <p className="text-xs text-slate-400">Contrôlez l&apos;envoi des messages de vérification</p>
             </div>
-            <span className="text-[10px] uppercase font-black tracking-widest text-pink-700 bg-pink-50 border border-pink-100 px-3 py-1 rounded-full">
+            <span className="text-[10px] uppercase font-black tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full">
               Administrateur
             </span>
           </div>
@@ -521,7 +521,7 @@ export default function TeacherDashboardView({
               placeholder="adresse.personnelle@example.com"
               value={testEmailTo}
               onChange={(e) => setTestEmailTo(e.target.value)}
-              className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-500"
+              className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
             <button
               type="submit"
@@ -537,11 +537,11 @@ export default function TeacherDashboardView({
       )}
 
       {/* Teacher command center */}
-      <section className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-pink-950/30 p-5 sm:p-6 md:p-8 shadow-xl space-y-6">
+      <section className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/30 p-5 sm:p-6 md:p-8 shadow-xl space-y-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-2">
             <h3 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
-              <Activity className="w-5 h-5 text-pink-400" />
+              <Activity className="w-5 h-5 text-emerald-400" />
               Centre de pilotage enseignant
             </h3>
             <p className="text-xs sm:text-sm text-slate-400 max-w-2xl">
@@ -571,7 +571,7 @@ export default function TeacherDashboardView({
           </div>
           <div className="h-2.5 w-full rounded-full bg-slate-800 overflow-hidden">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-pink-500 to-violet-500 transition-all duration-500"
+              className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500"
               style={{ width: `${Math.min(100, Math.max(0, dashboard.contentProgressAverage))}%` }}
             />
           </div>
@@ -590,7 +590,7 @@ export default function TeacherDashboardView({
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
           <div className="xl:col-span-4 rounded-2xl border border-white/5 bg-slate-900/60 p-4 sm:p-5 space-y-3">
             <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-amber-300" />
+              <Zap className="w-4 h-4 text-lime-300" />
               <h4 className="text-sm font-black text-white">Actions rapides</h4>
             </div>
             <div className="grid grid-cols-1 gap-2">
@@ -608,7 +608,7 @@ export default function TeacherDashboardView({
                   className="flex items-center justify-between gap-3 rounded-xl border border-white/5 bg-slate-950/70 hover:bg-slate-900 px-4 py-3 min-h-[44px] text-left transition-colors"
                 >
                   <span className="flex items-center gap-2.5 min-w-0">
-                    <action.icon className="w-4 h-4 text-pink-300 shrink-0" />
+                    <action.icon className="w-4 h-4 text-emerald-300 shrink-0" />
                     <span className="text-xs font-bold text-slate-100 truncate">{action.label}</span>
                   </span>
                   <ArrowUpRight className="w-4 h-4 text-slate-500 shrink-0" />
@@ -736,7 +736,7 @@ export default function TeacherDashboardView({
               <button
                 type="button"
                 onClick={() => onTeacherNavigate?.("curriculum")}
-                className="mt-4 inline-flex items-center gap-2 rounded-xl bg-pink-600 hover:bg-pink-500 text-white text-xs font-bold px-4 py-2.5 min-h-[44px]"
+                className="mt-4 inline-flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2.5 min-h-[44px]"
               >
                 Créer un module
                 <ArrowUpRight className="w-4 h-4" />
@@ -757,12 +757,12 @@ export default function TeacherDashboardView({
         {/* LHS: Program and Tariffs customization */}
         <div
           id="teacher-tariffs"
-          className="lg:col-span-7 rounded-3xl border border-indigo-500/20 bg-[#0f172a]/80 p-6 shadow-xl shadow-black/30 backdrop-blur-xl md:p-8 space-y-6"
+          className="lg:col-span-7 rounded-3xl border border-emerald-500/20 bg-[#0b241f]/80 p-6 shadow-xl shadow-black/30 backdrop-blur-xl md:p-8 space-y-6"
         >
           <div className="flex flex-col gap-4 border-b border-white/[0.06] pb-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
-              <div className="shrink-0 rounded-xl border border-indigo-500/30 bg-indigo-600/15 p-2.5">
-                <Tag className="h-5 w-5 text-indigo-400" />
+              <div className="shrink-0 rounded-xl border border-emerald-500/30 bg-emerald-600/15 p-2.5">
+                <Tag className="h-5 w-5 text-emerald-400" />
               </div>
               <div>
                 <h3 className="text-lg font-black text-white">Gestion des Tarifs</h3>
@@ -771,7 +771,7 @@ export default function TeacherDashboardView({
                 </p>
               </div>
             </div>
-            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-indigo-500/20 bg-indigo-950/50 px-3 py-1.5 text-xs font-bold text-indigo-300">
+            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-950/50 px-3 py-1.5 text-xs font-bold text-emerald-300">
               <BookOpen className="h-3.5 w-3.5" />
               {managedCourses.length} matière{managedCourses.length !== 1 ? "s" : ""} gérable
               {managedCourses.length !== 1 ? "s" : ""}
@@ -780,7 +780,7 @@ export default function TeacherDashboardView({
 
           <div className="space-y-4">
             {managedCourses.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-700 bg-[#020617]/50 p-6 text-center">
+              <div className="rounded-2xl border border-dashed border-slate-700 bg-[#031512]/50 p-6 text-center">
                 <BookOpen className="mx-auto mb-2 h-8 w-8 text-slate-600" />
                 <p className="text-xs font-semibold text-slate-400">
                   Aucun module créé. Utilisez l&apos;onglet Curriculum pour créer votre premier module.
@@ -816,7 +816,7 @@ export default function TeacherDashboardView({
             <select
               value={gradesCourseId}
               onChange={(e) => setGradesCourseId(Number(e.target.value))}
-              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             >
               {managedCourses.map((course) => (
                 <option key={course.id} value={course.id}>
@@ -847,7 +847,7 @@ export default function TeacherDashboardView({
                   className="flex items-center justify-between gap-3 p-4 border border-slate-100 rounded-2xl hover:bg-slate-50/50"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 bg-indigo-50 text-indigo-700 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0">
+                    <div className="w-9 h-9 bg-emerald-50 text-emerald-700 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0">
                       {getInitials(grade.studentName)}
                     </div>
                     <div className="min-w-0">

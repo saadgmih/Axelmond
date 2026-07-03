@@ -97,15 +97,15 @@ export default function AdminProfessorAccessKeysView({
       label: "Codes générés",
       value: counts.total,
       icon: KeyRound,
-      iconClassName: "bg-violet-500/10 text-violet-400",
-      lineClassName: "bg-violet-500",
+      iconClassName: "bg-teal-500/10 text-teal-400",
+      lineClassName: "bg-teal-500",
     },
     {
       label: "Disponibles",
       value: counts.available,
       icon: ShieldCheck,
-      iconClassName: "bg-indigo-500/10 text-indigo-400",
-      lineClassName: "bg-indigo-500",
+      iconClassName: "bg-emerald-500/10 text-emerald-400",
+      lineClassName: "bg-emerald-500",
     },
     {
       label: "Utilisés",
@@ -123,7 +123,7 @@ export default function AdminProfessorAccessKeysView({
         onClick={() => void handleCopy(invite.code)}
         className={`inline-flex h-11 w-11 items-center justify-center rounded-lg border transition-colors ${
           copiedCode === invite.code
-            ? "border-violet-400/60 bg-violet-500/15 text-violet-300"
+            ? "border-teal-400/60 bg-teal-500/15 text-teal-300"
             : "border-slate-600/60 bg-slate-800/60 text-slate-300 hover:border-slate-500 hover:bg-slate-800"
         }`}
         title="Copier le code"
@@ -137,7 +137,7 @@ export default function AdminProfessorAccessKeysView({
       <button
         type="button"
         onClick={() => void handleDeleteProfessorInvite(invite.code)}
-        className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-rose-500/70 bg-rose-500/15 text-rose-300 transition-colors hover:bg-rose-500/25 hover:text-white"
+        className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-emerald-500/70 bg-emerald-500/15 text-emerald-300 transition-colors hover:bg-emerald-500/25 hover:text-white"
         title={invite.usedAt ? "Supprimer le code utilisé" : "Supprimer le code"}
         aria-label={`Supprimer le code ${invite.code}`}
       >
@@ -150,7 +150,7 @@ export default function AdminProfessorAccessKeysView({
     <div className="overflow-hidden rounded-2xl border border-slate-700/60 bg-[#07101f] text-slate-100 shadow-[0_24px_80px_rgba(2,6,23,0.45)]">
       <header className="flex flex-col gap-6 border-b border-slate-800/80 px-5 py-6 sm:px-7 lg:flex-row lg:items-center lg:justify-between lg:px-10 lg:py-8">
         <div className="flex min-w-0 items-center gap-4 sm:gap-5">
-          <span className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-violet-800 text-white shadow-[0_12px_30px_rgba(109,40,217,0.3)] sm:h-16 sm:w-16">
+          <span className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-teal-800 text-white shadow-[0_12px_30px_rgba(4, 154, 132,0.3)] sm:h-16 sm:w-16">
             <KeyRound className="h-7 w-7" />
           </span>
           <div className="min-w-0">
@@ -166,7 +166,7 @@ export default function AdminProfessorAccessKeysView({
             type="button"
             onClick={() => void handleGenerate()}
             disabled={isCreatingAccessKey}
-            className="inline-flex min-h-12 items-center gap-2 rounded-lg bg-gradient-to-r from-violet-700 to-violet-600 px-5 text-sm font-black text-white shadow-[0_10px_24px_rgba(109,40,217,0.25)] transition-colors hover:from-violet-600 hover:to-violet-500 disabled:cursor-wait disabled:opacity-50"
+            className="inline-flex min-h-12 items-center gap-2 rounded-lg bg-gradient-to-r from-teal-700 to-teal-600 px-5 text-sm font-black text-white shadow-[0_10px_24px_rgba(4, 154, 132,0.25)] transition-colors hover:from-teal-600 hover:to-teal-500 disabled:cursor-wait disabled:opacity-50"
           >
             <Plus className="h-5 w-5" />
             {isCreatingAccessKey ? "Génération…" : "Générer un code"}
@@ -186,7 +186,7 @@ export default function AdminProfessorAccessKeysView({
       <div className="space-y-6 p-4 sm:p-6 lg:p-9">
         <section className="flex flex-col gap-5 rounded-xl border border-slate-700/60 bg-[#0b1528] px-5 py-5 shadow-[0_16px_50px_rgba(2,6,23,0.22)] sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8 lg:py-7">
           <div className="flex min-w-0 gap-4">
-            <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-500/10 text-sky-300 ring-1 ring-sky-400/20">
+            <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-teal-500/10 text-teal-300 ring-1 ring-teal-400/20">
               <MonitorCog className="h-6 w-6" />
             </span>
             <div className="min-w-0">
@@ -196,7 +196,7 @@ export default function AdminProfessorAccessKeysView({
                 Désactivé, le site reste responsive. Activé, tous les appareils utilisent la largeur ordinateur fixe.
               </p>
               {siteSettingsStatusMsg && (
-                <p role="status" className="mt-3 text-sm font-semibold text-sky-200">
+                <p role="status" className="mt-3 text-sm font-semibold text-teal-200">
                   {siteSettingsStatusMsg}
                 </p>
               )}
@@ -207,7 +207,7 @@ export default function AdminProfessorAccessKeysView({
             <span
               className={`rounded-lg px-3 py-2 text-xs font-black uppercase tracking-wider ${
                 siteSettings.forceDesktopMode
-                  ? "bg-violet-500/15 text-violet-200 ring-1 ring-violet-400/30"
+                  ? "bg-teal-500/15 text-teal-200 ring-1 ring-teal-400/30"
                   : "bg-emerald-500/10 text-emerald-200 ring-1 ring-emerald-400/25"
               }`}
             >
@@ -220,7 +220,7 @@ export default function AdminProfessorAccessKeysView({
               disabled={isLoadingSiteSettings || isSavingSiteSettings}
               className={`relative h-11 w-[5.75rem] rounded-full border p-1 transition-colors ${
                 siteSettings.forceDesktopMode
-                  ? "border-violet-400/50 bg-violet-600/80"
+                  ? "border-teal-400/50 bg-teal-600/80"
                   : "border-slate-600/70 bg-slate-800"
               } disabled:cursor-wait disabled:opacity-60`}
             >
@@ -262,7 +262,7 @@ export default function AdminProfessorAccessKeysView({
         {accessKeyStatusMsg && (
           <p
             role="status"
-            className="rounded-lg border border-violet-500/30 bg-violet-500/10 px-4 py-3 text-sm font-semibold text-violet-200"
+            className="rounded-lg border border-teal-500/30 bg-teal-500/10 px-4 py-3 text-sm font-semibold text-teal-200"
           >
             {accessKeyStatusMsg}
           </p>
@@ -271,7 +271,7 @@ export default function AdminProfessorAccessKeysView({
         <section className="overflow-hidden rounded-xl border border-slate-700/60 bg-[#0b1528]">
           <div className="flex items-center justify-between gap-3 border-b border-slate-700/60 px-5 py-5 sm:px-7">
             <h2 className="flex items-center gap-3 text-lg font-black text-white">
-              <FileKey2 className="h-5 w-5 text-violet-400" />
+              <FileKey2 className="h-5 w-5 text-teal-400" />
               Registre des codes
             </h2>
             <span className="rounded-lg bg-slate-800/80 px-3 py-2 text-xs font-semibold tabular-nums text-slate-300">
@@ -316,7 +316,7 @@ export default function AdminProfessorAccessKeysView({
                           <td className="px-5 py-5 align-middle">
                             <span
                               className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-bold ${
-                                isUsed ? "bg-emerald-500/15 text-emerald-300" : "bg-violet-500/15 text-violet-300"
+                                isUsed ? "bg-emerald-500/15 text-emerald-300" : "bg-teal-500/15 text-teal-300"
                               }`}
                             >
                               <CheckCircle2 className="h-4 w-4" />
@@ -359,7 +359,7 @@ export default function AdminProfessorAccessKeysView({
                         </div>
                         <span
                           className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-bold ${
-                            isUsed ? "bg-emerald-500/15 text-emerald-300" : "bg-violet-500/15 text-violet-300"
+                            isUsed ? "bg-emerald-500/15 text-emerald-300" : "bg-teal-500/15 text-teal-300"
                           }`}
                         >
                           <CheckCircle2 className="h-4 w-4" />
@@ -405,7 +405,7 @@ export default function AdminProfessorAccessKeysView({
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
-            <span className="inline-flex h-11 min-w-11 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 px-3 text-sm font-black tabular-nums text-white shadow-[0_8px_20px_rgba(109,40,217,0.25)]">
+            <span className="inline-flex h-11 min-w-11 items-center justify-center rounded-lg bg-gradient-to-br from-teal-500 to-teal-700 px-3 text-sm font-black tabular-nums text-white shadow-[0_8px_20px_rgba(4, 154, 132,0.25)]">
               {page}
             </span>
             <button

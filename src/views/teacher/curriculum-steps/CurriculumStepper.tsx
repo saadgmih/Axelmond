@@ -144,7 +144,7 @@ export default function CurriculumStepper(props: Props) {
                   handleSelectManagedCourse(val);
                   loadTeacherQuizzes(val);
                 }}
-                className="min-w-[180px] rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="min-w-[180px] rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
                 {managedCourses.map((c) => (
                   <option key={c.id} value={c.id} className="text-slate-900">
@@ -166,12 +166,12 @@ export default function CurriculumStepper(props: Props) {
 
       {managedCourses.length === 0 && activeCurriculumStep > moduleStep && (
         <div className={`${curriculumUi.empty} max-w-xl mx-auto space-y-4 animate-in fade-in duration-200`}>
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-violet-500/30 bg-violet-950/50 text-violet-400">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-teal-500/30 bg-teal-950/50 text-teal-400">
             <Sparkles className="h-8 w-8" />
           </div>
           <h3 className="text-lg font-black text-white">Commencez par un module</h3>
           <p className="text-sm text-slate-400 leading-relaxed">
-            Créez votre premier module à l&apos;étape <strong className="text-indigo-400">Modules</strong> avant
+            Créez votre premier module à l&apos;étape <strong className="text-emerald-400">Modules</strong> avant
             d&apos;ajouter chapitres, médias ou quiz.
           </p>
           <button

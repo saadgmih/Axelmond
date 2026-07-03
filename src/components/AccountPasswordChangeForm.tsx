@@ -41,8 +41,8 @@ export default function AccountPasswordChangeForm({ variant = "light" }: Account
   };
 
   const inputClass = isDark
-    ? "w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-violet-500/50 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
-    : "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20";
+    ? "w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-teal-500/50 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+    : "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20";
 
   return (
     <section
@@ -56,7 +56,7 @@ export default function AccountPasswordChangeForm({ variant = "light" }: Account
         <div className="flex items-start gap-4">
           <div
             className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${
-              isDark ? "bg-violet-500/15 text-violet-400" : "bg-indigo-50 text-indigo-600"
+              isDark ? "bg-teal-500/15 text-teal-400" : "bg-emerald-50 text-emerald-600"
             }`}
           >
             <Lock className="h-5 w-5" />
@@ -79,8 +79,8 @@ export default function AccountPasswordChangeForm({ variant = "light" }: Account
             className={`rounded-xl px-4 py-3 text-xs ${
               error
                 ? isDark
-                  ? "border border-rose-500/30 bg-rose-500/10 text-rose-300"
-                  : "border border-rose-200 bg-rose-50 text-rose-700"
+                  ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                  : "border border-emerald-200 bg-emerald-50 text-emerald-700"
                 : isDark
                   ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
                   : "border border-emerald-200 bg-emerald-50 text-emerald-700"
@@ -114,8 +114,8 @@ export default function AccountPasswordChangeForm({ variant = "light" }: Account
           disabled={submitting}
           className={`inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-bold transition ${
             isDark
-              ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-500 hover:to-indigo-500 disabled:opacity-60"
-              : "bg-indigo-600 text-white hover:bg-indigo-500 disabled:opacity-60"
+              ? "bg-gradient-to-r from-teal-600 to-emerald-600 text-white hover:from-teal-500 hover:to-emerald-500 disabled:opacity-60"
+              : "bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-60"
           }`}
         >
           {submitting ? "Mise à jour…" : "Mettre à jour le mot de passe"}

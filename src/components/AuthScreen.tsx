@@ -240,16 +240,16 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
   return (
     <div className="min-h-screen bg-[var(--pa-site-background)] flex flex-col justify-center items-center p-4 py-8 md:py-12 relative overflow-y-auto font-sans">
       <SkipLink href="#auth-main" />
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-pink-600/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none"></div>
 
       <div className="w-full max-w-xl relative flex flex-col gap-6">
         <div className="flex flex-col items-center gap-4 text-center pb-2">
           {/* Logo icône seule - Centré, net et sans cadre blanc */}
-          <LogoSymbol className="w-24 h-24 text-indigo-400 flex-shrink-0 animate-in zoom-in duration-300" />
+          <LogoSymbol className="w-24 h-24 text-emerald-400 flex-shrink-0 animate-in zoom-in duration-300" />
           <div>
             <h1 className="text-2xl font-black text-white tracking-tight select-none">
-              Performance <span className="text-indigo-400">Académique</span>
+              Performance <span className="text-emerald-400">Académique</span>
             </h1>
             <p className="text-slate-400 text-xs font-semibold max-w-sm mt-1">
               Plateforme académique de formation et réussite
@@ -278,7 +278,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                 }}
                 className={`kbd-nav-focus flex items-center justify-center gap-1.5 py-3.5 px-2 sm:px-4 rounded-2xl text-[10px] sm:text-xs font-extrabold tracking-wide uppercase transition-all ${
                   activeSector === "student"
-                    ? "bg-indigo-600 text-white shadow-lg shadow-indigo-950/40"
+                    ? "bg-emerald-600 text-white shadow-lg shadow-emerald-950/40"
                     : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/40"
                 }`}
               >
@@ -297,7 +297,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                 }}
                 className={`kbd-nav-focus flex items-center justify-center gap-1.5 py-3.5 px-2 sm:px-4 rounded-2xl text-[10px] sm:text-xs font-extrabold tracking-wide uppercase transition-all ${
                   activeSector === "teacher"
-                    ? "bg-pink-600 text-white shadow-lg shadow-pink-950/40"
+                    ? "bg-emerald-600 text-white shadow-lg shadow-emerald-950/40"
                     : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/40"
                 }`}
               >
@@ -311,8 +311,8 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                 <span
                   className={`text-[10px] uppercase font-black tracking-widest px-2.5 py-0.5 rounded-full inline-block ${
                     activeSector === "student"
-                      ? "bg-indigo-900/40 text-indigo-300 border border-indigo-500/10"
-                      : "bg-pink-900/40 text-pink-300 border border-pink-500/10"
+                      ? "bg-emerald-900/40 text-emerald-300 border border-emerald-500/10"
+                      : "bg-emerald-900/40 text-emerald-300 border border-emerald-500/10"
                   }`}
                 >
                   {activeSector === "student" ? "Secteur d'Études" : getTeacherLoginSectorLabel()}
@@ -409,8 +409,8 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                     disabled={isLoading}
                     className={`w-full py-3.5 rounded-xl text-xs font-black uppercase tracking-wider text-white transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                       activeSector === "student"
-                        ? "bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-900/30"
-                        : "bg-pink-600 hover:bg-pink-700 hover:shadow-pink-900/30"
+                        ? "bg-emerald-600 hover:bg-emerald-700 hover:shadow-emerald-900/30"
+                        : "bg-emerald-600 hover:bg-emerald-700 hover:shadow-emerald-900/30"
                     }`}
                   >
                     <Mail className="w-4 h-4" />
@@ -454,8 +454,8 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                     disabled={isLoading}
                     className={`w-full py-3.5 rounded-xl text-xs font-black uppercase tracking-wider text-white transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                       activeSector === "student"
-                        ? "bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-900/30"
-                        : "bg-pink-600 hover:bg-pink-700 hover:shadow-pink-900/30"
+                        ? "bg-emerald-600 hover:bg-emerald-700 hover:shadow-emerald-900/30"
+                        : "bg-emerald-600 hover:bg-emerald-700 hover:shadow-emerald-900/30"
                     }`}
                   >
                     <Mail className="w-4 h-4" />
@@ -526,8 +526,8 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                     disabled={isLoading}
                     className={`w-full py-3.5 rounded-xl text-xs font-black uppercase tracking-wider text-white transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                       activeSector === "student"
-                        ? "bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-900/30"
-                        : "bg-pink-600 hover:bg-pink-700 hover:shadow-pink-900/30"
+                        ? "bg-emerald-600 hover:bg-emerald-700 hover:shadow-emerald-900/30"
+                        : "bg-emerald-600 hover:bg-emerald-700 hover:shadow-emerald-900/30"
                     }`}
                   >
                     <Lock className="w-4 h-4" />
@@ -597,7 +597,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                             setSuccessMsg("");
                           }}
                           className={`text-[10px] font-bold hover:underline cursor-pointer ${
-                            activeSector === "student" ? "text-indigo-400" : "text-pink-400"
+                            activeSector === "student" ? "text-emerald-400" : "text-emerald-400"
                           }`}
                         >
                           Mot de passe oublié ?
@@ -652,8 +652,8 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                     disabled={isLoading}
                     className={`w-full py-3.5 rounded-xl text-xs font-black uppercase tracking-wider text-white transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                       activeSector === "student"
-                        ? "bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-900/30"
-                        : "bg-pink-600 hover:bg-pink-700 hover:shadow-pink-900/30"
+                        ? "bg-emerald-600 hover:bg-emerald-700 hover:shadow-emerald-900/30"
+                        : "bg-emerald-600 hover:bg-emerald-700 hover:shadow-emerald-900/30"
                     }`}
                   >
                     {authMode === "login" ? <LogIn className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
@@ -669,7 +669,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                       type="button"
                       disabled={isLoading}
                       onClick={() => void handlePasskeyLogin()}
-                      className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900 py-3 text-xs font-bold text-slate-200 transition-all hover:border-indigo-500/40"
+                      className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900 py-3 text-xs font-bold text-slate-200 transition-all hover:border-emerald-500/40"
                     >
                       <KeyRound className="h-4 w-4" />
                       Se connecter avec une Passkey
@@ -693,8 +693,8 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                   }}
                   className={`text-xs font-bold underline transition-colors ${
                     activeSector === "student"
-                      ? "text-indigo-400 hover:text-indigo-300"
-                      : "text-pink-400 hover:text-pink-300"
+                      ? "text-emerald-400 hover:text-emerald-300"
+                      : "text-emerald-400 hover:text-emerald-300"
                   }`}
                 >
                   {verificationEmail

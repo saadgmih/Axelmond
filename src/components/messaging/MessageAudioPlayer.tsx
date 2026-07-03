@@ -87,7 +87,7 @@ export function MessageAudioPlayer({ url, mine = false }: MessageAudioPlayerProp
         className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-colors ${
           mine
             ? "border-white/30 bg-white/15 text-white hover:bg-white/25"
-            : "border-indigo-400/30 bg-indigo-500/15 text-indigo-100 hover:bg-indigo-500/25"
+            : "border-emerald-400/30 bg-emerald-500/15 text-emerald-100 hover:bg-emerald-500/25"
         }`}
       >
         {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 pl-0.5" />}
@@ -96,11 +96,11 @@ export function MessageAudioPlayer({ url, mine = false }: MessageAudioPlayerProp
         <p className="truncate text-xs font-semibold">Message vocal</p>
         <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
           <div
-            className={`h-full rounded-full transition-[width] duration-150 ${mine ? "bg-white/75" : "bg-indigo-400"}`}
+            className={`h-full rounded-full transition-[width] duration-150 ${mine ? "bg-white/75" : "bg-emerald-400"}`}
             style={{ width: `${progress}%` }}
           />
         </div>
-        <p className={`mt-1 text-[10px] ${mine ? "text-indigo-100/70" : "text-slate-400"}`}>
+        <p className={`mt-1 text-[10px] ${mine ? "text-emerald-100/70" : "text-slate-400"}`}>
           {formatDuration(duration)}
         </p>
       </div>

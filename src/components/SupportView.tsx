@@ -131,9 +131,9 @@ export default function SupportView({ navigateTo }: SupportViewProps) {
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-8 animate-in fade-in duration-200">
-      <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950 rounded-3xl p-6 md:p-8 text-white border border-slate-800 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-emerald-950 rounded-3xl p-6 md:p-8 text-white border border-slate-800 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-3 max-w-2xl">
-          <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full inline-block">
+          <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full inline-block">
             Centre d&apos;aide &amp; support
           </span>
           <h1 className="text-3xl md:text-4xl font-black tracking-tight">Comment pouvons-nous vous aider ?</h1>
@@ -176,10 +176,10 @@ export default function SupportView({ navigateTo }: SupportViewProps) {
         <button
           type="button"
           onClick={() => scrollToSupportReportForm()}
-          className="bg-amber-950/30 border border-amber-800/40 p-4 rounded-2xl text-left text-amber-100 hover:border-amber-600/50 flex items-center justify-between"
+          className="bg-lime-950/30 border border-lime-800/40 p-4 rounded-2xl text-left text-lime-100 hover:border-lime-600/50 flex items-center justify-between"
         >
           <span className="text-xs font-bold">Signaler un problème</span>
-          <ArrowRight className="w-4 h-4 text-amber-400" />
+          <ArrowRight className="w-4 h-4 text-lime-400" />
         </button>
       </div>
 
@@ -187,7 +187,7 @@ export default function SupportView({ navigateTo }: SupportViewProps) {
         <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-sm space-y-6 text-white">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
             <h2 className="text-lg font-bold flex items-center gap-2">
-              <HelpCircle className="w-5 h-5 text-indigo-400" />
+              <HelpCircle className="w-5 h-5 text-emerald-400" />
               Base de connaissances
             </h2>
             <div className="relative w-full sm:max-w-xs">
@@ -197,7 +197,7 @@ export default function SupportView({ navigateTo }: SupportViewProps) {
                 placeholder="Rechercher une question..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 text-xs border border-slate-800 rounded-xl bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full pl-9 pr-4 py-2 text-xs border border-slate-800 rounded-xl bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
           </div>
@@ -211,7 +211,7 @@ export default function SupportView({ navigateTo }: SupportViewProps) {
                   setSelectedFaqCategory(cat);
                   setOpenFaqIndex(null);
                 }}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 ${selectedFaqCategory === cat ? "bg-indigo-600 text-white" : "bg-slate-950 text-slate-400 hover:text-white"}`}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 ${selectedFaqCategory === cat ? "bg-emerald-600 text-white" : "bg-slate-950 text-slate-400 hover:text-white"}`}
               >
                 {cat !== "Toutes" && getCategoryIcon(cat)}
                 {cat}
@@ -255,7 +255,7 @@ export default function SupportView({ navigateTo }: SupportViewProps) {
 
         <div id="support-report-form" className="lg:col-span-5 space-y-4 scroll-mt-24">
           <h2 className="text-lg font-bold text-white flex items-center gap-2 px-1">
-            <Send className="w-5 h-5 text-amber-400" />
+            <Send className="w-5 h-5 text-lime-400" />
             Signaler un problème
           </h2>
           <SupportTicketForm defaultCategory="Support Technique" submitLabel="Créer le ticket d'assistance" />

@@ -105,7 +105,7 @@ function renderLatexSegment(segment: Extract<LatexSegment, { type: "math" }>): R
       />
     );
   } catch {
-    return <code className="rounded bg-rose-950/50 px-1.5 py-0.5 text-rose-200">{segment.source}</code>;
+    return <code className="rounded bg-emerald-950/50 px-1.5 py-0.5 text-emerald-200">{segment.source}</code>;
   }
 }
 
