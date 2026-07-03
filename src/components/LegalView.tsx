@@ -417,7 +417,7 @@ export default function LegalView() {
                     },
                     {
                       title: "Erreurs de contenu",
-                      desc: "Performance Académique décline toute responsabilité pour les erreurs éventuelles dans les contenus fournis par les professeurs et chercheurs contributeurs indépendants.",
+                      desc: "Performance Académique décline toute responsabilité pour les erreurs éventuelles dans les contenus fournis par les professeurs et administrateurs contributeurs indépendants.",
                       border: "border-slate-700 bg-slate-800/30",
                     },
                     {

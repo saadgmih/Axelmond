@@ -9,7 +9,6 @@ const roleAliases: Record<string, UserRole> = {
   PROF: "PROFESSOR",
   PROFESSOR: "PROFESSOR",
   researcher: "RESEARCHER",
-  chercheur: "RESEARCHER",
   RESEARCHER: "RESEARCHER",
   admin: "ADMIN",
   ADMIN: "ADMIN",
@@ -55,35 +54,32 @@ export function canLoginToRequestedRole(actualRole: unknown, requestedRole: unkn
 export function getRoleLabel(role: unknown): string {
   const normalized = normalizeRole(role);
   if (normalized === "STUDENT") return "Étudiant";
-  if (normalized === "RESEARCHER") return "Chercheur";
   if (normalized === "ADMIN") return "Administrateur";
   return "Professeur";
 }
 
-/** Onglet de connexion — espace enseignant (professeur, chercheur, admin). */
+/** Onglet de connexion — espace enseignant (professeur, admin). */
 export function getTeacherLoginTabLabel(): string {
-  return "Espace Professeur / Chercheur / Admin";
+  return "Espace Professeur / Admin";
 }
 
 /** Sous-titre du secteur enseignant sur l'écran de connexion. */
 export function getTeacherLoginSectorLabel(): string {
-  return "Professeurs, Chercheurs & Administration";
+  return "Professeurs & Administration";
 }
 
 /** Titre de navigation sidebar selon le rôle connecté. */
 export function getTeacherSpaceTitle(role: unknown): string {
   const normalized = normalizeRole(role);
   if (normalized === "ADMIN") return "Espace Administrateur";
-  if (normalized === "RESEARCHER") return "Espace Chercheur";
   return "Espace Professeur";
 }
 
-export type TeacherRoleBadgeTone = "professor" | "researcher" | "admin";
+export type TeacherRoleBadgeTone = "professor" | "admin";
 
 export function getTeacherRoleBadgeTone(role: unknown): TeacherRoleBadgeTone {
   const normalized = normalizeRole(role);
   if (normalized === "ADMIN") return "admin";
-  if (normalized === "RESEARCHER") return "researcher";
   return "professor";
 }
 

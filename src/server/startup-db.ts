@@ -23,7 +23,7 @@ async function ensureAcademicProfileForUser(
     update: {},
     create: {
       userId: user.id,
-      title: user.levelOrTitle || "Enseignant Chercheur",
+      title: user.levelOrTitle || "Professeur",
       teachingDomains: [],
       researchDomains: [],
       links: {},

@@ -16,9 +16,7 @@ export default function TeacherAccountSecurityView({ currentUser }: TeacherAccou
   const iconClassName =
     role === "ADMIN"
       ? "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 to-purple-600 shadow-lg shadow-violet-900/40"
-      : role === "RESEARCHER"
-        ? "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-600 to-teal-600 shadow-lg shadow-cyan-900/40"
-        : "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-600 to-rose-600 shadow-lg shadow-pink-900/40";
+      : "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-600 to-rose-600 shadow-lg shadow-pink-900/40";
 
   return (
     <div className="rounded-2xl border border-white/[0.06] bg-[#020617] p-3 shadow-2xl shadow-black/20 sm:rounded-3xl sm:p-5 md:p-6">

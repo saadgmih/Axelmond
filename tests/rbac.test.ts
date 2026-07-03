@@ -125,16 +125,16 @@ rulesTest("rbac", () => {
 
   assert.equal(getRoleLabel("STUDENT"), "Étudiant");
   assert.equal(getRoleLabel("PROFESSOR"), "Professeur");
-  assert.equal(getRoleLabel("RESEARCHER"), "Chercheur");
+  assert.equal(getRoleLabel("RESEARCHER"), "Professeur");
   assert.equal(getRoleLabel("ADMIN"), "Administrateur");
 
-  assert.equal(getTeacherLoginTabLabel(), "Espace Professeur / Chercheur / Admin");
-  assert.equal(getTeacherLoginSectorLabel(), "Professeurs, Chercheurs & Administration");
+  assert.equal(getTeacherLoginTabLabel(), "Espace Professeur / Admin");
+  assert.equal(getTeacherLoginSectorLabel(), "Professeurs & Administration");
   assert.equal(getTeacherSpaceTitle("ADMIN"), "Espace Administrateur");
-  assert.equal(getTeacherSpaceTitle("RESEARCHER"), "Espace Chercheur");
+  assert.equal(getTeacherSpaceTitle("RESEARCHER"), "Espace Professeur");
   assert.equal(getTeacherSpaceTitle("PROFESSOR"), "Espace Professeur");
   assert.equal(getTeacherRoleBadgeTone("ADMIN"), "admin");
-  assert.equal(getTeacherRoleBadgeTone("RESEARCHER"), "researcher");
+  assert.equal(getTeacherRoleBadgeTone("RESEARCHER"), "professor");
   assert.equal(getTeacherRoleBadgeTone("PROFESSOR"), "professor");
 
   console.log("RBAC rules passed");

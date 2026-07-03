@@ -37,7 +37,6 @@ function getInitials(name: string) {
 function getAccessLabel(role: "student" | "teacher", userRole?: UserRole) {
   if (role === "student") return "Accès étudiant";
   if (userRole === "ADMIN") return "Accès administrateur";
-  if (userRole === "RESEARCHER") return "Accès chercheur";
   return "Accès professeur";
 }
 
@@ -114,18 +113,14 @@ function RolePill({
       ? "border-indigo-400/25 bg-indigo-500/15 text-indigo-100"
       : getTeacherRoleBadgeTone(userRole) === "admin"
         ? "border-violet-400/25 bg-violet-500/15 text-violet-100"
-        : getTeacherRoleBadgeTone(userRole) === "researcher"
-          ? "border-amber-400/25 bg-amber-500/15 text-amber-100"
-          : "border-pink-400/25 bg-pink-500/15 text-pink-100";
+        : "border-pink-400/25 bg-pink-500/15 text-pink-100";
 
   const iconTone =
     role === "student"
       ? "text-indigo-300"
       : getTeacherRoleBadgeTone(userRole) === "admin"
         ? "text-violet-300"
-        : getTeacherRoleBadgeTone(userRole) === "researcher"
-          ? "text-amber-300"
-          : "text-pink-300";
+        : "text-pink-300";
 
   return (
     <button

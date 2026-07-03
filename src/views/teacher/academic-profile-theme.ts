@@ -86,19 +86,6 @@ export function getProfileRoleTheme(role: UserRole): ProfileRoleTheme {
       sectionIcon: "text-violet-400",
     };
   }
-  if (role === "RESEARCHER") {
-    return {
-      heroGradient: "from-cyan-600/25 via-teal-600/15 to-transparent",
-      badge: "border-cyan-400/30 bg-cyan-500/15",
-      badgeText: "text-cyan-200",
-      accentRing: "ring-cyan-500/30",
-      icon: GraduationCap,
-      subtitle: "Profil académique et ressources",
-      uploadAccent: "teal",
-      focusRing: "focus:ring-cyan-500/15 focus:border-cyan-500/50",
-      sectionIcon: "text-cyan-400",
-    };
-  }
   return {
     heroGradient: "from-indigo-600/25 via-violet-600/15 to-transparent",
     badge: "border-indigo-400/30 bg-indigo-500/15",

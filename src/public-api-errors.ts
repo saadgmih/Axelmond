@@ -15,7 +15,7 @@ export const PUBLIC_API_ERRORS = {
   titleTypeDurationRequired: "Le titre, le type et la durée sont requis.",
   titleBodyRequired: "Le titre et le contenu sont requis.",
   answersObjectRequired: "Les réponses du quiz sont requises.",
-  invalidRole: "Le rôle doit être étudiant, professeur, chercheur ou administrateur.",
+  invalidRole: "Le rôle doit être étudiant, professeur ou administrateur.",
   refreshTokenRequired: "Jeton de rafraîchissement requis.",
   refreshTokenInvalid: "Jeton de rafraîchissement invalide ou expiré.",
   refreshTokenReused: "Jeton de rafraîchissement invalide ou déjà utilisé.",

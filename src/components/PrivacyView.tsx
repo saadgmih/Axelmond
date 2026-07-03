@@ -178,7 +178,7 @@ export default function PrivacyView() {
                   items: [
                     "Nom complet",
                     "Adresse e-mail universitaire",
-                    "Rôle académique (étudiant, professeur, chercheur)",
+                    "Rôle académique (étudiant, professeur ou administrateur)",
                   ],
                   color: "border-indigo-800/40 bg-indigo-950/20",
                   badge: "text-indigo-300 border-indigo-500/30 bg-indigo-500/10",

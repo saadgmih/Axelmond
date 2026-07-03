@@ -44,7 +44,6 @@ function roleBadgeClass(role: "student" | "teacher", userRole?: AppUser["role"])
   }
   const tone = getTeacherRoleBadgeTone(userRole);
   if (tone === "admin") return "bg-violet-500/10 border-violet-400/20 text-violet-200";
-  if (tone === "researcher") return "bg-amber-500/10 border-amber-400/20 text-amber-200";
   return "bg-pink-500/10 border-pink-400/20 text-pink-200";
 }
 

@@ -155,7 +155,7 @@ export default function TermsView() {
               <RuleCard
                 icon={<Users className="w-4 h-4 text-indigo-300" />}
                 title="Accès réservé"
-                description="L'utilisation de la plateforme est exclusivement réservée aux utilisateurs authentifiés disposant d'un rôle académique valide : étudiant, professeur, chercheur ou administrateur."
+                description="L'utilisation de la plateforme est exclusivement réservée aux utilisateurs authentifiés disposant d'un rôle académique valide : étudiant, professeur ou administrateur."
                 border="border-indigo-800/30"
                 bg="bg-indigo-950/20"
               />
@@ -342,7 +342,7 @@ export default function TermsView() {
                 {
                   icon: <Lock className="w-4 h-4 text-indigo-300" />,
                   title: "Contrôle des accès",
-                  desc: "RBAC strict sur toutes les routes. Chaque action est vérifiée selon votre rôle — étudiant, professeur, chercheur ou admin.",
+                  desc: "RBAC strict sur toutes les routes. Chaque action est vérifiée selon votre rôle — étudiant, professeur ou admin.",
                   border: "border-indigo-800/30",
                   bg: "bg-indigo-950/20",
                 },

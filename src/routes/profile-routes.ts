@@ -12,7 +12,7 @@ export function registerProfileRoutes(app: Express, ctx: RouteContext): void {
     const authUser = getAuthUser(req);
 
     if (!api.canAccessAcademicProfile(authUser.role)) {
-      res.status(403).json({ error: "Profil académique réservé aux administrateurs, professeurs et chercheurs" });
+      res.status(403).json({ error: "Profil académique réservé aux administrateurs et professeurs" });
 
       return;
     }
@@ -36,7 +36,7 @@ export function registerProfileRoutes(app: Express, ctx: RouteContext): void {
     const authUser = getAuthUser(req);
 
     if (!api.canAccessAcademicProfile(authUser.role)) {
-      res.status(403).json({ error: "Profil académique réservé aux administrateurs, professeurs et chercheurs" });
+      res.status(403).json({ error: "Profil académique réservé aux administrateurs et professeurs" });
 
       return;
     }
@@ -129,7 +129,7 @@ export function registerProfileRoutes(app: Express, ctx: RouteContext): void {
     const authUser = getAuthUser(req);
 
     if (!api.canAccessAcademicProfile(authUser.role)) {
-      res.status(403).json({ error: "Emploi du temps réservé aux professeurs et chercheurs" });
+      res.status(403).json({ error: "Emploi du temps réservé aux professeurs et administrateurs" });
 
       return;
     }
@@ -145,7 +145,7 @@ export function registerProfileRoutes(app: Express, ctx: RouteContext): void {
     const authUser = getAuthUser(req);
 
     if (!api.canAccessAcademicProfile(authUser.role)) {
-      res.status(403).json({ error: "Emploi du temps réservé aux professeurs et chercheurs" });
+      res.status(403).json({ error: "Emploi du temps réservé aux professeurs et administrateurs" });
 
       return;
     }
@@ -224,7 +224,7 @@ export function registerProfileRoutes(app: Express, ctx: RouteContext): void {
       const authUser = getAuthUser(req);
 
       if (!api.canAccessAcademicProfile(authUser.role)) {
-        res.status(403).json({ error: "Emploi du temps réservé aux professeurs et chercheurs" });
+        res.status(403).json({ error: "Emploi du temps réservé aux professeurs et administrateurs" });
 
         return;
       }
@@ -307,7 +307,7 @@ export function registerProfileRoutes(app: Express, ctx: RouteContext): void {
     const authUser = getAuthUser(req);
 
     if (!api.canAccessAcademicProfile(authUser.role)) {
-      res.status(403).json({ error: "Emploi du temps réservé aux professeurs et chercheurs" });
+      res.status(403).json({ error: "Emploi du temps réservé aux professeurs et administrateurs" });
 
       return;
     }
@@ -420,7 +420,7 @@ export function registerProfileRoutes(app: Express, ctx: RouteContext): void {
     const authUser = getAuthUser(req);
 
     if (!api.canAccessAcademicProfile(authUser.role)) {
-      res.status(403).json({ error: "Profil académique réservé aux administrateurs, professeurs et chercheurs" });
+      res.status(403).json({ error: "Profil académique réservé aux administrateurs et professeurs" });
 
       return;
     }

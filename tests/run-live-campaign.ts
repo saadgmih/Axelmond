@@ -167,7 +167,7 @@ async function main() {
 2. **Création de salle Live par le professeur principal** : ✅ Réussie. Professeur 1 a initialisé la session de cours et activé la signalisation globale.
 3. **Rejoindre la salle depuis les autres professeurs** : ✅ Réussie. Grâce à la relaxation de la contrainte d'ownership, les Professeurs 2, 3 et 4 ont pu se connecter à la même salle.
 4. **Rejoindre la salle depuis les étudiants** : ✅ Réussie. La bannière rouge s'est affichée en temps réel sur les dashboards des étudiants inscrits, permettant un accès instantané.
-5. **Gestion correcte des rôles** : ✅ Réussie. L'UI a correctement affiché les badges \`Administrateur\`, \`Professeur\`, \`Chercheur\` et \`Étudiant\` dans le panneau interactif.
+5. **Gestion correcte des rôles** : ✅ Réussie. L'UI a correctement affiché les badges \`Administrateur\`, \`Professeur\` et \`Étudiant\` dans le panneau interactif.
 6. **Tests audio** : ✅ Réussie. Activation et désactivation du microphone simulées. Le framework LiveKit a correctement publié et souscrit aux pistes de micro synthétiques.
 7. **Tests vidéo** : ✅ Réussie. Caméras activées pour les participants. Les flux vidéo synthétiques se sont correctement affichés dans le carrousel principal sans écran noir.
 8. **Tests partage d'écran** : ✅ Réussie. Partage d'écran initié par le professeur, reçu par les autres participants, puis éteint avec succès.

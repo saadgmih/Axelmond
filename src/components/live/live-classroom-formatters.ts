@@ -23,7 +23,7 @@ export function formatLiveStat(count: number, singular: string, plural: string) 
 
 export function liveRoleLabel(role?: string) {
   if (role === "ADMIN") return "Administrateur";
-  if (role === "RESEARCHER") return "Chercheur";
+  if (role === "RESEARCHER") return "Professeur";
   if (role === "PROFESSOR") return "Professeur";
   return "Étudiant";
 }

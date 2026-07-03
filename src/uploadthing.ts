@@ -111,7 +111,7 @@ async function getUploadUser(req: any) {
   const user = await prisma.user.findUnique({ where: { id: session.userId } });
   const role = normalizeRole(user?.role);
   if (!user || role !== session.role || !user.emailVerified || !canManageContent(role)) {
-    throw new UploadThingError("Accès professeur, chercheur ou administrateur requis");
+    throw new UploadThingError("Accès professeur ou administrateur requis");
   }
 
   return { id: user.id, role };
