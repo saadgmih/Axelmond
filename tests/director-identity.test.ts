@@ -24,7 +24,6 @@ rulesTest("director-identity", () => {
 
   const expectedIntegrations = [
     ["src/components/AboutView.tsx", /DirectorFounderSection/],
-    ["src/components/AuthScreen.tsx", /DirectorAuthCard/],
     ["src/app/AppFooter.tsx", /DirectorFooterLine/],
   ] as const;
 
@@ -36,6 +35,7 @@ rulesTest("director-identity", () => {
     ["src/components/Sidebar.tsx", /DirectorSidebarCard/],
     ["src/views/student/StudentDashboardView.tsx", /DirectorWelcomeCard/],
     ["src/views/teacher/TeacherDashboardView.tsx", /DirectorWelcomeCard/],
+    ["src/components/AuthScreen.tsx", /DirectorAuthCard/],
   ] as const;
 
   for (const [file, pattern] of removedIntegrations) {

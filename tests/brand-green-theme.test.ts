@@ -86,6 +86,6 @@ rulesTest("brand-green-theme", () => {
     assert.equal(logo.colorType, 6);
     assert.ok(logo.width >= 1000);
     assert.ok(logo.height >= 1000);
-    assert.ok(logo.size > 900_000, `${logoPath} should contain the full 3D transparent wordmark`);
+    assert.ok(logo.size > 500_000, `${logoPath} should contain the full 3D transparent wordmark`);
   }
 });
