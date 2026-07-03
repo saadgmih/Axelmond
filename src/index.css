@@ -28,6 +28,7 @@
   --pa-brand-800: #075f52;
   --pa-brand-900: #064e43;
   --pa-brand-950: #042f29;
+  --pa-site-background: #22d3bb;
   --pa-emerald-50: #ecfdf5;
   --pa-emerald-100: #d1fae5;
   --pa-emerald-200: #a7f3d0;
@@ -328,6 +329,7 @@
 html {
   overflow-x: hidden;
   -webkit-text-size-adjust: 100%;
+  background: var(--pa-site-background);
 }
 
 body,
@@ -335,6 +337,7 @@ body,
   min-width: 0;
   width: 100%;
   max-width: 100%;
+  background: var(--pa-site-background);
 }
 
 body {

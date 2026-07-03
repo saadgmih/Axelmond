@@ -142,8 +142,22 @@ export function DirectorAuthCard() {
 
 export function DirectorFooterLine() {
   return (
-    <p className="text-xs leading-relaxed text-slate-500">
-      Direction : <span className="font-bold text-slate-400">{directorProfile.name}</span>
-    </p>
+    <div className="flex max-w-xs items-center gap-3 rounded-2xl border border-emerald-400/15 bg-emerald-950/25 p-2.5 shadow-lg shadow-black/10">
+      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-emerald-300/20 bg-emerald-500/10">
+        <img
+          src={directorProfile.footerPhoto}
+          alt={directorProfile.photoAlt}
+          className="h-full w-full object-cover object-[50%_18%]"
+          loading="lazy"
+        />
+      </div>
+      <div className="min-w-0">
+        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300/80">Direction</p>
+        <p className="truncate text-xs font-black text-slate-100">{directorProfile.name}</p>
+        <p className="mt-0.5 truncate text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
+          {directorProfile.shortTitle}
+        </p>
+      </div>
+    </div>
   );
 }

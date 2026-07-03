@@ -38,7 +38,7 @@ export class GlobalErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
+        <div className="min-h-screen bg-[var(--pa-site-background)] flex flex-col items-center justify-center p-6 text-center">
           <div className="max-w-md w-full bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-xl space-y-6">
             <div className="mx-auto w-16 h-16 bg-red-500/10 text-red-500 flex items-center justify-center rounded-2xl border border-red-500/20">
               <svg

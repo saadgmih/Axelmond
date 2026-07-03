@@ -5,6 +5,7 @@ import { rulesTest } from "./helpers/rulesTest.ts";
 rulesTest("director-identity", () => {
   assert.equal(fs.existsSync("public/director-oussama-el-abboudi.png"), true);
   assert.equal(fs.existsSync("public/director-oussama-el-abboudi-full.png"), true);
+  assert.equal(fs.existsSync("public/director-oussama-footer.png"), true);
   assert.equal(fs.existsSync("public/director-oussama-el-abboudi.jpg"), false);
   assert.equal(fs.existsSync("public/director-oussama-el-abboudi-full.jpg"), false);
 
@@ -12,6 +13,7 @@ rulesTest("director-identity", () => {
   assert.match(profileSource, /Pr\. Oussama El Abboudi/);
   assert.match(profileSource, /Former aujourd'hui les talents de demain/);
   assert.match(profileSource, /\/director-oussama-el-abboudi\.png/);
+  assert.match(profileSource, /\/director-oussama-footer\.png/);
 
   const identitySource = fs.readFileSync("src/components/DirectorIdentity.tsx", "utf8");
   assert.match(identitySource, /DirectorSidebarCard/);
