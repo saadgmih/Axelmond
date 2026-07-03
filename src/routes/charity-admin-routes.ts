@@ -5,7 +5,9 @@ import * as api from "../server/route-deps";
 import {
   createCharityAccessCode,
   deactivateCharityAccessCode,
+  charityStorageErrorMessage,
   isCharityPageEnabled,
+  isMissingCharityStorageError,
   setCharityPageEnabled,
 } from "../charity-access-code";
 import {
@@ -109,6 +111,10 @@ export function registerCharityAdminRoutes(app: Express, ctx: RouteContext): voi
         code: plaintext,
       });
     } catch (err) {
+      if (isMissingCharityStorageError(err)) {
+        res.status(503).json({ error: charityStorageErrorMessage() });
+        return;
+      }
       api.logDb("ERROR", "Charity access code creation failed", { error: String(err) });
       res.status(500).json({ error: "Création du code impossible" });
     }

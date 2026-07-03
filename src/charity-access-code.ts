@@ -29,6 +29,15 @@ export function charityCodeSuffix(code: string): string {
   return normalized.slice(-4);
 }
 
+export function isMissingCharityStorageError(err: unknown): boolean {
+  const code = (err as { code?: string })?.code;
+  return code === "P2021" || code === "P2022";
+}
+
+export function charityStorageErrorMessage(): string {
+  return "Les tables Lajr wa Tawab ne sont pas encore disponibles. Exécutez npm run deploy:migrate puis redémarrez le serveur.";
+}
+
 export async function isCharityPageEnabled(): Promise<boolean> {
   try {
     const setting = await prisma.siteSetting.findUnique({
