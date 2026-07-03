@@ -7,13 +7,11 @@ import {
   Code2,
   CreditCard,
   DollarSign,
-  FilePlus2,
   GraduationCap,
   HelpCircle,
   Layers,
   Mail,
   PlayCircle,
-  Radio,
   Target,
   Tag,
   TrendingUp,
@@ -21,7 +19,6 @@ import {
   UserPlus,
   Users,
   Video,
-  Zap,
 } from "lucide-react";
 import { api } from "../../api";
 import type { AppUser } from "../../components/AuthScreen";
@@ -426,13 +423,6 @@ export default function TeacherDashboardView({
     },
   ];
 
-  const quickActions = [
-    { label: "Créer un module", icon: BookOpen, view: "curriculum" },
-    { label: "Ajouter un chapitre", icon: FilePlus2, view: "curriculum" },
-    { label: "Créer un quiz", icon: HelpCircle, view: "curriculum" },
-    { label: "Lancer un live", icon: Radio, view: "live-control" },
-    { label: "Voir les paiements", icon: CreditCard, view: "dashboard", anchor: "teacher-revenue" },
-  ];
   return (
     <div className="space-y-8">
       {/* Header Welcome Card */}
@@ -585,36 +575,7 @@ export default function TeacherDashboardView({
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
-          <div className="xl:col-span-4 rounded-2xl border border-white/5 bg-slate-900/60 p-4 sm:p-5 space-y-3">
-            <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-lime-300" />
-              <h4 className="text-sm font-black text-white">Actions rapides</h4>
-            </div>
-            <div className="grid grid-cols-1 gap-2">
-              {quickActions.map((action) => (
-                <button
-                  key={action.label}
-                  type="button"
-                  onClick={() => {
-                    if (action.anchor) {
-                      document.getElementById(action.anchor)?.scrollIntoView({ behavior: "smooth", block: "center" });
-                      return;
-                    }
-                    onTeacherNavigate?.(action.view);
-                  }}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-white/5 bg-slate-950/70 hover:bg-slate-900 px-4 py-3 min-h-[44px] text-left transition-colors"
-                >
-                  <span className="flex items-center gap-2.5 min-w-0">
-                    <action.icon className="w-4 h-4 text-emerald-300 shrink-0" />
-                    <span className="text-xs font-bold text-slate-100 truncate">{action.label}</span>
-                  </span>
-                  <ArrowUpRight className="w-4 h-4 text-slate-500 shrink-0" />
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="xl:col-span-8 rounded-2xl border border-white/5 bg-slate-900/60 p-4 sm:p-5 space-y-4">
+          <div className="xl:col-span-12 rounded-2xl border border-white/5 bg-slate-900/60 p-4 sm:p-5 space-y-4">
             <div className="flex items-center justify-between gap-3">
               <h4 className="text-sm font-black text-white">Activité récente</h4>
               <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
