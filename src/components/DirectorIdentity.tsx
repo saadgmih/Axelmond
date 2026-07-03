@@ -55,7 +55,7 @@ export function DirectorAuthCard() {
 export function DirectorFooterLine() {
   return (
     <div className="flex max-w-xs items-center gap-3 text-left">
-      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl">
+      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full">
         <img
           src={directorProfile.footerPhoto}
           alt={directorProfile.photoAlt}
