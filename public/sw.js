@@ -1,8 +1,6 @@
-const STATIC_CACHE = "performance-academique-static-v4";
+const STATIC_CACHE = "performance-academique-static-v5";
 const STATIC_ASSETS = [
-  "/performance-logo-3d.png",
-  "/performance-logo-3d-symbol.png",
-  "/performance-logo-3d-full.png",
+  "/performance-logo-e6657b8a.png",
   "/manifest.json",
 ];
 
@@ -76,8 +74,8 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(payload.title || "Performance Académique", {
       body: payload.body || "",
-      icon: "/performance-logo-3d.png",
-      badge: "/performance-logo-3d-symbol.png",
+      icon: "/performance-logo-e6657b8a.png",
+      badge: "/performance-logo-e6657b8a.png",
       data: { url: safeUrl },
       tag: payload.notificationId || undefined,
       renotify: false,

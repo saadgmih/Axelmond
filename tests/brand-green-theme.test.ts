@@ -47,14 +47,14 @@ rulesTest("brand-green-theme", () => {
 
   const emailSource = fs.readFileSync("src/email.ts", "utf8");
   assert.match(emailSource, /#05C2A5/);
-  assert.match(emailSource, /performance-logo-3d-symbol\.png/);
+  assert.match(emailSource, /performance-logo-e6657b8a\.png/);
   assert.doesNotMatch(emailSource, /performance-logo-symbol\.png/);
   assert.doesNotMatch(emailSource, /#8b5cf6|#ec4899|#6366f1|#4c1d95|#9d174d|#93c5fd|#ef4444|#7f1d1d|#fca5a5/i);
 
   const manifestSource = fs.readFileSync("public/manifest.json", "utf8");
   assert.match(manifestSource, /"theme_color":\s*"#05C2A5"/);
   assert.match(manifestSource, /"background_color":\s*"#042f29"/);
-  assert.match(manifestSource, /performance-logo-3d-symbol\.png/);
+  assert.match(manifestSource, /performance-logo-e6657b8a\.png/);
   assert.match(manifestSource, /"sizes":\s*"1024x1024"/);
   assert.doesNotMatch(manifestSource, /performance-logo-symbol\.png/);
 
@@ -71,8 +71,9 @@ rulesTest("brand-green-theme", () => {
   assert.doesNotMatch(logoSvg, /#0ea5e9/i);
   assert.doesNotMatch(faviconSvg, /#0ea5e9/i);
 
-  const canonicalLogoHash = sha256("public/performance-logo-3d-symbol.png");
+  const canonicalLogoHash = sha256("public/performance-logo-e6657b8a.png");
   for (const logoPath of [
+    "public/performance-logo-e6657b8a.png",
     "public/performance-logo-3d-symbol.png",
     "public/performance-logo-3d.png",
     "public/performance-logo-symbol.png",
