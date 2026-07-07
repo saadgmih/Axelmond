@@ -1,9 +1,8 @@
-const STATIC_CACHE = "performance-academique-static-v3";
+const STATIC_CACHE = "performance-academique-static-v4";
 const STATIC_ASSETS = [
   "/performance-logo-3d.png",
   "/performance-logo-3d-symbol.png",
   "/performance-logo-3d-full.png",
-  "/favicon-3d.ico",
   "/manifest.json",
 ];
 

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
@@ -12,6 +13,9 @@ const readPngInfo = (filePath: string) => {
     width: buffer.readUInt32BE(16),
   };
 };
+
+const sha256 = (filePath: string) =>
+  crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
 
 rulesTest("brand-green-theme", () => {
   const cssSource = fs.readFileSync("src/index.css", "utf8");
@@ -51,6 +55,7 @@ rulesTest("brand-green-theme", () => {
   assert.match(manifestSource, /"theme_color":\s*"#05C2A5"/);
   assert.match(manifestSource, /"background_color":\s*"#042f29"/);
   assert.match(manifestSource, /performance-logo-3d-symbol\.png/);
+  assert.match(manifestSource, /"sizes":\s*"1024x1024"/);
   assert.doesNotMatch(manifestSource, /performance-logo-symbol\.png/);
 
   const legalDocumentsSource = fs.readFileSync("src/data/legalDocuments.ts", "utf8");
@@ -66,6 +71,7 @@ rulesTest("brand-green-theme", () => {
   assert.doesNotMatch(logoSvg, /#0ea5e9/i);
   assert.doesNotMatch(faviconSvg, /#0ea5e9/i);
 
+  const canonicalLogoHash = sha256("public/performance-logo-3d-symbol.png");
   for (const logoPath of [
     "public/performance-logo-3d-symbol.png",
     "public/performance-logo-3d.png",
@@ -73,19 +79,15 @@ rulesTest("brand-green-theme", () => {
     "public/performance-logo.png",
     "public/logo-symbol.png",
     "public/logo.png",
+    "public/performance-logo-3d-full.png",
+    "public/performance-logo-full.png",
+    "public/logo-full.png",
   ]) {
     const logo = readPngInfo(logoPath);
-    assert.equal(logo.width, 512);
-    assert.equal(logo.height, 512);
+    assert.equal(logo.width, 1024);
+    assert.equal(logo.height, 1024);
     assert.equal(logo.colorType, 6);
-    assert.ok(logo.size > 120_000, `${logoPath} should contain the 3D transparent logo`);
-  }
-
-  for (const logoPath of ["public/performance-logo-3d-full.png", "public/logo-full.png"]) {
-    const logo = readPngInfo(logoPath);
-    assert.equal(logo.colorType, 6);
-    assert.ok(logo.width >= 1000);
-    assert.ok(logo.height >= 1000);
-    assert.ok(logo.size > 500_000, `${logoPath} should contain the full 3D transparent wordmark`);
+    assert.ok(logo.size > 1_500_000, `${logoPath} should contain the provided 3D logo`);
+    assert.equal(sha256(logoPath), canonicalLogoHash, `${logoPath} should reuse the provided logo without resizing`);
   }
 });

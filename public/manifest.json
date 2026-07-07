@@ -9,13 +9,13 @@
   "icons": [
     {
       "src": "/performance-logo-3d-symbol.png",
-      "sizes": "512x512",
+      "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
       "src": "/performance-logo-3d.png",
-      "sizes": "512x512",
+      "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "any maskable"
     }
