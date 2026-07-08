@@ -54,15 +54,7 @@ export function DirectorAuthCard() {
 
 export function DirectorFooterLine() {
   return (
-    <div className="flex max-w-xs items-center gap-3 text-left">
-      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full">
-        <img
-          src={directorProfile.footerPhoto}
-          alt={directorProfile.photoAlt}
-          className="h-full w-full object-cover object-[50%_18%]"
-          loading="lazy"
-        />
-      </div>
+    <div className="max-w-xs text-left">
       <div className="min-w-0">
         <p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300/80">Direction</p>
         <p className="truncate text-xs font-black text-slate-100">{directorProfile.name}</p>
