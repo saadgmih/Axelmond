@@ -18,13 +18,12 @@ rulesTest("director-identity", () => {
   const identitySource = fs.readFileSync("src/components/DirectorIdentity.tsx", "utf8");
   assert.doesNotMatch(identitySource, /DirectorSidebarCard/);
   assert.doesNotMatch(identitySource, /DirectorWelcomeCard/);
+  assert.doesNotMatch(identitySource, /DirectorFooterLine/);
   assert.match(identitySource, /DirectorFounderSection/);
   assert.match(identitySource, /DirectorAuthCard/);
-  assert.match(identitySource, /DirectorFooterLine/);
 
   const expectedIntegrations = [
     ["src/components/AboutView.tsx", /DirectorFounderSection/],
-    ["src/app/AppFooter.tsx", /DirectorFooterLine/],
   ] as const;
 
   for (const [file, pattern] of expectedIntegrations) {

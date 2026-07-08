@@ -51,17 +51,3 @@ export function DirectorAuthCard() {
     </div>
   );
 }
-
-export function DirectorFooterLine() {
-  return (
-    <div className="max-w-xs text-left">
-      <div className="min-w-0">
-        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300/80">Direction</p>
-        <p className="truncate text-xs font-black text-slate-100">{directorProfile.name}</p>
-        <p className="mt-0.5 truncate text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
-          {directorProfile.shortTitle}
-        </p>
-      </div>
-    </div>
-  );
-}
