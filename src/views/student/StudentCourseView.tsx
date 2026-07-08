@@ -21,6 +21,7 @@ import PremiumVideoPlayer from "../../components/PremiumVideoPlayer";
 import { lessonContentIdFromModule } from "../../course-curriculum-utils";
 import { findLessonContent } from "../../hooks/useCourseContent";
 import { sanitizeCourseAttachmentUrl } from "../../external-url-security";
+import { getEnrollmentRemainingMs, isEnrollmentActive } from "../../enrollment-access";
 import type { ContentSection, Course, CourseModule, LessonContent } from "../../types";
 import { formatCredits } from "../../utils/morocco-locale";
 
@@ -77,18 +78,22 @@ export default function StudentCourseView({
 
   const enrollment = selectedCourse.enrollment;
 
-  const [timeRemaining, setTimeRemaining] = useState<number>(() => {
-    if (!enrollment?.endDate) return 0;
-    return new Date(enrollment.endDate).getTime() - Date.now();
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(() => {
+    if (!enrollment) return null;
+    return getEnrollmentRemainingMs(enrollment);
   });
 
   useEffect(() => {
-    if (!enrollment?.endDate) return;
+    if (!enrollment) {
+      setTimeRemaining(null);
+      return;
+    }
 
-    setTimeRemaining(new Date(enrollment.endDate).getTime() - Date.now());
+    setTimeRemaining(getEnrollmentRemainingMs(enrollment));
+    if (!enrollment.endDate) return;
 
     const interval = setInterval(() => {
-      const remaining = new Date(enrollment.endDate!).getTime() - Date.now();
+      const remaining = getEnrollmentRemainingMs(enrollment) ?? 0;
       setTimeRemaining(remaining);
       if (remaining <= 0) {
         clearInterval(interval);
@@ -96,7 +101,7 @@ export default function StudentCourseView({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [enrollment?.endDate]);
+  }, [enrollment?.active, enrollment?.endDate]);
 
   const formattedStartDate = useMemo(() => {
     if (!enrollment?.startDate) return "";
@@ -108,16 +113,18 @@ export default function StudentCourseView({
   }, [enrollment?.startDate]);
 
   const formattedEndDate = useMemo(() => {
-    if (!enrollment?.endDate) return "";
+    if (!enrollment) return "";
+    if (!enrollment.endDate) return isEnrollmentActive(enrollment) ? "Accès illimité" : "Non renseignée";
     return new Date(enrollment.endDate).toLocaleDateString("fr-FR", {
       day: "numeric",
       month: "long",
       year: "numeric",
     });
-  }, [enrollment?.endDate]);
+  }, [enrollment]);
 
-  const isSoonExpired = enrollment && timeRemaining > 0 && timeRemaining <= 3 * 24 * 60 * 60 * 1000;
-  const isExpired = enrollment && timeRemaining <= 0;
+  const isSoonExpired =
+    Boolean(enrollment) && timeRemaining != null && timeRemaining > 0 && timeRemaining <= 3 * 24 * 60 * 60 * 1000;
+  const isExpired = Boolean(enrollment && !isEnrollmentActive(enrollment));
 
   const statusLabel = isExpired ? "Expiré" : isSoonExpired ? "Expire bientôt" : "Actif";
   const statusColor = isExpired
@@ -342,7 +349,11 @@ export default function StudentCourseView({
                     Temps restant :
                   </span>
                   <span className="font-mono text-emerald-700 font-black">
-                    {isExpired ? "Accès expiré" : formatTimeRemaining(timeRemaining)}
+                    {isExpired
+                      ? "Accès expiré"
+                      : timeRemaining == null
+                        ? "Accès illimité"
+                        : formatTimeRemaining(timeRemaining)}
                   </span>
                 </div>
                 {(isExpired || isSoonExpired) && setCourseToPurchase && (

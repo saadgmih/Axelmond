@@ -25,6 +25,28 @@ export function isEnrollmentActive(enrollment: EnrollmentAccessRecord, now = new
   return endTime > now.getTime();
 }
 
+export function isEnrollmentExpired(enrollment: EnrollmentAccessRecord, now = new Date()): boolean {
+  return !isEnrollmentActive(enrollment, now);
+}
+
+export function getEnrollmentRemainingMs(enrollment: EnrollmentAccessRecord, now = new Date()): number | null {
+  if (!isEnrollmentActive(enrollment, now)) return 0;
+
+  const endTime = toTimestamp(enrollment.endDate ?? null);
+  if (endTime == null) return null;
+
+  return Math.max(0, endTime - now.getTime());
+}
+
+export function isEnrollmentEndingSoon(
+  enrollment: EnrollmentAccessRecord,
+  thresholdMs = 3 * 24 * 60 * 60 * 1000,
+  now = new Date(),
+): boolean {
+  const remainingMs = getEnrollmentRemainingMs(enrollment, now);
+  return remainingMs != null && remainingMs > 0 && remainingMs <= thresholdMs;
+}
+
 export function getActiveEnrolledCourseIds(
   enrollments: Array<EnrollmentAccessRecord & { courseId: number }>,
   now = new Date(),

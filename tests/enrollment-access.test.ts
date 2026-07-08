@@ -1,5 +1,12 @@
 import assert from "node:assert/strict";
-import { buildEnrollmentEndDate, getActiveEnrolledCourseIds, isEnrollmentActive } from "../src/enrollment-access.ts";
+import {
+  buildEnrollmentEndDate,
+  getActiveEnrolledCourseIds,
+  getEnrollmentRemainingMs,
+  isEnrollmentActive,
+  isEnrollmentEndingSoon,
+  isEnrollmentExpired,
+} from "../src/enrollment-access.ts";
 import {
   findMissingEnrolledCourseIds,
   hydrateEnrolledCourses,
@@ -17,6 +24,12 @@ rulesTest("enrollment-access", () => {
   assert.equal(isEnrollmentActive({ active: true, endDate: "2026-05-01T00:00:00.000Z" }, now), false);
   assert.equal(isEnrollmentActive({ active: false, endDate: null }, now), false);
   assert.equal(isEnrollmentActive({ active: true, endDate: "not-a-date" }, now), true);
+  assert.equal(isEnrollmentExpired({ active: true, endDate: null }, now), false);
+  assert.equal(isEnrollmentExpired({ active: false, endDate: null }, now), true);
+  assert.equal(getEnrollmentRemainingMs({ active: true, endDate: null }, now), null);
+  assert.equal(getEnrollmentRemainingMs({ active: true, endDate: "2026-06-16T12:00:00.000Z" }, now), 86_400_000);
+  assert.equal(isEnrollmentEndingSoon({ active: true, endDate: "2026-06-17T12:00:00.000Z" }, 259_200_000, now), true);
+  assert.equal(isEnrollmentEndingSoon({ active: true, endDate: null }, 259_200_000, now), false);
 
   assert.deepEqual(
     getActiveEnrolledCourseIds(
