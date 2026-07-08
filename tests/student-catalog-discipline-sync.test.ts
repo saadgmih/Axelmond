@@ -35,6 +35,8 @@ rulesTest("student-catalog-discipline-sync", () => {
   const routeSwitchSource = readFileSync("src/app/StudentRouteSwitch.tsx", "utf8");
 
   assert.match(catalogHookSource, /api\.getCourses\(\{ disciplineId \}\)/);
+  assert.match(catalogHookSource, /disciplineCoursesById/);
+  assert.match(catalogHookSource, /setDisciplineCoursesById/);
   assert.match(catalogHookSource, /mergeCatalogCourseRows/);
   assert.match(catalogHookSource, /courseMatchesSelectedDiscipline/);
   assert.match(catalogHookSource, /setSelectedDisciplineIdState\(disciplineId\)/);

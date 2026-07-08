@@ -46,6 +46,7 @@ export function usePlatformCatalogData(
   const [selectedDomainId, setSelectedDomainId] = useState<number | null>(null);
   const [selectedDisciplineId, setSelectedDisciplineIdState] = useState<number | null>(null);
   const [loadingDisciplineId, setLoadingDisciplineId] = useState<number | null>(null);
+  const [disciplineCoursesById, setDisciplineCoursesById] = useState<Record<number, Course[]>>({});
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const { startRequest } = useAsyncEffectGuard();
   const autoRetryTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -182,6 +183,7 @@ export function usePlatformCatalogData(
 
         const courseData = await api.getCourses({ disciplineId });
         if (disciplineLoadSeqRef.current !== requestId) return;
+        setDisciplineCoursesById((previous) => ({ ...previous, [disciplineId]: courseData }));
         mergeCatalogCourses(courseData);
         setCatalogError(null);
       } catch (err) {
@@ -208,7 +210,11 @@ export function usePlatformCatalogData(
   const catalogCourses = useMemo(() => {
     const searchLower = searchQuery.toLowerCase();
     const selectedDisciplineName = selectedDiscipline?.name.trim().toLowerCase() || "";
-    return courses.filter((c) => {
+    const sourceCourses =
+      selectedDisciplineId && disciplineCoursesById[selectedDisciplineId]
+        ? disciplineCoursesById[selectedDisciplineId]
+        : courses;
+    return sourceCourses.filter((c) => {
       const matchesSearch =
         c.title.toLowerCase().includes(searchLower) ||
         c.category.toLowerCase().includes(searchLower) ||
@@ -222,7 +228,7 @@ export function usePlatformCatalogData(
       if (selectedDomainId) return c.discipline?.domainId === selectedDomainId;
       return true;
     });
-  }, [courses, searchQuery, selectedDisciplineId, selectedDomainId, selectedDiscipline?.name]);
+  }, [courses, disciplineCoursesById, searchQuery, selectedDisciplineId, selectedDomainId, selectedDiscipline?.name]);
 
   const catalogHasData = courses.length > 0 || domains.length > 0;
 
