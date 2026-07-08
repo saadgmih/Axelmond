@@ -303,7 +303,7 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                     onChange={(e) => setNewCourseFreeAccessDurationDays(e.target.value)}
                     className={`${inputFocus} text-slate-700`}
                   >
-                    <option value={FREE_ACCESS_UNLIMITED_VALUE}>Gratuité illimitée</option>
+                    <option value={FREE_ACCESS_UNLIMITED_VALUE}>30 jours par défaut</option>
                     {FREE_ACCESS_DURATION_OPTIONS.map((days) => (
                       <option key={days} value={days}>
                         {days} jours gratuits
@@ -493,7 +493,7 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                             }
                             className={`${curriculumUi.input} ${getStepTheme(1).focus} text-slate-700`}
                           >
-                            <option value={FREE_ACCESS_UNLIMITED_VALUE}>Gratuité illimitée</option>
+                            <option value={FREE_ACCESS_UNLIMITED_VALUE}>30 jours par défaut</option>
                             {FREE_ACCESS_DURATION_OPTIONS.map((days) => (
                               <option key={days} value={days}>
                                 {days} jours gratuits

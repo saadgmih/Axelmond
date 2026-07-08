@@ -58,9 +58,7 @@ export async function processFreeCourseEnrollment(params: {
 
   const invoiceId = buildCourseInvoiceId("FREE");
   const externalId = `free-enroll-${params.userId}-${params.courseId}`;
-  const enrollmentEndDate = course.freeAccessDurationDays
-    ? buildEnrollmentEndDate(new Date(), course.freeAccessDurationDays)
-    : null;
+  const enrollmentEndDate = buildEnrollmentEndDate(new Date(), course.freeAccessDurationDays ?? undefined);
 
   try {
     const result = await params.persistCoursePaymentEnrollment({

@@ -35,7 +35,7 @@ rulesTest("course-price-slider", () => {
   assert.match(sliderSource, /formatFreeAccessDurationLabel/);
   assert.match(curriculumModulesSource, /Durée de gratuité/);
   assert.match(curriculumModulesSource, /FREE_ACCESS_DURATION_OPTIONS/);
-  assert.match(curriculumModulesSource, /Gratuité illimitée/);
+  assert.match(curriculumModulesSource, /30 jours par défaut/);
   assert.match(sliderSource, /onCommit/);
   assert.match(sliderSource, /draggingRef/);
   assert.match(sliderSource, /course-price-slider-root/);
@@ -69,6 +69,6 @@ rulesTest("course-price-slider", () => {
   assert.equal(normalizeFreeAccessDurationDays("30"), 30);
   assert.equal(freeAccessDurationInputValue(null), "");
   assert.equal(freeAccessDurationInputValue(14), "14");
-  assert.equal(formatFreeAccessDurationLabel(null), "Gratuit illimité");
+  assert.equal(formatFreeAccessDurationLabel(null), "Gratuit 30 jours");
   assert.equal(formatFreeAccessDurationLabel(7), "Gratuit 7 jours");
 });

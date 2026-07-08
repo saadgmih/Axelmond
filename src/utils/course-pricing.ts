@@ -1,3 +1,5 @@
+import { COURSE_ENROLLMENT_ACCESS_DAYS } from "../enrollment-access";
+
 export const FREE_COURSE_PRICE = 0;
 export const MIN_PAID_COURSE_PRICE = 10;
 export const MAX_COURSE_PRICE = 499;
@@ -46,6 +48,6 @@ export function freeAccessDurationInputValue(value: number | null | undefined): 
 
 export function formatFreeAccessDurationLabel(value: number | null | undefined): string {
   const days = normalizeFreeAccessDurationDays(value);
-  if (!days) return "Gratuit illimité";
+  if (!days) return `Gratuit ${COURSE_ENROLLMENT_ACCESS_DAYS} jours`;
   return `Gratuit ${days} jour${days > 1 ? "s" : ""}`;
 }

@@ -18,23 +18,37 @@ import { rulesTest } from "./helpers/rulesTest.ts";
 rulesTest("enrollment-access", () => {
   const now = new Date("2026-06-15T12:00:00.000Z");
 
-  assert.equal(isEnrollmentActive({ active: true, endDate: null }, now), true);
-  assert.equal(isEnrollmentActive({ active: true, endDate: undefined }, now), true);
+  assert.equal(isEnrollmentActive({ active: true, startDate: "2026-06-01T12:00:00.000Z", endDate: null }, now), true);
+  assert.equal(isEnrollmentActive({ active: true, startDate: "2026-05-01T12:00:00.000Z", endDate: null }, now), false);
+  assert.equal(isEnrollmentActive({ active: true, endDate: undefined }, now), false);
   assert.equal(isEnrollmentActive({ active: true, endDate: "2026-07-01T00:00:00.000Z" }, now), true);
   assert.equal(isEnrollmentActive({ active: true, endDate: "2026-05-01T00:00:00.000Z" }, now), false);
   assert.equal(isEnrollmentActive({ active: false, endDate: null }, now), false);
-  assert.equal(isEnrollmentActive({ active: true, endDate: "not-a-date" }, now), true);
-  assert.equal(isEnrollmentExpired({ active: true, endDate: null }, now), false);
+  assert.equal(
+    isEnrollmentActive({ active: true, startDate: "2026-06-01T12:00:00.000Z", endDate: "not-a-date" }, now),
+    true,
+  );
+  assert.equal(isEnrollmentExpired({ active: true, startDate: "2026-06-01T12:00:00.000Z", endDate: null }, now), false);
   assert.equal(isEnrollmentExpired({ active: false, endDate: null }, now), true);
-  assert.equal(getEnrollmentRemainingMs({ active: true, endDate: null }, now), null);
+  assert.equal(
+    getEnrollmentRemainingMs({ active: true, startDate: "2026-06-01T12:00:00.000Z", endDate: null }, now),
+    1_382_400_000,
+  );
   assert.equal(getEnrollmentRemainingMs({ active: true, endDate: "2026-06-16T12:00:00.000Z" }, now), 86_400_000);
   assert.equal(isEnrollmentEndingSoon({ active: true, endDate: "2026-06-17T12:00:00.000Z" }, 259_200_000, now), true);
-  assert.equal(isEnrollmentEndingSoon({ active: true, endDate: null }, 259_200_000, now), false);
+  assert.equal(
+    isEnrollmentEndingSoon(
+      { active: true, startDate: "2026-05-18T12:00:00.000Z", endDate: null },
+      259_200_000,
+      now,
+    ),
+    true,
+  );
 
   assert.deepEqual(
     getActiveEnrolledCourseIds(
       [
-        { courseId: 2, active: true, endDate: null },
+        { courseId: 2, active: true, startDate: "2026-06-01T12:00:00.000Z", endDate: null },
         { courseId: 3, active: true, endDate: "2026-05-01T00:00:00.000Z" },
         { courseId: 4, active: true, endDate: "2026-08-01T00:00:00.000Z" },
         { courseId: 5, active: false, endDate: null },

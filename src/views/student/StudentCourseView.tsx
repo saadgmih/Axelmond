@@ -21,7 +21,7 @@ import PremiumVideoPlayer from "../../components/PremiumVideoPlayer";
 import { lessonContentIdFromModule } from "../../course-curriculum-utils";
 import { findLessonContent } from "../../hooks/useCourseContent";
 import { sanitizeCourseAttachmentUrl } from "../../external-url-security";
-import { getEnrollmentRemainingMs, isEnrollmentActive } from "../../enrollment-access";
+import { getEnrollmentEffectiveEndDate, getEnrollmentRemainingMs, isEnrollmentActive } from "../../enrollment-access";
 import type { ContentSection, Course, CourseModule, LessonContent } from "../../types";
 import { formatCredits } from "../../utils/morocco-locale";
 
@@ -90,7 +90,7 @@ export default function StudentCourseView({
     }
 
     setTimeRemaining(getEnrollmentRemainingMs(enrollment));
-    if (!enrollment.endDate) return;
+    if (!getEnrollmentEffectiveEndDate(enrollment)) return;
 
     const interval = setInterval(() => {
       const remaining = getEnrollmentRemainingMs(enrollment) ?? 0;
@@ -101,7 +101,7 @@ export default function StudentCourseView({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [enrollment?.active, enrollment?.endDate]);
+  }, [enrollment?.active, enrollment?.endDate, enrollment?.startDate]);
 
   const formattedStartDate = useMemo(() => {
     if (!enrollment?.startDate) return "";
@@ -114,8 +114,9 @@ export default function StudentCourseView({
 
   const formattedEndDate = useMemo(() => {
     if (!enrollment) return "";
-    if (!enrollment.endDate) return isEnrollmentActive(enrollment) ? "Accès illimité" : "Non renseignée";
-    return new Date(enrollment.endDate).toLocaleDateString("fr-FR", {
+    const effectiveEndDate = getEnrollmentEffectiveEndDate(enrollment);
+    if (!effectiveEndDate) return "Non renseignée";
+    return effectiveEndDate.toLocaleDateString("fr-FR", {
       day: "numeric",
       month: "long",
       year: "numeric",
@@ -351,9 +352,7 @@ export default function StudentCourseView({
                   <span className="font-mono text-emerald-700 font-black">
                     {isExpired
                       ? "Accès expiré"
-                      : timeRemaining == null
-                        ? "Accès illimité"
-                        : formatTimeRemaining(timeRemaining)}
+                      : formatTimeRemaining(timeRemaining ?? 0)}
                   </span>
                 </div>
                 {(isExpired || isSoonExpired) && setCourseToPurchase && (

@@ -15,12 +15,22 @@ function toTimestamp(value: Date | string | null | undefined): number | null {
   return Number.isNaN(time) ? null : time;
 }
 
-/** Active enrollment: flag set and no expiry date or expiry still in the future. */
+export function getEnrollmentEffectiveEndDate(enrollment: EnrollmentAccessRecord): Date | null {
+  const explicitEndTime = toTimestamp(enrollment.endDate ?? null);
+  if (explicitEndTime != null) return new Date(explicitEndTime);
+
+  const startTime = toTimestamp(enrollment.startDate ?? null);
+  if (startTime == null) return null;
+
+  return buildEnrollmentEndDate(new Date(startTime));
+}
+
+/** Active enrollment: flag set and effective expiry date still in the future. */
 export function isEnrollmentActive(enrollment: EnrollmentAccessRecord, now = new Date()): boolean {
   if (!enrollment.active) return false;
 
-  const endTime = toTimestamp(enrollment.endDate ?? null);
-  if (endTime == null) return true;
+  const endTime = getEnrollmentEffectiveEndDate(enrollment)?.getTime();
+  if (endTime == null) return false;
 
   return endTime > now.getTime();
 }
@@ -32,8 +42,8 @@ export function isEnrollmentExpired(enrollment: EnrollmentAccessRecord, now = ne
 export function getEnrollmentRemainingMs(enrollment: EnrollmentAccessRecord, now = new Date()): number | null {
   if (!isEnrollmentActive(enrollment, now)) return 0;
 
-  const endTime = toTimestamp(enrollment.endDate ?? null);
-  if (endTime == null) return null;
+  const endTime = getEnrollmentEffectiveEndDate(enrollment)?.getTime();
+  if (endTime == null) return 0;
 
   return Math.max(0, endTime - now.getTime());
 }
