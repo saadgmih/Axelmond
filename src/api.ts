@@ -242,6 +242,8 @@ export const api = {
     category?: string;
     disciplineId: number;
     price: number;
+    freeAccessStartsAt?: string | null;
+    freeAccessEndsAt?: string | null;
     freeAccessDurationDays?: number | null;
     instructor?: string;
     description: string;
@@ -257,6 +259,8 @@ export const api = {
       duration?: string;
       disciplineId?: number;
       price?: number;
+      freeAccessStartsAt?: string | null;
+      freeAccessEndsAt?: string | null;
       freeAccessDurationDays?: number | null;
       published?: boolean;
     },
@@ -307,6 +311,8 @@ export const api = {
     courseId: number,
     data: {
       price?: number;
+      freeAccessStartsAt?: string | null;
+      freeAccessEndsAt?: string | null;
       freeAccessDurationDays?: number | null;
       isLiveNow?: boolean;
       liveSubject?: string | null;

@@ -11,6 +11,7 @@ import {
   MIN_PAID_COURSE_PRICE,
   formatFreeAccessDurationLabel,
   freeAccessDurationInputValue,
+  getFreeAccessWindowEndDate,
   isValidCoursePrice,
   normalizeFreeAccessDurationDays,
   normalizeCoursePrice,
@@ -33,9 +34,12 @@ rulesTest("course-price-slider", () => {
   assert.match(sliderSource, /Gratuit/);
   assert.match(sliderSource, /Payant/);
   assert.match(sliderSource, /formatFreeAccessDurationLabel/);
-  assert.match(curriculumModulesSource, /Durée de gratuité/);
-  assert.match(curriculumModulesSource, /FREE_ACCESS_DURATION_OPTIONS/);
-  assert.match(curriculumModulesSource, /30 jours par défaut/);
+  assert.match(curriculumModulesSource, /Début de gratuité/);
+  assert.match(curriculumModulesSource, /Fin de gratuité/);
+  assert.doesNotMatch(curriculumModulesSource, /FREE_ACCESS_DURATION_OPTIONS/);
+  assert.doesNotMatch(curriculumModulesSource, /30 jours fixes/);
+  assert.match(routeSchemasSource, /freeAccessStartsAt/);
+  assert.match(routeSchemasSource, /freeAccessEndsAt/);
   assert.match(sliderSource, /onCommit/);
   assert.match(sliderSource, /draggingRef/);
   assert.match(sliderSource, /course-price-slider-root/);
@@ -69,6 +73,15 @@ rulesTest("course-price-slider", () => {
   assert.equal(normalizeFreeAccessDurationDays("30"), 30);
   assert.equal(freeAccessDurationInputValue(null), "");
   assert.equal(freeAccessDurationInputValue(14), "14");
-  assert.equal(formatFreeAccessDurationLabel(null), "Gratuit 30 jours");
-  assert.equal(formatFreeAccessDurationLabel(7), "Gratuit 7 jours");
+  assert.equal(formatFreeAccessDurationLabel(null), "Gratuit 30 jours fixes");
+  assert.equal(formatFreeAccessDurationLabel(7), "Gratuit 7 jours fixes");
+  assert.equal(
+    getFreeAccessWindowEndDate("2026-09-01T00:00:00.000Z", 30)?.toISOString(),
+    "2026-10-01T00:00:00.000Z",
+  );
+  assert.equal(
+    getFreeAccessWindowEndDate("2026-09-01T00:00:00.000Z", 30, "2026-09-12T00:00:00.000Z")?.toISOString(),
+    "2026-09-12T00:00:00.000Z",
+  );
+  assert.match(formatFreeAccessDurationLabel(12, "2026-09-01T00:00:00.000Z", "2026-09-12T00:00:00.000Z"), /12\/09\/2026/);
 });

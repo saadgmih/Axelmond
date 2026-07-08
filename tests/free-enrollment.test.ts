@@ -37,6 +37,10 @@ rulesTest("free-enrollment-wiring", () => {
     "prisma/migrations/20260629013000_course_free_access_duration/migration.sql",
     "utf8",
   );
+  const fixedWindowMigrationSource = fs.readFileSync(
+    "prisma/migrations/20260708182000_course_free_access_fixed_window/migration.sql",
+    "utf8",
+  );
   const appSessionSource = fs.readFileSync("src/hooks/useAppSession.ts", "utf8");
   const paypalEnrollmentSource = fs.readFileSync("src/paypal-enrollment.ts", "utf8");
 
@@ -53,13 +57,20 @@ rulesTest("free-enrollment-wiring", () => {
 
   assert.doesNotMatch(freeEnrollmentSource, /ALREADY_ENROLLED/);
   assert.match(freeEnrollmentSource, /course\.freeAccessDurationDays/);
+  assert.match(freeEnrollmentSource, /course\.freeAccessStartsAt/);
+  assert.match(freeEnrollmentSource, /course\.freeAccessEndsAt/);
+  assert.match(freeEnrollmentSource, /FREE_ENROLL_WINDOW_EXPIRED/);
   assert.match(freeEnrollmentSource, /enrollmentEndDate/);
   assert.match(freeEnrollmentSource, /persistCoursePaymentEnrollment/);
   assert.match(coursePaymentsSource, /enrollment\.upsert/);
   assert.match(coursePaymentsSource, /enrollmentEndDate/);
+  assert.match(prismaSchemaSource, /freeAccessStartsAt\s+DateTime\?/);
+  assert.match(prismaSchemaSource, /freeAccessEndsAt\s+DateTime\?/);
   assert.match(prismaSchemaSource, /freeAccessDurationDays\s+Int\?/);
   assert.match(migrationSource, /ADD COLUMN "freeAccessDurationDays" INTEGER/);
   assert.match(migrationSource, /Course_freeAccessDurationDays_check/);
+  assert.match(fixedWindowMigrationSource, /ADD COLUMN "freeAccessStartsAt" TIMESTAMP\(3\)/);
+  assert.match(fixedWindowMigrationSource, /ADD COLUMN "freeAccessEndsAt" TIMESTAMP\(3\)/);
   assert.doesNotMatch(appSessionSource, /useState<number\[\]>\(\[1\]\)/);
   assert.doesNotMatch(appSessionSource, /enrolledCourses \|\| \[1\]/);
   assert.doesNotMatch(paypalEnrollmentSource, /ALREADY_ENROLLED/);

@@ -208,6 +208,8 @@ model Course {
   duration               String
   category               String
   price                  Float
+  freeAccessStartsAt     DateTime?
+  freeAccessEndsAt       DateTime?
   freeAccessDurationDays Int?
   iconName               String
   color                  String

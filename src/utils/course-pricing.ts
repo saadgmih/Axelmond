@@ -46,8 +46,41 @@ export function freeAccessDurationInputValue(value: number | null | undefined): 
   return value && value > 0 ? String(Math.trunc(value)) : FREE_ACCESS_UNLIMITED_VALUE;
 }
 
-export function formatFreeAccessDurationLabel(value: number | null | undefined): string {
+export function formatDateInputValue(value: Date | string | null | undefined, fallback = new Date()): string {
+  const date = value ? new Date(value) : fallback;
+  if (Number.isNaN(date.getTime())) return fallback.toISOString().slice(0, 10);
+  return date.toISOString().slice(0, 10);
+}
+
+export function getEffectiveFreeAccessDurationDays(value: number | null | undefined): number {
+  return normalizeFreeAccessDurationDays(value) ?? COURSE_ENROLLMENT_ACCESS_DAYS;
+}
+
+export function getFreeAccessWindowEndDate(
+  startsAt: Date | string | null | undefined,
+  durationDays: number | null | undefined,
+  explicitEndsAt?: Date | string | null,
+): Date | null {
+  if (explicitEndsAt) {
+    const endDate = new Date(explicitEndsAt);
+    if (!Number.isNaN(endDate.getTime())) return endDate;
+  }
+  if (!startsAt) return null;
+  const startDate = new Date(startsAt);
+  if (Number.isNaN(startDate.getTime())) return null;
+  return new Date(startDate.getTime() + getEffectiveFreeAccessDurationDays(durationDays) * 24 * 60 * 60 * 1000);
+}
+
+export function formatFreeAccessDurationLabel(
+  value: number | null | undefined,
+  startsAt?: Date | string | null,
+  endsAt?: Date | string | null,
+): string {
   const days = normalizeFreeAccessDurationDays(value);
-  if (!days) return `Gratuit ${COURSE_ENROLLMENT_ACCESS_DAYS} jours`;
-  return `Gratuit ${days} jour${days > 1 ? "s" : ""}`;
+  const effectiveDays = days ?? COURSE_ENROLLMENT_ACCESS_DAYS;
+  const endDate = getFreeAccessWindowEndDate(startsAt, effectiveDays, endsAt);
+  if (endDate) {
+    return `Gratuit jusqu'au ${endDate.toLocaleDateString("fr-FR")}`;
+  }
+  return `Gratuit ${effectiveDays} jour${effectiveDays > 1 ? "s" : ""} fixes`;
 }

@@ -173,13 +173,15 @@ const TeacherTariffCard = memo(function TeacherTariffCard({
         </div>
         <span className="shrink-0 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 px-2.5 py-1 font-mono text-xs font-black text-white">
           {isFreeCoursePrice(displayPrice)
-            ? formatFreeAccessDurationLabel(course.freeAccessDurationDays)
+            ? formatFreeAccessDurationLabel(course.freeAccessDurationDays, course.freeAccessStartsAt, course.freeAccessEndsAt)
             : formatMad(displayPrice)}
         </span>
       </div>
       <CoursePriceSlider
         courseId={course.id}
         price={course.price}
+        freeAccessStartsAt={course.freeAccessStartsAt}
+        freeAccessEndsAt={course.freeAccessEndsAt}
         freeAccessDurationDays={course.freeAccessDurationDays}
         courseTitle={course.title}
         onCommit={onSave}

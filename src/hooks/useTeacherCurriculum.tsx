@@ -12,7 +12,9 @@ import type { AppUser } from "../components/AuthScreen";
 import type { Course, ContentSection, FacultyDomain, LessonContent } from "../types";
 import {
   MIN_PAID_COURSE_PRICE,
+  formatDateInputValue,
   freeAccessDurationInputValue,
+  getFreeAccessWindowEndDate,
   isFreeCoursePrice,
   normalizeCoursePriceForSave,
   normalizeFreeAccessDurationDays,
@@ -73,6 +75,10 @@ export function useTeacherCurriculum({
   const [newCourseDuration, setNewCourseDuration] = useState("20 heures");
   const [newCoursePrice, setNewCoursePrice] = useState(numericInputFromNumber(0));
   const [newCourseIsFree, setNewCourseIsFree] = useState(true);
+  const [newCourseFreeAccessStartsAt, setNewCourseFreeAccessStartsAt] = useState(formatDateInputValue(null));
+  const [newCourseFreeAccessEndsAt, setNewCourseFreeAccessEndsAt] = useState(
+    formatDateInputValue(getFreeAccessWindowEndDate(new Date(), null)),
+  );
   const [newCourseFreeAccessDurationDays, setNewCourseFreeAccessDurationDays] = useState("");
   const [newCoursePublished, setNewCoursePublished] = useState(true);
   const [newSectionCourseId, setNewSectionCourseId] = useState<number>(1);
@@ -96,6 +102,8 @@ export function useTeacherCurriculum({
     disciplineId: 0,
     price: "",
     isFree: true,
+    freeAccessStartsAt: "",
+    freeAccessEndsAt: "",
     freeAccessDurationDays: "",
   });
   const [teacherQuizzes, setTeacherQuizzes] = useState<any[]>([]);
@@ -270,6 +278,8 @@ export function useTeacherCurriculum({
           newCourseIsFree,
           numberFromNumericInput(newCoursePrice, MIN_PAID_COURSE_PRICE),
         ),
+        freeAccessStartsAt: newCourseIsFree ? newCourseFreeAccessStartsAt : null,
+        freeAccessEndsAt: newCourseIsFree ? newCourseFreeAccessEndsAt : null,
         freeAccessDurationDays: newCourseIsFree
           ? normalizeFreeAccessDurationDays(newCourseFreeAccessDurationDays)
           : null,
@@ -288,6 +298,8 @@ export function useTeacherCurriculum({
       setUploadSectionId("");
       setNewCourseTitle("");
       setNewCourseDescription("");
+      setNewCourseFreeAccessStartsAt(formatDateInputValue(null));
+      setNewCourseFreeAccessEndsAt(formatDateInputValue(getFreeAccessWindowEndDate(new Date(), null)));
       setCourseContentSections([]);
       showCurriculumSuccess(`Module « ${normalizedCourse.title} » créé avec succès.`);
     } catch (err: any) {
@@ -463,6 +475,10 @@ export function useTeacherCurriculum({
       disciplineId: course.disciplineId ?? allDisciplines[0]?.id ?? 0,
       price: numericInputFromNumber(isFreeCoursePrice(course.price) ? MIN_PAID_COURSE_PRICE : course.price),
       isFree: isFreeCoursePrice(course.price),
+      freeAccessStartsAt: formatDateInputValue(course.freeAccessStartsAt),
+      freeAccessEndsAt: formatDateInputValue(
+        course.freeAccessEndsAt ?? getFreeAccessWindowEndDate(course.freeAccessStartsAt, course.freeAccessDurationDays),
+      ),
       freeAccessDurationDays: freeAccessDurationInputValue(course.freeAccessDurationDays),
     });
   };
@@ -486,6 +502,8 @@ export function useTeacherCurriculum({
           editCourseForm.isFree,
           numberFromNumericInput(editCourseForm.price, MIN_PAID_COURSE_PRICE),
         ),
+        freeAccessStartsAt: editCourseForm.isFree ? editCourseForm.freeAccessStartsAt : null,
+        freeAccessEndsAt: editCourseForm.isFree ? editCourseForm.freeAccessEndsAt : null,
         freeAccessDurationDays: editCourseForm.isFree
           ? normalizeFreeAccessDurationDays(editCourseForm.freeAccessDurationDays)
           : null,
@@ -682,6 +700,10 @@ export function useTeacherCurriculum({
     setNewCoursePrice,
     newCourseIsFree,
     setNewCourseIsFree,
+    newCourseFreeAccessStartsAt,
+    setNewCourseFreeAccessStartsAt,
+    newCourseFreeAccessEndsAt,
+    setNewCourseFreeAccessEndsAt,
     newCourseFreeAccessDurationDays,
     setNewCourseFreeAccessDurationDays,
     newCoursePublished,

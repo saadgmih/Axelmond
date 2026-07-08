@@ -16,11 +16,11 @@ import {
 import { formatCredits, formatMad } from "../../../utils/morocco-locale";
 import {
   COURSE_PRICE_STEP,
-  FREE_ACCESS_DURATION_OPTIONS,
-  FREE_ACCESS_UNLIMITED_VALUE,
   FREE_COURSE_PRICE,
   MIN_PAID_COURSE_PRICE,
+  formatDateInputValue,
   formatFreeAccessDurationLabel,
+  getFreeAccessWindowEndDate,
 } from "../../../utils/course-pricing";
 import {
   normalizeNumericInputValue,
@@ -71,8 +71,10 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
     setNewCoursePrice,
     newCourseIsFree,
     setNewCourseIsFree,
-    newCourseFreeAccessDurationDays,
-    setNewCourseFreeAccessDurationDays,
+    newCourseFreeAccessStartsAt,
+    setNewCourseFreeAccessStartsAt,
+    newCourseFreeAccessEndsAt,
+    setNewCourseFreeAccessEndsAt,
     newCoursePublished,
     setNewCoursePublished,
     newSectionCourseId,
@@ -296,21 +298,35 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                 Payant : minimum {formatMad(MIN_PAID_COURSE_PRICE)}. Gratuit : accès sans paiement.
               </p>
               {newCourseIsFree && (
-                <label className="block space-y-1.5">
-                  <span className={curriculumUi.label}>Durée de gratuité</span>
-                  <select
-                    value={newCourseFreeAccessDurationDays}
-                    onChange={(e) => setNewCourseFreeAccessDurationDays(e.target.value)}
-                    className={`${inputFocus} text-slate-700`}
-                  >
-                    <option value={FREE_ACCESS_UNLIMITED_VALUE}>30 jours par défaut</option>
-                    {FREE_ACCESS_DURATION_OPTIONS.map((days) => (
-                      <option key={days} value={days}>
-                        {days} jours gratuits
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <label className="block space-y-1.5">
+                    <span className={curriculumUi.label}>Début de gratuité</span>
+                    <input
+                      type="date"
+                      value={newCourseFreeAccessStartsAt}
+                      onChange={(e) => {
+                        const nextStart = e.target.value;
+                        setNewCourseFreeAccessStartsAt(nextStart);
+                        if (!newCourseFreeAccessEndsAt || new Date(newCourseFreeAccessEndsAt) <= new Date(nextStart)) {
+                          setNewCourseFreeAccessEndsAt(
+                            formatDateInputValue(getFreeAccessWindowEndDate(nextStart, null)),
+                          );
+                        }
+                      }}
+                      className={`${inputFocus} text-slate-700`}
+                    />
+                  </label>
+                  <label className="block space-y-1.5">
+                    <span className={curriculumUi.label}>Fin de gratuité</span>
+                    <input
+                      type="date"
+                      min={newCourseFreeAccessStartsAt}
+                      value={newCourseFreeAccessEndsAt}
+                      onChange={(e) => setNewCourseFreeAccessEndsAt(e.target.value)}
+                      className={`${inputFocus} text-slate-700`}
+                    />
+                  </label>
+                </div>
               )}
             </div>
           </div>
@@ -432,6 +448,8 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                               ...prev,
                               isFree: true,
                               price: numericInputFromNumber(FREE_COURSE_PRICE),
+                              freeAccessStartsAt: prev.freeAccessStartsAt || newCourseFreeAccessStartsAt,
+                              freeAccessEndsAt: prev.freeAccessEndsAt || newCourseFreeAccessEndsAt,
                             }))
                           }
                           className={priceModeButtonClass(editCourseForm.isFree)}
@@ -481,26 +499,45 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                         Payant : minimum {formatMad(MIN_PAID_COURSE_PRICE)}.
                       </p>
                       {editCourseForm.isFree && (
-                        <label className="block space-y-1.5">
-                          <span className="text-[9px] font-bold text-slate-400 uppercase">Durée de gratuité</span>
-                          <select
-                            value={editCourseForm.freeAccessDurationDays}
-                            onChange={(e) =>
-                              setEditCourseForm((prev) => ({
-                                ...prev,
-                                freeAccessDurationDays: e.target.value,
-                              }))
-                            }
-                            className={`${curriculumUi.input} ${getStepTheme(1).focus} text-slate-700`}
-                          >
-                            <option value={FREE_ACCESS_UNLIMITED_VALUE}>30 jours par défaut</option>
-                            {FREE_ACCESS_DURATION_OPTIONS.map((days) => (
-                              <option key={days} value={days}>
-                                {days} jours gratuits
-                              </option>
-                            ))}
-                          </select>
-                        </label>
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                          <label className="block space-y-1.5">
+                            <span className="text-[9px] font-bold text-slate-400 uppercase">Début de gratuité</span>
+                            <input
+                              type="date"
+                              value={editCourseForm.freeAccessStartsAt}
+                              onChange={(e) =>
+                                setEditCourseForm((prev) => {
+                                  const nextStart = e.target.value;
+                                  const shouldShiftEnd =
+                                    !prev.freeAccessEndsAt || new Date(prev.freeAccessEndsAt) <= new Date(nextStart);
+                                  return {
+                                    ...prev,
+                                    freeAccessStartsAt: nextStart,
+                                    freeAccessEndsAt: shouldShiftEnd
+                                      ? formatDateInputValue(getFreeAccessWindowEndDate(nextStart, null))
+                                      : prev.freeAccessEndsAt,
+                                  };
+                                })
+                              }
+                              className={`${curriculumUi.input} ${getStepTheme(1).focus} text-slate-700`}
+                            />
+                          </label>
+                          <label className="block space-y-1.5">
+                            <span className="text-[9px] font-bold text-slate-400 uppercase">Fin de gratuité</span>
+                            <input
+                              type="date"
+                              min={editCourseForm.freeAccessStartsAt}
+                              value={editCourseForm.freeAccessEndsAt}
+                              onChange={(e) =>
+                                setEditCourseForm((prev) => ({
+                                  ...prev,
+                                  freeAccessEndsAt: e.target.value,
+                                }))
+                              }
+                              className={`${curriculumUi.input} ${getStepTheme(1).focus} text-slate-700`}
+                            />
+                          </label>
+                        </div>
                       )}
                     </div>
                     <label className="md:col-span-2 space-y-1 block">
@@ -568,7 +605,11 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                       <DollarSign className="w-3.5 h-3.5" />
                       {course.price > 0
                         ? formatMad(course.price)
-                        : formatFreeAccessDurationLabel(course.freeAccessDurationDays)}
+                        : formatFreeAccessDurationLabel(
+                            course.freeAccessDurationDays,
+                            course.freeAccessStartsAt,
+                            course.freeAccessEndsAt,
+                          )}
                     </span>
                   </div>
 

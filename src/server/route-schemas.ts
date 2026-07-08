@@ -121,6 +121,23 @@ export const PASSWORD_RESET_GENERIC_MESSAGE =
 
 const freeAccessDurationDaysField = z.number().int().positive().nullable().optional();
 
+function normalizeDateField(value: unknown, boundary: "start" | "end") {
+  if (value === "") return null;
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return new Date(`${value}T${boundary === "start" ? "00:00:00.000" : "23:59:59.999"}Z`);
+  }
+  return value;
+}
+
+const freeAccessStartsAtField = z.preprocess(
+  (value) => normalizeDateField(value, "start"),
+  z.coerce.date().nullable().optional(),
+);
+const freeAccessEndsAtField = z.preprocess(
+  (value) => normalizeDateField(value, "end"),
+  z.coerce.date().nullable().optional(),
+);
+
 export const courseSchema = z
   .object({
     title: z.string().min(2, "Le titre est requis").max(200).trim(),
@@ -133,6 +150,8 @@ export const courseSchema = z
       .number()
       .nonnegative()
       .refine(isValidCoursePrice, `Le prix doit être gratuit ou supérieur ou égal à ${MIN_PAID_COURSE_PRICE} DH.`),
+    freeAccessStartsAt: freeAccessStartsAtField,
+    freeAccessEndsAt: freeAccessEndsAtField,
     freeAccessDurationDays: freeAccessDurationDaysField,
     instructor: z.string().max(100).trim().optional().nullable(),
     description: z.string().min(5, "La description est requise").max(2000).trim(),
@@ -146,6 +165,32 @@ export const courseSchema = z
         message: "La durée de gratuité s'applique uniquement aux modules gratuits.",
       });
     }
+    if (data.price > 0 && data.freeAccessStartsAt != null) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["freeAccessStartsAt"],
+        message: "La date de début de gratuité s'applique uniquement aux modules gratuits.",
+      });
+    }
+    if (data.price > 0 && data.freeAccessEndsAt != null) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["freeAccessEndsAt"],
+        message: "La date de fin de gratuité s'applique uniquement aux modules gratuits.",
+      });
+    }
+    if (
+      data.price <= 0 &&
+      data.freeAccessStartsAt &&
+      data.freeAccessEndsAt &&
+      data.freeAccessEndsAt <= data.freeAccessStartsAt
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["freeAccessEndsAt"],
+        message: "La date de fin de gratuité doit être après la date de début.",
+      });
+    }
   });
 
 export const coursePatchSchema = z.object({
@@ -155,6 +200,8 @@ export const coursePatchSchema = z.object({
     .refine(isValidCoursePrice, `Le prix doit être gratuit ou supérieur ou égal à ${MIN_PAID_COURSE_PRICE} DH.`)
     .optional(),
   freeAccessDurationDays: freeAccessDurationDaysField,
+  freeAccessStartsAt: freeAccessStartsAtField,
+  freeAccessEndsAt: freeAccessEndsAtField,
   isLiveNow: z.boolean().optional(),
   liveSubject: z.string().max(200).trim().optional().nullable(),
   published: z.boolean().optional(),

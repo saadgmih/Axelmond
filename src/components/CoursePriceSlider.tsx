@@ -33,6 +33,8 @@ export function getCoursePriceSliderPercentage(value: number) {
 interface CoursePriceSliderProps {
   courseId: number;
   price: number;
+  freeAccessStartsAt?: string | null;
+  freeAccessEndsAt?: string | null;
   freeAccessDurationDays?: number | null;
   courseTitle: string;
   onCommit: (id: number, newPrice: number) => void | Promise<void>;
@@ -42,6 +44,8 @@ interface CoursePriceSliderProps {
 export default function CoursePriceSlider({
   courseId,
   price,
+  freeAccessStartsAt,
+  freeAccessEndsAt,
   freeAccessDurationDays,
   courseTitle,
   onCommit,
@@ -114,7 +118,9 @@ export default function CoursePriceSlider({
       <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-slate-500">
         <span>Frais d&apos;inscription</span>
         <span className="font-mono font-bold text-white">
-          {isFree ? formatFreeAccessDurationLabel(freeAccessDurationDays) : formatMad(draft)}
+          {isFree
+            ? formatFreeAccessDurationLabel(freeAccessDurationDays, freeAccessStartsAt, freeAccessEndsAt)
+            : formatMad(draft)}
         </span>
       </div>
       <div className="grid grid-cols-2 gap-2">
