@@ -3,6 +3,7 @@ import { getAuthUser } from "../server/route-types";
 import type { CourseModule } from "../server/route-deps";
 import type { RouteContext } from "../server/route-context";
 import { buildEnrollmentEndDate, getActiveEnrolledCourseIds } from "../enrollment-access";
+import { buildCatalogCourseVisibilityWhere } from "../catalog-visibility";
 import * as api from "../server/route-deps";
 
 const CATALOG_QUERY_TIMEOUT_MS = Number(process.env.CATALOG_QUERY_TIMEOUT_MS) || 15000;
@@ -80,18 +81,14 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
 
       const studentEnrolledIds = isStudent && dbUser ? getActiveEnrolledCourseIds(dbUser.enrollments) : [];
 
-      const where: any =
-        authUser?.role === "ADMIN"
-          ? {}
-          : authUser && (authUser.role === "PROFESSOR" || authUser.role === "RESEARCHER")
-            ? {
-                OR: [{ createdById: authUser.id }, { createdById: null, instructor: authUser.fullName }],
-              }
-            : authUser?.role === "STUDENT"
-              ? studentEnrolledIds.length > 0
-                ? { OR: [{ published: true }, { id: { in: studentEnrolledIds } }] }
-                : { published: true }
-              : { published: true };
+      const visibilityWhere = buildCatalogCourseVisibilityWhere({
+        role: authUser?.role ?? null,
+        userId: authUser?.id ?? null,
+        fullName: authUser?.fullName ?? null,
+        studentEnrolledIds,
+      });
+
+      const where: any = { ...visibilityWhere };
 
       if (Number.isInteger(disciplineId) && disciplineId > 0) {
         where.disciplineId = disciplineId;
@@ -118,7 +115,13 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
 
       let payload;
       if (authUser?.role === "STUDENT" && dbUser) {
-        payload = await api.toCoursesForStudent(courses, authUser.id, studentEnrolledIds, dbUser.enrollments);
+        payload = await api.toCoursesForStudent(
+          courses,
+          authUser.id,
+          studentEnrolledIds,
+          dbUser.enrollments,
+          { skipModuleSync: true },
+        );
       } else {
         payload = courses.map((course) => api.toCourse(course));
       }

@@ -168,6 +168,8 @@ interface StudentCatalogViewProps {
   selectedDiscipline: Discipline | null;
   catalogCourses: Course[];
   isDisciplineCoursesLoading: boolean;
+  disciplineLoadError?: string | null;
+  retryDisciplineLoad?: () => void;
   enrolledCourses: number[];
   getCourseIcon: CourseIconRenderer;
   getDomainIcon: DomainIconRenderer;
@@ -184,6 +186,8 @@ export default function StudentCatalogView({
   selectedDiscipline,
   catalogCourses,
   isDisciplineCoursesLoading,
+  disciplineLoadError,
+  retryDisciplineLoad,
   enrolledCourses,
   getCourseIcon,
   getDomainIcon,
@@ -320,10 +324,28 @@ export default function StudentCatalogView({
             {catalogCourses.length === 0 && !isDisciplineCoursesLoading && (
               <div className="md:col-span-2 lg:col-span-3 bg-white rounded-2xl p-10 border border-slate-200 text-center">
                 <BookOpen className="w-10 h-10 text-slate-300 mx-auto" />
-                <h3 className="text-base font-black text-slate-800 mt-3">Aucun module publié dans cette discipline</h3>
+                <h3 className="text-base font-black text-slate-800 mt-3">
+                  {disciplineLoadError
+                    ? "Synchronisation des modules impossible"
+                    : (selectedDiscipline?.courseCount || 0) > 0
+                      ? "Les modules n'ont pas pu être affichés"
+                      : "Aucun module publié dans cette discipline"}
+                </h3>
                 <p className="text-xs text-slate-500 mt-1">
-                  Les professeurs peuvent créer un module dans cette discipline depuis l'espace de gestion des contenus.
+                  {disciplineLoadError ||
+                    ((selectedDiscipline?.courseCount || 0) > 0
+                      ? "Le catalogue global était incomplet ou obsolète. Réessayez la synchronisation."
+                      : "Les professeurs peuvent créer un module dans cette discipline depuis l'espace de gestion des contenus.")}
                 </p>
+                {(disciplineLoadError || (selectedDiscipline?.courseCount || 0) > 0) && retryDisciplineLoad && (
+                  <button
+                    type="button"
+                    onClick={() => retryDisciplineLoad()}
+                    className="mt-4 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white"
+                  >
+                    Réessayer
+                  </button>
+                )}
               </div>
             )}
             {catalogCourses.map((course) => (

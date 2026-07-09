@@ -198,9 +198,10 @@ export async function toCoursesForStudent(
   userId: string,
   enrolledCourseIds: number[],
   enrollmentRecords?: Array<{ courseId: number; startDate: Date; endDate: Date | null; active: boolean }>,
+  options?: { skipModuleSync?: boolean },
 ): Promise<Course[]> {
   const enrolledIds = enrolledCourseIds.filter((courseId) => courses.some((course) => course.id === courseId));
-  if (enrolledIds.length > 0) {
+  if (enrolledIds.length > 0 && !options?.skipModuleSync) {
     courses = await attachSyncedCourseModules(courses);
   }
 

@@ -37,7 +37,7 @@ export function prefetchStudentCourseViewChunk() {
 
 export function prefetchCatalogDiscipline(disciplineId: number) {
   if (!Number.isFinite(disciplineId) || disciplineId <= 0) return;
-  void prefetchOnce(`courses:discipline:${disciplineId}`, () => api.getCourses({ disciplineId }));
+  void prefetchOnce(`courses:discipline:${disciplineId}`, () => api.getCourses({ disciplineId, fresh: true }));
   void prefetchStudentCourseViewChunk();
 }
 

@@ -30,6 +30,8 @@ export type PlatformCatalogSlice = Pick<
   | "domains"
   | "catalogCourses"
   | "isDisciplineCoursesLoading"
+  | "disciplineLoadError"
+  | "retryDisciplineLoad"
   | "selectedDomain"
   | "selectedDiscipline"
   | "setSelectedDomainId"

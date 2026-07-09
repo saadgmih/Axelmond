@@ -37,6 +37,8 @@ export function StudentRouteSwitch() {
     selectedDiscipline,
     catalogCourses,
     isDisciplineCoursesLoading,
+    disciplineLoadError,
+    retryDisciplineLoad,
     courses,
     setSelectedDomainId,
     setSelectedDisciplineId,
@@ -71,6 +73,8 @@ export function StudentRouteSwitch() {
             selectedDiscipline={selectedDiscipline}
             catalogCourses={catalogCourses}
             isDisciplineCoursesLoading={isDisciplineCoursesLoading}
+            disciplineLoadError={disciplineLoadError}
+            retryDisciplineLoad={retryDisciplineLoad}
             enrolledCourses={enrolledCourses}
             getCourseIcon={getCourseIcon}
             getDomainIcon={getDomainIcon}

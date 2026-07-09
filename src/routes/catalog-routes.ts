@@ -1,5 +1,7 @@
 import type { Express } from "express";
 import type { RouteContext } from "../server/route-context";
+import { buildCatalogCourseVisibilityWhere } from "../catalog-visibility";
+import { getActiveEnrolledCourseIds } from "../enrollment-access";
 import * as api from "../server/route-deps";
 
 export function registerCatalogRoutes(app: Express, ctx: RouteContext): void {
@@ -7,6 +9,7 @@ export function registerCatalogRoutes(app: Express, ctx: RouteContext): void {
 
   app.get("/api/domains", async (req, res) => {
     const authUser = await api.getOptionalAuthUser(req);
+    const dbUser = authUser ? await api.getOptionalAuthDbUser(req) : null;
     const bypassCache = req.query.fresh === "1";
 
     // Cache uniquement pour les visiteurs anonymes/étudiants (données publiées)
@@ -22,17 +25,15 @@ export function registerCatalogRoutes(app: Express, ctx: RouteContext): void {
       }
     }
 
-    const courseWhere =
-      authUser?.role === "ADMIN"
-        ? {}
-        : authUser && (authUser.role === "PROFESSOR" || authUser.role === "RESEARCHER")
-          ? {
-              OR: [
-                { createdById: authUser.id },
-                { createdById: null, instructor: authUser.fullName },
-              ],
-            }
-          : { published: true };
+    const studentEnrolledIds =
+      authUser?.role === "STUDENT" && dbUser ? getActiveEnrolledCourseIds(dbUser.enrollments) : [];
+
+    const courseWhere = buildCatalogCourseVisibilityWhere({
+      role: authUser?.role ?? null,
+      userId: authUser?.id ?? null,
+      fullName: authUser?.fullName ?? null,
+      studentEnrolledIds,
+    });
 
     const [domains, courseCounts] = await Promise.all([
       api.prisma.facultyDomain.findMany({

@@ -86,9 +86,11 @@ export function usePlatformApp() {
     selectedDiscipline,
     catalogCourses,
     isDisciplineCoursesLoading,
+    disciplineLoadError,
     catalogError,
     catalogHasData,
     retryCatalogLoad,
+    retryDisciplineLoad,
   } = usePlatformCatalogData(isAuthReady, currentUser, courses, domains, setCourses, setDomains, setIsLoading);
 
   const { isEnrolledCatalogSyncing } = useEnrolledCoursesHydration(
@@ -531,6 +533,8 @@ export function usePlatformApp() {
       domains,
       catalogCourses,
       isDisciplineCoursesLoading,
+      disciplineLoadError,
+      retryDisciplineLoad,
       selectedDomain,
       selectedDiscipline,
       setSelectedDomainId,
@@ -546,6 +550,8 @@ export function usePlatformApp() {
       domains,
       catalogCourses,
       isDisciplineCoursesLoading,
+      disciplineLoadError,
+      retryDisciplineLoad,
       selectedDomain,
       selectedDiscipline,
       setSelectedDomainId,

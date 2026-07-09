@@ -34,9 +34,25 @@ export function courseMatchesSelectedDiscipline(
   );
 }
 
+export function filterCatalogCoursesBySearch(courses: Course[], searchQuery: string): Course[] {
+  const searchLower = searchQuery.trim().toLowerCase();
+  if (!searchLower) return courses;
+
+  return courses.filter((course) => {
+    const fields = [
+      course.title,
+      course.category,
+      course.level,
+      course.discipline?.name,
+      course.discipline?.domain?.name,
+    ];
+    return fields.some((value) => (value || "").toLowerCase().includes(searchLower));
+  });
+}
+
 export function resolveCatalogSourceCourses(
   selectedDisciplineId: number | null,
-  disciplineCoursesById: Record<number, Course[]>,
+  activeDisciplineCourses: Course[] | null,
   courses: Course[],
   selectedDisciplineName?: string,
 ): Course[] {
@@ -47,18 +63,15 @@ export function resolveCatalogSourceCourses(
     courseMatchesSelectedDiscipline(course, selectedDisciplineId, disciplineName),
   );
 
-  if (!(selectedDisciplineId in disciplineCoursesById)) {
+  if (activeDisciplineCourses === null) {
     return globalMatches;
   }
 
-  const fetched = disciplineCoursesById[selectedDisciplineId];
-  if (fetched.length === 0) {
+  if (activeDisciplineCourses.length === 0) {
     return globalMatches;
   }
 
-  const byId = new Map(globalMatches.map((course) => [course.id, course]));
-  fetched.forEach((course) => byId.set(course.id, course));
-  return [...byId.values()].sort((a, b) => a.id - b.id);
+  return activeDisciplineCourses;
 }
 
 export function usePlatformCatalogData(
@@ -74,11 +87,17 @@ export function usePlatformCatalogData(
   const [selectedDomainId, setSelectedDomainId] = useState<number | null>(null);
   const [selectedDisciplineId, setSelectedDisciplineIdState] = useState<number | null>(null);
   const [loadingDisciplineId, setLoadingDisciplineId] = useState<number | null>(null);
-  const [disciplineCoursesById, setDisciplineCoursesById] = useState<Record<number, Course[]>>({});
+  const [activeDisciplineCourses, setActiveDisciplineCourses] = useState<Course[] | null>(null);
+  const [disciplineLoadError, setDisciplineLoadError] = useState<string | null>(null);
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const { startRequest } = useAsyncEffectGuard();
   const autoRetryTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const disciplineLoadSeqRef = useRef(0);
+  const selectedDomainIdRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    selectedDomainIdRef.current = selectedDomainId;
+  }, [selectedDomainId]);
 
   const mergeCatalogCourses = useCallback(
     (courseData: Course[]) => {
@@ -115,7 +134,10 @@ export function usePlatformCatalogData(
           }
         }
 
-        const [coursesResult, domainsResult] = await Promise.allSettled([api.getCourses(), api.getDomains()]);
+        const [coursesResult, domainsResult] = await Promise.allSettled([
+          api.getCourses({ fresh: true }),
+          api.getDomains({ fresh: true }),
+        ]);
         if (!request.isActive()) return;
 
         const courseData = coursesResult.status === "fulfilled" ? coursesResult.value : null;
@@ -204,10 +226,11 @@ export function usePlatformCatalogData(
   );
 
   const loadCatalogDiscipline = useCallback(
-    async (disciplineId: number) => {
+    async (disciplineId: number, domainId?: number | null) => {
       if (!Number.isFinite(disciplineId) || disciplineId <= 0) return;
       const requestId = ++disciplineLoadSeqRef.current;
       setLoadingDisciplineId(disciplineId);
+      setDisciplineLoadError(null);
 
       try {
         if (currentUser) {
@@ -216,23 +239,22 @@ export function usePlatformCatalogData(
           if (!token) throw new Error("Session authentifiée indisponible pour charger la discipline.");
         }
 
-        const courseData = await api.getCourses({ disciplineId, fresh: true });
+        const courseData = await api.getCourses({
+          disciplineId,
+          domainId: domainId || undefined,
+          fresh: true,
+        });
         if (disciplineLoadSeqRef.current !== requestId) return;
-        setDisciplineCoursesById((previous) => ({ ...previous, [disciplineId]: courseData }));
+
+        setActiveDisciplineCourses(courseData);
         mergeCatalogCourses(courseData);
-        try {
-          const domainData = await api.getDomains({ fresh: true });
-          if (disciplineLoadSeqRef.current === requestId) {
-            setDomains(domainData);
-          }
-        } catch (domainErr) {
-          console.warn("Failed to refresh domain counts after discipline sync:", domainErr);
-        }
+        setDisciplineLoadError(null);
         setCatalogError(null);
       } catch (err) {
         if (disciplineLoadSeqRef.current !== requestId) return;
         console.error("Failed to fetch discipline catalog:", err);
-        setCatalogError(getClientErrorMessage(err, "Impossible de charger les modules de cette discipline."));
+        setActiveDisciplineCourses(null);
+        setDisciplineLoadError(getClientErrorMessage(err, "Impossible de charger les modules de cette discipline."));
       } finally {
         if (disciplineLoadSeqRef.current === requestId) {
           setLoadingDisciplineId((current) => (current === disciplineId ? null : current));
@@ -242,37 +264,45 @@ export function usePlatformCatalogData(
     [currentUser?.id, mergeCatalogCourses],
   );
 
+  const retryDisciplineLoad = useCallback(() => {
+    if (!selectedDisciplineId) return;
+    void loadCatalogDiscipline(selectedDisciplineId, selectedDomainIdRef.current);
+  }, [loadCatalogDiscipline, selectedDisciplineId]);
+
   const setSelectedDisciplineId = useCallback(
     (disciplineId: number | null) => {
       setSelectedDisciplineIdState(disciplineId);
-      if (disciplineId) void loadCatalogDiscipline(disciplineId);
+      setActiveDisciplineCourses(null);
+      setDisciplineLoadError(null);
+      if (disciplineId) void loadCatalogDiscipline(disciplineId, selectedDomainIdRef.current);
     },
     [loadCatalogDiscipline],
   );
 
   const catalogCourses = useMemo(() => {
-    const searchLower = searchQuery.toLowerCase();
     const selectedDisciplineName = selectedDiscipline?.name || "";
     const sourceCourses = resolveCatalogSourceCourses(
       selectedDisciplineId,
-      disciplineCoursesById,
+      activeDisciplineCourses,
       courses,
       selectedDisciplineName,
     );
 
-    return sourceCourses.filter((course) => {
-      const matchesSearch =
-        course.title.toLowerCase().includes(searchLower) ||
-        course.category.toLowerCase().includes(searchLower) ||
-        course.level.toLowerCase().includes(searchLower) ||
-        course.discipline?.name.toLowerCase().includes(searchLower) ||
-        course.discipline?.domain?.name.toLowerCase().includes(searchLower);
-      if (!matchesSearch) return false;
-      if (selectedDisciplineId) return true;
-      if (selectedDomainId) return Number(course.discipline?.domainId) === Number(selectedDomainId);
-      return true;
-    });
-  }, [courses, disciplineCoursesById, searchQuery, selectedDisciplineId, selectedDomainId, selectedDiscipline?.name]);
+    const scopedCourses = selectedDisciplineId
+      ? sourceCourses
+      : selectedDomainId
+        ? sourceCourses.filter((course) => Number(course.discipline?.domainId) === Number(selectedDomainId))
+        : sourceCourses;
+
+    return filterCatalogCoursesBySearch(scopedCourses, searchQuery);
+  }, [
+    activeDisciplineCourses,
+    courses,
+    searchQuery,
+    selectedDisciplineId,
+    selectedDomainId,
+    selectedDiscipline?.name,
+  ]);
 
   const catalogHasData = courses.length > 0 || domains.length > 0;
 
@@ -288,8 +318,10 @@ export function usePlatformCatalogData(
     selectedDiscipline,
     catalogCourses,
     isDisciplineCoursesLoading: loadingDisciplineId === selectedDisciplineId && selectedDisciplineId !== null,
+    disciplineLoadError,
     catalogError,
     catalogHasData,
     retryCatalogLoad,
+    retryDisciplineLoad,
   };
 }
