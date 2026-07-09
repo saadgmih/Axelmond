@@ -306,7 +306,6 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
               onStartsAtChange={setNewCourseFreeAccessStartsAt}
               onEndsAtChange={setNewCourseFreeAccessEndsAt}
               inputClassName={`${curriculumUi.input} ${getStepTheme(1).focus}`}
-              labelClassName="text-[10px] font-bold uppercase tracking-wide text-slate-500"
             />
           )}
 
@@ -490,7 +489,6 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                             setEditCourseForm((prev) => ({ ...prev, freeAccessEndsAt: value }))
                           }
                           inputClassName={`${curriculumUi.input} ${getStepTheme(1).focus}`}
-                          labelClassName="text-[9px] font-bold uppercase text-slate-400"
                         />
                       </div>
                     )}

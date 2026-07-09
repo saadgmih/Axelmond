@@ -3,6 +3,8 @@ const DATETIME_LOCAL_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
 const DISPLAY_PATTERN = /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})$/;
 const DISPLAY_PATTERN_SECONDS = /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})$/;
 const ISO_SPACE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})\s+(\d{1,2}):(\d{2})$/;
+const FRENCH_DATE_PATTERN = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+const TIME_PATTERN = /^(\d{1,2}):(\d{2})(?::(\d{2}))?$/;
 
 function pad2(value: number): string {
   return String(value).padStart(2, "0");
@@ -40,6 +42,60 @@ export function formatDatetimeDisplayValue(value: Date | string | null | undefin
   return `${day}/${month}/${year} ${timePart}`;
 }
 
+/** Date part for free typing (`JJ/MM/AAAA`). */
+export function formatDateDisplayValue(value: Date | string | null | undefined, fallback = new Date()): string {
+  const local = formatDatetimeLocalValue(value, fallback);
+  const [datePart] = local.split("T");
+  const [year, month, day] = datePart.split("-");
+  return `${day}/${month}/${year}`;
+}
+
+/** Time part for free typing (`HH:mm`). */
+export function formatTimeDisplayValue(value: Date | string | null | undefined, fallback = new Date()): string {
+  const local = formatDatetimeLocalValue(value, fallback);
+  return local.split("T")[1] || "00:00";
+}
+
+export function parseDateDisplayInput(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  if (DATE_ONLY_PATTERN.test(trimmed)) return trimmed;
+
+  const french = trimmed.match(FRENCH_DATE_PATTERN);
+  if (french) {
+    const canonical = toDatetimeLocalString(Number(french[3]), Number(french[2]), Number(french[1]), 0, 0);
+    return canonical ? canonical.split("T")[0] : null;
+  }
+
+  return null;
+}
+
+export function parseTimeDisplayInput(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+
+  const match = trimmed.match(TIME_PATTERN);
+  if (!match) return null;
+
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
+  return `${pad2(hours)}:${pad2(minutes)}`;
+}
+
+export function mergeDisplayDateAndTime(
+  datePart: string,
+  timePart: string,
+  fallback: Date | string | null | undefined = null,
+): string | null {
+  const base = parseDatetimeDisplayInput(typeof fallback === "string" ? fallback : "") ?? formatDatetimeLocalValue(fallback);
+  const [baseDate, baseTime] = base.split("T");
+  const date = parseDateDisplayInput(datePart) ?? baseDate;
+  const time = parseTimeDisplayInput(timePart) ?? baseTime ?? "00:00";
+  const canonical = `${date}T${time}`;
+  return parseDatetimeDisplayInput(canonical) ? canonical : null;
+}
+
 export function parseDatetimeDisplayInput(raw: string): string | null {
   const trimmed = raw.trim();
   if (!trimmed) return null;
@@ -50,6 +106,17 @@ export function parseDatetimeDisplayInput(raw: string): string | null {
 
   if (DATE_ONLY_PATTERN.test(trimmed)) {
     return `${trimmed}T00:00`;
+  }
+
+  const frenchDateOnly = trimmed.match(FRENCH_DATE_PATTERN);
+  if (frenchDateOnly) {
+    return toDatetimeLocalString(
+      Number(frenchDateOnly[3]),
+      Number(frenchDateOnly[2]),
+      Number(frenchDateOnly[1]),
+      0,
+      0,
+    );
   }
 
   const isoSpace = trimmed.match(ISO_SPACE_PATTERN);

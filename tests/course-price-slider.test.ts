@@ -39,7 +39,10 @@ rulesTest("course-price-slider", () => {
   assert.match(freeAccessFieldsSource, /Fin de gratuité/);
   assert.match(curriculumModulesSource, /FreeAccessWindowFields/);
   assert.match(freeAccessFieldsSource, /type="text"/);
-  assert.match(freeAccessFieldsSource, /09\/07\/2026 14:30/);
+  assert.match(freeAccessFieldsSource, /09\/07\/2026/);
+  assert.match(freeAccessFieldsSource, /14:30/);
+  assert.match(freeAccessFieldsSource, /formatDateDisplayValue/);
+  assert.match(freeAccessFieldsSource, /formatTimeDisplayValue/);
   assert.doesNotMatch(freeAccessFieldsSource, /type="datetime-local"/);
   assert.doesNotMatch(curriculumModulesSource, /FREE_ACCESS_DURATION_OPTIONS/);
   assert.doesNotMatch(curriculumModulesSource, /30 jours fixes/);
