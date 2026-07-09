@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import {
   courseMatchesSelectedDiscipline,
   mergeCatalogCourseRows,
+  resolveCatalogSourceCourses,
 } from "../src/app/hooks/usePlatformCatalogData.ts";
 import type { Course } from "../src/types.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
@@ -46,6 +47,9 @@ rulesTest("student-catalog-discipline-sync", () => {
   assert.match(studentCatalogSource, /isDisciplineCoursesLoading/);
   assert.match(studentCatalogSource, /Chargement des modules/);
   assert.match(routeSwitchSource, /isDisciplineCoursesLoading=\{isDisciplineCoursesLoading\}/);
+  assert.match(catalogHookSource, /resolveCatalogSourceCourses/);
+  assert.match(catalogHookSource, /api\.getDomains\(\{ fresh: true \}\)/);
+  assert.match(apiSource, /getDomains: \(options\?: \{ fresh\?: boolean \}\)/);
   assert.match(apiSource, /fresh\?: boolean/);
   assert.match(apiSource, /params\.set\("fresh", "1"\)/);
   assert.match(coursesRoutesSource, /const bypassCache = req\.query\.fresh === "1"/);
@@ -70,5 +74,20 @@ rulesTest("student-catalog-discipline-sync", () => {
   assert.equal(
     courseMatchesSelectedDiscipline(makeCourse(4, { disciplineId: 999, category: "Bases de Données" }), 601, "Programmation"),
     false,
+  );
+  assert.equal(
+    courseMatchesSelectedDiscipline(makeCourse(5, { disciplineId: "601" as unknown as number }), 601, "Programmation"),
+    true,
+  );
+
+  const disciplineCourse = makeCourse(8, { title: "Programmation en C++" });
+  const globalCourse = makeCourse(9, { disciplineId: 601, title: "Algorithmique" });
+  assert.deepEqual(
+    resolveCatalogSourceCourses(601, { 601: [disciplineCourse] }, [globalCourse], "Programmation").map((course) => course.id),
+    [8, 9],
+  );
+  assert.deepEqual(
+    resolveCatalogSourceCourses(601, { 601: [] }, [globalCourse], "Programmation").map((course) => course.id),
+    [9],
   );
 });

@@ -24,13 +24,41 @@ export function courseMatchesSelectedDiscipline(
   selectedDisciplineId: number,
   selectedDisciplineName?: string,
 ): boolean {
+  const selectedId = Number(selectedDisciplineId);
   const disciplineName = selectedDisciplineName?.trim().toLowerCase() || "";
   const courseDisciplineName = course.discipline?.name?.trim().toLowerCase() || course.category.trim().toLowerCase();
   return (
-    course.disciplineId === selectedDisciplineId ||
-    course.discipline?.id === selectedDisciplineId ||
+    Number(course.disciplineId) === selectedId ||
+    Number(course.discipline?.id) === selectedId ||
     (disciplineName.length > 0 && courseDisciplineName === disciplineName)
   );
+}
+
+export function resolveCatalogSourceCourses(
+  selectedDisciplineId: number | null,
+  disciplineCoursesById: Record<number, Course[]>,
+  courses: Course[],
+  selectedDisciplineName?: string,
+): Course[] {
+  if (!selectedDisciplineId) return courses;
+
+  const disciplineName = selectedDisciplineName?.trim().toLowerCase() || "";
+  const globalMatches = courses.filter((course) =>
+    courseMatchesSelectedDiscipline(course, selectedDisciplineId, disciplineName),
+  );
+
+  if (!(selectedDisciplineId in disciplineCoursesById)) {
+    return globalMatches;
+  }
+
+  const fetched = disciplineCoursesById[selectedDisciplineId];
+  if (fetched.length === 0) {
+    return globalMatches;
+  }
+
+  const byId = new Map(globalMatches.map((course) => [course.id, course]));
+  fetched.forEach((course) => byId.set(course.id, course));
+  return [...byId.values()].sort((a, b) => a.id - b.id);
 }
 
 export function usePlatformCatalogData(
@@ -102,12 +130,19 @@ export function usePlatformCatalogData(
           return;
         }
 
-        lastError =
-          coursesResult.status === "rejected"
-            ? coursesResult.reason
-            : domainsResult.status === "rejected"
-              ? domainsResult.reason
-              : lastError;
+        if (domainData && !courseData) {
+          lastError =
+            coursesResult.status === "rejected"
+              ? coursesResult.reason
+              : new Error("Catalogue des modules incomplet");
+        } else {
+          lastError =
+            coursesResult.status === "rejected"
+              ? coursesResult.reason
+              : domainsResult.status === "rejected"
+                ? domainsResult.reason
+                : lastError;
+        }
 
         if (!isTransientCatalogError(lastError)) break;
       }
@@ -185,6 +220,14 @@ export function usePlatformCatalogData(
         if (disciplineLoadSeqRef.current !== requestId) return;
         setDisciplineCoursesById((previous) => ({ ...previous, [disciplineId]: courseData }));
         mergeCatalogCourses(courseData);
+        try {
+          const domainData = await api.getDomains({ fresh: true });
+          if (disciplineLoadSeqRef.current === requestId) {
+            setDomains(domainData);
+          }
+        } catch (domainErr) {
+          console.warn("Failed to refresh domain counts after discipline sync:", domainErr);
+        }
         setCatalogError(null);
       } catch (err) {
         if (disciplineLoadSeqRef.current !== requestId) return;
@@ -209,23 +252,24 @@ export function usePlatformCatalogData(
 
   const catalogCourses = useMemo(() => {
     const searchLower = searchQuery.toLowerCase();
-    const selectedDisciplineName = selectedDiscipline?.name.trim().toLowerCase() || "";
-    const sourceCourses =
-      selectedDisciplineId && disciplineCoursesById[selectedDisciplineId]
-        ? disciplineCoursesById[selectedDisciplineId]
-        : courses;
-    return sourceCourses.filter((c) => {
+    const selectedDisciplineName = selectedDiscipline?.name || "";
+    const sourceCourses = resolveCatalogSourceCourses(
+      selectedDisciplineId,
+      disciplineCoursesById,
+      courses,
+      selectedDisciplineName,
+    );
+
+    return sourceCourses.filter((course) => {
       const matchesSearch =
-        c.title.toLowerCase().includes(searchLower) ||
-        c.category.toLowerCase().includes(searchLower) ||
-        c.level.toLowerCase().includes(searchLower) ||
-        c.discipline?.name.toLowerCase().includes(searchLower) ||
-        c.discipline?.domain?.name.toLowerCase().includes(searchLower);
+        course.title.toLowerCase().includes(searchLower) ||
+        course.category.toLowerCase().includes(searchLower) ||
+        course.level.toLowerCase().includes(searchLower) ||
+        course.discipline?.name.toLowerCase().includes(searchLower) ||
+        course.discipline?.domain?.name.toLowerCase().includes(searchLower);
       if (!matchesSearch) return false;
-      if (selectedDisciplineId) {
-        return courseMatchesSelectedDiscipline(c, selectedDisciplineId, selectedDisciplineName);
-      }
-      if (selectedDomainId) return c.discipline?.domainId === selectedDomainId;
+      if (selectedDisciplineId) return true;
+      if (selectedDomainId) return Number(course.discipline?.domainId) === Number(selectedDomainId);
       return true;
     });
   }, [courses, disciplineCoursesById, searchQuery, selectedDisciplineId, selectedDomainId, selectedDiscipline?.name]);

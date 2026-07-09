@@ -118,21 +118,22 @@ const DomainCatalogCard = memo(function DomainCatalogCard({
   onSelect: () => void;
 }) {
   return (
-    <button
-      type="button"
-      data-tv-focusable
-      tabIndex={0}
-      onClick={onSelect}
-      className="kbd-nav-focus h-full w-full min-h-0 text-left bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all overflow-hidden group flex flex-col"
-    >
-      <div className={`h-2 shrink-0 bg-gradient-to-r ${domain.color}`} />
-      <div className="flex flex-1 flex-col p-6">
-        <div className="flex min-h-[3rem] items-start justify-between gap-4">
-          <div
-            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-r ${domain.color} text-white shadow-sm`}
-          >
-            {getDomainIcon(domain.iconName, "w-6 h-6")}
-          </div>
+    <div className="catalog-domain-card h-full rounded-2xl shadow-sm transition-shadow hover:shadow-md">
+      <button
+        type="button"
+        data-tv-focusable
+        tabIndex={0}
+        onClick={onSelect}
+        className="kbd-nav-focus h-full w-full min-h-0 text-left bg-white rounded-2xl border border-slate-200 hover:border-emerald-200 transition-colors overflow-hidden group flex flex-col"
+      >
+        <div className={`h-2 shrink-0 bg-gradient-to-r ${domain.color}`} />
+        <div className="flex flex-1 flex-col p-6">
+          <div className="flex min-h-[3rem] items-start justify-between gap-4">
+            <div
+              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-r ${domain.color} text-white ring-1 ring-white/10`}
+            >
+              {getDomainIcon(domain.iconName, "w-6 h-6")}
+            </div>
           <span className="shrink-0 rounded-full border border-slate-100 bg-slate-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
             {domain.disciplines.length} disciplines
           </span>
@@ -155,8 +156,9 @@ const DomainCatalogCard = memo(function DomainCatalogCard({
             Explorer <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </span>
         </div>
-      </div>
-    </button>
+        </div>
+      </button>
+    </div>
   );
 });
 

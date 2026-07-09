@@ -742,6 +742,11 @@ body {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2) !important;
 }
 
+.dark .catalog-domain-card.shadow-sm,
+.dark .catalog-domain-card.hover\:shadow-md:hover {
+  box-shadow: 0 1px 2px rgba(2, 24, 20, 0.35), 0 0 0 1px rgba(5, 194, 165, 0.08) !important;
+}
+
 /* Modal layers backdrops */
 .dark .bg-slate-900\/50 {
   background-color: rgba(3, 21, 18, 0.7) !important;

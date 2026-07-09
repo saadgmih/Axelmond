@@ -7,12 +7,13 @@ export function registerCatalogRoutes(app: Express, ctx: RouteContext): void {
 
   app.get("/api/domains", async (req, res) => {
     const authUser = await api.getOptionalAuthUser(req);
+    const bypassCache = req.query.fresh === "1";
 
     // Cache uniquement pour les visiteurs anonymes/étudiants (données publiées)
 
     const cacheKey = authUser && authUser.role !== "STUDENT" ? null : "api:domains:public";
 
-    if (cacheKey) {
+    if (cacheKey && !bypassCache) {
       const cached = await api.cacheGet(cacheKey);
 
       if (cached) {
@@ -73,10 +74,4 @@ export function registerCatalogRoutes(app: Express, ctx: RouteContext): void {
 
     res.json(payload);
   });
-
-  async function _invalidatePublicCatalogCache(): Promise<void> {
-    await api.cacheDel("api:domains:public");
-
-    await api.cacheDelByPrefix("api:courses:public:");
-  }
 }
