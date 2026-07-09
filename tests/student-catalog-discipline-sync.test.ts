@@ -33,8 +33,10 @@ rulesTest("student-catalog-discipline-sync", () => {
   const catalogHookSource = readFileSync("src/app/hooks/usePlatformCatalogData.ts", "utf8");
   const studentCatalogSource = readFileSync("src/views/student/StudentCatalogView.tsx", "utf8");
   const routeSwitchSource = readFileSync("src/app/StudentRouteSwitch.tsx", "utf8");
+  const apiSource = readFileSync("src/api.ts", "utf8");
+  const coursesRoutesSource = readFileSync("src/routes/courses-routes.ts", "utf8");
 
-  assert.match(catalogHookSource, /api\.getCourses\(\{ disciplineId \}\)/);
+  assert.match(catalogHookSource, /api\.getCourses\(\{ disciplineId,\s*fresh:\s*true \}\)/);
   assert.match(catalogHookSource, /disciplineCoursesById/);
   assert.match(catalogHookSource, /setDisciplineCoursesById/);
   assert.match(catalogHookSource, /mergeCatalogCourseRows/);
@@ -44,6 +46,10 @@ rulesTest("student-catalog-discipline-sync", () => {
   assert.match(studentCatalogSource, /isDisciplineCoursesLoading/);
   assert.match(studentCatalogSource, /Chargement des modules/);
   assert.match(routeSwitchSource, /isDisciplineCoursesLoading=\{isDisciplineCoursesLoading\}/);
+  assert.match(apiSource, /fresh\?: boolean/);
+  assert.match(apiSource, /params\.set\("fresh", "1"\)/);
+  assert.match(coursesRoutesSource, /const bypassCache = req\.query\.fresh === "1"/);
+  assert.match(coursesRoutesSource, /if \(!bypassCache\)/);
 
   const existing = makeCourse(3, { title: "Ancien titre" });
   const loaded = makeCourse(3, { title: "Programmation en C++" });

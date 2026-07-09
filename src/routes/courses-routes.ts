@@ -57,13 +57,17 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
       const domainId = Number(req.query.domainId) || 0;
 
       const disciplineId = Number(req.query.disciplineId) || 0;
+      const bypassCache = req.query.fresh === "1";
 
       const isStudent = authUser?.role === "STUDENT";
-      const cacheKey = !authUser
-        ? `api:courses:public:d=${domainId}:dis=${disciplineId}`
-        : isStudent
-          ? `api:courses:student:${authUser.id}:d=${domainId}:dis=${disciplineId}`
-          : null;
+      let cacheKey: string | null = null;
+      if (!bypassCache) {
+        if (!authUser) {
+          cacheKey = `api:courses:public:d=${domainId}:dis=${disciplineId}`;
+        } else if (isStudent) {
+          cacheKey = `api:courses:student:${authUser.id}:d=${domainId}:dis=${disciplineId}`;
+        }
+      }
 
       if (cacheKey) {
         const cached = await api.cacheGet(cacheKey);

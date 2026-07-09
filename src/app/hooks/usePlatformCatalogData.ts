@@ -181,7 +181,7 @@ export function usePlatformCatalogData(
           if (!token) throw new Error("Session authentifiée indisponible pour charger la discipline.");
         }
 
-        const courseData = await api.getCourses({ disciplineId });
+        const courseData = await api.getCourses({ disciplineId, fresh: true });
         if (disciplineLoadSeqRef.current !== requestId) return;
         setDisciplineCoursesById((previous) => ({ ...previous, [disciplineId]: courseData }));
         mergeCatalogCourses(courseData);

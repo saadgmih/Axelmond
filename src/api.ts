@@ -224,10 +224,11 @@ export const api = {
   getAdminSiteSettings: () => request<SiteSettings>("GET", "/api/admin/site-settings"),
   updateAdminSiteSettings: (data: SiteSettings) => request<SiteSettings>("PUT", "/api/admin/site-settings", data),
   getDomains: () => request<any[]>("GET", "/api/domains"),
-  getCourses: (filters?: { domainId?: number; disciplineId?: number }) => {
+  getCourses: (filters?: { domainId?: number; disciplineId?: number; fresh?: boolean }) => {
     const params = new URLSearchParams();
     if (filters?.domainId) params.set("domainId", String(filters.domainId));
     if (filters?.disciplineId) params.set("disciplineId", String(filters.disciplineId));
+    if (filters?.fresh) params.set("fresh", "1");
     const query = params.toString();
     return request<any[]>("GET", `/api/courses${query ? `?${query}` : ""}`);
   },
