@@ -15,16 +15,20 @@ rulesTest("hostinger-deploy", () => {
 
   assert.match(scripts["hostinger:build"], /prisma migrate deploy/);
   assert.match(scripts.start, /hostinger-preflight/);
-  assert.match(scripts.start, /node dist\/server\.cjs/);
+  assert.match(scripts.start, /hostinger-start/);
+  assert.doesNotMatch(scripts.start, /node dist\/server\.cjs/);
   assert.doesNotMatch(JSON.stringify(scripts), /prestart/);
   assert.equal(packageJson.engines?.node, "^20.19.0 || ^22.12.0");
 
   assert.match(scripts.postinstall, /prisma-postinstall/);
   assert.ok(fs.existsSync("scripts/prisma-postinstall.mjs"));
   assert.ok(fs.existsSync("scripts/hostinger-preflight.mjs"));
+  assert.ok(fs.existsSync("scripts/hostinger-start.mjs"));
   assert.match(postinstall, /Generating Prisma client/);
   assert.doesNotMatch(postinstall, /clientEntry|already present/);
 
+  assert.match(hostingerEnv, /HOSTINGER_PORT_WAIT_MS/);
+  assert.match(startServer, /EADDRINUSE/);
   assert.match(startServer, /closeAllConnections/);
   assert.match(startServer, /shutdownTimeoutMs/);
   assert.match(startServer, /HOSTINGER_WEBAPP === "1" \? 8_000/);

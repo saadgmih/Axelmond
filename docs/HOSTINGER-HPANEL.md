@@ -163,6 +163,8 @@ Hostinger gère **un seul** process Node pour l’app — ne jamais ajouter PM2 
 - Après un incident, préférer **Restart** plutôt qu’un nouveau push (qui relance tout le pipeline).
 - Ne pas définir `REDIS_URL` + PM2 cluster sur Hostinger shared Node (réservé au VPS / Docker).
 - Surveiller **Max Processes** dans hPanel après chaque déploiement : la valeur doit retomber à **1 processus Node** stable.
+- `npm start` attend que le port soit libre (`scripts/hostinger-start.mjs`) avant de lancer Node — évite les doubles `server running` pendant le handoff de déploiement.
+- Ajouter dans hPanel : `HOSTINGER_PORT_WAIT_MS=45000` (généré par `npm run hostinger:env`).
 
 ## PM2 / SSH
 

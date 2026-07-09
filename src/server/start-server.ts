@@ -282,6 +282,12 @@ export async function startAxelmondServer() {
   registerGracefulShutdown(httpServer, isProduction);
   httpServer.on("error", (err: NodeJS.ErrnoException) => {
     logDb("ERROR", "HTTP server failed to bind", { port: PORT, code: err.code, error: String(err) });
+    if (process.env.HOSTINGER_WEBAPP === "1" && err.code === "EADDRINUSE") {
+      console.error(
+        "[hostinger] Port already in use — another instance is still running. Exiting without failure.",
+      );
+      process.exit(0);
+    }
     process.exit(1);
   });
   await new Promise<void>((resolve, reject) => {
@@ -433,6 +439,10 @@ function registerGracefulShutdown(httpServer: ReturnType<typeof createServer>, i
       shutdownTimeoutMs,
       activeHttpRequests: getActiveHttpRequestCount(),
     });
+
+    if (process.env.HOSTINGER_WEBAPP === "1") {
+      httpServer.closeAllConnections?.();
+    }
 
     const forcedShutdownTimer = setTimeout(() => {
       logDb("ERROR", "Forced shutdown after timeout", {
