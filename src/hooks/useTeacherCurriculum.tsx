@@ -12,13 +12,17 @@ import type { AppUser } from "../components/AuthScreen";
 import type { Course, ContentSection, FacultyDomain, LessonContent } from "../types";
 import {
   MIN_PAID_COURSE_PRICE,
-  formatDateInputValue,
   freeAccessDurationInputValue,
   getFreeAccessWindowEndDate,
   isFreeCoursePrice,
   normalizeCoursePriceForSave,
   normalizeFreeAccessDurationDays,
 } from "../utils/course-pricing";
+import {
+  datetimeLocalToIso,
+  defaultFreeAccessEndFromStart,
+  formatDatetimeLocalValue,
+} from "../utils/free-access-datetime";
 import { integerFromNumericInput, numberFromNumericInput, numericInputFromNumber } from "../utils/numeric-input";
 import { flattenSections } from "./useCourseContent";
 import { useAsyncEffectGuard, type AsyncRequestToken } from "./useAsyncEffectGuard";
@@ -75,9 +79,9 @@ export function useTeacherCurriculum({
   const [newCourseDuration, setNewCourseDuration] = useState("20 heures");
   const [newCoursePrice, setNewCoursePrice] = useState(numericInputFromNumber(0));
   const [newCourseIsFree, setNewCourseIsFree] = useState(true);
-  const [newCourseFreeAccessStartsAt, setNewCourseFreeAccessStartsAt] = useState(formatDateInputValue(null));
-  const [newCourseFreeAccessEndsAt, setNewCourseFreeAccessEndsAt] = useState(
-    formatDateInputValue(getFreeAccessWindowEndDate(new Date(), null)),
+  const [newCourseFreeAccessStartsAt, setNewCourseFreeAccessStartsAt] = useState(formatDatetimeLocalValue(null));
+  const [newCourseFreeAccessEndsAt, setNewCourseFreeAccessEndsAt] = useState(() =>
+    defaultFreeAccessEndFromStart(formatDatetimeLocalValue(null)),
   );
   const [newCourseFreeAccessDurationDays, setNewCourseFreeAccessDurationDays] = useState("");
   const [newCoursePublished, setNewCoursePublished] = useState(true);
@@ -278,8 +282,8 @@ export function useTeacherCurriculum({
           newCourseIsFree,
           numberFromNumericInput(newCoursePrice, MIN_PAID_COURSE_PRICE),
         ),
-        freeAccessStartsAt: newCourseIsFree ? newCourseFreeAccessStartsAt : null,
-        freeAccessEndsAt: newCourseIsFree ? newCourseFreeAccessEndsAt : null,
+        freeAccessStartsAt: newCourseIsFree ? datetimeLocalToIso(newCourseFreeAccessStartsAt) : null,
+        freeAccessEndsAt: newCourseIsFree ? datetimeLocalToIso(newCourseFreeAccessEndsAt) : null,
         instructor: currentUser?.fullName,
         description: newCourseDescription,
         published: newCoursePublished,
@@ -295,8 +299,8 @@ export function useTeacherCurriculum({
       setUploadSectionId("");
       setNewCourseTitle("");
       setNewCourseDescription("");
-      setNewCourseFreeAccessStartsAt(formatDateInputValue(null));
-      setNewCourseFreeAccessEndsAt(formatDateInputValue(getFreeAccessWindowEndDate(new Date(), null)));
+      setNewCourseFreeAccessStartsAt(formatDatetimeLocalValue(null));
+      setNewCourseFreeAccessEndsAt(defaultFreeAccessEndFromStart(formatDatetimeLocalValue(null)));
       setCourseContentSections([]);
       showCurriculumSuccess(`Module « ${normalizedCourse.title} » créé avec succès.`);
     } catch (err: any) {
@@ -472,8 +476,8 @@ export function useTeacherCurriculum({
       disciplineId: course.disciplineId ?? allDisciplines[0]?.id ?? 0,
       price: numericInputFromNumber(isFreeCoursePrice(course.price) ? MIN_PAID_COURSE_PRICE : course.price),
       isFree: isFreeCoursePrice(course.price),
-      freeAccessStartsAt: formatDateInputValue(course.freeAccessStartsAt),
-      freeAccessEndsAt: formatDateInputValue(
+      freeAccessStartsAt: formatDatetimeLocalValue(course.freeAccessStartsAt),
+      freeAccessEndsAt: formatDatetimeLocalValue(
         course.freeAccessEndsAt ?? getFreeAccessWindowEndDate(course.freeAccessStartsAt, course.freeAccessDurationDays),
       ),
       freeAccessDurationDays: freeAccessDurationInputValue(course.freeAccessDurationDays),
@@ -499,8 +503,8 @@ export function useTeacherCurriculum({
           editCourseForm.isFree,
           numberFromNumericInput(editCourseForm.price, MIN_PAID_COURSE_PRICE),
         ),
-        freeAccessStartsAt: editCourseForm.isFree ? editCourseForm.freeAccessStartsAt : null,
-        freeAccessEndsAt: editCourseForm.isFree ? editCourseForm.freeAccessEndsAt : null,
+        freeAccessStartsAt: editCourseForm.isFree ? datetimeLocalToIso(editCourseForm.freeAccessStartsAt) : null,
+        freeAccessEndsAt: editCourseForm.isFree ? datetimeLocalToIso(editCourseForm.freeAccessEndsAt) : null,
       });
       setCourses((prev) => prev.map((item) => (item.id === updatedCourse.id ? updatedCourse : item)));
       setEditingCourse(null);

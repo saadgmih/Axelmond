@@ -123,8 +123,14 @@ const freeAccessDurationDaysField = z.number().int().positive().nullable().optio
 
 function normalizeDateField(value: unknown, boundary: "start" | "end") {
   if (value === "") return null;
-  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return new Date(`${value}T${boundary === "start" ? "00:00:00.000" : "23:59:59.999"}Z`);
+  if (typeof value === "string") {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      return new Date(`${value}T${boundary === "start" ? "00:00:00.000" : "23:59:59.999"}Z`);
+    }
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(value)) {
+      const parsed = new Date(value);
+      return Number.isNaN(parsed.getTime()) ? value : parsed;
+    }
   }
   return value;
 }

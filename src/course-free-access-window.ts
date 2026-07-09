@@ -14,6 +14,7 @@ export type ResolvedFreeAccessWindow = {
 };
 
 const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const DATETIME_LOCAL_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
 
 function normalizeDurationDays(value: number | null | undefined): number | null {
   if (value == null) return null;
@@ -28,7 +29,16 @@ function toDateOnlyString(value: Date | string): string {
   return date.toISOString().slice(0, 10);
 }
 
-/** Inclusive calendar start (00:00:00.000 UTC). */
+/** Parse a stored instant or date-only value for free-access boundaries. */
+export function parseFreeAccessInstant(value: Date | string, boundary: "start" | "end"): Date {
+  if (typeof value === "string" && DATE_ONLY_PATTERN.test(value)) {
+    return boundary === "start" ? parseCalendarDateStart(value) : parseCalendarDateEnd(value);
+  }
+  const date = value instanceof Date ? value : new Date(value);
+  return date;
+}
+
+/** Inclusive calendar start (00:00:00.000 UTC) when only a date is provided. */
 export function parseCalendarDateStart(value: Date | string): Date {
   return new Date(`${toDateOnlyString(value)}T00:00:00.000Z`);
 }
@@ -51,8 +61,8 @@ export function normalizeFreeAccessWindowInput(
 ): ResolvedFreeAccessWindow | null {
   if (!startsAt || !endsAt) return null;
 
-  const normalizedStartsAt = parseCalendarDateStart(startsAt);
-  const normalizedEndsAt = parseCalendarDateEnd(endsAt);
+  const normalizedStartsAt = parseFreeAccessInstant(startsAt, "start");
+  const normalizedEndsAt = parseFreeAccessInstant(endsAt, "end");
   if (Number.isNaN(normalizedStartsAt.getTime()) || Number.isNaN(normalizedEndsAt.getTime())) return null;
   if (normalizedEndsAt <= normalizedStartsAt) return null;
 
@@ -98,6 +108,17 @@ export function isAfterFreeAccessWindow(course: FreeAccessCourseLike, now = new 
 }
 
 export function formatFreeAccessWindowLabel(startsAt: Date | string, endsAt: Date | string): string {
+  const startDate = parseFreeAccessInstant(startsAt, "start");
+  const endDate = parseFreeAccessInstant(endsAt, "end");
+  const hasTime =
+    (typeof startsAt === "string" && DATETIME_LOCAL_PATTERN.test(startsAt)) ||
+    (typeof endsAt === "string" && DATETIME_LOCAL_PATTERN.test(endsAt)) ||
+    startDate.getUTCHours() + startDate.getUTCMinutes() + endDate.getUTCHours() + endDate.getUTCMinutes() > 0;
+
+  if (hasTime) {
+    return `Gratuit du ${startDate.toLocaleString("fr-FR")} au ${endDate.toLocaleString("fr-FR")}`;
+  }
+
   const startLabel = parseCalendarDateStart(startsAt).toLocaleDateString("fr-FR");
   const endLabel = parseCalendarDateStart(endsAt).toLocaleDateString("fr-FR");
   return `Gratuit du ${startLabel} au ${endLabel}`;

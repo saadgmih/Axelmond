@@ -23,6 +23,7 @@ rulesTest("course-price-slider", () => {
   const teacherDashboardSource = readFileSync("src/views/teacher/TeacherDashboardView.tsx", "utf8");
   const sliderSource = readFileSync("src/components/CoursePriceSlider.tsx", "utf8");
   const curriculumModulesSource = readFileSync("src/views/teacher/curriculum-steps/CurriculumModulesStep.tsx", "utf8");
+  const freeAccessFieldsSource = readFileSync("src/components/FreeAccessWindowFields.tsx", "utf8");
   const routeSchemasSource = readFileSync("src/server/route-schemas.ts", "utf8");
   const cssSource = readFileSync("src/index.css", "utf8");
 
@@ -34,8 +35,10 @@ rulesTest("course-price-slider", () => {
   assert.match(sliderSource, /Gratuit/);
   assert.match(sliderSource, /Payant/);
   assert.match(sliderSource, /formatFreeAccessDurationLabel/);
-  assert.match(curriculumModulesSource, /Début de gratuité/);
-  assert.match(curriculumModulesSource, /Fin de gratuité/);
+  assert.match(freeAccessFieldsSource, /Début de gratuité/);
+  assert.match(freeAccessFieldsSource, /Fin de gratuité/);
+  assert.match(curriculumModulesSource, /FreeAccessWindowFields/);
+  assert.match(freeAccessFieldsSource, /datetime-local/);
   assert.doesNotMatch(curriculumModulesSource, /FREE_ACCESS_DURATION_OPTIONS/);
   assert.doesNotMatch(curriculumModulesSource, /30 jours fixes/);
   assert.match(routeSchemasSource, /freeAccessStartsAt/);
