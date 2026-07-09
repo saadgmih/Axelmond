@@ -56,9 +56,8 @@ rulesTest("free-enrollment-wiring", () => {
   assert.match(rbacSource, /free-enroll/);
 
   assert.doesNotMatch(freeEnrollmentSource, /ALREADY_ENROLLED/);
-  assert.match(freeEnrollmentSource, /course\.freeAccessDurationDays/);
-  assert.match(freeEnrollmentSource, /course\.freeAccessStartsAt/);
-  assert.match(freeEnrollmentSource, /course\.freeAccessEndsAt/);
+  assert.match(freeEnrollmentSource, /resolveCourseFreeAccessWindow/);
+  assert.match(freeEnrollmentSource, /resolveFreeEnrollmentEndDate/);
   assert.match(freeEnrollmentSource, /FREE_ENROLL_WINDOW_EXPIRED/);
   assert.match(freeEnrollmentSource, /enrollmentEndDate/);
   assert.match(freeEnrollmentSource, /persistCoursePaymentEnrollment/);

@@ -295,7 +295,8 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                 />
               </div>
               <p className="text-[10px] font-semibold leading-relaxed text-slate-500">
-                Payant : minimum {formatMad(MIN_PAID_COURSE_PRICE)}. Gratuit : accès sans paiement.
+                Payant : minimum {formatMad(MIN_PAID_COURSE_PRICE)}. Gratuit : période fixe au calendrier (même date
+                de fin pour tous les étudiants, quelle que soit leur date d&apos;inscription).
               </p>
               {newCourseIsFree && (
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -308,9 +309,7 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                         const nextStart = e.target.value;
                         setNewCourseFreeAccessStartsAt(nextStart);
                         if (!newCourseFreeAccessEndsAt || new Date(newCourseFreeAccessEndsAt) <= new Date(nextStart)) {
-                          setNewCourseFreeAccessEndsAt(
-                            formatDateInputValue(getFreeAccessWindowEndDate(nextStart, null)),
-                          );
+                          setNewCourseFreeAccessEndsAt(nextStart);
                         }
                       }}
                       className={`${inputFocus} text-slate-700`}
@@ -496,7 +495,7 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                         )}
                       />
                       <p className="text-[10px] font-semibold leading-relaxed text-slate-500">
-                        Payant : minimum {formatMad(MIN_PAID_COURSE_PRICE)}.
+                        Payant : minimum {formatMad(MIN_PAID_COURSE_PRICE)}. Gratuit : période fixe au calendrier.
                       </p>
                       {editCourseForm.isFree && (
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -513,9 +512,7 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                                   return {
                                     ...prev,
                                     freeAccessStartsAt: nextStart,
-                                    freeAccessEndsAt: shouldShiftEnd
-                                      ? formatDateInputValue(getFreeAccessWindowEndDate(nextStart, null))
-                                      : prev.freeAccessEndsAt,
+                                    freeAccessEndsAt: shouldShiftEnd ? nextStart : prev.freeAccessEndsAt,
                                   };
                                 })
                               }

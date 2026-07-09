@@ -1,7 +1,11 @@
 import { buildCourseInvoiceId, serializeInvoiceRecord, type CoursePaymentEnrollmentInput } from "./course-payments";
+import {
+  isAfterFreeAccessWindow,
+  isBeforeFreeAccessWindow,
+  resolveCourseFreeAccessWindow,
+  resolveFreeEnrollmentEndDate,
+} from "./course-free-access-window";
 import { prisma } from "./db";
-import { buildEnrollmentEndDate } from "./enrollment-access";
-import { getEffectiveFreeAccessDurationDays } from "./utils/course-pricing";
 import { isFreeCourseCharge, resolveCourseChargeAmount } from "./promo-codes";
 import { PUBLIC_API_ERRORS } from "./public-api-errors";
 import { isStudentRole } from "./rbac";
@@ -60,24 +64,32 @@ export async function processFreeCourseEnrollment(params: {
   const invoiceId = buildCourseInvoiceId("FREE");
   const externalId = `free-enroll-${params.userId}-${params.courseId}`;
   const now = new Date();
-  const freeAccessStartsAt = course.freeAccessStartsAt ?? course.createdAt ?? now;
-  const freeAccessDurationDays = getEffectiveFreeAccessDurationDays(course.freeAccessDurationDays);
-  const enrollmentEndDate = course.freeAccessEndsAt ?? buildEnrollmentEndDate(freeAccessStartsAt, freeAccessDurationDays);
+  const freeAccessWindow = resolveCourseFreeAccessWindow(course);
+  const enrollmentEndDate = resolveFreeEnrollmentEndDate(course, now);
 
-  if (now < freeAccessStartsAt) {
+  if (!freeAccessWindow) {
     return {
       ok: false,
       status: 400,
-      error: `La période de gratuité commence le ${freeAccessStartsAt.toLocaleDateString("fr-FR")}.`,
+      error: "Ce module gratuit doit avoir une période de gratuité (date de début et de fin).",
+      code: "FREE_ENROLL_WINDOW_NOT_CONFIGURED",
+    };
+  }
+
+  if (isBeforeFreeAccessWindow(course, now)) {
+    return {
+      ok: false,
+      status: 400,
+      error: `La période de gratuité commence le ${freeAccessWindow.startsAt.toLocaleDateString("fr-FR")}.`,
       code: "FREE_ENROLL_WINDOW_NOT_STARTED",
     };
   }
 
-  if (enrollmentEndDate <= now) {
+  if (isAfterFreeAccessWindow(course, now)) {
     return {
       ok: false,
       status: 400,
-      error: `La période de gratuité de ce module est terminée depuis le ${enrollmentEndDate.toLocaleDateString(
+      error: `La période de gratuité de ce module est terminée depuis le ${freeAccessWindow.endsAt.toLocaleDateString(
         "fr-FR",
       )}.`,
       code: "FREE_ENROLL_WINDOW_EXPIRED",

@@ -179,6 +179,13 @@ export const courseSchema = z
         message: "La date de fin de gratuité s'applique uniquement aux modules gratuits.",
       });
     }
+    if (data.price <= 0 && (!data.freeAccessStartsAt || !data.freeAccessEndsAt)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["freeAccessEndsAt"],
+        message: "La date de début et de fin de gratuité sont obligatoires pour un module gratuit.",
+      });
+    }
     if (
       data.price <= 0 &&
       data.freeAccessStartsAt &&

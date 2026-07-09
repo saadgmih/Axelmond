@@ -190,7 +190,7 @@ export default function CoursePriceSlider({
         />
       </div>
       <p className="text-[10px] font-semibold leading-relaxed text-slate-500">
-        Payant : minimum {formatMad(MIN_PAID_COURSE_PRICE)}. Gratuit : accès immédiat sans paiement.
+        Payant : minimum {formatMad(MIN_PAID_COURSE_PRICE)}. Gratuit : période fixe (début et fin au calendrier).
       </p>
     </div>
   );

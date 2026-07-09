@@ -1,4 +1,5 @@
 import { COURSE_ENROLLMENT_ACCESS_DAYS } from "../enrollment-access";
+import { formatFreeAccessWindowLabel, resolveCourseFreeAccessWindow } from "../course-free-access-window";
 
 export const FREE_COURSE_PRICE = 0;
 export const MIN_PAID_COURSE_PRICE = 10;
@@ -76,11 +77,20 @@ export function formatFreeAccessDurationLabel(
   startsAt?: Date | string | null,
   endsAt?: Date | string | null,
 ): string {
-  const days = normalizeFreeAccessDurationDays(value);
-  const effectiveDays = days ?? COURSE_ENROLLMENT_ACCESS_DAYS;
-  const endDate = getFreeAccessWindowEndDate(startsAt, effectiveDays, endsAt);
-  if (endDate) {
-    return `Gratuit jusqu'au ${endDate.toLocaleDateString("fr-FR")}`;
+  if (startsAt && endsAt) {
+    return formatFreeAccessWindowLabel(startsAt, endsAt);
   }
-  return `Gratuit ${effectiveDays} jour${effectiveDays > 1 ? "s" : ""} fixes`;
+
+  const window = resolveCourseFreeAccessWindow({
+    price: 0,
+    freeAccessStartsAt: startsAt,
+    freeAccessEndsAt: endsAt,
+    freeAccessDurationDays: value,
+  });
+  if (window) {
+    return formatFreeAccessWindowLabel(window.startsAt, window.endsAt);
+  }
+
+  const days = normalizeFreeAccessDurationDays(value) ?? COURSE_ENROLLMENT_ACCESS_DAYS;
+  return `Gratuit ${days} jour${days > 1 ? "s" : ""}`;
 }

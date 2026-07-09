@@ -280,9 +280,6 @@ export function useTeacherCurriculum({
         ),
         freeAccessStartsAt: newCourseIsFree ? newCourseFreeAccessStartsAt : null,
         freeAccessEndsAt: newCourseIsFree ? newCourseFreeAccessEndsAt : null,
-        freeAccessDurationDays: newCourseIsFree
-          ? normalizeFreeAccessDurationDays(newCourseFreeAccessDurationDays)
-          : null,
         instructor: currentUser?.fullName,
         description: newCourseDescription,
         published: newCoursePublished,
@@ -504,9 +501,6 @@ export function useTeacherCurriculum({
         ),
         freeAccessStartsAt: editCourseForm.isFree ? editCourseForm.freeAccessStartsAt : null,
         freeAccessEndsAt: editCourseForm.isFree ? editCourseForm.freeAccessEndsAt : null,
-        freeAccessDurationDays: editCourseForm.isFree
-          ? normalizeFreeAccessDurationDays(editCourseForm.freeAccessDurationDays)
-          : null,
       });
       setCourses((prev) => prev.map((item) => (item.id === updatedCourse.id ? updatedCourse : item)));
       setEditingCourse(null);

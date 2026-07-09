@@ -2,31 +2,30 @@ import type { Express } from "express";
 import { getAuthUser } from "../server/route-types";
 import type { CourseModule } from "../server/route-deps";
 import type { RouteContext } from "../server/route-context";
-import { buildEnrollmentEndDate, getActiveEnrolledCourseIds } from "../enrollment-access";
+import { getActiveEnrolledCourseIds } from "../enrollment-access";
 import { buildCatalogCourseVisibilityWhere } from "../catalog-visibility";
+import { resolveFreeAccessWindowForSave } from "../course-free-access-window";
 import * as api from "../server/route-deps";
 
 const CATALOG_QUERY_TIMEOUT_MS = Number(process.env.CATALOG_QUERY_TIMEOUT_MS) || 15000;
 
 function resolveFreeAccessWindow(
   price: number,
-  startsAt?: Date | null,
-  endsAt?: Date | null,
-  durationDays?: number | null,
-  fallbackStartsAt?: Date | null,
+  startsAt?: Date | string | null,
+  endsAt?: Date | string | null,
 ) {
   if (price > 0) return { freeAccessStartsAt: null, freeAccessEndsAt: null, freeAccessDurationDays: null };
-  const freeAccessStartsAt = startsAt ?? fallbackStartsAt ?? new Date();
-  const freeAccessEndsAt = endsAt ?? buildEnrollmentEndDate(freeAccessStartsAt, durationDays ?? undefined);
-  return { freeAccessStartsAt, freeAccessEndsAt, freeAccessDurationDays: durationDays ?? null };
+  const window = resolveFreeAccessWindowForSave(startsAt, endsAt);
+  if (!window) {
+    return { freeAccessStartsAt: null, freeAccessEndsAt: null, freeAccessDurationDays: null };
+  }
+  return window;
 }
 
-function isInvalidFreeAccessWindow(window: { freeAccessStartsAt: Date | null; freeAccessEndsAt: Date | null }) {
-  return Boolean(
-    window.freeAccessStartsAt &&
-      window.freeAccessEndsAt &&
-      window.freeAccessEndsAt <= window.freeAccessStartsAt,
-  );
+function isInvalidFreeAccessWindow(price: number, window: { freeAccessStartsAt: Date | null; freeAccessEndsAt: Date | null }) {
+  if (price > 0) return false;
+  if (!window.freeAccessStartsAt || !window.freeAccessEndsAt) return true;
+  return window.freeAccessEndsAt <= window.freeAccessStartsAt;
 }
 
 async function withCatalogTimeout<T>(promise: Promise<T>, label: string): Promise<T> {
@@ -174,7 +173,6 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
       price,
       freeAccessStartsAt,
       freeAccessEndsAt,
-      freeAccessDurationDays,
       instructor,
       description,
       published,
@@ -188,9 +186,14 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
       return;
     }
 
-    const freeAccessWindow = resolveFreeAccessWindow(price, freeAccessStartsAt, freeAccessEndsAt, freeAccessDurationDays);
-    if (isInvalidFreeAccessWindow(freeAccessWindow)) {
-      res.status(400).json({ error: "La date de fin de gratuité doit être après la date de début." });
+    const freeAccessWindow = resolveFreeAccessWindow(price, freeAccessStartsAt, freeAccessEndsAt);
+    if (isInvalidFreeAccessWindow(price, freeAccessWindow)) {
+      res.status(400).json({
+        error:
+          price <= 0
+            ? "Les modules gratuits doivent avoir une date de début et une date de fin de gratuité."
+            : "La date de fin de gratuité doit être après la date de début.",
+      });
       return;
     }
 
@@ -549,7 +552,6 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
       price,
       freeAccessStartsAt,
       freeAccessEndsAt,
-      freeAccessDurationDays,
       instructor,
       description,
       published,
@@ -563,15 +565,14 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
       return;
     }
 
-    const freeAccessWindow = resolveFreeAccessWindow(
-      price,
-      freeAccessStartsAt,
-      freeAccessEndsAt,
-      freeAccessDurationDays,
-      course.freeAccessStartsAt,
-    );
-    if (isInvalidFreeAccessWindow(freeAccessWindow)) {
-      res.status(400).json({ error: "La date de fin de gratuité doit être après la date de début." });
+    const freeAccessWindow = resolveFreeAccessWindow(price, freeAccessStartsAt, freeAccessEndsAt);
+    if (isInvalidFreeAccessWindow(price, freeAccessWindow)) {
+      res.status(400).json({
+        error:
+          price <= 0
+            ? "Les modules gratuits doivent avoir une date de début et une date de fin de gratuité."
+            : "La date de fin de gratuité doit être après la date de début.",
+      });
       return;
     }
 
@@ -660,19 +661,21 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
         nextPrice,
         req.body.freeAccessStartsAt ?? course.freeAccessStartsAt,
         req.body.freeAccessEndsAt ?? course.freeAccessEndsAt,
-        req.body.freeAccessDurationDays ?? course.freeAccessDurationDays,
       );
-      if (isInvalidFreeAccessWindow(nextFreeAccessWindow)) {
-        res.status(400).json({ error: "La date de fin de gratuité doit être après la date de début." });
+      if (isInvalidFreeAccessWindow(nextPrice, nextFreeAccessWindow)) {
+        res.status(400).json({
+          error:
+            nextPrice <= 0
+              ? "Les modules gratuits doivent avoir une date de début et une date de fin de gratuité."
+              : "La date de fin de gratuité doit être après la date de début.",
+        });
         return;
       }
 
       const patchData = {
         ...req.body,
         ...(nextPrice > 0 ? { freeAccessStartsAt: null, freeAccessEndsAt: null, freeAccessDurationDays: null } : {}),
-        ...(nextPrice <= 0 && req.body.price === 0 && !req.body.freeAccessStartsAt && !course.freeAccessStartsAt
-          ? resolveFreeAccessWindow(0, null, req.body.freeAccessEndsAt ?? null, req.body.freeAccessDurationDays ?? null)
-          : {}),
+        ...(nextPrice <= 0 ? nextFreeAccessWindow : {}),
       };
 
       const updatedCourse = await api.prisma.$transaction(async (tx) => {

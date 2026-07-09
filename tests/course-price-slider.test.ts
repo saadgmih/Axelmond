@@ -73,15 +73,10 @@ rulesTest("course-price-slider", () => {
   assert.equal(normalizeFreeAccessDurationDays("30"), 30);
   assert.equal(freeAccessDurationInputValue(null), "");
   assert.equal(freeAccessDurationInputValue(14), "14");
-  assert.equal(formatFreeAccessDurationLabel(null), "Gratuit 30 jours fixes");
-  assert.equal(formatFreeAccessDurationLabel(7), "Gratuit 7 jours fixes");
-  assert.equal(
-    getFreeAccessWindowEndDate("2026-09-01T00:00:00.000Z", 30)?.toISOString(),
-    "2026-10-01T00:00:00.000Z",
+  assert.equal(formatFreeAccessDurationLabel(null), "Gratuit 30 jours");
+  assert.equal(formatFreeAccessDurationLabel(7), "Gratuit 7 jours");
+  assert.match(
+    formatFreeAccessDurationLabel(12, "2026-09-01T00:00:00.000Z", "2026-09-12T00:00:00.000Z"),
+    /01\/09\/2026.*12\/09\/2026/,
   );
-  assert.equal(
-    getFreeAccessWindowEndDate("2026-09-01T00:00:00.000Z", 30, "2026-09-12T00:00:00.000Z")?.toISOString(),
-    "2026-09-12T00:00:00.000Z",
-  );
-  assert.match(formatFreeAccessDurationLabel(12, "2026-09-01T00:00:00.000Z", "2026-09-12T00:00:00.000Z"), /12\/09\/2026/);
 });
