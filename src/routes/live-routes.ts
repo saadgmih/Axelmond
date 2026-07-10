@@ -228,7 +228,7 @@ export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
 
       const roomName = api.buildLiveKitRoomName(access.course.id);
 
-      const session = await api.prisma.liveSession.findUnique({ where: { roomName } });
+      const session = await api.findLiveSessionByRoomName(roomName);
 
       if (!session) {
         res.status(404).json({ error: "Session live introuvable" });
@@ -269,7 +269,7 @@ export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
 
     const roomName = api.buildLiveKitRoomName(access.course.id);
 
-    const session = await api.prisma.liveSession.findUnique({ where: { roomName } });
+    const session = await api.findLiveSessionByRoomName(roomName);
 
     if (!session) {
       res.json({

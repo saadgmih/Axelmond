@@ -1,6 +1,7 @@
 import { prisma } from "../db";
 import { buildLiveReplayBody, buildLiveReplayTitle } from "../live/live-replay";
 import { syncPublishedLessonModules } from "../course-curriculum-sync";
+import { liveSessionJoinSelect } from "./mappers/live-mappers";
 
 type CompleteLiveReplayUploadInput = {
   userId: string;
@@ -17,7 +18,10 @@ type CompleteLiveReplayUploadInput = {
 export async function completeLiveReplayUpload(input: CompleteLiveReplayUploadInput) {
   const session = await prisma.liveSession.findFirst({
     where: { id: input.liveSessionId, courseId: input.courseId },
-    include: { course: { select: { title: true, liveSubject: true } } },
+    select: {
+      ...liveSessionJoinSelect,
+      course: { select: { title: true, liveSubject: true } },
+    },
   });
   if (!session) {
     throw new Error("Session live introuvable pour cette rediffusion.");
@@ -53,13 +57,17 @@ export async function completeLiveReplayUpload(input: CompleteLiveReplayUploadIn
       include: { attachments: true },
     });
 
-    await tx.liveSession.update({
-      where: { id: input.liveSessionId },
-      data: {
-        replayContentId: created.id,
-        recordingStatus: "READY",
-      },
-    });
+    try {
+      await tx.liveSession.update({
+        where: { id: input.liveSessionId },
+        data: {
+          replayContentId: created.id,
+          recordingStatus: "READY",
+        },
+      });
+    } catch (err) {
+      if (!isMissingLiveReplayColumnError(err)) throw err;
+    }
 
     return created;
   });
@@ -67,9 +75,18 @@ export async function completeLiveReplayUpload(input: CompleteLiveReplayUploadIn
   return content;
 }
 
+function isMissingLiveReplayColumnError(err: unknown): boolean {
+  return typeof err === "object" && err !== null && "code" in err && (err as { code?: string }).code === "P2022";
+}
+
 export async function markLiveSessionRecordingStatus(liveSessionId: string, recordingStatus: string) {
-  await prisma.liveSession.update({
-    where: { id: liveSessionId },
-    data: { recordingStatus },
-  });
+  try {
+    await prisma.liveSession.update({
+      where: { id: liveSessionId },
+      data: { recordingStatus },
+    });
+  } catch (err) {
+    if (isMissingLiveReplayColumnError(err)) return;
+    throw err;
+  }
 }

@@ -4,6 +4,7 @@ export * from "./mappers/user-mappers";
 export {
   canPublishLiveMedia,
   ensureLiveSession,
+  findLiveSessionByRoomName,
   type LiveSessionResolveResult,
   assertLiveAccess,
   recordLiveAction,

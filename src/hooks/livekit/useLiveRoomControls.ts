@@ -34,6 +34,10 @@ import {
   type LiveSyncMessage,
   type LiveWhiteboardStroke,
 } from "../../live/live-sync";
+import {
+  isWhiteboardStrokeRateLimited,
+  trackWhiteboardStrokeTimestamp,
+} from "../../live/live-sync-validation";
 import { uploadLiveReplayVideo } from "../../live/live-replay-upload";
 import { buildLiveReplayTitle } from "../../live/live-replay";
 

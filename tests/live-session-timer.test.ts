@@ -18,6 +18,10 @@ rulesTest("live-session-timer", () => {
   const catalogMappersSource = fs.readFileSync("src/server/mappers/catalog-mappers.ts", "utf8");
   assert.match(catalogMappersSource, /select:\s*activeLiveSessionSelect/);
   assert.match(catalogMappersSource, /startTime:\s*true/);
+  const liveMappersSource = fs.readFileSync("src/server/mappers/live-mappers.ts", "utf8");
+  assert.match(liveMappersSource, /select:\s*liveSessionJoinSelect/);
+  assert.match(liveMappersSource, /syncLiveRecordingStatus/);
+  assert.doesNotMatch(liveMappersSource, /upsert\([\s\S]*recordingStatus:\s*"RECORDING"/);
   assert.match(serverSource, /startTime:\s*liveStartedAt/);
   assert.match(serverSource, /Live session synced/);
 

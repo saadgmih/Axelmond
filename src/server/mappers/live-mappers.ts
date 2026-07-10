@@ -1,4 +1,4 @@
-import { Prisma, type LiveSession } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import type { AccessTokenOptions } from "livekit-server-sdk";
 import { Course } from "../../types";
 import { canAccessAcademicProfile } from "../../rbac";
@@ -14,9 +14,45 @@ export function canPublishLiveMedia(_role: AppUser["role"]): boolean {
   return true;
 }
 
+export const liveSessionJoinSelect = {
+  id: true,
+  roomName: true,
+  startTime: true,
+  isActive: true,
+  endTime: true,
+  courseId: true,
+  professorId: true,
+  title: true,
+} as const;
+
+export type LiveSessionJoinRecord = Prisma.LiveSessionGetPayload<{ select: typeof liveSessionJoinSelect }>;
+
 export type LiveSessionResolveResult =
-  | { ok: true; session: LiveSession }
+  | { ok: true; session: LiveSessionJoinRecord }
   | { ok: false; status: number; error: string };
+
+function isMissingLiveReplayColumnError(err: unknown): boolean {
+  return typeof err === "object" && err !== null && "code" in err && (err as { code?: string }).code === "P2022";
+}
+
+async function syncLiveRecordingStatus(sessionId: string) {
+  try {
+    await prisma.liveSession.update({
+      where: { id: sessionId },
+      data: { recordingStatus: "RECORDING", replayContentId: null },
+    });
+  } catch (err) {
+    if (isMissingLiveReplayColumnError(err)) return;
+    throw err;
+  }
+}
+
+export async function findLiveSessionByRoomName(roomName: string) {
+  return prisma.liveSession.findUnique({
+    where: { roomName },
+    select: liveSessionJoinSelect,
+  });
+}
 
 export async function ensureLiveSession(course: Course, authUser: AppUser): Promise<LiveSessionResolveResult> {
   const roomName = buildLiveKitRoomName(course.id);
@@ -26,7 +62,7 @@ export async function ensureLiveSession(course: Course, authUser: AppUser): Prom
   }
 
   if (authUser.role === "STUDENT") {
-    const session = await prisma.liveSession.findUnique({ where: { roomName } });
+    const session = await findLiveSessionByRoomName(roomName);
     if (!session?.isActive) {
       return { ok: false, status: 403, error: LIVE_ACCESS_ERRORS.sessionNotActive };
     }
@@ -46,17 +82,16 @@ export async function ensureLiveSession(course: Course, authUser: AppUser): Prom
       isActive: true,
       endTime: null,
       professorId: authUser.id,
-      recordingStatus: "RECORDING",
-      replayContentId: null,
     },
     create: {
       roomName,
       title: course.liveSubject || null,
       courseId: course.id,
       professorId: authUser.id,
-      recordingStatus: "RECORDING",
     },
+    select: liveSessionJoinSelect,
   });
+  await syncLiveRecordingStatus(session.id);
   logLiveKit("INFO", "Live session ensured", {
     courseId: course.id,
     roomName,
