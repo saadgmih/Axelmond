@@ -25,6 +25,7 @@ import {
 } from "../utils/free-access-datetime";
 import { integerFromNumericInput, numberFromNumericInput, numericInputFromNumber } from "../utils/numeric-input";
 import { flattenSections } from "./useCourseContent";
+import { isLiveReplayContent } from "../live/live-replay";
 import { useAsyncEffectGuard, type AsyncRequestToken } from "./useAsyncEffectGuard";
 import { useAutoClearTimeout } from "./useAutoClearTimeout";
 
@@ -659,6 +660,9 @@ export function useTeacherCurriculum({
   };
 
   const selectedManagedContents = selectedManagedSection?.contents || [];
+  const managedLiveReplays = managedSections
+    .flatMap((section) => section.contents || [])
+    .filter((content) => content.type === "VIDEO" && !content.published && isLiveReplayContent(content.body));
 
   return {
     newSectionCourseId,
@@ -749,6 +753,7 @@ export function useTeacherCurriculum({
     chapterSections,
     uploadPartOptions,
     selectedManagedContents,
+    managedLiveReplays,
     handleSetUploadSectionId,
     showCurriculumSuccess,
     showCurriculumError,

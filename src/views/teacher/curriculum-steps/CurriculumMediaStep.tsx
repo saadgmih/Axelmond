@@ -90,6 +90,7 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
     chapterSections,
     uploadPartOptions,
     selectedManagedContents,
+    managedLiveReplays,
     handleSetUploadSectionId,
     showCurriculumSuccess: _showCurriculumSuccess,
     showCurriculumError: _showCurriculumError,
@@ -115,7 +116,62 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
   const stepTheme = getStepTheme(4);
   const inputFocus = `${curriculumUi.input} ${stepTheme.focus}`;
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+      {managedLiveReplays.length > 0 && (
+        <div className="rounded-3xl border border-emerald-500/30 bg-emerald-950/30 p-5 md:p-6 space-y-4">
+          <div className="space-y-1">
+            <h3 className="text-sm font-black uppercase tracking-wide text-emerald-200">Rediffusions live en attente</h3>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Comme sur TikTok, la rediffusion est créée automatiquement à la fin du live. Publiez-la ici pour la rendre
+              visible aux étudiants.
+            </p>
+          </div>
+          <div className="space-y-3">
+            {managedLiveReplays.map((content) => {
+              const attachment = content.attachments?.[0];
+              return (
+                <div key={content.id} className={`${curriculumUi.card} space-y-3`}>
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="space-y-1">
+                      <span className={`rounded px-2 py-0.5 text-[8px] font-black uppercase ${curriculumUi.mediaVideo}`}>
+                        Rediffusion live
+                      </span>
+                      <h4 className="text-sm font-black text-white">{content.title}</h4>
+                    </div>
+                    <span className={publishedBadge(false)}>{publishedLabel(false)}</span>
+                  </div>
+                  {attachment?.url && content.type === "VIDEO" && (
+                    <PremiumVideoPlayer
+                      src={attachment.url}
+                      title={content.title}
+                      instructor={managedCourse?.instructor ?? "Professeur"}
+                      activeSector="teacher"
+                    />
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleToggleContentPublished(content)}
+                      className={`${curriculumUi.ghostBtn} border-emerald-500/30 bg-emerald-950/40 text-emerald-400 hover:bg-emerald-950/60`}
+                    >
+                      Publier la rediffusion
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteLessonContent(content)}
+                      className={curriculumUi.dangerBtn}
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       <div className={`lg:col-span-5 ${curriculumUi.panel} ${getStepTheme(4).panel} space-y-5 self-start`}>
         <div>
           <h3 className={curriculumUi.panelTitle}>
@@ -374,6 +430,7 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
           )}
         </div>
       </div>
+    </div>
     </div>
   );
 }

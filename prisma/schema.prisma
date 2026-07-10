@@ -441,23 +441,26 @@ model QuizAnswer {
 }
 
 model LiveSession {
-  id          String           @id @default(cuid())
-  roomName    String           @unique
-  title       String?
-  courseId    Int
-  professorId String?
-  isActive    Boolean          @default(true)
-  startTime   DateTime         @default(now())
-  endTime     DateTime?
-  course      Course           @relation(fields: [courseId], references: [id])
-  professor   User?            @relation("ProfessorLiveSessions", fields: [professorId], references: [id])
-  messages    LiveMessage[]
-  attendances LiveAttendance[]
-  actionLogs  LiveActionLog[]
+  id               String           @id @default(cuid())
+  roomName         String           @unique
+  title            String?
+  courseId         Int
+  professorId      String?
+  isActive         Boolean          @default(true)
+  startTime        DateTime         @default(now())
+  endTime          DateTime?
+  replayContentId  String?
+  recordingStatus  String           @default("NONE")
+  course           Course           @relation(fields: [courseId], references: [id])
+  professor        User?            @relation("ProfessorLiveSessions", fields: [professorId], references: [id])
+  messages         LiveMessage[]
+  attendances      LiveAttendance[]
+  actionLogs       LiveActionLog[]
 
   @@index([courseId])
   @@index([courseId, isActive])
   @@index([professorId])
+  @@index([recordingStatus])
   @@schema("AxelmondResearchLab")
 }
 

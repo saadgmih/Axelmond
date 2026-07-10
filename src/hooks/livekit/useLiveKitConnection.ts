@@ -52,6 +52,7 @@ export interface UseLiveKitConnectionOptions {
   setInvoices: (invoices: Invoice[]) => void;
   setCourseToPurchase: (course: Course | null) => void;
   onLiveEnded?: () => void;
+  onRoomConnected?: (sessionId: string) => void;
 }
 
 export function useLiveKitConnection({
@@ -85,6 +86,7 @@ export function useLiveKitConnection({
   setInvoices,
   setCourseToPurchase,
   onLiveEnded,
+  onRoomConnected,
 }: UseLiveKitConnectionOptions) {
   const activeSpeakerIdentityRef = useRef(activeSpeakerIdentity);
   const activeSpeakerSwitchTimerRef = useRef<number | null>(null);
@@ -289,7 +291,7 @@ export function useLiveKitConnection({
       .catch((err) => console.warn("[livekit] Failed to load stored messages", err));
 
     const connectLiveRoom = async () => {
-      const { url, token } = await api.getLiveKitToken(activeLiveCourse.id);
+      const { url, token, sessionId } = await api.getLiveKitToken(activeLiveCourse.id);
       await room.connect(url, token);
       if (disposed) {
         await room.disconnect();
@@ -300,6 +302,7 @@ export function useLiveKitConnection({
       syncLiveParticipants(room);
       refreshLiveAttendanceReport(activeLiveCourse.id);
       await publishLiveSync(room, { type: "SYNC_REQUEST" });
+      if (sessionId) onRoomConnected?.(sessionId);
       console.info("[livekit] Room connected", { courseId: activeLiveCourse.id, roomName: room.name });
     };
 

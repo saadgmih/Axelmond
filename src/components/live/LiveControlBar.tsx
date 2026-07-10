@@ -1,7 +1,5 @@
 import React from "react";
 import {
-  CircleDot,
-  CircleStop,
   Focus,
   Fullscreen,
   Hand,
@@ -23,7 +21,6 @@ export interface LiveControlBarProps {
   isCameraEnabled: boolean;
   isScreenShareEnabled: boolean;
   isFullscreen: boolean;
-  isRecording: boolean;
   isPiPActive: boolean;
   focusMode: boolean;
   canModerate: boolean;
@@ -37,7 +34,6 @@ export interface LiveControlBarProps {
   onTogglePictureInPicture: () => void;
   onToggleFocusMode: () => void;
   onToggleFullscreen: () => void;
-  onRecordToggle: () => void;
   onReaction: (reaction: string) => void;
   onExit: () => void;
 }
@@ -48,7 +44,6 @@ export default function LiveControlBar({
   isCameraEnabled,
   isScreenShareEnabled,
   isFullscreen,
-  isRecording,
   isPiPActive,
   focusMode,
   canModerate,
@@ -62,29 +57,9 @@ export default function LiveControlBar({
   onTogglePictureInPicture,
   onToggleFocusMode,
   onToggleFullscreen,
-  onRecordToggle,
   onReaction,
   onExit,
 }: LiveControlBarProps) {
-  const [recSeconds, setRecSeconds] = React.useState(0);
-
-  React.useEffect(() => {
-    if (!isRecording) {
-      setRecSeconds(0);
-      return;
-    }
-    const timer = setInterval(() => {
-      setRecSeconds((prev) => prev + 1);
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [isRecording]);
-
-  const formatRecTime = (totalSeconds: number) => {
-    const mins = Math.floor(totalSeconds / 60);
-    const secs = totalSeconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
-
   return (
     <div
       ref={controlsRef}
@@ -208,33 +183,6 @@ export default function LiveControlBar({
             <span className="whitespace-nowrap text-[9px] font-bold xl:text-[10px]">Plein écran</span>
           </button>
         </div>
-
-        {canModerate && (
-          <div className="ml-1 flex shrink-0 items-center gap-1 border-l border-white/10 pl-1 xl:ml-2 xl:gap-2 xl:pl-2">
-            <button
-              type="button"
-              data-tv-focusable
-              tabIndex={0}
-              onClick={onRecordToggle}
-              aria-label={isRecording ? "Arrêter l'enregistrement" : "Démarrer l'enregistrement"}
-              aria-pressed={isRecording}
-              className={`kbd-nav-focus flex h-12 min-h-12 flex-col items-center justify-center rounded-xl transition-all xl:h-[60px] xl:min-h-[60px] ${
-                isRecording
-                  ? "px-3 bg-red-600 border border-red-500 text-white font-bold animate-pulse"
-                  : "w-12 min-w-12 text-zinc-300 hover:bg-zinc-800"
-              }`}
-            >
-              {isRecording ? (
-                <CircleStop className="mb-1 h-5 w-5 xl:mb-1.5" />
-              ) : (
-                <CircleDot className="mb-1 h-5 w-5 xl:mb-1.5" />
-              )}
-              <span className="whitespace-nowrap text-[9px] font-bold xl:text-[10px]">
-                {isRecording ? `Rec en cours (${formatRecTime(recSeconds)})` : "Rec"}
-              </span>
-            </button>
-          </div>
-        )}
       </div>
 
       <div className="order-2 flex shrink-0 items-center border-l border-white/10 pl-1 sm:order-none sm:pl-2 xl:pl-3">

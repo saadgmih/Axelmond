@@ -34,7 +34,8 @@ import {
   type LiveSyncMessage,
   type LiveWhiteboardStroke,
 } from "../../live/live-sync";
-import { isWhiteboardStrokeRateLimited, trackWhiteboardStrokeTimestamp } from "../../live/live-sync-validation";
+import { uploadLiveReplayVideo } from "../../live/live-replay-upload";
+import { buildLiveReplayTitle } from "../../live/live-replay";
 
 export interface UseLiveRoomControlsOptions {
   liveRoom: Room | null;
@@ -115,6 +116,9 @@ export function useLiveRoomControls({
   const [activeCameraDeviceId, setActiveCameraDeviceId] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const autoReplaySessionIdRef = useRef<string | null>(null);
+  const autoReplayFinalizeRef = useRef<((ok: boolean) => void) | null>(null);
+  const autoReplayActiveRef = useRef(false);
 
   useEffect(() => {
     return () => {
@@ -400,9 +404,14 @@ export function useLiveRoomControls({
       try {
         let displayStream: MediaStream | null = null;
         let videoTrack: MediaStreamTrack | null = null;
+        const automaticReplay = autoReplayActiveRef.current;
 
-        // Try getDisplayMedia to capture the entire displayed live interface (tab/window/screen)
-        if (navigator.mediaDevices && typeof navigator.mediaDevices.getDisplayMedia === "function") {
+        // Automatic replay capture uses in-room tracks only (no screen-share picker).
+        if (
+          !automaticReplay &&
+          navigator.mediaDevices &&
+          typeof navigator.mediaDevices.getDisplayMedia === "function"
+        ) {
           try {
             displayStream = await navigator.mediaDevices.getDisplayMedia({
               video: {
@@ -728,6 +737,41 @@ export function useLiveRoomControls({
           // Determine extension matching the actual container type
           const extension = actualMimeType.toLowerCase().includes("video/mp4") ? "mp4" : "webm";
 
+          const liveSessionId = autoReplaySessionIdRef.current;
+          const course = activeLiveCourse;
+          if (automaticReplay && liveSessionId && course) {
+            const replayFile = new File(
+              [blob],
+              `rediffusion_${course.id}_${Date.now()}.${extension}`,
+              { type: actualMimeType },
+            );
+            const title = buildLiveReplayTitle(course.title, course.liveSubject);
+            void uploadLiveReplayVideo(
+              replayFile,
+              { courseId: course.id, liveSessionId, title },
+              (message) => setLiveStatusMsg(message),
+            )
+              .then(() => {
+                setLiveStatusMsg(
+                  "Rediffusion enregistrée. Publiez-la depuis Gestion des Contenus → Médias.",
+                );
+                autoReplayFinalizeRef.current?.(true);
+              })
+              .catch((err) => {
+                console.error("[live-replay] Upload failed", err);
+                setLiveStatusMsg(
+                  err instanceof Error ? err.message : "Échec de l'enregistrement de la rediffusion.",
+                );
+                autoReplayFinalizeRef.current?.(false);
+              })
+              .finally(() => {
+                autoReplayActiveRef.current = false;
+                autoReplayFinalizeRef.current = null;
+                autoReplaySessionIdRef.current = null;
+              });
+            return;
+          }
+
           const url = URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = url;
@@ -744,8 +788,12 @@ export function useLiveRoomControls({
 
         mediaRecorder.start(1000);
         setIsLiveRecording(true);
-        setLiveStatusMsg(`Enregistrement local démarré${hasAudio ? " (avec audio)" : " (sans audio)"}`);
-        void publishLiveAction("RECORDING_REQUESTED", { status: "requested" });
+        setLiveStatusMsg(
+          automaticReplay
+            ? "Enregistrement automatique de la rediffusion en cours."
+            : `Enregistrement local démarré${hasAudio ? " (avec audio)" : " (sans audio)"}`,
+        );
+        void publishLiveAction("RECORDING_REQUESTED", { status: automaticReplay ? "automatic" : "requested" });
       } catch (err) {
         console.error("Failed to start recording:", err);
         setLiveStatusMsg("Erreur lors de l'initialisation de l'enregistrement.");
@@ -758,6 +806,31 @@ export function useLiveRoomControls({
       setLiveStatusMsg("Enregistrement local arrêté. Téléchargement en cours...");
       void publishLiveAction("RECORDING_STOPPED", { status: "stopped" });
     }
+  };
+
+  const startAutomaticLiveRecording = async (liveSessionId: string) => {
+    if (!canModerateLive || isLiveRecording) return;
+    autoReplaySessionIdRef.current = liveSessionId;
+    autoReplayActiveRef.current = true;
+    if (!isLiveRecording) {
+      await toggleLiveRecording();
+    }
+  };
+
+  const finalizeAutomaticLiveRecording = async (): Promise<boolean> => {
+    if (!isLiveRecording || !mediaRecorderRef.current || mediaRecorderRef.current.state === "inactive") {
+      autoReplayActiveRef.current = false;
+      autoReplaySessionIdRef.current = null;
+      return false;
+    }
+    return new Promise((resolve) => {
+      autoReplayFinalizeRef.current = (ok) => {
+        autoReplayActiveRef.current = false;
+        resolve(ok);
+      };
+      setLiveStatusMsg("Finalisation de la rediffusion...");
+      void toggleLiveRecording();
+    });
   };
 
   const handleLiveModeration = async (action: string, participant: LiveParticipantCard) => {
@@ -888,7 +961,8 @@ export function useLiveRoomControls({
     publishLiveAction,
     toggleLiveHand,
     sendLiveReaction,
-    toggleLiveRecording,
+    startAutomaticLiveRecording,
+    finalizeAutomaticLiveRecording,
     handleLiveModeration,
     reconnectLiveSession,
     publishLivePoll,

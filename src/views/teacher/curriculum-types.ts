@@ -123,6 +123,7 @@ export interface TeacherCurriculumViewProps extends AdminAcademicTaxonomyViewPro
   chapterSections: (ContentSection & { depth?: number })[];
   uploadPartOptions: (ContentSection & { depth?: number })[];
   selectedManagedContents: LessonContent[];
+  managedLiveReplays: LessonContent[];
   handleSetUploadSectionId: (sectionId: string) => void;
   showCurriculumSuccess: (message: string) => void;
   showCurriculumError: (message: string) => void;

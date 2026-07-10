@@ -70,7 +70,6 @@ export interface VirtualClassroomProps {
   onSendMessage: (e: React.FormEvent) => void;
   onRaiseHand: () => void;
   onReaction: (reaction: string) => void;
-  onRecordToggle: () => void;
   onModerateParticipant: (action: string, participant: LiveParticipantCard) => void;
   onLiveEvent: (action: string, details?: Record<string, unknown>) => void;
   onReconnectLive?: () => void;
@@ -120,7 +119,6 @@ export default function VirtualClassroom({
   onSendMessage,
   onRaiseHand,
   onReaction,
-  onRecordToggle,
   onModerateParticipant,
   onLiveEvent,
   onReconnectLive,
@@ -267,7 +265,6 @@ export default function VirtualClassroom({
             isCameraEnabled={isCameraEnabled}
             isScreenShareEnabled={isScreenShareEnabled}
             isFullscreen={isFullscreen}
-            isRecording={isRecording}
             isPiPActive={ui.isPiPActive}
             focusMode={ui.liveSettings.focusMode}
             canModerate={ui.canModerate}
@@ -283,7 +280,6 @@ export default function VirtualClassroom({
             }}
             onToggleFocusMode={ui.toggleFocusMode}
             onToggleFullscreen={onToggleFullscreen}
-            onRecordToggle={onRecordToggle}
             onReaction={onReaction}
             onExit={ui.exitLiveSession}
           />

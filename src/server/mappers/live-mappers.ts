@@ -46,12 +46,15 @@ export async function ensureLiveSession(course: Course, authUser: AppUser): Prom
       isActive: true,
       endTime: null,
       professorId: authUser.id,
+      recordingStatus: "RECORDING",
+      replayContentId: null,
     },
     create: {
       roomName,
       title: course.liveSubject || null,
       courseId: course.id,
       professorId: authUser.id,
+      recordingStatus: "RECORDING",
     },
   });
   logLiveKit("INFO", "Live session ensured", {

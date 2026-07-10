@@ -186,54 +186,6 @@ export function useLiveKitRoom({
     [],
   );
 
-  useLiveKitConnection({
-    activeLiveCourse,
-    currentUser,
-    liveReconnectNonce,
-    liveRoom,
-    activeSpeakerIdentity,
-    liveSignals,
-    livePollRef,
-    whiteboardStrokesRef,
-    sharedResourceRef,
-    setLiveRoom,
-    setLiveParticipants,
-    setLiveChatMessages,
-    setLiveStatusMsg,
-    setIsMicEnabled,
-    setIsCameraEnabled,
-    setIsScreenShareEnabled,
-    setActiveSpeakerIdentity,
-    setLiveSignals,
-    setLiveAttendanceReport,
-    syncLiveParticipants,
-    appendLiveChatMessage,
-    applyIncomingLiveSyncMessage,
-    respondToSyncRequest,
-    publishLiveSync,
-    refreshLiveAttendanceReport,
-    updateSessionUser,
-    setEnrolledCourses,
-    setInvoices,
-    setCourseToPurchase,
-    onLiveEnded: () => {
-      const endedCourseId = activeLiveCourse?.id;
-      void leaveLiveRoom({ liveEnded: true }).then(() => {
-        if (endedCourseId) onStudentLiveEnded?.(endedCourseId);
-      });
-      alert("La session live a été terminée par le professeur.");
-    },
-  });
-
-  useLiveMediaAttach({
-    liveParticipants,
-    currentView,
-    teacherView,
-    activeLiveCourseId: activeLiveCourse?.id,
-    liveVideoRefs,
-    liveAudioContainerRef,
-  });
-
   const {
     toggleLiveMic,
     toggleLiveCamera,
@@ -245,7 +197,8 @@ export function useLiveKitRoom({
     publishLiveAction,
     toggleLiveHand,
     sendLiveReaction,
-    toggleLiveRecording,
+    startAutomaticLiveRecording,
+    finalizeAutomaticLiveRecording,
     handleLiveModeration,
     reconnectLiveSession,
     publishLivePoll,
@@ -291,6 +244,59 @@ export function useLiveKitRoom({
     appendLiveChatMessage,
     publishLiveSync,
     refreshLiveAttendanceReport,
+  });
+
+  useLiveKitConnection({
+    activeLiveCourse,
+    currentUser,
+    liveReconnectNonce,
+    liveRoom,
+    activeSpeakerIdentity,
+    liveSignals,
+    livePollRef,
+    whiteboardStrokesRef,
+    sharedResourceRef,
+    setLiveRoom,
+    setLiveParticipants,
+    setLiveChatMessages,
+    setLiveStatusMsg,
+    setIsMicEnabled,
+    setIsCameraEnabled,
+    setIsScreenShareEnabled,
+    setActiveSpeakerIdentity,
+    setLiveSignals,
+    setLiveAttendanceReport,
+    syncLiveParticipants,
+    appendLiveChatMessage,
+    applyIncomingLiveSyncMessage,
+    respondToSyncRequest,
+    publishLiveSync,
+    refreshLiveAttendanceReport,
+    updateSessionUser,
+    setEnrolledCourses,
+    setInvoices,
+    setCourseToPurchase,
+    onLiveEnded: () => {
+      const endedCourseId = activeLiveCourse?.id;
+      void leaveLiveRoom({ liveEnded: true }).then(() => {
+        if (endedCourseId) onStudentLiveEnded?.(endedCourseId);
+      });
+      alert("La session live a été terminée par le professeur.");
+    },
+    onRoomConnected: (sessionId) => {
+      if (canModerateLive) {
+        void startAutomaticLiveRecording(sessionId);
+      }
+    },
+  });
+
+  useLiveMediaAttach({
+    liveParticipants,
+    currentView,
+    teacherView,
+    activeLiveCourseId: activeLiveCourse?.id,
+    liveVideoRefs,
+    liveAudioContainerRef,
   });
 
   const resetLiveKitState = () => {
@@ -341,6 +347,9 @@ export function useLiveKitRoom({
 
   const closeTeacherLiveRoom = async () => {
     const course = activeLiveCourse;
+    if (course && canModerateLive) {
+      await finalizeAutomaticLiveRecording();
+    }
     if (course) {
       try {
         await publishLiveSync(liveRoom, { type: "LIVE_ENDED" });
@@ -384,6 +393,7 @@ export function useLiveKitRoom({
 
     if (course) {
       if (currentUser && !isStudentRole(currentUser.role)) {
+        await finalizeAutomaticLiveRecording();
         try {
           await publishLiveSync(liveRoom, { type: "LIVE_ENDED" });
         } catch (err) {
@@ -442,7 +452,6 @@ export function useLiveKitRoom({
     onSendMessage: sendLiveChatMessage,
     onRaiseHand: toggleLiveHand,
     onReaction: sendLiveReaction,
-    onRecordToggle: toggleLiveRecording,
     onModerateParticipant: handleLiveModeration,
     onLiveEvent: publishLiveAction,
     onReconnectLive: reconnectLiveSession,

@@ -106,6 +106,8 @@ export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
 
       participantName,
 
+      sessionId: session.id,
+
       startedAt: session.startTime.toISOString(),
     });
   });

@@ -7,6 +7,7 @@ import { verifyAuthToken } from "./auth-token";
 import { canManageContent, isTeacherSpaceRole, normalizeRole } from "./rbac";
 import { isAllowedAvatarUrl, isAllowedRasterImageMime, isAllowedRasterImageUpload } from "./avatar-security";
 import { alertSuspectUpload } from "./security-logger";
+import { completeLiveReplayUpload } from "./server/live-replay-service";
 import {
   isConversationParticipant,
   validateMessageAttachmentInput,
@@ -23,6 +24,12 @@ const uploadInput = z.object({
   title: z.string().min(2).max(160),
   contentType: z.enum(["VIDEO", "PDF", "IMAGE"]),
   published: z.boolean().default(false),
+});
+
+const liveReplayInput = z.object({
+  courseId: z.number().int().positive(),
+  liveSessionId: z.string().min(1),
+  title: z.string().min(2).max(160).optional(),
 });
 
 const DANGEROUS_EXTENSIONS = [
@@ -307,6 +314,71 @@ export const uploadRouter = {
       if (content.published) {
         await syncPublishedLessonModules(metadata.courseId);
       }
+      return {
+        contentId: content.id,
+        attachmentId: content.attachments[0]?.id,
+        url: fileUrl,
+      };
+    }),
+
+  liveReplay: f(
+    {
+      video: { maxFileSize: "512MB", maxFileCount: 1 },
+    },
+    { awaitServerData: true },
+  )
+    .input(liveReplayInput)
+    .middleware(async ({ req, input }) => {
+      const user = await getUploadUser(req);
+      const session = await prisma.liveSession.findFirst({
+        where: { id: input.liveSessionId, courseId: input.courseId },
+        include: {
+          course: {
+            select: { id: true, createdById: true },
+          },
+        },
+      });
+      if (!session) {
+        throw new UploadThingError("Session live introuvable pour cette rediffusion.");
+      }
+      if (user.role !== "ADMIN" && session.course.createdById !== user.id) {
+        throw new UploadThingError("Module introuvable ou non autorisé");
+      }
+      return {
+        userId: user.id,
+        courseId: input.courseId,
+        liveSessionId: input.liveSessionId,
+        title: input.title,
+      };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      const fileUrl = getFileUrl(file);
+      if (isDangerousFile(file.name) || !isValidMimeType("VIDEO", file.type)) {
+        alertSuspectUpload(metadata.userId, file.name, file.type || "unknown");
+        await utapi.deleteFiles(file.key);
+        throw new UploadThingError("Type de fichier suspect ou invalide refusé.");
+      }
+      if (!fileUrl) {
+        await utapi.deleteFiles(file.key);
+        throw new UploadThingError("URL de la rediffusion introuvable.");
+      }
+
+      const content = await completeLiveReplayUpload({
+        userId: metadata.userId,
+        courseId: metadata.courseId,
+        liveSessionId: metadata.liveSessionId,
+        title: metadata.title,
+        fileName: file.name,
+        fileKey: file.key,
+        fileUrl,
+        mimeType: file.type || null,
+        size: file.size,
+      });
+
+      console.log(
+        `[${new Date().toISOString()}] [INFO] [uploadthing] Live replay uploaded ${JSON.stringify({ contentId: content.id, courseId: metadata.courseId, liveSessionId: metadata.liveSessionId, fileKey: file.key })}`,
+      );
+
       return {
         contentId: content.id,
         attachmentId: content.attachments[0]?.id,

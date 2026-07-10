@@ -36,9 +36,9 @@ export default function LiveClassroomHeader({
           <div className="flex items-center gap-2">
             <h1 className="text-sm lg:text-base font-bold truncate tracking-tight text-zinc-100">{course.title}</h1>
             {isRecording && (
-              <span className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] uppercase font-black bg-red-500/10 text-red-400 border border-red-500/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
-                REC
+              <span className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] uppercase font-black bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                Rediffusion auto
               </span>
             )}
           </div>
