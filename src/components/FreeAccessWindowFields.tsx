@@ -103,8 +103,8 @@ function FreeAccessDatetimeField({
     setTimeDraft(formatTimeDisplayValue(canonical));
   };
 
-  const datePickerValue = parseDateDisplayInput(dateDraft) ?? canonical.split("T")[0] || "";
-  const timePickerValue = parseTimeDisplayInput(timeDraft) ?? canonical.split("T")[1] || "00:00";
+  const datePickerValue = parseDateDisplayInput(dateDraft) ?? canonical.split("T")[0] ?? "";
+  const timePickerValue = parseTimeDisplayInput(timeDraft) ?? canonical.split("T")[1] ?? "00:00";
   const minDateValue = minValue ? (parseDatetimeDisplayInput(minValue) ?? minValue).split("T")[0] : undefined;
 
   return (
