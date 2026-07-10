@@ -678,69 +678,89 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
         ...(nextPrice <= 0 ? nextFreeAccessWindow : {}),
       };
 
-      const updatedCourse = await api.prisma.$transaction(async (tx) => {
-        const updated = await tx.course.update({
-          where: { id: course.id },
+      let updatedCourse;
+      try {
+        updatedCourse = await api.prisma.$transaction(async (tx) => {
+          const updated = await tx.course.update({
+            where: { id: course.id },
 
-          data: patchData,
-        });
+            data: patchData,
+          });
 
-        const shouldSyncLiveSession =
-          typeof req.body.isLiveNow === "boolean" || typeof req.body.liveSubject !== "undefined";
+          const shouldSyncLiveSession =
+            typeof req.body.isLiveNow === "boolean" || typeof req.body.liveSubject !== "undefined";
 
-        if (shouldSyncLiveSession) {
-          const roomName = api.buildLiveKitRoomName(course.id);
+          if (shouldSyncLiveSession) {
+            const roomName = api.buildLiveKitRoomName(course.id);
 
-          if (updated.isLiveNow) {
-            const liveStartedAt = course.isLiveNow ? undefined : new Date();
+            if (updated.isLiveNow) {
+              const liveStartedAt = course.isLiveNow ? undefined : new Date();
 
-            const session = await tx.liveSession.upsert({
-              where: { roomName },
+              const session = await tx.liveSession.upsert({
+                where: { roomName },
 
-              update: {
-                title: updated.liveSubject || null,
+                update: {
+                  title: updated.liveSubject || null,
 
-                isActive: true,
+                  isActive: true,
 
-                endTime: null,
+                  endTime: null,
 
-                professorId: authUser.id,
+                  professorId: authUser.id,
 
-                ...(liveStartedAt ? { startTime: liveStartedAt } : {}),
-              },
+                  ...(liveStartedAt ? { startTime: liveStartedAt } : {}),
+                },
 
-              create: {
-                roomName,
+                create: {
+                  roomName,
 
-                title: updated.liveSubject || null,
+                  title: updated.liveSubject || null,
 
+                  courseId: course.id,
+
+                  professorId: authUser.id,
+
+                  startTime: liveStartedAt || new Date(),
+                },
+              });
+
+              api.logLiveKit("INFO", "Live session synced", {
                 courseId: course.id,
+                roomName,
+                isLiveNow: true,
+                startedAt: session.startTime.toISOString(),
+              });
+            } else if (typeof req.body.isLiveNow === "boolean") {
+              await tx.liveSession.updateMany({
+                where: { roomName, isActive: true, endTime: null },
 
-                professorId: authUser.id,
+                data: { title: updated.liveSubject || null, isActive: false, endTime: new Date() },
+              });
 
-                startTime: liveStartedAt || new Date(),
-              },
-            });
-
-            api.logLiveKit("INFO", "Live session synced", {
-              courseId: course.id,
-              roomName,
-              isLiveNow: true,
-              startedAt: session.startTime.toISOString(),
-            });
-          } else if (typeof req.body.isLiveNow === "boolean") {
-            await tx.liveSession.updateMany({
-              where: { roomName, isActive: true, endTime: null },
-
-              data: { title: updated.liveSubject || null, isActive: false, endTime: new Date() },
-            });
-
-            api.logLiveKit("INFO", "Live session synced", { courseId: course.id, roomName, isLiveNow: false });
+              api.logLiveKit("INFO", "Live session synced", { courseId: course.id, roomName, isLiveNow: false });
+            }
           }
-        }
 
-        return tx.course.findUnique({ where: { id: course.id }, include: api.courseResponseInclude });
-      });
+          return tx.course.findUnique({ where: { id: course.id }, include: api.courseResponseInclude });
+        });
+      } catch (err) {
+        api.logDb("ERROR", "Course patch transaction failed", {
+          courseId: course.id,
+          userId: authUser.id,
+          patch: patchData,
+          error: String(err),
+        });
+        res.status(api.apiErrorStatus(err)).json({
+          error: api.apiErrorMessage(err),
+          code: typeof err === "object" && err && "code" in err ? String((err as { code?: string }).code) : undefined,
+        });
+        return;
+      }
+
+      if (!updatedCourse) {
+        res.status(404).json({ error: api.PUBLIC_API_ERRORS.courseNotFound });
+        return;
+      }
 
       await api.logAudit(authUser.id, authUser.email, "PATCH_COURSE", "Course", String(course.id), patchData, req.ip);
 

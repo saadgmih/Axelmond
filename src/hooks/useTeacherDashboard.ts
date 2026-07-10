@@ -3,6 +3,7 @@ import { getClientErrorMessage } from "../client-errors";
 import { api, getFreshSessionToken, type SiteSettings } from "../api";
 import type { AppUser } from "../components/AuthScreen";
 import type { Course, CourseGrade, FacultyDomain } from "../types";
+import { findLiveCourse } from "../utils/live-course-selection";
 import { normalizeCoursePrice } from "../utils/course-pricing";
 import { applyForceDesktopMode } from "../utils/force-desktop-mode";
 
@@ -205,23 +206,32 @@ export function useTeacherDashboard({
   };
 
   const handleToggleCourseLive = async (id: number): Promise<Course | null> => {
-    const course = courses.find((c) => c.id === id);
-    if (!course) return null;
+    let course = findLiveCourse(courses, id);
+    if (!course) {
+      try {
+        course = await api.getCourse(id);
+        setCourses((prev) => [...prev.filter((item) => item.id !== course!.id), course!]);
+      } catch (err) {
+        console.error("Failed to resolve course before live toggle:", err);
+        throw new Error(getClientErrorMessage(err, "Module introuvable pour lancer le live."));
+      }
+    }
+
     const nextState = !course.isLiveNow;
     try {
-      const updatedCourse = await api.updateCourse(id, {
+      const updatedCourse = await api.updateCourse(course.id, {
         isLiveNow: nextState,
-        liveSubject: nextState ? course.liveSubject || "Rotation d'arbres AVL & complexités algorithmiques" : null,
+        liveSubject: nextState ? course.liveSubject?.trim() || "Session live en cours" : null,
       });
-      setCourses((prev) => prev.map((c) => (c.id === id ? updatedCourse : c)));
+      setCourses((prev) => prev.map((c) => (c.id === course!.id ? updatedCourse : c)));
       setActiveLiveCourse((current) => {
-        if (current?.id !== id) return current;
+        if (current?.id !== course!.id) return current;
         return nextState ? updatedCourse : null;
       });
       return updatedCourse;
     } catch (err) {
       console.error("Failed to toggle course live:", err);
-      return null;
+      throw new Error(getClientErrorMessage(err, "Impossible de modifier l'état du live."));
     }
   };
 

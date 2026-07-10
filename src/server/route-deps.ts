@@ -192,6 +192,7 @@ export {
   persistCoursePaymentEnrollment,
 } from "../course-payments";
 export { PUBLIC_API_ERRORS, LIVE_ACCESS_ERRORS, toPushSubscribeClientResponse } from "../public-api-errors";
+export { apiErrorStatus, apiErrorMessage } from "./api-errors";
 export { sanitizeAcademicProfileInput, sanitizeAvatarUrl, isAvatarUrlFieldInvalid } from "../academic-profile";
 export { isAllowedAvatarUrl } from "../avatar-security";
 export { setAuthCookies, clearAuthCookies, persistCsrfTokenForRefreshSession } from "../auth-cookies";

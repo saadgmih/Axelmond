@@ -1,4 +1,5 @@
-import type { Dispatch, ReactNode, SetStateAction } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown, Code2, FileText, GraduationCap, Pencil, Radio, Sparkles, Square, Video } from "lucide-react";
 import type { Course } from "../../types";
 import { liveControlUi } from "./live-control-theme";
@@ -14,9 +15,8 @@ export interface TeacherLiveControlViewProps {
   toggleTeacherLiveSession: (
     courseId: number,
     toggleCourseLive: (id: number) => Promise<Course | null>,
-  ) => void | Promise<void>;
+  ) => Promise<{ ok: true; course: Course } | { ok: false; error: string }>;
   activeLiveCourse: Course | null;
-  renderTeacherLiveRoom: () => ReactNode;
 }
 
 function WebcamDecor() {
@@ -40,12 +40,34 @@ export default function TeacherLiveControlView({
   handleToggleCourseLive,
   toggleTeacherLiveSession,
   activeLiveCourse,
-  renderTeacherLiveRoom,
 }: TeacherLiveControlViewProps) {
+  const [liveActionError, setLiveActionError] = useState<string | null>(null);
+  const [isLiveActionPending, setIsLiveActionPending] = useState(false);
   const resolvedLiveCourseId = resolveLiveCourseId(courses, liveCourseId);
   const selectedCourse = findLiveCourse(courses, liveCourseId);
   const isLive = Boolean(selectedCourse?.isLiveNow);
   const isRoomOpen = activeLiveCourse?.id === resolvedLiveCourseId;
+
+  useEffect(() => {
+    if (resolvedLiveCourseId !== liveCourseId) {
+      setLiveCourseId(resolvedLiveCourseId);
+    }
+  }, [resolvedLiveCourseId, liveCourseId, setLiveCourseId]);
+
+  const handleLiveAction = async () => {
+    setLiveActionError(null);
+    setIsLiveActionPending(true);
+    try {
+      const result = await toggleTeacherLiveSession(resolvedLiveCourseId, handleToggleCourseLive);
+      if (result.ok === false) {
+        setLiveActionError(result.error);
+      }
+    } catch (err) {
+      setLiveActionError(err instanceof Error ? err.message : "Action live impossible pour le moment.");
+    } finally {
+      setIsLiveActionPending(false);
+    }
+  };
 
   return (
     <div className={liveControlUi.page}>
@@ -160,15 +182,21 @@ export default function TeacherLiveControlView({
             </div>
 
             <div className={`${liveControlUi.actions} mt-5 border-t border-white/[0.06] pt-5`}>
+              {liveActionError && (
+                <p className="w-full rounded-xl border border-red-500/30 bg-red-950/40 px-3 py-2 text-xs font-semibold text-red-200">
+                  {liveActionError}
+                </p>
+              )}
               <button
                 type="button"
-                onClick={() => toggleTeacherLiveSession(resolvedLiveCourseId, handleToggleCourseLive)}
-                className={isLive && isRoomOpen ? liveControlUi.stopBtn : liveControlUi.startBtn}
+                disabled={!selectedCourse || isLiveActionPending}
+                onClick={() => void handleLiveAction()}
+                className={`${isLive && isRoomOpen ? liveControlUi.stopBtn : liveControlUi.startBtn} disabled:cursor-not-allowed disabled:opacity-60`}
               >
                 {!isLive ? (
                   <>
                     <Radio className="h-3.5 w-3.5" />
-                    Lancer la session live
+                    {isLiveActionPending ? "Lancement en cours..." : "Lancer la session live"}
                   </>
                 ) : isRoomOpen ? (
                   <>
@@ -188,9 +216,7 @@ export default function TeacherLiveControlView({
       </div>
 
       {isRoomOpen && activeLiveCourse && (
-        <div id="live-room-portal-target" className={liveControlUi.roomShell}>
-          {renderTeacherLiveRoom()}
-        </div>
+        <div id="live-room-portal-target" className={liveControlUi.roomShell} />
       )}
     </div>
   );

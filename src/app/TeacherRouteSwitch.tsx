@@ -134,7 +134,6 @@ export function TeacherRouteSwitch() {
               handleToggleCourseLive={handleToggleCourseLive}
               toggleTeacherLiveSession={toggleTeacherLiveSession}
               activeLiveCourse={activeLiveCourse}
-              renderTeacherLiveRoom={() => renderLiveRoomInterface("teacher")}
             />
           </Suspense>
         )}

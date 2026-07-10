@@ -396,9 +396,14 @@ export function usePlatformApp() {
   }, [courses, liveCourseId]);
 
   const toggleTeacherLiveSession = useCallback(
-    async (courseId: number, toggleCourseLive: (id: number) => Promise<Course | null>) => {
+    async (
+      courseId: number,
+      toggleCourseLive: (id: number) => Promise<Course | null>,
+    ): Promise<{ ok: true; course: Course } | { ok: false; error: string }> => {
       const course = findLiveCourse(courses, courseId);
-      if (!course) return;
+      if (!course) {
+        return { ok: false, error: "Aucun module sélectionné. Rechargez la page puis réessayez." };
+      }
 
       const resolvedCourseId = course.id;
       if (resolvedCourseId !== liveCourseId) {
@@ -407,28 +412,47 @@ export function usePlatformApp() {
 
       const isRoomOpen = activeLiveCourse?.id === resolvedCourseId;
 
-      if (course.isLiveNow) {
-        if (isRoomOpen) {
-          if (liveKitRoomRef.current) {
-            await liveKitRoomRef.current.closeTeacherLiveRoom();
-          } else {
-            api.leaveLiveAttendance(resolvedCourseId).catch((err) => console.warn("[livekit] Attendance leave failed", err));
-            setActiveLiveCourse(null);
+      try {
+        if (course.isLiveNow) {
+          if (isRoomOpen) {
+            if (liveKitRoomRef.current) {
+              await liveKitRoomRef.current.closeTeacherLiveRoom();
+            } else {
+              api
+                .leaveLiveAttendance(resolvedCourseId)
+                .catch((err) => console.warn("[livekit] Attendance leave failed", err));
+              setActiveLiveCourse(null);
+            }
+            const stoppedCourse = await toggleCourseLive(resolvedCourseId);
+            if (!stoppedCourse) {
+              return { ok: false, error: "Impossible d'arrêter le live." };
+            }
+            return { ok: true, course: stoppedCourse };
           }
-          await toggleCourseLive(resolvedCourseId);
-        } else {
+
           setSelectedCourse(course);
           setActiveLiveCourse(course);
           setTeacherView("live-control");
+          return { ok: true, course };
         }
-        return;
-      }
 
-      const updatedCourse = await toggleCourseLive(resolvedCourseId);
-      if (updatedCourse) {
+        const updatedCourse = await toggleCourseLive(resolvedCourseId);
+        if (!updatedCourse?.isLiveNow) {
+          return {
+            ok: false,
+            error: "Le serveur n'a pas activé le live. Vérifiez votre connexion puis réessayez.",
+          };
+        }
+
         setSelectedCourse(updatedCourse);
         setActiveLiveCourse(updatedCourse);
         setTeacherView("live-control");
+        return { ok: true, course: updatedCourse };
+      } catch (err) {
+        return {
+          ok: false,
+          error: err instanceof Error ? err.message : "Action live impossible pour le moment.",
+        };
       }
     },
     [courses, activeLiveCourse?.id, liveCourseId, setActiveLiveCourse, setSelectedCourse, setTeacherView, liveKitRoomRef],
