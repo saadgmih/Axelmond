@@ -100,11 +100,13 @@ export function usePlatformTeacherWorkspace(options: {
   useEffect(() => {
     if (role !== "teacher") return;
     if (managedCourses.length === 0) return;
+    const firstManagedCourseId = managedCourses[0].id;
     if (!managedCourses.some((course) => course.id === newSectionCourseId)) {
-      const firstManagedCourseId = managedCourses[0].id;
-      setLiveCourseId(firstManagedCourseId);
       setGradesCourseId(firstManagedCourseId);
     }
+    setLiveCourseId((current) =>
+      managedCourses.some((course) => course.id === current) ? current : firstManagedCourseId,
+    );
   }, [role, managedCourseIds, newSectionCourseId, managedCourses, setLiveCourseId, setGradesCourseId]);
 
   return {

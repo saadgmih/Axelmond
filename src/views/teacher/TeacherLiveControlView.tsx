@@ -2,6 +2,7 @@ import type { Dispatch, ReactNode, SetStateAction } from "react";
 import { ChevronDown, Code2, FileText, GraduationCap, Pencil, Radio, Sparkles, Square, Video } from "lucide-react";
 import type { Course } from "../../types";
 import { liveControlUi } from "./live-control-theme";
+import { findLiveCourse, resolveLiveCourseId } from "../../utils/live-course-selection";
 
 export interface TeacherLiveControlViewProps {
   courses: Course[];
@@ -41,9 +42,10 @@ export default function TeacherLiveControlView({
   activeLiveCourse,
   renderTeacherLiveRoom,
 }: TeacherLiveControlViewProps) {
-  const selectedCourse = courses.find((course) => course.id === liveCourseId);
+  const resolvedLiveCourseId = resolveLiveCourseId(courses, liveCourseId);
+  const selectedCourse = findLiveCourse(courses, liveCourseId);
   const isLive = Boolean(selectedCourse?.isLiveNow);
-  const isRoomOpen = activeLiveCourse?.id === liveCourseId;
+  const isRoomOpen = activeLiveCourse?.id === resolvedLiveCourseId;
 
   return (
     <div className={liveControlUi.page}>
@@ -80,7 +82,7 @@ export default function TeacherLiveControlView({
             <div className={liveControlUi.fieldWrap}>
               <Code2 className={liveControlUi.fieldIcon} />
               <select
-                value={liveCourseId}
+                value={resolvedLiveCourseId || ""}
                 onChange={(e) => setLiveCourseId(parseInt(e.target.value, 10))}
                 className={liveControlUi.select}
                 aria-label="Module académique en direct"
@@ -114,10 +116,12 @@ export default function TeacherLiveControlView({
                 onChange={(e) => {
                   const value = e.target.value;
                   setCourses((prev) =>
-                    prev.map((course) => (course.id === liveCourseId ? { ...course, liveSubject: value } : course)),
+                    prev.map((course) =>
+                      course.id === resolvedLiveCourseId ? { ...course, liveSubject: value } : course,
+                    ),
                   );
                 }}
-                onBlur={(e) => handleUpdateCourseLiveSubject(liveCourseId, e.target.value)}
+                onBlur={(e) => handleUpdateCourseLiveSubject(resolvedLiveCourseId, e.target.value)}
                 className={liveControlUi.input}
                 aria-label="Sujet de révision actif"
               />
@@ -158,7 +162,7 @@ export default function TeacherLiveControlView({
             <div className={`${liveControlUi.actions} mt-5 border-t border-white/[0.06] pt-5`}>
               <button
                 type="button"
-                onClick={() => toggleTeacherLiveSession(liveCourseId, handleToggleCourseLive)}
+                onClick={() => toggleTeacherLiveSession(resolvedLiveCourseId, handleToggleCourseLive)}
                 className={isLive && isRoomOpen ? liveControlUi.stopBtn : liveControlUi.startBtn}
               >
                 {!isLive ? (

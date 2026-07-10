@@ -6,6 +6,7 @@ import { useNotifications } from "../hooks/useNotifications";
 import { usePushNotifications } from "../hooks/usePushNotifications";
 import { useMessagingSocket } from "../hooks/useMessagingSocket";
 import { scrollAppToTopDeferred } from "../utils/scroll-app-to-top";
+import { findLiveCourse, resolveLiveCourseId } from "../utils/live-course-selection";
 import { applyForceDesktopMode } from "../utils/force-desktop-mode";
 import { useCourseContent } from "../hooks/useCourseContent";
 import { useAppSession } from "../hooks/useAppSession";
@@ -127,7 +128,7 @@ export function usePlatformApp() {
     };
   }, []);
 
-  const [liveCourseId, setLiveCourseId] = useState<number>(1);
+  const [liveCourseId, setLiveCourseId] = useState<number>(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(readInitialSidebarCollapsed);
   const [isTopbarCollapsed, setIsTopbarCollapsed] = useState(() => {
@@ -386,22 +387,35 @@ export function usePlatformApp() {
 
   const { disconnectLiveSession, renderLiveRoomInterface, classroomBindings } = useLiveKitSession();
 
+  useLayoutEffect(() => {
+    if (courses.length === 0) return;
+    const resolvedLiveCourseId = resolveLiveCourseId(courses, liveCourseId);
+    if (resolvedLiveCourseId !== liveCourseId) {
+      setLiveCourseId(resolvedLiveCourseId);
+    }
+  }, [courses, liveCourseId]);
+
   const toggleTeacherLiveSession = useCallback(
     async (courseId: number, toggleCourseLive: (id: number) => Promise<Course | null>) => {
-      const course = courses.find((c) => c.id === courseId);
+      const course = findLiveCourse(courses, courseId);
       if (!course) return;
 
-      const isRoomOpen = activeLiveCourse?.id === courseId;
+      const resolvedCourseId = course.id;
+      if (resolvedCourseId !== liveCourseId) {
+        setLiveCourseId(resolvedCourseId);
+      }
+
+      const isRoomOpen = activeLiveCourse?.id === resolvedCourseId;
 
       if (course.isLiveNow) {
         if (isRoomOpen) {
           if (liveKitRoomRef.current) {
             await liveKitRoomRef.current.closeTeacherLiveRoom();
           } else {
-            api.leaveLiveAttendance(courseId).catch((err) => console.warn("[livekit] Attendance leave failed", err));
+            api.leaveLiveAttendance(resolvedCourseId).catch((err) => console.warn("[livekit] Attendance leave failed", err));
             setActiveLiveCourse(null);
           }
-          await toggleCourseLive(courseId);
+          await toggleCourseLive(resolvedCourseId);
         } else {
           setSelectedCourse(course);
           setActiveLiveCourse(course);
@@ -410,14 +424,14 @@ export function usePlatformApp() {
         return;
       }
 
-      const updatedCourse = await toggleCourseLive(courseId);
+      const updatedCourse = await toggleCourseLive(resolvedCourseId);
       if (updatedCourse) {
         setSelectedCourse(updatedCourse);
         setActiveLiveCourse(updatedCourse);
         setTeacherView("live-control");
       }
     },
-    [courses, activeLiveCourse?.id, setActiveLiveCourse, setSelectedCourse, setTeacherView, liveKitRoomRef],
+    [courses, activeLiveCourse?.id, liveCourseId, setActiveLiveCourse, setSelectedCourse, setTeacherView, liveKitRoomRef],
   );
 
   onSessionExpiredRef.current = disconnectLiveSession;

@@ -14,6 +14,7 @@ import {
   type LiveWhiteboardStroke,
 } from "../live/live-sync";
 import { buildLiveParticipantCards } from "./livekit/participant-sync";
+import { findLiveCourse } from "../utils/live-course-selection";
 import { applyLiveSyncMessage, respondToLiveSyncRequest } from "./livekit/live-sync-state";
 import {
   createPublishLiveSync,
@@ -337,7 +338,7 @@ export function useLiveKitRoom({
   };
 
   const joinTeacherLiveRoom = (courseOverride?: Course) => {
-    const course = courseOverride ?? courses.find((c) => c.id === liveCourseId);
+    const course = courseOverride ?? findLiveCourse(courses, liveCourseId);
     if (!course) return;
     console.info("[livekit] Teacher opening live room", { courseId: course.id, role: currentUser?.role });
     setSelectedCourse(course);
@@ -365,22 +366,23 @@ export function useLiveKitRoom({
     courseId: number,
     toggleCourseLive: (id: number) => Promise<Course | null>,
   ) => {
-    const course = courses.find((c) => c.id === courseId);
+    const course = findLiveCourse(courses, courseId);
     if (!course) return;
 
-    const isRoomOpen = activeLiveCourse?.id === courseId;
+    const resolvedCourseId = course.id;
+    const isRoomOpen = activeLiveCourse?.id === resolvedCourseId;
 
     if (course.isLiveNow) {
       if (isRoomOpen) {
         await closeTeacherLiveRoom();
-        await toggleCourseLive(courseId);
+        await toggleCourseLive(resolvedCourseId);
       } else {
         joinTeacherLiveRoom(course);
       }
       return;
     }
 
-    const updatedCourse = await toggleCourseLive(courseId);
+    const updatedCourse = await toggleCourseLive(resolvedCourseId);
     if (updatedCourse) {
       joinTeacherLiveRoom(updatedCourse);
     }
