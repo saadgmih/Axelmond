@@ -161,7 +161,7 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
   const hasDisciplineOptions = allDisciplines.length > 0;
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+    <div className="grid grid-cols-1 gap-6 xl:grid-cols-12 xl:items-stretch animate-in fade-in slide-in-from-bottom-4 duration-300">
       <div className={`xl:col-span-5 ${curriculumUi.panel} ${getStepTheme(1).panel} space-y-5 self-start`}>
         <div>
           <h3 className={curriculumUi.panelTitle}>
@@ -330,15 +330,15 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
         </form>
       </div>
 
-      <div className="xl:col-span-7 space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="flex min-h-0 flex-col gap-4 xl:col-span-7 xl:min-h-[calc(100dvh-18rem)]">
+        <div className="flex shrink-0 items-center justify-between">
           <h3 className={curriculumUi.sectionTitle}>Vos modules ({managedCourses.length})</h3>
           <span className={curriculumUi.countBadge}>
             {managedCourses.length} module{managedCourses.length !== 1 ? "s" : ""}
           </span>
         </div>
 
-        <div className="max-h-[650px] space-y-4 overflow-y-auto pr-1">
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto rounded-3xl border border-slate-800 bg-slate-900/40 p-4 pr-2">
           {managedCourses.length === 0 && (
             <div className={curriculumUi.empty}>
               <BookOpen className="mx-auto mb-2 h-8 w-8 text-slate-600" />
