@@ -48,10 +48,18 @@ export function toDiscipline(discipline: any) {
   };
 }
 
+export const activeLiveSessionSelect = {
+  id: true,
+  startTime: true,
+  isActive: true,
+  endTime: true,
+} as const;
+
 export const activeLiveSessionInclude = {
   where: { isActive: true, endTime: null },
   orderBy: { startTime: "asc" },
   take: 1,
+  select: activeLiveSessionSelect,
 } as const;
 
 export const courseResponseInclude = {

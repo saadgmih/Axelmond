@@ -15,6 +15,9 @@ rulesTest("live-session-timer", () => {
   assert.match(serverSource, /liveStartedAt:\s*getLiveStartedAt\(course\)/);
   assert.match(serverSource, /if\s*\(!course\.isLiveNow\)\s*return\s+null/);
   assert.match(serverSource, /liveSessions:\s*activeLiveSessionInclude/);
+  const catalogMappersSource = fs.readFileSync("src/server/mappers/catalog-mappers.ts", "utf8");
+  assert.match(catalogMappersSource, /select:\s*activeLiveSessionSelect/);
+  assert.match(catalogMappersSource, /startTime:\s*true/);
   assert.match(serverSource, /startTime:\s*liveStartedAt/);
   assert.match(serverSource, /Live session synced/);
 
