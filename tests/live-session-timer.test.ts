@@ -19,10 +19,11 @@ rulesTest("live-session-timer", () => {
   assert.match(catalogMappersSource, /select:\s*activeLiveSessionSelect/);
   assert.match(catalogMappersSource, /startTime:\s*true/);
   const liveMappersSource = fs.readFileSync("src/server/mappers/live-mappers.ts", "utf8");
-  assert.match(liveMappersSource, /select:\s*liveSessionJoinSelect/);
-  assert.match(liveMappersSource, /syncLiveRecordingStatus/);
-  assert.doesNotMatch(liveMappersSource, /upsert\([\s\S]*recordingStatus:\s*"RECORDING"/);
-  assert.match(serverSource, /startTime:\s*liveStartedAt/);
+  assert.match(liveMappersSource, /upsertActiveLiveSessionRecord/);
+  assert.match(liveMappersSource, /Falling back to legacy live session upsert/);
+  const coursesRoutesSource = fs.readFileSync("src/routes/courses-routes.ts", "utf8");
+  assert.match(coursesRoutesSource, /patchTouchesPricing/);
+  assert.match(coursesRoutesSource, /upsertActiveLiveSessionRecord/);
   assert.match(serverSource, /Live session synced/);
 
   assert.match(classroomSource, /course\.liveStartedAt/);

@@ -5,6 +5,8 @@ export {
   canPublishLiveMedia,
   ensureLiveSession,
   findLiveSessionByRoomName,
+  upsertActiveLiveSessionRecord,
+  deactivateLiveSessionByRoomName,
   type LiveSessionResolveResult,
   assertLiveAccess,
   recordLiveAction,

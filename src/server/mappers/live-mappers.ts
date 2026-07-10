@@ -35,6 +35,102 @@ function isMissingLiveReplayColumnError(err: unknown): boolean {
   return typeof err === "object" && err !== null && "code" in err && (err as { code?: string }).code === "P2022";
 }
 
+function buildLegacyLiveSessionId() {
+  return `live_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+async function upsertActiveLiveSessionRecordLegacy(input: {
+  roomName: string;
+  courseId: number;
+  professorId: string;
+  title: string | null;
+  resetStartTime: boolean;
+}): Promise<LiveSessionJoinRecord | null> {
+  const existing = await prisma.$queryRaw<Array<{ id: string; startTime: Date }>>`
+    SELECT id, "startTime"
+    FROM "AxelmondResearchLab"."LiveSession"
+    WHERE "roomName" = ${input.roomName}
+    LIMIT 1
+  `;
+  const nextStartTime = input.resetStartTime ? new Date() : (existing[0]?.startTime ?? new Date());
+
+  if (existing.length > 0) {
+    await prisma.$executeRaw`
+      UPDATE "AxelmondResearchLab"."LiveSession"
+      SET
+        title = ${input.title},
+        "isActive" = true,
+        "endTime" = NULL,
+        "professorId" = ${input.professorId},
+        "startTime" = ${nextStartTime}
+      WHERE "roomName" = ${input.roomName}
+    `;
+  } else {
+    const id = buildLegacyLiveSessionId();
+    await prisma.$executeRaw`
+      INSERT INTO "AxelmondResearchLab"."LiveSession"
+        (id, "roomName", title, "courseId", "professorId", "isActive", "startTime", "endTime")
+      VALUES
+        (${id}, ${input.roomName}, ${input.title}, ${input.courseId}, ${input.professorId}, true, ${nextStartTime}, NULL)
+    `;
+  }
+
+  return findLiveSessionByRoomName(input.roomName);
+}
+
+export async function upsertActiveLiveSessionRecord(input: {
+  roomName: string;
+  courseId: number;
+  professorId: string;
+  title: string | null;
+  resetStartTime: boolean;
+}): Promise<LiveSessionJoinRecord | null> {
+  const startTime = input.resetStartTime ? new Date() : undefined;
+  try {
+    return await prisma.liveSession.upsert({
+      where: { roomName: input.roomName },
+      update: {
+        title: input.title,
+        isActive: true,
+        endTime: null,
+        professorId: input.professorId,
+        ...(startTime ? { startTime } : {}),
+      },
+      create: {
+        roomName: input.roomName,
+        title: input.title,
+        courseId: input.courseId,
+        professorId: input.professorId,
+        startTime: startTime || new Date(),
+      },
+      select: liveSessionJoinSelect,
+    });
+  } catch (err) {
+    if (!isMissingLiveReplayColumnError(err)) throw err;
+    logLiveKit("WARN", "Falling back to legacy live session upsert", {
+      roomName: input.roomName,
+      courseId: input.courseId,
+    });
+    return upsertActiveLiveSessionRecordLegacy(input);
+  }
+}
+
+export async function deactivateLiveSessionByRoomName(roomName: string, title: string | null) {
+  try {
+    await prisma.liveSession.updateMany({
+      where: { roomName, isActive: true, endTime: null },
+      data: { title, isActive: false, endTime: new Date() },
+    });
+  } catch (err) {
+    if (!isMissingLiveReplayColumnError(err)) throw err;
+    await prisma.$executeRaw`
+      UPDATE "AxelmondResearchLab"."LiveSession"
+      SET title = ${title}, "isActive" = false, "endTime" = NOW()
+      WHERE "roomName" = ${roomName} AND "isActive" = true AND "endTime" IS NULL
+    `;
+  }
+}
+
 async function syncLiveRecordingStatus(sessionId: string) {
   try {
     await prisma.liveSession.update({
@@ -75,22 +171,16 @@ export async function ensureLiveSession(course: Course, authUser: AppUser): Prom
     return { ok: true, session };
   }
 
-  const session = await prisma.liveSession.upsert({
-    where: { roomName },
-    update: {
-      title: course.liveSubject || null,
-      isActive: true,
-      endTime: null,
-      professorId: authUser.id,
-    },
-    create: {
-      roomName,
-      title: course.liveSubject || null,
-      courseId: course.id,
-      professorId: authUser.id,
-    },
-    select: liveSessionJoinSelect,
+  const session = await upsertActiveLiveSessionRecord({
+    roomName,
+    courseId: course.id,
+    professorId: authUser.id,
+    title: course.liveSubject || null,
+    resetStartTime: !course.isLiveNow,
   });
+  if (!session) {
+    return { ok: false, status: 503, error: LIVE_ACCESS_ERRORS.sessionNotActive };
+  }
   await syncLiveRecordingStatus(session.id);
   logLiveKit("INFO", "Live session ensured", {
     courseId: course.id,

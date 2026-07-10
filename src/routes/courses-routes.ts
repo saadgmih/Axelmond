@@ -28,6 +28,15 @@ function isInvalidFreeAccessWindow(price: number, window: { freeAccessStartsAt: 
   return window.freeAccessEndsAt <= window.freeAccessStartsAt;
 }
 
+function patchTouchesPricing(body: Record<string, unknown>) {
+  return (
+    typeof body.price === "number" ||
+    body.freeAccessStartsAt !== undefined ||
+    body.freeAccessEndsAt !== undefined ||
+    body.freeAccessDurationDays !== undefined
+  );
+}
+
 async function withCatalogTimeout<T>(promise: Promise<T>, label: string): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
@@ -648,8 +657,10 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
         return;
       }
 
+      const touchesPricing = patchTouchesPricing(req.body);
       const nextPrice = typeof req.body.price === "number" ? req.body.price : course.price;
       if (
+        touchesPricing &&
         nextPrice > 0 &&
         (req.body.freeAccessDurationDays != null || req.body.freeAccessStartsAt != null || req.body.freeAccessEndsAt != null)
       ) {
@@ -657,12 +668,14 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
         return;
       }
 
-      const nextFreeAccessWindow = resolveFreeAccessWindow(
-        nextPrice,
-        req.body.freeAccessStartsAt ?? course.freeAccessStartsAt,
-        req.body.freeAccessEndsAt ?? course.freeAccessEndsAt,
-      );
-      if (isInvalidFreeAccessWindow(nextPrice, nextFreeAccessWindow)) {
+      const nextFreeAccessWindow = touchesPricing
+        ? resolveFreeAccessWindow(
+            nextPrice,
+            req.body.freeAccessStartsAt ?? course.freeAccessStartsAt,
+            req.body.freeAccessEndsAt ?? course.freeAccessEndsAt,
+          )
+        : null;
+      if (touchesPricing && nextFreeAccessWindow && isInvalidFreeAccessWindow(nextPrice, nextFreeAccessWindow)) {
         res.status(400).json({
           error:
             nextPrice <= 0
@@ -672,79 +685,25 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
         return;
       }
 
-      const patchData = {
-        ...req.body,
-        ...(nextPrice > 0 ? { freeAccessStartsAt: null, freeAccessEndsAt: null, freeAccessDurationDays: null } : {}),
-        ...(nextPrice <= 0 ? nextFreeAccessWindow : {}),
-      };
-
-      let updatedCourse;
-      try {
-        updatedCourse = await api.prisma.$transaction(async (tx) => {
-          const updated = await tx.course.update({
-            where: { id: course.id },
-
-            data: patchData,
-          });
-
-          const shouldSyncLiveSession =
-            typeof req.body.isLiveNow === "boolean" || typeof req.body.liveSubject !== "undefined";
-
-          if (shouldSyncLiveSession) {
-            const roomName = api.buildLiveKitRoomName(course.id);
-
-            if (updated.isLiveNow) {
-              const liveStartedAt = course.isLiveNow ? undefined : new Date();
-
-              const session = await tx.liveSession.upsert({
-                where: { roomName },
-
-                update: {
-                  title: updated.liveSubject || null,
-
-                  isActive: true,
-
-                  endTime: null,
-
-                  professorId: authUser.id,
-
-                  ...(liveStartedAt ? { startTime: liveStartedAt } : {}),
-                },
-
-                create: {
-                  roomName,
-
-                  title: updated.liveSubject || null,
-
-                  courseId: course.id,
-
-                  professorId: authUser.id,
-
-                  startTime: liveStartedAt || new Date(),
-                },
-              });
-
-              api.logLiveKit("INFO", "Live session synced", {
-                courseId: course.id,
-                roomName,
-                isLiveNow: true,
-                startedAt: session.startTime.toISOString(),
-              });
-            } else if (typeof req.body.isLiveNow === "boolean") {
-              await tx.liveSession.updateMany({
-                where: { roomName, isActive: true, endTime: null },
-
-                data: { title: updated.liveSubject || null, isActive: false, endTime: new Date() },
-              });
-
-              api.logLiveKit("INFO", "Live session synced", { courseId: course.id, roomName, isLiveNow: false });
-            }
+      const patchData = touchesPricing
+        ? {
+            ...req.body,
+            ...(nextPrice > 0 ? { freeAccessStartsAt: null, freeAccessEndsAt: null, freeAccessDurationDays: null } : {}),
+            ...(nextPrice <= 0 && nextFreeAccessWindow ? nextFreeAccessWindow : {}),
           }
+        : { ...req.body };
 
-          return tx.course.findUnique({ where: { id: course.id }, include: api.courseResponseInclude });
+      const shouldSyncLiveSession =
+        typeof req.body.isLiveNow === "boolean" || typeof req.body.liveSubject !== "undefined";
+
+      let updatedCourseRow;
+      try {
+        updatedCourseRow = await api.prisma.course.update({
+          where: { id: course.id },
+          data: patchData,
         });
       } catch (err) {
-        api.logDb("ERROR", "Course patch transaction failed", {
+        api.logDb("ERROR", "Course patch update failed", {
           courseId: course.id,
           userId: authUser.id,
           patch: patchData,
@@ -757,6 +716,51 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
         return;
       }
 
+      if (shouldSyncLiveSession) {
+        const roomName = api.buildLiveKitRoomName(course.id);
+        try {
+          if (updatedCourseRow.isLiveNow) {
+            const session = await api.upsertActiveLiveSessionRecord({
+              roomName,
+              courseId: course.id,
+              professorId: authUser.id,
+              title: updatedCourseRow.liveSubject || null,
+              resetStartTime: !course.isLiveNow,
+            });
+            api.logLiveKit("INFO", "Live session synced", {
+              courseId: course.id,
+              roomName,
+              isLiveNow: true,
+              startedAt: session?.startTime?.toISOString() ?? null,
+            });
+          } else if (typeof req.body.isLiveNow === "boolean") {
+            await api.deactivateLiveSessionByRoomName(roomName, updatedCourseRow.liveSubject || null);
+            api.logLiveKit("INFO", "Live session synced", { courseId: course.id, roomName, isLiveNow: false });
+          }
+        } catch (err) {
+          if (typeof req.body.isLiveNow === "boolean" && req.body.isLiveNow && !course.isLiveNow) {
+            await api.prisma.course.update({
+              where: { id: course.id },
+              data: { isLiveNow: false },
+            });
+          }
+          api.logDb("ERROR", "Course live session sync failed", {
+            courseId: course.id,
+            userId: authUser.id,
+            error: String(err),
+          });
+          res.status(503).json({
+            error: "La session live n'a pas pu être démarrée. Réessayez dans un instant.",
+            code: "LIVE_SYNC_FAILED",
+          });
+          return;
+        }
+      }
+
+      const updatedCourse = await api.prisma.course.findUnique({
+        where: { id: course.id },
+        include: api.courseResponseInclude,
+      });
       if (!updatedCourse) {
         res.status(404).json({ error: api.PUBLIC_API_ERRORS.courseNotFound });
         return;
