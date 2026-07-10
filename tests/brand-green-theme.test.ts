@@ -52,6 +52,10 @@ rulesTest("brand-green-theme", () => {
   assert.doesNotMatch(emailSource, /#8b5cf6|#ec4899|#6366f1|#4c1d95|#9d174d|#93c5fd|#ef4444|#7f1d1d|#fca5a5/i);
 
   const manifestSource = fs.readFileSync("public/manifest.json", "utf8");
+  const indexHtml = fs.readFileSync("index.html", "utf8");
+  assert.match(indexHtml, /background:\s*#031512/i);
+  assert.match(indexHtml, /theme-color" content="#031512"/i);
+  assert.doesNotMatch(indexHtml, /#111827/i);
   assert.match(manifestSource, /"theme_color":\s*"#05C2A5"/);
   assert.match(manifestSource, /"background_color":\s*"#042f29"/);
   assert.match(manifestSource, /performance-logo-e6657b8a\.png/);
