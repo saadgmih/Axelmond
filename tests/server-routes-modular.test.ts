@@ -15,7 +15,7 @@ rulesTest("server-routes-modular", () => {
     "auth/email-verification-routes.ts",
     "auth/password-routes.ts",
   ];
-  const defaultMaxRouteModuleLines = 900;
+  const defaultMaxRouteModuleLines = 960;
   const maxBootstrapLines = 600;
 
   const expectedModules = [

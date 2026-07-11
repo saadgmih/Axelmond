@@ -11,7 +11,7 @@ import * as path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const BASE_URL = process.env.LOAD_TEST_URL || "http://localhost:3000";
+const BASE_URL = process.env.LOAD_TEST_URL || "http://127.0.0.1:3000";
 const DURATION_SECONDS = 10;
 
 // Seuils de qualité de service

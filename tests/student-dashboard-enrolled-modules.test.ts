@@ -1,14 +1,14 @@
 import assert from "node:assert/strict";
-import fs from "node:fs";
+import { readFileSync } from "node:fs";
 import { findMissingEnrolledCourseIds } from "../src/app/hooks/useEnrolledCoursesHydration.ts";
 import type { Course } from "../src/types.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("student-dashboard-enrolled-modules", () => {
-  const dashboardSource = fs.readFileSync("src/views/student/StudentDashboardView.tsx", "utf8");
-  const coursesRoutesSource = fs.readFileSync("src/routes/courses-routes.ts", "utf8");
-  const catalogSource = fs.readFileSync("src/server/mappers/catalog-mappers.ts", "utf8");
-  const hydrationSource = fs.readFileSync("src/app/hooks/useEnrolledCoursesHydration.ts", "utf8");
+  const dashboardSource = readFileSync("src/views/student/StudentDashboardView.tsx", "utf8");
+  const coursesRoutesSource = readFileSync("src/routes/courses-routes.ts", "utf8");
+  const catalogSource = readFileSync("src/server/mappers/catalog-mappers.ts", "utf8");
+  const hydrationSource = readFileSync("src/app/hooks/useEnrolledCoursesHydration.ts", "utf8");
 
   assert.match(dashboardSource, /Mes Modules d'Étude Actifs \(\{enrolledList\.length\}\)/);
   assert.doesNotMatch(dashboardSource, /Mes Modules d'Étude Actifs \(\{enrolledCourses\.length\}\)/);
@@ -22,7 +22,11 @@ rulesTest("student-dashboard-enrolled-modules", () => {
 
   assert.match(coursesRoutesSource, /authUser\?\.role === "STUDENT"/);
   assert.match(coursesRoutesSource, /getActiveEnrolledCourseIds/);
-  assert.match(coursesRoutesSource, /OR: \[\{ published: true \}, \{ id: \{ in: studentEnrolledIds \} \}\]/);
+  assert.match(coursesRoutesSource, /buildCatalogCourseVisibilityWhere/);
+  assert.match(
+    readFileSync("src/catalog-visibility.ts", "utf8"),
+    /role === "STUDENT"[\s\S]*?OR: \[\{ published: true \}, \{ id: \{ in: studentEnrolledIds \} \}\]/,
+  );
   assert.doesNotMatch(coursesRoutesSource, /syncPublishedLessonModules\(course\.id\)/);
 
   assert.match(catalogSource, /attachSyncedCourseModules\(courses\)/);

@@ -4,6 +4,7 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   plugins: [react()],
   test: {
+    setupFiles: ["tests/vitest.setup.ts"],
     include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"],
     exclude: ["tests/security-runtime-*.test.ts", "tests/mobile-api-runtime.test.ts"],
     environment: "node",

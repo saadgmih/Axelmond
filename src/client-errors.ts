@@ -12,6 +12,7 @@ export function sanitizeClientErrorMessage(message: unknown, fallback: string, s
   }
   const trimmed = message.trim();
   if (!trimmed || trimmed.length > 500) return fallback;
+  if (status !== undefined && status >= 500) return fallback;
   if (UNSAFE_CLIENT_ERROR_PATTERNS.some((pattern) => pattern.test(trimmed))) return fallback;
   return trimmed;
 }

@@ -45,7 +45,15 @@
     "hostinger:memory": "node --env-file=.env scripts/measure-prod-memory.mjs",
     "security:preflight": "tsx scripts/security-preflight.ts",
     "security:mobile-secret": "node scripts/generate-mobile-client-secret.mjs",
-    "security:probe": "node scripts/security-probe.mjs"
+    "security:probe": "node scripts/security-probe.mjs",
+    "test:prod-live": "node scripts/run-prod-live-3x.mjs",
+    "test:prod-live:discover": "node scripts/discover-prod-live-course.mjs",
+    "trailer:assets": "node scripts/trailer/fetch-assets.mjs",
+    "trailer:capture": "node scripts/trailer/capture-footage.mjs",
+    "trailer:build": "node scripts/trailer/build-trailer.mjs",
+    "trailer:simple": "node scripts/trailer/build-simple.mjs",
+    "trailer:versions": "node scripts/trailer/build-all-versions.mjs",
+    "trailer": "npm run trailer:capture && npm run trailer:build"
   },
   "dependencies": {
     "@paypal/react-paypal-js": "^8.9.2",

@@ -7,6 +7,7 @@ import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("livekit-ui", () => {
   const appSource = readAppSources();
+  const liveKitSessionHost = readFileSync("src/views/live/LiveKitSessionHost.tsx", "utf8");
   const liveKitSource = appSource + readLiveKitHookSources();
   const classroomSource = readLiveClassroomSources();
 
@@ -15,7 +16,7 @@ rulesTest("livekit-ui", () => {
   assert.doesNotMatch(appSource, /<Maximize\b/);
   assert.match(appSource, /activeLiveCourse/);
   assert.match(liveKitSource, /leaveLiveRoom/);
-  assert.match(appSource, /renderLiveRoomInterface\("teacher"\)/);
+  assert.match(liveKitSessionHost, /renderLiveRoomInterface\([\s\S]*\? "teacher" : "student"/);
   assert.match(liveKitSource, /api\.leaveLiveAttendance/);
   assert.match(liveKitSource, /api\.moderateLiveParticipant/);
   assert.match(classroomSource, /Classe virtuelle sécurisée/);

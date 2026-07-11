@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { Camera, CheckCircle2, Trash2, Upload } from "lucide-react";
 import AvatarPhotoEditor from "./AvatarPhotoEditor";
 
-type AccentVariant = "indigo" | "pink" | "violet" | "teal";
+type AccentVariant = "indigo" | "pink" | "violet" | "teal" | "emerald";
 
 const accentStyles: Record<AccentVariant, { button: string; ring: string; frame: string }> = {
   indigo: {
@@ -24,6 +24,11 @@ const accentStyles: Record<AccentVariant, { button: string; ring: string; frame:
     button: "bg-teal-600 hover:bg-teal-700",
     ring: "ring-teal-500/20",
     frame: "border-white/15 bg-gradient-to-tr from-teal-500 to-cyan-600",
+  },
+  emerald: {
+    button: "bg-emerald-600 hover:bg-emerald-700",
+    ring: "ring-emerald-500/20",
+    frame: "border-white/15 bg-gradient-to-tr from-emerald-500 to-teal-600",
   },
 };
 
@@ -47,6 +52,11 @@ const darkAccentStyles: Record<AccentVariant, { button: string; ring: string; fr
     button: "bg-teal-600 hover:bg-teal-500",
     ring: "ring-teal-500/25",
     frame: "border-white/15 bg-gradient-to-br from-teal-950 to-[#031512]",
+  },
+  emerald: {
+    button: "bg-emerald-600 hover:bg-emerald-500",
+    ring: "ring-emerald-500/25",
+    frame: "border-white/15 bg-gradient-to-br from-emerald-950 to-[#031512]",
   },
 };
 

@@ -9,3 +9,13 @@ coverage/
 !.env.example
 .hostinger-import.env
 .actions-runner/
+scripts/trailer/raw/
+scripts/trailer/work/
+scripts/trailer/output/
+scripts/trailer/.env
+scripts/trailer/raw/markers.json
+scripts/trailer/assets/*.mp4
+scripts/trailer/assets/*.jpg
+test-results/
+playwright-report/
+tmp-domains.json
