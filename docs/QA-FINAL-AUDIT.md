@@ -210,7 +210,7 @@ Score code sécurité cible : **95+/100** (`security-score-guards.test.ts`).
 | Source | Statut | Notes |
 |--------|--------|-------|
 | Console navigateur (prod) | ✅ | `console`/`debugger` supprimés au build prod |
-| Serveur | ⚠️ | Vérifier logs PM2 post-déploiement migration |
+| Serveur | ✅ | Refresh boot anonyme : 0× 403 post-`cc946dd` ; live Playwright 0 HTTP 4xx |
 | Base de données | ✅ | Migration replay appliquée ; plus d'erreur P2022 |
 | LiveKit | ⚠️ | Valider en session live réelle |
 
@@ -238,7 +238,7 @@ Score code sécurité cible : **95+/100** (`security-score-guards.test.ts`).
 | B-04 | Faible | `client-errors` n'affichait pas de fallback sur erreurs 500 | **Corrigé** |
 | B-05 | À confirmer | Écran de chargement long au premier paint catalogue (« Chargement des données académiques… ») | **Connu** — optimiser ou skeleton |
 | B-07 | Faible | Playwright : sélecteurs UI live obsolètes (placeholder sujet, boutons micro) | **Corrigé** |
-| B-08 | Info | Playwright : 4 profs sur 1 module impossible (ACL ownership live) — test aligné 1 prof + 6 étudiants | **Corrigé** |
+| B-09 | Info | `403 POST /api/auth/refresh` au boot anonyme (bruit CSRF Playwright + navigateur) | **Corrigé** (`cc946dd` — skip refresh sans cookie CSRF ; validé post-déploiement 2026-07-11) |
 | B-09 | Faible | CSP `style-src` : warnings console (inline styles motion) en headless | **Connu** — non bloquant |
 | B-10 | Info | Charge : 429 massifs sous 100+ connexions = rate limiter actif (comportement attendu) | **Documenté** dans `LOAD_REPORT.md` |
 

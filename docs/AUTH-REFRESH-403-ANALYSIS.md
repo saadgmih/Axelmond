@@ -82,10 +82,21 @@ Vérification :
 
 ## Correctif appliqué (sans affaiblir la sécurité)
 
-**Fichier :** `src/api.ts` — `performSessionRefresh()`
+**Fichier :** `src/api.ts` — `performSessionRefresh()` (commit `cc946dd`)
 
 Ne pas appeler `/api/auth/refresh` si absence de CSRF (cookie/mémoire) **et** pas de legacy mobile refresh body.  
 → Évite le 403 CSRF au boot anonyme ; **ne modifie pas** le middleware serveur ni les ACL live.
+
+## Validation post-déploiement (2026-07-11)
+
+| Test | Avant `cc946dd` | Après déploiement |
+|------|-----------------|-------------------|
+| Boot anonyme (Playwright contexte vierge) | 1× `403` refresh / contexte | **0** appel refresh |
+| Reload post-login (prof + étudiant) | `200` | **`200`** (inchangé) |
+| Run live Playwright — HTTP 4xx refresh | 2× `403` / run | **0** |
+| `manual-prod-journey` (login / logout) | PASS | **4/4 PASS** |
+
+**Conclusion post-déploiement :** correctif efficace, aucune régression sur restauration de session ni déconnexion. Le boot anonyme ne génère plus de bruit CSRF sur `/api/auth/refresh`.
 
 ## Test manuel réel restant
 
