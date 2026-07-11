@@ -95,6 +95,12 @@ function clearSessionTokens() {
 
 async function performSessionRefresh(): Promise<string | null> {
   const legacyRefreshToken = localStorage.getItem(LEGACY_REFRESH_TOKEN_KEY);
+  // Web: refresh uses HttpOnly cookie + CSRF double-submit. Without a CSRF cookie/memory
+  // (and no legacy mobile body token), skip the call — otherwise csrfProtection returns
+  // 403 before the route runs, which spams logs on anonymous boot.
+  if (!legacyRefreshToken && !getCsrfToken()) {
+    return null;
+  }
   const body = legacyRefreshToken ? { refreshToken: legacyRefreshToken } : undefined;
 
   try {

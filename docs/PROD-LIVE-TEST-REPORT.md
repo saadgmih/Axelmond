@@ -120,6 +120,9 @@ URL : https://axelmond.com
 
 **3/3 PASS** — critères automatisés satisfaits.
 
+Analyse détaillée des `403 /api/auth/refresh` : voir `docs/AUTH-REFRESH-403-ANALYSIS.md`  
+(cause : CSRF au boot anonyme, non bloquant ; correctif client dans `src/api.ts` à déployer)
+
 ## Test manuel réel (à exécuter par un humain)
 
 Voir `docs/PROD-LIVE-REAL-MANUAL.md` pour la checklist prof PC + étudiant mobile.
