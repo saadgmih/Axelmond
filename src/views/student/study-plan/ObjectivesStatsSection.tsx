@@ -57,7 +57,7 @@ export function ObjectivesStatsSection({
           <div className="min-w-0 flex-1 lg:max-w-md">
             <div className="h-3 overflow-hidden rounded-full bg-slate-800">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-emerald-500 transition-all duration-500"
+                className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 transition-all duration-500"
                 style={{ width: `${weeklyProgress.percent}%` }}
               />
             </div>

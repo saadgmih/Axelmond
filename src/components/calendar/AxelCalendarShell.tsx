@@ -53,7 +53,10 @@ const viewIcons: Record<CalendarViewMode, typeof Grid3X3> = {
 };
 
 const addActionButtonClass =
-  "inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-cyan-600 px-3 py-2 text-xs font-bold text-white shadow-lg shadow-emerald-950/30 transition-all hover:from-emerald-500 hover:to-cyan-500 active:scale-[0.98]";
+  "inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-3 py-2 text-xs font-bold text-white shadow-lg shadow-emerald-950/30 transition-all hover:from-emerald-500 hover:to-teal-500 active:scale-[0.98]";
+
+const viewSwitcherActive =
+  "border-emerald-300/45 bg-gradient-to-b from-emerald-500/24 via-teal-600/14 to-[#031512]/70 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_10px_24px_rgba(5,194,165,0.22)]";
 
 function sessionsForDay(
   sessions: CalendarSessionMarker[],
@@ -93,15 +96,11 @@ export default function AxelCalendarShell({
   const [viewMode, setViewMode] = useState<CalendarViewMode>("year");
   const [focusDate, setFocusDate] = useState(() => new Date(today.getFullYear(), today.getMonth(), today.getDate()));
 
-  const accentText = accent === "pink" ? "text-emerald-300" : "text-emerald-300";
-  const accentBg = accent === "pink" ? "bg-emerald-500" : "bg-emerald-500";
-  const accentRing = accent === "pink" ? "ring-emerald-400/40" : "ring-emerald-400/40";
-  const accentSoft = accent === "pink" ? "text-emerald-200/90" : "text-emerald-200/90";
-  const viewSwitcherActive =
-    accent === "pink"
-      ? "border-emerald-300/45 bg-gradient-to-b from-emerald-500/24 via-pink-500/14 to-slate-900/70 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_10px_24px_rgba(190,24,93,0.18)]"
-      : "border-emerald-300/45 bg-gradient-to-b from-emerald-500/24 via-indigo-500/14 to-slate-900/70 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_10px_24px_rgba(79,70,229,0.18)]";
-  const viewSwitcherIconActive = accent === "pink" ? "text-emerald-200" : "text-emerald-200";
+  const accentText = "text-emerald-300";
+  const accentBg = "bg-emerald-500";
+  const accentRing = "ring-emerald-400/40";
+  const accentSoft = "text-emerald-200/90";
+  const viewSwitcherIconActive = "text-emerald-200";
 
   const year = focusDate.getFullYear();
   const monthIndex = focusDate.getMonth();
@@ -130,7 +129,7 @@ export default function AxelCalendarShell({
       <button
         type="button"
         key={month}
-        className={`rounded-2xl border border-white/[0.08] bg-[#0b241f]/80 p-2.5 text-left transition hover:border-white/15 hover:bg-[#111827] ${
+        className={`rounded-2xl border border-white/[0.08] bg-[#0b241f]/80 p-2.5 text-left transition hover:border-white/15 hover:bg-[#0b241f] ${
           isCurrentMonth ? "ring-1 ring-emerald-500/30" : ""
         }`}
         onClick={() => {
@@ -169,7 +168,7 @@ export default function AxelCalendarShell({
                 {visible ? cell.date.getDate() : ""}
                 {visible && daySessions.length > 0 && !cell.isToday && (
                   <span
-                    className={`absolute bottom-0 h-1 w-1 rounded-full ${accent === "pink" ? "bg-emerald-400" : "bg-emerald-400"}`}
+                    className={`absolute bottom-0 h-1 w-1 rounded-full bg-emerald-400`}
                   />
                 )}
               </span>
@@ -408,7 +407,7 @@ export default function AxelCalendarShell({
         )}
       </div>
 
-      <nav className="sticky bottom-0 z-20 rounded-3xl border border-white/[0.08] bg-[#031512]/92 p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_18px_36px_rgba(2,6,23,0.28)] backdrop-blur-xl sm:static sm:bg-[#0b1222]/88 sm:p-2">
+      <nav className="sticky bottom-0 z-20 rounded-3xl border border-white/[0.08] bg-[#031512]/92 p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_18px_36px_rgba(3,21,18,0.28)] backdrop-blur-xl sm:static sm:bg-[#031512]/88 sm:p-2">
         <div className="grid grid-cols-4 gap-1.5">
           {(Object.keys(CALENDAR_VIEW_LABELS) as CalendarViewMode[]).map((mode) => {
             const Icon = viewIcons[mode];

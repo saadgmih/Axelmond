@@ -82,7 +82,7 @@ export default function StudentStudyPlanView({ role, currentView }: StudentStudy
   return (
     <div className={scheduleUi.page} data-tv-zone="student-study-plan">
       <section className={scheduleUi.hero}>
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-emerald-600/25 via-violet-600/15 to-cyan-600/10" />
+        <div className={`pointer-events-none absolute inset-0 ${scheduleUi.heroGradient}`} />
         <div className={scheduleUi.heroInner}>
           <div>
             <h1 className={scheduleUi.heroTitle}>Plan d&apos;étude &amp; Objectifs</h1>
