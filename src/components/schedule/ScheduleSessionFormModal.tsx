@@ -100,7 +100,7 @@ export default function ScheduleSessionFormModal<TForm extends ScheduleSessionFo
               className={ui.input}
               value={form.title}
               onChange={(e) => setForm((current) => ({ ...current, title: e.target.value }))}
-              placeholder="Introduction à l'algorithmique"
+              placeholder="introduction à l'analyse numérique 1"
             />
           </label>
 
@@ -110,7 +110,7 @@ export default function ScheduleSessionFormModal<TForm extends ScheduleSessionFo
               className={ui.input}
               value={form.moduleName}
               onChange={(e) => setForm((current) => ({ ...current, moduleName: e.target.value }))}
-              placeholder="Informatique fondamentale"
+              placeholder="Analyse numérique 1"
             />
           </label>
 
@@ -136,12 +136,12 @@ export default function ScheduleSessionFormModal<TForm extends ScheduleSessionFo
           </div>
 
           <label className="space-y-2 block">
-            <span className={ui.label}>Salle ou lien live</span>
+            <span className={ui.label}>SALLE</span>
             <input
               className={ui.input}
               value={form.roomOrLink || ""}
               onChange={(e) => setForm((current) => ({ ...current, roomOrLink: e.target.value }))}
-              placeholder="Amphi B12 ou https://..."
+              placeholder="Ex: Salle 2"
             />
           </label>
 
