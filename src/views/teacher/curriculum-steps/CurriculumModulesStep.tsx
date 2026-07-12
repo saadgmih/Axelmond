@@ -153,7 +153,7 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
   const priceModeButtonClass = (active: boolean) =>
     `inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-black transition-colors ${
       active
-        ? "border-emerald-400 bg-emerald-500/20 text-white"
+        ? "border-green-600 bg-green-700/30 text-white"
         : "border-slate-700 bg-slate-950/70 text-slate-400 hover:border-slate-500 hover:text-white"
     }`;
   const priceInputClass = (isDisabled: boolean, className: string) =>
@@ -165,7 +165,7 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
       <div className={`xl:col-span-5 ${curriculumUi.panel} ${getStepTheme(1).panel} space-y-5 self-start`}>
         <div>
           <h3 className={curriculumUi.panelTitle}>
-            <FilePlus className="h-5 w-5 text-emerald-400" />
+            <FilePlus className="h-5 w-5 text-green-500" />
             Créer un module
           </h3>
         </div>

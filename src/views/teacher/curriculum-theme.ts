@@ -19,19 +19,19 @@ export interface CurriculumStepConfig {
   listActive: string;
 }
 
-/** Palette verte partagée — étapes admin 1–2 et module (alignée sur le studio pédagogique). */
-const emeraldCurriculumAccent = {
+/** Palette verte studio — sans teal/cyan (vert forêt, comme les étapes 3+ au repos). */
+const studioGreenAccent = {
   active:
-    "border-emerald-400/70 bg-emerald-950/50 text-white shadow-lg shadow-emerald-500/15 ring-1 ring-emerald-500/40",
-  completed: "border-emerald-500/40 bg-emerald-950/30 text-emerald-200",
-  badgeActive: "bg-emerald-500 text-white shadow-md shadow-emerald-500/40",
-  badgeCompleted: "bg-emerald-600 text-white",
-  button: "bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/25",
-  focus: "focus:border-emerald-400 focus:ring-emerald-500/20",
-  panel: "border-l-4 border-l-emerald-500",
-  chip: "bg-emerald-950/80 text-emerald-300 border-emerald-500/30",
+    "border-green-600/60 bg-emerald-950/40 text-white shadow-lg shadow-green-900/20 ring-1 ring-green-600/30",
+  completed: "border-green-700/40 bg-emerald-950/30 text-emerald-200",
+  badgeActive: "bg-green-700 text-white shadow-md shadow-green-900/40",
+  badgeCompleted: "bg-green-800 text-white",
+  button: "bg-green-700 hover:bg-green-600 text-white shadow-lg shadow-green-900/25",
+  focus: "focus:border-green-600 focus:ring-green-600/20",
+  panel: "border-l-4 border-l-green-600",
+  chip: "bg-emerald-950/80 text-emerald-300 border border-emerald-700/40",
   listActive:
-    "border-emerald-500/50 bg-emerald-950/30 shadow-lg shadow-emerald-900/20 ring-1 ring-emerald-500/25",
+    "border-green-600/50 bg-emerald-950/30 shadow-lg shadow-green-900/20 ring-1 ring-green-600/20",
 } as const;
 
 export const CURRICULUM_STEPS: CurriculumStepConfig[] = [
@@ -40,7 +40,7 @@ export const CURRICULUM_STEPS: CurriculumStepConfig[] = [
     label: "Modules",
     desc: "Création & catalogue",
     icon: BookOpen,
-    ...emeraldCurriculumAccent,
+    ...studioGreenAccent,
   },
   {
     step: 2,
@@ -111,14 +111,14 @@ export const ADMIN_CURRICULUM_STEPS: CurriculumStepConfig[] = [
     label: "Domaines",
     desc: "Familles académiques",
     icon: FolderTree,
-    ...emeraldCurriculumAccent,
+    ...studioGreenAccent,
   },
   {
     step: 2,
     label: "Sous-domaines",
     desc: "Branches du domaine",
     icon: Layers,
-    ...emeraldCurriculumAccent,
+    ...studioGreenAccent,
   },
   { ...CURRICULUM_STEPS[0], step: 3 },
   { ...CURRICULUM_STEPS[1], step: 4 },
@@ -153,6 +153,10 @@ export function getQuizStep(canManageAcademicTaxonomy: boolean): number {
 
 export function getStepTheme(step: number): CurriculumStepConfig {
   return CURRICULUM_STEPS.find((item) => item.step === step) ?? CURRICULUM_STEPS[0];
+}
+
+export function getAdminStepTheme(step: number): CurriculumStepConfig {
+  return ADMIN_CURRICULUM_STEPS.find((item) => item.step === step) ?? ADMIN_CURRICULUM_STEPS[0];
 }
 
 /** Dark studio layout — matches Axelmond curriculum mockup */
