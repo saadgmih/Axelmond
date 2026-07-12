@@ -1,22 +1,18 @@
 import React from "react";
-import { ChevronLeft, PenTool, Settings } from "lucide-react";
+import { ChevronLeft, Settings } from "lucide-react";
 import { Course } from "../../types";
 
 export interface LiveClassroomHeaderProps {
   course: Course;
   isRecording: boolean;
-  focusMode: boolean;
   onBack?: () => void;
-  onOpenWhiteboard: () => void;
   onOpenSettings: () => void;
 }
 
 export default function LiveClassroomHeader({
   course,
   isRecording,
-  focusMode,
   onBack,
-  onOpenWhiteboard,
   onOpenSettings,
 }: LiveClassroomHeaderProps) {
   return (
@@ -49,18 +45,6 @@ export default function LiveClassroomHeader({
       </div>
 
       <div className="flex items-center gap-3">
-        {focusMode && (
-          <button
-            type="button"
-            onClick={onOpenWhiteboard}
-            className="relative touch-target p-2.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 transition-colors border border-emerald-400/20 flex items-center gap-2 min-h-[44px]"
-            title="Ouvrir le tableau blanc"
-            aria-label="Ouvrir le tableau blanc"
-          >
-            <PenTool className="w-4 h-4 text-emerald-300" />
-            <span className="text-xs font-bold text-emerald-100 hidden sm:block">Tableau blanc</span>
-          </button>
-        )}
         <button
           type="button"
           onClick={onOpenSettings}

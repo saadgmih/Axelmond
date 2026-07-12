@@ -4,7 +4,6 @@ import { formatLiveDuration, formatLiveStat } from "./live-classroom-formatters"
 
 export interface LiveStatsBarProps {
   elapsedSeconds: number;
-  focusMode: boolean;
   connectedCount: number;
   raisedHands: number;
   questionsCount: number;
@@ -13,7 +12,6 @@ export interface LiveStatsBarProps {
 
 export default function LiveStatsBar({
   elapsedSeconds,
-  focusMode,
   connectedCount,
   raisedHands,
   questionsCount,
@@ -25,26 +23,22 @@ export default function LiveStatsBar({
         <Timer className="w-4 h-4 text-emerald-400" />
         <span className="font-mono">{formatLiveDuration(elapsedSeconds)}</span>
       </div>
-      {!focusMode && (
-        <>
-          <div className="flex items-center gap-2 text-xs text-zinc-300">
-            <UserCheck className="w-4 h-4 text-emerald-400" />
-            <span className="font-bold">{formatLiveStat(connectedCount, "connecté", "connectés")}</span>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-zinc-300">
-            <Hand className="w-4 h-4 text-lime-400" />
-            <span className="font-bold">{formatLiveStat(raisedHands, "main levée", "mains levées")}</span>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-zinc-300 hidden sm:flex">
-            <MessageSquare className="w-4 h-4 text-emerald-400" />
-            <span className="font-bold">{formatLiveStat(questionsCount, "question", "questions")}</span>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-zinc-300 hidden lg:flex">
-            <Wifi className="w-4 h-4 text-zinc-400" />
-            <span className="font-medium text-zinc-400">{averageQuality}</span>
-          </div>
-        </>
-      )}
+      <div className="flex items-center gap-2 text-xs text-zinc-300">
+        <UserCheck className="w-4 h-4 text-emerald-400" />
+        <span className="font-bold">{formatLiveStat(connectedCount, "connecté", "connectés")}</span>
+      </div>
+      <div className="flex items-center gap-2 text-xs text-zinc-300">
+        <Hand className="w-4 h-4 text-lime-400" />
+        <span className="font-bold">{formatLiveStat(raisedHands, "main levée", "mains levées")}</span>
+      </div>
+      <div className="flex items-center gap-2 text-xs text-zinc-300 hidden sm:flex">
+        <MessageSquare className="w-4 h-4 text-emerald-400" />
+        <span className="font-bold">{formatLiveStat(questionsCount, "question", "questions")}</span>
+      </div>
+      <div className="flex items-center gap-2 text-xs text-zinc-300 hidden lg:flex">
+        <Wifi className="w-4 h-4 text-zinc-400" />
+        <span className="font-medium text-zinc-400">{averageQuality}</span>
+      </div>
     </div>
   );
 }

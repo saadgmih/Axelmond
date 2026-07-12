@@ -8,7 +8,6 @@ export type LiveSubtitleLanguage = "fr" | "ar" | "en";
 export interface LiveSettings {
   videoQuality: LiveVideoQuality;
   layoutMode: LiveLayoutMode;
-  focusMode: boolean;
   subtitleLanguage: LiveSubtitleLanguage;
 }
 
@@ -17,7 +16,6 @@ export const LIVE_SETTINGS_STORAGE_KEY = "axelmond-live-settings";
 export const DEFAULT_LIVE_SETTINGS: LiveSettings = {
   videoQuality: "auto",
   layoutMode: "tile",
-  focusMode: false,
   subtitleLanguage: "fr",
 };
 
@@ -65,7 +63,6 @@ export function readStoredLiveSettings(): LiveSettings {
       layoutMode: LIVE_LAYOUT_OPTIONS.some((option) => option.value === parsed.layoutMode)
         ? (parsed.layoutMode as LiveLayoutMode)
         : DEFAULT_LIVE_SETTINGS.layoutMode,
-      focusMode: Boolean(parsed.focusMode),
       subtitleLanguage: LIVE_SUBTITLE_OPTIONS.some((option) => option.value === parsed.subtitleLanguage)
         ? (parsed.subtitleLanguage as LiveSubtitleLanguage)
         : DEFAULT_LIVE_SETTINGS.subtitleLanguage,

@@ -11,5 +11,5 @@ rulesTest("live-settings", () => {
   const stored = readStoredLiveSettings();
   assert.equal(stored.videoQuality, DEFAULT_LIVE_SETTINGS.videoQuality);
   assert.equal(stored.layoutMode, DEFAULT_LIVE_SETTINGS.layoutMode);
-  assert.equal(stored.focusMode, false);
+  assert.equal(stored.subtitleLanguage, DEFAULT_LIVE_SETTINGS.subtitleLanguage);
 });

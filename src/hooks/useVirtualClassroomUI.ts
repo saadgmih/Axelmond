@@ -84,8 +84,6 @@ export function useVirtualClassroomUI({
     settings: liveSettings,
     setVideoQuality,
     setLayoutMode,
-    setFocusMode,
-    toggleFocusMode,
     setSubtitleLanguage,
   } = useLiveSettings();
 
@@ -132,13 +130,6 @@ export function useVirtualClassroomUI({
     });
   }, [stageVolume, isStageVideoPaused, primaryVideoRef, videoRefs, participants.length]);
 
-  useEffect(() => {
-    if (!liveSettings.focusMode) return;
-    if (activeTab === "chat" || activeTab === "participants" || activeTab === "attendance") {
-      setActiveTab("whiteboard");
-    }
-  }, [liveSettings.focusMode, activeTab]);
-
   const canViewLiveAttendance = !isStudentRole(currentUserRole);
 
   useEffect(() => {
@@ -154,31 +145,25 @@ export function useVirtualClassroomUI({
   }, [activeTab, whiteboardExpanded]);
 
   const visibleSidebarTabs = useMemo(() => {
-    const baseTabs = liveSettings.focusMode
-      ? liveSidebarTabs.filter((tab) => tab.id === "whiteboard")
-      : liveSidebarTabs;
-    return canViewLiveAttendance ? baseTabs : baseTabs.filter((tab) => tab.id !== "attendance");
-  }, [liveSettings.focusMode, canViewLiveAttendance]);
+    return canViewLiveAttendance
+      ? liveSidebarTabs
+      : liveSidebarTabs.filter((tab) => tab.id !== "attendance");
+  }, [canViewLiveAttendance]);
 
-  const openPanelTab = useCallback(
-    (tabId: string) => {
-      if (liveSettings.focusMode && tabId !== "whiteboard") return;
-      setIsSidebarOpen(true);
-      setActiveTab(tabId);
-    },
-    [liveSettings.focusMode],
-  );
+  const openPanelTab = useCallback((tabId: string) => {
+    setIsSidebarOpen(true);
+    setActiveTab(tabId);
+  }, []);
 
   const togglePanelTab = useCallback(
     (tabId: string) => {
-      if (liveSettings.focusMode && tabId !== "whiteboard") return;
       if (isSidebarOpen && activeTab === tabId) {
         setIsSidebarOpen(false);
         return;
       }
       openPanelTab(tabId);
     },
-    [liveSettings.focusMode, isSidebarOpen, activeTab, openPanelTab],
+    [isSidebarOpen, activeTab, openPanelTab],
   );
 
   const cyclePanelTab = useCallback(
@@ -237,10 +222,6 @@ export function useVirtualClassroomUI({
           return;
         }
         if (isSidebarOpen && typeof window !== "undefined" && !window.matchMedia("(min-width: 1536px)").matches) {
-          setIsSidebarOpen(false);
-          return;
-        }
-        if (isSidebarOpen && liveSettings.focusMode) {
           setIsSidebarOpen(false);
           return;
         }
@@ -367,8 +348,6 @@ export function useVirtualClassroomUI({
     liveSettings,
     setVideoQuality,
     setLayoutMode,
-    setFocusMode,
-    toggleFocusMode,
     setSubtitleLanguage,
     connectionNotice,
     isPiPActive,

@@ -184,11 +184,12 @@ export default function VirtualClassroom({
         </div>
       )}
 
-      {ui.liveSettings.focusMode && (
-        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-40 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-4 py-1.5 text-[11px] font-bold text-emerald-200 shadow-lg backdrop-blur-md">
-          Mode concentration actif
-        </div>
-      )}
+      <LiveClassroomHeader
+        course={course}
+        isRecording={isRecording}
+        onBack={onBack}
+        onOpenSettings={() => ui.setIsSettingsOpen(true)}
+      />
 
       {micError && (
         <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-50 bg-zinc-900 border border-red-500/50 shadow-2xl rounded-xl p-4 flex items-center gap-4 max-w-md animate-in slide-in-from-bottom-4 fade-in duration-300">
@@ -210,15 +211,6 @@ export default function VirtualClassroom({
           </button>
         </div>
       )}
-
-      <LiveClassroomHeader
-        course={course}
-        isRecording={isRecording}
-        focusMode={ui.liveSettings.focusMode}
-        onBack={onBack}
-        onOpenWhiteboard={() => ui.openPanelTab("whiteboard")}
-        onOpenSettings={() => ui.setIsSettingsOpen(true)}
-      />
 
       <div
         className={`live-classroom-main relative box-border flex min-h-0 w-full max-w-full flex-1 flex-col overflow-hidden 2xl:grid 2xl:items-stretch ${
@@ -252,7 +244,6 @@ export default function VirtualClassroom({
         >
           <LiveStatsBar
             elapsedSeconds={ui.elapsedSeconds}
-            focusMode={ui.liveSettings.focusMode}
             connectedCount={ui.connectedParticipants.length}
             raisedHands={ui.raisedHands}
             questionsCount={ui.questionsCount}
@@ -266,7 +257,6 @@ export default function VirtualClassroom({
             isScreenShareEnabled={isScreenShareEnabled}
             isFullscreen={isFullscreen}
             isPiPActive={ui.isPiPActive}
-            focusMode={ui.liveSettings.focusMode}
             canModerate={ui.canModerate}
             localReaction={ui.localReaction}
             onToggleMic={onToggleMic}
@@ -278,7 +268,6 @@ export default function VirtualClassroom({
             onTogglePictureInPicture={() => {
               void ui.togglePictureInPicture();
             }}
-            onToggleFocusMode={ui.toggleFocusMode}
             onToggleFullscreen={onToggleFullscreen}
             onReaction={onReaction}
             onExit={ui.exitLiveSession}
@@ -430,7 +419,6 @@ export default function VirtualClassroom({
         settings={ui.liveSettings}
         onVideoQualityChange={ui.setVideoQuality}
         onLayoutModeChange={ui.setLayoutMode}
-        onFocusModeChange={ui.setFocusMode}
         onSubtitleLanguageChange={ui.setSubtitleLanguage}
         pipSupported={ui.pipSupported}
         isPiPActive={ui.isPiPActive}

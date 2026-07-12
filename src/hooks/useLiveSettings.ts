@@ -34,17 +34,6 @@ export function useLiveSettings() {
     [patchSettings],
   );
 
-  const setFocusMode = useCallback(
-    (focusMode: boolean) => {
-      patchSettings({ focusMode });
-    },
-    [patchSettings],
-  );
-
-  const toggleFocusMode = useCallback(() => {
-    setSettings((current) => ({ ...current, focusMode: !current.focusMode }));
-  }, []);
-
   const setSubtitleLanguage = useCallback(
     (subtitleLanguage: LiveSubtitleLanguage) => {
       patchSettings({ subtitleLanguage });
@@ -61,8 +50,6 @@ export function useLiveSettings() {
     patchSettings,
     setVideoQuality,
     setLayoutMode,
-    setFocusMode,
-    toggleFocusMode,
     setSubtitleLanguage,
     resetSettings,
   };

@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  Focus,
   Fullscreen,
   Hand,
   Mic,
@@ -22,7 +21,6 @@ export interface LiveControlBarProps {
   isScreenShareEnabled: boolean;
   isFullscreen: boolean;
   isPiPActive: boolean;
-  focusMode: boolean;
   canModerate: boolean;
   localReaction: string | null;
   onToggleMic: () => void;
@@ -32,7 +30,6 @@ export interface LiveControlBarProps {
   onToggleScreenShare: () => void;
   onRaiseHand: () => void;
   onTogglePictureInPicture: () => void;
-  onToggleFocusMode: () => void;
   onToggleFullscreen: () => void;
   onReaction: (reaction: string) => void;
   onExit: () => void;
@@ -45,7 +42,6 @@ export default function LiveControlBar({
   isScreenShareEnabled,
   isFullscreen,
   isPiPActive,
-  focusMode,
   canModerate,
   localReaction,
   onToggleMic,
@@ -55,7 +51,6 @@ export default function LiveControlBar({
   onToggleScreenShare,
   onRaiseHand,
   onTogglePictureInPicture,
-  onToggleFocusMode,
   onToggleFullscreen,
   onReaction,
   onExit,
@@ -154,22 +149,6 @@ export default function LiveControlBar({
           >
             <PictureInPicture2 className="mb-1 h-5 w-5 xl:mb-1.5" />
             <span className="whitespace-nowrap text-[9px] font-bold xl:text-[10px]">PiP</span>
-          </button>
-          <button
-            type="button"
-            data-tv-focusable
-            tabIndex={0}
-            onClick={onToggleFocusMode}
-            aria-label="Mode concentration"
-            aria-pressed={focusMode}
-            className={`kbd-nav-focus flex h-12 min-h-12 w-12 min-w-12 flex-col items-center justify-center rounded-xl transition-all xl:h-[60px] xl:min-h-[60px] xl:w-[60px] xl:min-w-[60px] ${
-              focusMode
-                ? "bg-emerald-500/10 border border-emerald-400/30 text-emerald-300"
-                : "hover:bg-zinc-800 text-zinc-300"
-            }`}
-          >
-            <Focus className="mb-1 h-5 w-5 xl:mb-1.5" />
-            <span className="whitespace-nowrap text-[9px] font-bold xl:text-[10px]">Focus</span>
           </button>
           <button
             type="button"

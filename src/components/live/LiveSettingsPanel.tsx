@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Captions, Focus, Grid3X3, LayoutGrid, MonitorPlay, Sparkles, UserRound, Video, X } from "lucide-react";
+import { Captions, Grid3X3, LayoutGrid, MonitorPlay, Sparkles, UserRound, Video, X } from "lucide-react";
 import {
   LIVE_LAYOUT_OPTIONS,
   LIVE_SUBTITLE_OPTIONS,
@@ -17,7 +17,6 @@ interface LiveSettingsPanelProps {
   settings: LiveSettings;
   onVideoQualityChange: (quality: LiveVideoQuality) => void;
   onLayoutModeChange: (mode: LiveLayoutMode) => void;
-  onFocusModeChange: (enabled: boolean) => void;
   onSubtitleLanguageChange: (language: LiveSubtitleLanguage) => void;
   pipSupported: boolean;
   isPiPActive: boolean;
@@ -36,7 +35,6 @@ export default function LiveSettingsPanel({
   settings,
   onVideoQualityChange,
   onLayoutModeChange,
-  onFocusModeChange,
   onSubtitleLanguageChange,
   pipSupported,
   isPiPActive,
@@ -181,43 +179,6 @@ export default function LiveSettingsPanel({
                 {pipSupported
                   ? "Continuez à suivre le live pendant la navigation dans les cours."
                   : "Non pris en charge par ce navigateur."}
-              </span>
-            </button>
-          </section>
-
-          <section aria-labelledby="live-focus-heading">
-            <div className="mb-3 flex items-center gap-2">
-              <Focus className="h-4 w-4 text-emerald-400" />
-              <h3 id="live-focus-heading" className="text-sm font-bold text-white">
-                Mode concentration
-              </h3>
-            </div>
-            <button
-              type="button"
-              onClick={() => onFocusModeChange(!settings.focusMode)}
-              aria-pressed={settings.focusMode}
-              className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 transition-all ${
-                settings.focusMode
-                  ? "border-emerald-400/40 bg-emerald-500/10 text-white"
-                  : "border-white/10 bg-zinc-900/70 text-zinc-200 hover:border-white/20 hover:bg-zinc-800"
-              }`}
-            >
-              <span>
-                <span className="block text-sm font-bold">Mode Concentration</span>
-                <span className="mt-1 block text-[11px] text-zinc-400">
-                  Ouvre le tableau blanc plein écran et simplifie la scène live.
-                </span>
-              </span>
-              <span
-                className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
-                  settings.focusMode ? "bg-emerald-500" : "bg-zinc-700"
-                }`}
-              >
-                <span
-                  className={`absolute top-0.5 left-0.5 h-6 w-6 rounded-full bg-white transition-transform ${
-                    settings.focusMode ? "translate-x-5" : "translate-x-0"
-                  }`}
-                />
               </span>
             </button>
           </section>
