@@ -106,7 +106,7 @@ Exécution sur **https://axelmond.com** via `tests/manual-prod-journey.spec.ts` 
 | Étudiant desktop | **PASS** | Connexion, catalogue, déconnexion |
 | Étudiant mobile 375px | **PASS** | Dashboard (attente 35 s entre logins même email) |
 | Professeur | **PASS** | Console live, gestion contenus, déconnexion |
-| Administrateur | **PASS** | Espace staff, section Lajr wa Tawab / admin |
+| Administrateur | **PASS** | Espace staff, section Solidarité / admin |
 
 **API login vérifié :** les 3 comptes répondent 200 avec le rôle correct (`STUDENT` / `PROFESSOR` / `ADMIN`).
 

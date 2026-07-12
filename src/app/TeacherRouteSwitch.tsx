@@ -13,6 +13,7 @@ import {
   LazyTeacherWorkspace,
   RouteChunkFallback,
 } from "../lazyViews";
+import { CHARITY_LOADING_LABEL } from "../charity-labels";
 import { NotificationsRoutePanel } from "./NotificationsRoutePanel";
 import {
   usePlatformBindings,
@@ -74,12 +75,12 @@ export function TeacherRouteSwitch() {
           </div>
         )}
         {teacherView === "charity" && currentUser.role === "ADMIN" && (
-          <Suspense fallback={<RouteChunkFallback label="Chargement de Lajr wa Tawab…" />}>
+          <Suspense fallback={<RouteChunkFallback label={CHARITY_LOADING_LABEL} />}>
             <LazyAdminCharityView enabled />
           </Suspense>
         )}
         {teacherView === "charity" && currentUser.role !== "ADMIN" && (
-          <Suspense fallback={<RouteChunkFallback label="Chargement de Lajr wa Tawab…" />}>
+          <Suspense fallback={<RouteChunkFallback label={CHARITY_LOADING_LABEL} />}>
             <LazyStudentCharityView />
           </Suspense>
         )}

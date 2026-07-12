@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import type { Prisma } from "@prisma/client";
+import { CHARITY_STORAGE_UNAVAILABLE_MSG } from "./charity-labels";
 import { prisma } from "./db";
 
 export class CharityAccessCodeError extends Error {
@@ -35,7 +36,7 @@ export function isMissingCharityStorageError(err: unknown): boolean {
 }
 
 export function charityStorageErrorMessage(): string {
-  return "Les tables Lajr wa Tawab ne sont pas encore disponibles. Exécutez npm run deploy:migrate puis redémarrez le serveur.";
+  return CHARITY_STORAGE_UNAVAILABLE_MSG;
 }
 
 export async function isCharityPageEnabled(): Promise<boolean> {

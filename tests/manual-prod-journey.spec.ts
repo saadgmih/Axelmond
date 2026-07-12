@@ -158,7 +158,7 @@ test.describe("Production axelmond.com — parcours réels", () => {
     });
     console.log("   ✅ Admin connecté — espace staff");
 
-    const adminEntry = page.getByRole("button", { name: /Lajr wa Tawab|Codes|Administration/i }).first();
+    const adminEntry = page.getByRole("button", { name: /Solidarité|Codes|Administration/i }).first();
     if (await adminEntry.isVisible({ timeout: 5000 }).catch(() => false)) {
       await adminEntry.click();
       console.log("   ✅ Section admin/staff ouverte");

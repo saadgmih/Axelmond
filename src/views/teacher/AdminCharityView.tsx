@@ -10,6 +10,7 @@ import {
   Trash2,
   Users,
 } from "lucide-react";
+import { CHARITY_ACTIVATE_LABEL, CHARITY_PAGE_TITLE } from "../../charity-labels";
 import { useCharityAdmin, type CharityCampaignRow, type CharityEventRow } from "../../hooks/useCharityAdmin";
 
 interface AdminCharityViewProps {
@@ -77,7 +78,7 @@ export default function AdminCharityView({ enabled }: AdminCharityViewProps) {
             <HandHeart className="h-7 w-7" />
           </span>
           <div>
-            <h1 className="text-2xl font-black text-white sm:text-3xl">Lajr wa Tawab</h1>
+            <h1 className="text-2xl font-black text-white sm:text-3xl">{CHARITY_PAGE_TITLE}</h1>
             <p className="mt-1 text-sm text-slate-400">Gestion des dons, codes d&apos;accès et événements religieux</p>
           </div>
         </div>
@@ -98,7 +99,7 @@ export default function AdminCharityView({ enabled }: AdminCharityViewProps) {
         <section className="flex flex-col gap-5 rounded-xl border border-slate-700/60 bg-[#0b1528] px-5 py-5 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div>
             <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">Page publique</p>
-            <h2 className="mt-1 text-xl font-black text-white">Activer Lajr wa Tawab</h2>
+            <h2 className="mt-1 text-xl font-black text-white">{CHARITY_ACTIVATE_LABEL}</h2>
             <p className="mt-1.5 text-sm text-slate-400">
               Si désactivée, aucun utilisateur ne peut accéder à la page, même avec un ancien code.
             </p>

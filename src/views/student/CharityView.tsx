@@ -10,6 +10,13 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
+import {
+  CHARITY_LOADING_LABEL,
+  CHARITY_PAGE_SHORT,
+  CHARITY_PAGE_TITLE,
+  CHARITY_TAGLINE,
+  CHARITY_ACCESS_CODE_PLACEHOLDER,
+} from "../../charity-labels";
 import { useCharity } from "../../hooks/useCharity";
 
 function formatEventDate(event: {
@@ -52,7 +59,7 @@ export default function CharityView() {
       <div className="mx-auto max-w-2xl px-4 py-12 text-center sm:px-6">
         <div className="rounded-2xl border border-slate-700/60 bg-[#07101f] p-8 shadow-[0_24px_80px_rgba(2,6,23,0.45)]">
           <Moon className="mx-auto h-12 w-12 text-teal-400" />
-          <h1 className="mt-4 text-2xl font-black text-white">Lajr wa Tawab</h1>
+          <h1 className="mt-4 text-2xl font-black text-white">{CHARITY_PAGE_TITLE}</h1>
           <p className="mt-3 text-sm leading-relaxed text-slate-400">
             Cette section est temporairement fermée par l&apos;administration du centre Performance Académique.
           </p>
@@ -69,14 +76,14 @@ export default function CharityView() {
             <span className="inline-flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-teal-800 text-white">
               <HandHeart className="h-7 w-7" />
             </span>
-            <h1 className="mt-4 text-2xl font-black text-white sm:text-3xl">Lajr wa Tawab</h1>
-            <p className="mt-2 text-sm text-slate-400">Actions de bienfaisance — Performance Académique</p>
+            <h1 className="mt-4 text-2xl font-black text-white sm:text-3xl">{CHARITY_PAGE_TITLE}</h1>
+            <p className="mt-2 text-sm text-slate-400">{CHARITY_TAGLINE}</p>
           </header>
           <div className="space-y-5 p-6 sm:p-8">
             <p className="text-sm leading-relaxed text-slate-300">
-              Entrez le code d&apos;accès fourni par le centre pour participer aux actions de sadaqa, découvrir les
+              Entrez le code d&apos;accès fourni par le centre pour participer aux actions de bienfaisance, découvrir les
               campagnes de don et consulter les événements religieux organisés (lecture et écoute du Coran avec un(e)
-              moqri/moqria du centre).
+              récitateur ou une récitatrice du centre).
             </p>
             <label className="block">
               <span className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-500">
@@ -87,7 +94,7 @@ export default function CharityView() {
                 type="text"
                 value={codeInput}
                 onChange={(e) => setCodeInput(e.target.value.toUpperCase())}
-                placeholder="SADAQA-XXXXXXXX"
+                placeholder={CHARITY_ACCESS_CODE_PLACEHOLDER}
                 autoComplete="off"
                 className="w-full rounded-xl border border-slate-600/70 bg-slate-900/80 px-4 py-3 font-mono text-sm text-white outline-none ring-teal-500/30 focus:border-teal-500/60 focus:ring-2"
               />
@@ -117,11 +124,11 @@ export default function CharityView() {
       <header className="overflow-hidden rounded-2xl border border-slate-700/60 bg-[#07101f] px-6 py-8 sm:px-10">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-teal-400/80">بِسْمِ اللَّهِ</p>
-            <h1 className="mt-1 text-2xl font-black text-white sm:text-3xl">Lajr wa Tawab</h1>
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-teal-400/80">{CHARITY_PAGE_SHORT}</p>
+            <h1 className="mt-1 text-2xl font-black text-white sm:text-3xl">{CHARITY_PAGE_TITLE}</h1>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-400">
               Participez aux actions de bienfaisance du centre : aide aux nécessiteux, soutien pendant le Ramadan
-              (إطعام مسكين), et moments de lecture du Coran.
+              (repas offerts aux nécessiteux), et moments de lecture du Coran.
             </p>
           </div>
           <span className="inline-flex items-center gap-2 self-start rounded-lg bg-emerald-500/15 px-3 py-2 text-xs font-bold text-emerald-300 ring-1 ring-emerald-400/25">

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { getTeacherSpaceTitle } from "../rbac";
 import type { UserRole } from "../rbac";
+import { CHARITY_PAGE_SHORT } from "../charity-labels";
 import { prefetchStudentView, prefetchTeacherView } from "../utils/prefetch";
 
 export type SidebarAccent = "student" | "teacher";
@@ -83,7 +84,7 @@ function studentItems(): SidebarNavItem[] {
     },
     {
       id: "nav-charity",
-      label: "Lajr wa Tawab",
+      label: CHARITY_PAGE_SHORT,
       icon: HandHeart,
       iconClassName: "text-teal-300",
       prefetch: () => prefetchStudentView("charity"),
@@ -161,7 +162,7 @@ function teacherItems(role?: UserRole): SidebarNavItem[] {
     },
     {
       id: "nav-charity",
-      label: "Lajr wa Tawab",
+      label: CHARITY_PAGE_SHORT,
       icon: HandHeart,
       iconClassName: "text-teal-300",
       prefetch: () => prefetchTeacherView("charity"),

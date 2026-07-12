@@ -10,6 +10,7 @@ import {
   RouteChunkFallback,
   LazyStudentCharityView,
 } from "../lazyViews";
+import { CHARITY_LOADING_LABEL } from "../charity-labels";
 import { getCourseIcon, getDomainIcon } from "./catalogIcons";
 import { NotificationsRoutePanel } from "./NotificationsRoutePanel";
 import {
@@ -161,7 +162,7 @@ export function StudentRouteSwitch() {
       )}
       {currentView === "notifications" && <NotificationsRoutePanel />}
       {currentView === "charity" && (
-        <Suspense fallback={<RouteChunkFallback label="Chargement de Lajr wa Tawab…" />}>
+        <Suspense fallback={<RouteChunkFallback label={CHARITY_LOADING_LABEL} />}>
           <LazyStudentCharityView />
         </Suspense>
       )}

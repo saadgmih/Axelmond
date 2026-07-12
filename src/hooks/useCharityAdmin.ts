@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "../api";
+import { CHARITY_PAGE_DISABLED_MSG, CHARITY_PAGE_ENABLED_MSG } from "../charity-labels";
 import { getClientErrorMessage } from "../client-errors";
 
 export interface CharityAccessCodeRow {
@@ -86,7 +87,7 @@ export function useCharityAdmin(enabled: boolean) {
     try {
       const result = await api.updateAdminCharitySettings(next);
       setPageEnabled(result.pageEnabled);
-      setStatusMsg(next ? "Page Lajr wa Tawab activée." : "Page Lajr wa Tawab fermée.");
+      setStatusMsg(next ? CHARITY_PAGE_ENABLED_MSG : CHARITY_PAGE_DISABLED_MSG);
       await refreshAll();
     } catch (err) {
       setStatusMsg(getClientErrorMessage(err, "Modification impossible"));
