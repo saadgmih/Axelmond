@@ -1,4 +1,4 @@
-import { useEffect, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
+import { useCallback, useEffect, useRef, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
 import { getClientErrorMessage } from "../client-errors";
 import { api, getFreshSessionToken, type SiteSettings } from "../api";
 import type { AppUser } from "../components/AuthScreen";
@@ -195,33 +195,47 @@ export function useTeacherDashboard({
     }
   }, [currentUser?.id, currentUser?.role]);
 
-  const handleUpdateCoursePrice = async (id: number, newPrice: number) => {
-    const current = courses.find((course) => course.id === id);
+  const [coursePriceErrors, setCoursePriceErrors] = useState<Record<number, string>>({});
+  const [savingCoursePriceIds, setSavingCoursePriceIds] = useState<Record<number, boolean>>({});
+  const coursePriceUpdateSeqRef = useRef<Record<number, number>>({});
+  const coursesRef = useRef(courses);
+  coursesRef.current = courses;
+
+  const handleUpdateCoursePrice = useCallback(async (id: number, newPrice: number) => {
+    const current = coursesRef.current.find((course) => course.id === id);
     if (!current) return;
 
     const normalized = normalizeCoursePrice(newPrice);
+    const seq = (coursePriceUpdateSeqRef.current[id] ?? 0) + 1;
+    coursePriceUpdateSeqRef.current[id] = seq;
+
     const patch: {
       price: number;
-      freeAccessStartsAt?: string | null;
-      freeAccessEndsAt?: string | null;
-      freeAccessDurationDays?: number | null;
+      freeAccessStartsAt?: string;
+      freeAccessEndsAt?: string;
+      freeAccessDurationDays?: number;
     } = { price: normalized };
 
     if (isFreeCoursePrice(normalized)) {
       const window = resolveFreeAccessWindowForCoursePrice(current, normalized);
-      const savedWindow = resolveFreeAccessWindowForSave(window.startsAt, window.endsAt);
-      if (savedWindow) {
-        patch.freeAccessStartsAt = savedWindow.freeAccessStartsAt.toISOString();
-        patch.freeAccessEndsAt = savedWindow.freeAccessEndsAt.toISOString();
-        patch.freeAccessDurationDays = savedWindow.freeAccessDurationDays;
+      if (window) {
+        const savedWindow = resolveFreeAccessWindowForSave(window.startsAt, window.endsAt);
+        if (savedWindow) {
+          patch.freeAccessStartsAt = savedWindow.freeAccessStartsAt.toISOString();
+          patch.freeAccessEndsAt = savedWindow.freeAccessEndsAt.toISOString();
+          patch.freeAccessDurationDays = savedWindow.freeAccessDurationDays;
+        }
       }
-    } else {
-      patch.freeAccessStartsAt = null;
-      patch.freeAccessEndsAt = null;
-      patch.freeAccessDurationDays = null;
     }
 
     const previous = current;
+    setSavingCoursePriceIds((prev) => ({ ...prev, [id]: true }));
+    setCoursePriceErrors((prev) => {
+      if (!prev[id]) return prev;
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
     setCourses((prev) =>
       prev.map((course) =>
         course.id === id
@@ -248,12 +262,27 @@ export function useTeacherDashboard({
 
     try {
       const updatedCourse = await api.updateCourse(id, patch);
+      if (coursePriceUpdateSeqRef.current[id] !== seq) return;
       setCourses((prev) => prev.map((course) => (course.id === id ? updatedCourse : course)));
     } catch (err) {
+      if (coursePriceUpdateSeqRef.current[id] !== seq) return;
       setCourses((prev) => prev.map((course) => (course.id === id ? previous : course)));
+      setCoursePriceErrors((prev) => ({
+        ...prev,
+        [id]: getClientErrorMessage(err, "Impossible de mettre à jour le tarif."),
+      }));
       console.error("Failed to update course price:", err);
+    } finally {
+      if (coursePriceUpdateSeqRef.current[id] === seq) {
+        setSavingCoursePriceIds((prev) => {
+          if (!prev[id]) return prev;
+          const next = { ...prev };
+          delete next[id];
+          return next;
+        });
+      }
     }
-  };
+  }, [setCourses]);
 
   const handleToggleCourseLive = async (id: number): Promise<Course | null> => {
     let course = findLiveCourse(courses, id);
@@ -506,6 +535,8 @@ export function useTeacherDashboard({
     handleDeleteAcademicDiscipline,
     handleRemoveStudentEnrollment,
     handleUpdateCoursePrice,
+    coursePriceErrors,
+    savingCoursePriceIds,
     handleToggleCourseLive,
     handleUpdateCourseLiveSubject,
     selectedGradesCourse,

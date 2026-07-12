@@ -5,13 +5,14 @@ import {
   MAX_COURSE_PRICE,
   MIN_PAID_COURSE_PRICE,
   clampPaidCoursePrice,
+  coerceCoursePrice,
   isFreeCoursePrice,
   formatFreeAccessDurationLabel,
   normalizeCoursePrice,
 } from "../utils/course-pricing";
 import { formatMad } from "../utils/morocco-locale";
 
-function clampPrice(value: number) {
+function clampPrice(value: unknown) {
   return normalizeCoursePrice(value);
 }
 
@@ -39,6 +40,8 @@ interface CoursePriceSliderProps {
   courseTitle: string;
   onCommit: (id: number, newPrice: number) => void | Promise<void>;
   onDraftChange?: (price: number) => void;
+  priceError?: string | null;
+  isSaving?: boolean;
 }
 
 export default function CoursePriceSlider({
@@ -50,103 +53,131 @@ export default function CoursePriceSlider({
   courseTitle,
   onCommit,
   onDraftChange,
+  priceError,
+  isSaving = false,
 }: CoursePriceSliderProps) {
-  const [draft, setDraft] = useState(() => clampPrice(price));
+  const normalizedPrice = clampPrice(price);
+  const [draft, setDraft] = useState(() => normalizedPrice);
   const [priceMode, setPriceMode] = useState<"free" | "paid">(() =>
-    isFreeCoursePrice(clampPrice(price)) ? "free" : "paid",
+    isFreeCoursePrice(normalizedPrice) ? "free" : "paid",
   );
   const [isDragging, setIsDragging] = useState(false);
   const draggingRef = useRef(false);
   const draftRef = useRef(draft);
+  const skipBlurCommitRef = useRef(false);
   const lastPaidPriceRef = useRef(
-    isFreeCoursePrice(clampPrice(price))
+    isFreeCoursePrice(normalizedPrice)
       ? MIN_PAID_COURSE_PRICE
-      : clampPaidCoursePrice(clampPrice(price)),
+      : clampPaidCoursePrice(normalizedPrice),
   );
   const onDraftChangeRef = useRef(onDraftChange);
+  const onCommitRef = useRef(onCommit);
   draftRef.current = draft;
   onDraftChangeRef.current = onDraftChange;
+  onCommitRef.current = onCommit;
 
-  const rememberPaidPrice = useCallback((value: number) => {
+  const rememberPaidPrice = useCallback((value: unknown) => {
     if (!isFreeCoursePrice(value)) {
-      lastPaidPriceRef.current = clampPaidCoursePrice(value);
+      lastPaidPriceRef.current = clampPaidCoursePrice(coerceCoursePrice(value));
     }
   }, []);
 
   const isFree = priceMode === "free";
   const paidSliderValue = clampPaidCoursePrice(
-    isFreeCoursePrice(draft) ? lastPaidPriceRef.current : draft,
+    isFreeCoursePrice(draft) ? lastPaidPriceRef.current : coerceCoursePrice(draft),
   );
   const sliderPct = getCoursePriceSliderPct(paidSliderValue);
 
+  const persistPrice = useCallback(
+    (nextPrice: number) => {
+      void Promise.resolve(onCommitRef.current(courseId, nextPrice)).catch(() => undefined);
+    },
+    [courseId],
+  );
+
   useEffect(() => {
-    if (!draggingRef.current) {
-      const next = clampPrice(price);
-      setDraft(next);
-      setPriceMode(isFreeCoursePrice(next) ? "free" : "paid");
-      rememberPaidPrice(next);
-      onDraftChangeRef.current?.(next);
-    }
+    if (draggingRef.current) return;
+    const next = clampPrice(price);
+    setDraft(next);
+    setPriceMode(isFreeCoursePrice(next) ? "free" : "paid");
+    rememberPaidPrice(next);
+    onDraftChangeRef.current?.(next);
   }, [price, rememberPaidPrice]);
 
   const commitDraft = useCallback(() => {
     const next = clampPrice(draftRef.current);
-    setPriceMode(isFreeCoursePrice(next) ? "free" : "paid");
+    if (isFreeCoursePrice(next)) return;
+    setPriceMode("paid");
     rememberPaidPrice(next);
     setDraft(next);
+    draftRef.current = next;
     onDraftChangeRef.current?.(next);
-    void onCommit(courseId, next);
-  }, [courseId, onCommit, rememberPaidPrice]);
+    persistPrice(next);
+  }, [persistPrice, rememberPaidPrice]);
 
   const updateDraft = useCallback(
     (value: number) => {
-      const next = clampPrice(value);
-      setPriceMode(isFreeCoursePrice(next) ? "free" : "paid");
+      const next = clampPaidCoursePrice(value);
+      setPriceMode("paid");
       rememberPaidPrice(next);
       setDraft(next);
+      draftRef.current = next;
       onDraftChangeRef.current?.(next);
     },
     [rememberPaidPrice],
   );
 
   const commitPriceMode = useCallback(
-    (value: number, mode: "free" | "paid") => {
-      if (mode === "free" && !isFreeCoursePrice(draftRef.current)) {
-        rememberPaidPrice(draftRef.current);
+    (mode: "free" | "paid") => {
+      if (mode === "free") {
+        if (!isFreeCoursePrice(draftRef.current)) {
+          rememberPaidPrice(draftRef.current);
+        }
+        draggingRef.current = false;
+        setIsDragging(false);
+        setPriceMode("free");
+        setDraft(FREE_COURSE_PRICE);
+        draftRef.current = FREE_COURSE_PRICE;
+        onDraftChangeRef.current?.(FREE_COURSE_PRICE);
+        persistPrice(FREE_COURSE_PRICE);
+        return;
       }
 
-      const next =
-        mode === "paid" && isFreeCoursePrice(value)
-          ? lastPaidPriceRef.current
-          : clampPrice(value);
-
+      const restored = lastPaidPriceRef.current;
       draggingRef.current = false;
       setIsDragging(false);
-      setPriceMode(mode);
-      setDraft(next);
-      draftRef.current = next;
-      rememberPaidPrice(next);
-      onDraftChangeRef.current?.(next);
-      void onCommit(courseId, next);
+      setPriceMode("paid");
+      setDraft(restored);
+      draftRef.current = restored;
+      rememberPaidPrice(restored);
+      onDraftChangeRef.current?.(restored);
+      persistPrice(restored);
     },
-    [courseId, onCommit, rememberPaidPrice],
+    [persistPrice, rememberPaidPrice],
   );
 
-  useEffect(() => {
-    const stopDragging = () => {
-      if (!draggingRef.current) return;
-      draggingRef.current = false;
-      setIsDragging(false);
-      commitDraft();
-    };
+  const preventBlurBeforeClick = useCallback(() => {
+    skipBlurCommitRef.current = true;
+    window.setTimeout(() => {
+      skipBlurCommitRef.current = false;
+    }, 0);
+  }, []);
 
-    window.addEventListener("pointerup", stopDragging);
-    window.addEventListener("pointercancel", stopDragging);
-    return () => {
-      window.removeEventListener("pointerup", stopDragging);
-      window.removeEventListener("pointercancel", stopDragging);
-    };
+  const finishDragging = useCallback(() => {
+    if (!draggingRef.current) return;
+    draggingRef.current = false;
+    setIsDragging(false);
+    commitDraft();
   }, [commitDraft]);
+
+  useEffect(() => {
+    window.addEventListener("pointerup", finishDragging);
+    window.addEventListener("pointercancel", finishDragging);
+    return () => {
+      window.removeEventListener("pointerup", finishDragging);
+      window.removeEventListener("pointercancel", finishDragging);
+    };
+  }, [finishDragging]);
 
   return (
     <div className="space-y-2">
@@ -161,12 +192,13 @@ export default function CoursePriceSlider({
       <div className="grid grid-cols-2 gap-2">
         <button
           type="button"
+          onMouseDown={preventBlurBeforeClick}
           onClick={() => {
             if (isFree) return;
-            rememberPaidPrice(draftRef.current);
-            commitPriceMode(FREE_COURSE_PRICE, "free");
+            commitPriceMode("free");
           }}
-          className={`rounded-xl border px-3 py-2 text-xs font-black transition-colors ${
+          disabled={isSaving}
+          className={`rounded-xl border px-3 py-2 text-xs font-black transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
             isFree
               ? "border-emerald-400/50 bg-emerald-500/15 text-emerald-100"
               : "border-white/10 bg-slate-900/60 text-slate-400 hover:border-white/20 hover:text-white"
@@ -176,11 +208,13 @@ export default function CoursePriceSlider({
         </button>
         <button
           type="button"
+          onMouseDown={preventBlurBeforeClick}
           onClick={() => {
             if (!isFree) return;
-            commitPriceMode(lastPaidPriceRef.current, "paid");
+            commitPriceMode("paid");
           }}
-          className={`rounded-xl border px-3 py-2 text-xs font-black transition-colors ${
+          disabled={isSaving}
+          className={`rounded-xl border px-3 py-2 text-xs font-black transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
             !isFree
               ? "border-teal-400/50 bg-teal-500/15 text-teal-100"
               : "border-white/10 bg-slate-900/60 text-slate-400 hover:border-white/20 hover:text-white"
@@ -205,25 +239,23 @@ export default function CoursePriceSlider({
             max={MAX_COURSE_PRICE}
             step={COURSE_PRICE_STEP}
             value={paidSliderValue}
+            disabled={isSaving}
             onPointerDown={() => {
               draggingRef.current = true;
               setIsDragging(true);
             }}
+            onPointerUp={finishDragging}
             onChange={(e) => {
-              setPriceMode("paid");
               updateDraft(parseFloat(e.target.value));
             }}
             onKeyUp={(e) => {
               if (e.key === "Enter") {
-                draggingRef.current = false;
-                setIsDragging(false);
-                commitDraft();
+                finishDragging();
               }
             }}
             onBlur={() => {
-              if (!draggingRef.current) {
-                commitDraft();
-              }
+              if (skipBlurCommitRef.current || draggingRef.current) return;
+              commitDraft();
             }}
             className="course-price-slider-input"
             aria-label={`Tarif du module ${courseTitle}`}
@@ -235,7 +267,15 @@ export default function CoursePriceSlider({
       )}
       {!isFree && (
         <p className="text-[10px] font-semibold leading-relaxed text-slate-500">
-          Payant : minimum {formatMad(MIN_PAID_COURSE_PRICE)}. Gratuit : période fixe (début et fin au calendrier).
+          Relâchez le curseur pour enregistrer. Minimum {formatMad(MIN_PAID_COURSE_PRICE)}.
+        </p>
+      )}
+      {isSaving && (
+        <p className="text-[10px] font-semibold leading-relaxed text-teal-300">Enregistrement en cours…</p>
+      )}
+      {priceError && (
+        <p role="alert" className="text-[10px] font-semibold leading-relaxed text-red-300">
+          {priceError}
         </p>
       )}
     </div>

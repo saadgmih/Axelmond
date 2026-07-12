@@ -8,8 +8,26 @@ export const COURSE_PRICE_STEP = 1;
 export const FREE_ACCESS_UNLIMITED_VALUE = "";
 export const FREE_ACCESS_DURATION_OPTIONS = [7, 14, 30, 60, 90] as const;
 
-export function isFreeCoursePrice(value: number): boolean {
-  return !Number.isFinite(value) || value <= FREE_COURSE_PRICE;
+export function coerceCoursePrice(value: unknown): number {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  if (
+    value != null &&
+    typeof value === "object" &&
+    "toNumber" in value &&
+    typeof (value as { toNumber: () => number }).toNumber === "function"
+  ) {
+    const parsed = (value as { toNumber: () => number }).toNumber();
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return FREE_COURSE_PRICE;
+}
+
+export function isFreeCoursePrice(value: unknown): boolean {
+  return coerceCoursePrice(value) <= FREE_COURSE_PRICE;
 }
 
 export function clampPaidCoursePrice(value: number): number {
@@ -18,9 +36,10 @@ export function clampPaidCoursePrice(value: number): number {
   return Math.min(MAX_COURSE_PRICE, Math.max(MIN_PAID_COURSE_PRICE, Number(stepped.toFixed(2))));
 }
 
-export function normalizeCoursePrice(value: number): number {
-  if (isFreeCoursePrice(value)) return FREE_COURSE_PRICE;
-  return clampPaidCoursePrice(value);
+export function normalizeCoursePrice(value: unknown): number {
+  const coerced = coerceCoursePrice(value);
+  if (isFreeCoursePrice(coerced)) return FREE_COURSE_PRICE;
+  return clampPaidCoursePrice(coerced);
 }
 
 export function normalizeCoursePriceForSave(isFree: boolean, value: number): number {

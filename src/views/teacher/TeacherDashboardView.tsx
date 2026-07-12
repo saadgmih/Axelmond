@@ -24,7 +24,7 @@ import { api } from "../../api";
 import type { AppUser } from "../../components/AuthScreen";
 import CoursePriceSlider from "../../components/CoursePriceSlider";
 import type { AcademicProfilePayload, Course, CourseGrade } from "../../types";
-import { formatFreeAccessDurationLabel, isFreeCoursePrice } from "../../utils/course-pricing";
+import { coerceCoursePrice, formatFreeAccessDurationLabel, isFreeCoursePrice } from "../../utils/course-pricing";
 import { formatCredits, formatMad } from "../../utils/morocco-locale";
 
 interface TeacherDashboardViewProps {
@@ -42,6 +42,8 @@ interface TeacherDashboardViewProps {
   managedCourses: Course[];
   courses: Course[];
   handleUpdateCoursePrice: (id: number, newPrice: number) => void | Promise<void>;
+  coursePriceErrors?: Record<number, string>;
+  savingCoursePriceIds?: Record<number, boolean>;
   gradesCourseId: number;
   setGradesCourseId: (id: number) => void;
   selectedGradesCourse: Course | null;
@@ -148,15 +150,16 @@ const TeacherModuleProgressRow = memo(function TeacherModuleProgressRow({
 
 const TeacherTariffCard = memo(function TeacherTariffCard({
   course,
-  displayPrice,
-  onDraftChange,
+  priceError,
+  isSaving,
   onSave,
 }: {
   course: Course;
-  displayPrice: number;
-  onDraftChange: (courseId: number, price: number) => void;
+  priceError?: string | null;
+  isSaving?: boolean;
   onSave: (courseId: number, price: number) => void | Promise<void>;
 }) {
+  const normalizedPrice = coerceCoursePrice(course.price);
   return (
     <div className="space-y-4 rounded-2xl border border-white/[0.08] bg-[#031512]/70 p-5 transition-colors hover:border-white/[0.12]">
       <div className="flex items-start justify-between gap-3">
@@ -172,20 +175,21 @@ const TeacherTariffCard = memo(function TeacherTariffCard({
           </div>
         </div>
         <span className="shrink-0 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 px-2.5 py-1 font-mono text-xs font-black text-white">
-          {isFreeCoursePrice(displayPrice)
+          {isFreeCoursePrice(normalizedPrice)
             ? formatFreeAccessDurationLabel(course.freeAccessDurationDays, course.freeAccessStartsAt, course.freeAccessEndsAt)
-            : formatMad(displayPrice)}
+            : formatMad(normalizedPrice)}
         </span>
       </div>
       <CoursePriceSlider
         courseId={course.id}
-        price={course.price}
+        price={normalizedPrice}
         freeAccessStartsAt={course.freeAccessStartsAt}
         freeAccessEndsAt={course.freeAccessEndsAt}
         freeAccessDurationDays={course.freeAccessDurationDays}
         courseTitle={course.title}
         onCommit={onSave}
-        onDraftChange={(nextPrice) => onDraftChange(course.id, nextPrice)}
+        priceError={priceError}
+        isSaving={isSaving}
       />
     </div>
   );
@@ -203,6 +207,8 @@ export default function TeacherDashboardView({
   testEmailStatusMsg,
   managedCourses,
   handleUpdateCoursePrice,
+  coursePriceErrors = {},
+  savingCoursePriceIds = {},
   gradesCourseId,
   setGradesCourseId,
   selectedGradesCourse,
@@ -217,7 +223,6 @@ export default function TeacherDashboardView({
 }: TeacherDashboardViewProps) {
   const [profileSnapshot, setProfileSnapshot] = useState<AcademicProfilePayload | null>(null);
   const [gradesByCourse, setGradesByCourse] = useState<Record<number, CourseGrade[]>>({});
-  const [draftPrices, setDraftPrices] = useState<Record<number, number>>({});
   const managedCourseIds = managedCourses.map((course) => course.id).join(",");
   const canRemoveEnrollment = currentUser.role === "ADMIN";
 
@@ -751,10 +756,8 @@ export default function TeacherDashboardView({
                 <TeacherTariffCard
                   key={course.id}
                   course={course}
-                  displayPrice={draftPrices[course.id] ?? course.price}
-                  onDraftChange={(courseId, nextPrice) =>
-                    setDraftPrices((prev) => ({ ...prev, [courseId]: nextPrice }))
-                  }
+                  priceError={coursePriceErrors[course.id]}
+                  isSaving={Boolean(savingCoursePriceIds[course.id])}
                   onSave={handleUpdateCoursePrice}
                 />
               ))

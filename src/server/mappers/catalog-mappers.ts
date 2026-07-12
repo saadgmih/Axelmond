@@ -1,3 +1,4 @@
+import { coerceCoursePrice } from "../../utils/course-pricing";
 import { Course, CourseEnrollmentInfo } from "../../types";
 import { prisma } from "../../db";
 import { decodeStoredText } from "../../text";
@@ -130,7 +131,7 @@ export function toCourse(
     category: decodeStoredText(course.category),
     disciplineId: course.disciplineId,
     discipline: course.discipline ? toDiscipline(course.discipline) : undefined,
-    price: course.price,
+    price: coerceCoursePrice(course.price),
     freeAccessStartsAt: course.freeAccessStartsAt ? course.freeAccessStartsAt.toISOString() : null,
     freeAccessEndsAt: course.freeAccessEndsAt ? course.freeAccessEndsAt.toISOString() : null,
     freeAccessDurationDays: course.freeAccessDurationDays ?? null,

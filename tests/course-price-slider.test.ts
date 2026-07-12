@@ -55,6 +55,16 @@ rulesTest("course-price-slider", () => {
   assert.match(sliderSource, /course-price-slider-root/);
   assert.match(sliderSource, /priceMode/);
   assert.match(sliderSource, /lastPaidPriceRef/);
+  assert.match(sliderSource, /skipBlurCommitRef/);
+  assert.match(sliderSource, /preventBlurBeforeClick/);
+  assert.match(sliderSource, /onMouseDown=\{preventBlurBeforeClick\}/);
+  assert.match(sliderSource, /isSaving/);
+  assert.match(sliderSource, /Enregistrement en cours/);
+  assert.match(sliderSource, /onPointerUp=\{finishDragging\}/);
+  assert.match(teacherDashboardHookSource, /savingCoursePriceIds/);
+  assert.match(teacherDashboardHookSource, /coursesRef/);
+  assert.match(teacherDashboardHookSource, /coursePriceErrors/);
+  assert.doesNotMatch(teacherDashboardSource, /draftPrices/);
   assert.match(sliderSource, /!isFree/);
   assert.match(sliderSource, /--slider-pct/);
   assert.match(sliderSource, /getCoursePriceSliderPct/);
