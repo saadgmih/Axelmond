@@ -32,6 +32,11 @@ rulesTest("admin-professor-invites-ui", () => {
   assert.match(accessKeysViewSource, /Professeur associé/);
   assert.match(accessKeysViewSource, /usedByName/);
   assert.match(accessKeysViewSource, /handleDeleteProfessorInvite/);
+  assert.match(accessKeysViewSource, /curriculumUi/);
+  assert.doesNotMatch(accessKeysViewSource, /#07101f/);
+  assert.doesNotMatch(accessKeysViewSource, /#0b1528/);
+  assert.doesNotMatch(accessKeysViewSource, /bg-teal-/);
+  assert.doesNotMatch(accessKeysViewSource, /text-teal-/);
   assert.match(sidebarSource, /role === "ADMIN"/);
   assert.match(sidebarSource, /Codes d'accès professeur/);
   assert.match(routeSwitchSource, /teacherView === "access-keys" && currentUser\.role === "ADMIN"/);
