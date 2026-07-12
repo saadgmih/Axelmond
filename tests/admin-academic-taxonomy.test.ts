@@ -64,6 +64,9 @@ rulesTest("admin-academic-taxonomy", () => {
   assert.match(taxonomyView, /Déplacez d'abord les modules attachés/);
 
   assert.match(curriculumTheme, /ADMIN_CURRICULUM_STEPS/);
+  assert.match(curriculumTheme, /emeraldCurriculumAccent/);
+  assert.doesNotMatch(curriculumTheme, /label:\s*"Domaines"[\s\S]*border-teal-400/);
+  assert.doesNotMatch(taxonomyView, /text-teal-300 bg-teal-500\/10/);
   assert.match(curriculumTheme, /label:\s*"Domaines"/);
   assert.match(curriculumTheme, /label:\s*"Sous-domaines"/);
   assert.match(curriculumTheme, /return canManageAcademicTaxonomy \? 3 : 1/);

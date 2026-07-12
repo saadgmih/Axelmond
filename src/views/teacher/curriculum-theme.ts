@@ -19,22 +19,28 @@ export interface CurriculumStepConfig {
   listActive: string;
 }
 
+/** Palette verte partagée — étapes admin 1–2 et module (alignée sur le studio pédagogique). */
+const emeraldCurriculumAccent = {
+  active:
+    "border-emerald-400/70 bg-emerald-950/50 text-white shadow-lg shadow-emerald-500/15 ring-1 ring-emerald-500/40",
+  completed: "border-emerald-500/40 bg-emerald-950/30 text-emerald-200",
+  badgeActive: "bg-emerald-500 text-white shadow-md shadow-emerald-500/40",
+  badgeCompleted: "bg-emerald-600 text-white",
+  button: "bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/25",
+  focus: "focus:border-emerald-400 focus:ring-emerald-500/20",
+  panel: "border-l-4 border-l-emerald-500",
+  chip: "bg-emerald-950/80 text-emerald-300 border-emerald-500/30",
+  listActive:
+    "border-emerald-500/50 bg-emerald-950/30 shadow-lg shadow-emerald-900/20 ring-1 ring-emerald-500/25",
+} as const;
+
 export const CURRICULUM_STEPS: CurriculumStepConfig[] = [
   {
     step: 1,
     label: "Modules",
     desc: "Création & catalogue",
     icon: BookOpen,
-    active: "border-emerald-400/70 bg-emerald-950/50 text-white shadow-lg shadow-emerald-500/15 ring-1 ring-emerald-500/40",
-    completed: "border-emerald-500/40 bg-emerald-950/30 text-emerald-200",
-    badgeActive: "bg-emerald-500 text-white shadow-md shadow-emerald-500/40",
-    badgeCompleted: "bg-emerald-600 text-white",
-    button:
-      "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg shadow-emerald-900/25",
-    focus: "focus:border-emerald-400 focus:ring-emerald-500/20",
-    panel: "border-l-4 border-l-emerald-500",
-    chip: "bg-teal-950/80 text-teal-300 border-teal-500/30",
-    listActive: "border-emerald-500/50 bg-emerald-950/30 shadow-lg shadow-emerald-900/20 ring-1 ring-emerald-500/25",
+    ...emeraldCurriculumAccent,
   },
   {
     step: 2,
@@ -105,32 +111,14 @@ export const ADMIN_CURRICULUM_STEPS: CurriculumStepConfig[] = [
     label: "Domaines",
     desc: "Familles académiques",
     icon: FolderTree,
-    active: "border-teal-400/70 bg-teal-950/50 text-white shadow-lg shadow-teal-500/15 ring-1 ring-teal-500/40",
-    completed: "border-emerald-500/40 bg-emerald-950/30 text-emerald-200",
-    badgeActive: "bg-teal-500 text-white shadow-md shadow-teal-500/40",
-    badgeCompleted: "bg-emerald-600 text-white",
-    button:
-      "bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white shadow-lg shadow-teal-900/25",
-    focus: "focus:border-teal-400 focus:ring-teal-500/20",
-    panel: "border-l-4 border-l-teal-500",
-    chip: "bg-teal-950/80 text-teal-300 border-teal-500/30",
-    listActive: "border-teal-500/50 bg-teal-950/30 shadow-lg shadow-teal-900/20 ring-1 ring-teal-500/25",
+    ...emeraldCurriculumAccent,
   },
   {
     step: 2,
     label: "Sous-domaines",
     desc: "Branches du domaine",
     icon: Layers,
-    active: "border-emerald-400/70 bg-emerald-950/50 text-white shadow-lg shadow-emerald-500/15 ring-1 ring-emerald-500/40",
-    completed: "border-emerald-500/40 bg-emerald-950/30 text-emerald-200",
-    badgeActive: "bg-emerald-500 text-white shadow-md shadow-emerald-500/40",
-    badgeCompleted: "bg-emerald-600 text-white",
-    button:
-      "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg shadow-emerald-900/25",
-    focus: "focus:border-emerald-400 focus:ring-emerald-500/20",
-    panel: "border-l-4 border-l-emerald-500",
-    chip: "bg-emerald-950/80 text-emerald-300 border-emerald-500/30",
-    listActive: "border-emerald-500/50 bg-emerald-950/30 shadow-lg shadow-emerald-900/20 ring-1 ring-emerald-500/25",
+    ...emeraldCurriculumAccent,
   },
   { ...CURRICULUM_STEPS[0], step: 3 },
   { ...CURRICULUM_STEPS[1], step: 4 },
