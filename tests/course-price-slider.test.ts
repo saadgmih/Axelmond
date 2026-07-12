@@ -54,6 +54,7 @@ rulesTest("course-price-slider", () => {
   assert.match(sliderSource, /draggingRef/);
   assert.match(sliderSource, /course-price-slider-root/);
   assert.match(sliderSource, /priceMode/);
+  assert.match(sliderSource, /lastPaidPriceRef/);
   assert.match(sliderSource, /!isFree/);
   assert.match(sliderSource, /--slider-pct/);
   assert.match(sliderSource, /getCoursePriceSliderPct/);
