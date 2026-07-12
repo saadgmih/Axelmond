@@ -25,6 +25,8 @@ rulesTest("livekit-ui", () => {
   assert.match(appSource, /Live actif/);
 
   assert.match(classroomSource, /LiveSettingsPanel/);
+  assert.match(classroomSource, /live-panel-input/);
+  assert.match(readFileSync("src/index.css", "utf8"), /\.live-panel-input:focus-visible/);
   assert.match(classroomSource, /Paramètres Live/);
   assert.match(classroomSource, /PictureInPicture2/);
   assert.match(classroomSource, /Mode concentration/);

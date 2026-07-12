@@ -41,7 +41,8 @@ export default function LiveParticipantsPanel({
           value={participantQuery}
           onChange={(event) => onParticipantQueryChange(event.target.value)}
           placeholder="Rechercher un participant..."
-          className="w-full bg-zinc-900 border border-white/5 rounded-xl pl-9 pr-3 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition-colors"
+          aria-label="Rechercher un participant"
+          className="live-panel-input w-full rounded-xl pl-9 pr-3 py-2.5 text-xs transition-colors focus:outline-none"
         />
       </div>
       <div className="space-y-1.5">

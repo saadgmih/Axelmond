@@ -52,13 +52,13 @@ export default function LiveToolsPanel({
           value={resourceTitle}
           onChange={(event) => onResourceTitleChange(event.target.value)}
           placeholder="Titre (PDF, slides, lien...)"
-          className="w-full rounded-xl border border-white/10 bg-zinc-950 px-3 py-2 text-xs text-white"
+          className="live-panel-input w-full rounded-xl px-3 py-2 text-xs focus:outline-none"
         />
         <input
           value={resourceUrl}
           onChange={(event) => onResourceUrlChange(event.target.value)}
           placeholder="URL du document ou de la présentation"
-          className="w-full rounded-xl border border-white/10 bg-zinc-950 px-3 py-2 text-xs text-white"
+          className="live-panel-input w-full rounded-xl px-3 py-2 text-xs focus:outline-none"
         />
         <button
           type="button"

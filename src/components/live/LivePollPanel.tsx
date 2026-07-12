@@ -33,7 +33,7 @@ export default function LivePollPanel({
           <input
             value={pollQuestion}
             onChange={(event) => onQuestionChange(event.target.value)}
-            className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3 py-2.5 text-sm text-white focus:border-emerald-500 focus:outline-none"
+            className="live-panel-input w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none"
           />
         </label>
       ) : (

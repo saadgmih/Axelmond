@@ -132,7 +132,8 @@ export default function LiveChatPanel({
                 value={chatDraft}
                 onChange={(event) => onChatDraftChange(event.target.value)}
                 placeholder="Tapez votre message..."
-                className="w-full bg-zinc-900 border border-white/10 rounded-xl pl-9 pr-12 py-3 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors shadow-inner"
+                aria-label="Message du chat live"
+                className="live-panel-input w-full rounded-xl pl-9 pr-12 py-3 text-sm transition-colors focus:outline-none"
               />
               <button
                 type="submit"

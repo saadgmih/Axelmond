@@ -549,6 +549,27 @@ body {
   color: #3c675f !important;
 }
 
+/* Live sidebar inputs — zinc styling; avoids global dark focus ring artifacts */
+.live-panel-input {
+  background-color: #18181b !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #fafafa !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+.live-panel-input::placeholder {
+  color: #71717a !important;
+}
+
+.live-panel-input:focus,
+.live-panel-input:focus-visible {
+  outline: none !important;
+  border-color: rgba(16, 185, 129, 0.55) !important;
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.24),
+    0 0 0 2px rgba(16, 185, 129, 0.22) !important;
+}
+
 .course-price-slider-root {
   --thumb-size: 20px;
   --thumb-radius: 10px;
