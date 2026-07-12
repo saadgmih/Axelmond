@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Calendar, Calendar1, CalendarRange, ChevronLeft, ChevronRight, LayoutGrid, Plus } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, LayoutGrid, List, PanelTop, Plus } from "lucide-react";
 import {
   CALENDAR_VIEW_LABELS,
   MONTH_LABELS_SHORT,
@@ -47,9 +47,9 @@ interface AxelCalendarShellProps {
 
 const viewIcons: Record<CalendarViewMode, typeof LayoutGrid> = {
   year: LayoutGrid,
-  month: Calendar,
-  week: CalendarRange,
-  day: Calendar1,
+  month: CalendarDays,
+  week: List,
+  day: PanelTop,
 };
 
 const addActionButtonClass =
