@@ -4,9 +4,14 @@ import {
   findDirectConversationId as lookupDirectConversationId,
 } from "./direct-conversations";
 import { cacheDel, cacheGet, cacheSet } from "./cache";
-import { isAllowedRasterImageMime } from "./avatar-security";
+import {
+  detectMessageAttachmentKind,
+  normalizeMessageMimeType,
+  type MessageAttachmentKind,
+} from "./message-attachment-utils";
 
 export { buildDirectConversationKey };
+export { detectMessageAttachmentKind, normalizeMessageMimeType };
 import { isStudentRole, isTeacherSpaceRole, type UserRole } from "./rbac";
 
 export const MESSAGE_BODY_MAX = 4000;
@@ -35,38 +40,6 @@ const ALLOWED_MIME_BY_KIND: Record<string, string[]> = {
 
 const ALLOWED_ATTACHMENT_HOSTS = ["uploadthing.com", "ufs.sh", "utfs.io"] as const;
 
-export function normalizeMessageMimeType(mimeType: string): string {
-  return String(mimeType || "")
-    .toLowerCase()
-    .split(";")[0]
-    .trim();
-}
-
-export function detectMessageAttachmentKind(
-  mimeType: string | null | undefined,
-  fileName = "",
-): MessageAttachmentInput["kind"] | null {
-  const mime = normalizeMessageMimeType(mimeType || "");
-  if (isAllowedRasterImageMime(mime)) return "IMAGE";
-  if (mime.startsWith("video/")) return "VIDEO";
-  if (mime.startsWith("audio/")) return "AUDIO";
-  if (
-    mime === "application/pdf" ||
-    mime === "application/msword" ||
-    mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-  ) {
-    return "DOCUMENT";
-  }
-
-  const ext = fileName.split(".").pop()?.toLowerCase() || "";
-  if (["jpg", "jpeg", "png", "webp"].includes(ext)) return "IMAGE";
-  if (fileName.includes("message-vocal") || ["mp3", "wav", "ogg", "m4a", "weba"].includes(ext)) return "AUDIO";
-  if (ext === "webm" && fileName.includes("message-vocal")) return "AUDIO";
-  if (["mp4", "mov", "webm"].includes(ext)) return "VIDEO";
-  if (ext === "pdf" || ext === "doc" || ext === "docx") return "DOCUMENT";
-  return null;
-}
-
 function isAllowedAttachmentUrl(rawUrl: string): boolean {
   try {
     const url = new URL(rawUrl);
@@ -83,7 +56,7 @@ export interface MessagingUserRef {
 }
 
 export interface MessageAttachmentInput {
-  kind: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT";
+  kind: MessageAttachmentKind;
   fileName: string;
   mimeType: string;
   sizeBytes: number;

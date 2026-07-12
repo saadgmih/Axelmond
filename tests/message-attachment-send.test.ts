@@ -24,5 +24,7 @@ rulesTest("message-attachment-send", () => {
   assert.match(videoAttachmentSource, /Vidéo/);
   assert.match(audioPlayerSource, /rounded-full/);
   assert.match(uploadSource, /normalizeMessageUploadFile/);
+  assert.match(uploadSource, /message-attachment-utils/);
+  assert.doesNotMatch(uploadSource, /from "\.\/messaging"/);
   assert.match(audioSource, /recorder\.start\(250\)/);
 });

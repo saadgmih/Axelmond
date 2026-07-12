@@ -1,5 +1,5 @@
 import { getFreshSessionToken } from "./api";
-import { normalizeMessageMimeType } from "./messaging";
+import { normalizeMessageMimeType } from "./message-attachment-utils";
 import { bindUploadProgress, getUploadedFileUrl, getUploadErrorMessage, uploadFiles } from "./uploadthing-client";
 import type { MessageAttachment } from "./types/messaging";
 
