@@ -51,7 +51,7 @@ rulesTest("course-price-slider", () => {
   assert.match(sliderSource, /onCommit/);
   assert.match(sliderSource, /draggingRef/);
   assert.match(sliderSource, /course-price-slider-root/);
-  assert.match(sliderSource, /is-free/);
+  assert.match(sliderSource, /!isFree/);
   assert.match(sliderSource, /--slider-pct/);
   assert.match(sliderSource, /getCoursePriceSliderPct/);
   assert.match(routeSchemasSource, /isValidCoursePrice/);

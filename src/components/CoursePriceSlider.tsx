@@ -148,47 +148,48 @@ export default function CoursePriceSlider({
         </button>
       </div>
 
-      <div
-        className={`course-price-slider-root${isDragging ? " is-dragging" : ""}${isFree ? " is-free" : ""}`}
-        style={{ "--slider-pct": sliderPct } as CSSProperties}
-      >
-        <div className="course-price-slider-track" aria-hidden="true">
-          <div className="course-price-slider-active" />
+      {!isFree && (
+        <div
+          className={`course-price-slider-root${isDragging ? " is-dragging" : ""}`}
+          style={{ "--slider-pct": sliderPct } as CSSProperties}
+        >
+          <div className="course-price-slider-track" aria-hidden="true">
+            <div className="course-price-slider-active" />
+          </div>
+          <div className="course-price-slider-thumb" aria-hidden="true" />
+          <input
+            type="range"
+            min={MIN_PAID_COURSE_PRICE}
+            max={MAX_COURSE_PRICE}
+            step={COURSE_PRICE_STEP}
+            value={sliderValue}
+            onPointerDown={() => {
+              draggingRef.current = true;
+              setIsDragging(true);
+            }}
+            onChange={(e) => {
+              updateDraft(parseFloat(e.target.value));
+            }}
+            onKeyUp={(e) => {
+              if (e.key === "Enter") {
+                draggingRef.current = false;
+                setIsDragging(false);
+                commitDraft();
+              }
+            }}
+            onBlur={() => {
+              if (!draggingRef.current) {
+                commitDraft();
+              }
+            }}
+            className="course-price-slider-input"
+            aria-label={`Tarif du module ${courseTitle}`}
+            aria-valuemin={MIN_PAID_COURSE_PRICE}
+            aria-valuemax={MAX_COURSE_PRICE}
+            aria-valuenow={draft}
+          />
         </div>
-        <div className="course-price-slider-thumb" aria-hidden="true" />
-        <input
-          type="range"
-          min={MIN_PAID_COURSE_PRICE}
-          max={MAX_COURSE_PRICE}
-          step={COURSE_PRICE_STEP}
-          value={sliderValue}
-          disabled={isFree}
-          onPointerDown={() => {
-            draggingRef.current = true;
-            setIsDragging(true);
-          }}
-          onChange={(e) => {
-            updateDraft(parseFloat(e.target.value));
-          }}
-          onKeyUp={(e) => {
-            if (e.key === "Enter") {
-              draggingRef.current = false;
-              setIsDragging(false);
-              commitDraft();
-            }
-          }}
-          onBlur={() => {
-            if (!draggingRef.current) {
-              commitDraft();
-            }
-          }}
-          className="course-price-slider-input"
-          aria-label={`Tarif du module ${courseTitle}`}
-          aria-valuemin={MIN_PAID_COURSE_PRICE}
-          aria-valuemax={MAX_COURSE_PRICE}
-          aria-valuenow={isFree ? FREE_COURSE_PRICE : draft}
-        />
-      </div>
+      )}
       <p className="text-[10px] font-semibold leading-relaxed text-slate-500">
         Payant : minimum {formatMad(MIN_PAID_COURSE_PRICE)}. Gratuit : période fixe (début et fin au calendrier).
       </p>
