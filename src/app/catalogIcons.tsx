@@ -2,8 +2,8 @@ import {
   Code,
   Database,
   Terminal,
-  Cpu,
   Brain,
+  BookOpen,
   GraduationCap,
   Calculator,
   Atom,
@@ -28,7 +28,7 @@ export function getCourseIcon(iconName: string, colorClass = "w-6 h-6") {
     case "Brain":
       return <Brain className={colorClass} />;
     default:
-      return <Cpu className={colorClass} />;
+      return <BookOpen className={colorClass} />;
   }
 }
 

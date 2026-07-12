@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   ChevronRight,
   Clock,
-  Cpu,
   GraduationCap,
   HelpCircle,
   Layers,
@@ -23,6 +22,7 @@ import type { ReactNode } from "react";
 import type { AppUser } from "../../components/AuthScreen";
 
 import type { Course, CourseModule } from "../../types";
+import { DEFAULT_STUDENT_LABEL } from "../../types";
 import { formatCredits } from "../../utils/morocco-locale";
 import { prefetchCourseContent } from "../../utils/prefetch";
 import { useTvNavigation } from "../../hooks/useTvNavigation";
@@ -376,7 +376,7 @@ export default function StudentDashboardView({
     <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-200">
       <div className="bg-gradient-to-r from-emerald-900 via-indigo-800 to-slate-900 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-lg border border-emerald-950">
         <div className="absolute right-0 top-0 w-1/3 h-full opacity-10 pointer-events-none">
-          <Cpu className="w-full h-full text-white" />
+          <GraduationCap className="w-full h-full text-white" />
         </div>
 
         <div className="relative z-10 max-w-2xl space-y-3">
@@ -389,7 +389,12 @@ export default function StudentDashboardView({
           </h1>
 
           <p className="text-emerald-200 text-sm md:text-base leading-relaxed">
-            Vous êtes inscrit en <strong>{currentUser ? currentUser.levelOrTitle : "Licence 3 d'Informatique"}</strong>{" "}
+            Vous êtes inscrit en{" "}
+            <strong>
+              {currentUser
+                ? currentUser.filiere || currentUser.levelOrTitle || DEFAULT_STUDENT_LABEL
+                : DEFAULT_STUDENT_LABEL}
+            </strong>{" "}
             de Performance Académique. Poursuivez vos modules interactifs, ou conversez avec votre tuteur IA.
           </p>
 

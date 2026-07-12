@@ -1,5 +1,5 @@
 import { type ReactNode, type RefObject } from "react";
-import { Search, Sparkles, Mic, Bell, BadgeCheck, PanelTopClose, PanelTopOpen } from "lucide-react";
+import { Search, GraduationCap, Mic, Bell, BadgeCheck, PanelTopClose, PanelTopOpen } from "lucide-react";
 import { Course } from "../types";
 import { AppUser } from "./AuthScreen";
 import { getRoleLabel, getTeacherRoleBadgeTone, type UserRole } from "../rbac";
@@ -130,7 +130,7 @@ function RolePill({
       className={`topbar-role-pill kbd-nav-focus inline-flex ${tone}`}
       aria-label={`Ouvrir le profil ${getRoleLabel(userRole)}`}
     >
-      <Sparkles className={`h-4 w-4 ${iconTone}`} />
+      <GraduationCap className={`h-4 w-4 ${iconTone}`} />
       <span>{role === "student" ? "Étudiant" : getRoleLabel(userRole)}</span>
     </button>
   );
@@ -304,7 +304,7 @@ export default function Topbar({
 
           {role === "student" && (
             <div className="flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1.5">
-              <Sparkles className="h-4 w-4 text-emerald-300" />
+              <GraduationCap className="h-4 w-4 text-emerald-300" />
               <span className="font-mono text-xs font-extrabold text-emerald-200">{formatCredits(activeCredits)}</span>
             </div>
           )}

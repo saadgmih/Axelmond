@@ -1,8 +1,9 @@
 import { useMemo } from "react";
-import { Award, BookOpen, CheckCircle2, CreditCard, GraduationCap, ShieldCheck, Sparkles } from "lucide-react";
+import { Award, BookOpen, CheckCircle2, CreditCard, GraduationCap, ShieldCheck } from "lucide-react";
 import ProfileAvatarUpload from "../../components/ProfileAvatarUpload";
 import type { AppUser } from "../../components/AuthScreen";
 import type { Course, Invoice } from "../../types";
+import { DEFAULT_STUDENT_LABEL } from "../../types";
 import { formatCredits, formatMad, creditsLabel } from "../../utils/morocco-locale";
 import { formatInvoiceReference } from "../../utils/user-facing-labels";
 
@@ -92,7 +93,7 @@ export default function StudentProfileView({
                     {currentUser?.fullName || "Étudiant Performance Académique"}
                   </h1>
                   <p className="text-sm font-medium text-emerald-200/90">
-                    {currentUser?.levelOrTitle || "Licence 3 Informatique"} · Performance Académique
+                    {currentUser?.filiere || currentUser?.levelOrTitle || DEFAULT_STUDENT_LABEL} · Performance Académique
                   </p>
                   <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
                     <span className="inline-flex items-center gap-1 rounded-lg border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-300">
@@ -126,7 +127,7 @@ export default function StudentProfileView({
             label: creditsLabel(),
             value: stats.totalCredits,
             suffix: "/ 30",
-            icon: Sparkles,
+            icon: GraduationCap,
             accent: "from-emerald-500 to-emerald-600",
           },
           {
