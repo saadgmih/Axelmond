@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { CalendarDays, ChevronLeft, ChevronRight, LayoutGrid, List, PanelTop, Plus } from "lucide-react";
+import { Calendar1, CalendarDays, ChevronLeft, ChevronRight, LayoutGrid, List, Plus } from "lucide-react";
 import {
   CALENDAR_VIEW_LABELS,
   MONTH_LABELS_SHORT,
@@ -49,7 +49,7 @@ const viewIcons: Record<CalendarViewMode, typeof LayoutGrid> = {
   year: LayoutGrid,
   month: CalendarDays,
   week: List,
-  day: PanelTop,
+  day: Calendar1,
 };
 
 const addActionButtonClass =
