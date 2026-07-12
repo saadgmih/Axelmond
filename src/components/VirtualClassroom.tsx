@@ -391,10 +391,6 @@ export default function VirtualClassroom({
               {ui.activeTab === "whiteboard" && !ui.whiteboardExpanded && (
                 <LiveWhiteboardPanel
                   expanded={false}
-                  onToggleExpanded={() => {
-                    ui.setWhiteboardExpanded(true);
-                    ui.setIsSidebarOpen(false);
-                  }}
                   strokes={whiteboardStrokes}
                   localIdentity={localIdentity}
                   onStrokeComplete={onWhiteboardStroke}

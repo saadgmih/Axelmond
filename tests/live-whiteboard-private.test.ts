@@ -11,7 +11,7 @@ rulesTest("live-whiteboard-private", async () => {
   assert.doesNotMatch(controlsSource, /publishLiveSync\(liveRoom,\s*\{\s*type:\s*"WHITEBOARD_STROKE"/);
   assert.doesNotMatch(controlsSource, /publishLiveSync\(liveRoom,\s*\{\s*type:\s*"WHITEBOARD_CLEAR"/);
   assert.doesNotMatch(syncStateSource, /type:\s*"WHITEBOARD_SNAPSHOT"/);
-  assert.doesNotMatch(fs.readFileSync("src/components/live/LiveWhiteboardPanel.tsx", "utf8"), /Géométrie|shapes/);
+  assert.doesNotMatch(fs.readFileSync("src/components/live/LiveWhiteboardPanel.tsx", "utf8"), /Géométrie|Dessin libre|ZoomIn/);
 
   let strokes: Array<{ id: string; tool: "draw"; color: string; width: number; points: Array<{ x: number; y: number }> }> =
     [];

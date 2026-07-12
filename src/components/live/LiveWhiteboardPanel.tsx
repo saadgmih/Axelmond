@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from "react";
-import { Maximize2, Minimize2, PenTool, ZoomIn, ZoomOut } from "lucide-react";
+import { useEffect, useRef } from "react";
 import type { LiveWhiteboardStroke } from "../../live/live-sync";
 import { createWhiteboardStrokeId, normalizeCanvasPoint, redrawWhiteboard } from "./live-whiteboard-canvas";
 
+const STROKE_WIDTH = 3;
+
 interface LiveWhiteboardPanelProps {
   expanded: boolean;
-  onToggleExpanded: () => void;
   strokes: LiveWhiteboardStroke[];
   localIdentity: string;
   onStrokeComplete: (stroke: LiveWhiteboardStroke) => void;
@@ -14,7 +14,6 @@ interface LiveWhiteboardPanelProps {
 
 export default function LiveWhiteboardPanel({
   expanded,
-  onToggleExpanded,
   strokes,
   localIdentity,
   onStrokeComplete,
@@ -24,7 +23,6 @@ export default function LiveWhiteboardPanel({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const isDrawingRef = useRef(false);
   const currentPointsRef = useRef<Array<{ x: number; y: number }>>([]);
-  const [zoom, setZoom] = useState(1);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -82,7 +80,7 @@ export default function LiveWhiteboardPanel({
     isDrawingRef.current = true;
     currentPointsRef.current = [{ x, y }];
     context.strokeStyle = "#05C2A5";
-    context.lineWidth = 3 * zoom;
+    context.lineWidth = STROKE_WIDTH;
     context.lineCap = "round";
     context.beginPath();
     context.moveTo(x, y);
@@ -112,49 +110,13 @@ export default function LiveWhiteboardPanel({
       id: createWhiteboardStrokeId(localIdentity),
       tool: "draw",
       color: "#05C2A5",
-      width: 3 * zoom,
+      width: STROKE_WIDTH,
       points: normalizedPoints,
     });
   };
 
   return (
     <div className={`flex h-full flex-col ${expanded ? "min-h-[min(72dvh,780px)]" : "min-h-[320px]"}`}>
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <span className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-400/40 bg-emerald-500/10 px-3 py-2 text-[11px] font-bold text-emerald-200">
-          <PenTool className="h-4 w-4" />
-          Dessin libre
-        </span>
-        <div className="ml-auto flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setZoom((value) => Math.max(0.5, Number((value - 0.1).toFixed(2))))}
-            className="rounded-lg border border-white/10 p-2 text-zinc-300 hover:bg-zinc-800"
-            aria-label="Zoom arrière"
-          >
-            <ZoomOut className="h-4 w-4" />
-          </button>
-          <span className="min-w-[3rem] text-center text-[10px] font-bold text-zinc-400">
-            {Math.round(zoom * 100)}%
-          </span>
-          <button
-            type="button"
-            onClick={() => setZoom((value) => Math.min(2, Number((value + 0.1).toFixed(2))))}
-            className="rounded-lg border border-white/10 p-2 text-zinc-300 hover:bg-zinc-800"
-            aria-label="Zoom avant"
-          >
-            <ZoomIn className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            onClick={onToggleExpanded}
-            className="rounded-lg border border-white/10 p-2 text-zinc-300 hover:bg-zinc-800"
-            aria-label={expanded ? "Réduire le tableau" : "Tableau plein écran"}
-          >
-            {expanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-          </button>
-        </div>
-      </div>
-
       <div
         ref={containerRef}
         className="relative flex-1 overflow-hidden rounded-2xl border border-white/10 bg-[#eef2ff] shadow-inner"

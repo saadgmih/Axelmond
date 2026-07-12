@@ -27,7 +27,7 @@ export interface LiveVideoStageProps {
 export default function LiveVideoStage({
   connectionNotice,
   whiteboardExpanded,
-  onCollapseWhiteboard,
+  onCollapseWhiteboard: _onCollapseWhiteboard,
   canModerate,
   whiteboardStrokes,
   localIdentity,
@@ -54,7 +54,6 @@ export default function LiveVideoStage({
           <div className="h-full w-full p-3">
             <LiveWhiteboardPanel
               expanded
-              onToggleExpanded={onCollapseWhiteboard}
               strokes={whiteboardStrokes}
               localIdentity={localIdentity}
               onStrokeComplete={onWhiteboardStroke}
