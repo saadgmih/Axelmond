@@ -21,6 +21,7 @@ import { rulesTest } from "./helpers/rulesTest.ts";
 rulesTest("course-price-slider", () => {
   const appSource = readAppSources();
   const teacherDashboardSource = readFileSync("src/views/teacher/TeacherDashboardView.tsx", "utf8");
+  const teacherDashboardHookSource = readFileSync("src/hooks/useTeacherDashboard.ts", "utf8");
   const sliderSource = readFileSync("src/components/CoursePriceSlider.tsx", "utf8");
   const curriculumModulesSource = readFileSync("src/views/teacher/curriculum-steps/CurriculumModulesStep.tsx", "utf8");
   const freeAccessFieldsSource = readFileSync("src/components/FreeAccessWindowFields.tsx", "utf8");
@@ -29,6 +30,7 @@ rulesTest("course-price-slider", () => {
 
   assert.match(appSource, /TeacherDashboardView/);
   assert.match(teacherDashboardSource, /CoursePriceSlider/);
+  assert.match(teacherDashboardHookSource, /resolveFreeAccessWindowForCoursePrice/);
   assert.match(teacherDashboardSource, /Gestion des Tarifs/);
   assert.doesNotMatch(teacherDashboardSource, /Gestion des Tarifs & Séminaires/);
   assert.match(sliderSource, /type="range"/);
@@ -51,6 +53,7 @@ rulesTest("course-price-slider", () => {
   assert.match(sliderSource, /onCommit/);
   assert.match(sliderSource, /draggingRef/);
   assert.match(sliderSource, /course-price-slider-root/);
+  assert.match(sliderSource, /priceMode/);
   assert.match(sliderSource, /!isFree/);
   assert.match(sliderSource, /--slider-pct/);
   assert.match(sliderSource, /getCoursePriceSliderPct/);

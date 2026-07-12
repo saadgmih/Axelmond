@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import {
+  buildDefaultFreeAccessWindow,
   deriveInclusiveFreeAccessDays,
   parseCalendarDateEnd,
   parseCalendarDateStart,
   resolveCourseFreeAccessWindow,
+  resolveFreeAccessWindowForCoursePrice,
   resolveFreeEnrollmentEndDate,
 } from "../src/course-free-access-window.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
@@ -40,4 +42,13 @@ rulesTest("course-free-access-window", () => {
   });
   assert.ok(legacyWindow);
   assert.equal(parseCalendarDateStart(legacyWindow!.startsAt).toISOString(), "2026-09-01T00:00:00.000Z");
+
+  const defaultWindow = buildDefaultFreeAccessWindow(new Date("2026-07-01T12:00:00.000Z"));
+  assert.equal(defaultWindow.startsAt.toISOString(), "2026-07-01T00:00:00.000Z");
+
+  const paidToFreeWindow = resolveFreeAccessWindowForCoursePrice(
+    { price: 10, createdAt: "2026-07-01T00:00:00.000Z", freeAccessDurationDays: 30 },
+    0,
+  );
+  assert.ok(paidToFreeWindow);
 });

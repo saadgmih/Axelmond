@@ -137,3 +137,17 @@ export function resolveFreeAccessWindowForSave(
     freeAccessDurationDays: deriveInclusiveFreeAccessDays(window.startsAt, window.endsAt),
   };
 }
+
+export function buildDefaultFreeAccessWindow(now = new Date()): ResolvedFreeAccessWindow {
+  const startsAt = parseCalendarDateStart(now);
+  const endsAt = new Date(startsAt.getTime() + COURSE_ENROLLMENT_ACCESS_DAYS * 24 * 60 * 60 * 1000 - 1);
+  return { startsAt, endsAt };
+}
+
+export function resolveFreeAccessWindowForCoursePrice(
+  course: FreeAccessCourseLike,
+  price: number,
+): ResolvedFreeAccessWindow | null {
+  if (price > 0) return null;
+  return resolveCourseFreeAccessWindow({ ...course, price }) ?? buildDefaultFreeAccessWindow();
+}

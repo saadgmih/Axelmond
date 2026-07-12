@@ -4,7 +4,8 @@ import { api, getFreshSessionToken, type SiteSettings } from "../api";
 import type { AppUser } from "../components/AuthScreen";
 import type { Course, CourseGrade, FacultyDomain } from "../types";
 import { findLiveCourse } from "../utils/live-course-selection";
-import { normalizeCoursePrice } from "../utils/course-pricing";
+import { normalizeCoursePrice, isFreeCoursePrice } from "../utils/course-pricing";
+import { resolveFreeAccessWindowForSave, resolveFreeAccessWindowForCoursePrice } from "../course-free-access-window";
 import { applyForceDesktopMode } from "../utils/force-desktop-mode";
 
 export interface AcademicDomainInput {
@@ -195,12 +196,61 @@ export function useTeacherDashboard({
   }, [currentUser?.id, currentUser?.role]);
 
   const handleUpdateCoursePrice = async (id: number, newPrice: number) => {
+    const current = courses.find((course) => course.id === id);
+    if (!current) return;
+
     const normalized = normalizeCoursePrice(newPrice);
-    setCourses((prev) => prev.map((c) => (c.id === id ? { ...c, price: normalized } : c)));
+    const patch: {
+      price: number;
+      freeAccessStartsAt?: string | null;
+      freeAccessEndsAt?: string | null;
+      freeAccessDurationDays?: number | null;
+    } = { price: normalized };
+
+    if (isFreeCoursePrice(normalized)) {
+      const window = resolveFreeAccessWindowForCoursePrice(current, normalized);
+      const savedWindow = resolveFreeAccessWindowForSave(window.startsAt, window.endsAt);
+      if (savedWindow) {
+        patch.freeAccessStartsAt = savedWindow.freeAccessStartsAt.toISOString();
+        patch.freeAccessEndsAt = savedWindow.freeAccessEndsAt.toISOString();
+        patch.freeAccessDurationDays = savedWindow.freeAccessDurationDays;
+      }
+    } else {
+      patch.freeAccessStartsAt = null;
+      patch.freeAccessEndsAt = null;
+      patch.freeAccessDurationDays = null;
+    }
+
+    const previous = current;
+    setCourses((prev) =>
+      prev.map((course) =>
+        course.id === id
+          ? {
+              ...course,
+              price: normalized,
+              ...(isFreeCoursePrice(normalized) && patch.freeAccessStartsAt
+                ? {
+                    freeAccessStartsAt: patch.freeAccessStartsAt,
+                    freeAccessEndsAt: patch.freeAccessEndsAt ?? null,
+                    freeAccessDurationDays: patch.freeAccessDurationDays ?? null,
+                  }
+                : isFreeCoursePrice(normalized)
+                  ? {}
+                  : {
+                      freeAccessStartsAt: null,
+                      freeAccessEndsAt: null,
+                      freeAccessDurationDays: null,
+                    }),
+            }
+          : course,
+      ),
+    );
+
     try {
-      const updatedCourse = await api.updateCourse(id, { price: normalized });
-      setCourses((prev) => prev.map((c) => (c.id === id ? updatedCourse : c)));
+      const updatedCourse = await api.updateCourse(id, patch);
+      setCourses((prev) => prev.map((course) => (course.id === id ? updatedCourse : course)));
     } catch (err) {
+      setCourses((prev) => prev.map((course) => (course.id === id ? previous : course)));
       console.error("Failed to update course price:", err);
     }
   };
