@@ -379,9 +379,12 @@ export function useLiveKitConnection({
       setLiveAttendanceReport(null);
       return;
     }
+    if (currentUser && isStudentRole(currentUser.role)) {
+      setLiveAttendanceReport(null);
+      return;
+    }
     refreshLiveAttendanceReport(activeLiveCourse.id);
-    const intervalDelay = currentUser && !isStudentRole(currentUser.role) ? 30000 : 90000;
-    const interval = window.setInterval(() => refreshLiveAttendanceReport(activeLiveCourse.id), intervalDelay);
+    const interval = window.setInterval(() => refreshLiveAttendanceReport(activeLiveCourse.id), 30000);
     return () => window.clearInterval(interval);
-  }, [activeLiveCourse?.id, currentUser?.role]);
+  }, [activeLiveCourse?.id, currentUser?.role, refreshLiveAttendanceReport]);
 }

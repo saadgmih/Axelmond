@@ -297,11 +297,12 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
     return true;
   }
 
-  if (
-    (verb === "POST" && (cleanPath === "/api/livekit/events" || cleanPath === "/api/livekit/attendance/leave")) ||
-    (verb === "GET" && /^\/api\/livekit\/attendance\/\d+$/.test(cleanPath))
-  ) {
+  if (verb === "POST" && (cleanPath === "/api/livekit/events" || cleanPath === "/api/livekit/attendance/leave")) {
     return true;
+  }
+
+  if (verb === "GET" && /^\/api\/livekit\/attendance\/\d+$/.test(cleanPath)) {
+    return isTeacherSpaceRole(normalized);
   }
 
   // Routes quiz professeur (CRUD quiz)

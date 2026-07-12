@@ -247,6 +247,11 @@ export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
       return;
     }
 
+    if (authUser.role === "STUDENT") {
+      res.status(403).json({ error: "Rapport de présence réservé au personnel enseignant." });
+      return;
+    }
+
     const roomName = api.buildLiveKitRoomName(access.course.id);
 
     const session = await api.findLiveSessionByRoomName(roomName);

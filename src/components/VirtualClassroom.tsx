@@ -415,7 +415,7 @@ export default function VirtualClassroom({
                 />
               )}
 
-              {ui.activeTab === "attendance" && (
+              {ui.activeTab === "attendance" && ui.canViewLiveAttendance && (
                 <LiveAttendancePanel
                   attendanceReport={attendanceReport}
                   connectedParticipants={ui.connectedParticipants}

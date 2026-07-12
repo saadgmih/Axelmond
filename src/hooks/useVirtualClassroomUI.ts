@@ -7,6 +7,7 @@ import type { LiveParticipantCard } from "../components/VirtualClassroom";
 import { resolveStageParticipants, stageGridClass } from "../components/live/live-stage";
 import type { AttendanceRow } from "../components/live/LiveAttendancePanel";
 import { liveRoleLabel, liveSidebarTabs } from "../components/live/live-classroom-formatters";
+import { isStudentRole } from "../rbac";
 import { useKeyboardShortcuts } from "./useKeyboardShortcuts";
 import { useLiveConnectionNotice } from "./useLiveConnectionNotice";
 import { useLiveSettings } from "./useLiveSettings";
@@ -138,16 +139,26 @@ export function useVirtualClassroomUI({
     }
   }, [liveSettings.focusMode, activeTab]);
 
+  const canViewLiveAttendance = !isStudentRole(currentUserRole);
+
+  useEffect(() => {
+    if (!canViewLiveAttendance && activeTab === "attendance") {
+      setActiveTab("participants");
+    }
+  }, [canViewLiveAttendance, activeTab]);
+
   useEffect(() => {
     if (activeTab === "whiteboard" && whiteboardExpanded) {
       setIsSidebarOpen(false);
     }
   }, [activeTab, whiteboardExpanded]);
 
-  const visibleSidebarTabs = useMemo(
-    () => (liveSettings.focusMode ? liveSidebarTabs.filter((tab) => tab.id === "whiteboard") : liveSidebarTabs),
-    [liveSettings.focusMode],
-  );
+  const visibleSidebarTabs = useMemo(() => {
+    const baseTabs = liveSettings.focusMode
+      ? liveSidebarTabs.filter((tab) => tab.id === "whiteboard")
+      : liveSidebarTabs;
+    return canViewLiveAttendance ? baseTabs : baseTabs.filter((tab) => tab.id !== "attendance");
+  }, [liveSettings.focusMode, canViewLiveAttendance]);
 
   const openPanelTab = useCallback(
     (tabId: string) => {
@@ -369,6 +380,7 @@ export function useVirtualClassroomUI({
     openPanelTab,
     exitLiveSession,
     canModerate,
+    canViewLiveAttendance,
     connectedParticipants,
     activeSpeaker,
     stageParticipants,

@@ -100,7 +100,10 @@ rulesTest("rbac", () => {
   assert.equal(canAccessApiRoute("RESEARCHER", "POST", "/api/livekit/moderation"), true);
   assert.equal(canAccessApiRoute("ADMIN", "POST", "/api/livekit/moderation"), true);
   assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/livekit/events"), true);
-  assert.equal(canAccessApiRoute("STUDENT", "GET", "/api/livekit/attendance/1"), true);
+  assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/livekit/attendance/leave"), true);
+  assert.equal(canAccessApiRoute("STUDENT", "GET", "/api/livekit/attendance/1"), false);
+  assert.equal(canAccessApiRoute("PROFESSOR", "GET", "/api/livekit/attendance/1"), true);
+  assert.equal(canAccessApiRoute("ADMIN", "GET", "/api/livekit/attendance/1"), true);
   assert.equal(canAccessApiRoute("STUDENT", "DELETE", "/api/admin/secret-backdoor"), false);
 
   assert.equal(isRbacExemptRoute("GET", "/api/courses"), true);
