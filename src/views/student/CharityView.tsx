@@ -18,6 +18,12 @@ import {
 } from "../../charity-labels";
 import { CharityDonationCheckout } from "../../components/CharityDonationCheckout";
 import { useCharity } from "../../hooks/useCharity";
+import { curriculumUi } from "../teacher/curriculum-theme";
+
+const focusInput =
+  "outline-none focus:border-green-600/60 focus:ring-2 focus:ring-green-600/20";
+const primaryBtn =
+  "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-green-700 px-5 text-sm font-black text-white shadow-lg shadow-green-900/25 transition-colors hover:bg-green-600 disabled:opacity-50";
 
 function formatEventDate(event: {
   day: number;
@@ -58,9 +64,9 @@ export default function CharityView() {
   if (!accessStatus.pageEnabled) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-12 text-center sm:px-6">
-        <div className="rounded-2xl border border-slate-700/60 bg-[#07101f] p-8 shadow-[0_24px_80px_rgba(2,6,23,0.45)]">
-          <Moon className="mx-auto h-12 w-12 text-teal-400" />
-          <h1 className="mt-4 text-2xl font-black text-white">{CHARITY_PAGE_TITLE}</h1>
+        <div className={`${curriculumUi.card} p-8 text-center`}>
+          <Moon className="mx-auto h-12 w-12 text-emerald-400" />
+          <h1 className={`mt-4 ${curriculumUi.panelTitle} justify-center`}>{CHARITY_PAGE_TITLE}</h1>
           <p className="mt-3 text-sm leading-relaxed text-slate-400">
             Cette section est temporairement fermée par l&apos;administration du centre Performance Académique.
           </p>
@@ -72,13 +78,13 @@ export default function CharityView() {
   if (!accessStatus.hasAccess) {
     return (
       <div className="mx-auto max-w-xl px-4 py-10 sm:px-6">
-        <div className="overflow-hidden rounded-2xl border border-slate-700/60 bg-[#07101f] text-slate-100 shadow-[0_24px_80px_rgba(2,6,23,0.45)]">
-          <header className="border-b border-slate-800/80 px-6 py-8 text-center sm:px-10">
-            <span className="inline-flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-teal-800 text-white">
+        <div className={`${curriculumUi.panel} overflow-hidden`}>
+          <header className={`border-b border-slate-800/80 px-6 py-8 text-center sm:px-10`}>
+            <span className="inline-flex h-14 w-14 items-center justify-center rounded-xl border border-emerald-700/40 bg-emerald-950/80 text-emerald-300">
               <HandHeart className="h-7 w-7" />
             </span>
-            <h1 className="mt-4 text-2xl font-black text-white sm:text-3xl">{CHARITY_PAGE_TITLE}</h1>
-            <p className="mt-2 text-sm text-slate-400">{CHARITY_TAGLINE}</p>
+            <h1 className={`mt-4 ${curriculumUi.panelTitle} justify-center sm:text-2xl`}>{CHARITY_PAGE_TITLE}</h1>
+            <p className={`mt-2 ${curriculumUi.panelSubtitle}`}>{CHARITY_TAGLINE}</p>
           </header>
           <div className="space-y-5 p-6 sm:p-8">
             <p className="text-sm leading-relaxed text-slate-300">
@@ -97,11 +103,11 @@ export default function CharityView() {
                 onChange={(e) => setCodeInput(e.target.value.toUpperCase())}
                 placeholder={CHARITY_ACCESS_CODE_PLACEHOLDER}
                 autoComplete="off"
-                className="w-full rounded-xl border border-slate-600/70 bg-slate-900/80 px-4 py-3 font-mono text-sm text-white outline-none ring-teal-500/30 focus:border-teal-500/60 focus:ring-2"
+                className={`w-full rounded-xl border border-slate-600/70 bg-slate-900/80 px-4 py-3 font-mono text-sm text-white ${focusInput}`}
               />
             </label>
             {statusMsg && (
-              <p role="status" className="rounded-lg border border-teal-500/30 bg-teal-500/10 px-4 py-3 text-sm font-semibold text-teal-200">
+              <p role="status" className={curriculumUi.alertSuccess}>
                 {statusMsg}
               </p>
             )}
@@ -109,7 +115,7 @@ export default function CharityView() {
               type="button"
               disabled={isVerifying || !codeInput.trim()}
               onClick={() => void verifyCode(codeInput.trim())}
-              className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-teal-600 px-5 text-sm font-black text-white disabled:opacity-50"
+              className={primaryBtn}
             >
               <ShieldCheck className="h-5 w-5" />
               {isVerifying ? "Vérification…" : "Accéder à la page"}
@@ -122,17 +128,17 @@ export default function CharityView() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6 sm:py-8">
-      <header className="overflow-hidden rounded-2xl border border-slate-700/60 bg-[#07101f] px-6 py-8 sm:px-10">
+      <header className={`${curriculumUi.panel} px-6 py-8 sm:px-10`}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-teal-400/80">{CHARITY_PAGE_SHORT}</p>
-            <h1 className="mt-1 text-2xl font-black text-white sm:text-3xl">{CHARITY_PAGE_TITLE}</h1>
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-400/80">{CHARITY_PAGE_SHORT}</p>
+            <h1 className={`mt-1 ${curriculumUi.panelTitle} sm:text-2xl`}>{CHARITY_PAGE_TITLE}</h1>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-400">
               Participez aux actions de bienfaisance du centre : aide aux nécessiteux, soutien pendant le Ramadan
               (repas offerts aux nécessiteux), et moments de lecture du Coran.
             </p>
           </div>
-          <span className="inline-flex items-center gap-2 self-start rounded-lg bg-emerald-500/15 px-3 py-2 text-xs font-bold text-emerald-300 ring-1 ring-emerald-400/25">
+          <span className="inline-flex items-center gap-2 self-start rounded-lg bg-green-800/25 px-3 py-2 text-xs font-bold text-emerald-200 ring-1 ring-green-600/30">
             <Sparkles className="h-4 w-4" />
             Accès autorisé
           </span>
@@ -140,7 +146,7 @@ export default function CharityView() {
       </header>
 
       {statusMsg && (
-        <p role="status" className="rounded-lg border border-teal-500/30 bg-teal-500/10 px-4 py-3 text-sm font-semibold text-teal-200">
+        <p role="status" className={curriculumUi.alertSuccess}>
           {statusMsg}
         </p>
       )}
@@ -151,9 +157,9 @@ export default function CharityView() {
         </div>
       )}
 
-      <section className="rounded-2xl border border-slate-700/60 bg-[#0b1528] p-6 sm:p-8">
-        <h2 className="flex items-center gap-3 text-lg font-black text-white">
-          <Heart className="h-5 w-5 text-teal-400" />
+      <section className={`${curriculumUi.card} p-6 sm:p-8`}>
+        <h2 className={`${curriculumUi.panelTitle} gap-3`}>
+          <Heart className="h-5 w-5 text-emerald-400" />
           Campagnes de don
         </h2>
         {isLoading ? (
@@ -181,7 +187,7 @@ export default function CharityView() {
                       value={amounts[campaign.id] || ""}
                       onChange={(e) => setAmounts((prev) => ({ ...prev, [campaign.id]: e.target.value }))}
                       placeholder="Ex. 50"
-                      className="w-full rounded-lg border border-slate-600/70 bg-slate-900/80 px-3 py-2.5 text-sm text-white outline-none focus:border-teal-500/60"
+                      className={`w-full rounded-lg border border-slate-600/70 bg-slate-900/80 px-3 py-2.5 text-sm text-white ${focusInput}`}
                     />
                   </label>
 
@@ -203,9 +209,9 @@ export default function CharityView() {
         )}
       </section>
 
-      <section className="rounded-2xl border border-slate-700/60 bg-[#0b1528] p-6 sm:p-8">
-        <h2 className="flex items-center gap-3 text-lg font-black text-white">
-          <CalendarDays className="h-5 w-5 text-teal-400" />
+      <section className={`${curriculumUi.card} p-6 sm:p-8`}>
+        <h2 className={`${curriculumUi.panelTitle} gap-3`}>
+          <CalendarDays className="h-5 w-5 text-emerald-400" />
           Événements religieux
         </h2>
         {isLoading ? (
@@ -219,8 +225,8 @@ export default function CharityView() {
                 <h3 className="text-base font-black text-white">{event.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-400">{event.description}</p>
                 <div className="mt-4 flex flex-wrap gap-4 text-sm">
-                  <span className="inline-flex items-center gap-2 font-semibold text-teal-200">
-                    <CalendarDays className="h-4 w-4 text-teal-400" />
+                  <span className="inline-flex items-center gap-2 font-semibold text-emerald-200">
+                    <CalendarDays className="h-4 w-4 text-emerald-400" />
                     {formatEventDate(event)}
                   </span>
                   <span className="inline-flex items-center gap-2 font-semibold text-slate-300">
@@ -235,16 +241,16 @@ export default function CharityView() {
       </section>
 
       {donations.length > 0 && (
-        <section className="rounded-2xl border border-slate-700/60 bg-[#0b1528] p-6 sm:p-8">
-          <h2 className="flex items-center gap-3 text-lg font-black text-white">
-            <BookOpen className="h-5 w-5 text-teal-400" />
+        <section className={`${curriculumUi.card} p-6 sm:p-8`}>
+          <h2 className={`${curriculumUi.panelTitle} gap-3`}>
+            <BookOpen className="h-5 w-5 text-emerald-400" />
             Mes dons
           </h2>
           <ul className="mt-4 divide-y divide-slate-700/60">
             {donations.map((donation) => (
               <li key={donation.id} className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm">
                 <span className="font-semibold text-slate-200">{donation.campaignTitle || "Campagne"}</span>
-                <span className="tabular-nums text-teal-200">{donation.amount} MAD</span>
+                <span className="tabular-nums text-emerald-200">{donation.amount} MAD</span>
                 <span className="rounded-md bg-slate-800 px-2 py-1 text-xs font-bold text-slate-400">
                   {formatDonationStatus(donation.status)}
                 </span>

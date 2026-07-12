@@ -19,6 +19,11 @@ rulesTest("charity-paypal-donation", async () => {
   assert.match(charityRoutesSource, /paymentEnabled:\s*api\.isPayPalConfigured\(\)/);
   assert.match(charityViewSource, /CharityDonationCheckout/);
   assert.match(charityViewSource, /paymentEnabled/);
+  assert.match(charityViewSource, /curriculumUi/);
+  assert.doesNotMatch(charityViewSource, /#07101f/);
+  assert.doesNotMatch(charityViewSource, /#0b1528/);
+  assert.doesNotMatch(charityViewSource, /bg-teal-/);
+  assert.doesNotMatch(charityViewSource, /text-teal-/);
   assert.doesNotMatch(adminSource, /PayPalButtons|CharityDonationCheckout/);
   assert.match(adminSource, /curriculumUi/);
   assert.doesNotMatch(adminSource, /#07101f/);
@@ -27,6 +32,8 @@ rulesTest("charity-paypal-donation", async () => {
   assert.doesNotMatch(adminSource, /text-teal-/);
   assert.match(checkoutSource, /createCharityPayPalOrder/);
   assert.match(checkoutSource, /captureCharityPayPalOrder/);
+  assert.doesNotMatch(checkoutSource, /bg-teal-/);
+  assert.doesNotMatch(checkoutSource, /text-teal-/);
 
   const customId = buildPayPalDonationCustomId("user-1", "don-abc", 5.5, 55, "USD");
   assert.equal(isPayPalDonationCustomId(customId), true);

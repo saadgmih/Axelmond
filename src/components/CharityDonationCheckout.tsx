@@ -112,19 +112,19 @@ export function CharityDonationCheckout({
 
       {!paypalConfig && !configError && (
         <div className="flex items-center justify-center gap-2 rounded-xl border border-slate-700/60 bg-slate-950/40 py-5">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-teal-400/80 border-t-transparent" />
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-600/80 border-t-transparent" />
           <span className="text-xs font-medium text-slate-400">Initialisation PayPal…</span>
         </div>
       )}
 
       {paypalConfig && (
-        <div className="axelmond-paypal-shell rounded-xl border border-teal-500/20 bg-slate-950/50 p-3">
+        <div className="axelmond-paypal-shell rounded-xl border border-emerald-800/40 bg-slate-950/50 p-3">
           {paypalConfig.currency !== PLATFORM_CURRENCY_CODE && (
-            <div className="mb-3 flex items-start gap-2 rounded-lg border border-teal-500/20 bg-teal-500/10 px-3 py-2">
-              <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-teal-300" />
-              <p className="text-[11px] leading-relaxed text-teal-100/90">
+            <div className="mb-3 flex items-start gap-2 rounded-lg border border-emerald-800/40 bg-emerald-950/40 px-3 py-2">
+              <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-300" />
+              <p className="text-[11px] leading-relaxed text-emerald-100/90">
                 Don affiché en <span className="font-semibold text-white">{PLATFORM_CURRENCY_CODE}</span>. Encaissement
-                sécurisé en <span className="font-semibold text-teal-200">{paypalConfig.currency}</span>
+                sécurisé en <span className="font-semibold text-emerald-200">{paypalConfig.currency}</span>
                 {orderPreview ? ` (~${orderPreview})` : ""}.
               </p>
             </div>
@@ -172,7 +172,7 @@ export function CharityDonationCheckout({
           </PayPalScriptProvider>
 
           <p className="mt-3 flex items-center justify-center gap-1.5 text-[10px] font-medium text-slate-500">
-            <CreditCard className="h-3 w-3 text-teal-400/80" />
+            <CreditCard className="h-3 w-3 text-emerald-400/80" />
             Carte ou compte PayPal — traitement chiffré
           </p>
         </div>
