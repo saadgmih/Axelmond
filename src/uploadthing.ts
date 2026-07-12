@@ -9,6 +9,7 @@ import { isAllowedAvatarUrl, isAllowedRasterImageMime, isAllowedRasterImageUploa
 import { alertSuspectUpload } from "./security-logger";
 import { completeLiveReplayUpload } from "./server/live-replay-service";
 import {
+  detectMessageAttachmentKind,
   isConversationParticipant,
   normalizeMessageMimeType,
   validateMessageAttachmentInput,
@@ -93,20 +94,6 @@ function toAttachmentType(contentType: "VIDEO" | "PDF" | "IMAGE") {
 
 function getFileUrl(file: { ufsUrl?: string; url?: string; appUrl?: string }) {
   return file.ufsUrl || file.url || file.appUrl || "";
-}
-
-function detectMessageAttachmentKind(mimeType: string | null): MessageAttachmentInput["kind"] | null {
-  const mime = String(mimeType || "").toLowerCase();
-  if (isAllowedRasterImageMime(mime)) return "IMAGE";
-  if (mime.startsWith("video/")) return "VIDEO";
-  if (mime.startsWith("audio/")) return "AUDIO";
-  if (
-    mime === "application/pdf" ||
-    mime === "application/msword" ||
-    mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-  )
-    return "DOCUMENT";
-  return null;
 }
 
 async function getUploadUser(req: any) {
@@ -393,6 +380,7 @@ export const uploadRouter = {
       video: { maxFileSize: "64MB", maxFileCount: 1 },
       audio: { maxFileSize: "16MB", maxFileCount: 1 },
       pdf: { maxFileSize: "16MB", maxFileCount: 1 },
+      blob: { maxFileSize: "16MB", maxFileCount: 1 },
     },
     { awaitServerData: true },
   )
@@ -405,7 +393,7 @@ export const uploadRouter = {
     })
     .onUploadComplete(async ({ metadata, file }) => {
       const fileUrl = getFileUrl(file);
-      const kind = detectMessageAttachmentKind(file.type || null);
+      const kind = detectMessageAttachmentKind(file.type || null, file.name);
       if (
         isDangerousFile(file.name) ||
         !kind ||

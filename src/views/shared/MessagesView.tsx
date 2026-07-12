@@ -23,7 +23,7 @@ import {
   formatUploadProgressLabel,
   uploadProgressBarWidth,
 } from "../../uploadthing-client";
-import { uploadMessageAttachmentFile, type OutgoingMessageAttachment } from "../../message-attachment-upload";
+import { uploadMessageAttachmentFile, normalizeMessageUploadFile, type OutgoingMessageAttachment } from "../../message-attachment-upload";
 import { useMessageAudioRecorder } from "../../hooks/useMessageAudioRecorder";
 import { MessageAudioPlayer } from "../../components/messaging/MessageAudioPlayer";
 import { MessageVideoAttachment } from "../../components/messaging/MessageVideoAttachment";
@@ -494,7 +494,8 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
   const uploadAndSendAttachment = useCallback(
     async (file: File) => {
       if (!selectedId || uploading) return;
-      const validationError = validateUploadFile(file, "MESSAGE");
+      const normalizedFile = normalizeMessageUploadFile(file);
+      const validationError = validateUploadFile(normalizedFile, "MESSAGE");
       if (validationError) {
         setError(validationError);
         return;
@@ -503,7 +504,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
       setUploadProgress(0);
       setError("");
       try {
-        const attachment = await uploadMessageAttachmentFile(file, selectedId, (progress) =>
+        const attachment = await uploadMessageAttachmentFile(normalizedFile, selectedId, (progress) =>
           setUploadProgress(progress),
         );
         await sendMessage(attachment);

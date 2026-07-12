@@ -23,5 +23,6 @@ rulesTest("message-attachment-send", () => {
   assert.match(videoAttachmentSource, /showMetadata=\{false\}/);
   assert.match(videoAttachmentSource, /Vidéo/);
   assert.match(audioPlayerSource, /rounded-full/);
-  assert.match(audioSource, /MediaRecorder/);
+  assert.match(uploadSource, /normalizeMessageUploadFile/);
+  assert.match(audioSource, /recorder\.start\(250\)/);
 });

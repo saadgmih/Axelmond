@@ -355,7 +355,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
 
   const uploadRateLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: isSecurityRuntimeTest ? Number(process.env.UPLOAD_RATE_LIMIT_MAX) || 9999 : 5,
+    max: isSecurityRuntimeTest ? Number(process.env.UPLOAD_RATE_LIMIT_MAX) || 9999 : Number(process.env.UPLOAD_RATE_LIMIT_MAX) || 30,
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: "Trop d'envois de fichiers. Veuillez patienter 15 minutes.", code: "UPLOAD_RATE_LIMIT_EXCEEDED" },

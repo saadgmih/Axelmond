@@ -43,7 +43,7 @@ rulesTest("uploadthing-upload", () => {
   assert.match(uploadthingSource, /Lesson asset upload denied/);
 
   assert.match(uploadthingSource, /messageAttachment:\s*f\(/);
-  assert.doesNotMatch(uploadthingSource, /blob:\s*\{\s*maxFileSize/);
+  assert.match(uploadthingSource, /messageAttachment:[\s\S]*?blob:\s*\{\s*maxFileSize:\s*["']16MB["']/);
   assert.match(uploadthingSource, /image:\s*\{\s*maxFileSize:\s*["']2MB["'],\s*maxFileCount:\s*1\s*\}/);
   assert.match(uploadthingSource, /isAllowedRasterImageUpload\(file\.name, file\.type/);
   assert.match(uploadthingSource, /isAllowedAvatarUrl\(fileUrl\)/);

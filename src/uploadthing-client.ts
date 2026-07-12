@@ -31,14 +31,31 @@ export function getUploadedFileUrl(file: any): string {
 import { sanitizeClientErrorMessage } from "./client-errors";
 
 export function getUploadErrorMessage(err: unknown): string {
+  if (err && typeof err === "object") {
+    const record = err as Record<string, unknown>;
+    if (record.code === "UPLOAD_RATE_LIMIT_EXCEEDED") {
+      return "Trop d'envois de fichiers. Veuillez patienter 15 minutes.";
+    }
+    const serverData = record.serverData;
+    if (serverData && typeof serverData === "object") {
+      const serverError = (serverData as Record<string, unknown>).error;
+      if (typeof serverError === "string" && serverError.trim()) {
+        return sanitizeClientErrorMessage(serverError, "Upload impossible. Vérifiez le fichier et réessayez.");
+      }
+    }
+  }
+
   const rawMessage =
     err && typeof err === "object"
       ? String(
-          (err as { message?: string; cause?: { message?: string } }).message ||
+          (err as { message?: string; error?: string; cause?: { message?: string } }).message ||
+            (err as { error?: string }).error ||
             (err as { cause?: { message?: string } }).cause?.message ||
             "",
         )
-      : "";
+      : typeof err === "string"
+        ? err
+        : "";
   if (rawMessage.includes("Failed to report event")) {
     return "Le serveur d'upload ne répond pas. Vérifiez votre connexion et réessayez.";
   }
@@ -54,6 +71,9 @@ export function getUploadErrorMessage(err: unknown): string {
   }
   if (rawMessage.includes("FileSizeMismatch") || rawMessage.includes("too large") || rawMessage.includes("exceeds")) {
     return "Fichier trop volumineux pour cette catégorie.";
+  }
+  if (rawMessage.includes("Invalid file type") || rawMessage.includes("Type de fichier non autorisé")) {
+    return "Type de fichier non autorisé pour la messagerie.";
   }
   return sanitizeClientErrorMessage(rawMessage, "Upload impossible. Vérifiez le fichier et réessayez.");
 }
