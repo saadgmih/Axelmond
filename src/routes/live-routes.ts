@@ -133,29 +133,9 @@ export function registerLiveRoutes(app: Express, ctx: RouteContext): void {
 
     const roomName = api.buildLiveKitRoomName(access.course.id);
 
-    const messages = await api.prisma.liveMessage.findMany({
-      where: { roomName },
+    const messages = await api.listLiveChatMessagesForActiveSession(roomName, authUser.id);
 
-      include: { user: true },
-
-      orderBy: { createdAt: "asc" },
-
-      take: 50,
-    });
-
-    res.json(
-      messages.map((message) => ({
-        id: message.clientId || message.id,
-
-        sender: message.user?.fullName || "Participant",
-
-        text: message.text,
-
-        time: message.createdAt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
-
-        isMe: message.userId === authUser.id,
-      })),
-    );
+    res.json(messages);
   });
 
   app.post("/api/livekit/messages", requireAuth, validateBody(api.liveMessageSchema), async (req, res) => {

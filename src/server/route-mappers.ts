@@ -5,6 +5,7 @@ export {
   canPublishLiveMedia,
   ensureLiveSession,
   findLiveSessionByRoomName,
+  listLiveChatMessagesForActiveSession,
   upsertActiveLiveSessionRecord,
   deactivateLiveSessionByRoomName,
   type LiveSessionResolveResult,

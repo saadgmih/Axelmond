@@ -150,6 +150,32 @@ export async function findLiveSessionByRoomName(roomName: string) {
   });
 }
 
+/** Messages visibles uniquement pour la session live en cours (depuis startTime). */
+export async function listLiveChatMessagesForActiveSession(roomName: string, viewerUserId: string) {
+  const session = await findLiveSessionByRoomName(roomName);
+  if (!session?.isActive) {
+    return [];
+  }
+
+  const messages = await prisma.liveMessage.findMany({
+    where: {
+      roomName,
+      createdAt: { gte: session.startTime },
+    },
+    include: { user: true },
+    orderBy: { createdAt: "asc" },
+    take: 50,
+  });
+
+  return messages.map((message) => ({
+    id: message.clientId || message.id,
+    sender: message.user?.fullName || "Participant",
+    text: message.text,
+    time: message.createdAt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
+    isMe: message.userId === viewerUserId,
+  }));
+}
+
 export async function ensureLiveSession(course: Course, authUser: AppUser): Promise<LiveSessionResolveResult> {
   const roomName = buildLiveKitRoomName(course.id);
 
