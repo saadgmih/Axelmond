@@ -371,8 +371,8 @@ export default function SecuritySettingsPanel({
             </div>
           )}
 
-          <div className="grid gap-6 lg:grid-cols-2 lg:items-stretch">
-            <section className="flex h-full flex-col rounded-2xl border border-white/10 bg-[#0a0b14] p-5 md:p-6">
+          <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+            <section className="flex flex-col rounded-2xl border border-white/10 bg-[#0a0b14] p-5 md:p-6">
               <div className="mb-5 flex items-start gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-500/15 text-teal-400">
                   <Smartphone className="h-5 w-5" />
@@ -392,7 +392,7 @@ export default function SecuritySettingsPanel({
                 </div>
               )}
 
-              <div className="flex flex-1 flex-col">
+              <div className="space-y-3">
                 {!totpEnabled && !totpSetup && (
                   <button
                     type="button"
@@ -432,7 +432,7 @@ export default function SecuritySettingsPanel({
                 )}
 
                 {totpEnabled && (
-                  <form onSubmit={handleDisableTotp} className="flex flex-1 flex-col space-y-3">
+                  <form onSubmit={handleDisableTotp} className="space-y-3">
                     <DarkInput
                       icon={Lock}
                       type="password"
@@ -449,7 +449,7 @@ export default function SecuritySettingsPanel({
                     />
                     <button
                       type="submit"
-                      className="mt-auto inline-flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2.5 text-xs font-bold text-emerald-300 transition hover:bg-emerald-500/15"
+                      className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2.5 text-xs font-bold text-emerald-300 transition hover:bg-emerald-500/15"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                       Désactiver TOTP
@@ -459,7 +459,7 @@ export default function SecuritySettingsPanel({
               </div>
             </section>
 
-            <section className="flex h-full flex-col rounded-2xl border border-white/10 bg-[#0a0b14] p-5 md:p-6">
+            <section className="flex flex-col rounded-2xl border border-white/10 bg-[#0a0b14] p-5 md:p-6">
               <div className="mb-5 flex items-start gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-500/15 text-teal-400">
                   <KeyRound className="h-5 w-5" />
