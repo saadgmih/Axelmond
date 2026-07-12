@@ -30,6 +30,21 @@ export interface CharityDonation {
   campaignTitle?: string | null;
 }
 
+export function formatDonationStatus(status: string): string {
+  switch (status) {
+    case "PENDING":
+      return "En attente";
+    case "COMPLETED":
+      return "Payé";
+    case "CANCELLED":
+      return "Annulé";
+    case "REFUNDED":
+      return "Remboursé";
+    default:
+      return status;
+  }
+}
+
 export function useCharity() {
   const [accessStatus, setAccessStatus] = useState({
     pageEnabled: false,
@@ -39,11 +54,11 @@ export function useCharity() {
   const [campaigns, setCampaigns] = useState<CharityCampaign[]>([]);
   const [events, setEvents] = useState<CharityEvent[]>([]);
   const [donations, setDonations] = useState<CharityDonation[]>([]);
+  const [paymentEnabled, setPaymentEnabled] = useState(false);
   const [paymentNotice, setPaymentNotice] = useState("");
   const [statusMsg, setStatusMsg] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [isDonating, setIsDonating] = useState(false);
 
   const refreshAccessStatus = useCallback(async () => {
     try {
@@ -63,6 +78,7 @@ export function useCharity() {
       setCampaigns(data.campaigns || []);
       setEvents(data.events || []);
       setDonations(data.donations || []);
+      setPaymentEnabled(Boolean(data.paymentEnabled));
       setPaymentNotice(data.paymentNotice || "");
       setStatusMsg("");
     } catch (err) {
@@ -95,7 +111,7 @@ export function useCharity() {
       const status = await refreshAccessStatus();
       if (status?.hasAccess) {
         await refreshContent();
-        setStatusMsg("Accès accordé. Barakallahu fik.");
+        setStatusMsg("Accès accordé. Merci.");
       }
     } catch (err) {
       setStatusMsg(getClientErrorMessage(err, "Code invalide"));
@@ -104,18 +120,9 @@ export function useCharity() {
     }
   };
 
-  const pledgeDonation = async (campaignId: string, amount: number) => {
-    setIsDonating(true);
-    setStatusMsg("");
-    try {
-      const result = await api.pledgeCharityDonation({ campaignId, amount });
-      setStatusMsg(result.notice || "Intention de don enregistrée.");
-      await refreshContent();
-    } catch (err) {
-      setStatusMsg(getClientErrorMessage(err, "Enregistrement du don impossible"));
-    } finally {
-      setIsDonating(false);
-    }
+  const handleDonationPaid = async () => {
+    setStatusMsg("Don enregistré et payé avec succès. Merci pour votre générosité.");
+    await refreshContent();
   };
 
   return {
@@ -123,13 +130,14 @@ export function useCharity() {
     campaigns,
     events,
     donations,
+    paymentEnabled,
     paymentNotice,
     statusMsg,
     isLoading,
     isVerifying,
-    isDonating,
     verifyCode,
-    pledgeDonation,
-    refreshAccessStatus,
+    refreshContent,
+    handleDonationPaid,
+    formatDonationStatus,
   };
 }

@@ -209,6 +209,100 @@ export async function createPayPalOrder(params: {
   };
 }
 
+export function buildPayPalDonationCustomId(
+  userId: string,
+  donationId: string,
+  payPalAmount: number,
+  amountMad: number,
+  payPalCurrency: string,
+): string {
+  const customId = JSON.stringify({
+    t: "d",
+    u: userId,
+    d: donationId,
+    e: formatPayPalAmount(payPalAmount),
+    p: payPalCurrency,
+    m: formatPayPalAmount(amountMad),
+  });
+  if (customId.length > 127) {
+    throw new Error("PayPal custom_id trop long");
+  }
+  return customId;
+}
+
+export function parsePayPalDonationCustomId(
+  customId: string | undefined,
+): { userId: string; donationId: string; expectedAmount?: string; payPalCurrency?: string; amountMad?: string } | null {
+  if (!customId?.trim()) return null;
+  try {
+    const parsed = JSON.parse(customId);
+    if (parsed?.t !== "d") return null;
+    const userId = String(parsed?.u ?? "").trim();
+    const donationId = String(parsed?.d ?? "").trim();
+    if (!userId || !donationId) return null;
+    return {
+      userId,
+      donationId,
+      expectedAmount: parsed?.e != null ? String(parsed.e) : undefined,
+      payPalCurrency: parsed?.p != null ? String(parsed.p).trim().toUpperCase() : undefined,
+      amountMad: parsed?.m != null ? String(parsed.m) : undefined,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function isPayPalDonationCustomId(customId: string | undefined): boolean {
+  return parsePayPalDonationCustomId(customId) !== null;
+}
+
+export async function createPayPalDonationOrder(params: {
+  donationId: string;
+  campaignTitle: string;
+  amountMad: number;
+  userId: string;
+}): Promise<{ id: string; currency: string; amount: string; amountMad: string }> {
+  if (params.amountMad <= 0) {
+    throw new Error("PAYPAL_AMOUNT_INVALID");
+  }
+  const payPalCurrency = getPayPalCheckoutCurrency();
+  const payPalAmount = convertMadAmountForPayPal(params.amountMad);
+  const customId = buildPayPalDonationCustomId(
+    params.userId,
+    params.donationId,
+    payPalAmount,
+    params.amountMad,
+    payPalCurrency,
+  );
+  const payload = await paypalRequest<{ id?: string }>("POST", "/v2/checkout/orders", {
+    intent: "CAPTURE",
+    purchase_units: [
+      {
+        reference_id: `donation-${params.donationId}`,
+        custom_id: customId,
+        description: `Don — ${params.campaignTitle}`.slice(0, 127),
+        amount: {
+          currency_code: payPalCurrency,
+          value: formatPayPalAmount(payPalAmount),
+        },
+      },
+    ],
+    application_context: getPayPalApplicationContext(),
+  });
+
+  if (!payload.id) {
+    logPayPalError("PayPal create donation order missing id", { payload });
+    throw new Error("Identifiant de commande PayPal manquant");
+  }
+
+  return {
+    id: payload.id,
+    currency: payPalCurrency,
+    amount: formatPayPalAmount(payPalAmount),
+    amountMad: formatPayPalAmount(params.amountMad),
+  };
+}
+
 export async function capturePayPalOrder(orderId: string): Promise<any> {
   return paypalRequest("POST", `/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`, {});
 }

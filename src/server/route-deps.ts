@@ -294,7 +294,15 @@ export {
   getBcryptRounds,
 } from "../security-hardening";
 export { courseModuleRowFromJsonItem, getNextCourseModuleId, resolveCourseModules } from "../course-syllabus-modules";
-export { createPayPalOrder, capturePayPalOrder, isPayPalConfigured, logPayPalError } from "../paypal-server";
+export {
+  createPayPalOrder,
+  createPayPalDonationOrder,
+  capturePayPalOrder,
+  isPayPalConfigured,
+  isPayPalDonationCustomId,
+  logPayPalError,
+} from "../paypal-server";
+export { processPayPalCaptureDonation, toPayPalDonationCaptureClientResponse } from "../paypal-charity-donation";
 export { processPayPalCaptureEnrollment, toPayPalCaptureClientResponse } from "../paypal-enrollment";
 export { resolveCourseChargeAmount, isFreeCourseCharge } from "../promo-codes";
 export { processFreeCourseEnrollment } from "../course-free-enrollment";

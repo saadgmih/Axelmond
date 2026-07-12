@@ -1,5 +1,12 @@
 import type { Request } from "express";
-import { capturePayPalOrder, getPayPalOrder, getPayPalRuntimeEnv, logPayPalError } from "./paypal-server";
+import {
+  capturePayPalOrder,
+  getPayPalOrder,
+  getPayPalRuntimeEnv,
+  isPayPalDonationCustomId,
+  logPayPalError,
+} from "./paypal-server";
+import { processPayPalCaptureDonation } from "./paypal-charity-donation";
 import { processPayPalCaptureEnrollment, type PayPalCaptureEnrollmentResult } from "./paypal-enrollment";
 import { logSecurity } from "./security-logger";
 
@@ -104,6 +111,46 @@ export function isHandledPayPalWebhookEvent(eventType: string): boolean {
   return HANDLED_EVENTS.has(eventType);
 }
 
+async function processWebhookCaptureResult(
+  orderId: string,
+  captureResult: any,
+  deps: {
+    reqIp?: string;
+    persistCoursePaymentEnrollment: (input: {
+      userId: string;
+      courseId: number;
+      courseTitle: string;
+      coursePrice: number;
+      invoiceId: string;
+      provider: "PAYPAL" | "MOCK";
+      externalId: string;
+      auditAction: string;
+      reqIp?: string;
+    }) => Promise<{ duplicate: boolean; user: any; invoice: any }>;
+  },
+  auditAction: string,
+): Promise<PayPalCaptureEnrollmentResult | Awaited<ReturnType<typeof processPayPalCaptureDonation>>> {
+  const customId = captureResult?.purchase_units?.[0]?.custom_id;
+  if (isPayPalDonationCustomId(customId)) {
+    return processPayPalCaptureDonation({
+      orderId,
+      captureResult,
+      reqIp: deps.reqIp,
+      auditAction,
+    });
+  }
+
+  return processPayPalCaptureEnrollment(
+    {
+      orderId,
+      captureResult,
+      reqIp: deps.reqIp,
+      auditAction,
+    },
+    deps.persistCoursePaymentEnrollment,
+  );
+}
+
 export async function handlePayPalWebhookEvent(
   event: any,
   deps: {
@@ -139,35 +186,24 @@ export async function handlePayPalWebhookEvent(
 
     const existingOrder = await getOrder(orderId);
     if (existingOrder?.status === "COMPLETED") {
-      return processPayPalCaptureEnrollment(
-        {
-          orderId,
-          captureResult: existingOrder,
-          reqIp: deps.reqIp,
-          auditAction: "PAYMENT_PAYPAL_WEBHOOK_ORDER_COMPLETED",
-        },
-        deps.persistCoursePaymentEnrollment,
+      return processWebhookCaptureResult(
+        orderId,
+        existingOrder,
+        deps,
+        "PAYMENT_PAYPAL_WEBHOOK_ORDER_COMPLETED",
       );
     }
 
     const captureResult = await captureOrder(orderId);
-    const result = await processPayPalCaptureEnrollment(
-      {
-        orderId,
-        captureResult,
-        reqIp: deps.reqIp,
-        auditAction: "PAYMENT_PAYPAL_WEBHOOK_CAPTURE",
-      },
-      deps.persistCoursePaymentEnrollment,
-    );
+    const result = await processWebhookCaptureResult(orderId, captureResult, deps, "PAYMENT_PAYPAL_WEBHOOK_CAPTURE");
 
     if (result.ok) {
       logSecurity("INFO", "PayPal webhook captured approved order", {
         orderId,
         duplicate: result.duplicate,
-        userId: result.userId,
-        courseId: result.courseId,
-        invoiceId: result.invoiceId,
+        ...( "donationId" in result
+          ? { donationId: result.donationId, userId: result.userId }
+          : { userId: result.userId, courseId: result.courseId, invoiceId: result.invoiceId }),
       });
     }
 
@@ -191,14 +227,11 @@ export async function handlePayPalWebhookEvent(
   }
 
   const captureResult = await getOrder(orderId);
-  const result = await processPayPalCaptureEnrollment(
-    {
-      orderId,
-      captureResult,
-      reqIp: deps.reqIp,
-      auditAction: "PAYMENT_PAYPAL_WEBHOOK_RECONCILE",
-    },
-    deps.persistCoursePaymentEnrollment,
+  const result = await processWebhookCaptureResult(
+    orderId,
+    captureResult,
+    deps,
+    "PAYMENT_PAYPAL_WEBHOOK_RECONCILE",
   );
 
   if (result.ok) {
@@ -206,9 +239,9 @@ export async function handlePayPalWebhookEvent(
       orderId,
       captureId,
       duplicate: result.duplicate,
-      userId: result.userId,
-      courseId: result.courseId,
-      invoiceId: result.invoiceId,
+      ...( "donationId" in result
+        ? { donationId: result.donationId, userId: result.userId }
+        : { userId: result.userId, courseId: result.courseId, invoiceId: result.invoiceId }),
     });
   }
 

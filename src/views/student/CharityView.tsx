@@ -11,12 +11,12 @@ import {
   Sparkles,
 } from "lucide-react";
 import {
-  CHARITY_LOADING_LABEL,
   CHARITY_PAGE_SHORT,
   CHARITY_PAGE_TITLE,
   CHARITY_TAGLINE,
   CHARITY_ACCESS_CODE_PLACEHOLDER,
 } from "../../charity-labels";
+import { CharityDonationCheckout } from "../../components/CharityDonationCheckout";
 import { useCharity } from "../../hooks/useCharity";
 
 function formatEventDate(event: {
@@ -43,13 +43,14 @@ export default function CharityView() {
     campaigns,
     events,
     donations,
+    paymentEnabled,
     paymentNotice,
     statusMsg,
     isLoading,
     isVerifying,
-    isDonating,
     verifyCode,
-    pledgeDonation,
+    handleDonationPaid,
+    formatDonationStatus,
   } = useCharity();
   const [codeInput, setCodeInput] = useState("");
   const [amounts, setAmounts] = useState<Record<string, string>>({});
@@ -168,8 +169,8 @@ export default function CharityView() {
               >
                 <h3 className="text-base font-black text-white">{campaign.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-400">{campaign.description}</p>
-                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
-                  <label className="flex-1">
+                <div className="mt-4 flex flex-col gap-4">
+                  <label className="block">
                     <span className="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-500">
                       Montant libre (MAD)
                     </span>
@@ -183,14 +184,18 @@ export default function CharityView() {
                       className="w-full rounded-lg border border-slate-600/70 bg-slate-900/80 px-3 py-2.5 text-sm text-white outline-none focus:border-teal-500/60"
                     />
                   </label>
-                  <button
-                    type="button"
-                    disabled={isDonating || !Number(amounts[campaign.id]) || Number(amounts[campaign.id]) <= 0}
-                    onClick={() => void pledgeDonation(campaign.id, Number(amounts[campaign.id]))}
-                    className="inline-flex min-h-11 items-center justify-center rounded-lg bg-gradient-to-r from-teal-700 to-teal-600 px-5 text-sm font-black text-white disabled:opacity-50"
-                  >
-                    {isDonating ? "Enregistrement…" : "Engager un don"}
-                  </button>
+
+                  {paymentEnabled ? (
+                    <CharityDonationCheckout
+                      campaignId={campaign.id}
+                      amountMad={Number(amounts[campaign.id])}
+                      onSuccess={() => void handleDonationPaid()}
+                    />
+                  ) : (
+                    <p className="text-xs leading-relaxed text-slate-500">
+                      Le paiement en ligne n&apos;est pas encore disponible. Contactez l&apos;administration du centre.
+                    </p>
+                  )}
                 </div>
               </article>
             ))}
@@ -233,7 +238,7 @@ export default function CharityView() {
         <section className="rounded-2xl border border-slate-700/60 bg-[#0b1528] p-6 sm:p-8">
           <h2 className="flex items-center gap-3 text-lg font-black text-white">
             <BookOpen className="h-5 w-5 text-teal-400" />
-            Mes intentions de don
+            Mes dons
           </h2>
           <ul className="mt-4 divide-y divide-slate-700/60">
             {donations.map((donation) => (
@@ -241,7 +246,7 @@ export default function CharityView() {
                 <span className="font-semibold text-slate-200">{donation.campaignTitle || "Campagne"}</span>
                 <span className="tabular-nums text-teal-200">{donation.amount} MAD</span>
                 <span className="rounded-md bg-slate-800 px-2 py-1 text-xs font-bold text-slate-400">
-                  {donation.status}
+                  {formatDonationStatus(donation.status)}
                 </span>
               </li>
             ))}

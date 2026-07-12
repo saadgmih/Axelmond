@@ -615,6 +615,18 @@ export const api = {
   verifyCharityCode: (code: string) =>
     request<{ ok: boolean; hasAccess: boolean }>("POST", "/api/charity/verify-code", { code }),
   getCharityContent: () => request<any>("GET", "/api/charity/content"),
+  createCharityPayPalOrder: (data: { campaignId: string; amount: number }) =>
+    request<{ id: string; currency: string; amount: string; amountMad: string; donation: any }>(
+      "POST",
+      "/api/charity/donations/paypal/create-order",
+      data,
+    ),
+  captureCharityPayPalOrder: (data: { orderId: string; donationId: string }) =>
+    request<{ ok: boolean; message?: string; donation?: any; duplicate?: boolean }>(
+      "POST",
+      "/api/charity/donations/paypal/capture-order",
+      data,
+    ),
   pledgeCharityDonation: (data: { campaignId: string; amount: number }) =>
     request<any>("POST", "/api/charity/donations", data),
 
