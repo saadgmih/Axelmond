@@ -37,8 +37,8 @@ export default function CurriculumStepper(props: Props) {
   const moduleStep = getModuleStep(canManageAcademicTaxonomy);
   const stepGridClass = canManageAcademicTaxonomy ? "xl:grid-cols-7" : "xl:grid-cols-5";
   const heroDescription = canManageAcademicTaxonomy
-    ? "Parcourez les 7 étapes pour construire votre programme : domaines, sous-domaines, modules, chapitres, arborescence, médias et évaluations. Chaque étape a sa couleur pour repérer rapidement où vous travaillez."
-    : "Parcourez les 5 étapes pour construire votre module : catalogue, chapitres, arborescence, médias et évaluations. Chaque étape a sa couleur pour repérer rapidement où vous travaillez.";
+    ? "Parcourez les 7 étapes pour construire votre programme : domaines, sous-domaines, modules, chapitres, arborescence, médias et évaluations."
+    : "Parcourez les 5 étapes pour construire votre module : catalogue, chapitres, arborescence, médias et évaluations.";
 
   return (
     <>
