@@ -924,13 +924,10 @@ export function useLiveRoomControls({
     }
     whiteboardStrokeTimestampsRef.current = trackWhiteboardStrokeTimestamp(whiteboardStrokeTimestampsRef.current);
     setWhiteboardStrokes((prev) => appendWhiteboardStroke(prev, stroke));
-    await publishLiveSync(liveRoom, { type: "WHITEBOARD_STROKE", stroke });
   };
 
   const clearLiveWhiteboard = async () => {
-    if (!canModerateLive) return;
     setWhiteboardStrokes([]);
-    await publishLiveSync(liveRoom, { type: "WHITEBOARD_CLEAR" });
   };
 
   const shareLiveResource = async (title: string, url: string) => {

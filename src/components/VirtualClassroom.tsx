@@ -395,7 +395,6 @@ export default function VirtualClassroom({
                     ui.setWhiteboardExpanded(true);
                     ui.setIsSidebarOpen(false);
                   }}
-                  canModerate={ui.canModerate}
                   strokes={whiteboardStrokes}
                   localIdentity={localIdentity}
                   onStrokeComplete={onWhiteboardStroke}

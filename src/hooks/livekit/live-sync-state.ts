@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { Room } from "livekit-client";
 import type { LivePollState, LiveSharedResource, LiveSyncMessage, LiveWhiteboardStroke } from "../../live/live-sync";
-import { appendWhiteboardStroke, applyPollStart, mergePollVote } from "../../live/live-sync";
+import { applyPollStart, mergePollVote } from "../../live/live-sync";
 
 export function applyLiveSyncMessage(
   message: LiveSyncMessage,
@@ -15,13 +15,9 @@ export function applyLiveSyncMessage(
 ) {
   switch (message.type) {
     case "WHITEBOARD_STROKE":
-      setters.setWhiteboardStrokes((prev) => appendWhiteboardStroke(prev, message.stroke));
-      break;
     case "WHITEBOARD_CLEAR":
-      setters.setWhiteboardStrokes([]);
-      break;
     case "WHITEBOARD_SNAPSHOT":
-      setters.setWhiteboardStrokes(message.strokes);
+      // Tableau blanc personnel : les tracés ne sont plus partagés entre participants.
       break;
     case "POLL_START":
       setters.setLivePoll(applyPollStart(message.question, message.options));
@@ -64,12 +60,6 @@ export async function respondToLiveSyncRequest(
 ) {
   if (!canModerateLive || !requesterIdentity || requesterIdentity === room.localParticipant.identity) return;
 
-  if (refs.whiteboardStrokes.length > 0) {
-    await publishLiveSync(room, {
-      type: "WHITEBOARD_SNAPSHOT",
-      strokes: refs.whiteboardStrokes,
-    });
-  }
   if (refs.livePoll.active) {
     await publishLiveSync(room, { type: "POLL_SYNC", poll: refs.livePoll });
   }

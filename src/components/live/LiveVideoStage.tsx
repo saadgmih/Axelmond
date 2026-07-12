@@ -55,7 +55,6 @@ export default function LiveVideoStage({
             <LiveWhiteboardPanel
               expanded
               onToggleExpanded={onCollapseWhiteboard}
-              canModerate={canModerate}
               strokes={whiteboardStrokes}
               localIdentity={localIdentity}
               onStrokeComplete={onWhiteboardStroke}

@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Maximize2, Minimize2, PenTool, Shapes, ZoomIn, ZoomOut } from "lucide-react";
+import { Maximize2, Minimize2, PenTool, ZoomIn, ZoomOut } from "lucide-react";
 import type { LiveWhiteboardStroke } from "../../live/live-sync";
 import { createWhiteboardStrokeId, normalizeCanvasPoint, redrawWhiteboard } from "./live-whiteboard-canvas";
 
 interface LiveWhiteboardPanelProps {
   expanded: boolean;
   onToggleExpanded: () => void;
-  canModerate: boolean;
   strokes: LiveWhiteboardStroke[];
   localIdentity: string;
   onStrokeComplete: (stroke: LiveWhiteboardStroke) => void;
@@ -16,7 +15,6 @@ interface LiveWhiteboardPanelProps {
 export default function LiveWhiteboardPanel({
   expanded,
   onToggleExpanded,
-  canModerate,
   strokes,
   localIdentity,
   onStrokeComplete,
@@ -27,7 +25,6 @@ export default function LiveWhiteboardPanel({
   const isDrawingRef = useRef(false);
   const currentPointsRef = useRef<Array<{ x: number; y: number }>>([]);
   const [zoom, setZoom] = useState(1);
-  const [tool, setTool] = useState<"draw" | "shapes">("draw");
 
   useEffect(() => {
     const container = containerRef.current;
@@ -84,8 +81,8 @@ export default function LiveWhiteboardPanel({
     const { x, y } = getCoordinates(event, canvas);
     isDrawingRef.current = true;
     currentPointsRef.current = [{ x, y }];
-    context.strokeStyle = tool === "shapes" ? "#5EE6D2" : "#05C2A5";
-    context.lineWidth = (tool === "shapes" ? 2 : 3) * zoom;
+    context.strokeStyle = "#05C2A5";
+    context.lineWidth = 3 * zoom;
     context.lineCap = "round";
     context.beginPath();
     context.moveTo(x, y);
@@ -113,45 +110,20 @@ export default function LiveWhiteboardPanel({
     const normalizedPoints = points.map((point) => normalizeCanvasPoint(point.x, point.y, canvas.width, canvas.height));
     onStrokeComplete({
       id: createWhiteboardStrokeId(localIdentity),
-      tool,
-      color: tool === "shapes" ? "#5EE6D2" : "#05C2A5",
-      width: (tool === "shapes" ? 2 : 3) * zoom,
+      tool: "draw",
+      color: "#05C2A5",
+      width: 3 * zoom,
       points: normalizedPoints,
     });
-  };
-
-  const clearWhiteboard = () => {
-    if (!canModerate) return;
-    onClear();
   };
 
   return (
     <div className={`flex h-full flex-col ${expanded ? "min-h-[min(72dvh,780px)]" : "min-h-[320px]"}`}>
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setTool("draw")}
-          className={`rounded-xl border px-3 py-2 text-[11px] font-bold transition ${
-            tool === "draw"
-              ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-200"
-              : "border-white/10 bg-zinc-900 text-zinc-300"
-          }`}
-        >
-          <PenTool className="mr-1 inline h-4 w-4" />
+        <span className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-400/40 bg-emerald-500/10 px-3 py-2 text-[11px] font-bold text-emerald-200">
+          <PenTool className="h-4 w-4" />
           Dessin libre
-        </button>
-        <button
-          type="button"
-          onClick={() => setTool("shapes")}
-          className={`rounded-xl border px-3 py-2 text-[11px] font-bold transition ${
-            tool === "shapes"
-              ? "border-teal-400/40 bg-teal-500/10 text-teal-200"
-              : "border-white/10 bg-zinc-900 text-zinc-300"
-          }`}
-        >
-          <Shapes className="mr-1 inline h-4 w-4" />
-          Géométrie
-        </button>
+        </span>
         <div className="ml-auto flex items-center gap-2">
           <button
             type="button"
@@ -201,15 +173,13 @@ export default function LiveWhiteboardPanel({
         />
       </div>
 
-      {canModerate && (
-        <button
-          type="button"
-          onClick={clearWhiteboard}
-          className="mt-3 w-full rounded-xl border border-red-500/20 bg-red-500/10 py-2.5 text-xs font-bold text-red-300 transition hover:bg-red-500/20"
-        >
-          Nettoyer le tableau
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={() => onClear()}
+        className="mt-3 w-full rounded-xl border border-red-500/20 bg-red-500/10 py-2.5 text-xs font-bold text-red-300 transition hover:bg-red-500/20"
+      >
+        Nettoyer mon tableau
+      </button>
     </div>
   );
 }
