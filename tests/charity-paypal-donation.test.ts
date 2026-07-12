@@ -20,6 +20,11 @@ rulesTest("charity-paypal-donation", async () => {
   assert.match(charityViewSource, /CharityDonationCheckout/);
   assert.match(charityViewSource, /paymentEnabled/);
   assert.doesNotMatch(adminSource, /PayPalButtons|CharityDonationCheckout/);
+  assert.match(adminSource, /curriculumUi/);
+  assert.doesNotMatch(adminSource, /#07101f/);
+  assert.doesNotMatch(adminSource, /#0b1528/);
+  assert.doesNotMatch(adminSource, /bg-teal-/);
+  assert.doesNotMatch(adminSource, /text-teal-/);
   assert.match(checkoutSource, /createCharityPayPalOrder/);
   assert.match(checkoutSource, /captureCharityPayPalOrder/);
 

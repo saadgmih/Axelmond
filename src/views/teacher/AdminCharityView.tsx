@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { CHARITY_ACTIVATE_LABEL, CHARITY_PAGE_TITLE } from "../../charity-labels";
 import { useCharityAdmin, type CharityCampaignRow, type CharityEventRow } from "../../hooks/useCharityAdmin";
+import { curriculumUi } from "./curriculum-theme";
 
 interface AdminCharityViewProps {
   enabled: boolean;
@@ -70,16 +71,22 @@ export default function AdminCharityView({ enabled }: AdminCharityViewProps) {
     );
   }
 
+  const statTone = "bg-slate-800/90 text-emerald-300 border border-emerald-800/50";
+  const primaryBtn =
+    "inline-flex items-center gap-2 rounded-xl bg-green-700 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-green-900/25 transition-colors hover:bg-green-600 disabled:opacity-50";
+
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-700/60 bg-[#07101f] text-slate-100 shadow-[0_24px_80px_rgba(2,6,23,0.45)]">
-      <header className="flex flex-col gap-6 border-b border-slate-800/80 px-5 py-6 sm:px-7 lg:flex-row lg:items-center lg:justify-between lg:px-10 lg:py-8">
+    <div className={`${curriculumUi.panel} overflow-hidden`}>
+      <header className={`flex flex-col gap-6 ${curriculumUi.divider} px-5 py-6 sm:px-7 lg:flex-row lg:items-center lg:justify-between lg:px-10 lg:py-8`}>
         <div className="flex min-w-0 items-center gap-4">
-          <span className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-teal-800 text-white">
+          <span className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-emerald-700/40 bg-emerald-950/80 text-emerald-300">
             <HandHeart className="h-7 w-7" />
           </span>
           <div>
-            <h1 className="text-2xl font-black text-white sm:text-3xl">{CHARITY_PAGE_TITLE}</h1>
-            <p className="mt-1 text-sm text-slate-400">Gestion des dons, codes d&apos;accès et événements religieux</p>
+            <h1 className={curriculumUi.panelTitle}>{CHARITY_PAGE_TITLE}</h1>
+            <p className={`${curriculumUi.panelSubtitle} sm:text-sm`}>
+              Gestion des dons, codes d&apos;accès et événements religieux
+            </p>
           </div>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -96,7 +103,7 @@ export default function AdminCharityView({ enabled }: AdminCharityViewProps) {
       </header>
 
       <div className="space-y-6 p-4 sm:p-6 lg:p-9">
-        <section className="flex flex-col gap-5 rounded-xl border border-slate-700/60 bg-[#0b1528] px-5 py-5 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+        <section className={`flex flex-col gap-5 ${curriculumUi.card} px-5 py-5 lg:flex-row lg:items-center lg:justify-between lg:px-8`}>
           <div>
             <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">Page publique</p>
             <h2 className="mt-1 text-xl font-black text-white">{CHARITY_ACTIVATE_LABEL}</h2>
@@ -110,7 +117,7 @@ export default function AdminCharityView({ enabled }: AdminCharityViewProps) {
             disabled={charity.isSaving}
             onClick={() => void charity.togglePage(!charity.pageEnabled)}
             className={`relative h-11 w-[5.75rem] rounded-full border p-1 transition-colors ${
-              charity.pageEnabled ? "border-teal-400/50 bg-teal-600/80" : "border-slate-600/70 bg-slate-800"
+              charity.pageEnabled ? "border-green-600/50 bg-green-700/80" : "border-slate-600/70 bg-slate-800"
             }`}
           >
             <span
@@ -121,12 +128,12 @@ export default function AdminCharityView({ enabled }: AdminCharityViewProps) {
           </button>
         </section>
 
-        <section className="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-slate-700/60 bg-[#0b1528] sm:grid-cols-2 lg:grid-cols-4">
+        <section className={`grid grid-cols-1 gap-px overflow-hidden ${curriculumUi.card} sm:grid-cols-2 lg:grid-cols-4`}>
           {stats.map((stat) => {
             const Icon = stat.icon;
             return (
               <div key={stat.label} className="flex items-center gap-4 px-5 py-5">
-                <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-teal-500/10 text-teal-300">
+                <span className={`inline-flex h-11 w-11 items-center justify-center rounded-full ${statTone}`}>
                   <Icon className="h-5 w-5" />
                 </span>
                 <div>
@@ -139,13 +146,13 @@ export default function AdminCharityView({ enabled }: AdminCharityViewProps) {
         </section>
 
         {charity.statusMsg && (
-          <p role="status" className="rounded-lg border border-teal-500/30 bg-teal-500/10 px-4 py-3 text-sm font-semibold text-teal-200">
+          <p role="status" className={curriculumUi.alertSuccess}>
             {charity.statusMsg}
           </p>
         )}
 
         {charity.lastCreatedCode && (
-          <div className="flex flex-col gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 rounded-2xl border border-emerald-700/40 bg-emerald-950/40 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-wider text-emerald-300">Code à partager (une seule fois)</p>
               <p className="mt-1 font-mono text-lg font-black text-white">{charity.lastCreatedCode}</p>
@@ -153,7 +160,7 @@ export default function AdminCharityView({ enabled }: AdminCharityViewProps) {
             <button
               type="button"
               onClick={() => void handleCopyCode()}
-              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white"
+              className="inline-flex items-center gap-2 rounded-xl bg-green-700 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-green-900/25 hover:bg-green-600"
             >
               <Copy className="h-4 w-4" />
               {copiedCode ? "Copié" : "Copier"}
@@ -161,10 +168,10 @@ export default function AdminCharityView({ enabled }: AdminCharityViewProps) {
           </div>
         )}
 
-        <section className="rounded-xl border border-slate-700/60 bg-[#0b1528] p-5 sm:p-6">
+        <section className={`${curriculumUi.card} p-5 sm:p-6`}>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="flex items-center gap-2 text-lg font-black text-white">
-              <KeyRound className="h-5 w-5 text-teal-400" />
+            <h2 className={`${curriculumUi.panelTitle} gap-2`}>
+              <KeyRound className="h-5 w-5 text-emerald-400" />
               Codes d&apos;accès
             </h2>
             <div className="flex flex-wrap gap-2">
@@ -172,7 +179,7 @@ export default function AdminCharityView({ enabled }: AdminCharityViewProps) {
                 type="button"
                 disabled={charity.isSaving}
                 onClick={() => void charity.createAccessCode(false)}
-                className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
+                className={primaryBtn}
               >
                 <Plus className="h-4 w-4" />
                 Nouveau code
@@ -205,7 +212,7 @@ export default function AdminCharityView({ enabled }: AdminCharityViewProps) {
                     <td className="py-3 pr-4">
                       <span
                         className={`rounded-md px-2 py-1 text-xs font-bold ${
-                          code.isActive ? "bg-emerald-500/15 text-emerald-300" : "bg-slate-700 text-slate-400"
+                          code.isActive ? "bg-green-800/25 text-emerald-200" : "bg-slate-700 text-slate-400"
                         }`}
                       >
                         {code.isActive ? "Actif" : "Désactivé"}
@@ -252,16 +259,16 @@ export default function AdminCharityView({ enabled }: AdminCharityViewProps) {
           )}
         </section>
 
-        <section className="rounded-xl border border-slate-700/60 bg-[#0b1528] p-5 sm:p-6">
+        <section className={`${curriculumUi.card} p-5 sm:p-6`}>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="flex items-center gap-2 text-lg font-black text-white">
-              <Heart className="h-5 w-5 text-teal-400" />
+            <h2 className={`${curriculumUi.panelTitle} gap-2`}>
+              <Heart className="h-5 w-5 text-emerald-400" />
               Campagnes de don
             </h2>
             <button
               type="button"
               onClick={() => setCampaignDraft({ id: "", title: "", description: "", isActive: true, donationCount: 0 })}
-              className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2 text-sm font-bold text-white"
+              className={primaryBtn}
             >
               <Plus className="h-4 w-4" />
               Ajouter
@@ -295,7 +302,7 @@ export default function AdminCharityView({ enabled }: AdminCharityViewProps) {
                 required
               />
               <div className="flex gap-2">
-                <button type="submit" disabled={charity.isSaving} className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-bold text-white">
+                <button type="submit" disabled={charity.isSaving} className={primaryBtn}>
                   Enregistrer
                 </button>
                 <button type="button" onClick={() => setCampaignDraft(null)} className="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-300">
@@ -332,16 +339,16 @@ export default function AdminCharityView({ enabled }: AdminCharityViewProps) {
           </ul>
         </section>
 
-        <section className="rounded-xl border border-slate-700/60 bg-[#0b1528] p-5 sm:p-6">
+        <section className={`${curriculumUi.card} p-5 sm:p-6`}>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="flex items-center gap-2 text-lg font-black text-white">
-              <CalendarDays className="h-5 w-5 text-teal-400" />
+            <h2 className={`${curriculumUi.panelTitle} gap-2`}>
+              <CalendarDays className="h-5 w-5 text-emerald-400" />
               Événements religieux
             </h2>
             <button
               type="button"
               onClick={() => setEventDraft(emptyEvent())}
-              className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2 text-sm font-bold text-white"
+              className={primaryBtn}
             >
               <Plus className="h-4 w-4" />
               Ajouter
@@ -396,7 +403,7 @@ export default function AdminCharityView({ enabled }: AdminCharityViewProps) {
                 className="sm:col-span-2 rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white"
               />
               <div className="sm:col-span-2 flex gap-2">
-                <button type="submit" disabled={charity.isSaving} className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-bold text-white">
+                <button type="submit" disabled={charity.isSaving} className={primaryBtn}>
                   Enregistrer
                 </button>
                 <button type="button" onClick={() => setEventDraft(null)} className="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-300">
@@ -427,8 +434,8 @@ export default function AdminCharityView({ enabled }: AdminCharityViewProps) {
           </ul>
         </section>
 
-        <section className="rounded-xl border border-slate-700/60 bg-[#0b1528] p-5 sm:p-6">
-          <h2 className="text-lg font-black text-white">Historique des dons ({charity.stats.pendingDonations} en attente)</h2>
+        <section className={`${curriculumUi.card} p-5 sm:p-6`}>
+          <h2 className={curriculumUi.panelTitle}>Historique des dons ({charity.stats.pendingDonations} en attente)</h2>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full min-w-[640px] text-left text-sm">
               <thead className="text-[11px] font-black uppercase tracking-wider text-slate-500">
