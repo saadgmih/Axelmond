@@ -524,7 +524,7 @@ export default function StudentCourseView({
                           <div className="space-y-0.5">
                             <h4 className="font-extrabold text-sm text-slate-800">Avez-vous compris cette leçon ?</h4>
                             <p className="text-xs text-slate-500">
-                              Marquez ce module comme terminé pour augmenter vos crédits Performance Académique.
+                              Marquez ce module comme terminé pour augmenter vos PA (Performance Académique).
                             </p>
                           </div>
 

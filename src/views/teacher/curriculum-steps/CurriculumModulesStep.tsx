@@ -13,7 +13,7 @@ import {
   ChevronRight,
   Gift,
 } from "lucide-react";
-import { formatCredits, formatMad } from "../../../utils/morocco-locale";
+import { formatCredits, formatMad, creditsLabel } from "../../../utils/morocco-locale";
 import {
   COURSE_PRICE_STEP,
   FREE_COURSE_PRICE,
@@ -222,7 +222,7 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
             </label>
 
             <label className="block space-y-1.5">
-              <span className={curriculumUi.label}>Crédits</span>
+              <span className={curriculumUi.label}>{creditsLabel()}</span>
               <input
                 type="number"
                 min="0"
@@ -401,11 +401,11 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                       />
                     </label>
                     <label className="space-y-1 block">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase">Crédits</span>
+                      <span className="text-[9px] font-bold text-slate-400 uppercase">{creditsLabel()}</span>
                       <input
                         type="number"
                         min="0"
-                        placeholder="Crédits"
+                        placeholder={creditsLabel()}
                         value={editCourseForm.credits}
                         onChange={(e) =>
                           setEditCourseForm((prev) => ({

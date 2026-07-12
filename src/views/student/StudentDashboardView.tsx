@@ -346,11 +346,11 @@ export default function StudentDashboardView({
     },
 
     {
-      label: "Crédits visés",
+      label: "PA visés",
 
       value: String(progress.ectsTarget),
 
-      hint: "crédits cumulés inscrits",
+      hint: "PA cumulés inscrits",
 
       icon: GraduationCap,
 

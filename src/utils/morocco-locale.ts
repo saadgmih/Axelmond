@@ -15,10 +15,14 @@ export function formatMad(amount: number): string {
   return `${text} ${PLATFORM_CURRENCY_LABEL}`;
 }
 
+/** Unité de progression Performance Académique (affichée « PA »). */
+export const PLATFORM_CREDITS_ABBREV = "PA";
+export const PLATFORM_CREDITS_NAME = "Performance Académique";
+
 export function formatCredits(credits: number): string {
-  return `${credits} crédit${credits !== 1 ? "s" : ""}`;
+  return `${credits} ${PLATFORM_CREDITS_ABBREV}`;
 }
 
 export function creditsLabel(): string {
-  return "Crédits";
+  return PLATFORM_CREDITS_ABBREV;
 }

@@ -3,7 +3,7 @@ import { Award, BookOpen, CheckCircle2, CreditCard, GraduationCap, ShieldCheck, 
 import ProfileAvatarUpload from "../../components/ProfileAvatarUpload";
 import type { AppUser } from "../../components/AuthScreen";
 import type { Course, Invoice } from "../../types";
-import { formatCredits, formatMad } from "../../utils/morocco-locale";
+import { formatCredits, formatMad, creditsLabel } from "../../utils/morocco-locale";
 import { formatInvoiceReference } from "../../utils/user-facing-labels";
 
 interface StudentProfileViewProps {
@@ -123,7 +123,7 @@ export default function StudentProfileView({
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {[
           {
-            label: "Crédits",
+            label: creditsLabel(),
             value: stats.totalCredits,
             suffix: "/ 30",
             icon: Sparkles,

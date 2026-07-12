@@ -8,6 +8,7 @@ import { useVoiceSearch } from "../hooks/useVoiceSearch";
 import { useSidebarLayout } from "../hooks/useSidebarLayout";
 import AccessibilityControls from "./AccessibilityControls";
 import { LayoutFloatingToggle } from "./LayoutFloatingToggle";
+import { formatCredits } from "../utils/morocco-locale";
 
 interface TopbarProps {
   currentView: string;
@@ -304,7 +305,7 @@ export default function Topbar({
           {role === "student" && (
             <div className="flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1.5">
               <Sparkles className="h-4 w-4 text-emerald-300" />
-              <span className="font-mono text-xs font-extrabold text-emerald-200">{activeCredits} cr.</span>
+              <span className="font-mono text-xs font-extrabold text-emerald-200">{formatCredits(activeCredits)}</span>
             </div>
           )}
 

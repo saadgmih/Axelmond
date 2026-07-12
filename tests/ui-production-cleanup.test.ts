@@ -27,7 +27,7 @@ rulesTest("ui-production-cleanup", () => {
   assert.match(appSource, /avatarImage/);
   assert.match(schema, /avatarUrl\s+String\?/);
   assert.match(curriculumSource, /Titre du module/);
-  assert.match(curriculumSource, /Crédits/);
+  assert.match(curriculumSource, /creditsLabel/);
   assert.match(curriculumSource, /formatMad|formatCredits|morocco-locale/);
   assert.match(appSource, /managedCourses/);
   assert.match(cssSource, /Neutral hover suppression/);
