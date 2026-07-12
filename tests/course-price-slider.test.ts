@@ -62,7 +62,8 @@ rulesTest("course-price-slider", () => {
   assert.match(sliderSource, /Enregistrement en cours/);
   assert.match(sliderSource, /onPointerUp=\{finishDragging\}/);
   assert.match(teacherDashboardHookSource, /savingCoursePriceIds/);
-  assert.match(teacherDashboardHookSource, /coursesRef/);
+  assert.match(teacherDashboardHookSource, /pendingCoursePriceSavesRef/);
+  assert.match(teacherDashboardHookSource, /paidPriceUnchanged/);
   assert.match(teacherDashboardHookSource, /coursePriceErrors/);
   assert.doesNotMatch(teacherDashboardSource, /draftPrices/);
   assert.match(sliderSource, /!isFree/);

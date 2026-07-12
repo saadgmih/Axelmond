@@ -198,91 +198,117 @@ export function useTeacherDashboard({
   const [coursePriceErrors, setCoursePriceErrors] = useState<Record<number, string>>({});
   const [savingCoursePriceIds, setSavingCoursePriceIds] = useState<Record<number, boolean>>({});
   const coursePriceUpdateSeqRef = useRef<Record<number, number>>({});
+  const pendingCoursePriceSavesRef = useRef<Record<number, number>>({});
   const coursesRef = useRef(courses);
   coursesRef.current = courses;
 
-  const handleUpdateCoursePrice = useCallback(async (id: number, newPrice: number) => {
-    const current = coursesRef.current.find((course) => course.id === id);
-    if (!current) return;
-
-    const normalized = normalizeCoursePrice(newPrice);
-    const seq = (coursePriceUpdateSeqRef.current[id] ?? 0) + 1;
-    coursePriceUpdateSeqRef.current[id] = seq;
-
-    const patch: {
-      price: number;
-      freeAccessStartsAt?: string;
-      freeAccessEndsAt?: string;
-      freeAccessDurationDays?: number;
-    } = { price: normalized };
-
-    if (isFreeCoursePrice(normalized)) {
-      const window = resolveFreeAccessWindowForCoursePrice(current, normalized);
-      if (window) {
-        const savedWindow = resolveFreeAccessWindowForSave(window.startsAt, window.endsAt);
-        if (savedWindow) {
-          patch.freeAccessStartsAt = savedWindow.freeAccessStartsAt.toISOString();
-          patch.freeAccessEndsAt = savedWindow.freeAccessEndsAt.toISOString();
-          patch.freeAccessDurationDays = savedWindow.freeAccessDurationDays;
-        }
-      }
-    }
-
-    const previous = current;
-    setSavingCoursePriceIds((prev) => ({ ...prev, [id]: true }));
-    setCoursePriceErrors((prev) => {
+  const clearCoursePriceSaving = useCallback((id: number) => {
+    pendingCoursePriceSavesRef.current[id] = Math.max(0, (pendingCoursePriceSavesRef.current[id] ?? 1) - 1);
+    if (pendingCoursePriceSavesRef.current[id] > 0) return;
+    setSavingCoursePriceIds((prev) => {
       if (!prev[id]) return prev;
       const next = { ...prev };
       delete next[id];
       return next;
     });
-    setCourses((prev) =>
-      prev.map((course) =>
-        course.id === id
-          ? {
-              ...course,
-              price: normalized,
-              ...(isFreeCoursePrice(normalized) && patch.freeAccessStartsAt
-                ? {
-                    freeAccessStartsAt: patch.freeAccessStartsAt,
-                    freeAccessEndsAt: patch.freeAccessEndsAt ?? null,
-                    freeAccessDurationDays: patch.freeAccessDurationDays ?? null,
-                  }
-                : isFreeCoursePrice(normalized)
-                  ? {}
-                  : {
-                      freeAccessStartsAt: null,
-                      freeAccessEndsAt: null,
-                      freeAccessDurationDays: null,
-                    }),
-            }
-          : course,
-      ),
-    );
+  }, []);
 
-    try {
-      const updatedCourse = await api.updateCourse(id, patch);
-      if (coursePriceUpdateSeqRef.current[id] !== seq) return;
-      setCourses((prev) => prev.map((course) => (course.id === id ? updatedCourse : course)));
-    } catch (err) {
-      if (coursePriceUpdateSeqRef.current[id] !== seq) return;
-      setCourses((prev) => prev.map((course) => (course.id === id ? previous : course)));
-      setCoursePriceErrors((prev) => ({
-        ...prev,
-        [id]: getClientErrorMessage(err, "Impossible de mettre à jour le tarif."),
-      }));
-      console.error("Failed to update course price:", err);
-    } finally {
-      if (coursePriceUpdateSeqRef.current[id] === seq) {
-        setSavingCoursePriceIds((prev) => {
-          if (!prev[id]) return prev;
-          const next = { ...prev };
-          delete next[id];
-          return next;
-        });
+  const handleUpdateCoursePrice = useCallback(
+    async (id: number, newPrice: number) => {
+      const current = coursesRef.current.find((course) => course.id === id);
+      if (!current) return;
+
+      const normalized = normalizeCoursePrice(newPrice);
+      const savedPrice = normalizeCoursePrice(current.price);
+      const switchingToPaid = !isFreeCoursePrice(normalized);
+      const switchingToFree = isFreeCoursePrice(normalized);
+      const paidPriceUnchanged = switchingToPaid && normalized === savedPrice && !isFreeCoursePrice(savedPrice);
+      const freePriceUnchanged = switchingToFree && isFreeCoursePrice(savedPrice);
+      if (paidPriceUnchanged || freePriceUnchanged) return;
+
+      const seq = (coursePriceUpdateSeqRef.current[id] ?? 0) + 1;
+      coursePriceUpdateSeqRef.current[id] = seq;
+      pendingCoursePriceSavesRef.current[id] = (pendingCoursePriceSavesRef.current[id] ?? 0) + 1;
+
+      const patch: {
+        price: number;
+        freeAccessStartsAt?: string;
+        freeAccessEndsAt?: string;
+        freeAccessDurationDays?: number;
+      } = { price: normalized };
+
+      if (switchingToFree) {
+        const window = resolveFreeAccessWindowForCoursePrice(current, normalized);
+        if (window) {
+          const savedWindow = resolveFreeAccessWindowForSave(window.startsAt, window.endsAt);
+          if (savedWindow) {
+            patch.freeAccessStartsAt = savedWindow.freeAccessStartsAt.toISOString();
+            patch.freeAccessEndsAt = savedWindow.freeAccessEndsAt.toISOString();
+            patch.freeAccessDurationDays = savedWindow.freeAccessDurationDays;
+          }
+        }
       }
-    }
-  }, [setCourses]);
+
+      const previous = current;
+      setSavingCoursePriceIds((prev) => ({ ...prev, [id]: true }));
+      setCoursePriceErrors((prev) => {
+        if (!prev[id]) return prev;
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+      setCourses((prev) =>
+        prev.map((course) =>
+          course.id === id
+            ? {
+                ...course,
+                price: normalized,
+                ...(switchingToFree && patch.freeAccessStartsAt
+                  ? {
+                      freeAccessStartsAt: patch.freeAccessStartsAt,
+                      freeAccessEndsAt: patch.freeAccessEndsAt ?? null,
+                      freeAccessDurationDays: patch.freeAccessDurationDays ?? null,
+                    }
+                  : switchingToFree
+                    ? {}
+                    : {
+                        freeAccessStartsAt: null,
+                        freeAccessEndsAt: null,
+                        freeAccessDurationDays: null,
+                      }),
+              }
+            : course,
+        ),
+      );
+
+      const saveTimeout = window.setTimeout(() => {
+        if (coursePriceUpdateSeqRef.current[id] !== seq) return;
+        clearCoursePriceSaving(id);
+        setCoursePriceErrors((prev) => ({
+          ...prev,
+          [id]: "L'enregistrement a pris trop de temps. Réessayez.",
+        }));
+      }, 25_000);
+
+      try {
+        const updatedCourse = await api.updateCourse(id, patch);
+        if (coursePriceUpdateSeqRef.current[id] !== seq) return;
+        setCourses((prev) => prev.map((course) => (course.id === id ? updatedCourse : course)));
+      } catch (err) {
+        if (coursePriceUpdateSeqRef.current[id] !== seq) return;
+        setCourses((prev) => prev.map((course) => (course.id === id ? previous : course)));
+        setCoursePriceErrors((prev) => ({
+          ...prev,
+          [id]: getClientErrorMessage(err, "Impossible de mettre à jour le tarif."),
+        }));
+        console.error("Failed to update course price:", err);
+      } finally {
+        window.clearTimeout(saveTimeout);
+        clearCoursePriceSaving(id);
+      }
+    },
+    [clearCoursePriceSaving, setCourses],
+  );
 
   const handleToggleCourseLive = async (id: number): Promise<Course | null> => {
     let course = findLiveCourse(courses, id);

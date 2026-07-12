@@ -107,13 +107,14 @@ export default function CoursePriceSlider({
   const commitDraft = useCallback(() => {
     const next = clampPrice(draftRef.current);
     if (isFreeCoursePrice(next)) return;
+    if (next === normalizedPrice && !isFreeCoursePrice(normalizedPrice)) return;
     setPriceMode("paid");
     rememberPaidPrice(next);
     setDraft(next);
     draftRef.current = next;
     onDraftChangeRef.current?.(next);
     persistPrice(next);
-  }, [persistPrice, rememberPaidPrice]);
+  }, [normalizedPrice, persistPrice, rememberPaidPrice]);
 
   const updateDraft = useCallback(
     (value: number) => {
@@ -167,7 +168,11 @@ export default function CoursePriceSlider({
     if (!draggingRef.current) return;
     draggingRef.current = false;
     setIsDragging(false);
+    skipBlurCommitRef.current = true;
     commitDraft();
+    window.setTimeout(() => {
+      skipBlurCommitRef.current = false;
+    }, 0);
   }, [commitDraft]);
 
   useEffect(() => {
@@ -267,7 +272,7 @@ export default function CoursePriceSlider({
       )}
       {!isFree && (
         <p className="text-[10px] font-semibold leading-relaxed text-slate-500">
-          Relâchez le curseur pour enregistrer. Minimum {formatMad(MIN_PAID_COURSE_PRICE)}.
+          Déplacez le curseur puis relâchez pour enregistrer. Minimum {formatMad(MIN_PAID_COURSE_PRICE)}.
         </p>
       )}
       {isSaving && (
