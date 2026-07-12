@@ -3,6 +3,7 @@ import { memo, useRef } from "react";
 import type { ReactNode } from "react";
 import type { Course, Discipline, FacultyDomain } from "../../types";
 import { formatCredits, formatMad } from "../../utils/morocco-locale";
+import { getSyllabusChapterProgress } from "../../utils/course-chapter-metrics";
 import { prefetchCatalogDiscipline, prefetchCourseContent } from "../../utils/prefetch";
 import { useTvNavigation } from "../../hooks/useTvNavigation";
 
@@ -23,6 +24,8 @@ const CatalogCourseCard = memo(function CatalogCourseCard({
   navigateTo: NavigateTo;
   setCourseToPurchase: (course: Course) => void;
 }) {
+  const { totalChapters } = getSyllabusChapterProgress(course.modules);
+
   return (
     <div
       className={`bg-white rounded-2xl border ${
@@ -62,7 +65,7 @@ const CatalogCourseCard = memo(function CatalogCourseCard({
           </div>
           <div className="flex items-center gap-1.5">
             <BookOpen className="w-3.5 h-3.5 text-slate-400" />
-            <span>{course.modules.length} chapitres</span>
+            <span>{totalChapters} chapitre{totalChapters !== 1 ? "s" : ""}</span>
           </div>
         </div>
       </div>

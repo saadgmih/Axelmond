@@ -24,6 +24,7 @@ import type { AppUser } from "../../components/AuthScreen";
 import type { Course, CourseModule } from "../../types";
 import { DEFAULT_STUDENT_LABEL } from "../../types";
 import { formatCredits } from "../../utils/morocco-locale";
+import { getSyllabusChapterProgress } from "../../utils/course-chapter-metrics";
 import { prefetchCourseContent } from "../../utils/prefetch";
 import { useTvNavigation } from "../../hooks/useTvNavigation";
 
@@ -137,8 +138,7 @@ const DashboardCourseCard = memo(function DashboardCourseCard({
   getCourseIcon: CourseIconRenderer;
   navigateTo: NavigateTo;
 }) {
-  const completedChapters = course.modules.filter((m) => m.completed).length;
-  const totalChapters = course.modules.length;
+  const { completedChapters, totalChapters, progressPercent } = getSyllabusChapterProgress(course.modules);
 
   return (
     <div
@@ -167,14 +167,14 @@ const DashboardCourseCard = memo(function DashboardCourseCard({
             <span className="text-slate-400 font-semibold">
               {completedChapters} / {totalChapters} chapitres
             </span>
-            <span className="text-emerald-300 font-bold font-mono">{course.progress}%</span>
+            <span className="font-extrabold text-emerald-300 font-mono">{progressPercent}%</span>
           </div>
           <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-300 ${
-                course.progress === 100 ? "bg-emerald-500" : "bg-emerald-500"
+                progressPercent === 100 ? "bg-emerald-500" : "bg-emerald-500"
               }`}
-              style={{ width: `${course.progress}%` }}
+              style={{ width: `${progressPercent}%` }}
             />
           </div>
         </div>
@@ -219,12 +219,14 @@ export default function StudentDashboardView({
 
   const progress = useMemo(() => {
     const completedChapters = enrolledList.reduce(
-      (sum, course) => sum + course.modules.filter((module) => module.completed).length,
-
+      (sum, course) => sum + getSyllabusChapterProgress(course.modules).completedChapters,
       0,
     );
 
-    const totalChapters = enrolledList.reduce((sum, course) => sum + course.modules.length, 0);
+    const totalChapters = enrolledList.reduce(
+      (sum, course) => sum + getSyllabusChapterProgress(course.modules).totalChapters,
+      0,
+    );
 
     const globalProgress =
       enrolledList.length > 0
@@ -526,9 +528,9 @@ export default function StudentDashboardView({
             ) : (
               <div className="space-y-2">
                 {progress.activeModules.map((course) => {
-                  const completed = course.modules.filter((module) => module.completed).length;
-
-                  const total = course.modules.length;
+                  const { completedChapters: completed, totalChapters: total } = getSyllabusChapterProgress(
+                    course.modules,
+                  );
 
                   const nextModule = course.modules.find((module) => !module.completed);
 

@@ -24,6 +24,7 @@ import { sanitizeCourseAttachmentUrl } from "../../external-url-security";
 import { getEnrollmentEffectiveEndDate, getEnrollmentRemainingMs, isEnrollmentActive } from "../../enrollment-access";
 import type { ContentSection, Course, CourseModule, LessonContent } from "../../types";
 import { formatCredits } from "../../utils/morocco-locale";
+import { getSyllabusChapterProgress } from "../../utils/course-chapter-metrics";
 
 type NavigateTo = (view: string, targetCourse?: Course | null) => void;
 type QuizQuestion = {
@@ -79,6 +80,11 @@ export default function StudentCourseView({
   const [isModuleDrawerOpen, setIsModuleDrawerOpen] = useState(false);
 
   const enrollment = selectedCourse.enrollment;
+
+  const chapterProgress = useMemo(
+    () => getSyllabusChapterProgress(selectedCourse.modules),
+    [selectedCourse.modules],
+  );
 
   const [timeRemaining, setTimeRemaining] = useState<number | null>(() => {
     if (!enrollment) return null;
@@ -179,10 +185,13 @@ export default function StudentCourseView({
         <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 space-y-1 mt-2">
           <div className="flex justify-between items-center text-xs">
             <span className="text-slate-500 font-bold">Progression totale :</span>
-            <span className="font-extrabold text-emerald-600">{selectedCourse.progress}%</span>
+            <span className="font-extrabold text-emerald-600">{chapterProgress.progressPercent}%</span>
           </div>
           <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
-            <div className="h-full bg-emerald-600" style={{ width: `${selectedCourse.progress}%` }}></div>
+            <div
+              className="h-full bg-emerald-600"
+              style={{ width: `${chapterProgress.progressPercent}%` }}
+            ></div>
           </div>
         </div>
       </div>

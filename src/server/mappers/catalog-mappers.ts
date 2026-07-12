@@ -1,4 +1,5 @@
 import { coerceCoursePrice } from "../../utils/course-pricing";
+import { getSyllabusChapterProgress } from "../../utils/course-chapter-metrics";
 import { Course, CourseEnrollmentInfo } from "../../types";
 import { prisma } from "../../db";
 import { decodeStoredText } from "../../text";
@@ -107,12 +108,11 @@ export function applyModuleProgressForStudent(course: Course, progress: StudentP
       ),
     };
   });
-  const totalCount = modules.length;
-  const completedCount = modules.filter((module) => module.completed).length;
+  const { progressPercent } = getSyllabusChapterProgress(modules);
   return {
     ...course,
     modules,
-    progress: totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0,
+    progress: progressPercent,
   };
 }
 
