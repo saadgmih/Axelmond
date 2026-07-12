@@ -44,7 +44,17 @@ export default defineConfig(({ mode }) => {
       host: "127.0.0.1",
       strictPort: true,
       hmr: process.env.DISABLE_HMR !== "true",
-      watch: process.env.DISABLE_HMR === "true" ? null : {},
+      watch: process.env.DISABLE_HMR === "true" ? null : {
+        ignored: [
+          "**/.git/**",
+          "**/.data/**",
+          "**/.actions-runner/**",
+          "**/dist/**",
+          "**/test-results/**",
+          "**/docs/**",
+          "**/tmp*.json"
+        ]
+      },
     },
   };
 });

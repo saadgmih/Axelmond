@@ -362,41 +362,22 @@ export async function assertLiveAccess(authUser: AppUser, courseId: number) {
 }
 
 export async function findQuizWithQuestions(courseId: number, moduleId: number) {
-  return prisma.quiz.findFirst({
-    where: { courseId, moduleId },
-    include: { questions: { orderBy: { order: "asc" } } },
-    orderBy: { createdAt: "asc" },
-  });
+  return prisma.quiz.findFirst({ where: { courseId, moduleId }, include: { questions: { orderBy: { order: "asc" } } }, orderBy: { createdAt: "asc" } });
 }
 
-export function canReadCourseGrades(
-  authUser: AppUser,
-  course: { id: number; createdById?: string | null; instructor?: string | null },
-) {
+export function canReadCourseGrades(authUser: AppUser, course: { id: number; createdById?: string | null; instructor?: string | null }) {
   if (authUser.role === "ADMIN") return true;
   if (authUser.role === "STUDENT") return authUser.enrolledCourses.includes(course.id);
-  // PROFESSOR/RESEARCHER : uniquement le propriétaire du module
   return course.createdById === authUser.id || (course.instructor && course.instructor === authUser.fullName);
 }
 
 export async function persistUserAvatarUrl(authUser: AppUser, avatarUrl: string) {
-  await prisma.user.update({
-    where: { id: authUser.id },
-    data: { avatarUrl },
-  });
-
+  await prisma.user.update({ where: { id: authUser.id }, data: { avatarUrl } });
   if (canAccessAcademicProfile(authUser.role)) {
     await prisma.academicProfile.upsert({
       where: { userId: authUser.id },
       update: { avatarUrl },
-      create: {
-        userId: authUser.id,
-        title: authUser.levelOrTitle,
-        avatarUrl,
-        teachingDomains: [],
-        researchDomains: [],
-        links: {},
-      },
+      create: { userId: authUser.id, title: authUser.levelOrTitle, avatarUrl, teachingDomains: [], researchDomains: [], links: {} },
     });
   }
 }

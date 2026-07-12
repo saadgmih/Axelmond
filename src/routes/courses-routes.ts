@@ -912,15 +912,11 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
   app.post("/api/courses/:courseId/free-enroll", requireAuth, requireRbac, async (req, res) => {
     const authUser = getAuthUser(req);
     const courseId = api.parsePositiveInt(req.params.courseId);
-    if (!courseId) {
-      res.status(400).json({ error: "Identifiant de module invalide" });
-      return;
-    }
+    if (!courseId) return void res.status(400).json({ error: "Identifiant de module invalide" });
 
     const promoCode = String(req.body?.promoCode || "").trim();
     const includeAiAssistant = Boolean(req.body?.includeAiAssistant);
-    const persistCoursePaymentEnrollment = (params: Parameters<typeof api.persistCoursePaymentWithAudit>[0]) =>
-      api.persistCoursePaymentWithAudit(params);
+    const persistCoursePaymentEnrollment = api.persistCoursePaymentWithAudit;
 
     try {
       const result = await api.processFreeCourseEnrollment({
@@ -939,18 +935,10 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
       }
 
       if (result.duplicate) {
-        api.logSecurity("INFO", "Free enrollment duplicate ignored", {
-          userId: authUser.id,
-          courseId,
-        });
+        api.logSecurity("INFO", "Free enrollment duplicate ignored", { userId: authUser.id, courseId });
       }
 
-      res.json({
-        ok: true,
-        message: result.message,
-        invoice: result.invoice,
-        user: result.user,
-      });
+      res.json({ ok: true, message: result.message, invoice: result.invoice, user: result.user });
     } catch (err) {
       api.logDb("ERROR", "Free enrollment failed", { userId: authUser.id, courseId, error: String(err) });
       res.status(500).json({ error: "Erreur lors de l'inscription gratuite" });
