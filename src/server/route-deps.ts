@@ -185,6 +185,7 @@ export { deleteCloudFiles } from "../uploadthing";
 export { notifyEnrolledStudentsForCourse } from "../notifications";
 export { buildCourseGradeRows } from "../grades";
 export { assertCourseLearningAccess } from "../course-access";
+export { assertAiTutorAccess } from "../ai-tutor-access";
 export {
   APP_USER_BILLING_INCLUDE,
   buildCourseInvoiceId,
@@ -305,6 +306,11 @@ export {
 export { processPayPalCaptureDonation, toPayPalDonationCaptureClientResponse } from "../paypal-charity-donation";
 export { processPayPalCaptureEnrollment, toPayPalCaptureClientResponse } from "../paypal-enrollment";
 export { resolveCourseChargeAmount, isFreeCourseCharge } from "../promo-codes";
+export {
+  AI_TUTOR_ADDON_PRICE_MAD,
+  computeCourseCheckoutTotalMad,
+  resolveEnrollmentHasAiAccess,
+} from "../utils/ai-tutor-pricing";
 export { processFreeCourseEnrollment } from "../course-free-enrollment";
 export { getSiteSettings, setForceDesktopMode } from "../site-settings";
 export {

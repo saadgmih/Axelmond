@@ -7,6 +7,7 @@ import {
 } from "./course-free-access-window";
 import { prisma } from "./db";
 import { isFreeCourseCharge, resolveCourseChargeAmount } from "./promo-codes";
+import { resolveEnrollmentHasAiAccess } from "./utils/ai-tutor-pricing";
 import { PUBLIC_API_ERRORS } from "./public-api-errors";
 import { isStudentRole } from "./rbac";
 import { toAppUser } from "./server/mappers/user-mappers";
@@ -30,6 +31,7 @@ export async function processFreeCourseEnrollment(params: {
   role: string;
   courseId: number;
   promoCode?: string;
+  includeAiAssistant?: boolean;
   reqIp?: string;
   persistCoursePaymentEnrollment: PersistEnrollment;
 }): Promise<FreeCourseEnrollmentResult> {
@@ -108,6 +110,7 @@ export async function processFreeCourseEnrollment(params: {
       auditAction: "ENROLL_FREE",
       reqIp: params.reqIp,
       enrollmentEndDate,
+      hasAiAccess: resolveEnrollmentHasAiAccess(Boolean(params.includeAiAssistant)),
     });
 
     return {

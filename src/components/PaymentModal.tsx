@@ -17,6 +17,10 @@ import { Course } from "../types";
 import type { AppUser } from "./AuthScreen";
 import { api, getFreshSessionToken } from "../api";
 import { formatCredits, formatMad, PLATFORM_CURRENCY_CODE } from "../utils/morocco-locale";
+import {
+  AI_TUTOR_ADDON_PRICE_MAD,
+  computeCourseCheckoutTotalMad,
+} from "../utils/ai-tutor-pricing";
 import { useFocusTrap } from "../hooks/useFocusTrap";
 
 interface PaymentModalProps {
@@ -54,11 +58,17 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
   const [paypalConfig, setPaypalConfig] = useState<PayPalConfig | null>(null);
   const [configError, setConfigError] = useState("");
   const [orderPreviewAmount, setOrderPreviewAmount] = useState<string | null>(null);
+  const [includeAiAssistant, setIncludeAiAssistant] = useState(false);
 
   const originalPrice = course?.price ?? 0;
-  const finalPrice = Math.round(originalPrice * (1 - appliedDiscount / 100) * 100) / 100;
-  const savings = originalPrice - finalPrice;
-  const isFreeCheckout = finalPrice <= 0;
+  const modulePriceAfterPromo = Math.round(originalPrice * (1 - appliedDiscount / 100) * 100) / 100;
+  const isFreeCheckout = modulePriceAfterPromo <= 0;
+  const finalPrice = computeCourseCheckoutTotalMad({
+    modulePriceMad: modulePriceAfterPromo,
+    includeAiAssistant,
+    isFreeModule: isFreeCheckout,
+  });
+  const savings = originalPrice - modulePriceAfterPromo;
 
   useEffect(() => {
     if (!course || isFreeCheckout) {
@@ -118,7 +128,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
 
     try {
       const appliedPromo = appliedDiscount > 0 ? promoCode.trim().toUpperCase() : undefined;
-      const result = await api.freeEnrollCourse(course.id, appliedPromo);
+      const result = await api.freeEnrollCourse(course.id, appliedPromo, includeAiAssistant);
       if (!result.user) {
         throw new Error("Inscription non confirmée par le serveur. Contactez le support.");
       }
@@ -157,7 +167,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
     const appliedPromo = appliedDiscount > 0 ? promoCode.trim().toUpperCase() : undefined;
     const token = await getFreshSessionToken();
     if (!token) throw new Error("Session expirée. Reconnectez-vous.");
-    const order = await api.createPayPalOrder(course.id, appliedPromo);
+    const order = await api.createPayPalOrder(course.id, appliedPromo, includeAiAssistant);
     if (order.amount && order.currency) {
       setOrderPreviewAmount(`${order.amount} ${order.currency}`);
     }
@@ -263,6 +273,32 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                         {course.duration}
                       </span>
                     </div>
+                  </div>
+
+                  {/* Assistant IA (option à l'activation) */}
+                  <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
+                    <label className="flex cursor-pointer items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={includeAiAssistant}
+                        onChange={(event) => setIncludeAiAssistant(event.target.checked)}
+                        className="mt-1 h-4 w-4 rounded border-white/20 bg-slate-900 text-emerald-500 focus:ring-emerald-500/30"
+                      />
+                      <span className="min-w-0 flex-1 space-y-1">
+                        <span className="flex items-center gap-2 text-sm font-bold text-white">
+                          <Sparkles className="h-4 w-4 text-emerald-300" />
+                          Assistant IA pédagogique
+                        </span>
+                        <span className="block text-xs leading-relaxed text-slate-400">
+                          Tuteur IA personnel pour ce module, actif pendant toute la durée de votre abonnement.
+                        </span>
+                        <span className="inline-flex rounded-lg bg-emerald-500/10 px-2 py-1 text-[11px] font-bold text-emerald-200">
+                          {isFreeCheckout
+                            ? "Gratuit avec ce module"
+                            : `+ ${formatMad(AI_TUTOR_ADDON_PRICE_MAD)} (fixe par module)`}
+                        </span>
+                      </span>
+                    </label>
                   </div>
 
                   {/* Promo */}

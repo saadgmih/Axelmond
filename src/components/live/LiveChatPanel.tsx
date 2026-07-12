@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { MessageSquare, Paperclip, Send, Sparkles } from "lucide-react";
 import { Course } from "../../types";
 import { LiveChatMessage } from "../../livekit";
@@ -8,6 +8,7 @@ import LiveChatMessageRow from "./LiveChatMessageRow";
 
 export interface LiveChatPanelProps {
   course: Course;
+  showAiTutor?: boolean;
   chatView: "messages" | "tutor";
   onChatViewChange: (view: "messages" | "tutor") => void;
   messageMode: "public" | "question" | "private";
@@ -23,6 +24,7 @@ export interface LiveChatPanelProps {
 
 export default function LiveChatPanel({
   course,
+  showAiTutor = false,
   chatView,
   onChatViewChange,
   messageMode,
@@ -35,9 +37,15 @@ export default function LiveChatPanel({
   onChatDraftChange,
   onSendMessage,
 }: LiveChatPanelProps) {
+  useEffect(() => {
+    if (!showAiTutor && chatView === "tutor") {
+      onChatViewChange("messages");
+    }
+  }, [showAiTutor, chatView, onChatViewChange]);
+
   return (
     <div className="flex flex-1 min-h-0 flex-col animate-in fade-in duration-300">
-      <div className="mb-3 grid grid-cols-2 gap-2 shrink-0">
+      <div className={`mb-3 grid gap-2 shrink-0 ${showAiTutor ? "grid-cols-2" : "grid-cols-1"}`}>
         <button
           type="button"
           onClick={() => onChatViewChange("messages")}
@@ -50,22 +58,24 @@ export default function LiveChatPanel({
         >
           Messages live
         </button>
-        <button
-          type="button"
-          onClick={() => onChatViewChange("tutor")}
-          aria-pressed={chatView === "tutor"}
-          className={`rounded-xl border px-3 py-2.5 text-xs font-bold transition flex items-center justify-center gap-1.5 ${
-            chatView === "tutor"
-              ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-200"
-              : "border-white/10 bg-zinc-900 text-zinc-400 hover:text-zinc-200"
-          }`}
-        >
-          <Sparkles className="h-4 w-4" />
-          Tuteur IA
-        </button>
+        {showAiTutor && (
+          <button
+            type="button"
+            onClick={() => onChatViewChange("tutor")}
+            aria-pressed={chatView === "tutor"}
+            className={`rounded-xl border px-3 py-2.5 text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+              chatView === "tutor"
+                ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-200"
+                : "border-white/10 bg-zinc-900 text-zinc-400 hover:text-zinc-200"
+            }`}
+          >
+            <Sparkles className="h-4 w-4" />
+            Tuteur IA
+          </button>
+        )}
       </div>
 
-      {chatView === "tutor" ? (
+      {showAiTutor && chatView === "tutor" ? (
         <div className="flex min-h-0 flex-1 flex-col">
           <AITutorChat
             courseId={course.id}

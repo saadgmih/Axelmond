@@ -29,6 +29,7 @@ export type CoursePaymentEnrollmentInput = {
   auditAction: string;
   reqIp?: string;
   enrollmentEndDate?: Date | null;
+  hasAiAccess?: boolean;
 };
 
 export function serializeInvoiceRecord(invoice: {
@@ -80,6 +81,14 @@ export async function persistCoursePaymentEnrollment(
   }
   const enrollmentEndDate =
     typeof params.enrollmentEndDate === "undefined" ? buildEnrollmentEndDate() : params.enrollmentEndDate;
+  const hasAiAccess = Boolean(params.hasAiAccess);
+
+  const enrollmentUpsertData = {
+    active: true,
+    startDate: new Date(),
+    endDate: enrollmentEndDate,
+    hasAiAccess,
+  };
 
   const existingPayment = await prisma.payment.findUnique({
     where: {
@@ -98,13 +107,11 @@ export async function persistCoursePaymentEnrollment(
     const user = await prisma.$transaction(async (tx) => {
       await tx.enrollment.upsert({
         where: { userId_courseId: { userId: params.userId, courseId: params.courseId } },
-        update: { active: true, startDate: new Date(), endDate: enrollmentEndDate },
+        update: enrollmentUpsertData,
         create: {
           userId: params.userId,
           courseId: params.courseId,
-          active: true,
-          startDate: new Date(),
-          endDate: enrollmentEndDate,
+          ...enrollmentUpsertData,
         },
       });
       return tx.user.findUnique({
@@ -160,13 +167,11 @@ export async function persistCoursePaymentEnrollment(
 
       await tx.enrollment.upsert({
         where: { userId_courseId: { userId: params.userId, courseId: params.courseId } },
-        update: { active: true, startDate: new Date(), endDate: enrollmentEndDate },
+        update: enrollmentUpsertData,
         create: {
           userId: params.userId,
           courseId: params.courseId,
-          active: true,
-          startDate: new Date(),
-          endDate: enrollmentEndDate,
+          ...enrollmentUpsertData,
         },
       });
 
@@ -227,13 +232,11 @@ export async function persistCoursePaymentEnrollment(
         const user = await prisma.$transaction(async (tx) => {
           await tx.enrollment.upsert({
             where: { userId_courseId: { userId: params.userId, courseId: params.courseId } },
-            update: { active: true, startDate: new Date(), endDate: enrollmentEndDate },
+            update: enrollmentUpsertData,
             create: {
               userId: params.userId,
               courseId: params.courseId,
-              active: true,
-              startDate: new Date(),
-              endDate: enrollmentEndDate,
+              ...enrollmentUpsertData,
             },
           });
           return tx.user.findUnique({

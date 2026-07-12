@@ -125,6 +125,7 @@ export async function seedChatTutorRuntimeFixtures(): Promise<ChatTutorRuntimeFi
       userId: users.enrolledStudent.id,
       courseId: course.id,
       active: true,
+      hasAiAccess: true,
     },
   });
 

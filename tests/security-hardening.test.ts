@@ -42,7 +42,7 @@ rulesTest("security-hardening", () => {
   assert.match(serverSource, /api\.generateChatTutorResponse/);
   assert.doesNotMatch(serverSource, /GEMINI_API_KEY|GoogleGenAI|@google\/genai|gemini-/i);
   assert.match(serverSource, /courseId:\s*z\.number\(\)\.int\(\)\.positive\(\)/);
-  assert.match(serverSource, /api\.assertCourseLearningAccess\(/);
+  assert.match(serverSource, /api\.assertAiTutorAccess\(/);
   assert.doesNotMatch(serverSource, /courseContext:\s*z\.string\(\)/);
   assert.match(serverSource, /strongPasswordField/);
   assert.match(serverSource, /Refresh token reuse detected/);

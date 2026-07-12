@@ -1,6 +1,7 @@
 import { prisma } from "./db";
 import { formatPayPalAmount, logPayPalError, parsePayPalCustomId } from "./paypal-server";
 import { convertMadAmountForPayPal, getPayPalCheckoutCurrency } from "./paypal-currency";
+import { resolveEnrollmentHasAiAccess } from "./utils/ai-tutor-pricing";
 import { PUBLIC_API_ERRORS } from "./public-api-errors";
 export type PayPalCaptureEnrollmentInput = {
   orderId: string;
@@ -67,6 +68,7 @@ export async function processPayPalCaptureEnrollment(
     externalId: string;
     auditAction: string;
     reqIp?: string;
+    hasAiAccess?: boolean;
   }) => Promise<{ duplicate: boolean; user: any; invoice: any }>,
   findCourseById: FindPayPalCourseById = (courseId) => prisma.course.findUnique({ where: { id: courseId } }),
 ): Promise<PayPalCaptureEnrollmentResult> {
@@ -137,6 +139,7 @@ export async function processPayPalCaptureEnrollment(
       externalId: captureId,
       auditAction,
       reqIp,
+      hasAiAccess: resolveEnrollmentHasAiAccess(Boolean(metadata.includeAiAssistant)),
     });
 
     return {

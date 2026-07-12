@@ -14,7 +14,7 @@ import {
 import { sendVerificationEmail, getEmailErrorDetails, getSmtpPublicConfig } from "../../email";
 import { prisma } from "../../db";
 import { mergeUserInvoices } from "../../course-payments";
-import { getActiveEnrolledCourseIds } from "../../enrollment-access";
+import { getActiveAiTutorCourseIds, getActiveEnrolledCourseIds } from "../../enrollment-access";
 import { resolveCachedAuthDbUser } from "../auth-user-cache";
 import { logEmail } from "../route-loggers";
 import type { AppUser } from "../route-types";
@@ -31,6 +31,7 @@ export function toAppUser(user: any): AppUser {
     filiere: user.filiere || undefined,
     avatarUrl: user.avatarUrl || undefined,
     enrolledCourses: Array.isArray(user.enrollments) ? getActiveEnrolledCourseIds(user.enrollments) : [],
+    aiTutorCourseIds: Array.isArray(user.enrollments) ? getActiveAiTutorCourseIds(user.enrollments) : [],
     invoices: mergeUserInvoices(user),
   };
 }

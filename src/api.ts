@@ -331,22 +331,25 @@ export const api = {
   ) => request<any>("PATCH", `/api/courses/${courseId}`, data),
   getPayPalConfig: () =>
     request<{ clientId: string; env: "sandbox" | "live"; currency: string }>("GET", "/api/paypal/config"),
-  createPayPalOrder: (courseId: number, promoCode?: string) =>
+  createPayPalOrder: (courseId: number, promoCode?: string, includeAiAssistant?: boolean) =>
     request<{ id: string; currency?: string; amount?: string; amountMad?: string }>(
       "POST",
       "/api/paypal/create-order",
-      { courseId, ...(promoCode ? { promoCode } : {}) },
+      { courseId, ...(promoCode ? { promoCode } : {}), ...(includeAiAssistant ? { includeAiAssistant: true } : {}) },
     ),
   capturePayPalOrder: (orderId: string, courseId: number) =>
     request<{ ok: boolean; invoice?: any; user?: any; message?: string }>("POST", "/api/paypal/capture-order", {
       orderId,
       courseId,
     }),
-  freeEnrollCourse: (courseId: number, promoCode?: string) =>
+  freeEnrollCourse: (courseId: number, promoCode?: string, includeAiAssistant?: boolean) =>
     request<{ ok: boolean; invoice?: any; user?: any; message?: string }>(
       "POST",
       `/api/courses/${courseId}/free-enroll`,
-      promoCode ? { promoCode } : undefined,
+      {
+        ...(promoCode ? { promoCode } : {}),
+        ...(includeAiAssistant ? { includeAiAssistant: true } : {}),
+      },
     ),
   login: (email: string, password: string, role: string) =>
     request<any>("POST", "/api/auth/login", { email, password, role }),

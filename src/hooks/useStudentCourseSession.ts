@@ -1,4 +1,4 @@
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import { getClientErrorMessage } from "../client-errors";
 import { api } from "../api";
 import type { AppUser } from "../components/AuthScreen";
@@ -45,6 +45,17 @@ export function useStudentCourseSession({
   const [quizScore, setQuizScore] = useState<number | null>(null);
   const [quizSubmitError, setQuizSubmitError] = useState("");
   const [showAITutor, setShowAITutor] = useState(false);
+
+  const hasAiTutorAccess = useMemo(() => {
+    if (!selectedCourse || !currentUser?.aiTutorCourseIds?.length) return false;
+    return currentUser.aiTutorCourseIds.includes(selectedCourse.id);
+  }, [currentUser?.aiTutorCourseIds, selectedCourse?.id]);
+
+  useEffect(() => {
+    if (!hasAiTutorAccess) {
+      setShowAITutor(false);
+    }
+  }, [hasAiTutorAccess, selectedCourse?.id]);
 
   useEffect(() => {
     if (selectedCourse && selectedModule && selectedModule.type === "quiz") {
@@ -186,6 +197,7 @@ export function useStudentCourseSession({
     setQuizSubmitError,
     showAITutor,
     setShowAITutor,
+    hasAiTutorAccess,
     markModuleCompleted,
     handleQuizAnswerSelect,
     handleQuizSubmit,

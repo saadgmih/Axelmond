@@ -135,12 +135,10 @@ await runtimeTest("security-runtime-chat-tutor", async () => {
       assert.equal(response.status, 403);
     }
 
-    // 5. Prof propriétaire → 200
+    // 5. Prof propriétaire → 403 (assistant IA réservé aux étudiants)
     {
       const response = await authedFetch(handle.baseUrl, ownerSession, "POST", CHAT_TUTOR_PATH, chatTutorBody(fixture));
-      assert.equal(response.status, 200);
-      const payload = (await response.json()) as { text?: string };
-      assert.equal(typeof payload.text, "string");
+      assert.equal(response.status, 403);
     }
 
     // 6. Prof non propriétaire → 403

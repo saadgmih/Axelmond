@@ -39,6 +39,7 @@ interface StudentCourseViewProps {
   courseContentSections: ContentSection[];
   selectedLessonContent: LessonContent | null;
   showAITutor: boolean;
+  hasAiTutorAccess: boolean;
   quizQuestions: QuizQuestion[] | null;
   quizAnswers: Record<string, string>;
   quizSubmitted: boolean;
@@ -60,6 +61,7 @@ export default function StudentCourseView({
   courseContentSections,
   selectedLessonContent: selectedLessonContentFromProps,
   showAITutor,
+  hasAiTutorAccess,
   quizQuestions,
   quizAnswers,
   quizSubmitted,
@@ -315,13 +317,15 @@ export default function StudentCourseView({
               <h1 className="text-xl md:text-2xl font-black text-slate-800 leading-tight">{selectedModule.title}</h1>
             </div>
 
-            <button
-              onClick={() => setShowAITutor(!showAITutor)}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5 self-start cursor-pointer group"
-            >
-              <Brain className="w-4 h-4 group-hover:scale-110 transition-transform" />
-              {showAITutor ? "Masquer Tuteur IA" : "Ouvrir Tuteur IA"}
-            </button>
+            {hasAiTutorAccess && (
+              <button
+                onClick={() => setShowAITutor(!showAITutor)}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5 self-start cursor-pointer group"
+              >
+                <Brain className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                {showAITutor ? "Masquer Tuteur IA" : "Ouvrir Tuteur IA"}
+              </button>
+            )}
           </div>
 
           {enrollment && (
@@ -902,7 +906,7 @@ export default function StudentCourseView({
               </div>
 
               {/* AI Tutor Chat Widget right inside column layout */}
-              {showAITutor && (
+              {showAITutor && hasAiTutorAccess && (
                 <div className="xl:col-span-5 min-h-[320px] h-[min(520px,55dvh)] xl:h-[min(520px,calc(100dvh-120px))] xl:sticky xl:top-4 animate-in slide-in-from-right duration-200">
                   <AITutorChat
                     courseId={selectedCourse.id}

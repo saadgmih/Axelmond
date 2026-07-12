@@ -136,6 +136,7 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
     }
 
     const promoCode = String(req.body?.promoCode || "").trim();
+    const includeAiAssistant = Boolean(req.body?.includeAiAssistant);
 
     const chargePricing = api.resolveCourseChargeAmount(course.price, promoCode);
 
@@ -164,6 +165,12 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
     }
 
     try {
+      const checkoutTotalMad = api.computeCourseCheckoutTotalMad({
+        modulePriceMad: chargePricing.amount,
+        includeAiAssistant,
+        isFreeModule: false,
+      });
+
       const order = await api.createPayPalOrder({
         courseId,
 
@@ -171,9 +178,11 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
 
         courseDescription: course.description,
 
-        amountMad: chargePricing.amount,
+        amountMad: checkoutTotalMad,
 
         userId: authUser.id,
+
+        includeAiAssistant,
       });
 
       res.json({
@@ -340,18 +349,25 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
 
     const invoiceId = api.buildCourseInvoiceId("MOCK");
     const chargePricing = api.resolveCourseChargeAmount(course.price, "");
+    const includeAiAssistant = Boolean(req.body?.includeAiAssistant);
+    const checkoutTotalMad = api.computeCourseCheckoutTotalMad({
+      modulePriceMad: chargePricing.amount,
+      includeAiAssistant,
+      isFreeModule: api.isFreeCourseCharge(chargePricing.amount),
+    });
 
     try {
       const result = await persistCoursePaymentEnrollment({
         userId: authUser.id,
         courseId,
         courseTitle: course.title,
-        coursePrice: chargePricing.amount,
+        coursePrice: checkoutTotalMad,
         invoiceId,
         provider: "MOCK",
         externalId: `mock-${authUser.id}-${courseId}`,
         auditAction: "ENROLL_MOCK",
         reqIp: req.ip,
+        hasAiAccess: api.resolveEnrollmentHasAiAccess(includeAiAssistant),
       });
 
       api.logDb("INFO", "Student enrollment synchronized", {

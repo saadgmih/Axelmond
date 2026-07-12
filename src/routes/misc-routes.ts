@@ -168,7 +168,7 @@ export function registerMiscRoutes(app: Express, ctx: RouteContext): void {
 
     const { courseId, moduleId, prompt, chatHistory } = req.body;
 
-    const access = await api.assertCourseLearningAccess(
+    const access = await api.assertAiTutorAccess(
       authUser,
 
       courseId,

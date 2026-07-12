@@ -113,6 +113,7 @@ export function buildPayPalCustomId(
   payPalAmount: number,
   amountMad: number,
   payPalCurrency: string,
+  includeAiAssistant = false,
 ): string {
   const customId = JSON.stringify({
     u: userId,
@@ -120,6 +121,7 @@ export function buildPayPalCustomId(
     e: formatPayPalAmount(payPalAmount),
     p: payPalCurrency,
     m: formatPayPalAmount(amountMad),
+    ...(includeAiAssistant ? { a: 1 } : {}),
   });
   if (customId.length > 127) {
     throw new Error("PayPal custom_id trop long");
@@ -129,7 +131,14 @@ export function buildPayPalCustomId(
 
 export function parsePayPalCustomId(
   customId: string | undefined,
-): { userId: string; courseId: number; expectedAmount?: string; payPalCurrency?: string; amountMad?: string } | null {
+): {
+  userId: string;
+  courseId: number;
+  expectedAmount?: string;
+  payPalCurrency?: string;
+  amountMad?: string;
+  includeAiAssistant?: boolean;
+} | null {
   if (!customId?.trim()) return null;
   try {
     const parsed = JSON.parse(customId);
@@ -138,6 +147,7 @@ export function parsePayPalCustomId(
     const expectedAmount = parsed?.e ?? parsed?.expectedAmount;
     const payPalCurrency = parsed?.p ?? parsed?.payPalCurrency;
     const amountMad = parsed?.m ?? parsed?.amountMad;
+    const includeAiAssistant = Boolean(parsed?.a ?? parsed?.includeAiAssistant);
     if (!userId || !courseId || Number.isNaN(courseId)) return null;
     return {
       userId,
@@ -145,6 +155,7 @@ export function parsePayPalCustomId(
       expectedAmount: expectedAmount != null ? String(expectedAmount) : undefined,
       payPalCurrency: payPalCurrency != null ? String(payPalCurrency).trim().toUpperCase() : undefined,
       amountMad: amountMad != null ? String(amountMad) : undefined,
+      includeAiAssistant,
     };
   } catch {
     return null;
@@ -173,13 +184,21 @@ export async function createPayPalOrder(params: {
   courseDescription?: string | null;
   amountMad: number;
   userId: string;
+  includeAiAssistant?: boolean;
 }): Promise<{ id: string; currency: string; amount: string; amountMad: string }> {
   if (params.amountMad <= 0) {
     throw new Error("PAYPAL_AMOUNT_INVALID");
   }
   const payPalCurrency = getPayPalCheckoutCurrency();
   const payPalAmount = convertMadAmountForPayPal(params.amountMad);
-  const customId = buildPayPalCustomId(params.userId, params.courseId, payPalAmount, params.amountMad, payPalCurrency);
+  const customId = buildPayPalCustomId(
+    params.userId,
+    params.courseId,
+    payPalAmount,
+    params.amountMad,
+    payPalCurrency,
+    Boolean(params.includeAiAssistant),
+  );
   const payload = await paypalRequest<{ id?: string }>("POST", "/v2/checkout/orders", {
     intent: "CAPTURE",
     purchase_units: [

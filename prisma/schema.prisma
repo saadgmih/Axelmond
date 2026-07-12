@@ -355,12 +355,13 @@ model Attachment {
 }
 
 model Enrollment {
-  id        String    @id @default(cuid())
-  userId    String
-  courseId  Int
-  active    Boolean   @default(true)
-  startDate DateTime  @default(now())
-  endDate   DateTime?
+  id           String    @id @default(cuid())
+  userId       String
+  courseId     Int
+  active       Boolean   @default(true)
+  hasAiAccess  Boolean   @default(false)
+  startDate    DateTime  @default(now())
+  endDate      DateTime?
   user      User      @relation(fields: [userId], references: [id])
   course    Course    @relation(fields: [courseId], references: [id])
 

@@ -367,7 +367,7 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
   }
 
   if (verb === "POST" && cleanPath === "/api/chat-tutor") {
-    return true;
+    return normalized === "STUDENT";
   }
 
   if (verb === "GET" && cleanPath === "/api/mobile/student-profile") {
