@@ -325,13 +325,8 @@ export default function VirtualClassroom({
           </div>
 
           <div
-            className={`px-3 pt-4 pb-2 grid gap-1 shrink-0 border-b border-white/5 bg-zinc-900/50 ${
-              ui.visibleSidebarTabs.length <= 2
-                ? "grid-cols-2"
-                : ui.visibleSidebarTabs.length === 3
-                  ? "grid-cols-3"
-                  : "grid-cols-5"
-            }`}
+            className="px-2 pt-3 pb-2 grid gap-1 shrink-0 border-b border-white/5 bg-zinc-900/50"
+            style={{ gridTemplateColumns: `repeat(${ui.visibleSidebarTabs.length}, minmax(0, 1fr))` }}
           >
             {ui.visibleSidebarTabs.map((tab) => (
               <button
@@ -342,14 +337,14 @@ export default function VirtualClassroom({
                 onClick={() => ui.setActiveTab(tab.id)}
                 aria-label={`Onglet ${tab.label}`}
                 aria-selected={ui.activeTab === tab.id}
-                className={`kbd-nav-focus flex flex-col items-center justify-center py-2 rounded-lg transition-all min-h-[52px] ${
+                className={`kbd-nav-focus flex min-w-0 flex-col items-center justify-center rounded-lg px-1 py-1.5 transition-all min-h-[44px] ${
                   ui.activeTab === tab.id
                     ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-inner"
                     : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50"
                 }`}
               >
-                <tab.icon className="w-4 h-4 mb-1" />
-                <span className="text-[9px] font-bold text-center leading-tight px-1">{tab.label}</span>
+                <tab.icon className="mb-0.5 h-3.5 w-3.5 shrink-0" />
+                <span className="w-full truncate text-center text-[8px] font-bold leading-tight">{tab.label}</span>
               </button>
             ))}
           </div>
