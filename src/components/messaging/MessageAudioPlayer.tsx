@@ -18,16 +18,17 @@ export function MessageAudioPlayer({ url, mine = false }: MessageAudioPlayerProp
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
-
-  useEffect(() => {
-    setIsPlaying(false);
-    setProgress(0);
-    setDuration(0);
-  }, [url]);
+  const [playbackError, setPlaybackError] = useState(false);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
+
+    setIsPlaying(false);
+    setProgress(0);
+    setDuration(0);
+    setPlaybackError(false);
+    audio.load();
 
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
@@ -40,19 +41,29 @@ export function MessageAudioPlayer({ url, mine = false }: MessageAudioPlayerProp
       setProgress((audio.currentTime / audio.duration) * 100);
     };
     const handleLoadedMetadata = () => setDuration(audio.duration);
+    const handleDurationChange = () => setDuration(audio.duration);
+    const handleError = () => {
+      setIsPlaying(false);
+      setPlaybackError(true);
+    };
 
     audio.addEventListener("play", handlePlay);
     audio.addEventListener("pause", handlePause);
     audio.addEventListener("ended", handleEnded);
     audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
+    audio.addEventListener("durationchange", handleDurationChange);
+    audio.addEventListener("error", handleError);
 
     return () => {
+      audio.pause();
       audio.removeEventListener("play", handlePlay);
       audio.removeEventListener("pause", handlePause);
       audio.removeEventListener("ended", handleEnded);
       audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      audio.removeEventListener("durationchange", handleDurationChange);
+      audio.removeEventListener("error", handleError);
     };
   }, [url]);
 
@@ -60,15 +71,20 @@ export function MessageAudioPlayer({ url, mine = false }: MessageAudioPlayerProp
     const audio = audioRef.current;
     if (!audio) return;
 
-    if (isPlaying) {
+    if (!audio.paused) {
       audio.pause();
       audio.currentTime = 0;
       setProgress(0);
       return;
     }
 
+    if (audio.readyState < HTMLMediaElement.HAVE_METADATA) {
+      audio.load();
+    }
+
     void audio.play().catch(() => {
       setIsPlaying(false);
+      setPlaybackError(true);
     });
   };
 
@@ -78,7 +94,15 @@ export function MessageAudioPlayer({ url, mine = false }: MessageAudioPlayerProp
         mine ? "border-white/20 bg-white/10" : "border-white/10 bg-black/20"
       }`}
     >
-      <audio ref={audioRef} src={url} preload="metadata" className="hidden" aria-hidden="true" />
+      <audio
+        key={url}
+        ref={audioRef}
+        src={url}
+        preload="auto"
+        playsInline
+        className="absolute h-px w-px overflow-hidden opacity-0"
+        aria-hidden="true"
+      />
       <button
         type="button"
         onClick={togglePlayback}
@@ -101,7 +125,7 @@ export function MessageAudioPlayer({ url, mine = false }: MessageAudioPlayerProp
           />
         </div>
         <p className={`mt-1 text-[10px] ${mine ? "text-emerald-100/70" : "text-slate-400"}`}>
-          {formatDuration(duration)}
+          {playbackError ? "Lecture impossible" : formatDuration(duration)}
         </p>
       </div>
     </div>

@@ -10,6 +10,7 @@ import { alertSuspectUpload } from "./security-logger";
 import { completeLiveReplayUpload } from "./server/live-replay-service";
 import {
   isConversationParticipant,
+  normalizeMessageMimeType,
   validateMessageAttachmentInput,
   registerMessageAttachmentUpload,
   type MessageAttachmentInput,
@@ -417,7 +418,7 @@ export const uploadRouter = {
       const attachment: MessageAttachmentInput = {
         kind,
         fileName: file.name,
-        mimeType: file.type || "application/octet-stream",
+        mimeType: normalizeMessageMimeType(file.type || "") || "application/octet-stream",
         sizeBytes: file.size,
         url: fileUrl,
         storageKey: file.key,

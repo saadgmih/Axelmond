@@ -24,7 +24,7 @@ export const MESSAGE_ATTACHMENT_LIMITS = {
 const ALLOWED_MIME_BY_KIND: Record<string, string[]> = {
   IMAGE: ["image/jpeg", "image/png", "image/webp"],
   VIDEO: ["video/mp4", "video/webm"],
-  AUDIO: ["audio/mpeg", "audio/wav", "audio/webm", "audio/mp3", "audio/x-wav", "audio/mp4", "audio/ogg"],
+  AUDIO: ["audio/mpeg", "audio/wav", "audio/webm", "audio/mp3", "audio/x-wav", "audio/mp4", "audio/x-m4a", "audio/ogg"],
   DOCUMENT: [
     "application/pdf",
     "application/msword",
@@ -33,6 +33,13 @@ const ALLOWED_MIME_BY_KIND: Record<string, string[]> = {
 };
 
 const ALLOWED_ATTACHMENT_HOSTS = ["uploadthing.com", "ufs.sh", "utfs.io"] as const;
+
+export function normalizeMessageMimeType(mimeType: string): string {
+  return String(mimeType || "")
+    .toLowerCase()
+    .split(";")[0]
+    .trim();
+}
 
 function isAllowedAttachmentUrl(rawUrl: string): boolean {
   try {
@@ -107,7 +114,7 @@ export async function consumeMessageAttachmentUpload(storageKey: string): Promis
 export function validateMessageAttachmentInput(input: MessageAttachmentInput): string | null {
   const kind = input.kind;
   const allowed = ALLOWED_MIME_BY_KIND[kind] || [];
-  const mime = String(input.mimeType || "").toLowerCase();
+  const mime = normalizeMessageMimeType(input.mimeType);
   if (!allowed.includes(mime)) return "Type de fichier non autorisé";
   if (!input.url || !isAllowedAttachmentUrl(String(input.url))) return "URL de pièce jointe invalide";
   if (!input.fileName?.trim()) return "Nom de fichier requis";

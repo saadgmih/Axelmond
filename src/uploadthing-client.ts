@@ -75,18 +75,20 @@ export function validateUploadFile(
       "audio/webm",
       "audio/mp4",
       "audio/ogg",
+      "audio/x-m4a",
       "application/pdf",
       "application/msword",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ];
-    if (!allowed.includes(file.type)) return "Type de fichier non autorisé pour la messagerie.";
-    if (isAllowedRasterImageMime(file.type) && !isAllowedRasterImageUpload(file.name, file.type)) {
+    const normalizedType = file.type.toLowerCase().split(";")[0].trim();
+    if (!allowed.includes(normalizedType)) return "Type de fichier non autorisé pour la messagerie.";
+    if (isAllowedRasterImageMime(normalizedType) && !isAllowedRasterImageUpload(file.name, normalizedType)) {
       return "Seules les images JPEG, PNG ou WebP sont autorisées.";
     }
-    if (isAllowedRasterImageMime(file.type) && sizeMb > 8) return "L'image ne doit pas dépasser 8 Mo.";
-    if (file.type.startsWith("video/") && sizeMb > 64) return "La vidéo ne doit pas dépasser 64 Mo.";
-    if (file.type.startsWith("audio/") && sizeMb > 16) return "L'audio ne doit pas dépasser 16 Mo.";
-    if ((file.type === "application/pdf" || file.type.includes("word")) && sizeMb > 16)
+    if (isAllowedRasterImageMime(normalizedType) && sizeMb > 8) return "L'image ne doit pas dépasser 8 Mo.";
+    if (normalizedType.startsWith("video/") && sizeMb > 64) return "La vidéo ne doit pas dépasser 64 Mo.";
+    if (normalizedType.startsWith("audio/") && sizeMb > 16) return "L'audio ne doit pas dépasser 16 Mo.";
+    if ((normalizedType === "application/pdf" || normalizedType.includes("word")) && sizeMb > 16)
       return "Le document ne doit pas dépasser 16 Mo.";
     return "";
   }

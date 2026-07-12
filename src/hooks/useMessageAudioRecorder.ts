@@ -35,6 +35,9 @@ export function useMessageAudioRecorder({ onRecorded, onError }: UseMessageAudio
   const stopRecording = useCallback(() => {
     const recorder = mediaRecorderRef.current;
     if (!recorder || recorder.state === "inactive") return;
+    if (recorder.state === "recording") {
+      recorder.requestData();
+    }
     recorder.stop();
     mediaRecorderRef.current = null;
     setIsRecording(false);
@@ -82,7 +85,7 @@ export function useMessageAudioRecorder({ onRecorded, onError }: UseMessageAudio
         onError("Enregistrement audio interrompu.");
       };
 
-      recorder.start();
+      recorder.start(250);
       mediaRecorderRef.current = recorder;
       setIsRecording(true);
     } catch {
