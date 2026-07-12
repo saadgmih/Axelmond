@@ -79,7 +79,7 @@ export function getActiveAiTutorCourseIds(
   return [
     ...new Set(
       enrollments
-        .filter((enrollment) => enrollment.hasAiAccess && isEnrollmentActive(enrollment, now))
+        .filter((enrollment) => Boolean(enrollment.hasAiAccess) && isEnrollmentActive(enrollment, now))
         .map((enrollment) => enrollment.courseId)
         .filter((courseId) => Number.isInteger(courseId) && courseId > 0),
     ),

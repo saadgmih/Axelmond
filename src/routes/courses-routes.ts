@@ -123,13 +123,21 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
 
       let payload;
       if (authUser?.role === "STUDENT" && dbUser) {
-        payload = await api.toCoursesForStudent(
-          courses,
-          authUser.id,
-          studentEnrolledIds,
-          dbUser.enrollments,
-          { skipModuleSync: true },
-        );
+        try {
+          payload = await api.toCoursesForStudent(
+            courses,
+            authUser.id,
+            studentEnrolledIds,
+            dbUser.enrollments,
+            { skipModuleSync: true },
+          );
+        } catch (studentMapErr) {
+          api.logDb("WARN", "Student catalog mapping degraded to public course rows", {
+            userId: authUser.id,
+            error: String(studentMapErr),
+          });
+          payload = courses.map((course) => api.toCourse(course, undefined, { studentView: true }));
+        }
       } else {
         payload = courses.map((course) => api.toCourse(course));
       }

@@ -52,7 +52,7 @@ export function filterCatalogCoursesBySearch(courses: Course[], searchQuery: str
 
 export function resolveCatalogSourceCourses(
   selectedDisciplineId: number | null,
-  activeDisciplineCourses: Course[] | null,
+  disciplineCoursesById: Record<number, Course[]>,
   courses: Course[],
   selectedDisciplineName?: string,
 ): Course[] {
@@ -63,15 +63,18 @@ export function resolveCatalogSourceCourses(
     courseMatchesSelectedDiscipline(course, selectedDisciplineId, disciplineName),
   );
 
-  if (activeDisciplineCourses === null) {
+  if (!(selectedDisciplineId in disciplineCoursesById)) {
     return globalMatches;
   }
 
-  if (activeDisciplineCourses.length === 0) {
+  const fetched = disciplineCoursesById[selectedDisciplineId];
+  if (!Array.isArray(fetched) || fetched.length === 0) {
     return globalMatches;
   }
 
-  return activeDisciplineCourses;
+  const byId = new Map(globalMatches.map((course) => [course.id, course]));
+  fetched.forEach((course) => byId.set(course.id, course));
+  return [...byId.values()].sort((a, b) => a.id - b.id);
 }
 
 export function usePlatformCatalogData(
@@ -87,7 +90,7 @@ export function usePlatformCatalogData(
   const [selectedDomainId, setSelectedDomainId] = useState<number | null>(null);
   const [selectedDisciplineId, setSelectedDisciplineIdState] = useState<number | null>(null);
   const [loadingDisciplineId, setLoadingDisciplineId] = useState<number | null>(null);
-  const [activeDisciplineCourses, setActiveDisciplineCourses] = useState<Course[] | null>(null);
+  const [disciplineCoursesById, setDisciplineCoursesById] = useState<Record<number, Course[]>>({});
   const [disciplineLoadError, setDisciplineLoadError] = useState<string | null>(null);
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const { startRequest } = useAsyncEffectGuard();
@@ -127,10 +130,11 @@ export function usePlatformCatalogData(
           try {
             const token = await getFreshSessionToken();
             if (!request.isActive()) return;
-            if (!token) throw new Error("Session authentifiée indisponible pour charger le catalogue.");
+            if (!token) {
+              console.warn("[catalog] Session token unavailable — loading public catalog as fallback.");
+            }
           } catch (err) {
-            lastError = err;
-            break;
+            console.warn("[catalog] Session refresh failed — loading public catalog as fallback.", err);
           }
         }
 
@@ -234,9 +238,16 @@ export function usePlatformCatalogData(
 
       try {
         if (currentUser) {
-          const token = await getFreshSessionToken();
-          if (disciplineLoadSeqRef.current !== requestId) return;
-          if (!token) throw new Error("Session authentifiée indisponible pour charger la discipline.");
+          try {
+            const token = await getFreshSessionToken();
+            if (disciplineLoadSeqRef.current !== requestId) return;
+            if (!token) {
+              console.warn("[catalog] Session token unavailable for discipline load — using public fallback.");
+            }
+          } catch (err) {
+            if (disciplineLoadSeqRef.current !== requestId) return;
+            console.warn("[catalog] Session refresh failed for discipline load — using public fallback.", err);
+          }
         }
 
         const courseData = await api.getCourses({
@@ -246,14 +257,27 @@ export function usePlatformCatalogData(
         });
         if (disciplineLoadSeqRef.current !== requestId) return;
 
-        setActiveDisciplineCourses(courseData);
+        setDisciplineCoursesById((previous) => ({ ...previous, [disciplineId]: courseData }));
         mergeCatalogCourses(courseData);
         setDisciplineLoadError(null);
         setCatalogError(null);
+
+        try {
+          const domainData = await api.getDomains({ fresh: true });
+          if (disciplineLoadSeqRef.current === requestId) {
+            setDomains(domainData);
+          }
+        } catch (domainErr) {
+          console.warn("Failed to refresh domain counts after discipline sync:", domainErr);
+        }
       } catch (err) {
         if (disciplineLoadSeqRef.current !== requestId) return;
         console.error("Failed to fetch discipline catalog:", err);
-        setActiveDisciplineCourses(null);
+        setDisciplineCoursesById((previous) => {
+          const next = { ...previous };
+          delete next[disciplineId];
+          return next;
+        });
         setDisciplineLoadError(getClientErrorMessage(err, "Impossible de charger les modules de cette discipline."));
       } finally {
         if (disciplineLoadSeqRef.current === requestId) {
@@ -261,7 +285,7 @@ export function usePlatformCatalogData(
         }
       }
     },
-    [currentUser?.id, mergeCatalogCourses],
+    [currentUser?.id, mergeCatalogCourses, setDomains],
   );
 
   const retryDisciplineLoad = useCallback(() => {
@@ -272,7 +296,6 @@ export function usePlatformCatalogData(
   const setSelectedDisciplineId = useCallback(
     (disciplineId: number | null) => {
       setSelectedDisciplineIdState(disciplineId);
-      setActiveDisciplineCourses(null);
       setDisciplineLoadError(null);
       if (disciplineId) void loadCatalogDiscipline(disciplineId, selectedDomainIdRef.current);
     },
@@ -283,7 +306,7 @@ export function usePlatformCatalogData(
     const selectedDisciplineName = selectedDiscipline?.name || "";
     const sourceCourses = resolveCatalogSourceCourses(
       selectedDisciplineId,
-      activeDisciplineCourses,
+      disciplineCoursesById,
       courses,
       selectedDisciplineName,
     );
@@ -296,7 +319,7 @@ export function usePlatformCatalogData(
 
     return filterCatalogCoursesBySearch(scopedCourses, searchQuery);
   }, [
-    activeDisciplineCourses,
+    disciplineCoursesById,
     courses,
     searchQuery,
     selectedDisciplineId,

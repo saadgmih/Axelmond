@@ -41,13 +41,14 @@ rulesTest("student-catalog-discipline-sync", () => {
   const catalogRoutesSource = readFileSync("src/routes/catalog-routes.ts", "utf8");
 
   assert.match(catalogHookSource, /api\.getCourses\(\{[\s\S]*disciplineId[\s\S]*fresh:\s*true/);
-  assert.match(catalogHookSource, /activeDisciplineCourses/);
-  assert.match(catalogHookSource, /setActiveDisciplineCourses/);
+  assert.match(catalogHookSource, /disciplineCoursesById/);
+  assert.match(catalogHookSource, /setDisciplineCoursesById/);
   assert.match(catalogHookSource, /mergeCatalogCourseRows/);
   assert.match(catalogHookSource, /resolveCatalogSourceCourses/);
   assert.match(catalogHookSource, /filterCatalogCoursesBySearch/);
   assert.match(catalogHookSource, /api\.getCourses\(\{ fresh: true \}\)/);
   assert.match(catalogHookSource, /api\.getDomains\(\{ fresh: true \}\)/);
+  assert.match(coursesRoutesSource, /Student catalog mapping degraded/);
   assert.match(studentCatalogSource, /disciplineLoadError/);
   assert.match(studentCatalogSource, /retryDisciplineLoad/);
   assert.match(studentCatalogSource, /Réessayer/);
@@ -87,16 +88,24 @@ rulesTest("student-catalog-discipline-sync", () => {
   const disciplineCourse = makeCourse(8, { title: "Programmation en C++" });
   const globalCourse = makeCourse(9, { disciplineId: 601, title: "Algorithmique" });
   assert.deepEqual(
-    resolveCatalogSourceCourses(601, [disciplineCourse], [globalCourse], "Programmation").map((course) => course.id),
-    [8],
+    resolveCatalogSourceCourses(601, { 601: [disciplineCourse] }, [globalCourse], "Programmation").map(
+      (course) => course.id,
+    ),
+    [8, 9],
   );
   assert.deepEqual(
-    resolveCatalogSourceCourses(601, null, [globalCourse], "Programmation").map((course) => course.id),
+    resolveCatalogSourceCourses(601, {}, [globalCourse], "Programmation").map((course) => course.id),
     [9],
   );
   assert.deepEqual(
-    resolveCatalogSourceCourses(601, [], [globalCourse], "Programmation").map((course) => course.id),
+    resolveCatalogSourceCourses(601, { 601: [] }, [globalCourse], "Programmation").map((course) => course.id),
     [9],
+  );
+  assert.deepEqual(
+    resolveCatalogSourceCourses(601, { 601: [disciplineCourse] }, [globalCourse, disciplineCourse], "Programmation").map(
+      (course) => course.id,
+    ),
+    [8, 9],
   );
 
   assert.equal(
