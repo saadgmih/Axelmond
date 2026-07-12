@@ -90,25 +90,23 @@ export function AuthenticatedPlatformLayout() {
         )}
 
       <div className="flex-1 flex flex-col overflow-hidden relative">
-        {!live.isStudentLive && (
-          <Topbar
-            currentView={currentView}
-            searchQuery={catalog.searchQuery}
-            setSearchQuery={catalog.setSearchQuery}
-            enrolledCourses={session.enrolledCourses}
-            courses={catalog.courses}
-            navigateTo={navigation.navigateTo}
-            role={session.role}
-            currentUser={session.currentUser!}
-            catalogSearchRef={catalog.catalogSearchRef}
-            notificationUnreadCount={session.notificationUnreadCount}
-            onOpenNotifications={session.openNotificationsView}
-            activeView={session.role === "teacher" ? navigation.teacherView : currentView}
-            onTeacherNavigate={navigation.handleTeacherViewChange}
-            isTopbarCollapsed={ui.isTopbarCollapsed}
-            onToggleTopbarCollapsed={ui.toggleTopbarCollapsed}
-          />
-        )}
+        <Topbar
+          currentView={currentView}
+          searchQuery={catalog.searchQuery}
+          setSearchQuery={catalog.setSearchQuery}
+          enrolledCourses={session.enrolledCourses}
+          courses={catalog.courses}
+          navigateTo={navigation.navigateTo}
+          role={session.role}
+          currentUser={session.currentUser!}
+          catalogSearchRef={catalog.catalogSearchRef}
+          notificationUnreadCount={session.notificationUnreadCount}
+          onOpenNotifications={session.openNotificationsView}
+          activeView={session.role === "teacher" ? navigation.teacherView : currentView}
+          onTeacherNavigate={navigation.handleTeacherViewChange}
+          isTopbarCollapsed={ui.isTopbarCollapsed}
+          onToggleTopbarCollapsed={ui.toggleTopbarCollapsed}
+        />
 
         <main
           id="main-content"

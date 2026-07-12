@@ -39,6 +39,8 @@ rulesTest("sidebar-layout-responsive", () => {
   assert.match(layoutSource, /createPortal/);
   assert.match(layoutSource, /isDrawer/);
   assert.doesNotMatch(layoutSource, /lg:hidden/);
+  assert.match(layoutSource, /onToggleTopbarCollapsed=\{ui\.toggleTopbarCollapsed\}/);
+  assert.doesNotMatch(layoutSource, /!live\.isStudentLive/);
 
   const sidebarMountIndex = layoutSource.indexOf("<Sidebar");
   const backdropIndex = layoutSource.indexOf("sidebar-drawer-backdrop");
