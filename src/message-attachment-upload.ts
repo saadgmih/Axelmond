@@ -17,6 +17,7 @@ const MESSAGE_MIME_BY_EXTENSION: Record<string, string> = {
   webp: "image/webp",
   mp4: "video/mp4",
   webm: "video/webm",
+  weba: "audio/webm",
   mp3: "audio/mpeg",
   wav: "audio/wav",
   ogg: "audio/ogg",
@@ -29,15 +30,12 @@ const MESSAGE_MIME_BY_EXTENSION: Record<string, string> = {
 export function normalizeMessageUploadFile(file: File): File {
   const normalizedType = normalizeMessageMimeType(file.type);
   if (normalizedType) {
-    if (normalizedType === "audio/webm" || (file.name.includes("message-vocal") && normalizedType.startsWith("audio/"))) {
-      return new File([file], file.name, { type: "video/webm", lastModified: file.lastModified });
-    }
     if (normalizedType === file.type) return file;
     return new File([file], file.name, { type: normalizedType, lastModified: file.lastModified });
   }
 
   const ext = file.name.split(".").pop()?.toLowerCase() || "";
-  const inferredType = file.name.includes("message-vocal") && ext === "webm" ? "video/webm" : MESSAGE_MIME_BY_EXTENSION[ext];
+  const inferredType = MESSAGE_MIME_BY_EXTENSION[ext];
   if (!inferredType) return file;
 
   return new File([file], file.name, { type: inferredType, lastModified: file.lastModified });

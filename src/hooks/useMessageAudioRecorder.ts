@@ -11,9 +11,9 @@ function pickAudioMimeType() {
 }
 
 function mimeToExtension(mimeType: string) {
-  if (mimeType.includes("webm")) return "webm";
+  if (mimeType.includes("webm")) return "weba";
   if (mimeType.includes("mp4")) return "m4a";
-  return "webm";
+  return "weba";
 }
 
 interface UseMessageAudioRecorderOptions {
