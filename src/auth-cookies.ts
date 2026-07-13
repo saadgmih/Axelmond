@@ -57,8 +57,7 @@ export function clearAuthCookies(res: Response): void {
 }
 
 /** Sets HttpOnly refresh + readable CSRF cookies; returns CSRF token for JSON body. */
-export function setAuthCookies(res: Response, rawRefreshToken: string): string {
-  const csrfToken = generateCsrfToken();
+export function setAuthCookies(res: Response, rawRefreshToken: string, csrfToken = generateCsrfToken()): string {
   setRefreshTokenCookie(res, rawRefreshToken);
   setCsrfTokenCookie(res, csrfToken);
   return csrfToken;

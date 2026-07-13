@@ -12,10 +12,42 @@ import { AuthenticatedPlatformLayout } from "./AuthenticatedPlatformLayout";
 
 function PlatformLoadingScreen() {
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-slate-400 text-sm font-semibold">Chargement des données académiques...</p>
+    <div
+      className="flex min-h-screen overflow-hidden bg-slate-950"
+      role="status"
+      aria-label="Restauration de la session"
+    >
+      <aside className="hidden w-80 shrink-0 border-r border-emerald-900/40 bg-emerald-950/50 p-6 md:block">
+        <div className="h-14 w-56 animate-pulse rounded-2xl bg-emerald-800/35" />
+        <div className="mt-16 space-y-5">
+          <div className="h-11 animate-pulse rounded-xl bg-emerald-800/25" />
+          <div className="h-11 animate-pulse rounded-xl bg-emerald-900/35" />
+          <div className="h-11 animate-pulse rounded-xl bg-emerald-900/35" />
+          <div className="h-11 animate-pulse rounded-xl bg-emerald-900/35" />
+          <div className="h-11 animate-pulse rounded-xl bg-emerald-900/35" />
+        </div>
+      </aside>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="h-24 border-b border-emerald-900/30 bg-emerald-950/30 px-6 py-5">
+          <div className="h-5 w-48 animate-pulse rounded-full bg-emerald-800/35" />
+          <div className="mt-3 h-3 w-72 max-w-full animate-pulse rounded-full bg-emerald-900/40" />
+        </header>
+        <main className="flex-1 p-6 sm:p-8">
+          <div className="mx-auto max-w-6xl space-y-6">
+            <div className="h-40 animate-pulse rounded-3xl border border-emerald-900/40 bg-emerald-950/30" />
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="h-44 animate-pulse rounded-2xl bg-emerald-950/30" />
+              <div className="h-44 animate-pulse rounded-2xl bg-emerald-950/30" />
+              <div className="h-44 animate-pulse rounded-2xl bg-emerald-950/30" />
+            </div>
+          </div>
+        </main>
+        <div className="fixed inset-x-0 bottom-8 flex justify-center px-4">
+          <div className="flex items-center gap-3 rounded-full border border-emerald-700/30 bg-slate-950/90 px-5 py-3 shadow-xl">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent" />
+            <span className="text-sm font-semibold text-emerald-200">Restauration de votre session...</span>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -25,7 +57,9 @@ function PlatformCatalogErrorScreen({ message, onRetry }: { message: string; onR
   return (
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6">
       <div className="max-w-md w-full rounded-2xl border border-emerald-500/30 bg-slate-950/80 p-8 text-center shadow-xl">
-        <p className="text-emerald-300 text-sm font-black uppercase tracking-wider">Données académiques indisponibles</p>
+        <p className="text-emerald-300 text-sm font-black uppercase tracking-wider">
+          Données académiques indisponibles
+        </p>
         <p className="mt-4 text-slate-300 text-sm leading-relaxed">{message}</p>
         <button
           type="button"

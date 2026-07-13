@@ -28,6 +28,7 @@ let refreshPromise: Promise<string | null> | null = null;
 let sessionExpiredNotified = false;
 let accessTokenMemory: string | null = null;
 let csrfTokenMemory: string | null = null;
+let refreshedSessionUserMemory: Record<string, unknown> | null = null;
 
 function buildApiErrorMessage(method: string, path: string, status: number, payload: any, fallback: string) {
   return payload?.error || payload?.message || fallback;
@@ -90,6 +91,7 @@ function notifySessionExpired() {
 function clearSessionTokens() {
   accessTokenMemory = null;
   csrfTokenMemory = null;
+  refreshedSessionUserMemory = null;
   purgeLegacyTokenStorage();
 }
 
@@ -112,6 +114,11 @@ async function performSessionRefresh(): Promise<string | null> {
     const payload = await res.json();
     if (!payload?.token) throw new Error("Refresh token response missing access token");
     accessTokenMemory = payload.token;
+    const sessionUser = { ...payload };
+    delete sessionUser.token;
+    delete sessionUser.csrfToken;
+    delete sessionUser.refreshToken;
+    refreshedSessionUserMemory = typeof sessionUser.id === "string" ? sessionUser : null;
     if (payload.csrfToken) csrfTokenMemory = payload.csrfToken;
     const cookieCsrf = readCsrfFromCookie();
     if (cookieCsrf) csrfTokenMemory = cookieCsrf;
@@ -147,6 +154,12 @@ function isAccessTokenFresh(token: string): boolean {
 export async function getFreshSessionToken(): Promise<string | null> {
   if (accessTokenMemory && isAccessTokenFresh(accessTokenMemory)) return accessTokenMemory;
   return refreshSessionToken();
+}
+
+export function takeRefreshedSessionUser<T>(): T | null {
+  const user = refreshedSessionUserMemory as T | null;
+  refreshedSessionUserMemory = null;
+  return user;
 }
 
 export function getStoredRefreshToken(): string | null {

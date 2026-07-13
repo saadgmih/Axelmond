@@ -113,6 +113,16 @@ export function AuthenticatedPlatformLayout() {
           tabIndex={-1}
           className={`flex-1 relative bg-slate-950 outline-none min-h-0 ${ui.lockMainScroll ? "overflow-hidden" : "overflow-y-auto"}`}
         >
+          {catalog.isLoading && (
+            <div
+              role="status"
+              aria-label="Synchronisation des données académiques"
+              className="pointer-events-none absolute inset-x-0 top-0 z-50 h-1 overflow-hidden bg-emerald-950/60"
+            >
+              <div className="h-full w-full origin-left animate-pulse bg-emerald-400" />
+              <span className="sr-only">Synchronisation des données académiques...</span>
+            </div>
+          )}
           {INSTITUTIONAL_VIEWS.has(currentView) ? (
             <InstitutionalViewSwitch
               currentView={currentView}
@@ -171,7 +181,9 @@ export function AuthenticatedPlatformLayout() {
               <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
             </span>
             <span className="min-w-0">
-              <span className="block text-[10px] font-black uppercase tracking-widest text-emerald-300">Live actif</span>
+              <span className="block text-[10px] font-black uppercase tracking-widest text-emerald-300">
+                Live actif
+              </span>
               <span className="block text-xs font-bold truncate">{live.activeLiveCourse.title}</span>
             </span>
           </button>

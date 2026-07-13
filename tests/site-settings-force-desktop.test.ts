@@ -39,7 +39,9 @@ rulesTest("site-settings-force-desktop", () => {
 
   assert.match(appSource, /api\s*\.\s*getSiteSettings\(\)/);
   assert.match(appSource, /applyForceDesktopMode\(settings\.forceDesktopMode\)/);
-  assert.match(appSource, /const sessionIsLoading = !isSiteSettingsReady \|\| \(Boolean\(currentUser\) && isLoading\)/);
+  assert.match(appSource, /const sessionIsLoading = !isAuthReady/);
+  assert.doesNotMatch(appSource, /sessionIsLoading = [^;]*isSiteSettingsReady/);
+  assert.doesNotMatch(appSource, /sessionIsLoading = [^;]*&& isLoading/);
   assert.match(appSource, /isLoading:\s*sessionIsLoading/);
 
   assert.match(dashboardHookSource, /handleUpdateForceDesktopMode/);

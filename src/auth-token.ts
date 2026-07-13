@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import jwt from "jsonwebtoken";
 import { UserRole, normalizeRole } from "./rbac";
 import { prisma } from "./db";
-import { hashRefreshToken } from "./security-hardening";
+import { hashCsrfToken, hashRefreshToken } from "./security-hardening";
 import { APP_USER_BILLING_INCLUDE } from "./course-payments";
 
 const DEFAULT_AUTH_TOKEN_SECRET = "axelmond-dev-secret";
@@ -138,9 +138,10 @@ export async function revokeAllUserRefreshTokens(userId: string) {
   ]);
 }
 
-export async function rotateRefreshToken(id: string, userId: string) {
+export async function rotateRefreshToken(id: string, userId: string, csrfToken?: string) {
   const token = crypto.randomBytes(40).toString("hex");
   const expiresAt = new Date();
+  let authTokenVersion = 0;
   expiresAt.setDate(expiresAt.getDate() + 7);
 
   await prisma.$transaction(async (tx) => {
@@ -153,16 +154,19 @@ export async function rotateRefreshToken(id: string, userId: string) {
       data: {
         userId,
         token: hashRefreshToken(token),
+        csrfTokenHash: csrfToken ? hashCsrfToken(csrfToken) : null,
         expiresAt,
       },
     });
-    await tx.user.update({
+    const user = await tx.user.update({
       where: { id: userId },
       data: { authTokenVersion: { increment: 1 } },
+      select: { authTokenVersion: true },
     });
+    authTokenVersion = user.authTokenVersion;
   });
 
-  return token;
+  return { token, authTokenVersion };
 }
 
 if (process.env.NODE_ENV === "production") {

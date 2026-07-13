@@ -54,33 +54,28 @@ export function registerSessionRoutes(app: Express, ctx: RouteContext): void {
       return;
     }
 
-    const newRefreshToken = await api.rotateRefreshToken(storedToken.id, safeUser.id).catch(() => null);
+    const csrfToken = api.generateCsrfToken();
+    const rotation = await api.rotateRefreshToken(storedToken.id, safeUser.id, csrfToken).catch(() => null);
 
-    if (!newRefreshToken) {
+    if (!rotation) {
       res.status(401).json({ error: api.PUBLIC_API_ERRORS.refreshTokenReused });
 
       return;
     }
 
-    const freshUser = await api.prisma.user.findUnique({
-      where: { id: safeUser.id },
-      select: { authTokenVersion: true },
-    });
-
     const token = api.signAuthToken({
       id: safeUser.id,
       role: safeUser.role,
-      authTokenVersion: freshUser?.authTokenVersion,
+      authTokenVersion: rotation.authTokenVersion,
     });
 
-    const csrfToken = api.setAuthCookies(res, newRefreshToken);
-
-    await api.persistCsrfTokenForRefreshSession(newRefreshToken, csrfToken);
+    const newRefreshToken = rotation.token;
+    api.setAuthCookies(res, newRefreshToken, csrfToken);
     api.invalidateAuthUserCache(safeUser.id);
 
     api.logSecurity("INFO", "Session token refreshed", { userId: safeUser.id, role: safeUser.role });
 
-    res.json(api.withMobileRefreshToken(req, { token, csrfToken }, newRefreshToken));
+    res.json(api.withMobileRefreshToken(req, { ...safeUser, token, csrfToken }, newRefreshToken));
   });
 
   // POST /api/auth/logout

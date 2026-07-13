@@ -196,7 +196,12 @@ export { PUBLIC_API_ERRORS, LIVE_ACCESS_ERRORS, toPushSubscribeClientResponse } 
 export { apiErrorStatus, apiErrorMessage } from "./api-errors";
 export { sanitizeAcademicProfileInput, sanitizeAvatarUrl, isAvatarUrlFieldInvalid } from "../academic-profile";
 export { isAllowedAvatarUrl } from "../avatar-security";
-export { setAuthCookies, clearAuthCookies, persistCsrfTokenForRefreshSession } from "../auth-cookies";
+export {
+  generateCsrfToken,
+  setAuthCookies,
+  clearAuthCookies,
+  persistCsrfTokenForRefreshSession,
+} from "../auth-cookies";
 export {
   withMobileRefreshToken,
   isMobileClientRequest,

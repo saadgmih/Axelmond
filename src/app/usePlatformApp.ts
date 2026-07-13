@@ -51,7 +51,6 @@ export function usePlatformApp() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [domains, setDomains] = useState<FacultyDomain[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSiteSettingsReady, setIsSiteSettingsReady] = useState(false);
 
   const {
     currentUser,
@@ -118,9 +117,6 @@ export function usePlatformApp() {
       .catch((err) => {
         console.warn("[site-settings] Failed to load display settings", err);
         if (!disposed) applyForceDesktopMode(false);
-      })
-      .finally(() => {
-        if (!disposed) setIsSiteSettingsReady(true);
       });
 
     return () => {
@@ -455,7 +451,15 @@ export function usePlatformApp() {
         };
       }
     },
-    [courses, activeLiveCourse?.id, liveCourseId, setActiveLiveCourse, setSelectedCourse, setTeacherView, liveKitRoomRef],
+    [
+      courses,
+      activeLiveCourse?.id,
+      liveCourseId,
+      setActiveLiveCourse,
+      setSelectedCourse,
+      setTeacherView,
+      liveKitRoomRef,
+    ],
   );
 
   onSessionExpiredRef.current = disconnectLiveSession;
@@ -519,7 +523,7 @@ export function usePlatformApp() {
     ],
   );
 
-  const sessionIsLoading = !isSiteSettingsReady || (Boolean(currentUser) && isLoading);
+  const sessionIsLoading = !isAuthReady;
 
   const session = useMemo(
     () => ({
@@ -566,6 +570,7 @@ export function usePlatformApp() {
 
   const catalog = useMemo(
     () => ({
+      isLoading,
       courses,
       setCourses,
       domains,
@@ -583,6 +588,7 @@ export function usePlatformApp() {
       getInitials,
     }),
     [
+      isLoading,
       courses,
       setCourses,
       domains,

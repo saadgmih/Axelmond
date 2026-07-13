@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type Dispatch, type SetStateAction } from "react";
-import { api, getFreshSessionToken, setSessionToken } from "../api";
+import { api, getFreshSessionToken, setSessionToken, takeRefreshedSessionUser } from "../api";
 import type { AppUser } from "../components/AuthScreen";
 import { getAllowedUiRole, isStudentRole } from "../rbac";
 import { purgeLegacySessionUserStorage } from "../session-storage";
@@ -122,6 +122,11 @@ export function useAppSession({ setCourses, onAfterLogin, onLogout, onSessionExp
       .then((token) => {
         if (!token) {
           setIsAuthReady(true);
+          return;
+        }
+        const refreshedUser = takeRefreshedSessionUser<AppUser>();
+        if (refreshedUser) {
+          applySessionUser(refreshedUser);
           return;
         }
         return api

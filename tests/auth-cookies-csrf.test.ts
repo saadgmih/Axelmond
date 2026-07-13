@@ -31,7 +31,7 @@ rulesTest("auth-cookies-csrf", async () => {
   assert.match(bootstrapSource, /cookieParser\(\)/);
   assert.match(bootstrapSource, /csrfProtection/);
   assert.match(serverSource, /api\.setAuthCookies\(res,\s*refreshToken\)/);
-  assert.match(serverSource, /api\.setAuthCookies\(res,\s*newRefreshToken\)/);
+  assert.match(serverSource, /api\.setAuthCookies\(res,\s*newRefreshToken,\s*csrfToken\)/);
   assert.match(serverSource, /api\.clearAuthCookies\(res\)/);
   assert.match(bootstrapSource, /readRefreshTokenFromRequest\(req\)/);
   assert.match(serverSource, /csrfToken/);

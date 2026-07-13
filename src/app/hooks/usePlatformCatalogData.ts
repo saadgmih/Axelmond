@@ -138,10 +138,7 @@ export function usePlatformCatalogData(
           }
         }
 
-        const [coursesResult, domainsResult] = await Promise.allSettled([
-          api.getCourses({ fresh: true }),
-          api.getDomains({ fresh: true }),
-        ]);
+        const [coursesResult, domainsResult] = await Promise.allSettled([api.getCourses(), api.getDomains()]);
         if (!request.isActive()) return;
 
         const courseData = coursesResult.status === "fulfilled" ? coursesResult.value : null;
@@ -158,9 +155,7 @@ export function usePlatformCatalogData(
 
         if (domainData && !courseData) {
           lastError =
-            coursesResult.status === "rejected"
-              ? coursesResult.reason
-              : new Error("Catalogue des modules incomplet");
+            coursesResult.status === "rejected" ? coursesResult.reason : new Error("Catalogue des modules incomplet");
         } else {
           lastError =
             coursesResult.status === "rejected"
@@ -318,14 +313,7 @@ export function usePlatformCatalogData(
         : sourceCourses;
 
     return filterCatalogCoursesBySearch(scopedCourses, searchQuery);
-  }, [
-    disciplineCoursesById,
-    courses,
-    searchQuery,
-    selectedDisciplineId,
-    selectedDomainId,
-    selectedDiscipline?.name,
-  ]);
+  }, [disciplineCoursesById, courses, searchQuery, selectedDisciplineId, selectedDomainId, selectedDiscipline?.name]);
 
   const catalogHasData = courses.length > 0 || domains.length > 0;
 

@@ -46,7 +46,7 @@ rulesTest("student-catalog-discipline-sync", () => {
   assert.match(catalogHookSource, /mergeCatalogCourseRows/);
   assert.match(catalogHookSource, /resolveCatalogSourceCourses/);
   assert.match(catalogHookSource, /filterCatalogCoursesBySearch/);
-  assert.match(catalogHookSource, /api\.getCourses\(\{ fresh: true \}\)/);
+  assert.match(catalogHookSource, /Promise\.allSettled\(\[api\.getCourses\(\), api\.getDomains\(\)\]\)/);
   assert.match(catalogHookSource, /api\.getDomains\(\{ fresh: true \}\)/);
   assert.match(coursesRoutesSource, /Student catalog mapping degraded/);
   assert.match(studentCatalogSource, /disciplineLoadError/);
@@ -73,11 +73,19 @@ rulesTest("student-catalog-discipline-sync", () => {
 
   assert.equal(courseMatchesSelectedDiscipline(makeCourse(1), 601, "Programmation"), true);
   assert.equal(
-    courseMatchesSelectedDiscipline(makeCourse(2, { disciplineId: 999, category: "Programmation" }), 601, "Programmation"),
+    courseMatchesSelectedDiscipline(
+      makeCourse(2, { disciplineId: 999, category: "Programmation" }),
+      601,
+      "Programmation",
+    ),
     true,
   );
   assert.equal(
-    courseMatchesSelectedDiscipline(makeCourse(4, { disciplineId: 999, category: "Bases de Données" }), 601, "Programmation"),
+    courseMatchesSelectedDiscipline(
+      makeCourse(4, { disciplineId: 999, category: "Bases de Données" }),
+      601,
+      "Programmation",
+    ),
     false,
   );
   assert.equal(
@@ -102,20 +110,17 @@ rulesTest("student-catalog-discipline-sync", () => {
     [9],
   );
   assert.deepEqual(
-    resolveCatalogSourceCourses(601, { 601: [disciplineCourse] }, [globalCourse, disciplineCourse], "Programmation").map(
-      (course) => course.id,
-    ),
+    resolveCatalogSourceCourses(
+      601,
+      { 601: [disciplineCourse] },
+      [globalCourse, disciplineCourse],
+      "Programmation",
+    ).map((course) => course.id),
     [8, 9],
   );
 
-  assert.equal(
-    filterCatalogCoursesBySearch([makeCourse(1, { title: "Algorithmique avancée" })], "algo").length,
-    1,
-  );
-  assert.equal(
-    filterCatalogCoursesBySearch([makeCourse(1, { discipline: undefined })], "").length,
-    1,
-  );
+  assert.equal(filterCatalogCoursesBySearch([makeCourse(1, { title: "Algorithmique avancée" })], "algo").length, 1);
+  assert.equal(filterCatalogCoursesBySearch([makeCourse(1, { discipline: undefined })], "").length, 1);
 
   assert.deepEqual(buildCatalogCourseVisibilityWhere({ role: "STUDENT", studentEnrolledIds: [] }), {
     published: true,

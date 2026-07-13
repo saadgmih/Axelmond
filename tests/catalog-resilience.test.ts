@@ -15,6 +15,8 @@ rulesTest("catalog-resilience", () => {
   assert.match(catalogHookSource, /CATALOG_RETRY_DELAYS_MS/);
   assert.match(catalogHookSource, /CATALOG_AUTO_RETRY_INTERVAL_MS/);
   assert.match(catalogHookSource, /catalogHasData/);
+  assert.match(catalogHookSource, /api\.getCourses\(\)/);
+  assert.match(catalogHookSource, /api\.getDomains\(\)/);
 
   assert.match(appRootSource, /catalogError && !session\.catalogHasData/);
   assert.doesNotMatch(appRootSource, /catalogError\)[\s\S]*?LazyAuthScreen/);

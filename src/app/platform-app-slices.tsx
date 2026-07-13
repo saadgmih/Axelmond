@@ -25,6 +25,7 @@ export type PlatformSessionSlice = Pick<
 
 export type PlatformCatalogSlice = Pick<
   PlatformAppState["catalog"],
+  | "isLoading"
   | "courses"
   | "setCourses"
   | "domains"

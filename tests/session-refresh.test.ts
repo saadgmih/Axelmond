@@ -21,6 +21,7 @@ rulesTest("session-refresh", () => {
   assert.match(apiSource, /res\.status === 401/);
   assert.match(apiSource, /axelmond:session-expired/);
   assert.match(apiSource, /getFreshSessionToken/);
+  assert.match(apiSource, /takeRefreshedSessionUser/);
   assert.match(apiSource, /credentials:\s*"include"/);
   assert.match(apiSource, /accessTokenMemory/);
   assert.match(apiSource, /purgeLegacyTokenStorage/);
@@ -32,6 +33,7 @@ rulesTest("session-refresh", () => {
   assert.match(sessionSource, /setSessionToken\(token,\s*csrfToken\)/);
   assert.match(sessionSource, /axelmond:session-expired/);
   assert.match(sessionSource, /getFreshSessionToken/);
+  assert.match(appSessionSource, /takeRefreshedSessionUser<AppUser>\(\)/);
   assert.match(sessionSource, /handleLogout/);
   assert.match(appSessionSource, /syncedUser\s*=\s*await api\.me\(\)/);
   assert.match(appSessionSource, /applySessionUser\(syncedUser\)[\s\S]*?api\.getCourses\(\)/);
@@ -41,8 +43,10 @@ rulesTest("session-refresh", () => {
   assert.match(routeDepsSource, /forceRefresh: req\.method === "GET" && req\.path === "\/api\/auth\/me"/);
 
   assert.match(serverSource, /api\.createRefreshToken\(safeUser\.id\)/);
-  assert.match(serverSource, /api\.rotateRefreshToken\(storedToken\.id,\s*safeUser\.id\)/);
-  assert.match(serverSource, /api\.setAuthCookies\(res,\s*newRefreshToken\)/);
+  assert.match(serverSource, /api\.rotateRefreshToken\(storedToken\.id,\s*safeUser\.id,\s*csrfToken\)/);
+  assert.match(serverSource, /authTokenVersion:\s*rotation\.authTokenVersion/);
+  assert.match(serverSource, /api\.setAuthCookies\(res,\s*newRefreshToken,\s*csrfToken\)/);
+  assert.match(serverSource, /\{ \.\.\.safeUser, token, csrfToken \}/);
   assert.match(serverSource, /api\.clearAuthCookies\(res\)/);
   assert.doesNotMatch(serverSource, /refreshToken:\s*newRefreshToken/);
 });
