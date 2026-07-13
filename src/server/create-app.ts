@@ -32,6 +32,7 @@ import { parseTrustProxySetting, rateLimitIpKey } from "../client-ip";
 import { isDatabaseDisconnected } from "../db";
 import { shutdownGuardMiddleware } from "./shutdown-coordination";
 import { startupLifecycle } from "./startup-lifecycle";
+import { resolveUploadThingCallbackUrl } from "../uploadthing-callback-url";
 
 export type AxelmondApp = {
   app: express.Express;
@@ -126,9 +127,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
   const isProduction = process.env.NODE_ENV === "production";
   const AUTH_RATE_LIMIT_MAX = 10;
   const AUTH_RATE_LIMIT_WINDOW_MS = 30_000;
-  const uploadThingCallbackUrl =
-    process.env.UPLOADTHING_CALLBACK_URL ||
-    (process.env.APP_URL ? `${process.env.APP_URL}/api/uploadthing` : undefined);
+  const uploadThingCallbackUrl = resolveUploadThingCallbackUrl(process.env);
   const isUploadThingDevMode =
     process.env.UPLOADTHING_IS_DEV === "true" ||
     process.env.NODE_ENV !== "production" ||
@@ -355,7 +354,9 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
 
   const uploadRateLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: isSecurityRuntimeTest ? Number(process.env.UPLOAD_RATE_LIMIT_MAX) || 9999 : Number(process.env.UPLOAD_RATE_LIMIT_MAX) || 30,
+    max: isSecurityRuntimeTest
+      ? Number(process.env.UPLOAD_RATE_LIMIT_MAX) || 9999
+      : Number(process.env.UPLOAD_RATE_LIMIT_MAX) || 30,
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: "Trop d'envois de fichiers. Veuillez patienter 15 minutes.", code: "UPLOAD_RATE_LIMIT_EXCEEDED" },

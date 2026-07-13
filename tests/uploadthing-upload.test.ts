@@ -11,6 +11,7 @@ rulesTest("uploadthing-upload", () => {
   const appSource = readAppSources();
   const supportSource = readFileSync("src/components/SupportTicketForm.tsx", "utf-8");
   const uploadthingSource = readFileSync("src/uploadthing.ts", "utf-8");
+  const callbackSource = readFileSync("src/uploadthing-callback-url.ts", "utf-8");
 
   assert.match(clientSource, /uploadthingApiUrl/);
   assert.match(clientSource, /genUploader<OurFileRouter>\(\{\s*url:\s*uploadthingApiUrl\s*\}\)/);
@@ -20,6 +21,8 @@ rulesTest("uploadthing-upload", () => {
   assert.match(clientSource, /getUploadErrorMessage/);
 
   assert.match(serverSource, /isDev:\s*isUploadThingDevMode/);
+  assert.match(serverSource, /resolveUploadThingCallbackUrl\(process\.env\)/);
+  assert.match(callbackSource, /NODE_ENV === "production"/);
   assert.match(serverSource, /logLevel:\s*process\.env\.LOG_LEVEL === "debug" \? "Debug" : "Info"/);
 
   const uploadRateLimitIndex = serverSource.indexOf('app.use("/api/uploadthing", uploadRateLimiter)');

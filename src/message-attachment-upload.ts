@@ -58,6 +58,11 @@ export async function uploadMessageAttachmentFile(
   const url = getUploadedFileUrl(entry) || (typeof meta?.url === "string" ? meta.url : "");
 
   if (!url || !kind || !storageKey) {
+    if (url && (!kind || !storageKey)) {
+      throw new Error(
+        "Le fichier a été transféré, mais le serveur n'a pas confirmé l'envoi. Réessayez dans quelques instants.",
+      );
+    }
     const entryError = getUploadEntryErrorMessage(entry);
     throw new Error(getUploadErrorMessage(entryError || entry));
   }
