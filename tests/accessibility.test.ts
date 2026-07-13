@@ -47,9 +47,10 @@ rulesTest("accessibility", () => {
   assert.match(cssSource, /prefers-reduced-motion/);
   assert.match(cssSource, /\.a11y-reduce-motion/);
   assert.match(appRootSource, /data-testid="session-refresh-spinner"/);
-  assert.match(cssSource, /@keyframes session-refresh-spin/);
-  assert.match(cssSource, /\.a11y-reduce-motion \.session-refresh-spinner/);
-  assert.match(cssSource, /animation:\s*session-refresh-spin 1\.2s linear infinite !important/);
+  assert.match(appRootSource, /<animateTransform/);
+  assert.match(appRootSource, /repeatCount="indefinite"/);
+  assert.match(appRootSource, /from="0 12 12"/);
+  assert.match(appRootSource, /to="360 12 12"/);
   assert.match(cssSource, /focus-visible/);
   assert.match(cssSource, /--scroll-thumb/);
   assert.match(cssSource, /scrollbar-color:\s*var\(--scroll-thumb\)/);
