@@ -8,6 +8,7 @@ rulesTest("message-attachment-send", () => {
   const audioSource = fs.readFileSync("src/hooks/useMessageAudioRecorder.ts", "utf8");
   const audioPlayerSource = fs.readFileSync("src/components/messaging/MessageAudioPlayer.tsx", "utf8");
   const videoAttachmentSource = fs.readFileSync("src/components/messaging/MessageVideoAttachment.tsx", "utf8");
+  const attachmentUtilsSource = fs.readFileSync("src/message-attachment-utils.ts", "utf8");
 
   assert.match(messagesSource, /storageKey: attachment\.storageKey/);
   assert.match(messagesSource, /uploadMessageAttachmentFile/);
@@ -25,6 +26,9 @@ rulesTest("message-attachment-send", () => {
   assert.match(audioPlayerSource, /rounded-full/);
   assert.match(uploadSource, /normalizeMessageUploadFile/);
   assert.match(uploadSource, /message-attachment-utils/);
+  assert.match(messagesSource, /MESSAGE_ATTACHMENT_ACCEPT/);
+  assert.match(attachmentUtilsSource, /audio\/3gpp/);
+  assert.match(attachmentUtilsSource, /audio\/x-caf/);
   assert.doesNotMatch(uploadSource, /from "\.\/messaging"/);
   assert.match(audioSource, /recorder\.start\(250\)/);
 });

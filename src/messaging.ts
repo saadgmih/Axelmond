@@ -6,12 +6,16 @@ import {
 import { cacheDel, cacheGet, cacheSet } from "./cache";
 import {
   detectMessageAttachmentKind,
+  MESSAGE_AUDIO_MIME_TYPES,
+  MESSAGE_DOCUMENT_MIME_TYPES,
+  MESSAGE_VIDEO_MIME_TYPES,
+  normalizeMessageAttachmentMimeType,
   normalizeMessageMimeType,
   type MessageAttachmentKind,
 } from "./message-attachment-utils";
 
 export { buildDirectConversationKey };
-export { detectMessageAttachmentKind, normalizeMessageMimeType };
+export { detectMessageAttachmentKind, normalizeMessageAttachmentMimeType, normalizeMessageMimeType };
 import { isStudentRole, isTeacherSpaceRole, type UserRole } from "./rbac";
 
 export const MESSAGE_BODY_MAX = 4000;
@@ -29,13 +33,9 @@ export const MESSAGE_ATTACHMENT_LIMITS = {
 
 const ALLOWED_MIME_BY_KIND: Record<string, string[]> = {
   IMAGE: ["image/jpeg", "image/png", "image/webp"],
-  VIDEO: ["video/mp4", "video/webm"],
-  AUDIO: ["audio/mpeg", "audio/wav", "audio/webm", "audio/mp3", "audio/x-wav", "audio/mp4", "audio/x-m4a", "audio/ogg", "video/webm"],
-  DOCUMENT: [
-    "application/pdf",
-    "application/msword",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  ],
+  VIDEO: [...MESSAGE_VIDEO_MIME_TYPES],
+  AUDIO: [...MESSAGE_AUDIO_MIME_TYPES],
+  DOCUMENT: [...MESSAGE_DOCUMENT_MIME_TYPES],
 };
 
 const ALLOWED_ATTACHMENT_HOSTS = ["uploadthing.com", "ufs.sh", "utfs.io"] as const;
@@ -113,7 +113,7 @@ export async function consumeMessageAttachmentUpload(storageKey: string): Promis
 export function validateMessageAttachmentInput(input: MessageAttachmentInput): string | null {
   const kind = input.kind;
   const allowed = ALLOWED_MIME_BY_KIND[kind] || [];
-  const mime = normalizeMessageMimeType(input.mimeType);
+  const mime = normalizeMessageAttachmentMimeType(input.mimeType, input.fileName);
   if (!allowed.includes(mime)) return "Type de fichier non autorisé";
   if (!input.url || !isAllowedAttachmentUrl(String(input.url))) return "URL de pièce jointe invalide";
   if (!input.fileName?.trim()) return "Nom de fichier requis";

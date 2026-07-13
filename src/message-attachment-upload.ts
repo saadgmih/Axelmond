@@ -1,5 +1,5 @@
 import { getFreshSessionToken } from "./api";
-import { normalizeMessageMimeType } from "./message-attachment-utils";
+import { normalizeMessageAttachmentMimeType } from "./message-attachment-utils";
 import { bindUploadProgress, getUploadedFileUrl, getUploadErrorMessage, uploadFiles } from "./uploadthing-client";
 import type { MessageAttachment } from "./types/messaging";
 
@@ -10,35 +10,13 @@ export type OutgoingMessageAttachment = Pick<
   storageKey: string;
 };
 
-const MESSAGE_MIME_BY_EXTENSION: Record<string, string> = {
-  jpg: "image/jpeg",
-  jpeg: "image/jpeg",
-  png: "image/png",
-  webp: "image/webp",
-  mp4: "video/mp4",
-  webm: "video/webm",
-  weba: "audio/webm",
-  mp3: "audio/mpeg",
-  wav: "audio/wav",
-  ogg: "audio/ogg",
-  m4a: "audio/mp4",
-  pdf: "application/pdf",
-  doc: "application/msword",
-  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-};
-
 export function normalizeMessageUploadFile(file: File): File {
-  const normalizedType = normalizeMessageMimeType(file.type);
+  const normalizedType = normalizeMessageAttachmentMimeType(file.type, file.name);
   if (normalizedType) {
     if (normalizedType === file.type) return file;
     return new File([file], file.name, { type: normalizedType, lastModified: file.lastModified });
   }
-
-  const ext = file.name.split(".").pop()?.toLowerCase() || "";
-  const inferredType = MESSAGE_MIME_BY_EXTENSION[ext];
-  if (!inferredType) return file;
-
-  return new File([file], file.name, { type: inferredType, lastModified: file.lastModified });
+  return file;
 }
 
 function getUploadEntryErrorMessage(entry: unknown): string {
@@ -88,8 +66,9 @@ export async function uploadMessageAttachmentFile(
     kind: kind as OutgoingMessageAttachment["kind"],
     fileName: (typeof meta?.fileName === "string" && meta.fileName) || normalizedFile.name,
     mimeType:
-      (typeof meta?.mimeType === "string" && normalizeMessageMimeType(meta.mimeType)) ||
-      normalizeMessageMimeType(normalizedFile.type),
+      (typeof meta?.mimeType === "string" &&
+        normalizeMessageAttachmentMimeType(meta.mimeType, String(meta?.fileName || normalizedFile.name))) ||
+      normalizeMessageAttachmentMimeType(normalizedFile.type, normalizedFile.name),
     sizeBytes: (typeof meta?.sizeBytes === "number" && meta.sizeBytes) || normalizedFile.size,
     url,
     storageKey,

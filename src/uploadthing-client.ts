@@ -1,5 +1,12 @@
 import { genUploader } from "uploadthing/client";
 import { isAllowedRasterImageMime, isAllowedRasterImageUpload } from "./avatar-security";
+import {
+  detectMessageAttachmentKind,
+  MESSAGE_AUDIO_MIME_TYPES,
+  MESSAGE_DOCUMENT_MIME_TYPES,
+  MESSAGE_VIDEO_MIME_TYPES,
+  normalizeMessageAttachmentMimeType,
+} from "./message-attachment-utils";
 import type { OurFileRouter } from "./uploadthing";
 
 const viteEnv = (import.meta as any).env as { VITE_API_BASE_URL?: string };
@@ -84,32 +91,27 @@ export function validateUploadFile(
 ): string {
   const sizeMb = file.size / (1024 * 1024);
   if (type === "MESSAGE") {
-    const allowed = [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-      "video/mp4",
-      "video/webm",
-      "audio/mpeg",
-      "audio/wav",
-      "audio/webm",
-      "audio/mp4",
-      "audio/ogg",
-      "audio/x-m4a",
-      "application/pdf",
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ];
-    const normalizedType = file.type.toLowerCase().split(";")[0].trim();
-    if (!allowed.includes(normalizedType)) return "Type de fichier non autorisé pour la messagerie.";
-    if (isAllowedRasterImageMime(normalizedType) && !isAllowedRasterImageUpload(file.name, normalizedType)) {
+    const normalizedType = normalizeMessageAttachmentMimeType(file.type, file.name);
+    const kind = detectMessageAttachmentKind(normalizedType, file.name);
+    const isAllowed =
+      kind === "IMAGE"
+        ? isAllowedRasterImageMime(normalizedType)
+        : kind === "VIDEO"
+          ? MESSAGE_VIDEO_MIME_TYPES.includes(normalizedType as (typeof MESSAGE_VIDEO_MIME_TYPES)[number])
+          : kind === "AUDIO"
+            ? MESSAGE_AUDIO_MIME_TYPES.includes(normalizedType as (typeof MESSAGE_AUDIO_MIME_TYPES)[number])
+            : kind === "DOCUMENT"
+              ? MESSAGE_DOCUMENT_MIME_TYPES.includes(normalizedType as (typeof MESSAGE_DOCUMENT_MIME_TYPES)[number])
+              : false;
+
+    if (!isAllowed) return "Type de fichier non autorisé pour la messagerie.";
+    if (kind === "IMAGE" && !isAllowedRasterImageUpload(file.name, normalizedType)) {
       return "Seules les images JPEG, PNG ou WebP sont autorisées.";
     }
-    if (isAllowedRasterImageMime(normalizedType) && sizeMb > 8) return "L'image ne doit pas dépasser 8 Mo.";
-    if (normalizedType.startsWith("video/") && sizeMb > 64) return "La vidéo ne doit pas dépasser 64 Mo.";
-    if (normalizedType.startsWith("audio/") && sizeMb > 16) return "L'audio ne doit pas dépasser 16 Mo.";
-    if ((normalizedType === "application/pdf" || normalizedType.includes("word")) && sizeMb > 16)
-      return "Le document ne doit pas dépasser 16 Mo.";
+    if (kind === "IMAGE" && sizeMb > 8) return "L'image ne doit pas dépasser 8 Mo.";
+    if (kind === "VIDEO" && sizeMb > 64) return "La vidéo ne doit pas dépasser 64 Mo.";
+    if (kind === "AUDIO" && sizeMb > 16) return "L'audio ne doit pas dépasser 16 Mo.";
+    if (kind === "DOCUMENT" && sizeMb > 16) return "Le document ne doit pas dépasser 16 Mo.";
     return "";
   }
   if (type === "PDF" && file.type !== "application/pdf") return "Sélectionnez un fichier PDF valide.";

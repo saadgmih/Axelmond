@@ -11,7 +11,7 @@ import { completeLiveReplayUpload } from "./server/live-replay-service";
 import {
   detectMessageAttachmentKind,
   isConversationParticipant,
-  normalizeMessageMimeType,
+  normalizeMessageAttachmentMimeType,
   validateMessageAttachmentInput,
   registerMessageAttachmentUpload,
   type MessageAttachmentInput,
@@ -393,7 +393,8 @@ export const uploadRouter = {
     })
     .onUploadComplete(async ({ metadata, file }) => {
       const fileUrl = getFileUrl(file);
-      const kind = detectMessageAttachmentKind(file.type || null, file.name);
+      const normalizedMimeType = normalizeMessageAttachmentMimeType(file.type || "", file.name);
+      const kind = detectMessageAttachmentKind(normalizedMimeType || file.type || null, file.name);
       if (
         isDangerousFile(file.name) ||
         !kind ||
@@ -406,7 +407,7 @@ export const uploadRouter = {
       const attachment: MessageAttachmentInput = {
         kind,
         fileName: file.name,
-        mimeType: normalizeMessageMimeType(file.type || "") || "application/octet-stream",
+        mimeType: normalizedMimeType || "application/octet-stream",
         sizeBytes: file.size,
         url: fileUrl,
         storageKey: file.key,
@@ -427,7 +428,7 @@ export const uploadRouter = {
       return {
         kind,
         fileName: file.name,
-        mimeType: file.type || "",
+        mimeType: normalizedMimeType,
         sizeBytes: file.size,
         url: fileUrl,
         storageKey: file.key,

@@ -23,7 +23,12 @@ import {
   formatUploadProgressLabel,
   uploadProgressBarWidth,
 } from "../../uploadthing-client";
-import { uploadMessageAttachmentFile, normalizeMessageUploadFile, type OutgoingMessageAttachment } from "../../message-attachment-upload";
+import {
+  uploadMessageAttachmentFile,
+  normalizeMessageUploadFile,
+  type OutgoingMessageAttachment,
+} from "../../message-attachment-upload";
+import { MESSAGE_ATTACHMENT_ACCEPT } from "../../message-attachment-utils";
 import { useMessageAudioRecorder } from "../../hooks/useMessageAudioRecorder";
 import { MessageAudioPlayer } from "../../components/messaging/MessageAudioPlayer";
 import { MessageVideoAttachment } from "../../components/messaging/MessageVideoAttachment";
@@ -215,7 +220,9 @@ const MessageBubble = memo(function MessageBubble({
       >
         {message.body && <p className="whitespace-pre-wrap text-sm">{message.body}</p>}
         {renderAttachment(message, role, mine)}
-        <div className={`mt-2 flex items-center gap-1.5 text-[10px] ${mine ? "text-emerald-100/80" : "text-slate-500"}`}>
+        <div
+          className={`mt-2 flex items-center gap-1.5 text-[10px] ${mine ? "text-emerald-100/80" : "text-slate-500"}`}
+        >
           <span>{message.sentAtLabel}</span>
           {mine &&
             (message.seenByOthers ? (
@@ -703,7 +710,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
                     type="file"
                     className="hidden"
                     onChange={handleFilePick}
-                    accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,audio/mpeg,audio/wav,audio/webm,audio/mp4,audio/ogg,application/pdf,.doc,.docx"
+                    accept={MESSAGE_ATTACHMENT_ACCEPT}
                   />
                   <button
                     type="button"
