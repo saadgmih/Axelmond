@@ -56,12 +56,12 @@ function PlatformLoadingScreen() {
           </path>
         </svg>
         <div className="relative h-28 w-28 overflow-hidden rounded-[1.7rem] border border-emerald-200/25 bg-[#042c25] p-1.5 shadow-[0_14px_45px_rgba(0,0,0,0.48),0_0_24px_rgba(52,211,153,0.16)]">
-          <img src="/performance-logo-e6657b8a.png" alt="" className="h-full w-full rounded-[1.35rem] object-cover" />
+          <img
+            src="/performance-logo-e6657b8a.png"
+            alt=""
+            className="h-full w-full translate-y-2 rounded-[1.35rem] object-cover"
+          />
         </div>
-        <span
-          aria-hidden="true"
-          className="absolute right-[0.55rem] top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full border-2 border-[#011713] bg-emerald-300 shadow-[0_0_16px_rgba(110,231,183,0.95)]"
-        />
       </div>
     </div>
   );

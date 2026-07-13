@@ -55,6 +55,7 @@ rulesTest("accessibility", () => {
   assert.match(appRootSource, /performance-logo-e6657b8a\.png/);
   assert.doesNotMatch(appRootSource, /L’excellence est en mouvement/);
   assert.doesNotMatch(appRootSource, /Session sécurisée/);
+  assert.doesNotMatch(appRootSource, /right-\[0\.55rem\]/);
   assert.doesNotMatch(appRootSource, /animate-pulse/);
   assert.match(cssSource, /focus-visible/);
   assert.match(cssSource, /--scroll-thumb/);
