@@ -14,6 +14,8 @@ export function detectMessageAttachmentKind(
   mimeType: string | null | undefined,
   fileName = "",
 ): MessageAttachmentKind | null {
+  if (fileName.includes("message-vocal")) return "AUDIO";
+
   const mime = normalizeMessageMimeType(mimeType || "");
   if (isAllowedRasterImageMime(mime)) return "IMAGE";
   if (mime.startsWith("video/")) return "VIDEO";
@@ -28,8 +30,7 @@ export function detectMessageAttachmentKind(
 
   const ext = fileName.split(".").pop()?.toLowerCase() || "";
   if (["jpg", "jpeg", "png", "webp"].includes(ext)) return "IMAGE";
-  if (fileName.includes("message-vocal") || ["mp3", "wav", "ogg", "m4a", "weba"].includes(ext)) return "AUDIO";
-  if (ext === "webm" && fileName.includes("message-vocal")) return "AUDIO";
+  if (["mp3", "wav", "ogg", "m4a", "weba"].includes(ext)) return "AUDIO";
   if (["mp4", "mov", "webm"].includes(ext)) return "VIDEO";
   if (ext === "pdf" || ext === "doc" || ext === "docx") return "DOCUMENT";
   return null;

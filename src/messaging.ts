@@ -30,7 +30,7 @@ export const MESSAGE_ATTACHMENT_LIMITS = {
 const ALLOWED_MIME_BY_KIND: Record<string, string[]> = {
   IMAGE: ["image/jpeg", "image/png", "image/webp"],
   VIDEO: ["video/mp4", "video/webm"],
-  AUDIO: ["audio/mpeg", "audio/wav", "audio/webm", "audio/mp3", "audio/x-wav", "audio/mp4", "audio/x-m4a", "audio/ogg"],
+  AUDIO: ["audio/mpeg", "audio/wav", "audio/webm", "audio/mp3", "audio/x-wav", "audio/mp4", "audio/x-m4a", "audio/ogg", "video/webm"],
   DOCUMENT: [
     "application/pdf",
     "application/msword",
