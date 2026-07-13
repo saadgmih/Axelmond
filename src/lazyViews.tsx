@@ -2,11 +2,8 @@ import { lazy, type ReactNode } from "react";
 
 export function RouteChunkFallback({ label }: { label: string }): ReactNode {
   return (
-    <div className="flex min-h-[12rem] items-center justify-center p-8 text-center text-slate-400">
-      <div className="flex flex-col items-center gap-3">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
-        <p className="text-sm font-semibold">{label}</p>
-      </div>
+    <div className="sr-only" role="status" aria-live="polite">
+      {label}
     </div>
   );
 }

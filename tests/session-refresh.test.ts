@@ -13,6 +13,7 @@ rulesTest("session-refresh", () => {
   const authCacheSource = readFileSync("src/server/auth-user-cache.ts", "utf8");
   const appRootSource = readFileSync("src/app/PlatformAppRoot.tsx", "utf8");
   const platformAppSource = readFileSync("src/app/usePlatformApp.ts", "utf8");
+  const initialViewPreloadSource = readFileSync("src/app/hooks/useInitialViewPreload.ts", "utf8");
   const studentRoutesSource = readFileSync("src/app/StudentRouteSwitch.tsx", "utf8");
   const routeDepsSource = readFileSync("src/server/route-deps.ts", "utf8");
   const sessionSource = appSource + appSessionSource;
@@ -41,11 +42,14 @@ rulesTest("session-refresh", () => {
   assert.match(appSessionSource, /syncedUser\s*=\s*await api\.me\(\)/);
   assert.match(appSessionSource, /applySessionUser\(syncedUser\)[\s\S]*?api\.getCourses\(\)/);
   assert.match(appRootSource, /isInitialAuthenticatedDataLoading/);
-  assert.match(appRootSource, /catalog\.isLoading \|\| session\.isLoginDataLoading \|\| session\.isEnrolledCatalogSyncing/);
+  assert.match(appRootSource, /session\.isInitialViewLoading/);
   assert.match(appRootSource, /hasRenderedAuthenticatedApp/);
-  assert.match(platformAppSource, /prefetchStudentView\(currentView\)/);
-  assert.match(platformAppSource, /prefetchTeacherView\(teacherView\)/);
-  assert.match(studentRoutesSource, /currentView === "dashboard"[\s\S]*?<Suspense fallback=\{null\}>/);
+  assert.match(platformAppSource, /useInitialViewPreload\(currentUser, currentView, teacherView\)/);
+  assert.match(initialViewPreloadSource, /prefetchStudentView\(currentView\)/);
+  assert.match(initialViewPreloadSource, /prefetchTeacherView\(teacherView\)/);
+  assert.match(initialViewPreloadSource, /prefetchInstitutionalView\(currentView\)/);
+  assert.match(initialViewPreloadSource, /prefetchTeacherWorkspace\(\)/);
+  assert.match(studentRoutesSource, /currentView === "dashboard"[\s\S]*?<RouteChunkFallback/);
   assert.match(appSessionSource, /normalizeEnrolledCourseIds/);
   assert.match(authSessionSource, /invalidateAuthUserCache\(userId\)/);
   assert.match(authCacheSource, /options\?: \{ forceRefresh\?: boolean \}/);

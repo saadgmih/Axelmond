@@ -21,6 +21,7 @@ export type PlatformSessionSlice = Pick<
   | "openNotificationsView"
   | "isLoginDataLoading"
   | "isEnrolledCatalogSyncing"
+  | "isInitialViewLoading"
 >;
 
 export type PlatformCatalogSlice = Pick<

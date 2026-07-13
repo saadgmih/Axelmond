@@ -69,12 +69,31 @@ const TEACHER_VIEW_CHUNKS: Record<string, () => Promise<unknown>> = {
   notifications: () => import("../views/shared/NotificationsView"),
 };
 
-export function prefetchStudentView(view: string) {
+const INSTITUTIONAL_VIEW_CHUNKS: Record<string, () => Promise<unknown>> = {
+  about: () => import("../components/AboutView"),
+  contact: () => import("../components/ContactView"),
+  support: () => import("../components/SupportView"),
+  privacy: () => import("../components/PrivacyView"),
+  terms: () => import("../components/TermsView"),
+  cookies: () => import("../components/CookiesView"),
+  legal: () => import("../components/LegalView"),
+};
+
+export function prefetchStudentView(view: string): Promise<unknown> {
   const loader = STUDENT_VIEW_CHUNKS[view];
-  if (loader) void prefetchOnce(`chunk:student:${view}`, loader);
+  return loader ? prefetchOnce(`chunk:student:${view}`, loader) : Promise.resolve(undefined);
 }
 
-export function prefetchTeacherView(view: string) {
+export function prefetchTeacherView(view: string): Promise<unknown> {
   const loader = TEACHER_VIEW_CHUNKS[view];
-  if (loader) void prefetchOnce(`chunk:teacher:${view}`, loader);
+  return loader ? prefetchOnce(`chunk:teacher:${view}`, loader) : Promise.resolve(undefined);
+}
+
+export function prefetchTeacherWorkspace(): Promise<unknown> {
+  return prefetchOnce("chunk:teacher:workspace", () => import("../views/teacher/TeacherWorkspace"));
+}
+
+export function prefetchInstitutionalView(view: string): Promise<unknown> {
+  const loader = INSTITUTIONAL_VIEW_CHUNKS[view];
+  return loader ? prefetchOnce(`chunk:institutional:${view}`, loader) : Promise.resolve(undefined);
 }

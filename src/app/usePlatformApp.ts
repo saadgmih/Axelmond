@@ -6,7 +6,6 @@ import { useNotifications } from "../hooks/useNotifications";
 import { usePushNotifications } from "../hooks/usePushNotifications";
 import { useMessagingSocket } from "../hooks/useMessagingSocket";
 import { scrollAppToTopDeferred } from "../utils/scroll-app-to-top";
-import { prefetchStudentView, prefetchTeacherView } from "../utils/prefetch";
 import { findLiveCourse, resolveLiveCourseId } from "../utils/live-course-selection";
 import { applyForceDesktopMode } from "../utils/force-desktop-mode";
 import { useCourseContent } from "../hooks/useCourseContent";
@@ -25,6 +24,7 @@ import { usePlatformKeyboardShortcuts } from "./hooks/usePlatformKeyboardShortcu
 import { usePlatformNotificationHandlers } from "./hooks/usePlatformNotificationHandlers";
 import { usePlatformTeacherWorkspace } from "./hooks/usePlatformTeacherWorkspace";
 import { useSidebarLayout } from "../hooks/useSidebarLayout";
+import { useInitialViewPreload } from "./hooks/useInitialViewPreload";
 
 function readInitialSidebarCollapsed() {
   if (typeof window === "undefined") return false;
@@ -101,15 +101,7 @@ export function usePlatformApp() {
     courses,
     setCourses,
   );
-
-  useEffect(() => {
-    if (!currentUser) return;
-    if (isStudentRole(currentUser.role)) {
-      prefetchStudentView(currentView);
-      return;
-    }
-    prefetchTeacherView(teacherView);
-  }, [currentUser?.id, currentUser?.role, currentView, teacherView]);
+  const isInitialViewLoading = useInitialViewPreload(currentUser, currentView, teacherView);
 
   useEffect(() => {
     document.documentElement.classList.add("dark");
@@ -555,6 +547,7 @@ export function usePlatformApp() {
       openNotificationsView,
       isLoginDataLoading,
       isEnrolledCatalogSyncing,
+      isInitialViewLoading,
     }),
     [
       currentUser,
@@ -575,6 +568,7 @@ export function usePlatformApp() {
       openNotificationsView,
       isLoginDataLoading,
       isEnrolledCatalogSyncing,
+      isInitialViewLoading,
     ],
   );
 

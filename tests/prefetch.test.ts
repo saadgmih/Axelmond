@@ -1,5 +1,11 @@
 import assert from "node:assert/strict";
-import { prefetchOnce, prefetchStudentView } from "../src/utils/prefetch.ts";
+import {
+  prefetchInstitutionalView,
+  prefetchOnce,
+  prefetchStudentView,
+  prefetchTeacherView,
+  prefetchTeacherWorkspace,
+} from "../src/utils/prefetch.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("prefetch", () => {
@@ -17,5 +23,8 @@ rulesTest("prefetch", () => {
     prefetchStudentView("dashboard");
     prefetchStudentView("dashboard");
     prefetchStudentView("unknown-view");
+    prefetchTeacherView("dashboard");
+    prefetchTeacherWorkspace();
+    prefetchInstitutionalView("privacy");
   });
 });

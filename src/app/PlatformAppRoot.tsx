@@ -102,7 +102,10 @@ export function PlatformAppRoot() {
   const isInitialAuthenticatedDataLoading = Boolean(
     session.currentUser &&
       !hasRenderedAuthenticatedApp.current &&
-      (catalog.isLoading || session.isLoginDataLoading || session.isEnrolledCatalogSyncing),
+      (catalog.isLoading ||
+        session.isLoginDataLoading ||
+        session.isEnrolledCatalogSyncing ||
+        session.isInitialViewLoading),
   );
 
   if (session.isLoading || !session.isAuthReady || isInitialAuthenticatedDataLoading) {
