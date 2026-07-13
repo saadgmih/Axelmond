@@ -12,6 +12,7 @@ rulesTest("accessibility", () => {
   const chatSource = fs.readFileSync("src/components/AITutorChat.tsx", "utf8");
   const sidebarSource = fs.readFileSync("src/components/Sidebar.tsx", "utf8");
   const cssSource = fs.readFileSync("src/index.css", "utf8");
+  const appRootSource = fs.readFileSync("src/app/PlatformAppRoot.tsx", "utf8");
   const mainSource = fs.readFileSync("src/main.tsx", "utf8");
   const packageSource = fs.readFileSync("package.json", "utf8");
 
@@ -45,6 +46,10 @@ rulesTest("accessibility", () => {
   assert.match(cssSource, /\.a11y-high-contrast/);
   assert.match(cssSource, /prefers-reduced-motion/);
   assert.match(cssSource, /\.a11y-reduce-motion/);
+  assert.match(appRootSource, /data-testid="session-refresh-spinner"/);
+  assert.match(cssSource, /@keyframes session-refresh-spin/);
+  assert.match(cssSource, /\.a11y-reduce-motion \.session-refresh-spinner/);
+  assert.match(cssSource, /animation:\s*session-refresh-spin 1\.2s linear infinite !important/);
   assert.match(cssSource, /focus-visible/);
   assert.match(cssSource, /--scroll-thumb/);
   assert.match(cssSource, /scrollbar-color:\s*var\(--scroll-thumb\)/);

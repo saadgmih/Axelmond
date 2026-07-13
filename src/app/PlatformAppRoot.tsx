@@ -44,7 +44,11 @@ function PlatformLoadingScreen() {
         </main>
         <div className="fixed inset-x-0 bottom-8 flex justify-center px-4">
           <div className="flex items-center gap-3 rounded-full border border-emerald-700/30 bg-slate-950/90 px-5 py-3 shadow-xl">
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent" />
+            <div
+              className="session-refresh-spinner h-5 w-5 rounded-full border-2 border-emerald-400 border-t-transparent"
+              data-testid="session-refresh-spinner"
+              aria-hidden="true"
+            />
             <span className="text-sm font-semibold text-emerald-200">Restauration de votre session...</span>
           </div>
         </div>
