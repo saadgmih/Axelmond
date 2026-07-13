@@ -40,6 +40,7 @@ rulesTest("messaging-ownership", () => {
   assert.equal(canAccessApiRoute("PROFESSOR", "POST", "/api/conversations"), true);
   assert.equal(canAccessApiRoute("STUDENT", "GET", "/api/conversations/abc/messages"), true);
   assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/conversations/abc/read"), true);
+  assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/conversations/abc/attachments/confirm"), true);
   assert.equal(canAccessApiRoute("STUDENT", "DELETE", "/api/conversations/abc/messages/msg-1"), true);
   assert.equal(canAccessApiRoute("STUDENT", "GET", "/api/notifications/unread-count"), true);
   assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/notifications/push-subscribe"), true);

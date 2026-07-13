@@ -281,6 +281,9 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
   if ((verb === "GET" || verb === "POST") && /^\/api\/conversations\/[^/]+\/(messages|read)$/.test(cleanPath)) {
     return true;
   }
+  if (verb === "POST" && /^\/api\/conversations\/[^/]+\/attachments\/confirm$/.test(cleanPath)) {
+    return true;
+  }
   if (verb === "DELETE" && /^\/api\/conversations\/[^/]+\/messages\/[^/]+$/.test(cleanPath)) {
     return true;
   }

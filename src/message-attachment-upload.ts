@@ -1,4 +1,4 @@
-import { getFreshSessionToken } from "./api";
+import { api, getFreshSessionToken } from "./api";
 import { normalizeMessageAttachmentMimeType } from "./message-attachment-utils";
 import { bindUploadProgress, getUploadedFileUrl, getUploadErrorMessage, uploadFiles } from "./uploadthing-client";
 import type { MessageAttachment } from "./types/messaging";
@@ -32,6 +32,19 @@ function getUploadEntryErrorMessage(entry: unknown): string {
   return "";
 }
 
+function getUploadedFileKey(entry: unknown): string {
+  if (!entry || typeof entry !== "object") return "";
+  const record = entry as Record<string, unknown>;
+  for (const value of [
+    record.key,
+    record.fileKey,
+    (record.serverData as Record<string, unknown> | undefined)?.storageKey,
+  ]) {
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return "";
+}
+
 export async function uploadMessageAttachmentFile(
   file: File,
   conversationId: string,
@@ -53,15 +66,28 @@ export async function uploadMessageAttachmentFile(
 
   const entry = uploaded[0];
   const meta = entry?.serverData;
-  const storageKey = typeof meta?.storageKey === "string" ? meta.storageKey.trim() : "";
-  const kind = meta?.kind;
+  let storageKey = typeof meta?.storageKey === "string" ? meta.storageKey.trim() : "";
+  let kind = meta?.kind;
   const url = getUploadedFileUrl(entry) || (typeof meta?.url === "string" ? meta.url : "");
 
   if (!url || !kind || !storageKey) {
-    if (url && (!kind || !storageKey)) {
-      throw new Error(
-        "Le fichier a été transféré, mais le serveur n'a pas confirmé l'envoi. Réessayez dans quelques instants.",
-      );
+    storageKey ||= getUploadedFileKey(entry);
+    if (url && storageKey) {
+      const confirmed = await api.confirmConversationAttachment(conversationId, {
+        storageKey,
+        fileName: normalizedFile.name,
+        mimeType: normalizedFile.type,
+        sizeBytes: normalizedFile.size,
+      });
+      kind = confirmed.kind;
+      return {
+        kind,
+        fileName: confirmed.fileName,
+        mimeType: confirmed.mimeType,
+        sizeBytes: confirmed.sizeBytes,
+        url: confirmed.url,
+        storageKey: confirmed.storageKey,
+      };
     }
     const entryError = getUploadEntryErrorMessage(entry);
     throw new Error(getUploadErrorMessage(entryError || entry));

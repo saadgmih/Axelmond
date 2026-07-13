@@ -1,5 +1,5 @@
 import { createUploadthing, type FileRouter } from "uploadthing/express";
-import { UploadThingError, UTApi } from "uploadthing/server";
+import { UploadThingError } from "uploadthing/server";
 import { z } from "zod";
 import { prisma } from "./db";
 import { syncPublishedLessonModules } from "./course-curriculum-sync";
@@ -16,9 +16,10 @@ import {
   registerMessageAttachmentUpload,
   type MessageAttachmentInput,
 } from "./messaging";
+import { utapi } from "./uploadthing-api";
 
 const f = createUploadthing();
-export const utapi = new UTApi();
+export { utapi };
 
 const uploadInput = z.object({
   courseId: z.number().int().positive(),

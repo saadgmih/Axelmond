@@ -592,6 +592,10 @@ export const api = {
     request<any[]>("GET", `/api/conversations/${conversationId}/messages`),
   sendConversationMessage: (conversationId: string, data: { body?: string; attachment?: unknown }) =>
     request<any>("POST", `/api/conversations/${conversationId}/messages`, data),
+  confirmConversationAttachment: (
+    conversationId: string,
+    data: { storageKey: string; fileName: string; mimeType: string; sizeBytes: number },
+  ) => request<any>("POST", `/api/conversations/${conversationId}/attachments/confirm`, data),
   deleteConversationMessage: (conversationId: string, messageId: string) =>
     request<{ ok: true; messageId: string; conversationId: string }>(
       "DELETE",

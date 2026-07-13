@@ -16,6 +16,7 @@ import {
   validateMessageAttachmentInput,
   verifyMessageAttachmentOwnership,
   consumeMessageAttachmentUpload,
+  registerMessageAttachmentUpload,
   type MessageAttachmentInput,
 } from "../messaging";
 import { findOrCreateDirectConversation } from "../direct-conversations";
@@ -36,6 +37,10 @@ import {
 } from "../notifications";
 import { toPushSubscribeClientResponse } from "../public-api-errors";
 import { canDeleteOwnMessage } from "../message-delete-policy";
+import {
+  MessageAttachmentConfirmationError,
+  resolveConfirmedMessageAttachment,
+} from "../message-attachment-confirmation";
 
 type AuthUser = { id: string; email: string; fullName: string; role: string };
 
@@ -58,6 +63,13 @@ const sendMessageSchema = z.object({
     })
     .optional()
     .nullable(),
+});
+
+const confirmAttachmentSchema = z.object({
+  storageKey: z.string().min(1).max(512),
+  fileName: z.string().min(1).max(200),
+  mimeType: z.string().min(1).max(120),
+  sizeBytes: z.number().int().positive(),
 });
 
 const pushSubscribeSchema = z.object({
@@ -264,6 +276,48 @@ export function registerMessagingRoutes(
   });
 
   app.post(
+    "/api/conversations/:id/attachments/confirm",
+    middleware.requireAuth,
+    middleware.requireRbac,
+    middleware.validateBody(confirmAttachmentSchema),
+    async (req, res) => {
+      const authUser = getAuthUser(req) as AuthUser;
+      const conversationId = String(req.params.id);
+      if (!(await isConversationParticipant(conversationId, authUser.id))) {
+        res.status(403).json({ error: "Accès refusé à cette conversation" });
+        return;
+      }
+
+      const storageKey = String(req.body.storageKey).trim();
+      const alreadyUsed = await prisma.messageAttachment.findFirst({
+        where: { storageKey },
+        select: { id: true },
+      });
+      if (alreadyUsed) {
+        res.status(409).json({ error: "Ce fichier a déjà été envoyé" });
+        return;
+      }
+
+      try {
+        const attachment = await resolveConfirmedMessageAttachment({
+          storageKey,
+          fileName: String(req.body.fileName),
+          mimeType: String(req.body.mimeType),
+          sizeBytes: Number(req.body.sizeBytes),
+        });
+        await registerMessageAttachmentUpload({ storageKey, userId: authUser.id, conversationId });
+        res.json(attachment);
+      } catch (error) {
+        if (error instanceof MessageAttachmentConfirmationError) {
+          res.status(error.statusCode).json({ error: error.message });
+          return;
+        }
+        throw error;
+      }
+    },
+  );
+
+  app.post(
     "/api/conversations/:id/messages",
     middleware.requireAuth,
     middleware.requireRbac,
@@ -286,6 +340,15 @@ export function registerMessagingRoutes(
         const attachmentError = validateMessageAttachmentInput(attachment);
         if (attachmentError) {
           res.status(400).json({ error: attachmentError });
+          return;
+        }
+        const attachmentStorageKey = String(attachment.storageKey).trim();
+        const existingAttachment = await prisma.messageAttachment.findFirst({
+          where: { storageKey: attachmentStorageKey },
+          select: { id: true },
+        });
+        if (existingAttachment) {
+          res.status(409).json({ error: "Ce fichier a déjà été envoyé" });
           return;
         }
         const ownershipError = await verifyMessageAttachmentOwnership(authUser.id, conversationId, attachment);
