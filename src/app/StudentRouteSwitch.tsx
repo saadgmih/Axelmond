@@ -54,7 +54,7 @@ export function StudentRouteSwitch() {
   return (
     <>
       {currentView === "dashboard" && (
-        <Suspense fallback={<RouteChunkFallback label="Chargement du tableau de bord…" />}>
+        <Suspense fallback={null}>
           <LazyStudentDashboardView
             currentUser={currentUser}
             navigateTo={navigateTo}

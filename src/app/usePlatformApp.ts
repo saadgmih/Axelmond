@@ -6,6 +6,7 @@ import { useNotifications } from "../hooks/useNotifications";
 import { usePushNotifications } from "../hooks/usePushNotifications";
 import { useMessagingSocket } from "../hooks/useMessagingSocket";
 import { scrollAppToTopDeferred } from "../utils/scroll-app-to-top";
+import { prefetchStudentView, prefetchTeacherView } from "../utils/prefetch";
 import { findLiveCourse, resolveLiveCourseId } from "../utils/live-course-selection";
 import { applyForceDesktopMode } from "../utils/force-desktop-mode";
 import { useCourseContent } from "../hooks/useCourseContent";
@@ -100,6 +101,15 @@ export function usePlatformApp() {
     courses,
     setCourses,
   );
+
+  useEffect(() => {
+    if (!currentUser) return;
+    if (isStudentRole(currentUser.role)) {
+      prefetchStudentView(currentView);
+      return;
+    }
+    prefetchTeacherView(teacherView);
+  }, [currentUser?.id, currentUser?.role, currentView, teacherView]);
 
   useEffect(() => {
     document.documentElement.classList.add("dark");

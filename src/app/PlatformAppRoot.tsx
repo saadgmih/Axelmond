@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, useRef } from "react";
 
 import { LazyAuthScreen } from "../lazyViews";
 
@@ -98,8 +98,14 @@ function PlatformCatalogErrorScreen({ message, onRetry }: { message: string; onR
 
 export function PlatformAppRoot() {
   const { session, catalog, navigation, live, bindings, ui, notifications } = usePlatformApp();
+  const hasRenderedAuthenticatedApp = useRef(false);
+  const isInitialAuthenticatedDataLoading = Boolean(
+    session.currentUser &&
+      !hasRenderedAuthenticatedApp.current &&
+      (catalog.isLoading || session.isLoginDataLoading || session.isEnrolledCatalogSyncing),
+  );
 
-  if (session.isLoading || !session.isAuthReady) {
+  if (session.isLoading || !session.isAuthReady || isInitialAuthenticatedDataLoading) {
     return <PlatformLoadingScreen />;
   }
 
@@ -114,6 +120,8 @@ export function PlatformAppRoot() {
   if (session.catalogError && !session.catalogHasData) {
     return <PlatformCatalogErrorScreen message={session.catalogError} onRetry={session.retryCatalogLoad} />;
   }
+
+  hasRenderedAuthenticatedApp.current = true;
 
   return (
     <PlatformNotificationProvider value={notifications}>

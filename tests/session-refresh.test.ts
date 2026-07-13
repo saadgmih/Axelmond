@@ -11,6 +11,9 @@ rulesTest("session-refresh", () => {
   const appSessionSource = readFileSync("src/hooks/useAppSession.ts", "utf8");
   const authSessionSource = readFileSync("src/auth-session.ts", "utf8");
   const authCacheSource = readFileSync("src/server/auth-user-cache.ts", "utf8");
+  const appRootSource = readFileSync("src/app/PlatformAppRoot.tsx", "utf8");
+  const platformAppSource = readFileSync("src/app/usePlatformApp.ts", "utf8");
+  const studentRoutesSource = readFileSync("src/app/StudentRouteSwitch.tsx", "utf8");
   const routeDepsSource = readFileSync("src/server/route-deps.ts", "utf8");
   const sessionSource = appSource + appSessionSource;
   const _bootstrapSource = readServerBootstrapSources();
@@ -37,6 +40,12 @@ rulesTest("session-refresh", () => {
   assert.match(sessionSource, /handleLogout/);
   assert.match(appSessionSource, /syncedUser\s*=\s*await api\.me\(\)/);
   assert.match(appSessionSource, /applySessionUser\(syncedUser\)[\s\S]*?api\.getCourses\(\)/);
+  assert.match(appRootSource, /isInitialAuthenticatedDataLoading/);
+  assert.match(appRootSource, /catalog\.isLoading \|\| session\.isLoginDataLoading \|\| session\.isEnrolledCatalogSyncing/);
+  assert.match(appRootSource, /hasRenderedAuthenticatedApp/);
+  assert.match(platformAppSource, /prefetchStudentView\(currentView\)/);
+  assert.match(platformAppSource, /prefetchTeacherView\(teacherView\)/);
+  assert.match(studentRoutesSource, /currentView === "dashboard"[\s\S]*?<Suspense fallback=\{null\}>/);
   assert.match(appSessionSource, /normalizeEnrolledCourseIds/);
   assert.match(authSessionSource, /invalidateAuthUserCache\(userId\)/);
   assert.match(authCacheSource, /options\?: \{ forceRefresh\?: boolean \}/);
