@@ -63,8 +63,8 @@ function PlatformLoadingScreen() {
                   type="rotate"
                   from="0 12 12"
                   to="360 12 12"
-                  dur="0.7s"
-                  repeatCount="indefinite"
+                  dur="0.45s"
+                  repeatCount="1"
                 />
               </path>
             </svg>

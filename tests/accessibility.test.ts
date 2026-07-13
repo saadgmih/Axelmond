@@ -48,7 +48,8 @@ rulesTest("accessibility", () => {
   assert.match(cssSource, /\.a11y-reduce-motion/);
   assert.match(appRootSource, /data-testid="session-refresh-spinner"/);
   assert.match(appRootSource, /<animateTransform/);
-  assert.match(appRootSource, /repeatCount="indefinite"/);
+  assert.match(appRootSource, /dur="0\.45s"/);
+  assert.match(appRootSource, /repeatCount="1"/);
   assert.match(appRootSource, /from="0 12 12"/);
   assert.match(appRootSource, /to="360 12 12"/);
   assert.match(cssSource, /focus-visible/);
