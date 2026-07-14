@@ -82,6 +82,10 @@ export default function StudentCourseView({
   const enrollment = selectedCourse.enrollment;
 
   const contentProgress = useMemo(() => getCourseContentProgress(selectedCourse.modules), [selectedCourse.modules]);
+  const answeredQuizCount = quizQuestions ? Math.min(Object.keys(quizAnswers).length, quizQuestions.length) : 0;
+  const quizCompletionPercentage = quizQuestions?.length
+    ? Math.round((answeredQuizCount / quizQuestions.length) * 100)
+    : 0;
 
   const [timeRemaining, setTimeRemaining] = useState<number | null>(() => {
     if (!enrollment) return null;
@@ -694,7 +698,7 @@ export default function StudentCourseView({
                           </div>
                           <div className="rounded-xl bg-slate-950/70 px-3 py-2">
                             <p className="text-[9px] font-black uppercase text-slate-400">Répondues</p>
-                            <p className="mt-1 text-lg font-black text-teal-200">{Object.keys(quizAnswers).length}</p>
+                            <p className="mt-1 text-lg font-black text-teal-200">{answeredQuizCount}</p>
                           </div>
                         </div>
                       </div>
@@ -708,47 +712,51 @@ export default function StudentCourseView({
                     </div>
 
                     {selectedModule.completed && (
-                      <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="flex flex-col justify-between gap-4 rounded-2xl border border-emerald-300/20 bg-emerald-400/[0.08] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:flex-row sm:items-center">
                         <div className="space-y-1">
-                          <h4 className="font-extrabold text-sm text-emerald-800 flex items-center gap-2">
-                            <CheckCircle className="w-4 h-4 text-emerald-600" />
+                          <h4 className="flex items-center gap-2 text-sm font-extrabold text-emerald-100">
+                            <CheckCircle className="h-4 w-4 text-emerald-300" />
                             Quiz validé dans votre progression
                           </h4>
-                          <p className="text-xs text-emerald-700">
+                          <p className="text-xs text-emerald-100/65">
                             Cette évaluation est comptabilisée dans votre avancement actuel.
                           </p>
                         </div>
                         <button
                           type="button"
                           onClick={() => markModuleCompleted(selectedModule.id, false)}
-                          className="bg-white hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer"
+                          className="cursor-pointer rounded-xl border border-emerald-300/20 bg-emerald-300/10 px-5 py-2.5 text-xs font-bold text-emerald-100 transition-colors hover:border-emerald-300/40 hover:bg-emerald-300/15"
                         >
                           Annuler terminé
                         </button>
                       </div>
                     )}
 
-                    <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:p-8">
+                    <div
+                      data-testid="student-quiz-panel"
+                      className="rounded-[2rem] border border-emerald-200/10 bg-[#041b17]/90 p-3 shadow-[0_24px_70px_-38px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.035)] sm:p-5 lg:p-6"
+                    >
                       {/* Render questions list */}
-                      {quizQuestions ? (
-                        <div className="space-y-5">
+                      {quizQuestions && quizQuestions.length > 0 ? (
+                        <div className="space-y-4 sm:space-y-5">
                           {quizQuestions.map((q, idx) => {
                             const isCorrect = quizAnswers[idx] === q.answer;
                             return (
                               <div
                                 key={idx}
-                                className="overflow-hidden rounded-3xl border border-slate-200 bg-slate-50/70 shadow-sm"
+                                data-testid="quiz-question-card"
+                                className="overflow-hidden rounded-[1.75rem] border border-white/[0.08] bg-[#08231e] shadow-[0_18px_48px_-32px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.035)]"
                               >
-                                <div className="border-b border-slate-200 bg-white px-4 py-4 sm:px-5">
-                                  <span className="mb-2 inline-flex rounded-full bg-teal-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-teal-700">
+                                <div className="border-b border-emerald-100/10 bg-[linear-gradient(135deg,rgba(52,211,153,0.08),transparent_58%)] px-4 py-5 sm:px-5 sm:py-6">
+                                  <span className="mb-3 inline-flex rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-200">
                                     Question {idx + 1}
                                   </span>
-                                  <div className="text-sm font-extrabold leading-relaxed text-slate-900 sm:text-base">
+                                  <div className="text-sm font-extrabold leading-relaxed text-emerald-50 sm:text-base">
                                     <LatexText value={q.question} />
                                   </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 gap-3 p-4 md:grid-cols-2 sm:p-5">
+                                <div className="grid grid-cols-1 gap-3 bg-[#061c18]/70 p-4 sm:p-5 lg:grid-cols-2">
                                   {q.options.map((option, oIdx) => {
                                     const isSelected = quizAnswers[idx] === option;
                                     return (
@@ -756,30 +764,31 @@ export default function StudentCourseView({
                                         key={oIdx}
                                         type="button"
                                         disabled={quizSubmitted}
+                                        aria-pressed={isSelected}
                                         onClick={() => handleQuizAnswerSelect(idx, option)}
-                                        className={`group flex min-h-[72px] w-full cursor-pointer items-start justify-between gap-3 rounded-2xl border p-3.5 text-left text-xs font-semibold transition-all ${
+                                        className={`group flex min-h-[76px] w-full cursor-pointer items-center justify-between gap-3 rounded-2xl border p-3.5 text-left text-xs font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#061c18] disabled:cursor-default ${
                                           isSelected
                                             ? quizSubmitted
                                               ? isCorrect
-                                                ? "border-emerald-300 bg-emerald-50 text-emerald-900"
-                                                : "border-red-300 bg-red-50 text-red-900"
-                                              : "border-emerald-700 bg-emerald-600 text-white shadow-sm"
+                                                ? "border-emerald-400/60 bg-emerald-400/[0.12] text-emerald-50 ring-1 ring-inset ring-emerald-400/20"
+                                                : "border-rose-400/60 bg-rose-400/[0.11] text-rose-50 ring-1 ring-inset ring-rose-400/20"
+                                              : "border-emerald-300/70 bg-emerald-300/[0.14] text-white shadow-[0_12px_28px_-18px_rgba(52,211,153,0.8)] ring-2 ring-emerald-300/20"
                                             : quizSubmitted && option === q.answer
-                                              ? "border-emerald-300 bg-emerald-50 text-emerald-900"
-                                              : "border-slate-200 bg-white text-slate-700 hover:border-emerald-200 hover:bg-emerald-50/70"
+                                              ? "border-emerald-400/50 bg-emerald-400/10 text-emerald-100 ring-1 ring-inset ring-emerald-400/15"
+                                              : "border-white/[0.08] bg-[#0a2a23] text-emerald-50/85 hover:-translate-y-0.5 hover:border-emerald-300/35 hover:bg-[#0d352c] hover:text-white hover:shadow-[0_14px_28px_-22px_rgba(52,211,153,0.7)]"
                                         }`}
                                       >
                                         <span
-                                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-[11px] font-black ${
+                                          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[11px] font-black transition-colors ${
                                             isSelected
                                               ? quizSubmitted
                                                 ? isCorrect
-                                                  ? "bg-emerald-600 text-white"
-                                                  : "bg-red-600 text-white"
-                                                : "bg-white/15 text-white"
+                                                  ? "bg-emerald-300 text-emerald-950"
+                                                  : "bg-rose-400 text-rose-950"
+                                                : "bg-emerald-200 text-emerald-950"
                                               : quizSubmitted && option === q.answer
-                                                ? "bg-emerald-600 text-white"
-                                                : "bg-slate-100 text-slate-500 group-hover:bg-emerald-100 group-hover:text-emerald-700"
+                                                ? "bg-emerald-300 text-emerald-950"
+                                                : "border border-white/[0.06] bg-white/[0.06] text-emerald-100/55 group-hover:bg-emerald-300/15 group-hover:text-emerald-200"
                                           }`}
                                         >
                                           {String.fromCharCode(65 + oIdx)}
@@ -790,13 +799,15 @@ export default function StudentCourseView({
                                         </span>
 
                                         {/* Status indicators */}
-                                        {isSelected &&
-                                          quizSubmitted &&
-                                          (isCorrect ? (
-                                            <CheckCircle className="h-4 w-4 shrink-0 text-emerald-600" />
-                                          ) : (
-                                            <X className="h-4 w-4 shrink-0 text-red-600" />
-                                          ))}
+                                        {quizSubmitted ? (
+                                          option === q.answer ? (
+                                            <CheckCircle className="h-4 w-4 shrink-0 text-emerald-300" />
+                                          ) : isSelected ? (
+                                            <X className="h-4 w-4 shrink-0 text-rose-300" />
+                                          ) : null
+                                        ) : isSelected ? (
+                                          <CheckCircle className="h-4 w-4 shrink-0 text-emerald-200" />
+                                        ) : null}
                                       </button>
                                     );
                                   })}
@@ -804,10 +815,10 @@ export default function StudentCourseView({
 
                                 {/* Explanation notes */}
                                 {quizSubmitted && (
-                                  <div className="mx-4 mb-4 flex gap-2 rounded-2xl border border-slate-200 bg-white p-3 text-xs leading-relaxed text-slate-600 sm:mx-5 sm:mb-5">
-                                    <Info className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                                  <div className="mx-4 mb-4 flex gap-2 rounded-2xl border border-emerald-200/10 bg-[#061c18] p-3.5 text-xs leading-relaxed text-emerald-50/65 sm:mx-5 sm:mb-5">
+                                    <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-300" />
                                     <div>
-                                      <strong className="text-slate-800 font-bold block mb-0.5">
+                                      <strong className="mb-0.5 block font-bold text-emerald-100">
                                         Explication académique :
                                       </strong>
                                       <LatexText value={q.explanation} compact />
@@ -819,28 +830,28 @@ export default function StudentCourseView({
                           })}
 
                           {quizSubmitError && (
-                            <div className="bg-red-50 border border-red-100 text-red-700 rounded-xl px-4 py-3 text-xs font-bold">
+                            <div className="rounded-xl border border-rose-400/25 bg-rose-400/10 px-4 py-3 text-xs font-bold text-rose-200">
                               {quizSubmitError}
                             </div>
                           )}
 
                           {/* Grading summary actions */}
-                          <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                          <div className="flex flex-col items-stretch justify-between gap-4 rounded-2xl border border-white/[0.08] bg-[#061c18]/90 p-4 sm:flex-row sm:items-center">
                             {quizSubmitted ? (
                               <>
                                 <div className="flex items-center gap-3">
                                   <div
-                                    className={`w-12 h-12 rounded-full flex items-center justify-center font-black font-mono text-lg shadow-inner ${
+                                    className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border font-mono text-lg font-black ${
                                       quizScore === quizQuestions!.length
-                                        ? "bg-emerald-100 text-emerald-700"
-                                        : "bg-emerald-100 text-emerald-700"
+                                        ? "border-emerald-300/30 bg-emerald-300/15 text-emerald-200"
+                                        : "border-teal-300/25 bg-teal-300/10 text-teal-200"
                                     }`}
                                   >
                                     {quizScore}/{quizQuestions!.length}
                                   </div>
                                   <div>
-                                    <h4 className="text-sm font-bold text-slate-800 leading-tight">Note acquise</h4>
-                                    <p className="text-xs text-slate-500">
+                                    <h4 className="text-sm font-bold leading-tight text-emerald-50">Note acquise</h4>
+                                    <p className="mt-1 text-xs text-emerald-50/55">
                                       {quizScore === quizQuestions!.length
                                         ? "Félicitations ! Félicité et validé par le conseil."
                                         : "Réessayez pour obtenir le score parfait."}
@@ -851,21 +862,32 @@ export default function StudentCourseView({
                                 <button
                                   type="button"
                                   onClick={resetQuiz}
-                                  className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-colors cursor-pointer"
+                                  className="cursor-pointer rounded-xl border border-white/10 bg-white/[0.06] px-5 py-2.5 text-xs font-bold text-emerald-50 transition-colors hover:border-emerald-300/25 hover:bg-emerald-300/10"
                                 >
                                   Recommencer l'évaluation
                                 </button>
                               </>
                             ) : (
                               <>
-                                <p className="text-xs text-slate-400 font-semibold">
-                                  {Object.keys(quizAnswers).length} sur {quizQuestions!.length} résolues.
-                                </p>
+                                <div className="min-w-0 flex-1 sm:max-w-sm">
+                                  <div className="mb-2 flex items-center justify-between gap-3 text-xs font-semibold">
+                                    <span className="text-emerald-50/60">Progression du quiz</span>
+                                    <span className="text-emerald-200">
+                                      {answeredQuizCount} / {quizQuestions.length}
+                                    </span>
+                                  </div>
+                                  <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.08]">
+                                    <div
+                                      className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-300 transition-[width] duration-300"
+                                      style={{ width: `${quizCompletionPercentage}%` }}
+                                    />
+                                  </div>
+                                </div>
                                 <button
                                   type="button"
                                   onClick={handleQuizSubmit}
-                                  disabled={Object.keys(quizAnswers).length < quizQuestions!.length}
-                                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-6 py-3 rounded-xl transition-all shadow-md shadow-emerald-100 disabled:opacity-50 disabled:shadow-none cursor-pointer"
+                                  disabled={answeredQuizCount < quizQuestions.length}
+                                  className="cursor-pointer rounded-xl border border-emerald-300/20 bg-emerald-500 px-6 py-3 text-xs font-bold text-emerald-950 shadow-[0_14px_30px_-18px_rgba(52,211,153,0.9)] transition-all hover:bg-emerald-400 disabled:cursor-not-allowed disabled:border-white/[0.06] disabled:bg-white/[0.06] disabled:text-emerald-50/30 disabled:shadow-none"
                                 >
                                   Soumettre mes réponses
                                 </button>
@@ -874,7 +896,9 @@ export default function StudentCourseView({
                           </div>
                         </div>
                       ) : (
-                        <p className="text-slate-400 text-xs">Aucun quiz n'est modélisé pour cette ressource.</p>
+                        <p className="px-2 py-4 text-xs text-emerald-50/50">
+                          Aucun quiz n'est modélisé pour cette ressource.
+                        </p>
                       )}
                     </div>
                   </div>
