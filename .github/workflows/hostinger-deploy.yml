@@ -18,7 +18,7 @@ concurrency:
 jobs:
   verify-production:
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
-    runs-on: windows-latest
+    runs-on: [self-hosted, Windows, X64]
 
     steps:
       - name: Verify production health

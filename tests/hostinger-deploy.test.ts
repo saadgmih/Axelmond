@@ -38,10 +38,9 @@ rulesTest("hostinger-deploy", () => {
   assert.match(legacyVpsDeploy, /deploy-hostinger\.sh is VPS-only/);
   assert.match(deployWorkflow, /group:\s*hostinger-production/);
   assert.match(deployWorkflow, /cancel-in-progress:\s*false/);
-  assert.match(ciWorkflow, /runs-on:\s*windows-latest/);
-  assert.match(deployWorkflow, /runs-on:\s*windows-latest/);
-  assert.doesNotMatch(ciWorkflow, /self-hosted/);
-  assert.doesNotMatch(deployWorkflow, /self-hosted/);
+  assert.match(ciWorkflow, /runs-on:\s*\[self-hosted, Windows, X64\]/);
+  assert.match(deployWorkflow, /runs-on:\s*\[self-hosted, Windows, X64\]/);
+  assert.doesNotMatch(ciWorkflow, /^\s*pull_request:/m);
   assert.match(deployWorkflow, /catalogMeta/);
   assert.match(deployWorkflow, /frontMeta/);
   assert.match(deployWorkflow, /Mozilla\/5\.0/);
