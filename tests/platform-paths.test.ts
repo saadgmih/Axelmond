@@ -1,10 +1,20 @@
 import assert from "node:assert/strict";
 
-import { parsePlatformPath } from "../src/navigation/platformPaths.ts";
+import { parsePlatformPath, resolveInitialPlatformRoute } from "../src/navigation/platformPaths.ts";
 
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("platform-paths", () => {
+  assert.deepEqual(resolveInitialPlatformRoute("/about"), {
+    currentView: "about",
+    teacherView: "dashboard",
+  });
+
+  assert.deepEqual(resolveInitialPlatformRoute("/teacher/academic-profile"), {
+    currentView: "dashboard",
+    teacherView: "academic-profile",
+  });
+
   assert.deepEqual(parsePlatformPath("/student/catalog"), {
     studentView: "catalog",
 

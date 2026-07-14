@@ -45,10 +45,12 @@ rulesTest("session-refresh", () => {
   assert.match(appRootSource, /session\.isInitialViewLoading/);
   assert.match(appRootSource, /hasRenderedAuthenticatedApp/);
   assert.match(platformAppSource, /useInitialViewPreload\(currentUser, currentView, teacherView\)/);
+  assert.match(platformAppSource, /resolveInitialPlatformRoute/);
   assert.match(initialViewPreloadSource, /prefetchStudentView\(currentView\)/);
   assert.match(initialViewPreloadSource, /prefetchTeacherView\(teacherView\)/);
   assert.match(initialViewPreloadSource, /prefetchInstitutionalView\(currentView\)/);
   assert.match(initialViewPreloadSource, /prefetchTeacherWorkspace\(\)/);
+  assert.match(initialViewPreloadSource, /INITIAL_VIEW_PRELOAD_TIMEOUT_MS/);
   assert.match(studentRoutesSource, /currentView === "dashboard"[\s\S]*?<RouteChunkFallback/);
   assert.match(appSessionSource, /normalizeEnrolledCourseIds/);
   assert.match(authSessionSource, /invalidateAuthUserCache\(userId\)/);

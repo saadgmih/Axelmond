@@ -79,3 +79,11 @@ export function parsePlatformPath(pathname: string) {
     institutionalView: null as string | null,
   };
 }
+
+export function resolveInitialPlatformRoute(pathname: string) {
+  const parsed = parsePlatformPath(pathname);
+  return {
+    currentView: parsed.institutionalView ?? parsed.studentView,
+    teacherView: parsed.teacherView,
+  };
+}

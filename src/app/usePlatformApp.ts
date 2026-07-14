@@ -25,6 +25,7 @@ import { usePlatformNotificationHandlers } from "./hooks/usePlatformNotification
 import { usePlatformTeacherWorkspace } from "./hooks/usePlatformTeacherWorkspace";
 import { useSidebarLayout } from "../hooks/useSidebarLayout";
 import { useInitialViewPreload } from "./hooks/useInitialViewPreload";
+import { resolveInitialPlatformRoute } from "../navigation/platformPaths";
 
 function readInitialSidebarCollapsed() {
   if (typeof window === "undefined") return false;
@@ -32,11 +33,15 @@ function readInitialSidebarCollapsed() {
 }
 
 export function usePlatformApp() {
-  const [currentView, setCurrentView] = useState<string>("dashboard");
+  const initialRoute = useMemo(
+    () => resolveInitialPlatformRoute(typeof window === "undefined" ? "/" : window.location.pathname),
+    [],
+  );
+  const [currentView, setCurrentView] = useState<string>(initialRoute.currentView);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [activeLiveCourse, setActiveLiveCourse] = useState<Course | null>(null);
   const [selectedModule, setSelectedModule] = useState<CourseModule | null>(null);
-  const [teacherView, setTeacherView] = useState<string>("dashboard");
+  const [teacherView, setTeacherView] = useState<string>(initialRoute.teacherView);
 
   const {
     courseContentSections,

@@ -19,6 +19,9 @@ rulesTest("catalog-resilience", () => {
   assert.match(catalogHookSource, /api\.getDomains\(\)/);
 
   assert.match(appRootSource, /catalogError && !session\.catalogHasData/);
+  assert.match(appRootSource, /INSTITUTIONAL_VIEWS\.has\(navigation\.currentView\)/);
+  assert.match(appRootSource, /!isInstitutionalView && \(catalog\.isLoading \|\| session\.isEnrolledCatalogSyncing\)/);
+  assert.match(appRootSource, /!isInstitutionalView && session\.catalogError/);
   assert.doesNotMatch(appRootSource, /catalogError\)[\s\S]*?LazyAuthScreen/);
 
   assert.match(coursesRoutesSource, /CATALOG_TIMEOUT/);

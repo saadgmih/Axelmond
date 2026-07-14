@@ -2,6 +2,8 @@ import { Suspense, useRef } from "react";
 
 import { LazyAuthScreen } from "../lazyViews";
 
+import { INSTITUTIONAL_VIEWS } from "../navigation/platformPaths";
+
 import { PlatformAppProvider } from "./platform-app-context";
 
 import { PlatformNotificationProvider } from "./platform-notification-context";
@@ -90,13 +92,13 @@ function PlatformCatalogErrorScreen({ message, onRetry }: { message: string; onR
 export function PlatformAppRoot() {
   const { session, catalog, navigation, live, bindings, ui, notifications } = usePlatformApp();
   const hasRenderedAuthenticatedApp = useRef(false);
+  const isInstitutionalView = INSTITUTIONAL_VIEWS.has(navigation.currentView);
   const isInitialAuthenticatedDataLoading = Boolean(
     session.currentUser &&
     !hasRenderedAuthenticatedApp.current &&
-    (catalog.isLoading ||
-      session.isLoginDataLoading ||
-      session.isEnrolledCatalogSyncing ||
-      session.isInitialViewLoading),
+    (session.isLoginDataLoading ||
+      session.isInitialViewLoading ||
+      (!isInstitutionalView && (catalog.isLoading || session.isEnrolledCatalogSyncing))),
   );
 
   if (session.isLoading || !session.isAuthReady || isInitialAuthenticatedDataLoading) {
@@ -111,7 +113,7 @@ export function PlatformAppRoot() {
     );
   }
 
-  if (session.catalogError && !session.catalogHasData) {
+  if (!isInstitutionalView && session.catalogError && !session.catalogHasData) {
     return <PlatformCatalogErrorScreen message={session.catalogError} onRetry={session.retryCatalogLoad} />;
   }
 

@@ -17,8 +17,8 @@ Quand vous poussez sur `main`, Hostinger rebuild et redémarre l’app automatiq
 
 **Important :** ne pas utiliser `npm run start:cluster`, PM2, ni `prestart` — un seul process Node doit tourner.
 
-- `hostinger:build` = `prisma migrate deploy` + build Vite/esbuild (migrations **pendant le build**, pas au démarrage).
-- `npm start` = contrôle anti-PM2 + `node dist/server.cjs` (un seul process long-lived).
+- `hostinger:build` = `prisma migrate deploy` + build Vite/esbuild.
+- `npm start` = préflight + `prisma migrate deploy` de sécurité + contrôle anti-PM2 + `node dist/server.cjs` (un seul process long-lived). Le second contrôle est idempotent et protège aussi un déploiement dont la commande de build hPanel serait mal configurée.
 
 ### Variables hPanel obligatoires (anti Max Processes)
 

@@ -17,9 +17,11 @@ rulesTest("hostinger-deploy", () => {
 
   assert.match(scripts["hostinger:build"], /prisma migrate deploy/);
   assert.match(scripts.start, /hostinger-preflight/);
+  assert.match(scripts.start, /prisma migrate deploy/);
   assert.match(scripts.start, /hostinger-start/);
   assert.doesNotMatch(scripts.start, /node dist\/server\.cjs/);
   assert.doesNotMatch(JSON.stringify(scripts), /prestart/);
+  assert.ok(scripts.start.indexOf("prisma migrate deploy") < scripts.start.indexOf("hostinger-start"));
   assert.equal(packageJson.engines?.node, "^20.19.0 || ^22.12.0");
 
   assert.match(scripts.postinstall, /prisma-postinstall/);
