@@ -18,7 +18,7 @@ concurrency:
 jobs:
   verify-production:
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
-    runs-on: [self-hosted, Windows, X64]
+    runs-on: windows-latest
 
     steps:
       - name: Verify production health
@@ -27,26 +27,48 @@ jobs:
           $userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0 Safari/537.36"
           $bodyPath = Join-Path $env:RUNNER_TEMP "axelmond-health.json"
           $ok = $false
+          $lastFailure = "No response received"
           for ($i = 1; $i -le 12; $i++) {
             $healthMeta = curl.exe -sS -A $userAgent -m 20 -o $bodyPath -w "HTTP:%{http_code} TIME:%{time_total}s" "https://axelmond.com/api/health"
             $curlExit = $LASTEXITCODE
             $healthBody = if (Test-Path $bodyPath) { Get-Content $bodyPath -Raw } else { "" }
             Write-Output "attempt $i"
-            Write-Output $healthBody
             Write-Output $healthMeta
-            if ($curlExit -eq 0 -and $healthMeta -match '^HTTP:200\b') { $ok = $true; break }
-            if ($healthMeta -match '^HTTP:403\b' -and $healthBody -match '<html[\s>]' -and $healthBody -match '>403<') {
-              Write-Warning "Hostinger hCDN blocked the automated probe with its HTML 403 page; application health is inconclusive."
-              "HOSTINGER_PROBE_BLOCKED=1" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-              $ok = $true
-              break
+            if ($curlExit -eq 0 -and $healthMeta -match '^HTTP:200\b') {
+              try {
+                $healthPayload = $healthBody | ConvertFrom-Json -ErrorAction Stop
+                if ($healthPayload.status -eq "UP") { $ok = $true; break }
+                $lastFailure = "Health endpoint returned HTTP 200 without status=UP"
+              } catch {
+                $lastFailure = "Health endpoint returned HTTP 200 with a non-JSON body"
+              }
+            } elseif ($healthMeta -match '^HTTP:403\b' -and $healthBody -match '<html[\s>]' -and $healthBody -match '>403<') {
+              $lastFailure = "Hostinger hCDN returned its HTML 403 page before the request reached Express"
+              Write-Warning $lastFailure
+            } else {
+              $lastFailure = "Health request failed: curlExit=$curlExit $healthMeta"
             }
-            Start-Sleep -Seconds 15
+            if ($i -lt 12) { Start-Sleep -Seconds 15 }
           }
-          if (-not $ok) { throw "Production health check failed after retries" }
+          if (-not $ok) { throw "Production health check failed after retries. $lastFailure" }
+
+      - name: Verify production frontend
+        shell: powershell
+        run: |
+          $userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0 Safari/537.36"
+          $bodyPath = Join-Path $env:RUNNER_TEMP "axelmond-home.html"
+          $frontMeta = curl.exe -sS -A $userAgent -m 20 -o $bodyPath -w "HTTP:%{http_code} TIME:%{time_total}s" "https://axelmond.com/"
+          $curlExit = $LASTEXITCODE
+          $frontBody = if (Test-Path $bodyPath) { Get-Content $bodyPath -Raw } else { "" }
+          Write-Output $frontMeta
+          if ($curlExit -ne 0 -or $frontMeta -notmatch '^HTTP:200\b') {
+            throw "Production frontend request failed: curlExit=$curlExit $frontMeta"
+          }
+          if ($frontBody -notmatch '<title>Performance Académique' -or $frontBody -notmatch 'id="root"') {
+            throw "Production frontend returned an unexpected or stale HTML document"
+          }
 
       - name: Verify production catalog
-        if: env.HOSTINGER_PROBE_BLOCKED != '1'
         shell: powershell
         run: |
           $userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0 Safari/537.36"
@@ -63,6 +85,3 @@ jobs:
         run: |
           Write-Output "Hostinger Node.js auto-deployment handles pushes to main."
           Write-Output "SSH remote exec is disabled on shared hosting; use hPanel Deployments for manual redeploy."
-          if ($env:HOSTINGER_PROBE_BLOCKED -eq "1") {
-            Write-Warning "Public API verification was skipped because Hostinger hCDN blocked this runner. Check hPanel runtime logs and the preview URL."
-          }

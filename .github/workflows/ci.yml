@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   verify:
-    runs-on: [self-hosted, Windows, X64]
+    runs-on: windows-latest
 
     env:
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/axelmond_ci?schema=AxelmondResearchLab&sslmode=disable

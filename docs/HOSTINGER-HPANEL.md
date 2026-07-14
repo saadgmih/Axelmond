@@ -97,6 +97,23 @@ Les **Runtime logs** montrent parfois `server running` et des requêtes API (200
 3. Bouton **Restart** sur le dashboard Node.js (sans rebuild).
 4. Vérifier que le site `axelmond.com` est bien un **Node.js Web App**, pas un ancien hébergement PHP/statique en parallèle.
 
+## En cas de 403 Hostinger hCDN
+
+Symptôme : la page affiche **403 Forbidden — Access to this resource on the server is denied**, les réponses contiennent `X-Hcdn-Request-Id`, mais les Runtime logs indiquent que Node et PostgreSQL ont démarré. Le refus se produit alors **avant Express** ; modifier les routes applicatives ne peut pas le corriger.
+
+1. Ouvrir l’**URL temporaire** du Node.js Web App depuis son dashboard.
+   - Preview OK + `axelmond.com` en 403 : reconnecter le domaine au Node.js Web App via **Websites → Connect domain** et vérifier qu’il n’est plus affecté à un ancien site PHP/statique.
+   - Preview en 403 : vérifier **Deployments**, puis **Restart** une seule fois.
+2. Dans **Performance → CDN**, activer temporairement **Development mode** ou désactiver le CDN, purger son cache, puis retester `/` et `/api/health`.
+3. Si Cloudflare est aussi actif, vérifier que les enregistrements DNS correspondent exactement aux valeurs fournies par **Connect domain**. Pendant le diagnostic, passer le proxy Cloudflare en **DNS only** pour éviter un double proxy.
+4. Ne pas utiliser le niveau CDN **I'm Under Attack!** pour cette application : il peut bloquer les appels API. Utiliser **Low** ou **Essentially off** pendant le diagnostic.
+5. La panne est résolue uniquement lorsque :
+   - `/` renvoie `200` avec le titre `Performance Académique` ;
+   - `/api/health` renvoie du JSON avec `"status":"UP"` ;
+   - les réponses publiques ne contiennent plus la page HTML 403 de hCDN.
+
+Le workflow GitHub considère désormais cette page 403 comme un **échec de production** ; il ne saute plus les contrôles du catalogue.
+
 ## En cas de 504 (Gateway Time-out)
 
 Symptôme : nginx affiche **504 Gateway Time-out** — le proxy ne reçoit aucune réponse du process Node dans le délai imparti.

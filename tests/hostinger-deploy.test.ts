@@ -10,6 +10,7 @@ rulesTest("hostinger-deploy", () => {
   const hostingerDoc = fs.readFileSync("docs/HOSTINGER-HPANEL.md", "utf8");
   const hostingerEnv = fs.readFileSync("scripts/build-hostinger-env.mjs", "utf8");
   const postinstall = fs.readFileSync("scripts/prisma-postinstall.mjs", "utf8");
+  const ciWorkflow = fs.readFileSync(".github/workflows/ci.yml", "utf8");
   const deployWorkflow = fs.readFileSync(".github/workflows/hostinger-deploy.yml", "utf8");
   const legacyVpsDeploy = fs.readFileSync("scripts/deploy-hostinger.sh", "utf8");
 
@@ -37,10 +38,18 @@ rulesTest("hostinger-deploy", () => {
   assert.match(legacyVpsDeploy, /deploy-hostinger\.sh is VPS-only/);
   assert.match(deployWorkflow, /group:\s*hostinger-production/);
   assert.match(deployWorkflow, /cancel-in-progress:\s*false/);
+  assert.match(ciWorkflow, /runs-on:\s*windows-latest/);
+  assert.match(deployWorkflow, /runs-on:\s*windows-latest/);
+  assert.doesNotMatch(ciWorkflow, /self-hosted/);
+  assert.doesNotMatch(deployWorkflow, /self-hosted/);
   assert.match(deployWorkflow, /catalogMeta/);
+  assert.match(deployWorkflow, /frontMeta/);
   assert.match(deployWorkflow, /Mozilla\/5\.0/);
-  assert.match(deployWorkflow, /HOSTINGER_PROBE_BLOCKED=1/);
-  assert.match(deployWorkflow, /if: env\.HOSTINGER_PROBE_BLOCKED != '1'/);
+  assert.match(deployWorkflow, /ConvertFrom-Json/);
+  assert.match(deployWorkflow, /healthPayload\.status -eq "UP"/);
+  assert.match(deployWorkflow, /Hostinger hCDN returned its HTML 403 page/);
+  assert.match(deployWorkflow, /<title>Performance Académique/);
+  assert.doesNotMatch(deployWorkflow, /HOSTINGER_PROBE_BLOCKED/);
   assert.match(hostingerDoc, /hostinger:build/);
   assert.match(hostingerDoc, /SKIP_PRISMA_POSTINSTALL/);
   assert.match(hostingerDoc, /HOSTINGER_WEBAPP/);
