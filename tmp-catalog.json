@@ -1,0 +1,142 @@
+[
+  {
+    "id": 2,
+    "title": "Programmation en C++",
+    "level": "Module académique",
+    "credits": 6,
+    "duration": "45 heures",
+    "category": "Programmation",
+    "disciplineId": 601,
+    "discipline": {
+      "id": 601,
+      "domainId": 6,
+      "name": "Programmation",
+      "slug": "programmation",
+      "order": 1,
+      "domain": {
+        "id": 6,
+        "name": "Informatique et Intelligence Artificielle",
+        "slug": "informatique-intelligence-artificielle",
+        "iconName": "BrainCircuit",
+        "color": "from-violet-600 to-fuchsia-600",
+        "description": "Logiciel, données, sécurité, apprentissage automatique et IA.",
+        "order": 6
+      }
+    },
+    "price": 0,
+    "freeAccessStartsAt": "2026-07-12T00:00:00.000Z",
+    "freeAccessEndsAt": "2026-08-10T23:59:59.999Z",
+    "freeAccessDurationDays": 30,
+    "iconName": "Code",
+    "color": "bg-blue-100",
+    "instructor": "Professeur Axelmond",
+    "description": "Programmation en C++ POO",
+    "progress": 0,
+    "isLiveNow": false,
+    "liveStartedAt": null,
+    "modules": [
+      {
+        "id": 101,
+        "title": "Cours complète",
+        "type": "pdf",
+        "duration": "—",
+        "completed": false,
+        "attachmentUrl": "https://1t9oizz60b.ufs.sh/f/sSOaqnYcOFxgGjGZmJ29NS2kOZQPmUXo1CzeKbrJEAtBHldM",
+        "attachmentName": "Langage C++ (5).pdf",
+        "sectionId": "lesson:cmqg10nfo0004qz3tbhio6dod",
+        "published": true
+      },
+      {
+        "id": 103,
+        "title": "QCM examen",
+        "type": "quiz",
+        "duration": "Quiz",
+        "completed": false,
+        "sectionId": "quiz:cmqipmpjo0007an4xlqy7oazr",
+        "published": true
+      }
+    ],
+    "published": true,
+    "enrollment": null
+  },
+  {
+    "id": 5,
+    "title": "Structure de donné",
+    "level": "Module académique",
+    "credits": 3,
+    "duration": "20 heures",
+    "category": "Programmation",
+    "disciplineId": 601,
+    "discipline": {
+      "id": 601,
+      "domainId": 6,
+      "name": "Programmation",
+      "slug": "programmation",
+      "order": 1,
+      "domain": {
+        "id": 6,
+        "name": "Informatique et Intelligence Artificielle",
+        "slug": "informatique-intelligence-artificielle",
+        "iconName": "BrainCircuit",
+        "color": "from-violet-600 to-fuchsia-600",
+        "description": "Logiciel, données, sécurité, apprentissage automatique et IA.",
+        "order": 6
+      }
+    },
+    "price": 10,
+    "freeAccessStartsAt": null,
+    "freeAccessEndsAt": null,
+    "freeAccessDurationDays": null,
+    "iconName": "Code",
+    "color": "bg-blue-100",
+    "instructor": "Administrateur Axelmond",
+    "description": "Structure de donné",
+    "progress": 0,
+    "isLiveNow": false,
+    "liveStartedAt": null,
+    "modules": [],
+    "published": true,
+    "createdById": "cmqbhj53h0000bklp1j8d5m1i",
+    "enrollment": null
+  },
+  {
+    "id": 6,
+    "title": "Système d'exploitation 2",
+    "level": "Module académique",
+    "credits": 4,
+    "duration": "20 heures",
+    "category": "Programmation",
+    "disciplineId": 601,
+    "discipline": {
+      "id": 601,
+      "domainId": 6,
+      "name": "Programmation",
+      "slug": "programmation",
+      "order": 1,
+      "domain": {
+        "id": 6,
+        "name": "Informatique et Intelligence Artificielle",
+        "slug": "informatique-intelligence-artificielle",
+        "iconName": "BrainCircuit",
+        "color": "from-violet-600 to-fuchsia-600",
+        "description": "Logiciel, données, sécurité, apprentissage automatique et IA.",
+        "order": 6
+      }
+    },
+    "price": 10,
+    "freeAccessStartsAt": null,
+    "freeAccessEndsAt": null,
+    "freeAccessDurationDays": null,
+    "iconName": "Code",
+    "color": "bg-blue-100",
+    "instructor": "Administrateur Axelmond",
+    "description": "Système d'exploitation 2",
+    "progress": 0,
+    "isLiveNow": false,
+    "liveStartedAt": null,
+    "modules": [],
+    "published": true,
+    "createdById": "cmqbhj53h0000bklp1j8d5m1i",
+    "enrollment": null
+  }
+]

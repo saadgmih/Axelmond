@@ -264,9 +264,7 @@ export default function AdminAcademicTaxonomyView({
     >
       <header className={`${curriculumUi.divider} pb-6`}>
         <div className="flex min-w-0 items-center gap-4">
-          <span
-            className={`inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-xl ${stepTheme.chip}`}
-          >
+          <span className={`inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-xl ${stepTheme.chip}`}>
             <FolderTree className="h-7 w-7" />
           </span>
           <div className="min-w-0">
@@ -396,7 +394,9 @@ export default function AdminAcademicTaxonomyView({
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="text-lg font-black text-white">{domain.name}</h3>
-                        <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${stepTheme.chip}`}>
+                        <span
+                          className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${stepTheme.chip}`}
+                        >
                           {domain.disciplines.length} sous-domaine{domain.disciplines.length !== 1 ? "s" : ""}
                         </span>
                       </div>

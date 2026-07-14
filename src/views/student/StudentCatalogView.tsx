@@ -3,7 +3,7 @@ import { memo, useRef } from "react";
 import type { ReactNode } from "react";
 import type { Course, Discipline, FacultyDomain } from "../../types";
 import { formatCredits, formatMad } from "../../utils/morocco-locale";
-import { getSyllabusChapterProgress } from "../../utils/course-chapter-metrics";
+import { getCourseContentProgress } from "../../utils/course-content-metrics";
 import { prefetchCatalogDiscipline, prefetchCourseContent } from "../../utils/prefetch";
 import { useTvNavigation } from "../../hooks/useTvNavigation";
 
@@ -24,7 +24,7 @@ const CatalogCourseCard = memo(function CatalogCourseCard({
   navigateTo: NavigateTo;
   setCourseToPurchase: (course: Course) => void;
 }) {
-  const { totalChapters } = getSyllabusChapterProgress(course.modules);
+  const { totalContents } = getCourseContentProgress(course.modules);
 
   return (
     <div
@@ -65,7 +65,9 @@ const CatalogCourseCard = memo(function CatalogCourseCard({
           </div>
           <div className="flex items-center gap-1.5">
             <BookOpen className="w-3.5 h-3.5 text-slate-400" />
-            <span>{totalChapters} chapitre{totalChapters !== 1 ? "s" : ""}</span>
+            <span>
+              {totalContents} contenu{totalContents !== 1 ? "s" : ""}
+            </span>
           </div>
         </div>
       </div>
@@ -137,28 +139,28 @@ const DomainCatalogCard = memo(function DomainCatalogCard({
             >
               {getDomainIcon(domain.iconName, "w-6 h-6")}
             </div>
-          <span className="shrink-0 rounded-full border border-slate-100 bg-slate-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
-            {domain.disciplines.length} disciplines
-          </span>
-        </div>
+            <span className="shrink-0 rounded-full border border-slate-100 bg-slate-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
+              {domain.disciplines.length} disciplines
+            </span>
+          </div>
 
-        <div className="mt-4 flex flex-1 flex-col">
-          <h3 className="min-h-[2.75rem] line-clamp-2 font-black text-base leading-snug text-slate-800">
-            {domain.name}
-          </h3>
-          <p className="mt-2 min-h-[2.5rem] line-clamp-2 text-xs leading-relaxed text-slate-500">
-            {domain.description}
-          </p>
-        </div>
+          <div className="mt-4 flex flex-1 flex-col">
+            <h3 className="min-h-[2.75rem] line-clamp-2 font-black text-base leading-snug text-slate-800">
+              {domain.name}
+            </h3>
+            <p className="mt-2 min-h-[2.5rem] line-clamp-2 text-xs leading-relaxed text-slate-500">
+              {domain.description}
+            </p>
+          </div>
 
-        <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4">
-          <span className="text-[11px] font-bold uppercase text-slate-400">
-            {domain.courseCount || 0} modules publiés
-          </span>
-          <span className="flex items-center gap-1 text-xs font-bold text-emerald-600">
-            Explorer <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-          </span>
-        </div>
+          <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4">
+            <span className="text-[11px] font-bold uppercase text-slate-400">
+              {domain.courseCount || 0} modules publiés
+            </span>
+            <span className="flex items-center gap-1 text-xs font-bold text-emerald-600">
+              Explorer <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </span>
+          </div>
         </div>
       </button>
     </div>

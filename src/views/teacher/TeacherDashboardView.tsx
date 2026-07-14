@@ -123,7 +123,7 @@ const TeacherModuleProgressRow = memo(function TeacherModuleProgressRow({
           </span>
         </div>
         <p className="text-[11px] text-slate-400">
-          {row.students} étudiant{row.students !== 1 ? "s" : ""} · {row.publishedCount}/{row.totalModules} chapitres
+          {row.students} étudiant{row.students !== 1 ? "s" : ""} · {row.publishedCount}/{row.totalModules} contenus
           publiés · {formatMad(row.course.price)}
         </p>
         <div className="flex items-center gap-2">
@@ -176,7 +176,11 @@ const TeacherTariffCard = memo(function TeacherTariffCard({
         </div>
         <span className="shrink-0 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 px-2.5 py-1 font-mono text-xs font-black text-white">
           {isFreeCoursePrice(normalizedPrice)
-            ? formatFreeAccessDurationLabel(course.freeAccessDurationDays, course.freeAccessStartsAt, course.freeAccessEndsAt)
+            ? formatFreeAccessDurationLabel(
+                course.freeAccessDurationDays,
+                course.freeAccessStartsAt,
+                course.freeAccessEndsAt,
+              )
             : formatMad(normalizedPrice)}
         </span>
       </div>
@@ -265,7 +269,7 @@ export default function TeacherDashboardView({
 
   const dashboard = useMemo(() => {
     const publishedModules = managedCourses.filter((course) => course.published).length;
-    const publishedChapters = managedCourses.reduce(
+    const publishedCourseContents = managedCourses.reduce(
       (sum, course) => sum + course.modules.filter((module) => module.published === true).length,
       0,
     );
@@ -354,8 +358,7 @@ export default function TeacherDashboardView({
 
     return {
       publishedModules,
-      publishedChapters,
-      publishedContents: profileSnapshot?.publishedContentsCount ?? 0,
+      publishedCourseContents,
       quizzesCreated,
       liveSessions,
       enrolledStudents: uniqueStudentIds.size,
@@ -387,9 +390,9 @@ export default function TeacherDashboardView({
       accent: "text-emerald-300",
     },
     {
-      label: "Chapitres publiés",
-      value: String(dashboard.publishedChapters),
-      hint: `${dashboard.publishedContents} contenu${dashboard.publishedContents !== 1 ? "s" : ""} publié${dashboard.publishedContents !== 1 ? "s" : ""}`,
+      label: "Contenus publiés",
+      value: String(dashboard.publishedCourseContents),
+      hint: "vidéos, PDF, images et quiz",
       icon: Layers,
       accent: "text-teal-300",
     },
@@ -559,8 +562,9 @@ export default function TeacherDashboardView({
             </div>
             <p className="text-xs text-slate-400">
               {dashboard.publishedModules} module{dashboard.publishedModules !== 1 ? "s" : ""} publié
-              {dashboard.publishedModules !== 1 ? "s" : ""} · {dashboard.publishedChapters} chapitre
-              {dashboard.publishedChapters !== 1 ? "s" : ""} publié{dashboard.publishedChapters !== 1 ? "s" : ""}
+              {dashboard.publishedModules !== 1 ? "s" : ""} · {dashboard.publishedCourseContents} contenu
+              {dashboard.publishedCourseContents !== 1 ? "s" : ""} publié
+              {dashboard.publishedCourseContents !== 1 ? "s" : ""}
             </p>
           </div>
           <div className="h-2.5 w-full rounded-full bg-slate-800 overflow-hidden">

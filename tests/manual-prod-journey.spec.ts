@@ -60,7 +60,10 @@ async function loginAs(page: Page, sector: "student" | "professor", email: strin
   await page.getByRole("textbox", { name: /Mot de passe/i }).fill(password);
 
   const rateLimit = page.getByRole("alert").filter({ hasText: /Trop de requêtes/i });
-  await page.getByRole("button", { name: /^Se connecter$/i }).first().click();
+  await page
+    .getByRole("button", { name: /^Se connecter$/i })
+    .first()
+    .click();
 
   await page.waitForLoadState("networkidle", { timeout: 20_000 }).catch(() => {});
 
@@ -107,7 +110,11 @@ test.describe("Production axelmond.com — parcours réels", () => {
       console.log("   ✅ Ouverture d'un module tentée");
     }
 
-    await page.getByRole("button", { name: /Profil|Mon Profil/i }).first().click({ timeout: 5000 }).catch(() => {});
+    await page
+      .getByRole("button", { name: /Profil|Mon Profil/i })
+      .first()
+      .click({ timeout: 5000 })
+      .catch(() => {});
     await page.getByRole("button", { name: /Se déconnecter/i }).click({ timeout: 15_000 });
     await expect(page.getByRole("button", { name: "Espace Étudiant" })).toBeVisible({ timeout: 15_000 });
     console.log("   ✅ Déconnexion étudiant OK");
@@ -139,10 +146,15 @@ test.describe("Production axelmond.com — parcours réels", () => {
     console.log("   ✅ Professeur connecté — espace enseignant");
 
     await page.getByRole("button", { name: "Contrôleur de Modules Live" }).click();
-    await expect(page.getByText(/Module académique en direct|visioconférence/i).first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText(/Module académique en direct|visioconférence/i).first()).toBeVisible({
+      timeout: 15_000,
+    });
     console.log("   ✅ Console live accessible");
 
-    await page.getByRole("button", { name: "Gestion des Contenus" }).click({ timeout: 5000 }).catch(() => {});
+    await page
+      .getByRole("button", { name: "Gestion des Contenus" })
+      .click({ timeout: 5000 })
+      .catch(() => {});
     await page.getByRole("button", { name: /Se déconnecter/i }).click();
     await expect(page.getByRole("button", { name: /Espace Professeur/i })).toBeVisible({ timeout: 15_000 });
     console.log("   ✅ Déconnexion professeur OK");
@@ -153,7 +165,9 @@ test.describe("Production axelmond.com — parcours réels", () => {
     await new Promise((r) => setTimeout(r, 5_000));
     await loginAs(page, "professor", email, password);
 
-    await expect(page.getByRole("button", { name: /Espace Professeur|Contrôleur de Modules Live/i }).first()).toBeVisible({
+    await expect(
+      page.getByRole("button", { name: /Espace Professeur|Contrôleur de Modules Live/i }).first(),
+    ).toBeVisible({
       timeout: 30_000,
     });
     console.log("   ✅ Admin connecté — espace staff");

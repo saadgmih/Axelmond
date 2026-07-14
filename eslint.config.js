@@ -8,6 +8,7 @@ export default tseslint.config(
       "dist/**",
       "node_modules/**",
       ".actions-runner/**",
+      ".data/**",
       "axelmond-mobile/**",
       "scripts/**",
       "scratch/**",

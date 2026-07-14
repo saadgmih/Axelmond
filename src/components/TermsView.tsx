@@ -132,8 +132,8 @@ export default function TermsView() {
         <div className="mt-8 bg-slate-900/60 border border-slate-800 rounded-2xl px-5 py-4 flex items-start gap-3">
           <Info className="w-4 h-4 text-teal-400 flex-shrink-0 mt-0.5" />
           <p className="text-[12px] text-slate-400 leading-relaxed">
-            <strong className="text-teal-300">Acceptation :</strong> La création d'un compte ou la simple navigation
-            sur les pages protégées de la plateforme vaut acceptation pleine et entière des présentes conditions
+            <strong className="text-teal-300">Acceptation :</strong> La création d'un compte ou la simple navigation sur
+            les pages protégées de la plateforme vaut acceptation pleine et entière des présentes conditions
             d'utilisation. En cas de désaccord, veuillez cesser toute utilisation de la plateforme et contacter{" "}
             <strong className="text-white">contact@axelmond.com</strong>.
           </p>
@@ -675,8 +675,8 @@ export default function TermsView() {
                 <p className="text-[12px] text-slate-400 leading-relaxed">
                   Pour toute question juridique relative à ces conditions ou pour exercer vos droits, écrivez à{" "}
                   <strong className="text-white">legal@axelmond.com</strong> avec pour objet{" "}
-                  <em className="text-emerald-300">«&nbsp;Question juridique — CGU&nbsp;»</em>. Délai de réponse : 10 jours
-                  ouvrables.
+                  <em className="text-emerald-300">«&nbsp;Question juridique — CGU&nbsp;»</em>. Délai de réponse : 10
+                  jours ouvrables.
                 </p>
               </div>
             </div>

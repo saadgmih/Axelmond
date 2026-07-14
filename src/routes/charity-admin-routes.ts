@@ -180,7 +180,15 @@ export function registerCharityAdminRoutes(app: Express, ctx: RouteContext): voi
         isActive: req.body?.isActive !== false,
       },
     });
-    await api.logAudit(authUser.id, authUser.email, "ADMIN_CREATE_CHARITY_EVENT", "CharityEvent", event.id, { title }, req.ip);
+    await api.logAudit(
+      authUser.id,
+      authUser.email,
+      "ADMIN_CREATE_CHARITY_EVENT",
+      "CharityEvent",
+      event.id,
+      { title },
+      req.ip,
+    );
     res.status(201).json(charityEventSnapshot(event));
   });
 
@@ -210,14 +218,25 @@ export function registerCharityAdminRoutes(app: Express, ctx: RouteContext): voi
       where: { id: eventId },
       data: { title, description, location, eventDateTime, isActive },
     });
-    await api.logAudit(authUser.id, authUser.email, "ADMIN_UPDATE_CHARITY_EVENT", "CharityEvent", event.id, { title }, req.ip);
+    await api.logAudit(
+      authUser.id,
+      authUser.email,
+      "ADMIN_UPDATE_CHARITY_EVENT",
+      "CharityEvent",
+      event.id,
+      { title },
+      req.ip,
+    );
     res.json(charityEventSnapshot(event));
   });
 
   app.delete("/api/admin/charity/events/:id", requireAuth, requireAdmin, async (req, res) => {
     const authUser = getAuthUser(req);
     const eventId = String(req.params.id || "").trim();
-    const existing = await api.prisma.charityEvent.findUnique({ where: { id: eventId }, select: { id: true, title: true } });
+    const existing = await api.prisma.charityEvent.findUnique({
+      where: { id: eventId },
+      select: { id: true, title: true },
+    });
     if (!existing) {
       res.status(404).json({ error: "Événement introuvable" });
       return;

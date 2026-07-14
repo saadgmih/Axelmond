@@ -13,10 +13,7 @@ export function charityAccessCodeSnapshot(code: {
     isActive: code.isActive,
     usageCount: code._count?.usages ?? 0,
     createdAt: code.createdAt instanceof Date ? code.createdAt.toISOString() : code.createdAt,
-    disabledAt:
-      code.disabledAt instanceof Date
-        ? code.disabledAt.toISOString()
-        : code.disabledAt || null,
+    disabledAt: code.disabledAt instanceof Date ? code.disabledAt.toISOString() : code.disabledAt || null,
     createdByAdminId: code.createdByAdminId || null,
   };
 }
@@ -58,10 +55,8 @@ export function charityEventSnapshot(event: {
     minute: dt.getMinutes(),
     location: event.location,
     isActive: event.isActive,
-    createdAt:
-      event.createdAt instanceof Date ? event.createdAt.toISOString() : event.createdAt || null,
-    updatedAt:
-      event.updatedAt instanceof Date ? event.updatedAt.toISOString() : event.updatedAt || null,
+    createdAt: event.createdAt instanceof Date ? event.createdAt.toISOString() : event.createdAt || null,
+    updatedAt: event.updatedAt instanceof Date ? event.updatedAt.toISOString() : event.updatedAt || null,
   };
 }
 

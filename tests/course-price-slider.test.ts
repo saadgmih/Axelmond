@@ -11,7 +11,6 @@ import {
   MIN_PAID_COURSE_PRICE,
   formatFreeAccessDurationLabel,
   freeAccessDurationInputValue,
-  getFreeAccessWindowEndDate,
   isValidCoursePrice,
   normalizeFreeAccessDurationDays,
   normalizeCoursePrice,

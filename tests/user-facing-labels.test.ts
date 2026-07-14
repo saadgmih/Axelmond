@@ -40,3 +40,17 @@ rulesTest("no-technical-ids-in-ui", () => {
 
   console.log("No technical IDs in UI rules passed");
 });
+
+rulesTest("content-progress-labels", () => {
+  const progressViews = [
+    "src/views/student/StudentCatalogView.tsx",
+    "src/views/student/StudentDashboardView.tsx",
+    "src/views/teacher/TeacherDashboardView.tsx",
+  ].map((path) => fs.readFileSync(path, "utf8"));
+
+  for (const source of progressViews) {
+    assert.doesNotMatch(source, /\bchapitres?\b[^\n]*(?:publi|compl|\{total|\{completed|\/)/i);
+  }
+
+  assert.match(progressViews.join("\n"), /contenus? (?:publi|compl)|contenus/);
+});

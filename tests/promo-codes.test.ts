@@ -41,7 +41,10 @@ rulesTest("promo-codes", () => {
   const paypalServerSource = fs.readFileSync("src/paypal-server.ts", "utf8");
   const paypalEnrollmentSource = fs.readFileSync("src/paypal-enrollment.ts", "utf8");
 
-  assert.match(apiSource, /createPayPalOrder:\s*\(courseId:\s*number,\s*promoCode\?:\s*string,\s*includeAiAssistant\?:\s*boolean\)/);
+  assert.match(
+    apiSource,
+    /createPayPalOrder:\s*\(courseId:\s*number,\s*promoCode\?:\s*string,\s*includeAiAssistant\?:\s*boolean\)/,
+  );
   assert.match(paymentModalSource, /api\.createPayPalOrder\(course\.id,\s*appliedPromo,\s*includeAiAssistant\)/);
   assert.match(serverSource, /resolveCourseChargeAmount\(course\.price,\s*promoCode\)/);
   assert.match(paypalEnrollmentSource, /metadata\.expectedAmount/);

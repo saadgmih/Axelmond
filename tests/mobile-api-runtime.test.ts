@@ -31,11 +31,9 @@ await runtimeTest("mobile-api-runtime", async () => {
   process.env.LIVEKIT_API_SECRET ??= "runtime-test-secret";
   process.env.LIVEKIT_RATE_LIMIT_MAX ??= "99999";
 
-  const runtime = startSecurityRuntimeServer(RUNTIME_PORT);
-  const baseUrl = runtime.baseUrl;
+  let runtime: ReturnType<typeof startSecurityRuntimeServer> | undefined;
 
   try {
-    await waitForSecurityRuntimeHealth(baseUrl, { process: runtime.process });
     const fixture = await seedChatTutorRuntimeFixtures();
     const roomName = buildLiveKitRoomName(fixture.courseId);
     await prisma.course.update({
@@ -57,6 +55,10 @@ await runtimeTest("mobile-api-runtime", async () => {
         title: "Mobile runtime live",
       },
     });
+
+    runtime = startSecurityRuntimeServer(RUNTIME_PORT);
+    const baseUrl = runtime.baseUrl;
+    await waitForSecurityRuntimeHealth(baseUrl, { process: runtime.process });
 
     const routesRes = await fetch(`${baseUrl}/api/mobile/routes`, {
       headers: mobileHeaders(),
@@ -147,7 +149,9 @@ await runtimeTest("mobile-api-runtime", async () => {
 
     console.log("Mobile API runtime tests passed");
   } finally {
+    if (runtime) {
+      await stopSecurityRuntimeServer(runtime);
+    }
     await cleanupChatTutorRuntimeFixtures().catch(() => undefined);
-    await stopSecurityRuntimeServer(runtime);
   }
 });

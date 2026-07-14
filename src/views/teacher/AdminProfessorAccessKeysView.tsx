@@ -151,7 +151,9 @@ export default function AdminProfessorAccessKeysView({
 
   return (
     <div className={`${curriculumUi.panel} overflow-hidden`}>
-      <header className={`flex flex-col gap-6 ${curriculumUi.divider} px-5 py-6 sm:px-7 lg:flex-row lg:items-center lg:justify-between lg:px-10 lg:py-8`}>
+      <header
+        className={`flex flex-col gap-6 ${curriculumUi.divider} px-5 py-6 sm:px-7 lg:flex-row lg:items-center lg:justify-between lg:px-10 lg:py-8`}
+      >
         <div className="flex min-w-0 items-center gap-4 sm:gap-5">
           <span className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-emerald-700/40 bg-emerald-950/80 text-emerald-300 sm:h-16 sm:w-16">
             <KeyRound className="h-7 w-7" />
@@ -187,7 +189,9 @@ export default function AdminProfessorAccessKeysView({
       </header>
 
       <div className="space-y-6 p-4 sm:p-6 lg:p-9">
-        <section className={`flex flex-col gap-5 ${curriculumUi.card} px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8 lg:py-7`}>
+        <section
+          className={`flex flex-col gap-5 ${curriculumUi.card} px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8 lg:py-7`}
+        >
           <div className="flex min-w-0 gap-4">
             <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-emerald-700/40 bg-emerald-950/80 text-emerald-300">
               <MonitorCog className="h-6 w-6" />
@@ -237,7 +241,9 @@ export default function AdminProfessorAccessKeysView({
           </div>
         </section>
 
-        <section className={`grid grid-cols-1 overflow-hidden ${curriculumUi.card} sm:grid-cols-3 sm:divide-x sm:divide-slate-700/60`}>
+        <section
+          className={`grid grid-cols-1 overflow-hidden ${curriculumUi.card} sm:grid-cols-3 sm:divide-x sm:divide-slate-700/60`}
+        >
           {stats.map((stat, index) => {
             const Icon = stat.icon;
             return (

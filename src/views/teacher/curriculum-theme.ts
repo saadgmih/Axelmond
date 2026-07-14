@@ -21,8 +21,7 @@ export interface CurriculumStepConfig {
 
 /** Palette verte studio — sans teal/cyan (vert forêt, comme les étapes 3+ au repos). */
 const studioGreenAccent = {
-  active:
-    "border-green-600/60 bg-emerald-950/40 text-white shadow-lg shadow-green-900/20 ring-1 ring-green-600/30",
+  active: "border-green-600/60 bg-emerald-950/40 text-white shadow-lg shadow-green-900/20 ring-1 ring-green-600/30",
   completed: "border-green-700/40 bg-emerald-950/30 text-emerald-200",
   badgeActive: "bg-green-700 text-white shadow-md shadow-green-900/40",
   badgeCompleted: "bg-green-800 text-white",
@@ -30,8 +29,7 @@ const studioGreenAccent = {
   focus: "focus:border-green-600 focus:ring-green-600/20",
   panel: "border-l-4 border-l-green-600",
   chip: "bg-emerald-950/80 text-emerald-300 border border-emerald-700/40",
-  listActive:
-    "border-green-600/50 bg-emerald-950/30 shadow-lg shadow-green-900/20 ring-1 ring-green-600/20",
+  listActive: "border-green-600/50 bg-emerald-950/30 shadow-lg shadow-green-900/20 ring-1 ring-green-600/20",
 } as const;
 
 export const CURRICULUM_STEPS: CurriculumStepConfig[] = [
@@ -62,8 +60,7 @@ export const CURRICULUM_STEPS: CurriculumStepConfig[] = [
     label: "Structure",
     desc: "Parties & arborescence",
     icon: FolderTree,
-    active:
-      "border-green-400/70 bg-green-950/40 text-white shadow-lg shadow-green-500/15 ring-1 ring-green-500/35",
+    active: "border-green-400/70 bg-green-950/40 text-white shadow-lg shadow-green-500/15 ring-1 ring-green-500/35",
     completed: "border-emerald-500/40 bg-emerald-950/30 text-emerald-200",
     badgeActive: "bg-green-500 text-white shadow-md shadow-green-500/40",
     badgeCompleted: "bg-emerald-600 text-white",

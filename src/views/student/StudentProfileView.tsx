@@ -93,7 +93,8 @@ export default function StudentProfileView({
                     {currentUser?.fullName || "Étudiant Performance Académique"}
                   </h1>
                   <p className="text-sm font-medium text-emerald-200/90">
-                    {currentUser?.filiere || currentUser?.levelOrTitle || DEFAULT_STUDENT_LABEL} · Performance Académique
+                    {currentUser?.filiere || currentUser?.levelOrTitle || DEFAULT_STUDENT_LABEL} · Performance
+                    Académique
                   </p>
                   <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
                     <span className="inline-flex items-center gap-1 rounded-lg border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-300">

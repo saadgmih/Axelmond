@@ -1,6 +1,5 @@
 import { prisma } from "../db";
 import { buildLiveReplayBody, buildLiveReplayTitle } from "../live/live-replay";
-import { syncPublishedLessonModules } from "../course-curriculum-sync";
 import { liveSessionJoinSelect } from "./mappers/live-mappers";
 
 type CompleteLiveReplayUploadInput = {

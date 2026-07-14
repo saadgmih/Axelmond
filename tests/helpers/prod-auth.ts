@@ -50,7 +50,10 @@ export async function loginProd(page: Page, sector: ProdRole, email: string, pas
   await emailField.fill(email);
   await passwordField.fill(password);
 
-  await page.getByRole("button", { name: /^Se connecter$/i }).first().click();
+  await page
+    .getByRole("button", { name: /^Se connecter$/i })
+    .first()
+    .click();
   await page.waitForLoadState("networkidle", { timeout: 25_000 }).catch(() => {});
 
   const rateLimit = page.getByRole("alert").filter({ hasText: /Trop de requêtes/i });
@@ -75,5 +78,8 @@ export async function expectLiveRoomJoined(page: Page) {
 }
 
 export function participantCountLocator(page: Page, count: number) {
-  return page.locator("aside").locator("span.font-mono", { hasText: String(count) }).first();
+  return page
+    .locator("aside")
+    .locator("span.font-mono", { hasText: String(count) })
+    .first();
 }

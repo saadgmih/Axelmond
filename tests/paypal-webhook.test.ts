@@ -31,6 +31,7 @@ rulesTest("paypal-webhook", async () => {
   assert.match(serverSource, /PAYPAL_WEBHOOK_RATE_LIMIT_EXCEEDED/);
   assert.match(serverSource, /verifyPayPalWebhookSignature/);
   assert.match(serverSource, /handlePayPalWebhookEvent/);
+  assert.match(serverSource, /"donationId" in result/);
   assert.match(serverSource, /processPayPalCaptureEnrollment/);
   assert.match(paypalServerSource, /export async function getPayPalOrder/);
   assert.match(paypalServerSource, /export async function getPayPalAccessTokenForWebhook/);

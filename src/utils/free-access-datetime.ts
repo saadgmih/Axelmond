@@ -10,7 +10,13 @@ function pad2(value: number): string {
   return String(value).padStart(2, "0");
 }
 
-function toDatetimeLocalString(year: number, month: number, day: number, hours: number, minutes: number): string | null {
+function toDatetimeLocalString(
+  year: number,
+  month: number,
+  day: number,
+  hours: number,
+  minutes: number,
+): string | null {
   if (month < 1 || month > 12 || day < 1 || day > 31) return null;
   if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
   const probe = new Date(year, month - 1, day, hours, minutes, 0, 0);
@@ -88,7 +94,8 @@ export function mergeDisplayDateAndTime(
   timePart: string,
   fallback: Date | string | null | undefined = null,
 ): string | null {
-  const base = parseDatetimeDisplayInput(typeof fallback === "string" ? fallback : "") ?? formatDatetimeLocalValue(fallback);
+  const base =
+    parseDatetimeDisplayInput(typeof fallback === "string" ? fallback : "") ?? formatDatetimeLocalValue(fallback);
   const [baseDate, baseTime] = base.split("T");
   const date = parseDateDisplayInput(datePart) ?? baseDate;
   const time = parseTimeDisplayInput(timePart) ?? baseTime ?? "00:00";
@@ -110,13 +117,7 @@ export function parseDatetimeDisplayInput(raw: string): string | null {
 
   const frenchDateOnly = trimmed.match(FRENCH_DATE_PATTERN);
   if (frenchDateOnly) {
-    return toDatetimeLocalString(
-      Number(frenchDateOnly[3]),
-      Number(frenchDateOnly[2]),
-      Number(frenchDateOnly[1]),
-      0,
-      0,
-    );
+    return toDatetimeLocalString(Number(frenchDateOnly[3]), Number(frenchDateOnly[2]), Number(frenchDateOnly[1]), 0, 0);
   }
 
   const isoSpace = trimmed.match(ISO_SPACE_PATTERN);
@@ -164,7 +165,8 @@ export function parseDatetimeDisplayInput(raw: string): string | null {
 export function datetimeLocalToIso(value: string | null | undefined): string | null {
   if (!value?.trim()) return null;
 
-  const canonical = parseDatetimeDisplayInput(value) ?? (DATETIME_LOCAL_PATTERN.test(value) ? value.slice(0, 16) : null);
+  const canonical =
+    parseDatetimeDisplayInput(value) ?? (DATETIME_LOCAL_PATTERN.test(value) ? value.slice(0, 16) : null);
   if (!canonical) return null;
 
   const parsed = new Date(canonical);

@@ -285,6 +285,9 @@ export function useTeacherCurriculum({
         ),
         freeAccessStartsAt: newCourseIsFree ? datetimeLocalToIso(newCourseFreeAccessStartsAt) : null,
         freeAccessEndsAt: newCourseIsFree ? datetimeLocalToIso(newCourseFreeAccessEndsAt) : null,
+        freeAccessDurationDays: newCourseIsFree
+          ? normalizeFreeAccessDurationDays(newCourseFreeAccessDurationDays)
+          : null,
         instructor: currentUser?.fullName,
         description: newCourseDescription,
         published: newCoursePublished,
@@ -302,6 +305,7 @@ export function useTeacherCurriculum({
       setNewCourseDescription("");
       setNewCourseFreeAccessStartsAt(formatDatetimeLocalValue(null));
       setNewCourseFreeAccessEndsAt(defaultFreeAccessEndFromStart(formatDatetimeLocalValue(null)));
+      setNewCourseFreeAccessDurationDays("");
       setCourseContentSections([]);
       showCurriculumSuccess(`Module « ${normalizedCourse.title} » créé avec succès.`);
     } catch (err: any) {
@@ -506,6 +510,9 @@ export function useTeacherCurriculum({
         ),
         freeAccessStartsAt: editCourseForm.isFree ? datetimeLocalToIso(editCourseForm.freeAccessStartsAt) : null,
         freeAccessEndsAt: editCourseForm.isFree ? datetimeLocalToIso(editCourseForm.freeAccessEndsAt) : null,
+        freeAccessDurationDays: editCourseForm.isFree
+          ? normalizeFreeAccessDurationDays(editCourseForm.freeAccessDurationDays)
+          : null,
       });
       setCourses((prev) => prev.map((item) => (item.id === updatedCourse.id ? updatedCourse : item)));
       setEditingCourse(null);

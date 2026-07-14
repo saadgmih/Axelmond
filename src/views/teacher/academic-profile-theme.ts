@@ -25,8 +25,7 @@ export const profileUi = {
     "rounded-2xl border border-emerald-500/25 bg-emerald-950/40 px-5 py-4 text-xs font-semibold text-emerald-300 backdrop-blur-sm",
   alertError:
     "rounded-2xl border border-red-500/25 bg-red-950/40 px-5 py-4 text-xs font-semibold text-red-300 backdrop-blur-sm",
-  adminBanner:
-    "rounded-2xl border border-teal-500/20 bg-teal-950/30 p-5 backdrop-blur-md shadow-lg shadow-teal-950/20",
+  adminBanner: "rounded-2xl border border-teal-500/20 bg-teal-950/30 p-5 backdrop-blur-md shadow-lg shadow-teal-950/20",
   card: "overflow-hidden rounded-2xl sm:rounded-3xl border border-white/[0.08] bg-[#0b241f]/80 shadow-xl shadow-black/25 backdrop-blur-xl transition-shadow duration-300 hover:shadow-2xl hover:shadow-black/30",
   cardHeader: "border-b border-white/[0.06] px-5 py-4 sm:px-6 sm:py-5 md:px-8",
   cardTitle: "flex items-center gap-2.5 text-base sm:text-lg font-black text-white",

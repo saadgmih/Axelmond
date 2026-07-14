@@ -14,8 +14,7 @@ const readPngInfo = (filePath: string) => {
   };
 };
 
-const sha256 = (filePath: string) =>
-  crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
+const sha256 = (filePath: string) => crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
 
 rulesTest("brand-green-theme", () => {
   const cssSource = fs.readFileSync("src/index.css", "utf8");

@@ -23,10 +23,7 @@ import { startupState } from "./startup-state";
 import { stopPerformanceMonitor } from "../performance";
 import { isVerboseStartup } from "./startup-logging";
 import { drainDatabaseForShutdown, isExpectedShutdownCancellation, startupLifecycle } from "./startup-lifecycle";
-import {
-  getActiveHttpRequestCount,
-  waitForActiveHttpRequests,
-} from "./shutdown-coordination";
+import { getActiveHttpRequestCount, waitForActiveHttpRequests } from "./shutdown-coordination";
 
 loadEnv();
 
@@ -283,9 +280,7 @@ export async function startAxelmondServer() {
   httpServer.on("error", (err: NodeJS.ErrnoException) => {
     logDb("ERROR", "HTTP server failed to bind", { port: PORT, code: err.code, error: String(err) });
     if (process.env.HOSTINGER_WEBAPP === "1" && err.code === "EADDRINUSE") {
-      console.error(
-        "[hostinger] Port already in use — another instance is still running. Exiting without failure.",
-      );
+      console.error("[hostinger] Port already in use — another instance is still running. Exiting without failure.");
       process.exit(0);
     }
     process.exit(1);
@@ -428,7 +423,8 @@ async function verifySmtpAtStartup(signal: AbortSignal) {
 
 function registerGracefulShutdown(httpServer: ReturnType<typeof createServer>, isProduction: boolean) {
   const shutdownTimeoutMs =
-    Number(process.env.GRACEFUL_SHUTDOWN_MS) || (process.env.HOSTINGER_WEBAPP === "1" ? 8_000 : isProduction ? 5_000 : 15_000);
+    Number(process.env.GRACEFUL_SHUTDOWN_MS) ||
+    (process.env.HOSTINGER_WEBAPP === "1" ? 8_000 : isProduction ? 5_000 : 15_000);
 
   const shutdown = async (signal: string) => {
     if (!startupLifecycle.beginShutdown(signal)) return;

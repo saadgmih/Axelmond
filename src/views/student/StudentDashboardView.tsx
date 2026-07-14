@@ -24,7 +24,7 @@ import type { AppUser } from "../../components/AuthScreen";
 import type { Course, CourseModule } from "../../types";
 import { DEFAULT_STUDENT_LABEL } from "../../types";
 import { formatCredits } from "../../utils/morocco-locale";
-import { getSyllabusChapterProgress } from "../../utils/course-chapter-metrics";
+import { getCourseContentProgress } from "../../utils/course-content-metrics";
 import { prefetchCourseContent } from "../../utils/prefetch";
 import { useTvNavigation } from "../../hooks/useTvNavigation";
 
@@ -138,7 +138,7 @@ const DashboardCourseCard = memo(function DashboardCourseCard({
   getCourseIcon: CourseIconRenderer;
   navigateTo: NavigateTo;
 }) {
-  const { completedChapters, totalChapters, progressPercent } = getSyllabusChapterProgress(course.modules);
+  const { completedContents, totalContents, progressPercent } = getCourseContentProgress(course.modules);
 
   return (
     <div
@@ -165,7 +165,7 @@ const DashboardCourseCard = memo(function DashboardCourseCard({
         <div className="pt-2 space-y-1.5">
           <div className="flex justify-between items-center text-xs">
             <span className="text-slate-400 font-semibold">
-              {completedChapters} / {totalChapters} chapitres
+              {completedContents} / {totalContents} contenus
             </span>
             <span className="font-extrabold text-emerald-300 font-mono">{progressPercent}%</span>
           </div>
@@ -218,13 +218,13 @@ export default function StudentDashboardView({
   const showEnrollmentLoading = enrolledCourses.length > 0 && Boolean(isLoginDataLoading || isEnrolledCatalogSyncing);
 
   const progress = useMemo(() => {
-    const completedChapters = enrolledList.reduce(
-      (sum, course) => sum + getSyllabusChapterProgress(course.modules).completedChapters,
+    const completedContents = enrolledList.reduce(
+      (sum, course) => sum + getCourseContentProgress(course.modules).completedContents,
       0,
     );
 
-    const totalChapters = enrolledList.reduce(
-      (sum, course) => sum + getSyllabusChapterProgress(course.modules).totalChapters,
+    const totalContents = enrolledList.reduce(
+      (sum, course) => sum + getCourseContentProgress(course.modules).totalContents,
       0,
     );
 
@@ -263,9 +263,9 @@ export default function StudentDashboardView({
       .sort((a, b) => b.progress - a.progress);
 
     return {
-      completedChapters,
+      completedContents,
 
-      totalChapters,
+      totalContents,
 
       globalProgress,
 
@@ -311,11 +311,11 @@ export default function StudentDashboardView({
     },
 
     {
-      label: "Chapitres complétés",
+      label: "Contenus complétés",
 
-      value: String(progress.completedChapters),
+      value: String(progress.completedContents),
 
-      hint: progress.totalChapters > 0 ? `sur ${progress.totalChapters} chapitres` : "aucun chapitre disponible",
+      hint: progress.totalContents > 0 ? `sur ${progress.totalContents} contenus` : "aucun contenu disponible",
 
       icon: CheckCircle2,
 
@@ -434,7 +434,7 @@ export default function StudentDashboardView({
               </h3>
 
               <p className="text-xs sm:text-sm text-slate-400 max-w-2xl">
-                Vue d'ensemble basée sur vos modules inscrits, chapitres complétés et résultats de quiz enregistrés.
+                Vue d'ensemble basée sur vos modules inscrits, contenus complétés et résultats de quiz enregistrés.
               </p>
             </div>
 
@@ -480,10 +480,10 @@ export default function StudentDashboardView({
               </div>
 
               <p className="text-xs text-slate-400">
-                {progress.completedChapters} chapitre
-                {progress.completedChapters !== 1 ? "s" : ""} complété
-                {progress.completedChapters !== 1 ? "s" : ""}
-                {progress.totalChapters > 0 ? ` sur ${progress.totalChapters}` : ""}
+                {progress.completedContents} contenu
+                {progress.completedContents !== 1 ? "s" : ""} complété
+                {progress.completedContents !== 1 ? "s" : ""}
+                {progress.totalContents > 0 ? ` sur ${progress.totalContents}` : ""}
               </p>
             </div>
 
@@ -528,7 +528,7 @@ export default function StudentDashboardView({
             ) : (
               <div className="space-y-2">
                 {progress.activeModules.map((course) => {
-                  const { completedChapters: completed, totalChapters: total } = getSyllabusChapterProgress(
+                  const { completedContents: completed, totalContents: total } = getCourseContentProgress(
                     course.modules,
                   );
 
@@ -548,7 +548,7 @@ export default function StudentDashboardView({
                           <p className="text-sm font-bold text-white truncate">{course.title}</p>
 
                           <p className="text-[11px] text-slate-400 truncate">
-                            {nextModule ? `Prochain : ${nextModule.title}` : `${completed}/${total} chapitres`}
+                            {nextModule ? `Prochain : ${nextModule.title}` : `${completed}/${total} contenus`}
                           </p>
 
                           <div className="flex items-center gap-2 pt-1">

@@ -8,15 +8,8 @@ import {
   isCharityPageEnabled,
   userHasCharityAccess,
 } from "../charity-access-code";
-import {
-  processPayPalCaptureDonation,
-  toPayPalDonationCaptureClientResponse,
-} from "../paypal-charity-donation";
-import {
-  charityEventSnapshot,
-  donationCampaignSnapshot,
-  donationSnapshot,
-} from "../server/mappers/charity-mappers";
+import { processPayPalCaptureDonation, toPayPalDonationCaptureClientResponse } from "../paypal-charity-donation";
+import { charityEventSnapshot, donationCampaignSnapshot, donationSnapshot } from "../server/mappers/charity-mappers";
 
 async function requireCharityAccess(userId: string): Promise<boolean> {
   const hasAccess = await userHasCharityAccess(userId);
@@ -34,10 +27,7 @@ export function registerCharityRoutes(app: Express, ctx: RouteContext): void {
 
   app.get("/api/charity/access-status", requireAuth, async (req, res) => {
     const authUser = getAuthUser(req);
-    const [pageEnabled, hasAccess] = await Promise.all([
-      isCharityPageEnabled(),
-      userHasCharityAccess(authUser.id),
-    ]);
+    const [pageEnabled, hasAccess] = await Promise.all([isCharityPageEnabled(), userHasCharityAccess(authUser.id)]);
     res.json({
       pageEnabled,
       hasAccess,

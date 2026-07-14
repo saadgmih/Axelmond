@@ -15,7 +15,6 @@ import SkipLink from "./SkipLink";
 import { useAccessibilityPreferences } from "../hooks/useAccessibilityPreferences";
 import AccessibilityControls from "./AccessibilityControls";
 
-
 interface AuthScreenProps {
   onLoginSuccess: (user: AppUser) => void;
 }

@@ -1,12 +1,4 @@
-export const INSTITUTIONAL_VIEWS = new Set([
-  "about",
-  "contact",
-  "support",
-  "privacy",
-  "terms",
-  "cookies",
-  "legal",
-]);
+export const INSTITUTIONAL_VIEWS = new Set(["about", "contact", "support", "privacy", "terms", "cookies", "legal"]);
 
 export const STUDENT_VIEWS = new Set([
   "dashboard",

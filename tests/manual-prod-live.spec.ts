@@ -40,10 +40,7 @@ const CHAT_STUDENT_MSG = `[QA-LIVE-R${runNonce}] Message étudiant — ping`;
 const CHAT_PROF_REPLY = `[QA-LIVE-R${runNonce}] Réponse prof — pong`;
 
 function emailMaskLocators(page: import("@playwright/test").Page) {
-  return [
-    page.getByRole("textbox", { name: /Adresse e-mail/i }),
-    page.locator('input[type="email"]'),
-  ];
+  return [page.getByRole("textbox", { name: /Adresse e-mail/i }), page.locator('input[type="email"]')];
 }
 
 async function selectTestCourse(profPage: import("@playwright/test").Page) {
@@ -102,8 +99,18 @@ test("production live — prof + étudiant (faux média, chat, reconnexion, fin)
   await attachFakeMediaStreams(profContext);
   await attachFakeMediaStreams(studContext);
 
-  await profContext.tracing.start({ screenshots: true, snapshots: true, sources: false, title: `prod-live-prof-run-${runIndex}` });
-  await studContext.tracing.start({ screenshots: true, snapshots: true, sources: false, title: `prod-live-stud-run-${runIndex}` });
+  await profContext.tracing.start({
+    screenshots: true,
+    snapshots: true,
+    sources: false,
+    title: `prod-live-prof-run-${runIndex}`,
+  });
+  await studContext.tracing.start({
+    screenshots: true,
+    snapshots: true,
+    sources: false,
+    title: `prod-live-stud-run-${runIndex}`,
+  });
 
   const profPage = await profContext.newPage();
   const studPage = await studContext.newPage();
@@ -305,9 +312,9 @@ test("production live — prof + étudiant (faux média, chat, reconnexion, fin)
       summary.consoleErrors.slice(0, 5).forEach((e) => console.log("  console:", redactSecrets(e)));
     }
     if (summary.http4xx.length || summary.http5xx.length) {
-      [...summary.http4xx, ...summary.http5xx].slice(0, 8).forEach((h) =>
-        console.log(`  HTTP ${h.status} ${h.method} ${h.url}`),
-      );
+      [...summary.http4xx, ...summary.http5xx]
+        .slice(0, 8)
+        .forEach((h) => console.log(`  HTTP ${h.status} ${h.method} ${h.url}`));
     }
     console.log("Traces:", `${traceDir}/trace-prof.zip`, `${traceDir}/trace-student.zip`);
   }

@@ -6,7 +6,7 @@ import {
   isPayPalDonationCustomId,
   logPayPalError,
 } from "./paypal-server";
-import { processPayPalCaptureDonation } from "./paypal-charity-donation";
+import { processPayPalCaptureDonation, type PayPalCaptureDonationResult } from "./paypal-charity-donation";
 import { processPayPalCaptureEnrollment, type PayPalCaptureEnrollmentResult } from "./paypal-enrollment";
 import { logSecurity } from "./security-logger";
 
@@ -107,6 +107,24 @@ export function parsePayPalWebhookEvent(rawBody: Buffer | string): any | null {
 
 const HANDLED_EVENTS = new Set(["CHECKOUT.ORDER.APPROVED", "PAYMENT.CAPTURE.COMPLETED"]);
 
+type PersistCoursePaymentEnrollment = (input: {
+  userId: string;
+  courseId: number;
+  courseTitle: string;
+  coursePrice: number;
+  invoiceId: string;
+  provider: "PAYPAL" | "MOCK";
+  externalId: string;
+  auditAction: string;
+  reqIp?: string;
+  hasAiAccess?: boolean;
+}) => Promise<{ duplicate: boolean; user: any; invoice: any }>;
+
+export type PayPalWebhookEventResult =
+  | PayPalCaptureEnrollmentResult
+  | PayPalCaptureDonationResult
+  | { ok: true; ignored: true; eventType: string };
+
 export function isHandledPayPalWebhookEvent(eventType: string): boolean {
   return HANDLED_EVENTS.has(eventType);
 }
@@ -116,17 +134,7 @@ async function processWebhookCaptureResult(
   captureResult: any,
   deps: {
     reqIp?: string;
-    persistCoursePaymentEnrollment: (input: {
-      userId: string;
-      courseId: number;
-      courseTitle: string;
-      coursePrice: number;
-      invoiceId: string;
-      provider: "PAYPAL" | "MOCK";
-      externalId: string;
-      auditAction: string;
-      reqIp?: string;
-    }) => Promise<{ duplicate: boolean; user: any; invoice: any }>;
+    persistCoursePaymentEnrollment: PersistCoursePaymentEnrollment;
   },
   auditAction: string,
 ): Promise<PayPalCaptureEnrollmentResult | Awaited<ReturnType<typeof processPayPalCaptureDonation>>> {
@@ -155,21 +163,11 @@ export async function handlePayPalWebhookEvent(
   event: any,
   deps: {
     reqIp?: string;
-    persistCoursePaymentEnrollment: (input: {
-      userId: string;
-      courseId: number;
-      courseTitle: string;
-      coursePrice: number;
-      invoiceId: string;
-      provider: "PAYPAL" | "MOCK";
-      externalId: string;
-      auditAction: string;
-      reqIp?: string;
-    }) => Promise<{ duplicate: boolean; user: any; invoice: any }>;
+    persistCoursePaymentEnrollment: PersistCoursePaymentEnrollment;
     captureOrder?: (orderId: string) => Promise<any>;
     getOrder?: (orderId: string) => Promise<any>;
   },
-): Promise<PayPalCaptureEnrollmentResult | { ok: true; ignored: true; eventType: string }> {
+): Promise<PayPalWebhookEventResult> {
   const eventType = String(event?.event_type || "");
   if (!isHandledPayPalWebhookEvent(eventType)) {
     return { ok: true, ignored: true, eventType };
@@ -186,12 +184,7 @@ export async function handlePayPalWebhookEvent(
 
     const existingOrder = await getOrder(orderId);
     if (existingOrder?.status === "COMPLETED") {
-      return processWebhookCaptureResult(
-        orderId,
-        existingOrder,
-        deps,
-        "PAYMENT_PAYPAL_WEBHOOK_ORDER_COMPLETED",
-      );
+      return processWebhookCaptureResult(orderId, existingOrder, deps, "PAYMENT_PAYPAL_WEBHOOK_ORDER_COMPLETED");
     }
 
     const captureResult = await captureOrder(orderId);
@@ -201,7 +194,7 @@ export async function handlePayPalWebhookEvent(
       logSecurity("INFO", "PayPal webhook captured approved order", {
         orderId,
         duplicate: result.duplicate,
-        ...( "donationId" in result
+        ...("donationId" in result
           ? { donationId: result.donationId, userId: result.userId }
           : { userId: result.userId, courseId: result.courseId, invoiceId: result.invoiceId }),
       });
@@ -227,19 +220,14 @@ export async function handlePayPalWebhookEvent(
   }
 
   const captureResult = await getOrder(orderId);
-  const result = await processWebhookCaptureResult(
-    orderId,
-    captureResult,
-    deps,
-    "PAYMENT_PAYPAL_WEBHOOK_RECONCILE",
-  );
+  const result = await processWebhookCaptureResult(orderId, captureResult, deps, "PAYMENT_PAYPAL_WEBHOOK_RECONCILE");
 
   if (result.ok) {
     logSecurity("INFO", "PayPal webhook reconciled capture", {
       orderId,
       captureId,
       duplicate: result.duplicate,
-      ...( "donationId" in result
+      ...("donationId" in result
         ? { donationId: result.donationId, userId: result.userId }
         : { userId: result.userId, courseId: result.courseId, invoiceId: result.invoiceId }),
     });

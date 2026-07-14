@@ -4,6 +4,17 @@ import {
   resolveConfirmedMessageAttachment,
 } from "../src/message-attachment-confirmation";
 
+async function expectConfirmationError(promise: Promise<unknown>, statusCode: number): Promise<void> {
+  try {
+    await promise;
+    expect.unreachable("La confirmation devait échouer");
+  } catch (error) {
+    expect(error).toBeInstanceOf(MessageAttachmentConfirmationError);
+    if (!(error instanceof MessageAttachmentConfirmationError)) throw error;
+    expect(error.statusCode).toBe(statusCode);
+  }
+}
+
 describe("message attachment upload confirmation", () => {
   it("uses the URL verified by UploadThing", async () => {
     const attachment = await resolveConfirmedMessageAttachment(
@@ -27,7 +38,7 @@ describe("message attachment upload confirmation", () => {
   });
 
   it("rejects a key that UploadThing cannot verify", async () => {
-    await expect(
+    await expectConfirmationError(
       resolveConfirmedMessageAttachment(
         {
           storageKey: "unknown-key",
@@ -37,11 +48,12 @@ describe("message attachment upload confirmation", () => {
         },
         async () => ({ data: [] }),
       ),
-    ).rejects.toEqual(expect.objectContaining<MessageAttachmentConfirmationError>({ statusCode: 404 }));
+      404,
+    );
   });
 
   it("rejects an invalid attachment even when the storage key exists", async () => {
-    await expect(
+    await expectConfirmationError(
       resolveConfirmedMessageAttachment(
         {
           storageKey: "oversized-audio",
@@ -51,6 +63,7 @@ describe("message attachment upload confirmation", () => {
         },
         async () => ({ data: [{ key: "oversized-audio", url: "https://ufs.sh/f/oversized-audio" }] }),
       ),
-    ).rejects.toEqual(expect.objectContaining<MessageAttachmentConfirmationError>({ statusCode: 400 }));
+      400,
+    );
   });
 });

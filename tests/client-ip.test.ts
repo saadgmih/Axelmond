@@ -18,10 +18,7 @@ rulesTest("client-ip", () => {
   assert.equal(parseTrustProxySetting("false"), false);
 
   assert.equal(getClientIp(mockRequest()), "203.0.113.10");
-  assert.equal(
-    getClientIp(mockRequest({ headers: { "cf-connecting-ip": "198.51.100.42" } })),
-    "198.51.100.42",
-  );
+  assert.equal(getClientIp(mockRequest({ headers: { "cf-connecting-ip": "198.51.100.42" } })), "198.51.100.42");
   assert.equal(
     getClientIp(mockRequest({ ip: "203.0.113.10", headers: { "cf-connecting-ip": " 198.51.100.42 " } })),
     "198.51.100.42",

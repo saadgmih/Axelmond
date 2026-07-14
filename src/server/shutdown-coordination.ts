@@ -9,13 +9,10 @@ export function getActiveHttpRequestCount(): number {
 
 export function shutdownGuardMiddleware(req: Request, res: Response, next: NextFunction): void {
   if (startupLifecycle.isShuttingDown) {
-    res
-      .status(503)
-      .setHeader("Connection", "close")
-      .json({
-        error: "Le service redémarre. Réessayez dans quelques secondes.",
-        code: "SERVICE_SHUTTING_DOWN",
-      });
+    res.status(503).setHeader("Connection", "close").json({
+      error: "Le service redémarre. Réessayez dans quelques secondes.",
+      code: "SERVICE_SHUTTING_DOWN",
+    });
     return;
   }
 

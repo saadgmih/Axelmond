@@ -17,10 +17,7 @@ import { Course } from "../types";
 import type { AppUser } from "./AuthScreen";
 import { api, getFreshSessionToken } from "../api";
 import { formatCredits, formatMad, PLATFORM_CURRENCY_CODE } from "../utils/morocco-locale";
-import {
-  AI_TUTOR_ADDON_PRICE_MAD,
-  computeCourseCheckoutTotalMad,
-} from "../utils/ai-tutor-pricing";
+import { AI_TUTOR_ADDON_PRICE_MAD, computeCourseCheckoutTotalMad } from "../utils/ai-tutor-pricing";
 import { useFocusTrap } from "../hooks/useFocusTrap";
 
 interface PaymentModalProps {

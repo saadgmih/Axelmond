@@ -229,7 +229,7 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
               ) : (
                 <>
                   <Sparkles className="w-3 h-3 text-emerald-500" aria-hidden="true" />
-                   Conseiller Performance Académique
+                  Conseiller Performance Académique
                 </>
               )}
             </span>

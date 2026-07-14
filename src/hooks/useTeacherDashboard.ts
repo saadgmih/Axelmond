@@ -314,23 +314,32 @@ export function useTeacherDashboard({
     let course = findLiveCourse(courses, id);
     if (!course) {
       try {
-        course = await api.getCourse(id);
-        setCourses((prev) => [...prev.filter((item) => item.id !== course!.id), course!]);
+        const fetchedCourse = await api.getCourse(id);
+        if (!fetchedCourse) {
+          throw new Error("Module introuvable pour lancer le live.");
+        }
+        course = fetchedCourse;
+        setCourses((prev) => [...prev.filter((item) => item.id !== fetchedCourse.id), fetchedCourse]);
       } catch (err) {
         console.error("Failed to resolve course before live toggle:", err);
         throw new Error(getClientErrorMessage(err, "Module introuvable pour lancer le live."));
       }
     }
 
-    const nextState = !course.isLiveNow;
+    if (!course) {
+      throw new Error("Module introuvable pour lancer le live.");
+    }
+
+    const resolvedCourse = course;
+    const nextState = !resolvedCourse.isLiveNow;
     try {
-      const updatedCourse = await api.updateCourse(course.id, {
+      const updatedCourse = await api.updateCourse(resolvedCourse.id, {
         isLiveNow: nextState,
-        liveSubject: nextState ? course.liveSubject?.trim() || "Session live en cours" : null,
+        liveSubject: nextState ? resolvedCourse.liveSubject?.trim() || "Session live en cours" : null,
       });
-      setCourses((prev) => prev.map((c) => (c.id === course!.id ? updatedCourse : c)));
+      setCourses((prev) => prev.map((c) => (c.id === resolvedCourse.id ? updatedCourse : c)));
       setActiveLiveCourse((current) => {
-        if (current?.id !== course!.id) return current;
+        if (current?.id !== resolvedCourse.id) return current;
         return nextState ? updatedCourse : null;
       });
       return updatedCourse;

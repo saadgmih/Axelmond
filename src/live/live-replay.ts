@@ -34,7 +34,11 @@ export function isLiveReplayContent(body: string | null | undefined): boolean {
   return parseLiveReplayBody(body) !== null;
 }
 
-export function buildLiveReplayTitle(courseTitle: string, liveSubject?: string | null, recordedAt = new Date()): string {
+export function buildLiveReplayTitle(
+  courseTitle: string,
+  liveSubject?: string | null,
+  recordedAt = new Date(),
+): string {
   const label = liveSubject?.trim() || courseTitle.trim() || "Session live";
   const dateLabel = recordedAt.toLocaleString("fr-FR", {
     day: "2-digit",

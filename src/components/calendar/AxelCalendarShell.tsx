@@ -77,7 +77,7 @@ function sessionsForDay(
 
 export default function AxelCalendarShell({
   sessions,
-  accent = "indigo",
+  accent: _accent = "indigo",
   matchBy = "weekday",
   labels,
   onAddSession,
@@ -167,9 +167,7 @@ export default function AxelCalendarShell({
               >
                 {visible ? cell.date.getDate() : ""}
                 {visible && daySessions.length > 0 && !cell.isToday && (
-                  <span
-                    className={`absolute bottom-0 h-1 w-1 rounded-full bg-emerald-400`}
-                  />
+                  <span className={`absolute bottom-0 h-1 w-1 rounded-full bg-emerald-400`} />
                 )}
               </span>
             );

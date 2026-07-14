@@ -691,11 +691,17 @@ export default function AboutView() {
                       { label: "Interface moderne", color: "text-teal-300 bg-teal-900/20 border-teal-800/40" },
                       { label: "API sécurisée", color: "text-emerald-300 bg-emerald-900/20 border-emerald-800/40" },
                       { label: "Données protégées", color: "text-emerald-300 bg-emerald-900/20 border-emerald-800/40" },
-                      { label: "Sessions en direct", color: "text-emerald-300 bg-emerald-900/20 border-emerald-800/40" },
+                      {
+                        label: "Sessions en direct",
+                        color: "text-emerald-300 bg-emerald-900/20 border-emerald-800/40",
+                      },
                       { label: "Tuteur IA", color: "text-teal-300 bg-teal-900/20 border-teal-800/40" },
                       { label: "Paiement en ligne", color: "text-lime-300 bg-lime-900/20 border-lime-800/40" },
                       { label: "Médias pédagogiques", color: "text-orange-300 bg-orange-900/20 border-orange-800/40" },
-                      { label: "Authentification renforcée", color: "text-emerald-300 bg-emerald-900/20 border-emerald-800/40" },
+                      {
+                        label: "Authentification renforcée",
+                        color: "text-emerald-300 bg-emerald-900/20 border-emerald-800/40",
+                      },
                     ].map(({ label, color }) => (
                       <span key={label} className={`text-[10px] font-bold border px-2.5 py-1 rounded-lg ${color}`}>
                         {label}

@@ -1,9 +1,5 @@
 import { prisma } from "./db";
-import {
-  formatPayPalAmount,
-  logPayPalError,
-  parsePayPalDonationCustomId,
-} from "./paypal-server";
+import { formatPayPalAmount, logPayPalError, parsePayPalDonationCustomId } from "./paypal-server";
 import { convertMadAmountForPayPal, getPayPalCheckoutCurrency } from "./paypal-currency";
 import { donationSnapshot } from "./server/mappers/charity-mappers";
 
@@ -41,7 +37,12 @@ export const PAYPAL_DONATION_CAPTURE_MESSAGES: Record<string, string> = {
   PAYPAL_AMOUNT_MISMATCH: "Montant de paiement incorrect",
 };
 
-export function toPayPalDonationCaptureClientResponse(result: { ok: false; status: number; error: string; code?: string }) {
+export function toPayPalDonationCaptureClientResponse(result: {
+  ok: false;
+  status: number;
+  error: string;
+  code?: string;
+}) {
   const code = result.code || "PAYPAL_CAPTURE_FAILED";
   return {
     error: PAYPAL_DONATION_CAPTURE_MESSAGES[code] || "Paiement PayPal invalide",
@@ -122,8 +123,7 @@ export async function processPayPalCaptureDonation(
   const paidAmount = String(capture?.amount?.value || "");
   const paidCurrency = String(capture?.amount?.currency_code || "").toUpperCase();
   const expectedCurrency = (metadata.payPalCurrency || getPayPalCheckoutCurrency()).toUpperCase();
-  const expectedAmount =
-    metadata.expectedAmount ?? formatPayPalAmount(convertMadAmountForPayPal(donation.amount));
+  const expectedAmount = metadata.expectedAmount ?? formatPayPalAmount(convertMadAmountForPayPal(donation.amount));
 
   if (paidCurrency !== expectedCurrency || paidAmount !== expectedAmount) {
     logPayPalError("PayPal donation capture amount mismatch", {

@@ -1,15 +1,5 @@
 import { useMemo, useState } from "react";
-import {
-  CalendarDays,
-  Copy,
-  HandHeart,
-  Heart,
-  KeyRound,
-  Plus,
-  RefreshCw,
-  Trash2,
-  Users,
-} from "lucide-react";
+import { CalendarDays, Copy, HandHeart, Heart, KeyRound, Plus, RefreshCw, Trash2, Users } from "lucide-react";
 import { CHARITY_ACTIVATE_LABEL, CHARITY_PAGE_TITLE } from "../../charity-labels";
 import { useCharityAdmin, type CharityCampaignRow, type CharityEventRow } from "../../hooks/useCharityAdmin";
 import { curriculumUi } from "./curriculum-theme";
@@ -77,7 +67,9 @@ export default function AdminCharityView({ enabled }: AdminCharityViewProps) {
 
   return (
     <div className={`${curriculumUi.panel} overflow-hidden`}>
-      <header className={`flex flex-col gap-6 ${curriculumUi.divider} px-5 py-6 sm:px-7 lg:flex-row lg:items-center lg:justify-between lg:px-10 lg:py-8`}>
+      <header
+        className={`flex flex-col gap-6 ${curriculumUi.divider} px-5 py-6 sm:px-7 lg:flex-row lg:items-center lg:justify-between lg:px-10 lg:py-8`}
+      >
         <div className="flex min-w-0 items-center gap-4">
           <span className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-emerald-700/40 bg-emerald-950/80 text-emerald-300">
             <HandHeart className="h-7 w-7" />
@@ -103,7 +95,9 @@ export default function AdminCharityView({ enabled }: AdminCharityViewProps) {
       </header>
 
       <div className="space-y-6 p-4 sm:p-6 lg:p-9">
-        <section className={`flex flex-col gap-5 ${curriculumUi.card} px-5 py-5 lg:flex-row lg:items-center lg:justify-between lg:px-8`}>
+        <section
+          className={`flex flex-col gap-5 ${curriculumUi.card} px-5 py-5 lg:flex-row lg:items-center lg:justify-between lg:px-8`}
+        >
           <div>
             <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">Page publique</p>
             <h2 className="mt-1 text-xl font-black text-white">{CHARITY_ACTIVATE_LABEL}</h2>
@@ -128,7 +122,9 @@ export default function AdminCharityView({ enabled }: AdminCharityViewProps) {
           </button>
         </section>
 
-        <section className={`grid grid-cols-1 gap-px overflow-hidden ${curriculumUi.card} sm:grid-cols-2 lg:grid-cols-4`}>
+        <section
+          className={`grid grid-cols-1 gap-px overflow-hidden ${curriculumUi.card} sm:grid-cols-2 lg:grid-cols-4`}
+        >
           {stats.map((stat) => {
             const Icon = stat.icon;
             return (
@@ -154,7 +150,9 @@ export default function AdminCharityView({ enabled }: AdminCharityViewProps) {
         {charity.lastCreatedCode && (
           <div className="flex flex-col gap-3 rounded-2xl border border-emerald-700/40 bg-emerald-950/40 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-xs font-black uppercase tracking-wider text-emerald-300">Code à partager (une seule fois)</p>
+              <p className="text-xs font-black uppercase tracking-wider text-emerald-300">
+                Code à partager (une seule fois)
+              </p>
               <p className="mt-1 font-mono text-lg font-black text-white">{charity.lastCreatedCode}</p>
             </div>
             <button
@@ -247,7 +245,9 @@ export default function AdminCharityView({ enabled }: AdminCharityViewProps) {
           </div>
           {charity.selectedCodeId && charity.codeUsages.length > 0 && (
             <div className="mt-4 rounded-lg border border-slate-700/60 bg-slate-950/40 p-4">
-              <p className="text-xs font-black uppercase tracking-wider text-slate-500">Utilisateurs ayant utilisé ce code</p>
+              <p className="text-xs font-black uppercase tracking-wider text-slate-500">
+                Utilisateurs ayant utilisé ce code
+              </p>
               <ul className="mt-2 space-y-1 text-sm">
                 {charity.codeUsages.map((usage) => (
                   <li key={usage.id} className="text-slate-300">
@@ -280,7 +280,11 @@ export default function AdminCharityView({ enabled }: AdminCharityViewProps) {
               onSubmit={(e) => {
                 e.preventDefault();
                 void charity.saveCampaign(
-                  { title: campaignDraft.title, description: campaignDraft.description, isActive: campaignDraft.isActive },
+                  {
+                    title: campaignDraft.title,
+                    description: campaignDraft.description,
+                    isActive: campaignDraft.isActive,
+                  },
                   campaignDraft.id || undefined,
                 );
                 setCampaignDraft(null);
@@ -305,7 +309,11 @@ export default function AdminCharityView({ enabled }: AdminCharityViewProps) {
                 <button type="submit" disabled={charity.isSaving} className={primaryBtn}>
                   Enregistrer
                 </button>
-                <button type="button" onClick={() => setCampaignDraft(null)} className="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-300">
+                <button
+                  type="button"
+                  onClick={() => setCampaignDraft(null)}
+                  className="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-300"
+                >
                   Annuler
                 </button>
               </div>
@@ -345,11 +353,7 @@ export default function AdminCharityView({ enabled }: AdminCharityViewProps) {
               <CalendarDays className="h-5 w-5 text-emerald-400" />
               Événements religieux
             </h2>
-            <button
-              type="button"
-              onClick={() => setEventDraft(emptyEvent())}
-              className={primaryBtn}
-            >
+            <button type="button" onClick={() => setEventDraft(emptyEvent())} className={primaryBtn}>
               <Plus className="h-4 w-4" />
               Ajouter
             </button>
@@ -391,11 +395,41 @@ export default function AdminCharityView({ enabled }: AdminCharityViewProps) {
                 className="sm:col-span-2 rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white"
                 required
               />
-              <input type="number" value={eventDraft.year} onChange={(e) => setEventDraft({ ...eventDraft, year: Number(e.target.value) })} placeholder="Année" className="rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white" />
-              <input type="number" value={eventDraft.month} onChange={(e) => setEventDraft({ ...eventDraft, month: Number(e.target.value) })} placeholder="Mois" className="rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white" />
-              <input type="number" value={eventDraft.day} onChange={(e) => setEventDraft({ ...eventDraft, day: Number(e.target.value) })} placeholder="Jour" className="rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white" />
-              <input type="number" value={eventDraft.hour} onChange={(e) => setEventDraft({ ...eventDraft, hour: Number(e.target.value) })} placeholder="Heure" className="rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white" />
-              <input type="number" value={eventDraft.minute} onChange={(e) => setEventDraft({ ...eventDraft, minute: Number(e.target.value) })} placeholder="Minute" className="rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white" />
+              <input
+                type="number"
+                value={eventDraft.year}
+                onChange={(e) => setEventDraft({ ...eventDraft, year: Number(e.target.value) })}
+                placeholder="Année"
+                className="rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white"
+              />
+              <input
+                type="number"
+                value={eventDraft.month}
+                onChange={(e) => setEventDraft({ ...eventDraft, month: Number(e.target.value) })}
+                placeholder="Mois"
+                className="rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white"
+              />
+              <input
+                type="number"
+                value={eventDraft.day}
+                onChange={(e) => setEventDraft({ ...eventDraft, day: Number(e.target.value) })}
+                placeholder="Jour"
+                className="rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white"
+              />
+              <input
+                type="number"
+                value={eventDraft.hour}
+                onChange={(e) => setEventDraft({ ...eventDraft, hour: Number(e.target.value) })}
+                placeholder="Heure"
+                className="rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white"
+              />
+              <input
+                type="number"
+                value={eventDraft.minute}
+                onChange={(e) => setEventDraft({ ...eventDraft, minute: Number(e.target.value) })}
+                placeholder="Minute"
+                className="rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white"
+              />
               <input
                 value={eventDraft.location}
                 onChange={(e) => setEventDraft({ ...eventDraft, location: e.target.value })}
@@ -406,7 +440,11 @@ export default function AdminCharityView({ enabled }: AdminCharityViewProps) {
                 <button type="submit" disabled={charity.isSaving} className={primaryBtn}>
                   Enregistrer
                 </button>
-                <button type="button" onClick={() => setEventDraft(null)} className="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-300">
+                <button
+                  type="button"
+                  onClick={() => setEventDraft(null)}
+                  className="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-300"
+                >
                   Annuler
                 </button>
               </div>
@@ -418,14 +456,23 @@ export default function AdminCharityView({ enabled }: AdminCharityViewProps) {
                 <div>
                   <p className="font-bold text-white">{event.title}</p>
                   <p className="text-xs text-slate-400">
-                    {event.day}/{event.month}/{event.year} — {event.hour}h{String(event.minute).padStart(2, "0")} — {event.location}
+                    {event.day}/{event.month}/{event.year} — {event.hour}h{String(event.minute).padStart(2, "0")} —{" "}
+                    {event.location}
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <button type="button" onClick={() => setEventDraft(event)} className="rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-bold text-slate-300">
+                  <button
+                    type="button"
+                    onClick={() => setEventDraft(event)}
+                    className="rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-bold text-slate-300"
+                  >
                     Modifier
                   </button>
-                  <button type="button" onClick={() => void charity.removeEvent(event.id)} className="rounded-lg border border-red-500/40 px-3 py-1.5 text-xs font-bold text-red-300">
+                  <button
+                    type="button"
+                    onClick={() => void charity.removeEvent(event.id)}
+                    className="rounded-lg border border-red-500/40 px-3 py-1.5 text-xs font-bold text-red-300"
+                  >
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>

@@ -302,9 +302,9 @@ test("Campagne de test Live multi-utilisateurs (7 clients simultanés)", async (
   await prof1Page.click('button:has-text("Contrôleur de Modules Live")');
 
   // Renseigner le sujet de révision actif
-  await prof1Page.getByRole("textbox", { name: "Sujet de révision actif" }).fill(
-    "Tests Multi-Utilisateurs en conditions réelles",
-  );
+  await prof1Page
+    .getByRole("textbox", { name: "Sujet de révision actif" })
+    .fill("Tests Multi-Utilisateurs en conditions réelles");
 
   await prof1Page.getByRole("button", { name: "Lancer la session live" }).click();
 
@@ -342,7 +342,10 @@ test("Campagne de test Live multi-utilisateurs (7 clients simultanés)", async (
   await expect(prof1Page.locator('text="Membres de la session"')).toBeVisible();
 
   const participantCount = (count: number) =>
-    prof1Page.locator("aside").locator("span.font-mono", { hasText: String(count) }).first();
+    prof1Page
+      .locator("aside")
+      .locator("span.font-mono", { hasText: String(count) })
+      .first();
 
   // Vérifier le nombre correct de connectés dans la liste (7)
   await expect(participantCount(7)).toBeVisible({ timeout: 10000 });

@@ -18,10 +18,7 @@ rulesTest("professor-course-ownership", () => {
   const dashboardHookSource = readFileSync("src/hooks/useTeacherDashboard.ts", "utf8");
   const projectMap = readFileSync("PROJECT_MAP.md", "utf8");
 
-  assert.match(
-    serverSource,
-    /buildCatalogCourseVisibilityWhere\([\s\S]*?role: authUser\?\.role/,
-  );
+  assert.match(serverSource, /buildCatalogCourseVisibilityWhere\([\s\S]*?role: authUser\?\.role/);
   assert.match(
     readFileSync("src/catalog-visibility.ts", "utf8"),
     /role === "PROFESSOR" \|\| role === "RESEARCHER"[\s\S]*?OR: \[\{ createdById: userId \|\| undefined \}, \{ createdById: null, instructor: fullName \|\| undefined \}\]/,

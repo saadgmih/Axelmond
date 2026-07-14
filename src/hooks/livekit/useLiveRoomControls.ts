@@ -34,10 +34,7 @@ import {
   type LiveSyncMessage,
   type LiveWhiteboardStroke,
 } from "../../live/live-sync";
-import {
-  isWhiteboardStrokeRateLimited,
-  trackWhiteboardStrokeTimestamp,
-} from "../../live/live-sync-validation";
+import { isWhiteboardStrokeRateLimited, trackWhiteboardStrokeTimestamp } from "../../live/live-sync-validation";
 import { uploadLiveReplayVideo } from "../../live/live-replay-upload";
 import { buildLiveReplayTitle } from "../../live/live-replay";
 
@@ -512,7 +509,10 @@ export function useLiveRoomControls({
             // Local screenshare audio
             const localScreenAudio = liveRoom.localParticipant.getTrackPublication(Track.Source.ScreenShareAudio);
             if (localScreenAudio?.audioTrack?.mediaStreamTrack && !localScreenAudio.isMuted) {
-              activeTracks.set(localScreenAudio.audioTrack.mediaStreamTrack.id, localScreenAudio.audioTrack.mediaStreamTrack);
+              activeTracks.set(
+                localScreenAudio.audioTrack.mediaStreamTrack.id,
+                localScreenAudio.audioTrack.mediaStreamTrack,
+              );
             }
 
             // Remote microphones and screen share audio
@@ -523,7 +523,10 @@ export function useLiveRoomControls({
               }
               const screenAudioPub = participant.getTrackPublication(Track.Source.ScreenShareAudio);
               if (screenAudioPub?.audioTrack?.mediaStreamTrack && !screenAudioPub.isMuted) {
-                activeTracks.set(screenAudioPub.audioTrack.mediaStreamTrack.id, screenAudioPub.audioTrack.mediaStreamTrack);
+                activeTracks.set(
+                  screenAudioPub.audioTrack.mediaStreamTrack.id,
+                  screenAudioPub.audioTrack.mediaStreamTrack,
+                );
               }
             }
 
@@ -666,9 +669,7 @@ export function useLiveRoomControls({
 
         if (!selectedMimeType) {
           // Absolute fallback
-          const absoluteFallback = hasAudio
-            ? ["video/webm", "video/mp4"]
-            : ["video/webm", "video/mp4"];
+          const absoluteFallback = hasAudio ? ["video/webm", "video/mp4"] : ["video/webm", "video/mp4"];
           for (const type of absoluteFallback) {
             if (MediaRecorder.isTypeSupported(type)) {
               selectedMimeType = type;
@@ -682,7 +683,10 @@ export function useLiveRoomControls({
           try {
             mediaRecorder = new MediaRecorder(streamToRecord, { mimeType: selectedMimeType });
           } catch (e) {
-            console.warn(`[recording] Failed to create MediaRecorder with MIME type ${selectedMimeType}, falling back:`, e);
+            console.warn(
+              `[recording] Failed to create MediaRecorder with MIME type ${selectedMimeType}, falling back:`,
+              e,
+            );
             mediaRecorder = new MediaRecorder(streamToRecord);
           }
         } else {
@@ -744,28 +748,20 @@ export function useLiveRoomControls({
           const liveSessionId = autoReplaySessionIdRef.current;
           const course = activeLiveCourse;
           if (automaticReplay && liveSessionId && course) {
-            const replayFile = new File(
-              [blob],
-              `rediffusion_${course.id}_${Date.now()}.${extension}`,
-              { type: actualMimeType },
-            );
+            const replayFile = new File([blob], `rediffusion_${course.id}_${Date.now()}.${extension}`, {
+              type: actualMimeType,
+            });
             const title = buildLiveReplayTitle(course.title, course.liveSubject);
-            void uploadLiveReplayVideo(
-              replayFile,
-              { courseId: course.id, liveSessionId, title },
-              (message) => setLiveStatusMsg(message),
+            void uploadLiveReplayVideo(replayFile, { courseId: course.id, liveSessionId, title }, (message) =>
+              setLiveStatusMsg(message),
             )
               .then(() => {
-                setLiveStatusMsg(
-                  "Rediffusion enregistrée. Publiez-la depuis Gestion des Contenus → Médias.",
-                );
+                setLiveStatusMsg("Rediffusion enregistrée. Publiez-la depuis Gestion des Contenus → Médias.");
                 autoReplayFinalizeRef.current?.(true);
               })
               .catch((err) => {
                 console.error("[live-replay] Upload failed", err);
-                setLiveStatusMsg(
-                  err instanceof Error ? err.message : "Échec de l'enregistrement de la rediffusion.",
-                );
+                setLiveStatusMsg(err instanceof Error ? err.message : "Échec de l'enregistrement de la rediffusion.");
                 autoReplayFinalizeRef.current?.(false);
               })
               .finally(() => {

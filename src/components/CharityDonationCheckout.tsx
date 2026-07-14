@@ -98,7 +98,9 @@ export function CharityDonationCheckout({
 
   if (!amountValid) {
     return (
-      <p className="text-xs font-medium text-slate-500">Saisissez un montant en MAD pour afficher le paiement PayPal.</p>
+      <p className="text-xs font-medium text-slate-500">
+        Saisissez un montant en MAD pour afficher le paiement PayPal.
+      </p>
     );
   }
 
@@ -161,8 +163,7 @@ export function CharityDonationCheckout({
               }}
               onError={() => {
                 setPaymentError(
-                  (current) =>
-                    current || "Erreur PayPal. Veuillez réessayer ou utiliser un autre moyen de paiement.",
+                  (current) => current || "Erreur PayPal. Veuillez réessayer ou utiliser un autre moyen de paiement.",
                 );
               }}
               onCancel={() => {

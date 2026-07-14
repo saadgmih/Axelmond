@@ -42,7 +42,6 @@ export function TeacherRouteSwitch() {
     handleToggleCourseLive,
     toggleTeacherLiveSession,
     activeLiveCourse,
-    renderLiveRoomInterface,
     isTeacherLiveRoom,
   } = live;
   const { teacherDashboardBindings, academicProfileBindings, curriculumBindings } = bindings;

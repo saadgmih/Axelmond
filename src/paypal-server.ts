@@ -129,9 +129,7 @@ export function buildPayPalCustomId(
   return customId;
 }
 
-export function parsePayPalCustomId(
-  customId: string | undefined,
-): {
+export function parsePayPalCustomId(customId: string | undefined): {
   userId: string;
   courseId: number;
   expectedAmount?: string;

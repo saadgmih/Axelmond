@@ -26,6 +26,7 @@ function buildPersistCoursePaymentEnrollment(ctx: RouteContext) {
     externalId: string;
     auditAction: string;
     reqIp?: string;
+    hasAiAccess?: boolean;
   }) =>
     api.persistCoursePaymentEnrollment(params, {
       logAudit: d.logAudit,
@@ -73,6 +74,16 @@ export function registerPayPalWebhook(app: Express, ctx: RouteContext, rateLimit
 
         if (result.ok === false) {
           res.status(result.status).json(api.toPayPalCaptureClientResponse(result));
+          return;
+        }
+
+        if ("donationId" in result) {
+          res.status(200).json({
+            ok: true,
+            duplicate: result.duplicate,
+            donationId: result.donationId,
+            userId: result.userId,
+          });
           return;
         }
 

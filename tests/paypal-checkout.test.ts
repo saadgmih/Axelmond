@@ -11,7 +11,10 @@ rulesTest("paypal-checkout", () => {
   const serverSource = readApiRouteSources();
   const paypalServerSource = fs.readFileSync("src/paypal-server.ts", "utf8");
 
-  assert.match(apiSource, /createPayPalOrder:\s*\(courseId:\s*number,\s*promoCode\?:\s*string,\s*includeAiAssistant\?:\s*boolean\)/);
+  assert.match(
+    apiSource,
+    /createPayPalOrder:\s*\(courseId:\s*number,\s*promoCode\?:\s*string,\s*includeAiAssistant\?:\s*boolean\)/,
+  );
   assert.match(apiSource, /capturePayPalOrder:\s*\(orderId:\s*string,\s*courseId:\s*number\)/);
   assert.match(apiSource, /"\/api\/paypal\/create-order"/);
   assert.match(apiSource, /"\/api\/paypal\/capture-order"/);

@@ -1,5 +1,5 @@
 import { coerceCoursePrice } from "../../utils/course-pricing";
-import { getSyllabusChapterProgress } from "../../utils/course-chapter-metrics";
+import { getCourseContentProgress } from "../../utils/course-content-metrics";
 import { Course, CourseEnrollmentInfo } from "../../types";
 import { prisma } from "../../db";
 import { decodeStoredText } from "../../text";
@@ -108,7 +108,7 @@ export function applyModuleProgressForStudent(course: Course, progress: StudentP
       ),
     };
   });
-  const { progressPercent } = getSyllabusChapterProgress(modules);
+  const { progressPercent } = getCourseContentProgress(modules);
   return {
     ...course,
     modules,

@@ -17,5 +17,5 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
-  "exclude": ["axelmond-mobile", "scripts/archive", "vitest.config.ts"]
+  "exclude": ["axelmond-mobile", "dist", "scripts/archive", "vitest.config.ts"]
 }

@@ -22,9 +22,7 @@ rulesTest("director-identity", () => {
   assert.match(identitySource, /DirectorFounderSection/);
   assert.match(identitySource, /DirectorAuthCard/);
 
-  const expectedIntegrations = [
-    ["src/components/AboutView.tsx", /DirectorFounderSection/],
-  ] as const;
+  const expectedIntegrations = [["src/components/AboutView.tsx", /DirectorFounderSection/]] as const;
 
   for (const [file, pattern] of expectedIntegrations) {
     assert.match(fs.readFileSync(file, "utf8"), pattern);

@@ -37,11 +37,7 @@ rulesTest("enrollment-access", () => {
   assert.equal(getEnrollmentRemainingMs({ active: true, endDate: "2026-06-16T12:00:00.000Z" }, now), 86_400_000);
   assert.equal(isEnrollmentEndingSoon({ active: true, endDate: "2026-06-17T12:00:00.000Z" }, 259_200_000, now), true);
   assert.equal(
-    isEnrollmentEndingSoon(
-      { active: true, startDate: "2026-05-18T12:00:00.000Z", endDate: null },
-      259_200_000,
-      now,
-    ),
+    isEnrollmentEndingSoon({ active: true, startDate: "2026-05-18T12:00:00.000Z", endDate: null }, 259_200_000, now),
     true,
   );
 

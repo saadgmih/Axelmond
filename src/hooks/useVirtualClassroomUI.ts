@@ -80,12 +80,7 @@ export function useVirtualClassroomUI({
   const [whiteboardExpanded, setWhiteboardExpanded] = useState(false);
   const featuredVideoRef = useRef<HTMLVideoElement | null>(null);
 
-  const {
-    settings: liveSettings,
-    setVideoQuality,
-    setLayoutMode,
-    setSubtitleLanguage,
-  } = useLiveSettings();
+  const { settings: liveSettings, setVideoQuality, setLayoutMode, setSubtitleLanguage } = useLiveSettings();
 
   const connectionNotice = useLiveConnectionNotice({
     liveRoom,
@@ -145,9 +140,7 @@ export function useVirtualClassroomUI({
   }, [activeTab, whiteboardExpanded]);
 
   const visibleSidebarTabs = useMemo(() => {
-    return canViewLiveAttendance
-      ? liveSidebarTabs
-      : liveSidebarTabs.filter((tab) => tab.id !== "attendance");
+    return canViewLiveAttendance ? liveSidebarTabs : liveSidebarTabs.filter((tab) => tab.id !== "attendance");
   }, [canViewLiveAttendance]);
 
   const openPanelTab = useCallback((tabId: string) => {

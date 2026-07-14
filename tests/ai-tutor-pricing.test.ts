@@ -16,10 +16,7 @@ rulesTest("ai-tutor-pricing", () => {
     computeCourseCheckoutTotalMad({ modulePriceMad: 120, includeAiAssistant: true, isFreeModule: false }),
     170,
   );
-  assert.equal(
-    computeCourseCheckoutTotalMad({ modulePriceMad: 0, includeAiAssistant: true, isFreeModule: true }),
-    0,
-  );
+  assert.equal(computeCourseCheckoutTotalMad({ modulePriceMad: 0, includeAiAssistant: true, isFreeModule: true }), 0);
   assert.equal(resolveEnrollmentHasAiAccess(true), true);
   assert.equal(resolveEnrollmentHasAiAccess(false), false);
 

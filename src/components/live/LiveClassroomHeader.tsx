@@ -9,12 +9,7 @@ export interface LiveClassroomHeaderProps {
   onOpenSettings: () => void;
 }
 
-export default function LiveClassroomHeader({
-  course,
-  isRecording,
-  onBack,
-  onOpenSettings,
-}: LiveClassroomHeaderProps) {
+export default function LiveClassroomHeader({ course, isRecording, onBack, onOpenSettings }: LiveClassroomHeaderProps) {
   return (
     <header className="h-14 shrink-0 w-full max-w-full bg-zinc-900 border-b border-white/5 flex items-center justify-between px-4 lg:px-6 z-40 box-border">
       <div className="flex items-center gap-4 min-w-0">

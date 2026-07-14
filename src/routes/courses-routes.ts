@@ -9,11 +9,7 @@ import * as api from "../server/route-deps";
 
 const CATALOG_QUERY_TIMEOUT_MS = Number(process.env.CATALOG_QUERY_TIMEOUT_MS) || 15000;
 
-function resolveFreeAccessWindow(
-  price: number,
-  startsAt?: Date | string | null,
-  endsAt?: Date | string | null,
-) {
+function resolveFreeAccessWindow(price: number, startsAt?: Date | string | null, endsAt?: Date | string | null) {
   if (price > 0) return { freeAccessStartsAt: null, freeAccessEndsAt: null, freeAccessDurationDays: null };
   const window = resolveFreeAccessWindowForSave(startsAt, endsAt);
   if (!window) {
@@ -22,7 +18,10 @@ function resolveFreeAccessWindow(
   return window;
 }
 
-function isInvalidFreeAccessWindow(price: number, window: { freeAccessStartsAt: Date | null; freeAccessEndsAt: Date | null }) {
+function isInvalidFreeAccessWindow(
+  price: number,
+  window: { freeAccessStartsAt: Date | null; freeAccessEndsAt: Date | null },
+) {
   if (price > 0) return false;
   if (!window.freeAccessStartsAt || !window.freeAccessEndsAt) return true;
   return window.freeAccessEndsAt <= window.freeAccessStartsAt;
@@ -124,13 +123,9 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
       let payload;
       if (authUser?.role === "STUDENT" && dbUser) {
         try {
-          payload = await api.toCoursesForStudent(
-            courses,
-            authUser.id,
-            studentEnrolledIds,
-            dbUser.enrollments,
-            { skipModuleSync: true },
-          );
+          payload = await api.toCoursesForStudent(courses, authUser.id, studentEnrolledIds, dbUser.enrollments, {
+            skipModuleSync: true,
+          });
         } catch (studentMapErr) {
           api.logDb("WARN", "Student catalog mapping degraded to public course rows", {
             userId: authUser.id,
@@ -670,7 +665,9 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
       if (
         touchesPricing &&
         nextPrice > 0 &&
-        (req.body.freeAccessDurationDays != null || req.body.freeAccessStartsAt != null || req.body.freeAccessEndsAt != null)
+        (req.body.freeAccessDurationDays != null ||
+          req.body.freeAccessStartsAt != null ||
+          req.body.freeAccessEndsAt != null)
       ) {
         res.status(400).json({ error: "La période de gratuité s'applique uniquement aux modules gratuits." });
         return;
@@ -696,7 +693,9 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
       const patchData = touchesPricing
         ? {
             ...req.body,
-            ...(nextPrice > 0 ? { freeAccessStartsAt: null, freeAccessEndsAt: null, freeAccessDurationDays: null } : {}),
+            ...(nextPrice > 0
+              ? { freeAccessStartsAt: null, freeAccessEndsAt: null, freeAccessDurationDays: null }
+              : {}),
             ...(nextPrice <= 0 && nextFreeAccessWindow ? nextFreeAccessWindow : {}),
           }
         : { ...req.body };

@@ -66,9 +66,7 @@ export default function CoursePriceSlider({
   const draftRef = useRef(draft);
   const skipBlurCommitRef = useRef(false);
   const lastPaidPriceRef = useRef(
-    isFreeCoursePrice(normalizedPrice)
-      ? MIN_PAID_COURSE_PRICE
-      : clampPaidCoursePrice(normalizedPrice),
+    isFreeCoursePrice(normalizedPrice) ? MIN_PAID_COURSE_PRICE : clampPaidCoursePrice(normalizedPrice),
   );
   const onDraftChangeRef = useRef(onDraftChange);
   const onCommitRef = useRef(onCommit);
@@ -275,9 +273,7 @@ export default function CoursePriceSlider({
           Déplacez le curseur puis relâchez pour enregistrer. Minimum {formatMad(MIN_PAID_COURSE_PRICE)}.
         </p>
       )}
-      {isSaving && (
-        <p className="text-[10px] font-semibold leading-relaxed text-teal-300">Enregistrement en cours…</p>
-      )}
+      {isSaving && <p className="text-[10px] font-semibold leading-relaxed text-teal-300">Enregistrement en cours…</p>}
       {priceError && (
         <p role="alert" className="text-[10px] font-semibold leading-relaxed text-red-300">
           {priceError}

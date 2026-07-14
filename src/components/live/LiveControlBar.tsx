@@ -42,7 +42,7 @@ export default function LiveControlBar({
   isScreenShareEnabled,
   isFullscreen,
   isPiPActive,
-  canModerate,
+  canModerate: _canModerate,
   localReaction,
   onToggleMic,
   onToggleCamera,

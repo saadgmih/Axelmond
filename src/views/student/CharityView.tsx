@@ -1,15 +1,5 @@
 import { useState } from "react";
-import {
-  BookOpen,
-  CalendarDays,
-  HandHeart,
-  Heart,
-  KeyRound,
-  MapPin,
-  Moon,
-  ShieldCheck,
-  Sparkles,
-} from "lucide-react";
+import { BookOpen, CalendarDays, HandHeart, Heart, KeyRound, MapPin, Moon, ShieldCheck, Sparkles } from "lucide-react";
 import {
   CHARITY_PAGE_SHORT,
   CHARITY_PAGE_TITLE,
@@ -20,18 +10,11 @@ import { CharityDonationCheckout } from "../../components/CharityDonationCheckou
 import { useCharity } from "../../hooks/useCharity";
 import { curriculumUi } from "../teacher/curriculum-theme";
 
-const focusInput =
-  "outline-none focus:border-green-600/60 focus:ring-2 focus:ring-green-600/20";
+const focusInput = "outline-none focus:border-green-600/60 focus:ring-2 focus:ring-green-600/20";
 const primaryBtn =
   "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-green-700 px-5 text-sm font-black text-white shadow-lg shadow-green-900/25 transition-colors hover:bg-green-600 disabled:opacity-50";
 
-function formatEventDate(event: {
-  day: number;
-  month: number;
-  year: number;
-  hour: number;
-  minute: number;
-}) {
+function formatEventDate(event: { day: number; month: number; year: number; hour: number; minute: number }) {
   const dt = new Date(event.year, event.month - 1, event.day, event.hour, event.minute);
   return dt.toLocaleString("fr-FR", {
     weekday: "long",
@@ -88,9 +71,9 @@ export default function CharityView() {
           </header>
           <div className="space-y-5 p-6 sm:p-8">
             <p className="text-sm leading-relaxed text-slate-300">
-              Entrez le code d&apos;accès fourni par le centre pour participer aux actions de bienfaisance, découvrir les
-              campagnes de don et consulter les événements religieux organisés (lecture et écoute du Coran avec un(e)
-              récitateur ou une récitatrice du centre).
+              Entrez le code d&apos;accès fourni par le centre pour participer aux actions de bienfaisance, découvrir
+              les campagnes de don et consulter les événements religieux organisés (lecture et écoute du Coran avec
+              un(e) récitateur ou une récitatrice du centre).
             </p>
             <label className="block">
               <span className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-500">
@@ -131,11 +114,13 @@ export default function CharityView() {
       <header className={`${curriculumUi.panel} px-6 py-8 sm:px-10`}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-400/80">{CHARITY_PAGE_SHORT}</p>
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-400/80">
+              {CHARITY_PAGE_SHORT}
+            </p>
             <h1 className={`mt-1 ${curriculumUi.panelTitle} sm:text-2xl`}>{CHARITY_PAGE_TITLE}</h1>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-400">
-              Participez aux actions de bienfaisance du centre : aide aux nécessiteux, soutien pendant le Ramadan
-              (repas offerts aux nécessiteux), et moments de lecture du Coran.
+              Participez aux actions de bienfaisance du centre : aide aux nécessiteux, soutien pendant le Ramadan (repas
+              offerts aux nécessiteux), et moments de lecture du Coran.
             </p>
           </div>
           <span className="inline-flex items-center gap-2 self-start rounded-lg bg-green-800/25 px-3 py-2 text-xs font-bold text-emerald-200 ring-1 ring-green-600/30">
@@ -169,10 +154,7 @@ export default function CharityView() {
         ) : (
           <div className="mt-6 space-y-4">
             {campaigns.map((campaign) => (
-              <article
-                key={campaign.id}
-                className="rounded-xl border border-slate-700/60 bg-slate-950/40 p-5"
-              >
+              <article key={campaign.id} className="rounded-xl border border-slate-700/60 bg-slate-950/40 p-5">
                 <h3 className="text-base font-black text-white">{campaign.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-400">{campaign.description}</p>
                 <div className="mt-4 flex flex-col gap-4">

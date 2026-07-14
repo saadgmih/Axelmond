@@ -235,8 +235,8 @@ export default function FreeAccessWindowFields({
           Saisissez la <span className="font-semibold text-white">date</span> (
           <span className="font-mono text-emerald-300">09/07/2026</span>) et l&apos;
           <span className="font-semibold text-white">heure</span> (
-          <span className="font-mono text-emerald-300">14:30</span>) au clavier, ou utilisez les boutons
-          calendrier / horloge — tout se synchronise automatiquement.
+          <span className="font-mono text-emerald-300">14:30</span>) au clavier, ou utilisez les boutons calendrier /
+          horloge — tout se synchronise automatiquement.
         </p>
       </div>
 

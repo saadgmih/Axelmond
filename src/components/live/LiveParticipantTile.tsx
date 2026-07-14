@@ -126,7 +126,8 @@ function LiveParticipantTile({
           </div>
           <p className="text-sm font-bold text-white mb-1">Vous partagez votre écran</p>
           <p className="text-xs text-zinc-400 max-w-[240px] leading-relaxed">
-            Pour éviter l'effet miroir infini, l'aperçu de votre écran est masqué pour vous. Les autres participants voient correctement votre partage.
+            Pour éviter l'effet miroir infini, l'aperçu de votre écran est masqué pour vous. Les autres participants
+            voient correctement votre partage.
           </p>
         </div>
       ) : (
@@ -149,10 +150,14 @@ function LiveParticipantTile({
       >
         <div className="flex items-end justify-between gap-2 min-w-0">
           <div className="min-w-0 flex-1">
-            <p className={`truncate font-black text-white ${isFullscreen ? "text-base sm:text-lg" : "text-xs sm:text-sm"}`}>
+            <p
+              className={`truncate font-black text-white ${isFullscreen ? "text-base sm:text-lg" : "text-xs sm:text-sm"}`}
+            >
               {participant.name}
             </p>
-            <p className={`truncate text-zinc-300 ${isFullscreen ? "text-xs sm:text-sm" : "text-[10px] sm:text-[11px]"}`}>
+            <p
+              className={`truncate text-zinc-300 ${isFullscreen ? "text-xs sm:text-sm" : "text-[10px] sm:text-[11px]"}`}
+            >
               {liveRoleLabel(participant.role)}
             </p>
           </div>
@@ -162,16 +167,16 @@ function LiveParticipantTile({
             ) : (
               <MicOff className={`${isFullscreen ? "h-5 w-5" : "h-3.5 w-3.5"} text-red-400`} />
             )}
-            {participant.handRaised && (
-              <Hand className={`${isFullscreen ? "h-5 w-5" : "h-3.5 w-3.5"} text-lime-400`} />
-            )}
+            {participant.handRaised && <Hand className={`${isFullscreen ? "h-5 w-5" : "h-3.5 w-3.5"} text-lime-400`} />}
             {isActive && <Wifi className={`${isFullscreen ? "h-5 w-5" : "h-3.5 w-3.5"} text-emerald-300`} />}
           </div>
         </div>
       </div>
 
       {participant.reaction && (
-        <div className={`absolute right-3 top-3 rounded-xl border border-white/10 bg-black/60 px-2.5 py-1 backdrop-blur-md transition-all ${isFullscreen ? "text-2xl px-4 py-2" : "text-lg"}`}>
+        <div
+          className={`absolute right-3 top-3 rounded-xl border border-white/10 bg-black/60 px-2.5 py-1 backdrop-blur-md transition-all ${isFullscreen ? "text-2xl px-4 py-2" : "text-lg"}`}
+        >
           {participant.reaction}
         </div>
       )}
