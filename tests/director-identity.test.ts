@@ -5,6 +5,7 @@ import { rulesTest } from "./helpers/rulesTest.ts";
 rulesTest("director-identity", () => {
   assert.equal(fs.existsSync("public/director-oussama-el-abboudi.png"), true);
   assert.equal(fs.existsSync("public/director-oussama-el-abboudi-full.png"), true);
+  assert.equal(fs.existsSync("public/director-oussama-el-abboudi-thinking.png"), true);
   assert.equal(fs.existsSync("public/director-oussama-footer.png"), true);
   assert.equal(fs.existsSync("public/director-oussama-el-abboudi.jpg"), false);
   assert.equal(fs.existsSync("public/director-oussama-el-abboudi-full.jpg"), false);
@@ -13,6 +14,8 @@ rulesTest("director-identity", () => {
   assert.match(profileSource, /Pr\. Oussama El Abboudi/);
   assert.match(profileSource, /Former aujourd'hui les talents de demain/);
   assert.match(profileSource, /\/director-oussama-el-abboudi\.png/);
+  assert.match(profileSource, /\/director-oussama-el-abboudi-thinking\.png/);
+  assert.match(profileSource, /founderPhotos/);
   assert.match(profileSource, /\/director-oussama-footer\.png/);
 
   const identitySource = fs.readFileSync("src/components/DirectorIdentity.tsx", "utf8");
@@ -21,6 +24,12 @@ rulesTest("director-identity", () => {
   assert.doesNotMatch(identitySource, /DirectorFooterLine/);
   assert.match(identitySource, /DirectorFounderSection/);
   assert.match(identitySource, /DirectorAuthCard/);
+  assert.match(identitySource, /founder-photo-carousel/);
+  assert.match(identitySource, /snap-mandatory/);
+  assert.match(identitySource, /scrollTo\(\{ left: track\.clientWidth \* nextIndex, behavior: "smooth" \}\)/);
+  assert.match(identitySource, /Voir la photo précédente/);
+  assert.match(identitySource, /Voir la photo suivante/);
+  assert.match(identitySource, /aria-roledescription="carrousel"/);
 
   const expectedIntegrations = [["src/components/AboutView.tsx", /DirectorFounderSection/]] as const;
 

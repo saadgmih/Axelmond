@@ -1366,3 +1366,12 @@ html.force-desktop-mode #root {
   background-color: #000000 !important;
   z-index: 99999 !important;
 }
+/* Founder portrait carousel: keep swipe/trackpad scrolling without a visible scrollbar. */
+.founder-photo-carousel {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.founder-photo-carousel::-webkit-scrollbar {
+  display: none;
+}
