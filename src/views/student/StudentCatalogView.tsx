@@ -37,9 +37,19 @@ const CatalogCourseCard = memo(function CatalogCourseCard({
     >
       <div className="p-6 flex-1 space-y-4">
         <div className="flex justify-between items-start">
-          <div className={`p-3 rounded-xl ${course.color}`}>
-            {getCourseIcon(course.iconName, "w-6 h-6 text-slate-800")}
-          </div>
+          {course.imageUrl ? (
+            <img
+              src={course.imageUrl}
+              alt={`Illustration du module ${course.title}`}
+              className="h-14 w-14 shrink-0 rounded-xl border border-slate-200 object-cover shadow-sm"
+              loading="lazy"
+              decoding="async"
+            />
+          ) : (
+            <div className={`p-3 rounded-xl ${course.color}`}>
+              {getCourseIcon(course.iconName, "w-6 h-6 text-slate-800")}
+            </div>
+          )}
           <div className="flex flex-col items-end gap-1.5">
             <span className="bg-slate-100 text-slate-600 text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full">
               {course.level}

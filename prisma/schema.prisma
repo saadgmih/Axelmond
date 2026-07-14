@@ -213,6 +213,8 @@ model Course {
   freeAccessDurationDays Int?
   iconName               String
   color                  String
+  imageUrl               String?
+  imageKey               String?
   instructor             String
   description            String
   progress               Int                      @default(0)

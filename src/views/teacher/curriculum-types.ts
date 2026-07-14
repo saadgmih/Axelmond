@@ -31,6 +31,9 @@ export interface TeacherCurriculumViewProps extends AdminAcademicTaxonomyViewPro
   setNewCourseTitle: (value: string) => void;
   newCourseDescription: string;
   setNewCourseDescription: (value: string) => void;
+  newCourseImageFile: File | null;
+  setNewCourseImageFile: (value: File | null) => void;
+  newCourseImageStatus: string;
   newCourseDisciplineId: number;
   setNewCourseDisciplineId: (value: number) => void;
   newCourseCredits: string;
@@ -69,6 +72,9 @@ export interface TeacherCurriculumViewProps extends AdminAcademicTaxonomyViewPro
   uploadStatusMsg: string;
   editingCourse: Course | null;
   setEditingCourse: (value: Course | null) => void;
+  editCourseImageFile: File | null;
+  setEditCourseImageFile: (value: File | null) => void;
+  editCourseImageStatus: string;
   editCourseForm: {
     title: string;
     description: string;

@@ -21,6 +21,7 @@ import {
   formatFreeAccessDurationLabel,
 } from "../../../utils/course-pricing";
 import FreeAccessWindowFields from "../../../components/FreeAccessWindowFields";
+import CourseImageField from "../../../components/CourseImageField";
 import {
   normalizeNumericInputValue,
   numberFromNumericInput,
@@ -60,6 +61,9 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
     setNewCourseTitle,
     newCourseDescription,
     setNewCourseDescription,
+    newCourseImageFile,
+    setNewCourseImageFile,
+    newCourseImageStatus,
     newCourseDisciplineId,
     setNewCourseDisciplineId,
     newCourseCredits,
@@ -96,6 +100,9 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
     uploadStatusMsg: _uploadStatusMsg,
     editingCourse,
     setEditingCourse,
+    editCourseImageFile,
+    setEditCourseImageFile,
+    editCourseImageStatus,
     editCourseForm,
     setEditCourseForm,
     teacherQuizzes: _teacherQuizzes,
@@ -197,6 +204,12 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
               className={`${inputFocus} resize-none`}
             />
           </label>
+
+          <CourseImageField
+            file={newCourseImageFile}
+            status={newCourseImageStatus}
+            onFileChange={setNewCourseImageFile}
+          />
 
           <div className="grid grid-cols-2 gap-3">
             <label className="block space-y-1.5">
@@ -372,6 +385,14 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                         className={`${curriculumUi.input} ${getStepTheme(1).focus}`}
                       />
                     </label>
+                    <div className="md:col-span-2">
+                      <CourseImageField
+                        file={editCourseImageFile}
+                        currentImageUrl={editingCourse.imageUrl}
+                        status={editCourseImageStatus}
+                        onFileChange={setEditCourseImageFile}
+                      />
+                    </div>
                     <label className="md:col-span-2 space-y-1 block">
                       <span className="text-[9px] font-bold text-slate-400 uppercase">Description</span>
                       <textarea
@@ -516,7 +537,14 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                     >
                       <Save className="h-4 w-4" /> Enregistrer
                     </button>
-                    <button type="button" onClick={() => setEditingCourse(null)} className={curriculumUi.ghostBtn}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditCourseImageFile(null);
+                        setEditingCourse(null);
+                      }}
+                      className={curriculumUi.ghostBtn}
+                    >
                       Annuler
                     </button>
                   </div>
@@ -524,16 +552,25 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
               ) : (
                 <div className="space-y-4">
                   <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-2 min-w-0 flex-1">
-                      <h4 className="text-base font-black text-white leading-snug">{course.title}</h4>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span
-                          className={`rounded border px-2.5 py-0.5 text-[9px] font-black uppercase ${getStepTheme(1).chip}`}
-                        >
-                          {course.discipline?.name || course.category}
-                        </span>
+                    <div className="flex min-w-0 flex-1 items-start gap-3">
+                      {course.imageUrl && (
+                        <img
+                          src={course.imageUrl}
+                          alt=""
+                          className="h-14 w-14 shrink-0 rounded-xl border border-slate-700 object-cover"
+                        />
+                      )}
+                      <div className="min-w-0 space-y-2">
+                        <h4 className="text-base font-black text-white leading-snug">{course.title}</h4>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span
+                            className={`rounded border px-2.5 py-0.5 text-[9px] font-black uppercase ${getStepTheme(1).chip}`}
+                          >
+                            {course.discipline?.name || course.category}
+                          </span>
+                        </div>
+                        <p className="line-clamp-2 text-xs leading-relaxed text-slate-400">{course.description}</p>
                       </div>
-                      <p className="line-clamp-2 text-xs leading-relaxed text-slate-400">{course.description}</p>
                     </div>
 
                     <span className={publishedBadge(course.published ?? false)}>

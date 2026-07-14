@@ -3,6 +3,7 @@ import { getClientErrorMessage } from "../client-errors";
 import {
   bindUploadProgress,
   formatUploadProgressLabel,
+  getUploadedFileUrl,
   uploadFiles,
   getUploadErrorMessage,
   validateUploadFile,
@@ -49,6 +50,27 @@ export interface UseTeacherCurriculumOptions {
   courseContent: TeacherCurriculumCourseContent;
 }
 
+async function uploadCourseImage(
+  courseId: number,
+  file: File,
+  setStatus: Dispatch<SetStateAction<string>>,
+): Promise<string> {
+  const token = await getFreshSessionToken();
+  if (!token) throw new Error("Session expirée ou non autorisée.");
+
+  const uploadedFiles = await (uploadFiles as any)("courseImage", {
+    files: [file],
+    input: { courseId },
+    headers: { Authorization: `Bearer ${token}` },
+    onUploadProgress: bindUploadProgress((progress) =>
+      setStatus(`Téléversement : ${formatUploadProgressLabel(progress)}`),
+    ),
+  });
+  const imageUrl = getUploadedFileUrl(uploadedFiles?.[0]);
+  if (!imageUrl) throw new Error("L'URL de l'image téléversée est introuvable.");
+  return imageUrl;
+}
+
 export function useTeacherCurriculum({
   setCourses,
   managedCourses,
@@ -74,6 +96,8 @@ export function useTeacherCurriculum({
   const [curriculumErrorMsg, setCurriculumErrorMsg] = useState("");
   const [newCourseTitle, setNewCourseTitle] = useState("");
   const [newCourseDescription, setNewCourseDescription] = useState("");
+  const [newCourseImageFile, setNewCourseImageFile] = useState<File | null>(null);
+  const [newCourseImageStatus, setNewCourseImageStatus] = useState("");
   const [newCourseDisciplineId, setNewCourseDisciplineId] = useState(0);
   const [newCourseLevel, _setNewCourseLevel] = useState("Licence 1");
   const [newCourseCredits, setNewCourseCredits] = useState(numericInputFromNumber(3));
@@ -98,6 +122,8 @@ export function useTeacherCurriculum({
   const [uploadPublished, setUploadPublished] = useState(true);
   const [uploadStatusMsg, setUploadStatusMsg] = useState("");
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [editCourseImageFile, setEditCourseImageFile] = useState<File | null>(null);
+  const [editCourseImageStatus, setEditCourseImageStatus] = useState("");
   const [editCourseForm, setEditCourseForm] = useState({
     title: "",
     description: "",
@@ -265,6 +291,14 @@ export function useTeacherCurriculum({
   const handleCreateCourse = async (e: FormEvent) => {
     e.preventDefault();
     if (!newCourseTitle.trim() || !newCourseDescription.trim()) return;
+    if (newCourseImageFile) {
+      const validationError = validateUploadFile(newCourseImageFile, "IMAGE");
+      if (validationError) {
+        setNewCourseImageStatus(validationError);
+        showCurriculumError(validationError);
+        return;
+      }
+    }
     const discipline = allDisciplines.find((item) => item.id === newCourseDisciplineId);
     if (!discipline) {
       showCurriculumError("Choisissez un sous-domaine valide avant de créer le module.");
@@ -298,16 +332,35 @@ export function useTeacherCurriculum({
         instructor: course.instructor || currentUser?.fullName || "",
       };
       setCourses((prev) => [...prev.filter((item) => item.id !== normalizedCourse.id), normalizedCourse]);
+
+      let imageUploadFailed = false;
+      if (newCourseImageFile) {
+        try {
+          setNewCourseImageStatus("Téléversement de l'image en cours...");
+          const imageUrl = await uploadCourseImage(normalizedCourse.id, newCourseImageFile, setNewCourseImageStatus);
+          normalizedCourse.imageUrl = imageUrl;
+          setCourses((prev) => prev.map((item) => (item.id === normalizedCourse.id ? normalizedCourse : item)));
+          setNewCourseImageStatus("Image du module enregistrée.");
+        } catch (err) {
+          imageUploadFailed = true;
+          const message = getUploadErrorMessage(err);
+          setNewCourseImageStatus(message);
+          showCurriculumError(`Le module a été créé, mais son image n'a pas pu être enregistrée. ${message}`);
+        }
+      }
       setNewSectionCourseId(normalizedCourse.id);
       setUploadCourseId(normalizedCourse.id);
       setUploadSectionId("");
       setNewCourseTitle("");
       setNewCourseDescription("");
+      setNewCourseImageFile(null);
       setNewCourseFreeAccessStartsAt(formatDatetimeLocalValue(null));
       setNewCourseFreeAccessEndsAt(defaultFreeAccessEndFromStart(formatDatetimeLocalValue(null)));
       setNewCourseFreeAccessDurationDays("");
       setCourseContentSections([]);
-      showCurriculumSuccess(`Module « ${normalizedCourse.title} » créé avec succès.`);
+      if (!imageUploadFailed) {
+        showCurriculumSuccess(`Module « ${normalizedCourse.title} » créé avec succès.`);
+      }
     } catch (err: any) {
       console.error("Failed to create course:", err);
       showCurriculumError(getClientErrorMessage(err, "Création du module impossible."));
@@ -472,6 +525,8 @@ export function useTeacherCurriculum({
 
   const handleUpdateCourseDetails = (course: Course) => {
     setEditingCourse(course);
+    setEditCourseImageFile(null);
+    setEditCourseImageStatus("");
     setEditCourseForm({
       title: course.title,
       description: course.description,
@@ -496,8 +551,16 @@ export function useTeacherCurriculum({
       showCurriculumError("Le titre du module est obligatoire.");
       return;
     }
+    if (editCourseImageFile) {
+      const validationError = validateUploadFile(editCourseImageFile, "IMAGE");
+      if (validationError) {
+        setEditCourseImageStatus(validationError);
+        showCurriculumError(validationError);
+        return;
+      }
+    }
     try {
-      const updatedCourse = await api.updateCourseDetails(editingCourse.id, {
+      let updatedCourse = await api.updateCourseDetails(editingCourse.id, {
         title: editCourseForm.title.trim(),
         description: editCourseForm.description.trim(),
         level: editCourseForm.level.trim(),
@@ -515,6 +578,25 @@ export function useTeacherCurriculum({
           : null,
       });
       setCourses((prev) => prev.map((item) => (item.id === updatedCourse.id ? updatedCourse : item)));
+
+      if (editCourseImageFile) {
+        try {
+          setEditCourseImageStatus("Téléversement de l'image en cours...");
+          const imageUrl = await uploadCourseImage(updatedCourse.id, editCourseImageFile, setEditCourseImageStatus);
+          updatedCourse = { ...updatedCourse, imageUrl };
+          setCourses((prev) => prev.map((item) => (item.id === updatedCourse.id ? updatedCourse : item)));
+          setEditCourseImageStatus("Image du module enregistrée.");
+        } catch (err) {
+          const message = getUploadErrorMessage(err);
+          setEditCourseImageStatus(message);
+          showCurriculumError(
+            `Les informations ont été modifiées, mais l'image n'a pas pu être enregistrée. ${message}`,
+          );
+          return;
+        }
+      }
+
+      setEditCourseImageFile(null);
       setEditingCourse(null);
       showCurriculumSuccess(`Module « ${updatedCourse.title} » modifié.`);
     } catch (err: any) {
@@ -699,6 +781,9 @@ export function useTeacherCurriculum({
     setNewCourseTitle,
     newCourseDescription,
     setNewCourseDescription,
+    newCourseImageFile,
+    setNewCourseImageFile,
+    newCourseImageStatus,
     newCourseDisciplineId,
     setNewCourseDisciplineId,
     newCourseCredits,
@@ -736,6 +821,9 @@ export function useTeacherCurriculum({
     uploadStatusMsg,
     editingCourse,
     setEditingCourse,
+    editCourseImageFile,
+    setEditCourseImageFile,
+    editCourseImageStatus,
     editCourseForm,
     setEditCourseForm,
     teacherQuizzes,

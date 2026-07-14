@@ -38,6 +38,7 @@ export interface Course {
   freeAccessDurationDays?: number | null;
   iconName: "Code" | "Database" | "Terminal" | "Brain";
   color: string;
+  imageUrl?: string | null;
   instructor: string;
   description: string;
   progress: number;

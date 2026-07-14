@@ -147,9 +147,18 @@ const DashboardCourseCard = memo(function DashboardCourseCard({
     >
       <div className="p-5 sm:p-6 flex-1 space-y-4">
         <div className="flex items-center justify-between gap-2">
-          <div className={`p-3 rounded-xl ${course.color}`}>
-            {getCourseIcon(course.iconName, "w-6 h-6 text-slate-800")}
-          </div>
+          {course.imageUrl ? (
+            <img
+              src={course.imageUrl}
+              alt={`Illustration du module ${course.title}`}
+              className="h-14 w-14 shrink-0 rounded-xl border border-white/10 object-cover shadow-sm"
+              decoding="async"
+            />
+          ) : (
+            <div className={`p-3 rounded-xl ${course.color}`}>
+              {getCourseIcon(course.iconName, "w-6 h-6 text-slate-800")}
+            </div>
+          )}
           <span className="bg-slate-800 text-slate-300 text-[10px] font-extrabold uppercase tracking-wide px-2.5 py-1 rounded-full border border-slate-700">
             {course.level}
           </span>

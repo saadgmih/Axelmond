@@ -137,6 +137,7 @@ export function toCourse(
     freeAccessDurationDays: course.freeAccessDurationDays ?? null,
     iconName: course.iconName,
     color: course.color,
+    imageUrl: course.imageUrl || null,
     instructor: decodeStoredText(course.instructor),
     description: decodeStoredText(course.description),
     progress: course.progress,

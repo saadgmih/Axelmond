@@ -8,6 +8,7 @@ import { canManageContent, isTeacherSpaceRole, normalizeRole } from "./rbac";
 import { isAllowedAvatarUrl, isAllowedRasterImageMime, isAllowedRasterImageUpload } from "./avatar-security";
 import { alertSuspectUpload } from "./security-logger";
 import { completeLiveReplayUpload } from "./server/live-replay-service";
+import { invalidatePublicCatalogCache } from "./server/route-ownership";
 import {
   detectMessageAttachmentKind,
   isConversationParticipant,
@@ -33,6 +34,10 @@ const liveReplayInput = z.object({
   courseId: z.number().int().positive(),
   liveSessionId: z.string().min(1),
   title: z.string().min(2).max(160).optional(),
+});
+
+const courseImageInput = z.object({
+  courseId: z.number().int().positive(),
 });
 
 const DANGEROUS_EXTENSIONS = [
@@ -205,6 +210,68 @@ export const uploadRouter = {
       }
       console.log(
         `[${new Date().toISOString()}] [INFO] [uploadthing] Support screenshot uploaded ${JSON.stringify({ userId: metadata.userId, fileKey: file.key })}`,
+      );
+      return { url: fileUrl };
+    }),
+
+  courseImage: f(
+    {
+      image: { maxFileSize: "8MB", maxFileCount: 1 },
+    },
+    { awaitServerData: true },
+  )
+    .input(courseImageInput)
+    .middleware(async ({ req, input }) => {
+      const user = await getUploadUser(req);
+      const course = await prisma.course.findFirst({
+        where: {
+          id: input.courseId,
+          ...(user.role === "ADMIN" ? {} : { createdById: user.id }),
+        },
+        select: { id: true, imageKey: true },
+      });
+      if (!course) {
+        console.warn(
+          `[${new Date().toISOString()}] [WARN] [uploadthing] Course image upload denied ${JSON.stringify({ userId: user.id, role: user.role, courseId: input.courseId })}`,
+        );
+        throw new UploadThingError("Module introuvable ou non autorisé");
+      }
+
+      return {
+        userId: user.id,
+        courseId: course.id,
+        previousImageKey: course.imageKey,
+      };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      const fileUrl = getFileUrl(file);
+      if (isDangerousFile(file.name) || !isAllowedRasterImageUpload(file.name, file.type || null)) {
+        alertSuspectUpload(metadata.userId, file.name, file.type || "unknown");
+        await utapi.deleteFiles(file.key);
+        throw new UploadThingError("Image du module suspecte ou invalide refusée.");
+      }
+      if (!fileUrl || !isAllowedAvatarUrl(fileUrl)) {
+        await utapi.deleteFiles(file.key);
+        throw new UploadThingError("URL de l'image du module invalide ou non autorisée.");
+      }
+
+      try {
+        await prisma.course.update({
+          where: { id: metadata.courseId },
+          data: { imageUrl: fileUrl, imageKey: file.key },
+        });
+      } catch (err) {
+        await utapi.deleteFiles(file.key);
+        throw new UploadThingError(`Enregistrement de l'image du module impossible : ${String(err)}`);
+      }
+
+      if (metadata.previousImageKey && metadata.previousImageKey !== file.key) {
+        await deleteCloudFiles(metadata.previousImageKey);
+      }
+      await invalidatePublicCatalogCache();
+
+      console.log(
+        `[${new Date().toISOString()}] [INFO] [uploadthing] Course image uploaded ${JSON.stringify({ userId: metadata.userId, courseId: metadata.courseId, fileKey: file.key })}`,
       );
       return { url: fileUrl };
     }),

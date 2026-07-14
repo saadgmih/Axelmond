@@ -850,6 +850,8 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
 
     const fileKeys: string[] = [];
 
+    if (course.imageKey) fileKeys.push(course.imageKey);
+
     await api.prisma.$transaction(async (tx) => {
       const contents = await tx.lessonContent.findMany({ where: { courseId }, select: { id: true } });
 
