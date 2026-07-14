@@ -355,15 +355,15 @@ model Attachment {
 }
 
 model Enrollment {
-  id           String    @id @default(cuid())
-  userId       String
-  courseId     Int
-  active       Boolean   @default(true)
-  hasAiAccess  Boolean   @default(false)
-  startDate    DateTime  @default(now())
-  endDate      DateTime?
-  user      User      @relation(fields: [userId], references: [id])
-  course    Course    @relation(fields: [courseId], references: [id])
+  id          String    @id @default(cuid())
+  userId      String
+  courseId    Int
+  active      Boolean   @default(true)
+  hasAiAccess Boolean   @default(false)
+  startDate   DateTime  @default(now())
+  endDate     DateTime?
+  user        User      @relation(fields: [userId], references: [id])
+  course      Course    @relation(fields: [courseId], references: [id])
 
   @@unique([userId, courseId])
   @@index([courseId])
@@ -442,21 +442,21 @@ model QuizAnswer {
 }
 
 model LiveSession {
-  id               String           @id @default(cuid())
-  roomName         String           @unique
-  title            String?
-  courseId         Int
-  professorId      String?
-  isActive         Boolean          @default(true)
-  startTime        DateTime         @default(now())
-  endTime          DateTime?
-  replayContentId  String?
-  recordingStatus  String           @default("NONE")
-  course           Course           @relation(fields: [courseId], references: [id])
-  professor        User?            @relation("ProfessorLiveSessions", fields: [professorId], references: [id])
-  messages         LiveMessage[]
-  attendances      LiveAttendance[]
-  actionLogs       LiveActionLog[]
+  id              String           @id @default(cuid())
+  roomName        String           @unique
+  title           String?
+  courseId        Int
+  professorId     String?
+  isActive        Boolean          @default(true)
+  startTime       DateTime         @default(now())
+  endTime         DateTime?
+  replayContentId String?
+  recordingStatus String           @default("NONE")
+  course          Course           @relation(fields: [courseId], references: [id])
+  professor       User?            @relation("ProfessorLiveSessions", fields: [professorId], references: [id])
+  messages        LiveMessage[]
+  attendances     LiveAttendance[]
+  actionLogs      LiveActionLog[]
 
   @@index([courseId])
   @@index([courseId, isActive])
@@ -906,7 +906,7 @@ model SiteSetting {
   key       String   @id
   value     Json
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@schema("AxelmondResearchLab")
 }
