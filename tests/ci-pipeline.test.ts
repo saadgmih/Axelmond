@@ -9,6 +9,10 @@ rulesTest("ci-pipeline", () => {
   const postgresLauncher = fs.readFileSync("scripts/start-ci-postgres.mjs", "utf8");
   const pipeline = `${workflow}\n${postgresRunner}`;
 
+  assert.match(workflow, /actions\/checkout@v5/);
+  assert.match(workflow, /actions\/setup-node@v5/);
+  assert.match(workflow, /package-manager-cache:\s*false/);
+  assert.doesNotMatch(workflow, /^\s*cache:\s*npm/m);
   assert.match(workflow, /npm ci/);
   assert.match(workflow, /SKIP_PRISMA_POSTINSTALL:\s*"1"/);
   assert.match(pipeline, /"lint"/);
