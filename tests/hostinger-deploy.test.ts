@@ -12,6 +12,7 @@ rulesTest("hostinger-deploy", () => {
   const postinstall = fs.readFileSync("scripts/prisma-postinstall.mjs", "utf8");
   const ciWorkflow = fs.readFileSync(".github/workflows/ci.yml", "utf8");
   const deployWorkflow = fs.readFileSync(".github/workflows/hostinger-deploy.yml", "utf8");
+  const productionProbe = fs.readFileSync("scripts/verify-production-edge.mjs", "utf8");
   const legacyVpsDeploy = fs.readFileSync("scripts/deploy-hostinger.sh", "utf8");
 
   assert.match(scripts["hostinger:build"], /prisma migrate deploy/);
@@ -41,13 +42,16 @@ rulesTest("hostinger-deploy", () => {
   assert.match(ciWorkflow, /runs-on:\s*\[self-hosted, Windows, X64\]/);
   assert.match(deployWorkflow, /runs-on:\s*\[self-hosted, Windows, X64\]/);
   assert.doesNotMatch(ciWorkflow, /^\s*pull_request:/m);
-  assert.match(deployWorkflow, /catalogMeta/);
-  assert.match(deployWorkflow, /frontMeta/);
-  assert.match(deployWorkflow, /Mozilla\/5\.0/);
-  assert.match(deployWorkflow, /ConvertFrom-Json/);
-  assert.match(deployWorkflow, /healthPayload\.status -eq "UP"/);
-  assert.match(deployWorkflow, /Hostinger hCDN returned its HTML 403 page/);
-  assert.match(deployWorkflow, /<title>Performance Académique/);
+  assert.match(deployWorkflow, /actions\/checkout@v5/);
+  assert.match(deployWorkflow, /actions\/setup-node@v5/);
+  assert.match(deployWorkflow, /node scripts\/verify-production-edge\.mjs/);
+  assert.match(deployWorkflow, /PRODUCTION_PROBE_ROUNDS:\s*"5"/);
+  assert.match(deployWorkflow, /PRODUCTION_PROBE_DELAY_MS:\s*"15000"/);
+  assert.match(productionProbe, /Promise\.allSettled/);
+  assert.match(productionProbe, /Hostinger hCDN/);
+  assert.match(productionProbe, /<title>Performance Académique/);
+  assert.match(productionProbe, /payload\?\.status !== "UP"/);
+  assert.match(productionProbe, /Array\.isArray\(payload\)/);
   assert.doesNotMatch(deployWorkflow, /HOSTINGER_PROBE_BLOCKED/);
   assert.match(hostingerDoc, /hostinger:build/);
   assert.match(hostingerDoc, /SKIP_PRISMA_POSTINSTALL/);
