@@ -7,6 +7,8 @@ import { buildCatalogCourseVisibilityWhere } from "../catalog-visibility";
 import { resolveFreeAccessWindowForSave } from "../course-free-access-window";
 import * as api from "../server/route-deps";
 
+// Academic events delivered to students: NEW_COURSE, NEW_MODULE, COURSE_UPDATED, LIVE_STARTED, LIVE_FINISHED.
+
 const CATALOG_QUERY_TIMEOUT_MS = Number(process.env.CATALOG_QUERY_TIMEOUT_MS) || 15000;
 
 function resolveFreeAccessWindow(price: number, startsAt?: Date | string | null, endsAt?: Date | string | null) {
@@ -267,6 +269,10 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
     // Invalidation du cache public (le nouveau module doit apparaître immédiatement)
 
     await api.invalidatePublicCatalogCache();
+
+    if (course.published) {
+      await api.notifyPublishedCourse(course, authUser);
+    }
 
     res.status(201).json(api.toCourse(course));
   });
@@ -532,6 +538,8 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
 
     await api.invalidatePublicCatalogCache();
 
+    await api.notifyCourseModuleCreated(dbCourse, newModule, authUser.id);
+
     res.json(api.toCourse(updatedCourse));
   });
 
@@ -631,6 +639,12 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
     api.logDb("INFO", "Course updated", { courseId: course.id, fields: Object.keys(req.body) });
 
     await api.invalidatePublicCatalogCache();
+
+    if (updatedCourse.published && !course.published) {
+      await api.notifyPublishedCourse(updatedCourse, authUser);
+    } else if (course.published && updatedCourse.published) {
+      await api.notifyCourseUpdated(course, updatedCourse, authUser.id);
+    }
 
     res.json(api.toCourse(updatedCourse));
   });
@@ -777,6 +791,12 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
 
       await api.invalidatePublicCatalogCache();
 
+      if (updatedCourse.published && !course.published) {
+        await api.notifyPublishedCourse(updatedCourse, authUser);
+      } else if (course.published && updatedCourse.published && touchesPricing) {
+        await api.notifyCourseAccessUpdated(updatedCourse, authUser.id);
+      }
+
       if (typeof req.body.isLiveNow === "boolean" && !req.body.isLiveNow && course.isLiveNow) {
         const liveKitConfig = api.getLiveKitConfig(process.env);
         if (liveKitConfig) {
@@ -797,31 +817,9 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
       }
 
       if (updatedCourse?.isLiveNow && !course.isLiveNow) {
-        await api
-          .notifyEnrolledStudentsForCourse(course.id, {
-            type: "LIVE_STARTED",
-
-            title: "Séance live en cours",
-
-            body: `${updatedCourse.liveSubject || updatedCourse.title} est en direct`,
-
-            actionUrl: "/student/live",
-
-            metadata: { courseId: course.id },
-          })
-          .catch(() => undefined);
+        await api.notifyLiveStarted(updatedCourse, authUser.id);
       } else if (typeof req.body.isLiveNow === "boolean" && !req.body.isLiveNow && course.isLiveNow) {
-        await api
-          .notifyEnrolledStudentsForCourse(course.id, {
-            type: "LIVE_FINISHED",
-
-            title: "Séance live terminée",
-
-            body: `La séance en direct pour ${course.title} est terminée`,
-
-            metadata: { courseId: course.id },
-          })
-          .catch(() => undefined);
+        await api.notifyLiveFinished(course, authUser.id);
       }
 
       res.json(api.toCourse(updatedCourse));

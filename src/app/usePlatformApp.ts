@@ -26,12 +26,11 @@ import { usePlatformTeacherWorkspace } from "./hooks/usePlatformTeacherWorkspace
 import { useSidebarLayout } from "../hooks/useSidebarLayout";
 import { useInitialViewPreload } from "./hooks/useInitialViewPreload";
 import { resolveInitialPlatformRoute } from "../navigation/platformPaths";
+import { shouldRefreshCourseForNotification } from "../utils/academic-notification-events";
 
 function readInitialSidebarCollapsed() {
-  if (typeof window === "undefined") return false;
-  return window.localStorage.getItem("axelmond_sidebar_collapsed") === "1";
+  return typeof window !== "undefined" && window.localStorage.getItem("axelmond_sidebar_collapsed") === "1";
 }
-
 export function usePlatformApp() {
   const initialRoute = useMemo(
     () => resolveInitialPlatformRoute(typeof window === "undefined" ? "/" : window.location.pathname),
@@ -304,14 +303,18 @@ export function usePlatformApp() {
   const refreshCourseSnapshot = useCallback(async (courseId: number) => {
     try {
       const refreshedCourse = await api.getCourse(courseId);
-      setCourses((prev) => prev.map((course) => (course.id === courseId ? refreshedCourse : course)));
+      setCourses((prev) =>
+        prev.some((course) => course.id === courseId)
+          ? prev.map((course) => (course.id === courseId ? refreshedCourse : course))
+          : [...prev, refreshedCourse],
+      );
       setSelectedCourse((current) => (current?.id === courseId ? refreshedCourse : current));
       setSelectedModule((current) => {
         if (!current) return current;
         return refreshedCourse.modules.find((module: CourseModule) => module.id === current.id) ?? current;
       });
     } catch (err) {
-      console.warn("[student] Failed to refresh course after quiz notification", err);
+      console.warn("[student] Failed to refresh course after academic notification", err);
     }
   }, []);
 
@@ -337,7 +340,7 @@ export function usePlatformApp() {
               alert("La session live a été terminée par le professeur.");
             }
           }
-        } else if (notification.type === "NEW_QUIZ") {
+        } else if (notification.type === "NEW_QUIZ" || shouldRefreshCourseForNotification(notification.type)) {
           const courseId = Number(notification.metadata?.courseId);
           if (courseId) {
             void refreshCourseSnapshot(courseId);

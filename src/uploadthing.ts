@@ -10,6 +10,7 @@ import { invalidateAuthUserCache } from "./server/auth-user-cache";
 import { alertSuspectUpload } from "./security-logger";
 import { completeLiveReplayUpload } from "./server/live-replay-service";
 import { invalidatePublicCatalogCache } from "./server/route-ownership";
+import { notifyPublishedLessonContent } from "./academic-notifications";
 import {
   detectMessageAttachmentKind,
   isConversationParticipant,
@@ -372,6 +373,15 @@ export const uploadRouter = {
       );
       if (content.published) {
         await syncPublishedLessonModules(metadata.courseId);
+        await notifyPublishedLessonContent({
+          contentId: content.id,
+          courseId: metadata.courseId,
+          contentTitle: content.title,
+          contentType: metadata.contentType,
+          published: content.published,
+          actorId: metadata.userId,
+          sourceEvent: "LESSON_ASSET_PUBLISHED",
+        });
       }
       return {
         contentId: content.id,

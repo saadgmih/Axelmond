@@ -46,6 +46,11 @@ export function usePlatformNotificationHandlers(options: {
         return;
       }
 
+      if (actionUrl.includes("catalog")) {
+        navigateTo("catalog");
+        return;
+      }
+
       if (actionUrl.includes("course")) {
         const courseId = Number(metadata.courseId);
         const targetCourse =

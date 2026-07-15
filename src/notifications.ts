@@ -2,6 +2,7 @@ import webpush from "web-push";
 import { prisma } from "./db";
 import { emitToUser } from "./messaging-socket";
 import { sanitizeInternalAppPath } from "./internal-url-security";
+import { isEnrollmentActive } from "./enrollment-access";
 import {
   getMaxPushSubscriptionsPerUser,
   isAllowedPushEndpointUrl,
@@ -13,8 +14,15 @@ export { PushSubscriptionLimitError, PushSubscriptionValidationError } from "./p
 
 export type NotificationType =
   | "NEW_MESSAGE"
+  | "NEW_COURSE"
+  | "COURSE_UPDATED"
+  | "NEW_MODULE"
   | "NEW_CHAPTER"
+  | "NEW_SECTION"
+  | "NEW_CONTENT"
+  | "LIVE_REPLAY_AVAILABLE"
   | "LIVE_STARTED"
+  | "LIVE_FINISHED"
   | "LIVE_SOON"
   | "NEW_QUIZ"
   | "NEW_HOMEWORK";
@@ -239,11 +247,26 @@ export async function notifyEnrolledStudentsForCourse(
   input: Omit<CreateNotificationInput, "userId">,
 ) {
   const enrollments = await prisma.enrollment.findMany({
-    where: { courseId },
-    select: { userId: true },
+    where: {
+      courseId,
+      active: true,
+      user: { role: "STUDENT", emailVerified: true },
+    },
+    select: { userId: true, active: true, startDate: true, endDate: true },
   });
   return createNotificationsForUsers(
-    enrollments.map((entry) => entry.userId),
+    enrollments.filter((entry) => isEnrollmentActive(entry)).map((entry) => entry.userId),
+    input,
+  );
+}
+
+export async function notifyAllStudents(input: Omit<CreateNotificationInput, "userId">) {
+  const students = await prisma.user.findMany({
+    where: { role: "STUDENT", emailVerified: true },
+    select: { id: true },
+  });
+  return createNotificationsForUsers(
+    students.map((student) => student.id),
     input,
   );
 }

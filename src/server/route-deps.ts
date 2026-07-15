@@ -182,7 +182,18 @@ export { prisma, getActivePgSchema } from "../db";
 export { logSecurity, logAudit, alertFailedLogins } from "../security-logger";
 export { cacheGet, cacheSet, cacheDel, cacheDelByPrefix } from "../cache";
 export { deleteCloudFiles } from "../uploadthing";
-export { notifyEnrolledStudentsForCourse } from "../notifications";
+export { notifyAllStudents, notifyEnrolledStudentsForCourse } from "../notifications";
+export {
+  notifyCourseAccessUpdated,
+  notifyCourseModuleCreated,
+  notifyCourseUpdated,
+  notifyLiveFinished,
+  notifyLiveStarted,
+  notifyPublishedChapter,
+  notifyPublishedCourse,
+  notifyPublishedLessonContent,
+  notifyPublishedSection,
+} from "../academic-notifications";
 export { buildCourseGradeRows } from "../grades";
 export { assertCourseLearningAccess } from "../course-access";
 export { assertAiTutorAccess } from "../ai-tutor-access";

@@ -21,10 +21,24 @@ function typeLabel(type: string) {
   switch (type) {
     case "NEW_MESSAGE":
       return "Message";
+    case "NEW_COURSE":
+      return "Module";
+    case "COURSE_UPDATED":
+      return "Mise à jour";
+    case "NEW_MODULE":
+      return "Contenu";
     case "NEW_CHAPTER":
       return "Chapitre";
+    case "NEW_SECTION":
+      return "Section";
+    case "NEW_CONTENT":
+      return "Ressource";
+    case "LIVE_REPLAY_AVAILABLE":
+      return "Rediffusion";
     case "LIVE_STARTED":
       return "Live";
+    case "LIVE_FINISHED":
+      return "Live terminé";
     case "LIVE_SOON":
       return "Live bientôt";
     case "NEW_QUIZ":

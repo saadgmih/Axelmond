@@ -3,6 +3,8 @@ import { getAuthUser } from "../server/route-types";
 import type { RouteContext } from "../server/route-context";
 import * as api from "../server/route-deps";
 
+// Published curriculum events: NEW_CHAPTER, NEW_SECTION, NEW_CONTENT, NEW_HOMEWORK, LIVE_REPLAY_AVAILABLE.
+
 export function registerContentRoutes(app: Express, ctx: RouteContext): void {
   const { requireAuth, requireRbac, validateBody } = ctx.middleware;
 
@@ -83,19 +85,14 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
       });
 
       if (result.chapter.published) {
-        await api
-          .notifyEnrolledStudentsForCourse(courseId, {
-            type: "NEW_CHAPTER",
-
-            title: "Nouveau chapitre publié",
-
-            body: `${result.chapter.title} est disponible dans ${course.title}`,
-
-            actionUrl: "/student/course",
-
-            metadata: { courseId, chapterId: result.chapter.id },
-          })
-          .catch(() => undefined);
+        await refreshStudentCourseModules(courseId);
+        await api.notifyPublishedChapter({
+          chapterId: result.chapter.id,
+          courseId,
+          chapterTitle: result.chapter.title,
+          published: result.chapter.published,
+          actorId: authUser.id,
+        });
       }
 
       res.status(201).json(result);
@@ -163,6 +160,11 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
         return;
       }
 
+      const existingChapter = await api.prisma.chapter.findUnique({
+        where: { id: req.params.id },
+        select: { published: true },
+      });
+
       const { title, description, published, order } = req.body;
 
       const data: any = {};
@@ -214,6 +216,19 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
 
       api.logDb("INFO", "Chapter updated", { chapterId: result.id, data: Object.keys(data) });
 
+      if (typeof data.published === "boolean") {
+        await refreshStudentCourseModules(result.courseId);
+      }
+      if (result.published && !existingChapter?.published) {
+        await api.notifyPublishedChapter({
+          chapterId: result.id,
+          courseId: result.courseId,
+          chapterTitle: result.title,
+          published: result.published,
+          actorId: authUser.id,
+        });
+      }
+
       res.json(result);
     },
   );
@@ -228,6 +243,11 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
 
       return;
     }
+
+    const existingChapter = await api.prisma.chapter.findUnique({
+      where: { id: req.params.id },
+      select: { published: true },
+    });
 
     const { published } = req.body;
 
@@ -260,22 +280,14 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
 
     await refreshStudentCourseModules(result.courseId);
 
-    if (published) {
-      const course = await api.prisma.course.findUnique({ where: { id: result.courseId }, select: { title: true } });
-
-      await api
-        .notifyEnrolledStudentsForCourse(result.courseId, {
-          type: "NEW_CHAPTER",
-
-          title: "Nouveau chapitre publié",
-
-          body: `${result.title} est disponible${course ? ` dans ${course.title}` : ""}`,
-
-          actionUrl: "/student/course",
-
-          metadata: { courseId: result.courseId, chapterId: result.id },
-        })
-        .catch(() => undefined);
+    if (published && !existingChapter?.published) {
+      await api.notifyPublishedChapter({
+        chapterId: result.id,
+        courseId: result.courseId,
+        chapterTitle: result.title,
+        published: result.published,
+        actorId: authUser.id,
+      });
     }
 
     res.json(result);
@@ -404,6 +416,18 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
         userId: authUser.id,
       });
 
+      if (section.published) {
+        await refreshStudentCourseModules(section.courseId);
+        await api.notifyPublishedSection({
+          sectionId: section.id,
+          courseId: section.courseId,
+          sectionTitle: section.title,
+          parentId: section.parentId,
+          published: section.published,
+          actorId: authUser.id,
+        });
+      }
+
       res.status(201).json(section);
     },
   );
@@ -421,6 +445,11 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
 
         return;
       }
+
+      const existingSection = await api.prisma.contentSection.findUnique({
+        where: { id: req.params.id },
+        select: { published: true },
+      });
 
       const { title, description, published, order } = req.body;
 
@@ -452,6 +481,16 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
       if (typeof data.published === "boolean") {
         await refreshStudentCourseModules(section.courseId);
       }
+      if (section.published && !existingSection?.published) {
+        await api.notifyPublishedSection({
+          sectionId: section.id,
+          courseId: section.courseId,
+          sectionTitle: section.title,
+          parentId: section.parentId,
+          published: section.published,
+          actorId: authUser.id,
+        });
+      }
 
       res.json(section);
     },
@@ -472,6 +511,11 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
 
         return;
       }
+
+      const existingSection = await api.prisma.contentSection.findUnique({
+        where: { id: req.params.id },
+        select: { published: true },
+      });
 
       const { title, description, published } = req.body;
 
@@ -500,6 +544,16 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
 
       if (typeof published === "boolean") {
         await refreshStudentCourseModules(section.courseId);
+      }
+      if (section.published && !existingSection?.published) {
+        await api.notifyPublishedSection({
+          sectionId: section.id,
+          courseId: section.courseId,
+          sectionTitle: section.title,
+          parentId: section.parentId,
+          published: section.published,
+          actorId: authUser.id,
+        });
       }
 
       res.json(section);
@@ -599,30 +653,18 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
         userId: authUser.id,
       });
 
-      await refreshStudentCourseModules(section.courseId);
-
-      const isHomework = /devoir|homework|assignment/i.test(`${title} ${section.title}`);
-
       if (content.published) {
         await refreshStudentCourseModules(section.courseId);
-      }
-
-      if (content.published && isHomework) {
-        const course = await api.prisma.course.findUnique({ where: { id: section.courseId }, select: { title: true } });
-
-        await api
-          .notifyEnrolledStudentsForCourse(section.courseId, {
-            type: "NEW_HOMEWORK",
-
-            title: "Nouveau devoir publié",
-
-            body: `${content.title}${course ? ` — ${course.title}` : ""}`,
-
-            actionUrl: "/student/course",
-
-            metadata: { courseId: section.courseId, contentId: content.id },
-          })
-          .catch(() => undefined);
+        await api.notifyPublishedLessonContent({
+          contentId: content.id,
+          courseId: content.courseId,
+          contentTitle: content.title,
+          contentType: content.type,
+          body: content.body,
+          sectionTitle: section.title,
+          published: content.published,
+          actorId: authUser.id,
+        });
       }
 
       res.status(201).json(api.toLessonContent(content));
@@ -644,6 +686,11 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
 
         return;
       }
+
+      const existingContent = await api.prisma.lessonContent.findUnique({
+        where: { id: req.params.id },
+        select: { published: true },
+      });
 
       const { title, body, published } = req.body;
 
@@ -674,6 +721,25 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
 
       await refreshStudentCourseModules(content.courseId);
 
+      if (content.published && !existingContent?.published) {
+        const section = content.sectionId
+          ? await api.prisma.contentSection.findUnique({
+              where: { id: content.sectionId },
+              select: { title: true },
+            })
+          : null;
+        await api.notifyPublishedLessonContent({
+          contentId: content.id,
+          courseId: content.courseId,
+          contentTitle: content.title,
+          contentType: content.type,
+          body: content.body,
+          sectionTitle: section?.title || "",
+          published: content.published,
+          actorId: authUser.id,
+        });
+      }
+
       res.json(api.toLessonContent(content));
     },
   );
@@ -693,6 +759,11 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
 
         return;
       }
+
+      const existingContent = await api.prisma.lessonContent.findUnique({
+        where: { id: req.params.id },
+        select: { published: true },
+      });
 
       const { title, body, published } = req.body;
 
@@ -722,6 +793,25 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
       api.logDb("INFO", "Lesson content updated", { contentId: content.id, published: content.published });
 
       await refreshStudentCourseModules(content.courseId);
+
+      if (content.published && !existingContent?.published) {
+        const section = content.sectionId
+          ? await api.prisma.contentSection.findUnique({
+              where: { id: content.sectionId },
+              select: { title: true },
+            })
+          : null;
+        await api.notifyPublishedLessonContent({
+          contentId: content.id,
+          courseId: content.courseId,
+          contentTitle: content.title,
+          contentType: content.type,
+          body: content.body,
+          sectionTitle: section?.title || "",
+          published: content.published,
+          actorId: authUser.id,
+        });
+      }
 
       res.json(api.toLessonContent(content));
     },
