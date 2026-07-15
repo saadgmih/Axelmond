@@ -69,7 +69,7 @@ export function useStudentCourseSession({
     } else {
       setQuizQuestions(null);
     }
-  }, [selectedModule, selectedCourse?.id]);
+  }, [selectedModule?.id, selectedModule?.type, selectedCourse?.id]);
 
   useEffect(() => {
     if (!currentUser || currentView !== "course" || !selectedCourse) return;
@@ -146,6 +146,25 @@ export function useStudentCourseSession({
     try {
       const attempt = await api.submitQuizAttempt(selectedCourse.id, selectedModule.id, quizAnswers);
       correctCount = Number(attempt.score);
+
+      const corrections = Array.isArray(attempt.questions) ? attempt.questions : [];
+      const correctedQuestions = questions.map((question, index) => {
+        const correction =
+          corrections.find(
+            (item) => item?.id != null && question?.id != null && String(item.id) === String(question.id),
+          ) ?? corrections[index];
+
+        if (!correction) return question;
+
+        return {
+          ...question,
+          answer: typeof correction.answer === "string" ? correction.answer : question.answer,
+          explanation:
+            typeof correction.explanation === "string" ? correction.explanation : question.explanation,
+        };
+      });
+
+      setQuizQuestions(correctedQuestions);
     } catch (err) {
       console.error("Failed to persist quiz attempt:", err);
       setQuizSubmitError(getClientErrorMessage(err, "Enregistrement du quiz impossible."));
@@ -155,26 +174,20 @@ export function useStudentCourseSession({
     setQuizScore(correctCount);
     setQuizSubmitted(true);
 
-    try {
-      const completedCourse = await api.setModuleProgress(selectedCourse.id, selectedModule.id, true);
-      const updatedCourse = {
-        ...completedCourse,
-        modules: completedCourse.modules.map((module: CourseModule) =>
-          module.id === selectedModule.id
-            ? { ...module, completed: true, score: `${correctCount}/${questions.length}` }
-            : module,
-        ),
-      };
-      setCourses((current) => current.map((course) => (course.id === updatedCourse.id ? updatedCourse : course)));
-      setSelectedCourse(updatedCourse);
-      const activeMod = updatedCourse.modules.find((module: CourseModule) => module.id === selectedModule.id);
-      if (activeMod) setSelectedModule(activeMod);
-    } catch (err) {
-      console.error("Failed to synchronize module completion:", err);
-      setQuizSubmitError(
-        getClientErrorMessage(err, "Quiz enregistré, mais synchronisation de la progression impossible."),
-      );
-    }
+    // The attempt endpoint persists module completion before returning. Reflect that
+    // confirmed state locally instead of issuing a second, redundant progress request.
+    const updatedCourse = {
+      ...selectedCourse,
+      modules: selectedCourse.modules.map((module: CourseModule) =>
+        module.id === selectedModule.id
+          ? { ...module, completed: true, score: `${correctCount}/${questions.length}` }
+          : module,
+      ),
+    };
+    setCourses((current) => current.map((course) => (course.id === updatedCourse.id ? updatedCourse : course)));
+    setSelectedCourse(updatedCourse);
+    const activeMod = updatedCourse.modules.find((module: CourseModule) => module.id === selectedModule.id);
+    if (activeMod) setSelectedModule(activeMod);
   };
 
   const resetQuiz = () => {
