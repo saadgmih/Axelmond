@@ -1,8 +1,19 @@
-import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { getClientErrorMessage } from "../client-errors";
 import { api } from "../api";
 import type { AppUser } from "../components/AuthScreen";
 import type { Course, CourseModule, Invoice } from "../types";
+import { getCourseContentProgress } from "../utils/course-content-metrics";
+
+function withModuleCompletion(course: Course, moduleId: number, completed: boolean): Course {
+  const modules = course.modules.map((module) => (module.id === moduleId ? { ...module, completed } : module));
+
+  return {
+    ...course,
+    modules,
+    progress: getCourseContentProgress(modules).progressPercent,
+  };
+}
 
 export interface UseStudentCourseSessionOptions {
   courses: Course[];
@@ -44,6 +55,9 @@ export function useStudentCourseSession({
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [quizScore, setQuizScore] = useState<number | null>(null);
   const [quizSubmitError, setQuizSubmitError] = useState("");
+  const [moduleProgressPendingId, setModuleProgressPendingId] = useState<number | null>(null);
+  const [moduleProgressError, setModuleProgressError] = useState("");
+  const moduleProgressRequestRef = useRef<number | null>(null);
   const [showAITutor, setShowAITutor] = useState(false);
 
   const hasAiTutorAccess = useMemo(() => {
@@ -76,16 +90,70 @@ export function useStudentCourseSession({
     refreshCourseContent(selectedCourse.id);
   }, [currentUser?.id, currentView, selectedCourse?.id, refreshCourseContent]);
 
+  useEffect(() => {
+    setModuleProgressError("");
+  }, [selectedCourse?.id, selectedModule?.id]);
+
   const markModuleCompleted = async (modId: number, completed = true) => {
-    if (!selectedCourse) return;
+    if (!selectedCourse || moduleProgressRequestRef.current !== null) return;
+
+    const courseId = selectedCourse.id;
+    const previousModule = selectedCourse.modules.find((module) => module.id === modId);
+    if (!previousModule) return;
+
+    const previousCompleted = previousModule.completed;
+    const applyCourseState = (course: Course) => {
+      setCourses((current) => current.map((item) => (item.id === course.id ? course : item)));
+      setSelectedCourse((current) => (current?.id === course.id ? course : current));
+      const activeModule = course.modules.find((module) => module.id === modId);
+      if (activeModule) {
+        setSelectedModule((current) => (current?.id === modId ? activeModule : current));
+      }
+    };
+
+    moduleProgressRequestRef.current = modId;
+    setModuleProgressPendingId(modId);
+    setModuleProgressError("");
+    applyCourseState(withModuleCompletion(selectedCourse, modId, completed));
+
     try {
-      const updatedCourse = await api.setModuleProgress(selectedCourse.id, modId, completed);
-      setCourses((prev) => prev.map((c) => (c.id === updatedCourse.id ? updatedCourse : c)));
-      setSelectedCourse(updatedCourse);
-      const mod = updatedCourse.modules.find((m: CourseModule) => m.id === modId);
-      if (mod) setSelectedModule(mod);
+      await api.setModuleProgress(courseId, modId, completed);
     } catch (err) {
       console.error("Failed to mark module as completed:", err);
+      let reconciled = false;
+
+      try {
+        const refreshedCourse = (await api.getCourse(courseId)) as Course;
+        const refreshedModule = refreshedCourse.modules.find((module) => module.id === modId);
+        if (refreshedModule) {
+          applyCourseState(refreshedCourse);
+          reconciled = refreshedModule.completed === completed;
+        }
+      } catch (refreshErr) {
+        console.error("Failed to reconcile module progress:", refreshErr);
+      }
+
+      if (!reconciled) {
+        setCourses((current) =>
+          current.map((course) =>
+            course.id === courseId ? withModuleCompletion(course, modId, previousCompleted) : course,
+          ),
+        );
+        setSelectedCourse((current) =>
+          current?.id === courseId ? withModuleCompletion(current, modId, previousCompleted) : current,
+        );
+        setSelectedModule((current) =>
+          current?.id === modId ? { ...current, completed: previousCompleted } : current,
+        );
+        setModuleProgressError(
+          getClientErrorMessage(err, "La progression n'a pas pu être enregistrée. Veuillez réessayer."),
+        );
+      }
+    } finally {
+      if (moduleProgressRequestRef.current === modId) {
+        moduleProgressRequestRef.current = null;
+      }
+      setModuleProgressPendingId((current) => (current === modId ? null : current));
     }
   };
 
@@ -159,8 +227,7 @@ export function useStudentCourseSession({
         return {
           ...question,
           answer: typeof correction.answer === "string" ? correction.answer : question.answer,
-          explanation:
-            typeof correction.explanation === "string" ? correction.explanation : question.explanation,
+          explanation: typeof correction.explanation === "string" ? correction.explanation : question.explanation,
         };
       });
 
@@ -208,6 +275,8 @@ export function useStudentCourseSession({
     setQuizScore,
     quizSubmitError,
     setQuizSubmitError,
+    moduleProgressPendingId,
+    moduleProgressError,
     showAITutor,
     setShowAITutor,
     hasAiTutorAccess,

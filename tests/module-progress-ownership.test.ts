@@ -50,6 +50,13 @@ rulesTest("module-progress-ownership", () => {
   assert.doesNotMatch(completeRouteSource, /modules:\s*course\.modules/);
   assert.doesNotMatch(completeRouteSource, /progress:\s*course\.progress/);
 
+  const progressRouteStart = serverSource.indexOf('app.put("/api/courses/:courseId/modules/:moduleId/progress"');
+  const progressRouteSource = serverSource.slice(progressRouteStart, nextRouteStart);
+  assert.ok(progressRouteStart > completeRouteStart, "progress route must exist");
+  assert.match(progressRouteSource, /typeof req\.body\?\.completed !== "boolean"/);
+  assert.match(progressRouteSource, /res\.json\(\{ courseId: course\.id, moduleId: mod\.id, completed \}\)/);
+  assert.doesNotMatch(progressRouteSource, /toCourseForUser/);
+
   assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/courses/1/modules/101/complete"), true);
   assert.equal(canAccessApiRoute("PROFESSOR", "POST", "/api/courses/1/modules/101/complete"), false);
   assert.equal(canAccessApiRoute("STUDENT", "PUT", "/api/courses/1/modules/101/progress"), true);

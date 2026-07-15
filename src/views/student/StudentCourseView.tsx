@@ -47,6 +47,8 @@ interface StudentCourseViewProps {
   quizSubmitted: boolean;
   quizScore: number | null;
   quizSubmitError: string;
+  moduleProgressPendingId: number | null;
+  moduleProgressError: string;
   navigateTo: NavigateTo;
   onModuleSelect: (mod: CourseModule) => void;
   setShowAITutor: Dispatch<SetStateAction<boolean>>;
@@ -70,6 +72,8 @@ export default function StudentCourseView({
   quizSubmitted,
   quizScore,
   quizSubmitError,
+  moduleProgressPendingId,
+  moduleProgressError,
   navigateTo,
   onModuleSelect,
   setShowAITutor,
@@ -84,6 +88,7 @@ export default function StudentCourseView({
   const enrollment = selectedCourse.enrollment;
 
   const contentProgress = useMemo(() => getCourseContentProgress(selectedCourse.modules), [selectedCourse.modules]);
+  const isModuleProgressPending = moduleProgressPendingId === selectedModule.id;
   const answeredQuizCount = quizQuestions ? Math.min(Object.keys(quizAnswers).length, quizQuestions.length) : 0;
   const quizCompletionPercentage = quizQuestions?.length
     ? Math.round((answeredQuizCount / quizQuestions.length) * 100)
@@ -381,6 +386,15 @@ export default function StudentCourseView({
             </div>
           )}
 
+          {moduleProgressError && (
+            <div
+              role="alert"
+              className="rounded-2xl border border-rose-300/25 bg-rose-400/10 px-4 py-3 text-xs font-bold text-rose-200"
+            >
+              {moduleProgressError}
+            </div>
+          )}
+
           {isExpired ? (
             <div className="bg-slate-50 border border-slate-200 rounded-3xl p-8 sm:p-12 text-center max-w-2xl mx-auto space-y-6 shadow-sm">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100">
@@ -487,18 +501,22 @@ export default function StudentCourseView({
                           {selectedModule.completed ? (
                             <button
                               type="button"
+                              disabled={isModuleProgressPending}
                               onClick={() => markModuleCompleted(selectedModule.id, false)}
-                              className="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer"
+                              className="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                             >
-                              Annuler terminé
+                              {isModuleProgressPending ? "Enregistrement…" : "Annuler terminé"}
                             </button>
                           ) : (
                             <button
                               type="button"
+                              disabled={isModuleProgressPending}
                               onClick={() => markModuleCompleted(selectedModule.id, true)}
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer shadow-sm shadow-emerald-100"
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer shadow-sm shadow-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
                             >
-                              {getContentCompletionLabel(selectedLessonContent.type)}
+                              {isModuleProgressPending
+                                ? "Enregistrement…"
+                                : getContentCompletionLabel(selectedLessonContent.type)}
                             </button>
                           )}
                         </div>
@@ -548,10 +566,12 @@ export default function StudentCourseView({
                             </div>
                           ) : (
                             <button
+                              type="button"
+                              disabled={isModuleProgressPending}
                               onClick={() => markModuleCompleted(selectedModule.id)}
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer shadow-sm shadow-emerald-100"
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer shadow-sm shadow-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
                             >
-                              Valider et terminer le chapitre
+                              {isModuleProgressPending ? "Enregistrement…" : "Valider et terminer le chapitre"}
                             </button>
                           )}
                         </div>
@@ -668,10 +688,12 @@ export default function StudentCourseView({
                         </div>
                       ) : (
                         <button
+                          type="button"
+                          disabled={isModuleProgressPending}
                           onClick={() => markModuleCompleted(selectedModule.id)}
-                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer"
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                          Marquer cette leçon comme lue
+                          {isModuleProgressPending ? "Enregistrement…" : "Marquer cette leçon comme lue"}
                         </button>
                       )}
                     </div>
@@ -729,10 +751,11 @@ export default function StudentCourseView({
                         </div>
                         <button
                           type="button"
+                          disabled={isModuleProgressPending}
                           onClick={() => markModuleCompleted(selectedModule.id, false)}
-                          className="cursor-pointer rounded-xl border border-emerald-300/20 bg-emerald-300/10 px-5 py-2.5 text-xs font-bold text-emerald-100 transition-colors hover:border-emerald-300/40 hover:bg-emerald-300/15"
+                          className="cursor-pointer rounded-xl border border-emerald-300/20 bg-emerald-300/10 px-5 py-2.5 text-xs font-bold text-emerald-100 transition-colors hover:border-emerald-300/40 hover:bg-emerald-300/15 disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                          Annuler terminé
+                          {isModuleProgressPending ? "Enregistrement…" : "Annuler terminé"}
                         </button>
                       </div>
                     )}

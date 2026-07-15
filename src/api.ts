@@ -346,7 +346,11 @@ export const api = {
   completeModule: (courseId: number, moduleId: number) =>
     request<any>("POST", `/api/courses/${courseId}/modules/${moduleId}/complete`),
   setModuleProgress: (courseId: number, moduleId: number, completed: boolean) =>
-    request<any>("PUT", `/api/courses/${courseId}/modules/${moduleId}/progress`, { completed }),
+    request<{ courseId: number; moduleId: number; completed: boolean }>(
+      "PUT",
+      `/api/courses/${courseId}/modules/${moduleId}/progress`,
+      { completed },
+    ),
   addModule: (courseId: number, data: { title: string; type: string; duration: string; contentMarkdown?: string }) =>
     request<any>("POST", `/api/courses/${courseId}/modules`, data),
   updateCourse: (

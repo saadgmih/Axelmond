@@ -463,14 +463,21 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
       return;
     }
 
+    if (typeof req.body?.completed !== "boolean") {
+      res.status(400).json({ error: "Le statut de progression doit être un booléen" });
+      return;
+    }
+
+    const completed = req.body.completed;
+
     await api.setStudentModuleCompletion({
       userId: authUser.id,
       courseId: course.id,
       module: mod,
-      completed: Boolean(req.body?.completed),
+      completed,
     });
 
-    res.json(await api.toCourseForUser(course, authUser));
+    res.json({ courseId: course.id, moduleId: mod.id, completed });
   });
 
   // POST /api/courses/:courseId/modules (Teacher adds module)
