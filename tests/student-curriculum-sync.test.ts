@@ -17,6 +17,7 @@ rulesTest("student-curriculum-sync", () => {
   const coursesRoutesSource = fs.readFileSync("src/routes/courses-routes.ts", "utf8");
   const contentRoutesSource = fs.readFileSync("src/routes/content-routes.ts", "utf8");
   const uploadthingSource = fs.readFileSync("src/uploadthing.ts", "utf8");
+  const lessonAssetServiceSource = fs.readFileSync("src/lesson-asset-service.ts", "utf8");
   const studentSessionSource = fs.readFileSync("src/hooks/useStudentCourseSession.ts", "utf8");
   const serverSource = readApiRouteSources();
 
@@ -82,7 +83,8 @@ rulesTest("student-curriculum-sync", () => {
     contentRoutesSource,
     /if \(content\.published\) \{[\s\S]*?await refreshStudentCourseModules\(section\.courseId\)/,
   );
-  assert.match(uploadthingSource, /syncPublishedLessonModules/);
+  assert.match(uploadthingSource, /persistLessonAsset/);
+  assert.match(lessonAssetServiceSource, /syncPublishedLessonModules/);
   assert.match(studentSessionSource, /api\.getCourse\(courseId\)/);
   assert.match(serverSource, /export \{[\s\S]*syncPublishedLessonModules/);
 

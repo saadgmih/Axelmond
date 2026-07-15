@@ -3,12 +3,14 @@ import type { Dispatch, SetStateAction } from "react";
 import { useTeacherCurriculum } from "../../hooks/useTeacherCurriculum";
 import { useTeacherDashboard } from "../../hooks/useTeacherDashboard";
 import type { AppUser } from "../../shared/app-user";
-import type { ContentSection, Course, Discipline, FacultyDomain } from "../../types";
+import type { ContentSection, Course, Discipline, FacultyDomain, LessonContent } from "../../types";
 import type { flattenSections } from "../../hooks/useCourseContent";
 
 type CourseContentApi = {
   courseContentSections: ContentSection[];
   setCourseContentSections: Dispatch<SetStateAction<ContentSection[]>>;
+  moduleRootContents: LessonContent[];
+  setModuleRootContents: Dispatch<SetStateAction<LessonContent[]>>;
   flattenSections: typeof flattenSections;
   refreshCourseContent: (courseId: number) => Promise<ContentSection[]>;
 };

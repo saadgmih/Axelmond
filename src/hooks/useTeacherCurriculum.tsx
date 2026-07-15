@@ -36,6 +36,8 @@ type Discipline = FacultyDomain["disciplines"][number];
 export interface TeacherCurriculumCourseContent {
   courseContentSections: ContentSection[];
   setCourseContentSections: Dispatch<SetStateAction<ContentSection[]>>;
+  moduleRootContents: LessonContent[];
+  setModuleRootContents: Dispatch<SetStateAction<LessonContent[]>>;
   flattenSections: typeof flattenSections;
   refreshCourseContent: (courseId: number) => Promise<ContentSection[]>;
 }
@@ -87,7 +89,12 @@ export function useTeacherCurriculum({
   role,
   courseContent,
 }: UseTeacherCurriculumOptions) {
-  const { setCourseContentSections, flattenSections: flattenSectionsFn, refreshCourseContent } = courseContent;
+  const {
+    setCourseContentSections,
+    setModuleRootContents,
+    flattenSections: flattenSectionsFn,
+    refreshCourseContent,
+  } = courseContent;
 
   const [activeCurriculumStep, setActiveCurriculumStep] = useState<number>(1);
   const [selectedChapterId, setSelectedChapterId] = useState<string>("");
@@ -128,6 +135,8 @@ export function useTeacherCurriculum({
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadPublished, setUploadPublished] = useState(true);
   const [uploadStatusMsg, setUploadStatusMsg] = useState("");
+  const [uploadStatusKind, setUploadStatusKind] = useState<"idle" | "progress" | "success" | "error">("idle");
+  const [isUploadingLessonAsset, setIsUploadingLessonAsset] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [editCourseImageFile, setEditCourseImageFile] = useState<File | null>(null);
   const [editCourseImageStatus, setEditCourseImageStatus] = useState("");
@@ -247,6 +256,7 @@ export function useTeacherCurriculum({
     if (role !== "teacher") return;
     if (managedCourses.length === 0) {
       setCourseContentSections([]);
+      setModuleRootContents([]);
       setNewSectionParentId("");
       setUploadSectionId("");
       return;
@@ -257,7 +267,7 @@ export function useTeacherCurriculum({
       setUploadCourseId(firstManagedCourseId);
       setQuizCourseId(firstManagedCourseId);
     }
-  }, [role, managedCourseIds, newSectionCourseId, managedCourses, setCourseContentSections]);
+  }, [role, managedCourseIds, newSectionCourseId, managedCourses, setCourseContentSections, setModuleRootContents]);
 
   useEffect(() => {
     if (role !== "teacher" || activeCurriculumStep !== quizStep || !quizCourseId) return;
@@ -269,6 +279,7 @@ export function useTeacherCurriculum({
     if (!currentUser || role === "student") return;
     if (!managedCourses.some((course) => course.id === newSectionCourseId)) {
       setCourseContentSections([]);
+      setModuleRootContents([]);
       return;
     }
     const request = startRequest();
@@ -276,8 +287,15 @@ export function useTeacherCurriculum({
       if (!request.isActive()) return;
       const flat = flattenSectionsFn(sections);
       if (!flat.some((section) => section.id === newSectionParentId)) setNewSectionParentId("");
-      if (uploadCourseId === newSectionCourseId && !flat.some((section) => section.id === uploadSectionId)) {
-        setUploadSectionId(flat[0]?.id || "");
+      if (
+        uploadCourseId === newSectionCourseId &&
+        uploadSectionId &&
+        !flat.some((section) => section.id === uploadSectionId)
+      ) {
+        setUploadSectionId("");
+        setUploadChapterId("");
+        setUploadPartId("");
+        setUploadSubpartId("");
       }
     });
   }, [
@@ -289,6 +307,7 @@ export function useTeacherCurriculum({
     refreshCourseContent,
     flattenSectionsFn,
     setCourseContentSections,
+    setModuleRootContents,
     uploadCourseId,
     uploadSectionId,
     newSectionParentId,
@@ -369,6 +388,7 @@ export function useTeacherCurriculum({
       setNewCourseFreeAccessEndsAt(defaultFreeAccessEndFromStart(formatDatetimeLocalValue(null)));
       setNewCourseFreeAccessDurationDays("");
       setCourseContentSections([]);
+      setModuleRootContents([]);
       if (!imageUploadFailed) {
         showCurriculumSuccess(`Module « ${normalizedCourse.title} » créé avec succès.`);
       }
@@ -393,12 +413,11 @@ export function useTeacherCurriculum({
             title: newSectionTitle,
             published: newSectionPublished,
           });
-      const sections = await refreshCourseContent(newSectionCourseId);
+      await refreshCourseContent(newSectionCourseId);
       setUploadCourseId(newSectionCourseId);
       setUploadSectionId(newSectionParentId ? result.id : result.section?.id || "");
       setNewSectionTitle("");
       showCurriculumSuccess(newSectionParentId ? "Partie créée avec succès." : "Chapitre créé avec succès.");
-      if (!uploadSectionId && sections[0]) setUploadSectionId(sections[0].id);
     } catch (err: any) {
       console.error("Failed to create content section:", err);
       showCurriculumError(getClientErrorMessage(err, "Création de section impossible."));
@@ -407,45 +426,78 @@ export function useTeacherCurriculum({
 
   const handleUploadLessonAsset = async (e: FormEvent) => {
     e.preventDefault();
+    if (isUploadingLessonAsset) return;
     const token = await getFreshSessionToken();
-    if (!uploadFile || !uploadTitle.trim() || !token) {
+    if (!uploadFile || !uploadTitle.trim()) {
       setUploadStatusMsg("Sélectionnez un titre et un fichier.");
+      setUploadStatusKind("error");
+      return;
+    }
+    if (!token) {
+      setUploadStatusMsg("Session expirée. Reconnectez-vous puis réessayez.");
+      setUploadStatusKind("error");
       return;
     }
 
     const validationError = validateUploadFile(uploadFile, uploadType);
     if (validationError) {
       setUploadStatusMsg(validationError);
+      setUploadStatusKind("error");
       showCurriculumError(validationError);
       return;
     }
 
+    const intent = {
+      courseId: uploadCourseId,
+      sectionId: uploadSectionId || null,
+      title: uploadTitle.trim(),
+      contentType: uploadType,
+      published: uploadPublished,
+      fileName: uploadFile.name,
+      mimeType: uploadFile.type,
+      size: uploadFile.size,
+    };
+
+    setIsUploadingLessonAsset(true);
+    setUploadStatusKind("progress");
     try {
       setUploadStatusMsg("Téléversement en cours...");
-      await (uploadFiles as any)("lessonAsset", {
+      const uploadedFiles = await (uploadFiles as any)("lessonAsset", {
         files: [uploadFile],
         input: {
-          courseId: uploadCourseId,
-          sectionId: uploadSectionId || null,
-          title: uploadTitle,
-          contentType: uploadType,
-          published: uploadPublished,
+          courseId: intent.courseId,
+          sectionId: intent.sectionId,
+          title: intent.title,
+          contentType: intent.contentType,
+          published: intent.published,
         },
         headers: { Authorization: `Bearer ${token}` },
         onUploadProgress: bindUploadProgress((progress) =>
           setUploadStatusMsg(`Téléversement : ${formatUploadProgressLabel(progress)}`),
         ),
       });
-      await refreshCourseContent(uploadCourseId);
+      const customId = getUploadedFileCustomId(uploadedFiles?.[0]);
+      if (!customId) throw new Error("La confirmation du média téléversé est introuvable.");
+
+      setUploadStatusMsg("Confirmation et enregistrement en cours...");
+      const { courseId, ...confirmationIntent } = intent;
+      const confirmedContent = await api.confirmLessonAsset(courseId, { customId, ...confirmationIntent });
+      if (!confirmedContent?.id) throw new Error("Le média n'a pas été confirmé par le serveur.");
+
+      await refreshCourseContent(intent.courseId);
       setUploadFile(null);
       setUploadTitle("");
-      setUploadStatusMsg("Média enregistré avec succès.");
+      setUploadStatusMsg("Média enregistré durablement et visible après actualisation.");
+      setUploadStatusKind("success");
       showCurriculumSuccess("Média enregistré avec succès.");
     } catch (err: any) {
       console.error("Failed to upload lesson asset:", err);
       const message = getUploadErrorMessage(err);
       setUploadStatusMsg(message);
+      setUploadStatusKind("error");
       showCurriculumError(message);
+    } finally {
+      setIsUploadingLessonAsset(false);
     }
   };
 
@@ -639,6 +691,7 @@ export function useTeacherCurriculum({
         setNewSectionCourseId(nextCourse?.id || 1);
         setUploadCourseId(nextCourse?.id || 1);
         setCourseContentSections([]);
+        setModuleRootContents([]);
         setUploadSectionId("");
       }
       showCurriculumSuccess("Module supprimé.");
@@ -763,10 +816,13 @@ export function useTeacherCurriculum({
     }
   };
 
-  const selectedManagedContents = selectedManagedSection?.contents || [];
-  const managedLiveReplays = managedSections
-    .flatMap((section) => section.contents || [])
-    .filter((content) => content.type === "VIDEO" && !content.published && isLiveReplayContent(content.body));
+  const selectedManagedContents = uploadSectionId
+    ? selectedManagedSection?.contents || []
+    : courseContent.moduleRootContents;
+  const managedLiveReplays = [
+    ...courseContent.moduleRootContents,
+    ...managedSections.flatMap((section) => section.contents || []),
+  ].filter((content) => content.type === "VIDEO" && !content.published && isLiveReplayContent(content.body));
 
   return {
     newSectionCourseId,
@@ -834,6 +890,8 @@ export function useTeacherCurriculum({
     uploadPublished,
     setUploadPublished,
     uploadStatusMsg,
+    uploadStatusKind,
+    isUploadingLessonAsset,
     editingCourse,
     setEditingCourse,
     editCourseImageFile,

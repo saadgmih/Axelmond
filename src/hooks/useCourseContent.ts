@@ -19,13 +19,18 @@ export function findLessonContent(sections: ContentSection[], contentId: string)
 
 export function useCourseContent() {
   const [courseContentSections, setCourseContentSections] = useState<ContentSection[]>([]);
+  const [moduleRootContents, setModuleRootContents] = useState<LessonContent[]>([]);
   const [selectedLessonContent, setSelectedLessonContent] = useState<LessonContent | null>(null);
 
   const refreshCourseContent = useCallback(async (courseId: number) => {
     try {
-      const sections = await api.getCourseContent(courseId);
+      const [sections, rootContents] = await Promise.all([
+        api.getCourseContent(courseId),
+        api.getModuleContents(courseId),
+      ]);
       setCourseContentSections(sections);
-      const contents = flattenContents(sections);
+      setModuleRootContents(rootContents);
+      const contents = [...rootContents, ...flattenContents(sections)];
       setSelectedLessonContent((current) => {
         if (current && contents.some((content) => content.id === current.id)) return current;
         return null;
@@ -34,6 +39,7 @@ export function useCourseContent() {
     } catch (err) {
       console.error("Failed to load course content:", err);
       setCourseContentSections([]);
+      setModuleRootContents([]);
       setSelectedLessonContent(null);
       return [];
     }
@@ -42,6 +48,8 @@ export function useCourseContent() {
   return {
     courseContentSections,
     setCourseContentSections,
+    moduleRootContents,
+    setModuleRootContents,
     selectedLessonContent,
     setSelectedLessonContent,
     flattenSections,

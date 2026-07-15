@@ -10,6 +10,7 @@ rulesTest("student-academic-notifications", () => {
   const contentSource = fs.readFileSync("src/routes/content-routes.ts", "utf8");
   const quizSource = fs.readFileSync("src/routes/quiz-routes.ts", "utf8");
   const uploadSource = fs.readFileSync("src/uploadthing.ts", "utf8");
+  const lessonAssetServiceSource = fs.readFileSync("src/lesson-asset-service.ts", "utf8");
   const appSource = fs.readFileSync("src/app/usePlatformApp.ts", "utf8");
   const notificationViewSource = fs.readFileSync("src/views/shared/NotificationsView.tsx", "utf8");
 
@@ -39,8 +40,9 @@ rulesTest("student-academic-notifications", () => {
   assert.match(contentSource, /published && !existingChapter\?\.published/);
 
   assert.match(quizSource, /type: "NEW_QUIZ"/);
-  assert.match(uploadSource, /if \(content\.published\) \{[\s\S]*notifyPublishedLessonContent/);
-  assert.match(uploadSource, /sourceEvent: "LESSON_ASSET_PUBLISHED"/);
+  assert.match(uploadSource, /persistLessonAsset/);
+  assert.match(lessonAssetServiceSource, /if \(created && content\.published\) \{[\s\S]*notifyPublishedLessonContent/);
+  assert.match(lessonAssetServiceSource, /sourceEvent: "LESSON_ASSET_PUBLISHED"/);
 
   assert.match(appSource, /shouldRefreshCourseForNotification/);
   assert.match(academicEventsSource, /"NEW_COURSE"/);

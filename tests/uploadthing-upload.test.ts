@@ -42,7 +42,7 @@ rulesTest("uploadthing-upload", () => {
   assert.match(uploadthingSource, /file\.ufsUrl \|\| file\.url \|\| file\.appUrl/);
   assert.match(uploadthingSource, /prisma\.course\.findFirst/);
   assert.match(uploadthingSource, /createdById:\s*user\.id/);
-  assert.match(uploadthingSource, /sectionId:\s*z\.string\(\)\.min\(1\)\.optional\(\)\.nullable\(\)/);
+  assert.match(uploadthingSource, /sectionId:\s*z\.string\(\)(?:\.trim\(\))?\.min\(1\)\.optional\(\)\.nullable\(\)/);
   assert.match(uploadthingSource, /Lesson asset upload denied/);
 
   assert.match(uploadthingSource, /messageAttachment:\s*f\(/);

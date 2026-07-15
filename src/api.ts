@@ -294,6 +294,19 @@ export const api = {
   ) => request<any>("PUT", `/api/courses/${courseId}`, data),
   confirmCourseImage: (courseId: number, customId: string) =>
     request<any>("POST", `/api/courses/${courseId}/image`, { customId }),
+  confirmLessonAsset: (
+    courseId: number,
+    data: {
+      customId: string;
+      sectionId: string | null;
+      title: string;
+      contentType: "VIDEO" | "PDF" | "IMAGE";
+      published: boolean;
+      fileName: string;
+      mimeType: string;
+      size: number;
+    },
+  ) => request<any>("POST", `/api/courses/${courseId}/lesson-assets/confirm`, data),
   deleteCourse: (courseId: number) => request<any>("DELETE", `/api/courses/${courseId}`),
   getChapters: (courseId: number) => request<any[]>("GET", `/api/courses/${courseId}/chapters`),
   createChapter: (courseId: number, data: { title: string; description?: string; published: boolean }) =>

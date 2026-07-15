@@ -38,6 +38,7 @@ interface StudentCourseViewProps {
   selectedCourse: Course;
   selectedModule: CourseModule;
   courseContentSections: ContentSection[];
+  moduleRootContents: LessonContent[];
   selectedLessonContent: LessonContent | null;
   showAITutor: boolean;
   hasAiTutorAccess: boolean;
@@ -60,6 +61,7 @@ export default function StudentCourseView({
   selectedCourse,
   selectedModule,
   courseContentSections,
+  moduleRootContents,
   selectedLessonContent: selectedLessonContentFromProps,
   showAITutor,
   hasAiTutorAccess,
@@ -163,8 +165,11 @@ export default function StudentCourseView({
     if (selectedLessonContentFromProps) return selectedLessonContentFromProps;
     const linkedContentId = lessonContentIdFromModule(selectedModule.sectionId);
     if (!linkedContentId) return null;
-    return findLessonContent(courseContentSections, linkedContentId);
-  }, [selectedLessonContentFromProps, selectedModule.sectionId, courseContentSections]);
+    return (
+      moduleRootContents.find((content) => content.id === linkedContentId) ||
+      findLessonContent(courseContentSections, linkedContentId)
+    );
+  }, [selectedLessonContentFromProps, selectedModule.sectionId, courseContentSections, moduleRootContents]);
 
   function getContentCompletionLabel(type: LessonContent["type"]): string {
     if (type === "VIDEO") return "Marquer comme terminée";

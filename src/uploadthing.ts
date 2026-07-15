@@ -2,7 +2,6 @@ import { createUploadthing, type FileRouter, UTFiles } from "uploadthing/express
 import { UploadThingError } from "uploadthing/server";
 import { z } from "zod";
 import { prisma } from "./db";
-import { syncPublishedLessonModules } from "./course-curriculum-sync";
 import { verifyAuthToken } from "./auth-token";
 import { canManageContent, isTeacherSpaceRole, normalizeRole } from "./rbac";
 import { isAllowedAvatarUrl, isAllowedRasterImageMime, isAllowedRasterImageUpload } from "./avatar-security";
@@ -10,8 +9,13 @@ import { invalidateAuthUserCache } from "./server/auth-user-cache";
 import { alertSuspectUpload } from "./security-logger";
 import { completeLiveReplayUpload } from "./server/live-replay-service";
 import { invalidatePublicCatalogCache } from "./server/route-ownership";
-import { notifyPublishedLessonContent } from "./academic-notifications";
 import { buildCourseImageCustomId } from "./course-image-confirmation";
+import {
+  buildLessonAssetCustomId,
+  normalizeLessonAssetIntent,
+  type LessonAssetIntent,
+} from "./lesson-asset-confirmation";
+import { persistLessonAsset } from "./lesson-asset-service";
 import {
   detectMessageAttachmentKind,
   isConversationParticipant,
@@ -27,8 +31,8 @@ export { utapi };
 
 const uploadInput = z.object({
   courseId: z.number().int().positive(),
-  sectionId: z.string().min(1).optional().nullable(),
-  title: z.string().min(2).max(160),
+  sectionId: z.string().trim().min(1).optional().nullable(),
+  title: z.string().trim().min(2).max(160),
   contentType: z.enum(["VIDEO", "PDF", "IMAGE"]),
   published: z.boolean().default(false),
 });
@@ -93,12 +97,6 @@ export async function deleteCloudFiles(fileKeys: string | string[]) {
   } catch (err) {
     console.error(`[${new Date().toISOString()}] [ERROR] [uploadthing] Cloud deletion failed: ${String(err)}`);
   }
-}
-
-function toAttachmentType(contentType: "VIDEO" | "PDF" | "IMAGE") {
-  if (contentType === "VIDEO") return "VIDEO";
-  if (contentType === "PDF") return "PDF";
-  return "IMAGE";
 }
 
 function getFileUrl(file: { ufsUrl?: string; url?: string; appUrl?: string }) {
@@ -292,8 +290,20 @@ export const uploadRouter = {
     { awaitServerData: true },
   )
     .input(uploadInput)
-    .middleware(async ({ req, input }) => {
+    .middleware(async ({ req, input, files }) => {
       const user = await getUploadUser(req);
+      const uploadFile = files[0];
+      if (
+        !uploadFile ||
+        !uploadFile.name.trim() ||
+        uploadFile.name.trim().length > 512 ||
+        isDangerousFile(uploadFile.name) ||
+        !isValidMimeType(input.contentType, uploadFile.type) ||
+        (input.contentType === "IMAGE" && !isAllowedRasterImageUpload(uploadFile.name, uploadFile.type || null))
+      ) {
+        alertSuspectUpload(user.id, uploadFile?.name || "unknown", uploadFile?.type || "unknown");
+        throw new UploadThingError("Type de fichier suspect ou invalide refusé.");
+      }
       const course = await prisma.course.findFirst({
         where: {
           id: input.courseId,
@@ -322,70 +332,57 @@ export const uploadRouter = {
         }
       }
 
-      return {
-        userId: user.id,
+      const intent = normalizeLessonAssetIntent({
         courseId: input.courseId,
         sectionId: input.sectionId || null,
         title: input.title,
         contentType: input.contentType,
         published: input.published,
+        fileName: uploadFile.name,
+        mimeType: uploadFile.type,
+        size: uploadFile.size,
+      } satisfies LessonAssetIntent);
+      const customId = buildLessonAssetCustomId(intent, user.id);
+
+      return {
+        userId: user.id,
+        customId,
+        intent,
+        [UTFiles]: files.map((file) => ({ ...file, customId })),
       };
     })
     .onUploadComplete(async ({ metadata, file }) => {
       const fileUrl = getFileUrl(file);
       if (
         isDangerousFile(file.name) ||
-        !isValidMimeType(metadata.contentType, file.type) ||
-        (metadata.contentType === "IMAGE" && !isAllowedRasterImageUpload(file.name, file.type || null))
+        file.name !== metadata.intent.fileName ||
+        file.type !== metadata.intent.mimeType ||
+        file.size !== metadata.intent.size ||
+        !isValidMimeType(metadata.intent.contentType, file.type) ||
+        (metadata.intent.contentType === "IMAGE" && !isAllowedRasterImageUpload(file.name, file.type || null))
       ) {
         alertSuspectUpload(metadata.userId, file.name, file.type || "unknown");
         await utapi.deleteFiles(file.key);
         throw new UploadThingError("Type de fichier suspect ou invalide refusé.");
       }
-      if (!fileUrl) {
+      if (!fileUrl || !isAllowedAvatarUrl(fileUrl)) {
         await utapi.deleteFiles(file.key);
-        throw new UploadThingError("URL du média pédagogique introuvable.");
+        throw new UploadThingError("URL du média pédagogique invalide ou introuvable.");
       }
 
-      const content = await prisma.lessonContent.create({
-        data: {
-          courseId: metadata.courseId,
-          sectionId: metadata.sectionId,
-          title: metadata.title,
-          type: metadata.contentType,
-          published: metadata.published,
-          createdById: metadata.userId,
-          attachments: {
-            create: {
-              courseId: metadata.courseId,
-              type: toAttachmentType(metadata.contentType),
-              fileName: file.name,
-              fileKey: file.key,
-              url: fileUrl,
-              mimeType: file.type || null,
-              size: file.size,
-              createdById: metadata.userId,
-            },
-          },
+      const { content } = await persistLessonAsset({
+        customId: metadata.customId,
+        userId: metadata.userId,
+        intent: metadata.intent,
+        file: {
+          fileKey: file.key,
+          url: fileUrl,
         },
-        include: { attachments: true },
       });
 
       console.log(
-        `[${new Date().toISOString()}] [INFO] [uploadthing] Lesson asset uploaded ${JSON.stringify({ contentId: content.id, courseId: metadata.courseId, sectionId: metadata.sectionId, fileKey: file.key })}`,
+        `[${new Date().toISOString()}] [INFO] [uploadthing] Lesson asset uploaded ${JSON.stringify({ contentId: content.id, courseId: metadata.intent.courseId, sectionId: metadata.intent.sectionId, fileKey: file.key })}`,
       );
-      if (content.published) {
-        await syncPublishedLessonModules(metadata.courseId);
-        await notifyPublishedLessonContent({
-          contentId: content.id,
-          courseId: metadata.courseId,
-          contentTitle: content.title,
-          contentType: metadata.contentType,
-          published: content.published,
-          actorId: metadata.userId,
-          sourceEvent: "LESSON_ASSET_PUBLISHED",
-        });
-      }
       return {
         contentId: content.id,
         attachmentId: content.attachments[0]?.id,

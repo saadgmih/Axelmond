@@ -45,6 +45,8 @@ export function usePlatformApp() {
   const {
     courseContentSections,
     setCourseContentSections,
+    moduleRootContents,
+    setModuleRootContents,
     selectedLessonContent,
     setSelectedLessonContent,
     flattenSections,
@@ -208,6 +210,8 @@ export function usePlatformApp() {
     courseContent: {
       courseContentSections,
       setCourseContentSections,
+      moduleRootContents,
+      setModuleRootContents,
       flattenSections,
       refreshCourseContent,
     },
@@ -236,17 +240,14 @@ export function usePlatformApp() {
   const { setQuizAnswers, setQuizSubmitted, setQuizScore, setQuizSubmitError, handlePaymentSuccess } =
     studentCourseSession;
 
-  const studentCourseBindings = useMemo(
-    () => ({
-      ...studentCourseSession,
-      courseContentSections,
-      flattenSections,
-      selectedLessonContent,
-      setSelectedLessonContent,
-    }),
-    [studentCourseSession, courseContentSections, flattenSections, selectedLessonContent, setSelectedLessonContent],
-  );
-
+  const studentCourseBindings = {
+    ...studentCourseSession,
+    courseContentSections,
+    moduleRootContents,
+    flattenSections,
+    selectedLessonContent,
+    setSelectedLessonContent,
+  };
   useEffect(() => {
     if (!isAuthReady || !currentUser || !isStudentRole(currentUser.role)) return;
     const params = new URLSearchParams(window.location.search);

@@ -246,10 +246,12 @@ Flux upload réel :
 Professor/Researcher/Admin choisit un fichier → src/uploadthing-client.ts
 → POST /api/uploadthing avec Authorization: Bearer <token>
 → src/uploadthing.ts vérifie le token, recharge le rôle DB et valide canManageContent()
+→ le middleware valide le fichier et lui attribue un `customId` lié à l'utilisateur, au module, à la destination et aux métadonnées
 → UploadThing stocke video/pdf/image
 → en local, `isDev` est forcé si `UPLOADTHING_CALLBACK_URL` pointe vers localhost pour éviter un callback Cloud inaccessible
 → URLs fichiers compatibles UploadThing v7 : `ufsUrl` prioritaire, fallback `url/appUrl`
-→ onUploadComplete crée LessonContent + Attachment dans PostgreSQL
+→ le client confirme ensuite explicitement le média via `POST /api/courses/:courseId/lesson-assets/confirm`
+→ la confirmation authentifiée et `onUploadComplete` utilisent le même service idempotent pour créer une seule fois LessonContent + Attachment dans PostgreSQL
 → GET /api/courses/:id/content renvoie l'arbre ContentSection publié aux étudiants
 → GET /api/courses/:courseId/module-contents renvoie les LessonContent directement attachés au module (`sectionId = null`)
 → lecteur vidéo étudiant intégré uniquement : ouverture directe retirée, téléchargement natif/Picture-in-Picture/lecture distante/menu contextuel désactivés
@@ -789,6 +791,7 @@ Courses
   GET    /api/courses/:courseId/chapters      → [auth] list Chapter rows for a course
   GET    /api/courses/:id/content             → [auth] content tree; students receive published content only
   GET    /api/courses/:courseId/module-contents → [auth] LessonContent with sectionId=null; students receive published content only
+  POST   /api/courses/:courseId/lesson-assets/confirm → [auth: PROFESSOR|RESEARCHER|ADMIN] confirme et persiste un média UploadThing de façon idempotente
   GET    /api/courses/:courseId/grades        → [auth] enrolled students + completed quiz count + averageScoreOutOf20
   POST   /api/courses/:courseId/chapters      → [auth: PROFESSOR|RESEARCHER|ADMIN] create Chapter + root ContentSection
   PUT    /api/chapters/:id                    → [auth: PROFESSOR|RESEARCHER|ADMIN] update Chapter and root section title/publish state

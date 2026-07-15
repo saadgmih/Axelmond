@@ -25,7 +25,7 @@ rulesTest("content-flexible-workflow", () => {
   assert.match(curriculumBundle, /sectionId:\s*uploadSectionId \|\| null/);
   assert.match(courseContentBundle, /getCourseContent/);
 
-  assert.match(uploadthingSource, /sectionId:\s*z\.string\(\)\.min\(1\)\.optional\(\)\.nullable\(\)/);
+  assert.match(uploadthingSource, /sectionId:\s*z\.string\(\)(?:\.trim\(\))?\.min\(1\)\.optional\(\)\.nullable\(\)/);
   assert.match(uploadthingSource, /sectionId:\s*input\.sectionId \|\| null/);
   assert.match(uploadthingSource, /courseId:\s*input\.courseId/);
 

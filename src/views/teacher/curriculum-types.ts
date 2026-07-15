@@ -70,6 +70,8 @@ export interface TeacherCurriculumViewProps extends AdminAcademicTaxonomyViewPro
   uploadPublished: boolean;
   setUploadPublished: (value: boolean) => void;
   uploadStatusMsg: string;
+  uploadStatusKind: "idle" | "progress" | "success" | "error";
+  isUploadingLessonAsset: boolean;
   editingCourse: Course | null;
   setEditingCourse: (value: Course | null) => void;
   editCourseImageFile: File | null;
