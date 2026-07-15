@@ -292,6 +292,8 @@ export const api = {
       published?: boolean;
     },
   ) => request<any>("PUT", `/api/courses/${courseId}`, data),
+  confirmCourseImage: (courseId: number, customId: string) =>
+    request<any>("POST", `/api/courses/${courseId}/image`, { customId }),
   deleteCourse: (courseId: number) => request<any>("DELETE", `/api/courses/${courseId}`),
   getChapters: (courseId: number) => request<any[]>("GET", `/api/courses/${courseId}/chapters`),
   createChapter: (courseId: number, data: { title: string; description?: string; published: boolean }) =>

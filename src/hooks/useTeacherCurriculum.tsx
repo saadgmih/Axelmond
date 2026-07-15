@@ -3,6 +3,7 @@ import { getClientErrorMessage } from "../client-errors";
 import {
   bindUploadProgress,
   formatUploadProgressLabel,
+  getUploadedFileCustomId,
   getUploadedFileUrl,
   uploadFiles,
   getUploadErrorMessage,
@@ -54,7 +55,7 @@ async function uploadCourseImage(
   courseId: number,
   file: File,
   setStatus: Dispatch<SetStateAction<string>>,
-): Promise<string> {
+): Promise<Course> {
   const token = await getFreshSessionToken();
   if (!token) throw new Error("Session expirée ou non autorisée.");
 
@@ -66,9 +67,15 @@ async function uploadCourseImage(
       setStatus(`Téléversement : ${formatUploadProgressLabel(progress)}`),
     ),
   });
-  const imageUrl = getUploadedFileUrl(uploadedFiles?.[0]);
-  if (!imageUrl) throw new Error("L'URL de l'image téléversée est introuvable.");
-  return imageUrl;
+  const uploadedFile = uploadedFiles?.[0];
+  const imageUrl = getUploadedFileUrl(uploadedFile);
+  const customId = getUploadedFileCustomId(uploadedFile);
+  if (!imageUrl || !customId) throw new Error("La confirmation de l'image téléversée est introuvable.");
+
+  setStatus("Confirmation de l'image en cours...");
+  const confirmedCourse = await api.confirmCourseImage(courseId, customId);
+  if (!confirmedCourse?.imageUrl) throw new Error("L'image n'a pas été confirmée par le serveur.");
+  return confirmedCourse as Course;
 }
 
 export function useTeacherCurriculum({
@@ -337,8 +344,12 @@ export function useTeacherCurriculum({
       if (newCourseImageFile) {
         try {
           setNewCourseImageStatus("Téléversement de l'image en cours...");
-          const imageUrl = await uploadCourseImage(normalizedCourse.id, newCourseImageFile, setNewCourseImageStatus);
-          normalizedCourse.imageUrl = imageUrl;
+          const confirmedCourse = await uploadCourseImage(
+            normalizedCourse.id,
+            newCourseImageFile,
+            setNewCourseImageStatus,
+          );
+          normalizedCourse.imageUrl = confirmedCourse.imageUrl;
           setCourses((prev) => prev.map((item) => (item.id === normalizedCourse.id ? normalizedCourse : item)));
           setNewCourseImageStatus("Image du module enregistrée.");
         } catch (err) {
@@ -582,8 +593,12 @@ export function useTeacherCurriculum({
       if (editCourseImageFile) {
         try {
           setEditCourseImageStatus("Téléversement de l'image en cours...");
-          const imageUrl = await uploadCourseImage(updatedCourse.id, editCourseImageFile, setEditCourseImageStatus);
-          updatedCourse = { ...updatedCourse, imageUrl };
+          const confirmedCourse = await uploadCourseImage(
+            updatedCourse.id,
+            editCourseImageFile,
+            setEditCourseImageStatus,
+          );
+          updatedCourse = { ...updatedCourse, ...confirmedCourse };
           setCourses((prev) => prev.map((item) => (item.id === updatedCourse.id ? updatedCourse : item)));
           setEditCourseImageStatus("Image du module enregistrée.");
         } catch (err) {

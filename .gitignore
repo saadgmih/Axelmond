@@ -19,3 +19,7 @@ scripts/trailer/assets/*.jpg
 test-results/
 playwright-report/
 tmp-domains.json
+tmp-catalog.json
+tmp-prod-catalog.json
+git_diff.txt
+list-users.ts

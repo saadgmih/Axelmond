@@ -5,9 +5,17 @@
  */
 
 const API_BASE_URL = (process.env.API_BASE_URL || "https://axelmond.com").replace(/\/$/, "");
+const MOBILE_CLIENT_KEY = (process.env.EXPO_PUBLIC_MOBILE_CLIENT_KEY || process.env.MOBILE_CLIENT_SECRET || "").trim();
 const MOBILE_HEADERS = {
   "Content-Type": "application/json",
-  "X-Axelmond-Client": "mobile",
+  Accept: "application/json",
+  "User-Agent": "Axelmond-Mobile-Validation/1.0",
+  ...(MOBILE_CLIENT_KEY
+    ? {
+        "X-Axelmond-Client": "mobile",
+        "X-Axelmond-Client-Key": MOBILE_CLIENT_KEY,
+      }
+    : {}),
 };
 
 async function request(method, path, body, extraHeaders = {}) {
@@ -106,12 +114,7 @@ async function main() {
 
     const enrolledId = me.payload.enrolledCourses?.[0] || courses.payload[0]?.id;
     if (enrolledId) {
-      const liveToken = await request(
-        "POST",
-        "/api/livekit/token",
-        { courseId: enrolledId },
-        authHeaders,
-      );
+      const liveToken = await request("POST", "/api/livekit/token", { courseId: enrolledId }, authHeaders);
       if (liveToken.status === 200) {
         assert(liveToken.payload?.token, "LiveKit token missing");
         console.log(`✓ /api/livekit/token (course ${enrolledId})`);

@@ -5,9 +5,17 @@
  */
 
 const BASE_URL = (process.argv[2] || process.env.API_BASE_URL || "http://127.0.0.1:31999").replace(/\/$/, "");
+const MOBILE_CLIENT_KEY = (process.env.EXPO_PUBLIC_MOBILE_CLIENT_KEY || process.env.MOBILE_CLIENT_SECRET || "").trim();
 const MOBILE_HEADERS = {
   "Content-Type": "application/json",
-  "X-Axelmond-Client": "mobile",
+  Accept: "application/json",
+  "User-Agent": "Axelmond-Mobile-Validation/1.0",
+  ...(MOBILE_CLIENT_KEY
+    ? {
+        "X-Axelmond-Client": "mobile",
+        "X-Axelmond-Client-Key": MOBILE_CLIENT_KEY,
+      }
+    : {}),
 };
 
 const STUDENT = {
@@ -62,7 +70,11 @@ async function loginFlow(label, creds) {
   record(`${label} /api/auth/me`, me.status === 200 && me.payload?.email === creds.email, me.payload?.error);
 
   const courses = await request("GET", "/api/courses");
-  record(`${label} catalogue`, courses.status === 200 && Array.isArray(courses.payload), `count=${courses.payload?.length ?? 0}`);
+  record(
+    `${label} catalogue`,
+    courses.status === 200 && Array.isArray(courses.payload),
+    `count=${courses.payload?.length ?? 0}`,
+  );
 
   const courseId = me.payload?.enrolledCourses?.[0] || courses.payload?.[0]?.id;
   if (courseId) {
@@ -99,7 +111,9 @@ async function main() {
 
   const health = await request("GET", "/api/health");
   if (health.status !== 200) {
-    console.error(`Backend indisponible (${health.status}). Lancez le serveur Unicode local ou déployez le patch mobile.`);
+    console.error(
+      `Backend indisponible (${health.status}). Lancez le serveur Unicode local ou déployez le patch mobile.`,
+    );
     process.exit(1);
   }
   record("health", true, health.payload?.status);

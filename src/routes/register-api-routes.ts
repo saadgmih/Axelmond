@@ -4,6 +4,7 @@ import { registerAuthRoutes } from "./auth-routes";
 import { registerContentRoutes } from "./content-routes";
 import { registerCatalogRoutes } from "./catalog-routes";
 import { registerCoursesRoutes } from "./courses-routes";
+import { registerCourseImageRoutes } from "./course-image-routes";
 import { registerGradesRoutes } from "./grades-routes";
 import { registerLiveRoutes } from "./live-routes";
 import { registerMiscRoutes } from "./misc-routes";
@@ -21,6 +22,7 @@ import type { RouteContext } from "../server/route-context";
 export function registerApiRoutes(app: Express, ctx: RouteContext): void {
   registerCatalogRoutes(app, ctx);
   registerCoursesRoutes(app, ctx);
+  registerCourseImageRoutes(app, ctx);
   registerGradesRoutes(app, ctx);
   registerContentRoutes(app, ctx);
   registerQuizRoutes(app, ctx);

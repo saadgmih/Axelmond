@@ -20,6 +20,9 @@ export default defineConfig(({ mode }) => {
       minify: "esbuild",
       cssMinify: true,
       reportCompressedSize: false,
+      // LiveKit is isolated behind a lazy route in its own ~501 kB vendor chunk.
+      // Keep the warning useful for regressions without flagging that intentional boundary.
+      chunkSizeWarningLimit: 550,
       rollupOptions: {
         output: {
           entryFileNames: "assets/[hash].js",

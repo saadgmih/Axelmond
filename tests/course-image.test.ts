@@ -11,6 +11,7 @@ rulesTest("course-image", () => {
   const modulesStepSource = readFileSync("src/views/teacher/curriculum-steps/CurriculumModulesStep.tsx", "utf8");
   const mapperSource = readFileSync("src/server/mappers/catalog-mappers.ts", "utf8");
   const coursesRouteSource = readFileSync("src/routes/courses-routes.ts", "utf8");
+  const courseImageRouteSource = readFileSync("src/routes/course-image-routes.ts", "utf8");
   const dashboardSource = readFileSync("src/views/student/StudentDashboardView.tsx", "utf8");
   const catalogSource = readFileSync("src/views/student/StudentCatalogView.tsx", "utf8");
 
@@ -24,11 +25,14 @@ rulesTest("course-image", () => {
   assert.match(uploadSource, /courseImage:[\s\S]*?user\.role === "ADMIN"/);
   assert.match(uploadSource, /courseImage:[\s\S]*?createdById:\s*user\.id/);
   assert.match(uploadSource, /courseImage:[\s\S]*?isAllowedRasterImageUpload/);
+  assert.match(uploadSource, /courseImage:[\s\S]*?\[UTFiles\]/);
+  assert.match(uploadSource, /buildCourseImageCustomId\(course\.id, user\.id\)/);
   assert.match(uploadSource, /data:\s*\{ imageUrl:\s*fileUrl, imageKey:\s*file\.key \}/);
   assert.match(uploadSource, /deleteCloudFiles\(metadata\.previousImageKey\)/);
   assert.match(uploadSource, /invalidatePublicCatalogCache\(\)/);
 
   assert.match(hookSource, /uploadFiles as any\)\("courseImage"/);
+  assert.match(hookSource, /await api\.confirmCourseImage\(courseId, customId\)/);
   assert.match(hookSource, /validateUploadFile\(newCourseImageFile, "IMAGE"\)/);
   assert.match(hookSource, /validateUploadFile\(editCourseImageFile, "IMAGE"\)/);
   assert.match(fieldSource, /RASTER_IMAGE_ACCEPT/);
@@ -37,6 +41,11 @@ rulesTest("course-image", () => {
 
   assert.match(mapperSource, /imageUrl:\s*course\.imageUrl \|\| null/);
   assert.match(coursesRouteSource, /if \(course\.imageKey\) fileKeys\.push\(course\.imageKey\)/);
+  assert.match(courseImageRouteSource, /"\/api\/courses\/:courseId\/image"/);
+  assert.match(
+    courseImageRouteSource,
+    /data:\s*\{ imageUrl:\s*confirmed\.imageUrl, imageKey:\s*confirmed\.imageKey \}/,
+  );
   assert.match(dashboardSource, /course\.imageUrl/);
   assert.match(dashboardSource, /object-cover/);
   assert.match(catalogSource, /course\.imageUrl/);

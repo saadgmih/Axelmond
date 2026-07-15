@@ -1,4 +1,4 @@
-import { createUploadthing, type FileRouter } from "uploadthing/express";
+import { createUploadthing, type FileRouter, UTFiles } from "uploadthing/express";
 import { UploadThingError } from "uploadthing/server";
 import { z } from "zod";
 import { prisma } from "./db";
@@ -11,6 +11,7 @@ import { alertSuspectUpload } from "./security-logger";
 import { completeLiveReplayUpload } from "./server/live-replay-service";
 import { invalidatePublicCatalogCache } from "./server/route-ownership";
 import { notifyPublishedLessonContent } from "./academic-notifications";
+import { buildCourseImageCustomId } from "./course-image-confirmation";
 import {
   detectMessageAttachmentKind,
   isConversationParticipant,
@@ -225,7 +226,7 @@ export const uploadRouter = {
     { awaitServerData: true },
   )
     .input(courseImageInput)
-    .middleware(async ({ req, input }) => {
+    .middleware(async ({ req, input, files }) => {
       const user = await getUploadUser(req);
       const course = await prisma.course.findFirst({
         where: {
@@ -241,10 +242,12 @@ export const uploadRouter = {
         throw new UploadThingError("Module introuvable ou non autorisé");
       }
 
+      const customId = buildCourseImageCustomId(course.id, user.id);
       return {
         userId: user.id,
         courseId: course.id,
         previousImageKey: course.imageKey,
+        [UTFiles]: files.map((file) => ({ ...file, customId })),
       };
     })
     .onUploadComplete(async ({ metadata, file }) => {

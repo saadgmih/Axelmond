@@ -7,20 +7,13 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "scheme": "axelmond",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#0f172a"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.axelmond.researchlabs",
       "infoPlist": {
         "NSCameraUsageDescription": "L'application utilise la caméra pour participer aux cours en direct.",
         "NSMicrophoneUsageDescription": "L'application utilise le microphone pour participer aux cours en direct.",
-        "UIBackgroundModes": [
-          "audio"
-        ]
+        "UIBackgroundModes": ["audio"]
       },
       "bitcode": false
     },
@@ -72,6 +65,20 @@
         {
           "cameraPermission": "L'application utilise la caméra pour participer aux cours en direct.",
           "microphonePermission": "L'application utilise le microphone pour participer aux cours en direct."
+        }
+      ],
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#0f172a",
+          "dark": {
+            "image": "./assets/splash-icon.png",
+            "backgroundColor": "#0f172a"
+          }
         }
       ]
     ],

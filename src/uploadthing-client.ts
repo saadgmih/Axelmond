@@ -35,6 +35,11 @@ export function getUploadedFileUrl(file: any): string {
   );
 }
 
+export function getUploadedFileCustomId(file: any): string {
+  const customId = file?.customId || file?.serverData?.customId;
+  return typeof customId === "string" ? customId.trim() : "";
+}
+
 import { sanitizeClientErrorMessage } from "./client-errors";
 
 export function getUploadErrorMessage(err: unknown): string {

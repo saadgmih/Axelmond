@@ -188,6 +188,10 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
     return teacherSpaceRoles.includes(normalized);
   }
 
+  if (verb === "POST" && /^\/api\/courses\/\d+\/image$/.test(cleanPath)) {
+    return teacherSpaceRoles.includes(normalized);
+  }
+
   if (verb === "POST" && /^\/api\/courses\/\d+\/chapters$/.test(cleanPath)) {
     return teacherSpaceRoles.includes(normalized);
   }
