@@ -30,6 +30,7 @@ rulesTest("premium-video-player", () => {
   assert.match(playerSource, /overlayVisible/);
   assert.match(playerSource, /OVERLAY_HIDE_DELAY_MS = 500/);
   assert.match(playerSource, /CONTROLS_HIDE_DELAY_MS = 1600/);
+  assert.match(playerSource, /VOLUME_CONTROL_CLOSE_DELAY_MS = 250/);
   assert.match(playerSource, /showMetadata/);
   assert.match(playerSource, /if \(isPlaying && showMetadata\)/);
   assert.match(playerSource, /Vitesse/);
@@ -37,6 +38,12 @@ rulesTest("premium-video-player", () => {
   assert.match(playerSource, /aria-label="Volume vidéo"/);
   assert.match(playerSource, /video-volume-slider-vertical/);
   assert.match(playerSource, /group\/volume/);
+  assert.match(playerSource, /volumeControlOpen/);
+  assert.match(playerSource, /volumeDraggingRef/);
+  assert.match(playerSource, /volumeHasFocusRef/);
+  assert.match(playerSource, /onPointerEnter=\{openVolumeControl\}/);
+  assert.match(playerSource, /onPointerDown=\{\(event\) =>/);
+  assert.match(playerSource, /finishVolumeInteraction/);
   assert.match(playerSource, /Volume2/);
   assert.match(playerSource, /VolumeX/);
   assert.match(

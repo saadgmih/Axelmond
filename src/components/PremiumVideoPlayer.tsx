@@ -4,6 +4,7 @@ import { COURSE_VIDEO_PLAYBACK_RATES, useCourseVideoPlayer } from "../hooks/useC
 
 const OVERLAY_HIDE_DELAY_MS = 500;
 const CONTROLS_HIDE_DELAY_MS = 1600;
+const VOLUME_CONTROL_CLOSE_DELAY_MS = 250;
 
 interface PremiumVideoPlayerProps {
   src: string;
@@ -45,8 +46,12 @@ export default function PremiumVideoPlayer({
   const controlFocusClass = isStudent ? "focus:ring-emerald-400" : "focus:ring-emerald-400";
   const [controlsVisible, setControlsVisible] = useState(true);
   const [overlayVisible, setOverlayVisible] = useState(true);
+  const [volumeControlOpen, setVolumeControlOpen] = useState(false);
   const hideControlsTimeoutRef = useRef<number | null>(null);
   const hideOverlayTimeoutRef = useRef<number | null>(null);
+  const hideVolumeControlTimeoutRef = useRef<number | null>(null);
+  const volumeDraggingRef = useRef(false);
+  const volumeHasFocusRef = useRef(false);
 
   const clearHideControlsTimeout = useCallback(() => {
     if (hideControlsTimeoutRef.current) {
@@ -59,6 +64,13 @@ export default function PremiumVideoPlayer({
     if (hideOverlayTimeoutRef.current) {
       window.clearTimeout(hideOverlayTimeoutRef.current);
       hideOverlayTimeoutRef.current = null;
+    }
+  }, []);
+
+  const clearHideVolumeControlTimeout = useCallback(() => {
+    if (hideVolumeControlTimeoutRef.current) {
+      window.clearTimeout(hideVolumeControlTimeoutRef.current);
+      hideVolumeControlTimeoutRef.current = null;
     }
   }, []);
 
@@ -80,6 +92,27 @@ export default function PremiumVideoPlayer({
       }, CONTROLS_HIDE_DELAY_MS);
     }
   }, [clearHideControlsTimeout, isPlaying, showMetadata]);
+
+  const openVolumeControl = useCallback(() => {
+    clearHideVolumeControlTimeout();
+    setVolumeControlOpen(true);
+    revealControlsTemporarily();
+  }, [clearHideVolumeControlTimeout, revealControlsTemporarily]);
+
+  const scheduleVolumeControlClose = useCallback(() => {
+    clearHideVolumeControlTimeout();
+    hideVolumeControlTimeoutRef.current = window.setTimeout(() => {
+      if (volumeDraggingRef.current || volumeHasFocusRef.current) return;
+      setVolumeControlOpen(false);
+    }, VOLUME_CONTROL_CLOSE_DELAY_MS);
+  }, [clearHideVolumeControlTimeout]);
+
+  const finishVolumeInteraction = useCallback(() => {
+    volumeDraggingRef.current = false;
+    if (!volumeHasFocusRef.current) {
+      scheduleVolumeControlClose();
+    }
+  }, [scheduleVolumeControlClose]);
 
   useEffect(() => {
     if (!isPlaying) {
@@ -103,12 +136,27 @@ export default function PremiumVideoPlayer({
     return clearHideControlsTimeout;
   }, [clearHideControlsTimeout, isPlaying, revealControlsTemporarily]);
 
+  useEffect(() => {
+    const handlePointerEnd = () => {
+      if (!volumeDraggingRef.current) return;
+      finishVolumeInteraction();
+    };
+
+    window.addEventListener("pointerup", handlePointerEnd);
+    window.addEventListener("pointercancel", handlePointerEnd);
+    return () => {
+      window.removeEventListener("pointerup", handlePointerEnd);
+      window.removeEventListener("pointercancel", handlePointerEnd);
+      clearHideVolumeControlTimeout();
+    };
+  }, [clearHideVolumeControlTimeout, finishVolumeInteraction]);
+
   const handleSurfaceClick = () => {
     revealControlsTemporarily();
     togglePlay();
   };
 
-  const chromeVisible = !isPlaying || controlsVisible || !showMetadata;
+  const chromeVisible = !isPlaying || controlsVisible || volumeControlOpen || !showMetadata;
   const centerOverlayVisible = !isPlaying || overlayVisible;
   const volumePercent = Math.round(volume * 100);
   const overlayButtonClass = showMetadata ? "w-20 h-20" : "w-14 h-14";
@@ -184,10 +232,24 @@ export default function PremiumVideoPlayer({
           />
         </div>
 
-        <div className="group/volume relative flex items-center">
+        <div
+          className="group/volume relative flex items-center"
+          onPointerEnter={openVolumeControl}
+          onPointerLeave={scheduleVolumeControlClose}
+          onFocusCapture={() => {
+            volumeHasFocusRef.current = true;
+            openVolumeControl();
+          }}
+          onBlurCapture={(event) => {
+            if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
+            volumeHasFocusRef.current = false;
+            scheduleVolumeControlClose();
+          }}
+        >
           <button
             type="button"
             onClick={toggleMute}
+            onPointerDown={openVolumeControl}
             className={`p-1.5 hover:text-slate-300 transition-colors cursor-pointer rounded-lg focus:outline-none focus:ring-2 ${controlFocusClass}`}
             title={isMuted || volumePercent === 0 ? "Réactiver le son" : "Couper le son"}
           >
@@ -197,9 +259,7 @@ export default function PremiumVideoPlayer({
             onMouseMove={() => revealControlsTemporarily()}
             onTouchStart={() => revealControlsTemporarily()}
             className={`absolute bottom-[calc(100%+0.5rem)] left-1/2 z-30 flex -translate-x-1/2 flex-col items-center gap-1.5 rounded-xl border border-slate-700/80 bg-slate-950/95 px-2.5 py-2 shadow-lg transition-all duration-200 ${
-              chromeVisible
-                ? "pointer-events-none opacity-0 group-hover/volume:pointer-events-auto group-hover/volume:opacity-100 group-focus-within/volume:pointer-events-auto group-focus-within/volume:opacity-100"
-                : "pointer-events-none opacity-0"
+              chromeVisible && volumeControlOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
             }`}
           >
             <span className="font-mono text-[10px] text-slate-400">{volumePercent}%</span>
@@ -210,6 +270,16 @@ export default function PremiumVideoPlayer({
               step="1"
               value={volumePercent}
               onChange={handleVolumeChange}
+              onPointerDown={(event) => {
+                event.stopPropagation();
+                volumeDraggingRef.current = true;
+                openVolumeControl();
+              }}
+              onPointerUp={(event) => {
+                event.stopPropagation();
+                finishVolumeInteraction();
+              }}
+              onPointerCancel={finishVolumeInteraction}
               aria-label="Volume vidéo"
               className={`video-volume-slider-vertical ${themeAccentClass}`}
             />
