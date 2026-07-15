@@ -15,6 +15,7 @@ export interface MessagingSocketHandlers {
 
 export function useMessagingSocket(enabled: boolean, handlers: MessagingSocketHandlers) {
   const socketRef = useRef<Socket | null>(null);
+  const activeConversationRef = useRef<string | null>(null);
   const handlersRef = useRef(handlers);
   handlersRef.current = handlers;
 
@@ -34,6 +35,11 @@ export function useMessagingSocket(enabled: boolean, handlers: MessagingSocketHa
       });
       socketRef.current = socket;
 
+      socket.on("connect", () => {
+        if (activeConversationRef.current) {
+          socket.emit("conversation:join", activeConversationRef.current);
+        }
+      });
       socket.on("message:new", (payload: ChatMessage) => handlersRef.current.onMessage?.(payload));
       socket.on("message:deleted", (payload) => handlersRef.current.onMessageDeleted?.(payload));
       socket.on("message:read", (payload) => handlersRef.current.onMessageRead?.(payload));
@@ -49,13 +55,18 @@ export function useMessagingSocket(enabled: boolean, handlers: MessagingSocketHa
   }, [enabled]);
 
   const joinConversation = useCallback((conversationId: string | null) => {
-    if (!conversationId || !socketRef.current) return;
+    activeConversationRef.current = conversationId;
+    if (!conversationId || !socketRef.current?.connected) return;
     socketRef.current.emit("conversation:join", conversationId);
   }, []);
 
   const leaveConversation = useCallback((conversationId: string | null) => {
-    if (!conversationId || !socketRef.current) return;
-    socketRef.current.emit("conversation:leave", conversationId);
+    if (conversationId && socketRef.current?.connected) {
+      socketRef.current.emit("conversation:leave", conversationId);
+    }
+    if (activeConversationRef.current === conversationId) {
+      activeConversationRef.current = null;
+    }
   }, []);
 
   const emitTypingStart = useCallback((conversationId: string) => {

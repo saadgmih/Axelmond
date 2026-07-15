@@ -16,7 +16,7 @@ function formatDuration(seconds: number) {
 export function MessageAudioPlayer({ url, mine = false }: MessageAudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playbackError, setPlaybackError] = useState(false);
 
@@ -25,7 +25,7 @@ export function MessageAudioPlayer({ url, mine = false }: MessageAudioPlayerProp
     if (!audio) return;
 
     setIsPlaying(false);
-    setProgress(0);
+    setCurrentTime(0);
     setDuration(0);
     setPlaybackError(false);
     audio.load();
@@ -34,12 +34,9 @@ export function MessageAudioPlayer({ url, mine = false }: MessageAudioPlayerProp
     const handlePause = () => setIsPlaying(false);
     const handleEnded = () => {
       setIsPlaying(false);
-      setProgress(0);
+      setCurrentTime(0);
     };
-    const handleTimeUpdate = () => {
-      if (!audio.duration) return;
-      setProgress((audio.currentTime / audio.duration) * 100);
-    };
+    const handleTimeUpdate = () => setCurrentTime(audio.currentTime || 0);
     const handleLoadedMetadata = () => setDuration(audio.duration);
     const handleDurationChange = () => setDuration(audio.duration);
     const handleError = () => {
@@ -73,8 +70,6 @@ export function MessageAudioPlayer({ url, mine = false }: MessageAudioPlayerProp
 
     if (!audio.paused) {
       audio.pause();
-      audio.currentTime = 0;
-      setProgress(0);
       return;
     }
 
@@ -88,10 +83,17 @@ export function MessageAudioPlayer({ url, mine = false }: MessageAudioPlayerProp
     });
   };
 
+  const seekTo = (seconds: number) => {
+    const audio = audioRef.current;
+    if (!audio || !Number.isFinite(seconds)) return;
+    audio.currentTime = Math.max(0, Math.min(seconds, duration || 0));
+    setCurrentTime(audio.currentTime);
+  };
+
   return (
     <div
-      className={`mt-2 flex min-w-[180px] items-center gap-3 rounded-xl border px-3 py-2.5 ${
-        mine ? "border-white/20 bg-white/10" : "border-white/10 bg-black/20"
+      className={`flex min-w-[210px] items-center gap-3 rounded-2xl border px-3 py-3 ${
+        mine ? "border-emerald-300/20 bg-emerald-950/25" : "border-white/10 bg-black/20"
       }`}
     >
       <audio
@@ -106,9 +108,9 @@ export function MessageAudioPlayer({ url, mine = false }: MessageAudioPlayerProp
       <button
         type="button"
         onClick={togglePlayback}
-        aria-label={isPlaying ? "Arrêter le message vocal" : "Lire le message vocal"}
+        aria-label={isPlaying ? "Mettre le message vocal en pause" : "Lire le message vocal"}
         aria-pressed={isPlaying}
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-colors ${
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-lg transition-all hover:scale-105 ${
           mine
             ? "border-white/30 bg-white/15 text-white hover:bg-white/25"
             : "border-emerald-400/30 bg-emerald-500/15 text-emerald-100 hover:bg-emerald-500/25"
@@ -117,16 +119,23 @@ export function MessageAudioPlayer({ url, mine = false }: MessageAudioPlayerProp
         {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 pl-0.5" />}
       </button>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-xs font-semibold">Message vocal</p>
-        <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
-          <div
-            className={`h-full rounded-full transition-[width] duration-150 ${mine ? "bg-white/75" : "bg-emerald-400"}`}
-            style={{ width: `${progress}%` }}
-          />
+        <div className="flex items-center justify-between gap-3">
+          <p className="truncate text-xs font-bold">Message vocal</p>
+          <p className={`shrink-0 text-[10px] ${mine ? "text-emerald-100/70" : "text-slate-400"}`}>
+            {playbackError ? "Lecture impossible" : `${formatDuration(currentTime)} / ${formatDuration(duration)}`}
+          </p>
         </div>
-        <p className={`mt-1 text-[10px] ${mine ? "text-emerald-100/70" : "text-slate-400"}`}>
-          {playbackError ? "Lecture impossible" : formatDuration(duration)}
-        </p>
+        <input
+          type="range"
+          min={0}
+          max={duration || 0}
+          step={0.1}
+          value={Math.min(currentTime, duration || 0)}
+          onChange={(event) => seekTo(Number(event.target.value))}
+          disabled={!duration || playbackError}
+          aria-label="Position du message vocal"
+          className="mt-2 h-1.5 w-full cursor-pointer accent-emerald-300 disabled:cursor-not-allowed disabled:opacity-40"
+        />
       </div>
     </div>
   );

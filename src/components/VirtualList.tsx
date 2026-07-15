@@ -17,6 +17,8 @@ interface VirtualListProps<T> {
   minItemsToVirtualize?: number;
   variableHeight?: boolean;
   className?: string;
+  contentClassName?: string;
+  stickToEnd?: boolean;
   style?: CSSProperties;
   getKey: (item: T, index: number) => string;
   renderItem: (item: T, index: number) => ReactNode;
@@ -104,6 +106,8 @@ export function VirtualList<T>({
   minItemsToVirtualize = 24,
   variableHeight = false,
   className,
+  contentClassName,
+  stickToEnd = false,
   style,
   getKey,
   renderItem,
@@ -148,18 +152,28 @@ export function VirtualList<T>({
 
   if (items.length < minItemsToVirtualize) {
     return (
-      <div className={className} style={style}>
-        {items.map((item, index) => (
-          <div key={getKey(item, index)} className="virtual-list-item">
-            {renderItem(item, index)}
-          </div>
-        ))}
+      <div ref={scrollRef} className={className} style={{ overflowY: "auto", ...style }} onScroll={onScroll}>
+        <div
+          className={contentClassName}
+          style={
+            stickToEnd
+              ? { display: "flex", minHeight: "100%", flexDirection: "column", justifyContent: "flex-end" }
+              : undefined
+          }
+        >
+          {items.map((item, index) => (
+            <div key={getKey(item, index)} className="virtual-list-item">
+              {renderItem(item, index)}
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
   const effectiveSizes = sizes.length === items.length ? sizes : items.map((_, index) => sizes[index] ?? estimateSize);
   const { offsets, totalHeight } = buildOffsets(effectiveSizes);
+  const contentOffset = stickToEnd ? Math.max(0, viewportHeight - totalHeight) : 0;
 
   const startIndex = variableHeight
     ? Math.max(0, findStartIndex(offsets, scrollTop) - overscan)
@@ -174,7 +188,7 @@ export function VirtualList<T>({
 
   return (
     <div ref={scrollRef} className={className} style={{ overflowY: "auto", ...style }} onScroll={onScroll}>
-      <div style={{ height: totalHeight, position: "relative" }}>
+      <div className={contentClassName} style={{ height: Math.max(totalHeight, viewportHeight), position: "relative" }}>
         {items.slice(startIndex, endIndex).map((item, offset) => {
           const index = startIndex + offset;
           return (
@@ -182,7 +196,7 @@ export function VirtualList<T>({
               key={getKey(item, index)}
               index={index}
               item={item}
-              top={offsets[index] ?? index * estimateSize}
+              top={(offsets[index] ?? index * estimateSize) + contentOffset}
               estimateSize={estimateSize}
               variableHeight={variableHeight}
               onMeasure={onMeasure}

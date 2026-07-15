@@ -23,9 +23,11 @@ interface UseMessageAudioRecorderOptions {
 
 export function useMessageAudioRecorder({ onRecorded, onError }: UseMessageAudioRecorderOptions) {
   const [isRecording, setIsRecording] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
+  const discardRecordingRef = useRef(false);
 
   const stopStream = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -59,6 +61,8 @@ export function useMessageAudioRecorder({ onRecorded, onError }: UseMessageAudio
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       chunksRef.current = [];
+      discardRecordingRef.current = false;
+      setRecordingSeconds(0);
 
       const recorder = new MediaRecorder(stream, { mimeType });
       recorder.ondataavailable = (event) => {
@@ -66,9 +70,12 @@ export function useMessageAudioRecorder({ onRecorded, onError }: UseMessageAudio
       };
       recorder.onstop = () => {
         stopStream();
+        const shouldDiscard = discardRecordingRef.current;
+        discardRecordingRef.current = false;
         const normalizedMime = mimeType.split(";")[0] || "audio/webm";
         const blob = new Blob(chunksRef.current, { type: normalizedMime });
         chunksRef.current = [];
+        if (shouldDiscard) return;
         if (blob.size < MIN_RECORDING_BYTES) {
           onError("Enregistrement trop court. Maintenez le bouton micro un peu plus longtemps.");
           return;
@@ -102,6 +109,18 @@ export function useMessageAudioRecorder({ onRecorded, onError }: UseMessageAudio
     void startRecording();
   }, [isRecording, startRecording, stopRecording]);
 
+  const cancelRecording = useCallback(() => {
+    if (!isRecording) return;
+    discardRecordingRef.current = true;
+    stopRecording();
+  }, [isRecording, stopRecording]);
+
+  useEffect(() => {
+    if (!isRecording) return;
+    const timer = window.setInterval(() => setRecordingSeconds((seconds) => seconds + 1), 1000);
+    return () => window.clearInterval(timer);
+  }, [isRecording]);
+
   useEffect(() => {
     return () => {
       if (mediaRecorderRef.current?.state === "recording") {
@@ -111,5 +130,5 @@ export function useMessageAudioRecorder({ onRecorded, onError }: UseMessageAudio
     };
   }, [stopStream]);
 
-  return { isRecording, toggleRecording, stopRecording };
+  return { isRecording, recordingSeconds, toggleRecording, stopRecording, cancelRecording };
 }
