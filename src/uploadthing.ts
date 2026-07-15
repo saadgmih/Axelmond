@@ -6,6 +6,7 @@ import { syncPublishedLessonModules } from "./course-curriculum-sync";
 import { verifyAuthToken } from "./auth-token";
 import { canManageContent, isTeacherSpaceRole, normalizeRole } from "./rbac";
 import { isAllowedAvatarUrl, isAllowedRasterImageMime, isAllowedRasterImageUpload } from "./avatar-security";
+import { invalidateAuthUserCache } from "./server/auth-user-cache";
 import { alertSuspectUpload } from "./security-logger";
 import { completeLiveReplayUpload } from "./server/live-replay-service";
 import { invalidatePublicCatalogCache } from "./server/route-ownership";
@@ -180,6 +181,8 @@ export const uploadRouter = {
           },
         });
       }
+
+      invalidateAuthUserCache(metadata.userId);
 
       console.log(
         `[${new Date().toISOString()}] [INFO] [uploadthing] Avatar uploaded ${JSON.stringify({ userId: metadata.userId, fileKey: file.key })}`,

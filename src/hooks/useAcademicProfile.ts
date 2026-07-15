@@ -99,7 +99,6 @@ export function useAcademicProfile({ role, teacherView, currentUser }: UseAcadem
         teachingDomains: parseAcademicDomains(academicProfileForm.teachingDomains),
         researchDomains: parseAcademicDomains(academicProfileForm.researchDomains),
         bio: academicProfileForm.bio,
-        avatarUrl: academicProfileForm.avatarUrl,
         links: {
           linkedIn: academicProfileForm.linkedIn,
           orcid: academicProfileForm.orcid,

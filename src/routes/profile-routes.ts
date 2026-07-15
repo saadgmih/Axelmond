@@ -96,6 +96,7 @@ export function registerProfileRoutes(app: Express, ctx: RouteContext): void {
 
         data: { avatarUrl: input.avatarUrl ?? null },
       });
+      api.invalidateAuthUserCache(authUser.id);
     }
 
     const payload = await api.getAcademicProfileResponse(authUser);
@@ -353,6 +354,7 @@ export function registerProfileRoutes(app: Express, ctx: RouteContext): void {
     }
 
     await api.persistUserAvatarUrl(authUser, avatarUrl);
+    api.invalidateAuthUserCache(authUser.id);
 
     if (api.canAccessAcademicProfile(authUser.role)) {
       const payload = await api.getAcademicProfileResponse(authUser);
@@ -399,6 +401,8 @@ export function registerProfileRoutes(app: Express, ctx: RouteContext): void {
         data: { avatarUrl: null },
       });
     }
+
+    api.invalidateAuthUserCache(authUser.id);
 
     const user = await api.prisma.user.findUnique({
       where: { id: authUser.id },

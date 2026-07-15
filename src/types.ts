@@ -150,6 +150,7 @@ export interface AcademicProfilePayload {
     fullName: string;
     email: string;
     role: string;
+    avatarUrl?: string;
   };
   profile: AcademicProfile;
   courses: { id: number; title: string; published: boolean; liveSubject?: string | null }[];

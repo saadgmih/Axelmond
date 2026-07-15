@@ -20,6 +20,7 @@ await runtimeTest("security-runtime-avatar", async () => {
   const AVATAR_PATH = "/api/me/avatar";
   const PROFILE_PATH = "/api/me/profile";
   const VALID_AVATAR_URL = "https://utfs.io/f/security-runtime-avatar.jpg";
+  const REPLACEMENT_AVATAR_URL = "https://utfs.io/f/security-runtime-avatar-replacement.webp";
 
   async function postAvatar(baseUrl: string, body: unknown, session?: Awaited<ReturnType<typeof loginViaHttp>>) {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
@@ -67,6 +68,19 @@ await runtimeTest("security-runtime-avatar", async () => {
       assert.equal(response.status, 200);
       const payload = (await response.json()) as { user?: { avatarUrl?: string } };
       assert.equal(payload.user?.avatarUrl, VALID_AVATAR_URL);
+    }
+
+    // A1b — le remplacement reste présent dans la session après relecture serveur
+    {
+      const response = await authedFetch(handle.baseUrl, studentSession, "POST", AVATAR_PATH, {
+        avatarUrl: REPLACEMENT_AVATAR_URL,
+      });
+      assert.equal(response.status, 200);
+
+      const sessionResponse = await authedFetch(handle.baseUrl, studentSession, "GET", "/api/auth/me");
+      assert.equal(sessionResponse.status, 200);
+      const sessionUser = (await sessionResponse.json()) as { avatarUrl?: string };
+      assert.equal(sessionUser.avatarUrl, REPLACEMENT_AVATAR_URL);
     }
 
     // A2 — domaine externe
@@ -122,10 +136,48 @@ await runtimeTest("security-runtime-avatar", async () => {
       assert.equal(dbUser?.avatarUrl, VALID_AVATAR_URL);
     }
 
+    // A6b — enregistrer les autres champs ne rétablit pas une ancienne photo
+    {
+      const replacementResponse = await authedFetch(handle.baseUrl, professorSession, "POST", AVATAR_PATH, {
+        avatarUrl: REPLACEMENT_AVATAR_URL,
+      });
+      assert.equal(replacementResponse.status, 200);
+
+      const profileUpdateResponse = await authedFetch(handle.baseUrl, professorSession, "PUT", PROFILE_PATH, {
+        bio: "Profil mis à jour sans modifier la photo",
+      });
+      assert.equal(profileUpdateResponse.status, 200);
+      const profilePayload = (await profileUpdateResponse.json()) as {
+        user?: { avatarUrl?: string };
+        profile?: { avatarUrl?: string };
+      };
+      assert.equal(profilePayload.user?.avatarUrl, REPLACEMENT_AVATAR_URL);
+      assert.equal(profilePayload.profile?.avatarUrl, REPLACEMENT_AVATAR_URL);
+
+      const sessionResponse = await authedFetch(handle.baseUrl, professorSession, "GET", "/api/auth/me");
+      assert.equal(sessionResponse.status, 200);
+      const sessionUser = (await sessionResponse.json()) as { avatarUrl?: string };
+      assert.equal(sessionUser.avatarUrl, REPLACEMENT_AVATAR_URL);
+    }
+
     // A7 — sans auth
     {
       const response = await postAvatar(handle.baseUrl, { avatarUrl: VALID_AVATAR_URL });
       assert.equal(response.status, 401);
+    }
+
+    // A8 — un vrai rafraîchissement de session restitue la dernière photo
+    {
+      const response = await fetch(`${handle.baseUrl}/api/auth/refresh`, {
+        method: "POST",
+        headers: {
+          Cookie: studentSession.cookieHeader,
+          "X-CSRF-Token": studentSession.csrfToken,
+        },
+      });
+      assert.equal(response.status, 200);
+      const refreshedUser = (await response.json()) as { avatarUrl?: string };
+      assert.equal(refreshedUser.avatarUrl, REPLACEMENT_AVATAR_URL);
     }
 
     console.log("Security runtime avatar tests passed");

@@ -131,8 +131,12 @@ export async function getAcademicProfileResponse(authUser: AppUser) {
       fullName: dbUser.fullName,
       email: dbUser.email,
       role: dbUser.role,
+      avatarUrl: dbUser.avatarUrl || undefined,
     },
-    profile: toAcademicProfile(profile),
+    // User.avatarUrl is the canonical source used by the authenticated session.
+    // Keeping the profile response aligned prevents an old AcademicProfile value
+    // from replacing the current avatar when the rest of the profile is saved.
+    profile: toAcademicProfile({ ...profile, avatarUrl: dbUser.avatarUrl }),
     courses,
     lives: lives.map((live) => ({
       id: live.id,

@@ -41,8 +41,17 @@ export function usePlatformAvatarActions<TProfileForm extends { avatarUrl: strin
             setAvatarStatusMsg(`Téléversement de la photo : ${formatUploadProgressLabel(progress)}`),
           ),
         });
-        const avatarUrl = getUploadedFileUrl(result?.[0]);
-        if (!avatarUrl) throw new Error("URL de photo introuvable après téléversement");
+        const uploadedAvatarUrl = getUploadedFileUrl(result?.[0]);
+        if (!uploadedAvatarUrl) throw new Error("URL de photo introuvable après téléversement");
+
+        // UploadThing stores the file, then the application API confirms the canonical
+        // avatar URL in our database and invalidates the authenticated-user cache.
+        // Without this confirmation, a hard refresh could restore a stale avatar.
+        const response = await api.updateAcademicAvatar(uploadedAvatarUrl);
+        const avatarUrl =
+          typeof response?.user?.avatarUrl === "string" && response.user.avatarUrl
+            ? response.user.avatarUrl
+            : uploadedAvatarUrl;
         const updatedUser = { ...currentUser, avatarUrl };
         updateSessionUser(updatedUser);
         setAcademicProfileForm((prev) => ({ ...prev, avatarUrl }));
