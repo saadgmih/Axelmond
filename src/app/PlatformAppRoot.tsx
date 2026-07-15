@@ -11,6 +11,7 @@ import { PlatformNotificationProvider } from "./platform-notification-context";
 import { usePlatformApp } from "./usePlatformApp";
 
 import { AuthenticatedPlatformLayout } from "./AuthenticatedPlatformLayout";
+import { OnboardingProvider } from "../onboarding/OnboardingProvider";
 
 function PlatformLoadingScreen() {
   return (
@@ -129,7 +130,9 @@ export function PlatformAppRoot() {
         bindings={bindings}
         ui={ui}
       >
-        <AuthenticatedPlatformLayout />
+        <OnboardingProvider userId={session.currentUser.id} role={session.currentUser.role}>
+          <AuthenticatedPlatformLayout />
+        </OnboardingProvider>
       </PlatformAppProvider>
     </PlatformNotificationProvider>
   );

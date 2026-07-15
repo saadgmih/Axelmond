@@ -33,6 +33,7 @@ rulesTest("server-routes-modular", () => {
     "quiz-routes.ts",
     "messaging-routes.ts",
     "mobile-api-routes.ts",
+    "onboarding-routes.ts",
   ];
 
   for (const fileName of expectedModules) {
@@ -59,6 +60,7 @@ rulesTest("server-routes-modular", () => {
     "registerPaymentsRoutes",
     "registerMessagingRoutes",
     "registerMobileApiRoutes",
+    "registerOnboardingRoutes",
   ]) {
     assert.match(registerSource, new RegExp(registerFn));
   }

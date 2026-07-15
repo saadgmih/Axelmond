@@ -1,5 +1,6 @@
 import { purgeLegacySessionUserStorage } from "./session-storage";
 import type { Discipline, FacultyDomain } from "./types";
+import type { OnboardingSnapshot, OnboardingUpdate } from "./onboarding/onboarding-types";
 
 export interface SiteSettings {
   forceDesktopMode: boolean;
@@ -239,6 +240,9 @@ async function request<T>(method: string, path: string, body?: unknown, allowCsr
 }
 
 export const api = {
+  getOnboarding: () => request<OnboardingSnapshot>("GET", "/api/onboarding"),
+  updateOnboarding: (data: OnboardingUpdate) => request<OnboardingSnapshot>("PUT", "/api/onboarding", data),
+  restartOnboarding: () => request<OnboardingSnapshot>("POST", "/api/onboarding/restart", {}),
   getSiteSettings: () => request<SiteSettings>("GET", "/api/site-settings"),
   getAdminSiteSettings: () => request<SiteSettings>("GET", "/api/admin/site-settings"),
   updateAdminSiteSettings: (data: SiteSettings) => request<SiteSettings>("PUT", "/api/admin/site-settings", data),

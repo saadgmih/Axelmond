@@ -1,5 +1,5 @@
 import { type ReactNode, type RefObject } from "react";
-import { Search, GraduationCap, Mic, Bell, BadgeCheck, PanelTopClose, PanelTopOpen } from "lucide-react";
+import { Search, GraduationCap, Mic, Bell, BadgeCheck, PanelTopClose, PanelTopOpen, CircleHelp } from "lucide-react";
 import { Course } from "../types";
 import { AppUser } from "./AuthScreen";
 import { getRoleLabel, getTeacherRoleBadgeTone, type UserRole } from "../rbac";
@@ -9,6 +9,7 @@ import { useSidebarLayout } from "../hooks/useSidebarLayout";
 import AccessibilityControls from "./AccessibilityControls";
 import { LayoutFloatingToggle } from "./LayoutFloatingToggle";
 import { formatCredits } from "../utils/morocco-locale";
+import { useOnboarding } from "../onboarding/OnboardingProvider";
 
 interface TopbarProps {
   currentView: string;
@@ -154,6 +155,7 @@ export default function Topbar({
   onToggleTopbarCollapsed,
 }: TopbarProps) {
   const { isDrawer } = useSidebarLayout();
+  const onboarding = useOnboarding();
   const canCollapseTopbar = Boolean(onToggleTopbarCollapsed);
   const effectiveTopbarCollapsed = canCollapseTopbar && isTopbarCollapsed;
 
@@ -271,7 +273,15 @@ export default function Topbar({
             <div className="w-full max-w-md basis-full lg:hidden">{catalogSearch}</div>
           )}
 
-          <AccessibilityControls labeled />
+          <div data-onboarding="help-menu">
+            <TopbarConsoleAction label="Aide" onClick={onboarding.restart} ariaLabel="Relancer le tutoriel interactif">
+              <CircleHelp className="topbar-console-action-icon" />
+            </TopbarConsoleAction>
+          </div>
+
+          <div data-onboarding="platform-settings">
+            <AccessibilityControls labeled onRestartTutorial={onboarding.restart} />
+          </div>
 
           {onOpenNotifications && (
             <TopbarConsoleAction
@@ -311,6 +321,7 @@ export default function Topbar({
 
           <button
             type="button"
+            data-onboarding="profile-menu"
             onClick={openProfile}
             aria-label={currentUser ? `Profil de ${currentUser.fullName}` : "Profil utilisateur"}
             className="topbar-avatar-button kbd-nav-focus touch-target"

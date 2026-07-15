@@ -534,7 +534,10 @@ export default function TeacherDashboardView({
       )}
 
       {/* Teacher command center */}
-      <section className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/30 p-5 sm:p-6 md:p-8 shadow-xl space-y-6">
+      <section
+        data-onboarding="teacher-statistics"
+        className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/30 p-5 sm:p-6 md:p-8 shadow-xl space-y-6"
+      >
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-2">
             <h3 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
@@ -770,7 +773,10 @@ export default function TeacherDashboardView({
         </div>
 
         {/* RHS: Interactive student roster scores */}
-        <div className="lg:col-span-5 bg-white border border-slate-200 p-6 md:p-8 rounded-3xl space-y-6 shadow-sm">
+        <div
+          data-onboarding="teacher-students"
+          className="lg:col-span-5 bg-white border border-slate-200 p-6 md:p-8 rounded-3xl space-y-6 shadow-sm"
+        >
           <div>
             <h3 className="text-lg font-black text-slate-800">Suivi & Notes de la Promotion</h3>
             <p className="text-xs text-slate-400 md:max-w-sm">

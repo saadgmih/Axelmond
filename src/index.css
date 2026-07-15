@@ -3,6 +3,103 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+.onboarding-card {
+  border-color: rgba(15, 118, 110, 0.22);
+  background: rgba(255, 255, 255, 0.98);
+  color: #0b241f;
+  color-scheme: light;
+  backdrop-filter: blur(20px);
+}
+
+.onboarding-icon {
+  background: #d1fae5;
+  color: #047857;
+}
+
+.onboarding-eyebrow {
+  color: #047857;
+}
+
+.onboarding-counter,
+.onboarding-description,
+.onboarding-keyboard-hint {
+  color: #64748b;
+}
+
+.onboarding-title {
+  color: #0b241f;
+}
+
+.onboarding-icon-button,
+.onboarding-secondary-button {
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+}
+
+.onboarding-icon-button:hover,
+.onboarding-secondary-button:hover {
+  background: #f1f5f9;
+  color: #0b241f;
+}
+
+.onboarding-skip-button {
+  color: #64748b;
+}
+
+.onboarding-skip-button:hover {
+  color: #047857;
+  background: #ecfdf5;
+}
+
+.dark .onboarding-card {
+  border-color: rgba(52, 211, 153, 0.24);
+  background: rgba(3, 30, 25, 0.98);
+  color: #f0fdfa;
+  color-scheme: dark;
+}
+
+.dark .onboarding-icon {
+  background: rgba(16, 185, 129, 0.16);
+  color: #6ee7b7;
+}
+
+.dark .onboarding-eyebrow {
+  color: #6ee7b7;
+}
+
+.dark .onboarding-counter,
+.dark .onboarding-description,
+.dark .onboarding-keyboard-hint {
+  color: #94a3b8;
+}
+
+.dark .onboarding-title {
+  color: #f8fafc;
+}
+
+.dark .onboarding-icon-button,
+.dark .onboarding-secondary-button {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: #cbd5e1;
+}
+
+.dark .onboarding-icon-button:hover,
+.dark .onboarding-secondary-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.dark .onboarding-skip-button {
+  color: #94a3b8;
+}
+
+.dark .onboarding-skip-button:hover {
+  color: #6ee7b7;
+  background: rgba(16, 185, 129, 0.1);
+}
+
 .seo-only {
   position: absolute;
   width: 1px;

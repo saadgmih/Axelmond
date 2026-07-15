@@ -434,7 +434,10 @@ export default function StudentDashboardView({
       </div>
 
       <div ref={dashboardGridRef} data-tv-zone="student-dashboard" className="space-y-6 md:space-y-8">
-        <section className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/40 p-5 sm:p-6 md:p-8 shadow-xl space-y-6">
+        <section
+          data-onboarding="student-progress"
+          className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/40 p-5 sm:p-6 md:p-8 shadow-xl space-y-6"
+        >
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-2 min-w-0">
               <h3 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
@@ -514,7 +517,7 @@ export default function StudentDashboardView({
             ))}
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-3" data-onboarding="student-courses">
             <div className="flex items-center justify-between gap-3">
               <h4 className="text-sm font-black text-white">Modules en cours</h4>
 
@@ -593,7 +596,10 @@ export default function StudentDashboardView({
         </section>
 
         {courses.filter((c) => enrolledCourses.includes(c.id) && c.isLiveNow).length > 0 && (
-          <div className="bg-red-950/40 border border-red-900/50 rounded-2xl p-5 sm:p-6 shadow-sm">
+          <div
+            data-onboarding="student-lives"
+            className="bg-red-950/40 border border-red-900/50 rounded-2xl p-5 sm:p-6 shadow-sm"
+          >
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div className="flex items-start gap-4 min-w-0">
                 <div className="w-12 h-12 bg-red-500/10 rounded-2xl flex items-center justify-center text-red-400 relative flex-shrink-0 border border-red-500/20">

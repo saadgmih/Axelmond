@@ -148,7 +148,7 @@ export default function Sidebar({
     });
 
   const renderMessages = () => (
-    <div className="px-4 py-3">
+    <div className="px-4 py-3" data-onboarding="messages">
       <div className="mb-2 flex items-center justify-between gap-2">
         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Messages</span>
         <button
@@ -193,7 +193,10 @@ export default function Sidebar({
   );
 
   const renderUserFooter = () => (
-    <div className="sidebar-glass-section flex items-center justify-between gap-2 border-t border-white/10 p-4">
+    <div
+      className="sidebar-glass-section flex items-center justify-between gap-2 border-t border-white/10 p-4"
+      data-onboarding="sidebar-profile"
+    >
       <button
         type="button"
         onClick={goProfile}

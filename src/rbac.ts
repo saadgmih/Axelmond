@@ -157,6 +157,13 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
   const verb = method.toUpperCase();
   const cleanPath = path.split("?")[0];
 
+  if (
+    ((verb === "GET" || verb === "PUT") && cleanPath === "/api/onboarding") ||
+    (verb === "POST" && cleanPath === "/api/onboarding/restart")
+  ) {
+    return true;
+  }
+
   if (verb === "POST" && cleanPath === "/api/courses") {
     return teacherSpaceRoles.includes(normalized);
   }

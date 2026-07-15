@@ -18,6 +18,22 @@ enum UserRole {
   @@schema("AxelmondResearchLab")
 }
 
+enum OnboardingFlow {
+  STUDENT
+  TEACHER
+  ADMIN
+
+  @@schema("AxelmondResearchLab")
+}
+
+enum OnboardingStatus {
+  IN_PROGRESS
+  COMPLETED
+  DISMISSED
+
+  @@schema("AxelmondResearchLab")
+}
+
 enum LessonContentType {
   VIDEO
   PDF
@@ -89,8 +105,27 @@ model User {
   charityCodeUsages        CharityCodeUsage[]
   createdCharityCodes      CharityAccessCode[]           @relation("CreatedCharityCodes")
   charityDonations         Donation[]
+  onboardingProgress       UserOnboarding[]
 
   @@index([role])
+  @@schema("AxelmondResearchLab")
+}
+
+model UserOnboarding {
+  id          String           @id @default(cuid())
+  userId      String
+  flow        OnboardingFlow
+  version     Int              @default(1)
+  status      OnboardingStatus @default(IN_PROGRESS)
+  currentStep Int              @default(0)
+  completedAt DateTime?
+  dismissedAt DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, flow, version])
+  @@index([userId, status])
   @@schema("AxelmondResearchLab")
 }
 

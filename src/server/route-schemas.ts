@@ -43,6 +43,11 @@ export const loginSchema = z.object({
   role: z.enum(["STUDENT", "PROFESSOR", "RESEARCHER", "ADMIN"]),
 });
 
+export const onboardingUpdateSchema = z.object({
+  status: z.enum(["IN_PROGRESS", "COMPLETED", "DISMISSED"]),
+  currentStep: z.number().int().min(0).max(50),
+});
+
 export const verifyEmailSchema = z.object({
   email: z.string().email("Adresse email invalide").trim().toLowerCase(),
   code: z.string().length(6, "Le code doit contenir 6 chiffres").regex(/^\d+$/, "Le code doit être numérique"),

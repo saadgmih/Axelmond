@@ -15,6 +15,7 @@ import { registerMessagingRoutes } from "./messaging-routes";
 import { registerCharityRoutes } from "./charity-routes";
 import { registerCharityAdminRoutes } from "./charity-admin-routes";
 import { registerMobileApiRoutes } from "./mobile-api-routes";
+import { registerOnboardingRoutes } from "./onboarding-routes";
 import type { RouteContext } from "../server/route-context";
 
 export function registerApiRoutes(app: Express, ctx: RouteContext): void {
@@ -33,5 +34,6 @@ export function registerApiRoutes(app: Express, ctx: RouteContext): void {
   registerPaymentsRoutes(app, ctx);
   registerMiscRoutes(app, ctx);
   registerMessagingRoutes(app, ctx.middleware);
+  registerOnboardingRoutes(app, ctx);
   registerMobileApiRoutes(app, { requireAuth: ctx.middleware.requireAuth });
 }

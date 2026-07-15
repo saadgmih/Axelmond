@@ -19,6 +19,7 @@ import {
 import { StudentRouteSwitch } from "./StudentRouteSwitch";
 import { TeacherRouteSwitch } from "./TeacherRouteSwitch";
 import { AppFooter } from "./AppFooter";
+import { OnboardingExperience } from "../onboarding/OnboardingExperience";
 
 export function AuthenticatedPlatformLayout() {
   const session = usePlatformSession();
@@ -190,6 +191,7 @@ export function AuthenticatedPlatformLayout() {
         )}
 
       <KeyboardShortcutsHelp open={ui.showKeyboardHelp} onClose={() => ui.setShowKeyboardHelp(false)} />
+      <OnboardingExperience />
     </div>
   );
 }
