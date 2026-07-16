@@ -23,7 +23,8 @@ Dans Cloudflare, appliquer les réglages suivants :
 3. **Rules > Transform Rules > Response Header Transform Rules** : définir statiquement `Content-Security-Policy` avec la valeur exacte exportée par `src/server/production-csp.ts`, pour toutes les réponses.
 4. **Caching > Cache Rules** : créer une règle `URI Path equals /sw.js` avec l’éligibilité au cache sur `Bypass cache`.
 5. **Rules > Transform Rules > Response Header Transform Rules** : pour `URI Path equals /sw.js`, définir `Cache-Control` à `no-store`.
-6. Purger entièrement le cache Cloudflare après un déploiement ou une modification de règle.
+6. **Security > Settings > Bot fight mode** : la protection peut rester active. Les pages HTML de l’application renvoient `Cache-Control: no-store, no-transform`, ce qui empêche Cloudflare d’y injecter JavaScript Detections et préserve la CSP stricte.
+7. Purger entièrement le cache Cloudflare après un déploiement ou une modification de règle.
 
 Validation publique à répéter après chaque changement :
 
@@ -34,4 +35,5 @@ PRODUCTION_PROBE_BASE_URL=https://axelmond.com PRODUCTION_PROBE_ROUNDS=5 node sc
 
 Les cinq séries doivent réussir. La CSP doit contenir toutes les directives vérifiées par la sonde,
 et non la seule directive `upgrade-insecure-requests`. `/sw.js` doit rester `no-store` et ne jamais
-être servi avec un statut de cache `HIT`. `robots.txt` doit commencer par le contenu du dépôt.
+être servi avec un statut de cache `HIT`. Les réponses HTML doivent contenir `no-transform` et aucun
+script Cloudflare injecté. `robots.txt` doit commencer par le contenu du dépôt.

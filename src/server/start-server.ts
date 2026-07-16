@@ -197,7 +197,7 @@ async function attachStaticOrVite(app: express.Express, isSecurityRuntimeTest: b
     res
       .status(isKnownPlatformPath(req.path) ? 200 : 404)
       .type("html")
-      .setHeader("Cache-Control", "no-store")
+      .setHeader("Cache-Control", "no-store, no-transform")
       .send(renderPlatformHtml(indexTemplate, req.path));
   });
   console.log(isVerboseStartup() ? "Serving static files in production mode." : "Static assets enabled.");

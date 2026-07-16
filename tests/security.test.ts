@@ -7,6 +7,7 @@ import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("security", () => {
   const serverSource = readApiRouteSources();
+  const startServerSource = fs.readFileSync("src/server/start-server.ts", "utf8");
   const uploadthingSource = fs.readFileSync("src/uploadthing.ts", "utf8");
 
   // 1. Étudiant ne peut pas créer de module
@@ -86,6 +87,7 @@ rulesTest("security", () => {
   // 6d. CSP durcie en production (pas de unsafe-eval)
   assert.match(serverSource, /PRODUCTION_CONTENT_SECURITY_POLICY/);
   assert.match(serverSource, /res\.setHeader\("Content-Security-Policy", PRODUCTION_CONTENT_SECURITY_POLICY\)/);
+  assert.match(startServerSource, /\.setHeader\("Cache-Control", "no-store, no-transform"\)/);
   assert.match(serverSource, /scriptSrcAttr:\s*\["'none'"\]/);
   assert.match(serverSource, /objectSrc:\s*\["'none'"\]/);
   assert.match(serverSource, /function buildCspConnectSrc/);
