@@ -11,6 +11,8 @@ rulesTest("ci-pipeline", () => {
 
   assert.match(workflow, /actions\/checkout@v5/);
   assert.match(workflow, /actions\/setup-node@v5/);
+  assert.match(workflow, /runs-on:\s*windows-latest/);
+  assert.doesNotMatch(workflow, /runs-on:\s*\[self-hosted/);
   assert.match(workflow, /package-manager-cache:\s*false/);
   assert.doesNotMatch(workflow, /^\s*cache:\s*npm/m);
   assert.match(workflow, /npm ci/);
