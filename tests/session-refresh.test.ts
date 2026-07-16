@@ -24,6 +24,9 @@ rulesTest("session-refresh", () => {
   assert.match(apiSource, /"\/api\/auth\/refresh"/);
   assert.match(apiSource, /res\.status === 401/);
   assert.match(apiSource, /axelmond:session-expired/);
+  assert.match(apiSource, /axelmond:session-unavailable/);
+  assert.match(apiSource, /isDefinitiveRefreshFailure/);
+  assert.match(apiSource, /API_MAX_IDEMPOTENT_RETRIES\s*=\s*2/);
   assert.match(apiSource, /getFreshSessionToken/);
   assert.match(apiSource, /takeRefreshedSessionUser/);
   assert.match(apiSource, /credentials:\s*"include"/);
@@ -35,7 +38,9 @@ rulesTest("session-refresh", () => {
 
   assert.match(authScreenSource, /setSessionToken\(user\.token,\s*user\.csrfToken\)/);
   assert.match(sessionSource, /setSessionToken\(token,\s*csrfToken\)/);
-  assert.match(sessionSource, /axelmond:session-expired/);
+  assert.match(sessionSource, /sessionAvailabilityEvents\.expired/);
+  assert.match(sessionSource, /sessionAvailabilityEvents\.unavailable/);
+  assert.match(appSessionSource, /retrySessionRecovery/);
   assert.match(sessionSource, /getFreshSessionToken/);
   assert.match(appSessionSource, /takeRefreshedSessionUser<AppUser>\(\)/);
   assert.match(sessionSource, /handleLogout/);

@@ -1,4 +1,9 @@
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /student/
+Disallow: /teacher/
+Disallow: /professor/
+Disallow: /admin/
 
 Sitemap: https://axelmond.com/sitemap.xml

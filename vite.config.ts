@@ -5,9 +5,7 @@ import { defineConfig } from "vite";
 
 const REACT_VENDOR_PACKAGES = /\/node_modules\/(?:react|react-dom|react-router|react-router-dom|scheduler)\//;
 
-export default defineConfig(({ mode }) => {
-  const isProduction = mode === "production";
-
+export default defineConfig(() => {
   return {
     plugins: [react(), tailwindcss()],
     resolve: {
@@ -17,7 +15,7 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       sourcemap: false,
-      minify: "esbuild",
+      minify: "oxc",
       cssMinify: true,
       reportCompressedSize: false,
       // LiveKit is isolated behind a lazy route in its own ~501 kB vendor chunk.
@@ -38,10 +36,6 @@ export default defineConfig(({ mode }) => {
           },
         },
       },
-    },
-    esbuild: {
-      drop: isProduction ? ["console", "debugger"] : [],
-      legalComments: "none",
     },
     server: {
       host: "127.0.0.1",

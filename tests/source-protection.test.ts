@@ -9,7 +9,6 @@ rulesTest("source-protection", () => {
   const viteConfig = fs.readFileSync("vite.config.ts", "utf8");
   const serverSource = readApiRouteSources();
   const mainSource = fs.readFileSync("src/main.tsx", "utf8");
-  const shieldSource = fs.readFileSync("src/production-shield.ts", "utf8");
 
   assert.equal(isBlockedProductionSourcePath("/src/main.tsx"), true);
   assert.equal(isBlockedProductionSourcePath("/src/App.tsx"), true);
@@ -22,16 +21,16 @@ rulesTest("source-protection", () => {
   assert.equal(isBlockedProductionSourcePath("/"), false);
 
   assert.match(viteConfig, /sourcemap:\s*false/);
-  assert.match(viteConfig, /drop:\s*isProduction\s*\?\s*\["console",\s*"debugger"\]/);
+  assert.match(viteConfig, /minify:\s*"oxc"/);
+  assert.doesNotMatch(viteConfig, /drop:\s*.*\["console",\s*"debugger"\]/);
   assert.match(viteConfig, /entryFileNames:\s*"assets\/\[hash\]\.js"/);
 
   assert.match(serverSource, /isBlockedProductionSourcePath/);
   assert.match(serverSource, /dotfiles:\s*"deny"/);
   assert.match(serverSource, /X-Content-Type-Options/);
 
-  assert.match(mainSource, /production-shield/);
-  assert.match(shieldSource, /isProductionClient/);
-  assert.match(shieldSource, /contextmenu/);
+  assert.doesNotMatch(mainSource, /production-shield/);
+  assert.equal(fs.existsSync("src/production-shield.ts"), false);
 
   console.log("Source protection rules passed");
 });

@@ -22,18 +22,11 @@ import { lessonContentIdFromModule } from "../../course-curriculum-utils";
 import { findLessonContent } from "../../hooks/useCourseContent";
 import { sanitizeCourseAttachmentUrl } from "../../external-url-security";
 import { getEnrollmentEffectiveEndDate, getEnrollmentRemainingMs, isEnrollmentActive } from "../../enrollment-access";
-import type { ContentSection, Course, CourseModule, LessonContent } from "../../types";
+import type { ContentSection, Course, CourseModule, LessonContent, QuizQuestion } from "../../types";
 import { formatCredits } from "../../utils/morocco-locale";
 import { getCourseContentProgress } from "../../utils/course-content-metrics";
 
 type NavigateTo = (view: string, targetCourse?: Course | null) => void;
-type QuizQuestion = {
-  question: string;
-  options: string[];
-  answer: string;
-  explanation: string;
-};
-
 interface StudentCourseViewProps {
   selectedCourse: Course;
   selectedModule: CourseModule;

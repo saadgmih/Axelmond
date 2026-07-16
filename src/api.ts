@@ -1,5 +1,16 @@
 import { purgeLegacySessionUserStorage } from "./session-storage";
-import type { Discipline, FacultyDomain } from "./types";
+import {
+  getRetryDelayMs,
+  isDefinitiveRefreshFailure,
+  NETWORK_ERROR_MESSAGE,
+  normalizeApiError,
+  readApiResponseBody,
+  shouldRetryHttpResponse,
+  shouldRetryNetworkError,
+  TEMPORARY_SERVICE_MESSAGE,
+  TIMEOUT_ERROR_MESSAGE,
+} from "./api-response";
+import type { Discipline, FacultyDomain, QuizAttemptResult, QuizQuestion } from "./types";
 import type { OnboardingSnapshot, OnboardingUpdate } from "./onboarding/onboarding-types";
 
 export interface SiteSettings {
@@ -24,16 +35,18 @@ const AUTH_PATHS_WITHOUT_REFRESH = new Set([
   "/api/auth/refresh",
   "/api/auth/logout",
 ]);
+const API_MAX_IDEMPOTENT_RETRIES = 2;
+const SESSION_UNAVAILABLE_EVENT = "axelmond:session-unavailable";
+const SESSION_EXPIRED_EVENT = "axelmond:session-expired";
+
+export type SessionRefreshState = "idle" | "anonymous" | "available" | "temporarily-unavailable" | "expired";
 
 let refreshPromise: Promise<string | null> | null = null;
 let sessionExpiredNotified = false;
 let accessTokenMemory: string | null = null;
 let csrfTokenMemory: string | null = null;
 let refreshedSessionUserMemory: Record<string, unknown> | null = null;
-
-function buildApiErrorMessage(method: string, path: string, status: number, payload: any, fallback: string) {
-  return payload?.error || payload?.message || fallback;
-}
+let lastSessionRefreshState: SessionRefreshState = "idle";
 
 function readCsrfFromCookie(): string | null {
   if (typeof document === "undefined") return null;
@@ -86,7 +99,19 @@ function buildRequestOptions(method: string, body: unknown, token: string | null
 function notifySessionExpired() {
   if (sessionExpiredNotified) return;
   sessionExpiredNotified = true;
-  window.dispatchEvent(new CustomEvent("axelmond:session-expired"));
+  window.dispatchEvent(new CustomEvent(SESSION_EXPIRED_EVENT));
+}
+
+function notifySessionUnavailable(message = TEMPORARY_SERVICE_MESSAGE) {
+  lastSessionRefreshState = "temporarily-unavailable";
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(SESSION_UNAVAILABLE_EVENT, { detail: { message } }));
+  }
+}
+
+function clearReadableCsrfCookie() {
+  if (typeof document === "undefined") return;
+  document.cookie = `${CSRF_COOKIE_NAME}=; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict`;
 }
 
 function clearSessionTokens() {
@@ -94,6 +119,31 @@ function clearSessionTokens() {
   csrfTokenMemory = null;
   refreshedSessionUserMemory = null;
   purgeLegacyTokenStorage();
+  clearReadableCsrfCookie();
+}
+
+function sleep(milliseconds: number) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+async function fetchWithTransientRetry(
+  method: string,
+  url: string,
+  body: unknown,
+  token: string | null,
+  timeoutMs: number,
+): Promise<Response> {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      const response = await fetch(url, buildRequestOptions(method, body, token, timeoutMs));
+      if (!shouldRetryHttpResponse(method, response, attempt, API_MAX_IDEMPOTENT_RETRIES)) return response;
+      await response.body?.cancel().catch(() => undefined);
+      await sleep(getRetryDelayMs(attempt, response));
+    } catch (error) {
+      if (!shouldRetryNetworkError(method, attempt, API_MAX_IDEMPOTENT_RETRIES)) throw error;
+      await sleep(getRetryDelayMs(attempt));
+    }
+  }
 }
 
 async function performSessionRefresh(): Promise<string | null> {
@@ -102,37 +152,76 @@ async function performSessionRefresh(): Promise<string | null> {
   // (and no legacy mobile body token), skip the call — otherwise csrfProtection returns
   // 403 before the route runs, which spams logs on anonymous boot.
   if (!legacyRefreshToken && !getCsrfToken()) {
+    lastSessionRefreshState = "anonymous";
     return null;
   }
   const body = legacyRefreshToken ? { refreshToken: legacyRefreshToken } : undefined;
 
+  let res: Response;
   try {
-    const res = await fetch(
-      `${BASE_URL}/api/auth/refresh`,
-      buildRequestOptions("POST", body, null, API_REQUEST_TIMEOUT_MS),
-    );
-    if (!res.ok) throw new Error("Refresh token rejected");
-    const payload = await res.json();
-    if (!payload?.token) throw new Error("Refresh token response missing access token");
-    accessTokenMemory = payload.token;
-    const sessionUser = { ...payload };
-    delete sessionUser.token;
-    delete sessionUser.csrfToken;
-    delete sessionUser.refreshToken;
-    refreshedSessionUserMemory = typeof sessionUser.id === "string" ? sessionUser : null;
-    if (payload.csrfToken) csrfTokenMemory = payload.csrfToken;
-    const cookieCsrf = readCsrfFromCookie();
-    if (cookieCsrf) csrfTokenMemory = cookieCsrf;
-    purgeLegacyTokenStorage();
-    sessionExpiredNotified = false;
-    return payload.token;
-  } catch (err) {
-    console.warn("[auth] Session refresh failed", err);
-    clearSessionTokens();
-    notifySessionExpired();
+    res = await fetch(`${BASE_URL}/api/auth/refresh`, buildRequestOptions("POST", body, null, API_REQUEST_TIMEOUT_MS));
+  } catch (error: unknown) {
+    const timedOut = error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError");
+    console.warn("[auth] Session refresh temporarily unavailable", { timedOut });
+    notifySessionUnavailable(timedOut ? TIMEOUT_ERROR_MESSAGE : NETWORK_ERROR_MESSAGE);
     return null;
   }
+
+  const parsed = await readApiResponseBody(res);
+  if (!res.ok) {
+    if (isDefinitiveRefreshFailure(res, parsed)) {
+      lastSessionRefreshState = "expired";
+      clearSessionTokens();
+      notifySessionExpired();
+      return null;
+    }
+
+    const normalized = normalizeApiError(res, parsed);
+    console.warn("[auth] Session refresh temporarily unavailable", {
+      status: res.status,
+      responseKind: normalized.responseKind,
+      requestId: normalized.requestId,
+    });
+    notifySessionUnavailable(normalized.message);
+    return null;
+  }
+
+  if (parsed.kind !== "json" || !parsed.payload || Array.isArray(parsed.payload)) {
+    console.warn("[auth] Session refresh returned an unexpected response", { responseKind: parsed.kind });
+    notifySessionUnavailable();
+    return null;
+  }
+
+  const payload = parsed.payload;
+  if (typeof payload.token !== "string" || !payload.token) {
+    console.warn("[auth] Session refresh response did not contain an access token");
+    notifySessionUnavailable();
+    return null;
+  }
+
+  accessTokenMemory = payload.token;
+  const sessionUser = { ...payload };
+  delete sessionUser.token;
+  delete sessionUser.csrfToken;
+  delete sessionUser.refreshToken;
+  refreshedSessionUserMemory = typeof sessionUser.id === "string" ? sessionUser : null;
+  if (typeof payload.csrfToken === "string" && payload.csrfToken) csrfTokenMemory = payload.csrfToken;
+  const cookieCsrf = readCsrfFromCookie();
+  if (cookieCsrf) csrfTokenMemory = cookieCsrf;
+  purgeLegacyTokenStorage();
+  sessionExpiredNotified = false;
+  lastSessionRefreshState = "available";
+  return payload.token;
 }
+
+export function getSessionRefreshState(): SessionRefreshState {
+  return lastSessionRefreshState;
+}
+
+export const sessionAvailabilityEvents = {
+  unavailable: SESSION_UNAVAILABLE_EVENT,
+  expired: SESSION_EXPIRED_EVENT,
+} as const;
 
 export async function refreshSessionToken(): Promise<string | null> {
   if (!refreshPromise) {
@@ -173,35 +262,28 @@ async function request<T>(method: string, path: string, body?: unknown, allowCsr
   const timeoutMs = getRequestTimeoutMs(path);
   let res: Response;
   try {
-    res = await fetch(url, buildRequestOptions(method, body, token, timeoutMs));
+    res = await fetchWithTransientRetry(method, url, body, token, timeoutMs);
     if (res.status === 401 && !AUTH_PATHS_WITHOUT_REFRESH.has(path)) {
       token = await refreshSessionToken();
-      if (token) res = await fetch(url, buildRequestOptions(method, body, token, timeoutMs));
+      if (token) res = await fetchWithTransientRetry(method, url, body, token, timeoutMs);
     }
-  } catch (err: any) {
-    const timedOut = err?.name === "TimeoutError" || err?.name === "AbortError";
-    const error = new Error(
-      timedOut
-        ? "Le serveur met trop de temps à répondre. Veuillez réessayer."
-        : "Erreur de connexion au serveur. Veuillez vérifier votre connexion internet et réessayer.",
-    ) as Error & Record<string, unknown>;
-    Object.assign(error, { status: 0, method, path, url, timeout: timedOut, timeoutMs, cause: err });
+  } catch (err: unknown) {
+    const timedOut = err instanceof Error && (err.name === "TimeoutError" || err.name === "AbortError");
+    const error = new Error(timedOut ? TIMEOUT_ERROR_MESSAGE : NETWORK_ERROR_MESSAGE) as Error &
+      Record<string, unknown>;
+    Object.assign(error, { status: 0, method, path, url, timeout: timedOut, timeoutMs, isTransient: true });
     throw error;
   }
 
+  const parsed = await readApiResponseBody(res);
+
   if (!res.ok) {
-    const text = await res.text();
-    let err: any;
-    try {
-      err = text ? JSON.parse(text) : { error: res.statusText };
-    } catch {
-      err = { error: text || res.statusText };
-    }
+    const normalized = normalizeApiError(res, parsed);
 
     if (
       allowCsrfRetry &&
       res.status === 403 &&
-      err?.code === "CSRF_TOKEN_INVALID" &&
+      normalized.code === "CSRF_TOKEN_INVALID" &&
       UNSAFE_HTTP_METHODS.has(method) &&
       !AUTH_PATHS_WITHOUT_REFRESH.has(path)
     ) {
@@ -212,9 +294,18 @@ async function request<T>(method: string, path: string, body?: unknown, allowCsr
       }
     }
 
-    const error = new Error(buildApiErrorMessage(method, path, res.status, err, res.statusText)) as Error &
-      Record<string, unknown>;
-    Object.assign(error, err, { status: res.status, method, path, url, response: text });
+    if (normalized.responseKind !== "json") {
+      console.warn("[api] Non-application response received", {
+        method,
+        path,
+        status: res.status,
+        responseKind: normalized.responseKind,
+        requestId: normalized.requestId,
+      });
+    }
+
+    const error = new Error(normalized.message) as Error & Record<string, unknown>;
+    Object.assign(error, normalized, { status: res.status, method, path, url });
     if (res.status === 429) {
       const retryAfterHeader = res.headers.get("Retry-After");
       const resetHeader = res.headers.get("RateLimit-Reset") || res.headers.get("X-RateLimit-Reset");
@@ -227,16 +318,22 @@ async function request<T>(method: string, path: string, body?: unknown, allowCsr
           retryAfterSeconds = Math.max(0, resetTimestamp - Math.floor(Date.now() / 1000));
         }
       }
-      const bodyRetryAfter = typeof err?.retryAfter === "number" ? err.retryAfter : undefined;
       Object.assign(error, {
         isRateLimit: true,
-        retryAfter: bodyRetryAfter ?? retryAfterSeconds,
-        maxAttempts: err?.maxAttempts,
+        retryAfter: normalized.retryAfter ?? retryAfterSeconds,
+        maxAttempts: normalized.maxAttempts,
       });
     }
     throw error;
   }
-  return res.json();
+
+  if (parsed.kind === "empty") return undefined as T;
+  if (parsed.kind !== "json") {
+    const error = new Error(TEMPORARY_SERVICE_MESSAGE) as Error & Record<string, unknown>;
+    Object.assign(error, { status: res.status, method, path, url, isTransient: true, responseKind: parsed.kind });
+    throw error;
+  }
+  return parsed.payload as T;
 }
 
 export const api = {
@@ -339,9 +436,9 @@ export const api = {
     request<any>("PATCH", `/api/lesson-contents/${contentId}`, data),
   deleteLessonContent: (contentId: string) => request<any>("DELETE", `/api/lesson-contents/${contentId}`),
   getQuiz: (courseId: number, moduleId: number) =>
-    request<any[]>("GET", `/api/courses/${courseId}/quizzes/${moduleId}`),
+    request<QuizQuestion[]>("GET", `/api/courses/${courseId}/quizzes/${moduleId}`),
   submitQuizAttempt: (courseId: number, moduleId: number, answers: Record<string, string>) =>
-    request<any>("POST", `/api/courses/${courseId}/modules/${moduleId}/quiz-attempts`, { answers }),
+    request<QuizAttemptResult>("POST", `/api/courses/${courseId}/modules/${moduleId}/quiz-attempts`, { answers }),
   getCourseGrades: (courseId: number) => request<any[]>("GET", `/api/courses/${courseId}/grades`),
   completeModule: (courseId: number, moduleId: number) =>
     request<any>("POST", `/api/courses/${courseId}/modules/${moduleId}/complete`),
@@ -702,7 +799,9 @@ export function setSessionToken(token: string | undefined, csrfToken?: string) {
     accessTokenMemory = token;
     if (csrfToken) csrfTokenMemory = csrfToken;
     sessionExpiredNotified = false;
+    lastSessionRefreshState = "available";
   } else {
+    lastSessionRefreshState = "anonymous";
     clearSessionTokens();
   }
 }

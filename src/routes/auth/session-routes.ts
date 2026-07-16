@@ -12,7 +12,8 @@ export function registerSessionRoutes(app: Express, ctx: RouteContext): void {
     const refreshToken = api.readRefreshTokenFromRequest(req);
 
     if (!refreshToken) {
-      res.status(401).json({ error: api.PUBLIC_API_ERRORS.refreshTokenRequired });
+      api.clearAuthCookies(res);
+      res.status(401).json({ error: api.PUBLIC_API_ERRORS.refreshTokenRequired, code: "REFRESH_TOKEN_REQUIRED" });
 
       return;
     }
@@ -21,8 +22,9 @@ export function registerSessionRoutes(app: Express, ctx: RouteContext): void {
 
     if (!storedToken) {
       api.logSecurity("WARN", "Invalid refresh token attempt", { ip: req.ip });
+      api.clearAuthCookies(res);
 
-      res.status(401).json({ error: api.PUBLIC_API_ERRORS.refreshTokenInvalid });
+      res.status(401).json({ error: api.PUBLIC_API_ERRORS.refreshTokenInvalid, code: "REFRESH_TOKEN_INVALID" });
 
       return;
     }
@@ -34,14 +36,16 @@ export function registerSessionRoutes(app: Express, ctx: RouteContext): void {
         userId: storedToken.userId,
         ip: req.ip,
       });
+      api.clearAuthCookies(res);
 
-      res.status(401).json({ error: "Session compromise détectée. Reconnectez-vous." });
+      res.status(401).json({ error: "Session compromise détectée. Reconnectez-vous.", code: "REFRESH_TOKEN_REVOKED" });
 
       return;
     }
 
     if (storedToken.expiresAt < new Date()) {
-      res.status(401).json({ error: api.PUBLIC_API_ERRORS.refreshTokenInvalid });
+      api.clearAuthCookies(res);
+      res.status(401).json({ error: api.PUBLIC_API_ERRORS.refreshTokenInvalid, code: "REFRESH_TOKEN_EXPIRED" });
 
       return;
     }
@@ -49,7 +53,10 @@ export function registerSessionRoutes(app: Express, ctx: RouteContext): void {
     const safeUser = api.toAppUser(storedToken.user);
 
     if (!safeUser.emailVerified) {
-      res.status(403).json({ error: "Veuillez vérifier votre e-mail avant d'accéder à l'application" });
+      res.status(403).json({
+        error: "Veuillez vérifier votre e-mail avant d'accéder à l'application",
+        code: "EMAIL_NOT_VERIFIED",
+      });
 
       return;
     }
@@ -58,7 +65,8 @@ export function registerSessionRoutes(app: Express, ctx: RouteContext): void {
     const rotation = await api.rotateRefreshToken(storedToken.id, safeUser.id, csrfToken).catch(() => null);
 
     if (!rotation) {
-      res.status(401).json({ error: api.PUBLIC_API_ERRORS.refreshTokenReused });
+      api.clearAuthCookies(res);
+      res.status(401).json({ error: api.PUBLIC_API_ERRORS.refreshTokenReused, code: "REFRESH_TOKEN_REUSED" });
 
       return;
     }

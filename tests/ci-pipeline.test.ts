@@ -19,9 +19,13 @@ rulesTest("ci-pipeline", () => {
   assert.match(pipeline, /"lint:strict"/);
   assert.match(pipeline, /"lint:eslint"/);
   assert.match(pipeline, /"format:check"/);
-  assert.match(pipeline, /\["test"\]/);
+  assert.match(pipeline, /"test:static"/);
+  assert.match(pipeline, /"test:unit"/);
   assert.match(pipeline, /"prisma", "migrate", "deploy"/);
   assert.match(pipeline, /"test:security-runtime"/);
+  assert.match(pipeline, /"test:mobile-runtime"/);
+  assert.match(pipeline, /"test:coverage"/);
+  assert.match(pipeline, /"test:summary"/);
   assert.match(pipeline, /"build"/);
   assert.match(pipeline, /"audit", "--audit-level=high"/);
   assert.match(pipeline, /ci:secrets|scan-secrets/);
@@ -49,11 +53,14 @@ rulesTest("ci-pipeline", () => {
   const generateIndex = workflow.indexOf("Generate Prisma client");
   const postgresIndex = workflow.indexOf("Verify with CI PostgreSQL");
   const migrateIndex = postgresRunner.indexOf("Apply Prisma migrations");
-  const testIndex = postgresRunner.indexOf('["Test"');
+  const databaseBackedTestIndex = postgresRunner.indexOf("Security runtime tests");
   assert.ok(installIndex >= 0 && generateIndex > installIndex, "Prisma generation must run after npm ci");
   assert.ok(generateIndex < postgresIndex, "Prisma generation must run before validation");
   assert.ok(postgresIndex > generateIndex, "CI PostgreSQL must start after dependencies are installed");
-  assert.ok(migrateIndex >= 0 && migrateIndex < testIndex, "Migrations must run before database-backed tests");
+  assert.ok(
+    migrateIndex >= 0 && migrateIndex < databaseBackedTestIndex,
+    "Migrations must run before database-backed tests",
+  );
 
   assert.ok(fs.existsSync("scripts/start-ci-postgres.mjs"), "CI PostgreSQL launcher is required");
   assert.ok(fs.existsSync("scripts/run-ci-with-postgres.mjs"), "CI PostgreSQL supervisor is required");

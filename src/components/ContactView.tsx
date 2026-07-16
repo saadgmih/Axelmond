@@ -23,7 +23,7 @@ import {
 } from "../utils/institution-location";
 
 interface ContactViewProps {
-  currentUser: {
+  currentUser?: {
     id: string;
     fullName: string;
     email: string;
@@ -156,7 +156,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
         {/* Left Column: Form & Security Box */}
         <div className="lg:col-span-7 space-y-6">
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-sm space-y-6 text-white">
-            <h2 className="text-xl font-bold text-white border-b border-slate-850 pb-3 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-white border-b border-slate-800 pb-3 flex items-center gap-2">
               <Mail className="w-5 h-5 text-emerald-400" />
               Formulaire d'Assistance
             </h2>
@@ -328,7 +328,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
         <div className="lg:col-span-5 lg:flex">
           {/* Card: Contact coordinates */}
           <div className="flex h-full flex-col bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-sm space-y-5 text-white">
-            <h2 className="text-lg font-bold text-white border-b border-slate-850 pb-3 flex items-center gap-2">
+            <h2 className="text-lg font-bold text-white border-b border-slate-800 pb-3 flex items-center gap-2">
               <MapPin className="w-5 h-5 text-emerald-400" />
               Informations Institutionnelles
             </h2>
@@ -416,7 +416,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start">
         <div className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-900 text-white shadow-sm">
-          <div className="flex items-center justify-between gap-3 border-b border-slate-850 px-5 py-4">
+          <div className="flex items-center justify-between gap-3 border-b border-slate-800 px-5 py-4">
             <div>
               <h2 className="text-sm font-black text-white">Localisation exacte</h2>
               <p className="mt-0.5 text-[11px] text-slate-400">{PERFORMANCE_ACADEMIQUE_ADDRESS}</p>
@@ -439,7 +439,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
             allowFullScreen
             referrerPolicy="no-referrer-when-downgrade"
           />
-          <div className="grid grid-cols-1 gap-2 border-t border-slate-850 px-5 py-4 text-xs text-slate-400 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-2 border-t border-slate-800 px-5 py-4 text-xs text-slate-400 sm:grid-cols-2">
             <div>
               <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">Adresse</span>
               <span className="text-slate-300">{PERFORMANCE_ACADEMIQUE_ADDRESS}</span>
@@ -455,7 +455,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
 
         {/* Card: FAQ Accordion */}
         <div className="flex h-full flex-col space-y-4 rounded-3xl border border-slate-800 bg-slate-900 p-6 text-white shadow-sm">
-          <h2 className="text-lg font-bold text-white border-b border-slate-850 pb-3 flex items-center gap-2">
+          <h2 className="text-lg font-bold text-white border-b border-slate-800 pb-3 flex items-center gap-2">
             <HelpCircle className="w-5 h-5 text-emerald-400" />
             FAQ & Centre d'aide
           </h2>
@@ -466,12 +466,12 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
               return (
                 <div
                   key={index}
-                  className="border border-slate-850 rounded-xl overflow-hidden transition-all duration-200"
+                  className="border border-slate-800 rounded-xl overflow-hidden transition-all duration-200"
                 >
                   <button
                     type="button"
                     onClick={() => toggleFaq(index)}
-                    className="w-full flex items-center justify-between p-3.5 text-left text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-850/50 transition-colors cursor-pointer"
+                    className="w-full flex items-center justify-between p-3.5 text-left text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800/50 transition-colors cursor-pointer"
                   >
                     <span>{item.question}</span>
                     {isOpen ? (
@@ -481,7 +481,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
                     )}
                   </button>
                   {isOpen && (
-                    <div className="p-3.5 bg-slate-950/30 text-xs text-slate-400 border-t border-slate-850/50 leading-relaxed animate-in slide-in-from-top-1 duration-150">
+                    <div className="p-3.5 bg-slate-950/30 text-xs text-slate-400 border-t border-slate-800/50 leading-relaxed animate-in slide-in-from-top-1 duration-150">
                       {item.answer}
                     </div>
                   )}
@@ -491,7 +491,7 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
           </div>
 
           {/* Quick Links Footer */}
-          <div className="pt-2 border-t border-slate-850 flex flex-wrap gap-x-4 gap-y-2 justify-between text-xs text-slate-450">
+          <div className="pt-2 border-t border-slate-800 flex flex-wrap gap-x-4 gap-y-2 justify-between text-xs text-slate-450">
             <button
               onClick={() => navigateTo("catalog")}
               className="hover:text-emerald-400 hover:underline cursor-pointer"

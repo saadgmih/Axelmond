@@ -16,7 +16,7 @@ type NavigateTo = (view: string, targetCourse?: Course | null) => void;
 
 interface InstitutionalViewSwitchProps {
   currentView: string;
-  currentUser: AppUser;
+  currentUser?: AppUser;
   navigateTo: NavigateTo;
 }
 

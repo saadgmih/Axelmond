@@ -15,9 +15,9 @@ import {
   type LiveKitRuntimeFixture,
 } from "./helpers/security-runtime-livekit-fixtures.ts";
 import { SECURITY_RUNTIME_TEST_PASSWORD } from "./helpers/security-runtime-fixtures.ts";
-import { rulesTest } from "./helpers/rulesTest.ts";
+import { runtimeTest } from "./helpers/runtimeTest.ts";
 
-rulesTest("security-runtime-livekit", async () => {
+await runtimeTest("security-runtime-livekit", async () => {
   const TOKEN_PATH = "/api/livekit/token";
   const MODERATION_PATH = "/api/livekit/moderation";
   const RUNTIME_PORT = DEFAULT_SECURITY_RUNTIME_PORT;
@@ -144,7 +144,7 @@ rulesTest("security-runtime-livekit", async () => {
     {
       const response = await authedFetch(handle.baseUrl, enrolledSession, "POST", TOKEN_PATH, tokenBody(fixture));
       recordScenario("T2", response);
-      assert.equal(response.status, 200);
+      assert.equal(response.status, 200, await response.clone().text());
       const payload = (await response.json()) as { token?: string; roomName?: string; url?: string };
       assert.equal(typeof payload.token, "string");
       assert.ok(payload.token!.length > 0);

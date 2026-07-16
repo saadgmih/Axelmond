@@ -12,6 +12,9 @@ import { usePlatformApp } from "./usePlatformApp";
 
 import { AuthenticatedPlatformLayout } from "./AuthenticatedPlatformLayout";
 import { OnboardingProvider } from "../onboarding/OnboardingProvider";
+import InstitutionalViewSwitch from "../views/InstitutionalViewSwitch";
+import PageNotFound from "../components/PageNotFound";
+import RouteMetadata from "../components/RouteMetadata";
 
 function PlatformLoadingScreen() {
   return (
@@ -90,6 +93,25 @@ function PlatformCatalogErrorScreen({ message, onRetry }: { message: string; onR
   );
 }
 
+function SessionUnavailableScreen({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-[#011713] p-6">
+      <div className="w-full max-w-md rounded-2xl border border-amber-300/30 bg-[#052820] p-8 text-center shadow-xl">
+        <p className="text-sm font-black uppercase tracking-wider text-amber-200">Session momentanément indisponible</p>
+        <p className="mt-4 text-sm leading-relaxed text-slate-200">{message}</p>
+        <p className="mt-2 text-xs text-slate-400">Vos données de session ont été conservées.</p>
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-6 inline-flex items-center justify-center rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-emerald-500"
+        >
+          Réessayer
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function PlatformAppRoot() {
   const { session, catalog, navigation, live, bindings, ui, notifications } = usePlatformApp();
   const hasRenderedAuthenticatedApp = useRef(false);
@@ -101,9 +123,45 @@ export function PlatformAppRoot() {
       session.isInitialViewLoading ||
       (!isInstitutionalView && (catalog.isLoading || session.isEnrolledCatalogSyncing))),
   );
+  const pathname = typeof window === "undefined" ? "/" : window.location.pathname;
 
   if (session.isLoading || !session.isAuthReady || isInitialAuthenticatedDataLoading) {
     return <PlatformLoadingScreen />;
+  }
+
+  if (!session.currentUser && session.sessionUnavailable) {
+    return (
+      <>
+        <RouteMetadata pathname={pathname} />
+        <SessionUnavailableScreen message={session.sessionUnavailable} onRetry={session.retrySessionRecovery} />
+      </>
+    );
+  }
+
+  if (navigation.currentView === "not-found") {
+    return (
+      <>
+        <RouteMetadata pathname={pathname} />
+        <PageNotFound isAuthenticated={Boolean(session.currentUser)} />
+      </>
+    );
+  }
+
+  if (!session.currentUser && isInstitutionalView) {
+    const navigatePublic = (view: string) => {
+      window.location.href = INSTITUTIONAL_VIEWS.has(view) ? `/${view}` : "/";
+    };
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-100">
+        <RouteMetadata pathname={pathname} />
+        <header className="border-b border-emerald-400/20 bg-[#052820] px-6 py-4">
+          <a href="/" className="font-black text-emerald-200">
+            Performance Académique
+          </a>
+        </header>
+        <InstitutionalViewSwitch currentView={navigation.currentView} navigateTo={navigatePublic} />
+      </div>
+    );
   }
 
   if (!session.currentUser) {
@@ -121,19 +179,33 @@ export function PlatformAppRoot() {
   hasRenderedAuthenticatedApp.current = true;
 
   return (
-    <PlatformNotificationProvider value={notifications}>
-      <PlatformAppProvider
-        session={session}
-        catalog={catalog}
-        navigation={navigation}
-        live={live}
-        bindings={bindings}
-        ui={ui}
-      >
-        <OnboardingProvider userId={session.currentUser.id} role={session.currentUser.role}>
-          <AuthenticatedPlatformLayout />
-        </OnboardingProvider>
-      </PlatformAppProvider>
-    </PlatformNotificationProvider>
+    <>
+      <RouteMetadata pathname={pathname} />
+      {session.sessionUnavailable && (
+        <div
+          className="fixed inset-x-0 top-0 z-[100] flex items-center justify-center gap-4 bg-amber-300 px-4 py-2 text-center text-sm font-bold text-slate-950 shadow-lg"
+          role="status"
+        >
+          <span>{session.sessionUnavailable} Votre session reste ouverte.</span>
+          <button type="button" className="underline" onClick={session.retrySessionRecovery}>
+            Réessayer
+          </button>
+        </div>
+      )}
+      <PlatformNotificationProvider value={notifications}>
+        <PlatformAppProvider
+          session={session}
+          catalog={catalog}
+          navigation={navigation}
+          live={live}
+          bindings={bindings}
+          ui={ui}
+        >
+          <OnboardingProvider userId={session.currentUser.id} role={session.currentUser.role}>
+            <AuthenticatedPlatformLayout />
+          </OnboardingProvider>
+        </PlatformAppProvider>
+      </PlatformNotificationProvider>
+    </>
   );
 }

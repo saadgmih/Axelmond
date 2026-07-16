@@ -5,7 +5,11 @@ import { rulesTest } from "./helpers/rulesTest.ts";
 rulesTest("service-worker", () => {
   const source = readFileSync("public/sw.js", "utf8");
   assert.match(source, /STATIC_CACHE/);
-  assert.match(source, /performance-academique-static-v5/);
+  assert.match(source, /performance-academique-static-v6/);
+  assert.match(source, /isVersionedAsset/);
+  assert.match(source, /const response = await fetch\(event\.request\)/);
+  assert.doesNotMatch(source, /if \(cached\) return cached;\s*\n\s*const response/);
+  assert.doesNotMatch(source, /performance-academique-static-v5/);
   assert.match(source, /performance-logo-e6657b8a\.png/);
   assert.doesNotMatch(source, /performance-logo-3d-symbol\.png|performance-logo-3d\.png/);
   assert.doesNotMatch(source, /favicon-3d\.ico/);

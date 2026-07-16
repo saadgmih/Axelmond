@@ -30,6 +30,7 @@ rulesTest("student-account-security", () => {
     studentView: "account-security",
     teacherView: "dashboard",
     institutionalView: null,
+    notFound: false,
   });
 
   console.log("Student account security routing tests passed");

@@ -228,7 +228,7 @@ export default function SupportView({ navigateTo }: SupportViewProps) {
                     <button
                       type="button"
                       onClick={() => setOpenFaqIndex(isOpen ? null : index)}
-                      className="w-full flex items-center justify-between p-3.5 text-left text-xs font-bold text-slate-300 hover:bg-slate-850/50"
+                      className="w-full flex items-center justify-between p-3.5 text-left text-xs font-bold text-slate-300 hover:bg-slate-800/50"
                     >
                       <span className="flex items-center gap-2">
                         <span className="text-slate-500">{getCategoryIcon(item.category)}</span>

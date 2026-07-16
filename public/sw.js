@@ -1,8 +1,5 @@
-const STATIC_CACHE = "performance-academique-static-v5";
-const STATIC_ASSETS = [
-  "/performance-logo-e6657b8a.png",
-  "/manifest.json",
-];
+const STATIC_CACHE = "performance-academique-static-v6";
+const CACHE_PREFIX = "performance-academique-static-";
 
 function sanitizeNotificationUrl(raw) {
   try {
@@ -20,25 +17,24 @@ function isCacheableStaticRequest(request, url) {
   if (url.origin !== self.location.origin) return false;
   if (url.pathname === "/sw.js") return false;
   if (url.pathname.startsWith("/api/")) return false;
-  if (STATIC_ASSETS.includes(url.pathname)) return true;
+  if (url.pathname === "/manifest.json") return true;
   if (url.pathname.startsWith("/assets/")) return true;
   return /\.(svg|png|jpg|jpeg|webp|ico|woff2?)$/i.test(url.pathname);
 }
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches
-      .open(STATIC_CACHE)
-      .then((cache) => cache.addAll(STATIC_ASSETS))
-      .then(() => self.skipWaiting()),
-  );
+  event.waitUntil(caches.open(STATIC_CACHE).then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== STATIC_CACHE).map((key) => caches.delete(key))))
+      .then((keys) =>
+        Promise.all(
+          keys.filter((key) => key.startsWith(CACHE_PREFIX) && key !== STATIC_CACHE).map((key) => caches.delete(key)),
+        ),
+      )
       .then(() => self.clients.claim()),
   );
 });
@@ -49,14 +45,18 @@ self.addEventListener("fetch", (event) => {
 
   event.respondWith(
     caches.open(STATIC_CACHE).then(async (cache) => {
+      const isVersionedAsset = url.pathname.startsWith("/assets/");
       const cached = await cache.match(event.request);
-      if (cached) return cached;
+      if (isVersionedAsset && cached) return cached;
 
-      const response = await fetch(event.request);
-      if (response.ok) {
-        await cache.put(event.request, response.clone());
+      try {
+        const response = await fetch(event.request);
+        if (response.ok) await cache.put(event.request, response.clone());
+        return response;
+      } catch (error) {
+        if (cached) return cached;
+        throw error;
       }
-      return response;
     }),
   );
 });

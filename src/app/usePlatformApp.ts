@@ -41,7 +41,6 @@ export function usePlatformApp() {
   const [activeLiveCourse, setActiveLiveCourse] = useState<Course | null>(null);
   const [selectedModule, setSelectedModule] = useState<CourseModule | null>(null);
   const [teacherView, setTeacherView] = useState<string>(initialRoute.teacherView);
-
   const {
     courseContentSections,
     setCourseContentSections,
@@ -52,13 +51,10 @@ export function usePlatformApp() {
     flattenSections,
     refreshCourseContent,
   } = useCourseContent();
-
   const onSessionExpiredRef = useRef<() => void>(() => {});
-
   const [courses, setCourses] = useState<Course[]>([]);
   const [domains, setDomains] = useState<FacultyDomain[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
   const {
     currentUser,
     isAuthReady,
@@ -70,6 +66,8 @@ export function usePlatformApp() {
     updateSessionUser,
     handleLoginSuccess,
     handleLogout: logoutAuth,
+    sessionUnavailable,
+    retrySessionRecovery,
     isLoginDataLoading,
   } = useAppSession({
     setCourses,
@@ -82,7 +80,6 @@ export function usePlatformApp() {
     },
     onSessionExpired: () => onSessionExpiredRef.current(),
   });
-
   const {
     searchQuery,
     setSearchQuery,
@@ -99,7 +96,6 @@ export function usePlatformApp() {
     retryCatalogLoad,
     retryDisciplineLoad,
   } = usePlatformCatalogData(isAuthReady, currentUser, courses, domains, setCourses, setDomains, setIsLoading);
-
   const { isEnrolledCatalogSyncing } = useEnrolledCoursesHydration(
     isAuthReady,
     currentUser,
@@ -549,6 +545,8 @@ export function usePlatformApp() {
       updateSessionUser,
       handleLoginSuccess,
       handleLogout,
+      sessionUnavailable,
+      retrySessionRecovery,
       catalogError,
       catalogHasData,
       retryCatalogLoad,
@@ -570,6 +568,8 @@ export function usePlatformApp() {
       updateSessionUser,
       handleLoginSuccess,
       handleLogout,
+      sessionUnavailable,
+      retrySessionRecovery,
       catalogError,
       catalogHasData,
       retryCatalogLoad,

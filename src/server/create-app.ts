@@ -22,6 +22,7 @@ import { readRefreshTokenFromRequest } from "../auth-cookies";
 import { csrfProtection } from "../auth-csrf";
 import { isMobileClientRequest, MOBILE_CLIENT_HEADER } from "../auth-mobile";
 import { mobileClientSpoofGuard } from "../mobile-client-guard";
+import { createUnknownApiRouteGuard } from "./api-not-found";
 import { verifyAuthToken } from "../auth-token";
 import { applyMobileApiCorsHeaders } from "../routes/mobile-api-routes";
 import { emailRateLimitKey } from "../email-rate-limit";
@@ -132,7 +133,6 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     process.env.UPLOADTHING_IS_DEV === "true" ||
     process.env.NODE_ENV !== "production" ||
     Boolean(uploadThingCallbackUrl?.includes("localhost") || uploadThingCallbackUrl?.includes("127.0.0.1"));
-
   const allowedOrigins = buildAllowedOrigins(PORT, isProduction);
   if (isProduction && allowedOrigins.size === 0) {
     throw new Error("Production CORS allowlist is empty — set APP_URL and/or ALLOWED_ORIGINS");
@@ -176,6 +176,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
           childSrc: cspFrameSrc,
           styleSrc: isProduction ? ["'self'", cspNonce] : ["'self'", "'unsafe-inline'"],
           styleSrcAttr: ["'unsafe-inline'"],
+          fontSrc: ["'self'", "data:"],
           imgSrc: [
             "'self'",
             "data:",
@@ -198,6 +199,8 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
             "https://*.utfs.io",
           ],
           connectSrc: buildCspConnectSrc(allowedOrigins, isProduction),
+          workerSrc: ["'self'", "blob:"],
+          manifestSrc: ["'self'"],
           objectSrc: ["'none'"],
           baseUri: ["'self'"],
           formAction: ["'self'", ...PAYPAL_CSP_FORM_ACTION],
@@ -587,8 +590,8 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     res.setHeader("Expires", "0");
     next();
   });
-
   app.use("/api", requestTimingMiddleware);
+  app.use("/api", createUnknownApiRouteGuard(app));
   app.use("/api", routeCtx.middleware.requireGlobalApiRbac);
   registerApiRoutes(app, routeCtx);
 

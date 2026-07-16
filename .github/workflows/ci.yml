@@ -18,6 +18,7 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/axelmond_ci?schema=AxelmondResearchLab&sslmode=disable
+      TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/axelmond_ci?schema=AxelmondResearchLab&sslmode=disable
       NODE_ENV: test
       AUTH_TOKEN_SECRET: ci-auth-secret-32-characters-minimum-value
       EMAIL_VERIFICATION_SECRET: ci-email-secret-32-characters-minimum-value

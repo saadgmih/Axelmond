@@ -3,8 +3,10 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import { loadEnv } from "./load-env";
 import { isVerboseStartup } from "./server/startup-logging";
+import { assertSafeTestDatabaseEnvironment } from "./database-safety";
 
 loadEnv();
+assertSafeTestDatabaseEnvironment();
 
 const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;
@@ -117,8 +119,19 @@ function createPrismaClient(): PrismaClient {
   });
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
-globalForPrisma.prisma = prisma;
+function getPrismaClient(): PrismaClient {
+  if (!globalForPrisma.prisma) globalForPrisma.prisma = createPrismaClient();
+  return globalForPrisma.prisma;
+}
+
+/** Lazy proxy: importing a pure helper never opens a PostgreSQL pool. */
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, property) {
+    const client = getPrismaClient();
+    const value = Reflect.get(client, property, client) as unknown;
+    return typeof value === "function" ? value.bind(client) : value;
+  },
+});
 
 export function getActivePgSchema(): string {
   return globalForPrisma.pgSchema ?? resolvePgSchema(process.env.DATABASE_URL || "");
@@ -173,7 +186,7 @@ export async function disconnectDatabase() {
   globalForPrisma.databaseDisconnected = true;
 
   try {
-    await prisma.$disconnect();
+    if (globalForPrisma.prisma) await globalForPrisma.prisma.$disconnect();
   } finally {
     if (globalForPrisma.pgPool) {
       await globalForPrisma.pgPool.end();

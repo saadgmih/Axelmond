@@ -28,6 +28,18 @@ export const TEACHER_VIEWS = new Set([
   "notifications",
 ]);
 
+export function isKnownPlatformPath(pathname: string): boolean {
+  const normalized = pathname.replace(/\/+$/, "") || "/";
+  const segments = normalized.split("/").filter(Boolean);
+  if (segments.length === 0) return true;
+  if (segments.length === 1 && INSTITUTIONAL_VIEWS.has(segments[0])) return true;
+  if (segments.length === 1 && ["student", "teacher", "professor", "admin"].includes(segments[0])) return true;
+  if (segments.length !== 2) return false;
+  if (segments[0] === "student") return STUDENT_VIEWS.has(segments[1]);
+  if (["teacher", "professor", "admin"].includes(segments[0])) return TEACHER_VIEWS.has(segments[1]);
+  return false;
+}
+
 export function buildPlatformPath(role: "student" | "teacher", view: string, teacherView?: string) {
   if (role === "teacher") {
     const segment = teacherView || view || "dashboard";
@@ -47,6 +59,7 @@ export function parsePlatformPath(pathname: string) {
       studentView: "dashboard" as const,
       teacherView: "dashboard" as const,
       institutionalView: null as string | null,
+      notFound: false,
     };
   }
 
@@ -56,7 +69,12 @@ export function parsePlatformPath(pathname: string) {
     if (view === "study-schedule" || view === "objectives") {
       studentView = "study-plan";
     }
-    return { studentView, teacherView: "dashboard" as const, institutionalView: null as string | null };
+    return {
+      studentView,
+      teacherView: "dashboard" as const,
+      institutionalView: null as string | null,
+      notFound: !STUDENT_VIEWS.has(view) || segments.length > 2,
+    };
   }
 
   if (segments[0] === "teacher" || segments[0] === "professor" || segments[0] === "admin") {
@@ -66,24 +84,32 @@ export function parsePlatformPath(pathname: string) {
       studentView: "dashboard" as const,
       teacherView: normalizedTeacherView,
       institutionalView: null as string | null,
+      notFound: !TEACHER_VIEWS.has(teacherView) || segments.length > 2,
     };
   }
 
   if (segments.length === 1 && INSTITUTIONAL_VIEWS.has(segments[0])) {
-    return { studentView: segments[0], teacherView: "dashboard" as const, institutionalView: segments[0] };
+    return {
+      studentView: segments[0],
+      teacherView: "dashboard" as const,
+      institutionalView: segments[0],
+      notFound: false,
+    };
   }
 
   return {
     studentView: "dashboard" as const,
     teacherView: "dashboard" as const,
     institutionalView: null as string | null,
+    notFound: true,
   };
 }
 
 export function resolveInitialPlatformRoute(pathname: string) {
   const parsed = parsePlatformPath(pathname);
   return {
-    currentView: parsed.institutionalView ?? parsed.studentView,
+    currentView: parsed.notFound ? "not-found" : (parsed.institutionalView ?? parsed.studentView),
     teacherView: parsed.teacherView,
+    notFound: parsed.notFound,
   };
 }

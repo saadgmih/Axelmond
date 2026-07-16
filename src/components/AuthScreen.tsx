@@ -385,7 +385,11 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                     <div className="relative">
                       <input
                         id="auth-verification-code"
+                        name="emailVerificationCode"
                         type="text"
+                        autoComplete="one-time-code"
+                        aria-invalid={Boolean(errorMsg)}
+                        aria-describedby={errorMsg ? "auth-error-msg" : undefined}
                         inputMode="numeric"
                         required
                         maxLength={6}
@@ -435,7 +439,11 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                     <div className="relative">
                       <input
                         id="auth-email"
+                        name="email"
                         type="email"
+                        autoComplete="email"
+                        aria-invalid={Boolean(errorMsg)}
+                        aria-describedby={errorMsg ? "auth-error-msg" : undefined}
                         required
                         placeholder={activeSector === "student" ? "ex: etudiant@example.fr" : "ex: prof@example.fr"}
                         value={email}
@@ -463,15 +471,17 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                 <form onSubmit={handleResetPassword} className="space-y-4">
                   <div className="space-y-1.5 animate-in slide-in-from-top-1 duration-200">
                     <label
-                      htmlFor="auth-email"
+                      htmlFor="auth-reset-email"
                       className="text-[10px] uppercase font-black tracking-widest text-slate-400 block"
                     >
                       Adresse e-mail universitaire
                     </label>
                     <div className="relative">
                       <input
-                        id="auth-email"
+                        id="auth-reset-email"
+                        name="email"
                         type="email"
+                        autoComplete="email"
                         required
                         disabled
                         value={email}
@@ -482,13 +492,21 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                   </div>
 
                   <div className="space-y-1.5 animate-in slide-in-from-top-1 duration-200">
-                    <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 block">
+                    <label
+                      htmlFor="auth-reset-code"
+                      className="text-[10px] uppercase font-black tracking-widest text-slate-400 block"
+                    >
                       Code de réinitialisation (6 chiffres)
                     </label>
                     <div className="relative">
                       <input
+                        id="auth-reset-code"
+                        name="resetCode"
                         type="text"
                         inputMode="numeric"
+                        autoComplete="one-time-code"
+                        aria-invalid={Boolean(errorMsg)}
+                        aria-describedby={errorMsg ? "auth-error-msg" : undefined}
                         required
                         maxLength={6}
                         placeholder="123456"
@@ -501,12 +519,20 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                   </div>
 
                   <div className="space-y-1.5 animate-in slide-in-from-top-1 duration-200">
-                    <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 block">
+                    <label
+                      htmlFor="auth-new-password"
+                      className="text-[10px] uppercase font-black tracking-widest text-slate-400 block"
+                    >
                       Nouveau mot de passe
                     </label>
                     <div className="relative">
                       <input
+                        id="auth-new-password"
+                        name="newPassword"
                         type="password"
+                        autoComplete="new-password"
+                        aria-invalid={Boolean(errorMsg)}
+                        aria-describedby={errorMsg ? "auth-error-msg" : undefined}
                         required
                         placeholder="Saisir votre nouveau mot de passe"
                         value={password}
@@ -544,7 +570,11 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                       <div className="relative">
                         <input
                           id="auth-full-name"
+                          name="fullName"
                           type="text"
+                          autoComplete="name"
+                          aria-invalid={Boolean(errorMsg)}
+                          aria-describedby={errorMsg ? "auth-error-msg" : undefined}
                           required
                           placeholder={activeSector === "student" ? "ex: Étudiant Académique" : "ex: Pr. Louise Vitet"}
                           value={fullName}
@@ -566,7 +596,11 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                     <div className="relative">
                       <input
                         id="auth-email-login"
+                        name="email"
                         type="email"
+                        autoComplete="username"
+                        aria-invalid={Boolean(errorMsg)}
+                        aria-describedby={errorMsg ? "auth-error-msg" : undefined}
                         required
                         placeholder={activeSector === "student" ? "ex: etudiant@example.fr" : "ex: prof@example.fr"}
                         value={email}
@@ -604,7 +638,11 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                     <div className="relative">
                       <input
                         id="auth-password"
+                        name="password"
                         type="password"
+                        autoComplete={authMode === "register" ? "new-password" : "current-password"}
+                        aria-invalid={Boolean(errorMsg)}
+                        aria-describedby={errorMsg ? "auth-error-msg" : undefined}
                         required
                         placeholder="Saisir votre mot de passe"
                         value={password}
@@ -618,11 +656,19 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
 
                   {authMode === "register" && (
                     <div className="space-y-1.5 animate-in slide-in-from-top-1 duration-200">
-                      <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 block">
+                      <label
+                        htmlFor={activeSector === "student" ? "auth-filiere" : "auth-access-key"}
+                        className="text-[10px] uppercase font-black tracking-widest text-slate-400 block"
+                      >
                         {activeSector === "student" ? "Filière" : "Clé d'accès"}
                       </label>
                       <input
+                        id={activeSector === "student" ? "auth-filiere" : "auth-access-key"}
+                        name={activeSector === "student" ? "filiere" : "professorInviteCode"}
                         type="text"
+                        autoComplete={activeSector === "student" ? "organization-title" : "off"}
+                        aria-invalid={Boolean(errorMsg)}
+                        aria-describedby={errorMsg ? "auth-error-msg" : undefined}
                         required={activeSector === "teacher"}
                         placeholder={
                           activeSector === "student"

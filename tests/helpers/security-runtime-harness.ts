@@ -7,6 +7,13 @@ import dotenv from "dotenv";
 
 dotenv.config({ quiet: true });
 
+const isolatedRuntimeDatabaseUrl = process.env.TEST_DATABASE_URL?.trim();
+if (isolatedRuntimeDatabaseUrl) {
+  process.env.DATABASE_URL = isolatedRuntimeDatabaseUrl;
+} else {
+  delete process.env.DATABASE_URL;
+}
+
 const execFileAsync = promisify(execFile);
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -30,7 +37,7 @@ function delay(ms: number) {
 }
 
 export function isSecurityRuntimeDatabaseAvailable() {
-  return Boolean(process.env.DATABASE_URL?.trim());
+  return Boolean(process.env.TEST_DATABASE_URL?.trim() && process.env.DATABASE_URL === process.env.TEST_DATABASE_URL);
 }
 
 export const isSecurityRuntimeDatabaseConfigured = isSecurityRuntimeDatabaseAvailable;
@@ -63,7 +70,9 @@ export function buildSecurityRuntimeServerEnv(port = DEFAULT_SECURITY_RUNTIME_PO
     PORT: String(port),
     SECURITY_RUNTIME_TEST: "1",
     RUN_STARTUP_SEED: "false",
-    NODE_ENV: "development",
+    NODE_ENV: "test",
+    DATABASE_URL: process.env.TEST_DATABASE_URL,
+    TEST_DATABASE_URL: process.env.TEST_DATABASE_URL,
     OPENAI_API_KEY: "",
     RATE_LIMIT_MAX_REQUESTS: process.env.RATE_LIMIT_MAX_REQUESTS || "999999",
     CHAT_TUTOR_RATE_LIMIT_MAX: process.env.CHAT_TUTOR_RATE_LIMIT_MAX || "9999",

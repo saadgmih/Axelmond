@@ -8,11 +8,13 @@ rulesTest("platform-paths", () => {
   assert.deepEqual(resolveInitialPlatformRoute("/about"), {
     currentView: "about",
     teacherView: "dashboard",
+    notFound: false,
   });
 
   assert.deepEqual(resolveInitialPlatformRoute("/teacher/academic-profile"), {
     currentView: "dashboard",
     teacherView: "academic-profile",
+    notFound: false,
   });
 
   assert.deepEqual(parsePlatformPath("/student/catalog"), {
@@ -21,6 +23,7 @@ rulesTest("platform-paths", () => {
     teacherView: "dashboard",
 
     institutionalView: null,
+    notFound: false,
   });
 
   assert.deepEqual(parsePlatformPath("/student/study-plan"), {
@@ -29,6 +32,7 @@ rulesTest("platform-paths", () => {
     teacherView: "dashboard",
 
     institutionalView: null,
+    notFound: false,
   });
 
   assert.deepEqual(parsePlatformPath("/student/objectives"), {
@@ -37,6 +41,7 @@ rulesTest("platform-paths", () => {
     teacherView: "dashboard",
 
     institutionalView: null,
+    notFound: false,
   });
 
   assert.deepEqual(parsePlatformPath("/student/study-schedule"), {
@@ -45,6 +50,7 @@ rulesTest("platform-paths", () => {
     teacherView: "dashboard",
 
     institutionalView: null,
+    notFound: false,
   });
 
   assert.deepEqual(parsePlatformPath("/student/account-security"), {
@@ -53,6 +59,7 @@ rulesTest("platform-paths", () => {
     teacherView: "dashboard",
 
     institutionalView: null,
+    notFound: false,
   });
 
   assert.deepEqual(parsePlatformPath("/student/not-a-view"), {
@@ -61,6 +68,7 @@ rulesTest("platform-paths", () => {
     teacherView: "dashboard",
 
     institutionalView: null,
+    notFound: true,
   });
 
   assert.deepEqual(parsePlatformPath("/teacher/curriculum"), {
@@ -69,6 +77,7 @@ rulesTest("platform-paths", () => {
     teacherView: "curriculum",
 
     institutionalView: null,
+    notFound: false,
   });
 
   assert.deepEqual(parsePlatformPath("/teacher/account-security"), {
@@ -77,6 +86,7 @@ rulesTest("platform-paths", () => {
     teacherView: "account-security",
 
     institutionalView: null,
+    notFound: false,
   });
 
   assert.deepEqual(parsePlatformPath("/teacher/not-a-view"), {
@@ -85,6 +95,7 @@ rulesTest("platform-paths", () => {
     teacherView: "dashboard",
 
     institutionalView: null,
+    notFound: true,
   });
 
   console.log("Platform path parsing tests passed");

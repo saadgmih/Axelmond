@@ -24,6 +24,9 @@ import { stopPerformanceMonitor } from "../performance";
 import { isVerboseStartup } from "./startup-logging";
 import { drainDatabaseForShutdown, isExpectedShutdownCancellation, startupLifecycle } from "./startup-lifecycle";
 import { getActiveHttpRequestCount, waitForActiveHttpRequests } from "./shutdown-coordination";
+import { isKnownPlatformPath } from "../navigation/platformPaths";
+import { renderPlatformHtml } from "./html-document";
+import { getStaticCacheControl } from "./static-cache-policy";
 
 loadEnv();
 
@@ -140,6 +143,7 @@ async function attachStaticOrVite(app: express.Express, isSecurityRuntimeTest: b
   }
 
   const distPath = path.join(process.cwd(), "dist");
+  const indexTemplate = fs.readFileSync(path.join(distPath, "index.html"), "utf8");
 
   app.use((req, res, next) => {
     if (isBlockedProductionSourcePath(req.path)) {
@@ -155,26 +159,14 @@ async function attachStaticOrVite(app: express.Express, isSecurityRuntimeTest: b
       index: false,
       setHeaders(res, filePath) {
         res.setHeader("X-Content-Type-Options", "nosniff");
+        const cacheControl = getStaticCacheControl(filePath, distPath);
+        if (cacheControl) res.setHeader("Cache-Control", cacheControl);
         if (filePath.endsWith(".xml")) {
           res.setHeader("Content-Type", "application/xml; charset=utf-8");
-          res.setHeader("Cache-Control", "public, max-age=86400");
           return;
         }
         if (filePath.endsWith("robots.txt")) {
           res.setHeader("Content-Type", "text/plain; charset=utf-8");
-          res.setHeader("Cache-Control", "public, max-age=86400");
-          return;
-        }
-        if (filePath.endsWith(".html")) {
-          res.setHeader("Cache-Control", "no-store");
-          return;
-        }
-        if (filePath.endsWith("sw.js")) {
-          res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-          return;
-        }
-        if (/\.(js|css|woff2?|png|svg|jpg|jpeg|webp|ico)$/i.test(filePath)) {
-          res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
         }
       },
     }),
@@ -202,7 +194,12 @@ async function attachStaticOrVite(app: express.Express, isSecurityRuntimeTest: b
       res.status(404).type("text/plain").send("Not found");
       return;
     }
-    res.sendFile(path.join(distPath, "index.html"));
+    const nonce = String(res.locals.cspNonce || "");
+    res
+      .status(isKnownPlatformPath(req.path) ? 200 : 404)
+      .type("html")
+      .setHeader("Cache-Control", "no-store")
+      .send(renderPlatformHtml(indexTemplate, req.path, nonce));
   });
   console.log(isVerboseStartup() ? "Serving static files in production mode." : "Static assets enabled.");
 }

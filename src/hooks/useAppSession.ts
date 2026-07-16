@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useState, type Dispatch, type SetStateAction } from "react";
-import { api, getFreshSessionToken, setSessionToken, takeRefreshedSessionUser } from "../api";
+import {
+  api,
+  getFreshSessionToken,
+  getSessionRefreshState,
+  sessionAvailabilityEvents,
+  setSessionToken,
+  takeRefreshedSessionUser,
+} from "../api";
+import { TEMPORARY_SERVICE_MESSAGE } from "../api-response";
 import type { AppUser } from "../components/AuthScreen";
 import { getAllowedUiRole, isStudentRole } from "../rbac";
 import { purgeLegacySessionUserStorage } from "../session-storage";
@@ -18,6 +26,7 @@ export function useAppSession({ setCourses, onAfterLogin, onLogout, onSessionExp
   const [enrolledCourses, setEnrolledCourses] = useState<number[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [isLoginDataLoading, setIsLoginDataLoading] = useState(false);
+  const [sessionUnavailable, setSessionUnavailable] = useState<string | null>(null);
 
   const role = currentUser ? getAllowedUiRole(currentUser.role) : "student";
 
@@ -85,6 +94,7 @@ export function useAppSession({ setCourses, onAfterLogin, onLogout, onSessionExp
     (user: AppUser & { csrfToken?: string }) => {
       const { token, csrfToken, ...sessionUser } = user;
       if (token) setSessionToken(token, csrfToken);
+      setSessionUnavailable(null);
 
       setIsLoginDataLoading(true);
       void (async () => {
@@ -117,30 +127,49 @@ export function useAppSession({ setCourses, onAfterLogin, onLogout, onSessionExp
     [applySessionUser, onAfterLogin, setCourses],
   );
 
+  const recoverSession = useCallback(async () => {
+    setSessionUnavailable(null);
+    const token = await getFreshSessionToken();
+    if (!token) {
+      if (getSessionRefreshState() === "temporarily-unavailable") {
+        setSessionUnavailable(TEMPORARY_SERVICE_MESSAGE);
+      }
+      return;
+    }
+
+    const refreshedUser = takeRefreshedSessionUser<AppUser>();
+    if (refreshedUser) {
+      applySessionUser(refreshedUser);
+      setSessionUnavailable(null);
+      return;
+    }
+
+    try {
+      const user = await api.me();
+      applySessionUser(user);
+      setSessionUnavailable(null);
+    } catch (error: unknown) {
+      const isTransient = Boolean(error && typeof error === "object" && "isTransient" in error && error.isTransient);
+      if (isTransient || getSessionRefreshState() === "temporarily-unavailable") {
+        setSessionUnavailable(error instanceof Error ? error.message : TEMPORARY_SERVICE_MESSAGE);
+        return;
+      }
+      if (getSessionRefreshState() === "expired") clearAuthState();
+    }
+  }, [applySessionUser, clearAuthState]);
+
   useEffect(() => {
-    getFreshSessionToken()
-      .then((token) => {
-        if (!token) {
-          setIsAuthReady(true);
-          return;
-        }
-        const refreshedUser = takeRefreshedSessionUser<AppUser>();
-        if (refreshedUser) {
-          applySessionUser(refreshedUser);
-          return;
-        }
-        return api
-          .me()
-          .then((user) => {
-            applySessionUser(user);
-          })
-          .catch((err) => {
-            console.warn("[rbac] Session validation failed", err);
-            clearAuthState();
-          });
-      })
-      .finally(() => setIsAuthReady(true));
-  }, [clearAuthState]);
+    recoverSession().finally(() => setIsAuthReady(true));
+  }, [recoverSession]);
+
+  const retrySessionRecovery = useCallback(async () => {
+    setIsAuthReady(false);
+    try {
+      await recoverSession();
+    } finally {
+      setIsAuthReady(true);
+    }
+  }, [recoverSession]);
 
   const handleLogout = useCallback(async () => {
     try {
@@ -154,6 +183,7 @@ export function useAppSession({ setCourses, onAfterLogin, onLogout, onSessionExp
   }, [clearAuthState, onLogout]);
 
   const handleSessionExpired = useCallback(() => {
+    setSessionUnavailable(null);
     clearAuthState();
     onLogout?.();
     onSessionExpired?.();
@@ -161,8 +191,16 @@ export function useAppSession({ setCourses, onAfterLogin, onLogout, onSessionExp
   }, [clearAuthState, onLogout, onSessionExpired]);
 
   useEffect(() => {
-    window.addEventListener("axelmond:session-expired", handleSessionExpired);
-    return () => window.removeEventListener("axelmond:session-expired", handleSessionExpired);
+    const handleSessionUnavailable = (event: Event) => {
+      const detail = (event as CustomEvent<{ message?: string }>).detail;
+      setSessionUnavailable(detail?.message || TEMPORARY_SERVICE_MESSAGE);
+    };
+    window.addEventListener(sessionAvailabilityEvents.expired, handleSessionExpired);
+    window.addEventListener(sessionAvailabilityEvents.unavailable, handleSessionUnavailable);
+    return () => {
+      window.removeEventListener(sessionAvailabilityEvents.expired, handleSessionExpired);
+      window.removeEventListener(sessionAvailabilityEvents.unavailable, handleSessionUnavailable);
+    };
   }, [handleSessionExpired]);
 
   return {
@@ -178,6 +216,8 @@ export function useAppSession({ setCourses, onAfterLogin, onLogout, onSessionExp
     handleLoginSuccess,
     handleLogout,
     handleSessionExpired,
+    sessionUnavailable,
+    retrySessionRecovery,
     isLoginDataLoading,
   };
 }

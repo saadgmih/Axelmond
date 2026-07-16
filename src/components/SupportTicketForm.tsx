@@ -139,7 +139,7 @@ export default function SupportTicketForm({
             <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
             <p className="text-xs font-semibold">{successMsg}</p>
           </div>
-          <div className="bg-slate-950/80 border border-slate-850 p-3 rounded-xl space-y-1.5 text-slate-350">
+          <div className="bg-slate-950/80 border border-slate-800 p-3 rounded-xl space-y-1.5 text-slate-300">
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Récapitulatif du ticket</p>
             <p className="text-xs">
               <span className="text-slate-500">Numéro :</span>{" "}
@@ -221,7 +221,7 @@ export default function SupportTicketForm({
             Capture d&apos;écran (facultatif)
           </span>
           {screenshotUrl ? (
-            <div className="bg-slate-950 border border-slate-850 p-3 rounded-2xl flex items-center justify-between gap-3">
+            <div className="bg-slate-950 border border-slate-800 p-3 rounded-2xl flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <img
                   src={screenshotUrl}

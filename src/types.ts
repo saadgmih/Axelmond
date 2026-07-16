@@ -17,6 +17,27 @@ export interface CourseModule {
   published?: boolean;
 }
 
+export interface QuizQuestion {
+  id?: string;
+  question: string;
+  options: string[];
+  answer: string;
+  explanation: string;
+}
+
+export interface QuizAttemptQuestionCorrection extends Omit<QuizQuestion, "options"> {
+  selectedAnswer: string;
+  isCorrect: boolean;
+}
+
+export interface QuizAttemptResult {
+  attemptId: string;
+  score: number;
+  total: number;
+  scoreOutOf20: number;
+  questions: QuizAttemptQuestionCorrection[];
+}
+
 export interface CourseEnrollmentInfo {
   startDate: string;
   endDate: string | null;

@@ -19,6 +19,11 @@ rulesTest("seo-sitemap", () => {
 
   assert.match(robots, /User-agent: \*/);
   assert.match(robots, /Allow: \//);
+  assert.match(robots, /Disallow: \/api\//);
+  assert.match(robots, /Disallow: \/student\//);
+  assert.match(robots, /Disallow: \/teacher\//);
+  assert.match(robots, /Disallow: \/professor\//);
+  assert.match(robots, /Disallow: \/admin\//);
   assert.match(robots, /Sitemap: https:\/\/axelmond\.com\/sitemap\.xml/);
 
   assert.match(indexHtml, /<title>Performance Académique/);

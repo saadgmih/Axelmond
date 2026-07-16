@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateActio
 import { getClientErrorMessage } from "../client-errors";
 import { api } from "../api";
 import type { AppUser } from "../components/AuthScreen";
-import type { Course, CourseModule, Invoice } from "../types";
+import type { Course, CourseModule, Invoice, QuizQuestion } from "../types";
 import { getCourseContentProgress } from "../utils/course-content-metrics";
 
 function withModuleCompletion(course: Course, moduleId: number, completed: boolean): Course {
@@ -50,7 +50,7 @@ export function useStudentCourseSession({
   setCurrentView,
   setIsMobileMenuOpen,
 }: UseStudentCourseSessionOptions) {
-  const [quizQuestions, setQuizQuestions] = useState<any[] | null>(null);
+  const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[] | null>(null);
   const [quizAnswers, setQuizAnswers] = useState<Record<string, string>>({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [quizScore, setQuizScore] = useState<number | null>(null);

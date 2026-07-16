@@ -11,13 +11,7 @@
       "src": "/performance-logo-e6657b8a.png",
       "sizes": "1024x1024",
       "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/performance-logo-e6657b8a.png",
-      "sizes": "1024x1024",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }

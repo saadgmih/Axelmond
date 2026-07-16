@@ -57,12 +57,26 @@ if (!databaseUrl) {
   process.exit(0);
 }
 
+if (process.env.NODE_ENV === "test") {
+  const testDatabaseUrl = process.env.TEST_DATABASE_URL?.trim();
+  if (!testDatabaseUrl || databaseUrl !== testDatabaseUrl) {
+    fail("DATABASE_URL must exactly match TEST_DATABASE_URL before test migrations");
+  }
+  const target = new URL(databaseUrl);
+  const databaseName = decodeURIComponent(target.pathname.replace(/^\/+/, ""));
+  const isLoopback = ["127.0.0.1", "localhost", "::1"].includes(target.hostname.toLowerCase());
+  if (!/(?:^|[_-])(test|tests|ci)(?:$|[_-])/i.test(databaseName)) {
+    fail(`Refusing test migrations against a database not named for tests (${target.hostname}/${databaseName})`);
+  }
+  if (!isLoopback && process.env.ALLOW_REMOTE_TEST_DATABASE !== "1") {
+    fail(`Refusing remote test migrations without ALLOW_REMOTE_TEST_DATABASE=1 (${target.hostname})`);
+  }
+}
+
 run("npx prisma migrate deploy");
 
 try {
-  run(
-    `npx prisma migrate diff --from-url "${databaseUrl}" --to-schema-datamodel prisma/schema.prisma --exit-code`,
-  );
+  run(`npx prisma migrate diff --from-url "${databaseUrl}" --to-schema-datamodel prisma/schema.prisma --exit-code`);
 } catch (err) {
   if (typeof err.status === "number" && err.status === 2) {
     fail("Schema drift detected: prisma/schema.prisma is not fully reflected in applied migrations");

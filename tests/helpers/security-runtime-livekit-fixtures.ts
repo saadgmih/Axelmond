@@ -154,6 +154,16 @@ export async function seedLiveKitRuntimeFixtures(): Promise<LiveKitRuntimeFixtur
     },
   });
 
+  await prisma.liveSession.create({
+    data: {
+      roomName: buildLiveKitRoomName(course.id),
+      title: course.liveSubject,
+      courseId: course.id,
+      professorId: users.ownerProfessor.id,
+      isActive: true,
+    },
+  });
+
   return {
     courseId: course.id,
     roomName: buildLiveKitRoomName(course.id),
