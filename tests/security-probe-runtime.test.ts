@@ -7,8 +7,8 @@ import {
 
 const completeCsp = [
   "default-src 'self'",
-  "script-src 'self' 'nonce-test'",
-  "style-src 'self' 'nonce-test'",
+  "script-src 'self'",
+  "style-src 'self'",
   "font-src 'self' data:",
   "img-src 'self' data:",
   "connect-src 'self'",
@@ -31,12 +31,12 @@ describe("security probe", () => {
     expect(result.missing).toEqual(expect.arrayContaining(REQUIRED_CSP_DIRECTIVES));
   });
 
-  test("accepts a complete nonce-based CSP", () => {
+  test("accepts a complete static CSP without unsafe inline sources", () => {
     expect(validateContentSecurityPolicy(completeCsp)).toMatchObject({
       ok: true,
       missing: [],
-      hasScriptNonce: true,
-      hasStyleNonce: true,
+      hasScriptNonce: false,
+      hasStyleNonce: false,
       unsafeInline: false,
     });
   });

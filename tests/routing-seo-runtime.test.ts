@@ -19,14 +19,15 @@ describe("unknown routes and SEO", () => {
     expect(isKnownPlatformPath("/student/nope")).toBe(false);
   });
 
-  test("renders route-specific metadata and nonce into the production document", () => {
+  test("renders route-specific metadata without inline executable content", () => {
     const template = readFileSync("index.html", "utf8");
-    const html = renderPlatformHtml(template, "/contact", "nonce-value");
+    const html = renderPlatformHtml(template, "/contact");
     const metadata = getRouteMetadata("/contact");
     expect(html).toContain(`<title>${metadata.title}</title>`);
     expect(html).toContain(`href="${metadata.canonical}"`);
-    expect(html).toContain('nonce="nonce-value"');
-    expect(html).not.toContain("__CSP_NONCE__");
+    expect(html).not.toMatch(/<style\b/i);
+    expect(html).not.toMatch(/<script(?![^>]*\bsrc=)[^>]*>/i);
+    expect(html).toContain('itemtype="https://schema.org/Organization"');
   });
 
   test("keeps private and unknown pages out of search indexes", () => {

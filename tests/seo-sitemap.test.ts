@@ -31,7 +31,8 @@ rulesTest("seo-sitemap", () => {
   assert.match(indexHtml, /Performance Académique/);
   assert.match(indexHtml, /<h1[^>]*>Performance Académique/);
   assert.match(indexHtml, /rel="canonical" href="https:\/\/axelmond\.com\/"/);
-  assert.match(indexHtml, /application\/ld\+json/);
+  assert.match(indexHtml, /itemscope\s+itemtype="https:\/\/schema\.org\/Organization"/);
+  assert.match(indexHtml, /itemprop="name">Performance Académique/);
 
   assert.match(serverSource, /seoStaticFiles/);
   assert.match(serverSource, /sitemap\.xml/);

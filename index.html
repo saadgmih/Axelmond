@@ -33,44 +33,21 @@
     />
     <meta name="theme-color" content="#031512" />
     <meta name="color-scheme" content="dark" />
-    <style nonce="__CSP_NONCE__">
-      .seo-only {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border: 0;
-      }
-      html,
-      body,
-      #root {
-        min-height: 100%;
-        margin: 0;
-        background: #031512;
-        color-scheme: dark;
-      }
-    </style>
     <link rel="icon" type="image/png" href="/performance-logo-e6657b8a.png" />
     <link rel="apple-touch-icon" href="/performance-logo-e6657b8a.png" />
     <link rel="manifest" href="/manifest.json" />
-    <script nonce="__CSP_NONCE__" type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "Organization",
-        "name": "Performance Académique",
-        "alternateName": ["Performance Académique"],
-        "url": "https://axelmond.com",
-        "logo": "https://axelmond.com/performance-logo-e6657b8a.png",
-        "description": "Plateforme académique intelligente de formation, progression et réussite."
-      }
-    </script>
   </head>
   <body>
     <h1 class="seo-only">Performance Académique — Plateforme académique de formation</h1>
+    <div class="seo-only" itemscope itemtype="https://schema.org/Organization">
+      <span itemprop="name">Performance Académique</span>
+      <link itemprop="url" href="https://axelmond.com" />
+      <link itemprop="logo" href="https://axelmond.com/performance-logo-e6657b8a.png" />
+      <meta
+        itemprop="description"
+        content="Plateforme académique intelligente de formation, progression et réussite."
+      />
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

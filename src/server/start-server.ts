@@ -194,12 +194,11 @@ async function attachStaticOrVite(app: express.Express, isSecurityRuntimeTest: b
       res.status(404).type("text/plain").send("Not found");
       return;
     }
-    const nonce = String(res.locals.cspNonce || "");
     res
       .status(isKnownPlatformPath(req.path) ? 200 : 404)
       .type("html")
       .setHeader("Cache-Control", "no-store")
-      .send(renderPlatformHtml(indexTemplate, req.path, nonce));
+      .send(renderPlatformHtml(indexTemplate, req.path));
   });
   console.log(isVerboseStartup() ? "Serving static files in production mode." : "Static assets enabled.");
 }

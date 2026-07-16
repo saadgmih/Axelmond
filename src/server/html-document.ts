@@ -10,9 +10,9 @@ function replaceMeta(html: string, attribute: "name" | "property", key: string, 
   return html.replace(pattern, `$1${escaped}$2`);
 }
 
-export function renderPlatformHtml(indexTemplate: string, pathname: string, nonce: string): string {
+export function renderPlatformHtml(indexTemplate: string, pathname: string): string {
   const metadata = getRouteMetadata(pathname);
-  let html = indexTemplate.replaceAll("__CSP_NONCE__", escapeHtmlAttribute(nonce));
+  let html = indexTemplate;
   html = html.replace(/<title>[^<]*<\/title>/i, `<title>${escapeHtmlAttribute(metadata.title)}</title>`);
   html = replaceMeta(html, "name", "description", metadata.description);
   html = replaceMeta(html, "name", "robots", metadata.robots);

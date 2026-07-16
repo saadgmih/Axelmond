@@ -1,6 +1,4 @@
 import express from "express";
-import crypto from "node:crypto";
-import type { IncomingMessage, ServerResponse } from "node:http";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
@@ -34,6 +32,7 @@ import { isDatabaseDisconnected } from "../db";
 import { shutdownGuardMiddleware } from "./shutdown-coordination";
 import { startupLifecycle } from "./startup-lifecycle";
 import { resolveUploadThingCallbackUrl } from "../uploadthing-callback-url";
+import { PRODUCTION_CONTENT_SECURITY_POLICY } from "./production-csp";
 
 export type AxelmondApp = {
   app: express.Express;
@@ -137,13 +136,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
   if (isProduction && allowedOrigins.size === 0) {
     throw new Error("Production CORS allowlist is empty — set APP_URL and/or ALLOWED_ORIGINS");
   }
-  const cspNonce = (_req: IncomingMessage, res: ServerResponse) =>
-    `'nonce-${(res as express.Response).locals.cspNonce}'`;
   const cspFrameSrc = buildCspFrameSrc();
-  app.use((_req, res, next) => {
-    res.locals.cspNonce = crypto.randomBytes(16).toString("base64");
-    next();
-  });
   if (isProduction && process.env.APP_URL?.trim()) {
     const canonicalHost = canonicalSiteHostname(process.env.APP_URL);
     app.use((req, res, next) => {
@@ -165,48 +158,48 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
 
   app.use(
     helmet({
-      contentSecurityPolicy: {
-        directives: {
-          defaultSrc: ["'self'"],
-          scriptSrc: isProduction
-            ? ["'self'", cspNonce, ...PAYPAL_CSP_SCRIPT_SRC]
-            : ["'self'", "'unsafe-inline'", "'unsafe-eval'", ...PAYPAL_CSP_SCRIPT_SRC],
-          scriptSrcAttr: ["'none'"],
-          frameSrc: cspFrameSrc,
-          childSrc: cspFrameSrc,
-          styleSrc: isProduction ? ["'self'", cspNonce] : ["'self'", "'unsafe-inline'"],
-          styleSrcAttr: ["'unsafe-inline'"],
-          fontSrc: ["'self'", "data:"],
-          imgSrc: [
-            "'self'",
-            "data:",
-            "blob:",
-            ...PAYPAL_CSP_IMG_SRC,
-            "https://uploadthing.com",
-            "https://*.uploadthing.com",
-            "https://ufs.sh",
-            "https://*.ufs.sh",
-            "https://utfs.io",
-            "https://*.utfs.io",
-          ],
-          mediaSrc: [
-            "'self'",
-            "https://uploadthing.com",
-            "https://*.uploadthing.com",
-            "https://ufs.sh",
-            "https://*.ufs.sh",
-            "https://utfs.io",
-            "https://*.utfs.io",
-          ],
-          connectSrc: buildCspConnectSrc(allowedOrigins, isProduction),
-          workerSrc: ["'self'", "blob:"],
-          manifestSrc: ["'self'"],
-          objectSrc: ["'none'"],
-          baseUri: ["'self'"],
-          formAction: ["'self'", ...PAYPAL_CSP_FORM_ACTION],
-          frameAncestors: ["'self'"],
-        },
-      },
+      contentSecurityPolicy: isProduction
+        ? false
+        : {
+            directives: {
+              defaultSrc: ["'self'"],
+              scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", ...PAYPAL_CSP_SCRIPT_SRC],
+              scriptSrcAttr: ["'none'"],
+              frameSrc: cspFrameSrc,
+              childSrc: cspFrameSrc,
+              styleSrc: ["'self'", "'unsafe-inline'"],
+              styleSrcAttr: ["'unsafe-inline'"],
+              fontSrc: ["'self'", "data:"],
+              imgSrc: [
+                "'self'",
+                "data:",
+                "blob:",
+                ...PAYPAL_CSP_IMG_SRC,
+                "https://uploadthing.com",
+                "https://*.uploadthing.com",
+                "https://ufs.sh",
+                "https://*.ufs.sh",
+                "https://utfs.io",
+                "https://*.utfs.io",
+              ],
+              mediaSrc: [
+                "'self'",
+                "https://uploadthing.com",
+                "https://*.uploadthing.com",
+                "https://ufs.sh",
+                "https://*.ufs.sh",
+                "https://utfs.io",
+                "https://*.utfs.io",
+              ],
+              connectSrc: buildCspConnectSrc(allowedOrigins, false),
+              workerSrc: ["'self'", "blob:"],
+              manifestSrc: ["'self'"],
+              objectSrc: ["'none'"],
+              baseUri: ["'self'"],
+              formAction: ["'self'", ...PAYPAL_CSP_FORM_ACTION],
+              frameAncestors: ["'self'"],
+            },
+          },
       crossOriginEmbedderPolicy: false,
       crossOriginOpenerPolicy: { policy: "same-origin" },
       crossOriginResourcePolicy: { policy: "same-site" },
@@ -215,6 +208,13 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
       referrerPolicy: { policy: "strict-origin-when-cross-origin" },
     }),
   );
+
+  if (isProduction) {
+    app.use((_req, res, next) => {
+      res.setHeader("Content-Security-Policy", PRODUCTION_CONTENT_SECURITY_POLICY);
+      next();
+    });
+  }
 
   app.use((_req, res, next) => {
     res.setHeader("Permissions-Policy", "camera=(self), microphone=(self), geolocation=(), payment=(self)");

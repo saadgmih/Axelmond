@@ -52,7 +52,8 @@ rulesTest("brand-green-theme", () => {
 
   const manifestSource = fs.readFileSync("public/manifest.json", "utf8");
   const indexHtml = fs.readFileSync("index.html", "utf8");
-  assert.match(indexHtml, /background:\s*#031512/i);
+  const indexCss = fs.readFileSync("src/index.css", "utf8");
+  assert.match(indexCss, /background(?:-color)?:\s*#031512/i);
   assert.match(indexHtml, /theme-color" content="#031512"/i);
   assert.doesNotMatch(indexHtml, /#111827/i);
   assert.match(manifestSource, /"theme_color":\s*"#05C2A5"/);

@@ -40,7 +40,7 @@ export function validateContentSecurityPolicy(value) {
   const unsafeInline = scriptSources.includes("'unsafe-inline'") || styleSources.includes("'unsafe-inline'");
   const onlyUpgradeInsecureRequests = directives.size === 1 && directives.has("upgrade-insecure-requests");
   return {
-    ok: missing.length === 0 && hasScriptNonce && hasStyleNonce && !unsafeInline && !onlyUpgradeInsecureRequests,
+    ok: missing.length === 0 && !unsafeInline && !onlyUpgradeInsecureRequests,
     missing,
     hasScriptNonce,
     hasStyleNonce,
@@ -98,7 +98,7 @@ export async function runSecurityProbe(options = {}) {
       id: "header-content-security-policy-complete",
       ok: cspValidation.ok,
       detail: cspValidation.ok
-        ? "complete CSP with script/style nonces"
+        ? "complete CSP without unsafe inline script/style sources"
         : `missing=${cspValidation.missing.join(",") || "none"}; onlyUpgrade=${cspValidation.onlyUpgradeInsecureRequests}; unsafeInline=${cspValidation.unsafeInline}`,
     });
 

@@ -84,9 +84,8 @@ rulesTest("security", () => {
   assert.match(serverSource, /if\s*\(!isProduction\)/);
 
   // 6d. CSP durcie en production (pas de unsafe-eval)
-  assert.match(serverSource, /scriptSrc:\s*isProduction/);
-  assert.match(serverSource, /cspNonce/);
-  assert.match(serverSource, /scriptSrc:\s*isProduction[\s\S]*?\?\s*\["'self'",\s*cspNonce/);
+  assert.match(serverSource, /PRODUCTION_CONTENT_SECURITY_POLICY/);
+  assert.match(serverSource, /res\.setHeader\("Content-Security-Policy", PRODUCTION_CONTENT_SECURITY_POLICY\)/);
   assert.match(serverSource, /scriptSrcAttr:\s*\["'none'"\]/);
   assert.match(serverSource, /objectSrc:\s*\["'none'"\]/);
   assert.match(serverSource, /function buildCspConnectSrc/);
@@ -94,6 +93,9 @@ rulesTest("security", () => {
   assert.doesNotMatch(serverSource, /connectSrc\.push\("ws:",\s*"wss:"\)/);
   assert.doesNotMatch(serverSource, /connectSrc:\s*\[[^\]]*"ws:"/);
   assert.doesNotMatch(serverSource, /connectSrc:\s*\[[^\]]*"wss:"/);
+  const indexHtml = fs.readFileSync("index.html", "utf8");
+  assert.doesNotMatch(indexHtml, /<style\b/i);
+  assert.doesNotMatch(indexHtml, /<script(?![^>]*\bsrc=)[^>]*>/i);
 
   // 7. Vérification d'e-mail avec rate limiters et protection
   assert.doesNotMatch(serverSource, /emailVerificationRateLimiter/);
