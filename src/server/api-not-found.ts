@@ -1,6 +1,14 @@
 import type express from "express";
 
-type ApiRouteLayer = { route?: { methods?: Record<string, boolean> }; regexp?: RegExp };
+type ApiRoutePath = string | string[] | RegExp;
+type ApiRouteLayer = { route?: { methods?: Record<string, boolean>; path?: ApiRoutePath }; regexp?: RegExp };
+
+function isExplicitApiRoute(path: ApiRoutePath | undefined): boolean {
+  const paths = Array.isArray(path) ? path : [path];
+  return paths.some(
+    (candidate) => typeof candidate === "string" && (candidate === "/api" || candidate.startsWith("/api/")),
+  );
+}
 
 export function createUnknownApiRouteGuard(app: express.Express): express.RequestHandler {
   return (req, res, next) => {
@@ -9,7 +17,11 @@ export function createUnknownApiRouteGuard(app: express.Express): express.Reques
     const routeStack = (app as unknown as { _router?: { stack?: ApiRouteLayer[] } })._router?.stack;
     const isRegisteredRoute = Boolean(
       routeStack?.some(
-        (layer) => layer.route?.methods?.[method] && layer.regexp instanceof RegExp && layer.regexp.test(pathname),
+        (layer) =>
+          isExplicitApiRoute(layer.route?.path) &&
+          layer.route?.methods?.[method] &&
+          layer.regexp instanceof RegExp &&
+          layer.regexp.test(pathname),
       ),
     );
     const isRegisteredMiddlewareRoute = pathname.startsWith("/api/uploadthing");

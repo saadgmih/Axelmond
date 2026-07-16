@@ -6,6 +6,7 @@ import { validateContentSecurityPolicy } from "../scripts/security-probe.mjs";
 describe("unknown API route", () => {
   test("returns a JSON 404 and never the SPA document", async () => {
     const { app } = createAxelmondApp();
+    app.get("*", (_req, res) => res.status(200).type("html").send('<div id="root"></div>'));
     const response = await request(app).get("/api/definitely-unknown");
     expect(response.status).toBe(404);
     expect(response.type).toMatch(/json/);

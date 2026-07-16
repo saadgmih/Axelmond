@@ -104,6 +104,7 @@ rulesTest("startup-shutdown-race", async () => {
   const refreshCleanup = fs.readFileSync("src/auth-token-cleanup.ts", "utf8");
   const auditCleanup = fs.readFileSync("src/audit-log-service.ts", "utf8");
   const database = fs.readFileSync("src/db.ts", "utf8");
+  const messagingSocket = fs.readFileSync("src/messaging-socket.ts", "utf8");
 
   assert.match(startServer, /startupLifecycle\.trackCriticalTask/);
   assert.match(startServer, /waitForActiveHttpRequests/);
@@ -112,10 +113,15 @@ rulesTest("startup-shutdown-race", async () => {
   assert.match(createApp, /isDatabaseDisconnected/);
   assert.match(startServer, /stopAuditLogRetention\(\)/);
   assert.match(startServer, /stopRefreshTokenCleanup\(\)/);
+  assert.match(startServer, /stopMessagingSocket\(\)/);
   assert.match(startServer, /isExpectedShutdownCancellation/);
   assert.doesNotMatch(startServer, /void runDeferredStartupTasks/);
   assert.match(refreshCleanup, /activePurge/);
   assert.match(auditCleanup, /activePurge/);
   assert.match(database, /trackTask\?:/);
   assert.match(startServer, /verifyDatabaseConnection\(\{[\s\S]*trackTask:/);
+  assert.match(startServer, /const databaseDisconnected = requestsDrained/);
+  assert.ok(startServer.indexOf("httpServer.close(()") < startServer.indexOf("httpServer.closeAllConnections?.()"));
+  assert.match(messagingSocket, /startupLifecycle\.trackCriticalTask/);
+  assert.match(messagingSocket, /export async function stopMessagingSocket/);
 });

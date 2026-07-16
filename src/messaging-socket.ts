@@ -3,6 +3,8 @@ import { prisma } from "./db";
 import { verifyAuthToken } from "./auth-token";
 import { isConversationParticipant } from "./messaging";
 import { normalizeRole } from "./rbac";
+import { isExpectedShutdownCancellation, startupLifecycle } from "./server/startup-lifecycle";
+import { logDb } from "./server/route-loggers";
 
 const SOCKET_AUTH_CACHE_MS = Number(process.env.SOCKET_AUTH_CACHE_MS) || 5000;
 const configuredSocketCacheMax = Number(process.env.SOCKET_AUTH_CACHE_MAX_ENTRIES);
@@ -52,7 +54,22 @@ async function resolveSocketAuthUser(session: { userId: string; role: string; au
 }
 
 type MessagingIo = import("socket.io").Server;
+type MessagingSocket = import("socket.io").Socket;
 let messagingIo: MessagingIo | null = null;
+
+function runMessagingTask(socket: MessagingSocket, task: () => Promise<void>): void {
+  if (startupLifecycle.isShuttingDown) return;
+
+  const trackedTask = startupLifecycle.trackCriticalTask(task());
+  void trackedTask.catch((error) => {
+    if (isExpectedShutdownCancellation(error)) return;
+    logDb("ERROR", "Messaging socket action failed", {
+      socketId: socket.id,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    socket.emit("messaging:error", { code: "MESSAGING_ACTION_FAILED" });
+  });
+}
 
 export async function initMessagingSocket(
   httpServer: HttpServer,
@@ -81,6 +98,10 @@ export async function initMessagingSocket(
 
   messagingIo.use(async (socket, next) => {
     try {
+      if (startupLifecycle.isShuttingDown) {
+        next(new Error("Service restarting"));
+        return;
+      }
       const rawToken = socket.handshake.auth?.token || socket.handshake.headers.authorization;
       const token = typeof rawToken === "string" ? rawToken.replace(/^Bearer\s+/i, "") : "";
       const session = verifyAuthToken(token);
@@ -88,7 +109,7 @@ export async function initMessagingSocket(
         next(new Error("Unauthorized"));
         return;
       }
-      const userId = await resolveSocketAuthUser(session);
+      const userId = await startupLifecycle.trackCriticalTask(resolveSocketAuthUser(session));
       if (!userId) {
         next(new Error("Unauthorized"));
         return;
@@ -105,35 +126,41 @@ export async function initMessagingSocket(
     if (!userId) return;
     socket.join(`user:${userId}`);
 
-    socket.on("conversation:join", async (conversationId: string) => {
+    socket.on("conversation:join", (conversationId: string) => {
       if (typeof conversationId !== "string") return;
-      if (await isConversationParticipant(conversationId, userId)) {
-        socket.join(`conversation:${conversationId}`);
-      }
+      runMessagingTask(socket, async () => {
+        if (await isConversationParticipant(conversationId, userId)) {
+          await socket.join(`conversation:${conversationId}`);
+        }
+      });
     });
 
     socket.on("conversation:leave", (conversationId: string) => {
       if (typeof conversationId === "string") socket.leave(`conversation:${conversationId}`);
     });
 
-    socket.on("typing:start", async (conversationId: string) => {
+    socket.on("typing:start", (conversationId: string) => {
       if (typeof conversationId !== "string") return;
-      if (!(await isConversationParticipant(conversationId, userId))) return;
-      await prisma.conversationParticipant.update({
-        where: { conversationId_userId: { conversationId, userId } },
-        data: { typingUntil: new Date(Date.now() + 5000) },
+      runMessagingTask(socket, async () => {
+        if (!(await isConversationParticipant(conversationId, userId))) return;
+        await prisma.conversationParticipant.update({
+          where: { conversationId_userId: { conversationId, userId } },
+          data: { typingUntil: new Date(Date.now() + 5000) },
+        });
+        socket.to(`conversation:${conversationId}`).emit("typing:update", { conversationId, userId, isTyping: true });
       });
-      socket.to(`conversation:${conversationId}`).emit("typing:update", { conversationId, userId, isTyping: true });
     });
 
-    socket.on("typing:stop", async (conversationId: string) => {
+    socket.on("typing:stop", (conversationId: string) => {
       if (typeof conversationId !== "string") return;
-      if (!(await isConversationParticipant(conversationId, userId))) return;
-      await prisma.conversationParticipant.update({
-        where: { conversationId_userId: { conversationId, userId } },
-        data: { typingUntil: null },
+      runMessagingTask(socket, async () => {
+        if (!(await isConversationParticipant(conversationId, userId))) return;
+        await prisma.conversationParticipant.update({
+          where: { conversationId_userId: { conversationId, userId } },
+          data: { typingUntil: null },
+        });
+        socket.to(`conversation:${conversationId}`).emit("typing:update", { conversationId, userId, isTyping: false });
       });
-      socket.to(`conversation:${conversationId}`).emit("typing:update", { conversationId, userId, isTyping: false });
     });
   });
 
@@ -142,6 +169,17 @@ export async function initMessagingSocket(
 
 export function getMessagingIo() {
   return messagingIo;
+}
+
+export async function stopMessagingSocket(): Promise<void> {
+  const io = messagingIo;
+  messagingIo = null;
+  socketAuthCache.clear();
+  if (!io) return;
+
+  await new Promise<void>((resolve) => {
+    io.close(() => resolve());
+  });
 }
 
 export function emitToUser(userId: string, event: string, payload: unknown) {

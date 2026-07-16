@@ -7,7 +7,7 @@ import { createServer as createViteServer } from "vite";
 import { patchExpressAsyncRoutes } from "../express-async";
 import { isBlockedProductionSourcePath } from "../static-source-guard";
 import { assertProductionConfiguration } from "../production-config";
-import { initMessagingSocket } from "../messaging-socket";
+import { initMessagingSocket, stopMessagingSocket } from "../messaging-socket";
 import { verifyDatabaseConnection } from "../db";
 import { getPayPalRuntimeEnv } from "../paypal-server";
 import { startPerformanceMonitor } from "../performance";
@@ -433,10 +433,6 @@ function registerGracefulShutdown(httpServer: ReturnType<typeof createServer>, i
       activeHttpRequests: getActiveHttpRequestCount(),
     });
 
-    if (process.env.HOSTINGER_WEBAPP === "1") {
-      httpServer.closeAllConnections?.();
-    }
-
     const forcedShutdownTimer = setTimeout(() => {
       logDb("ERROR", "Forced shutdown after timeout", {
         signal,
@@ -457,8 +453,12 @@ function registerGracefulShutdown(httpServer: ReturnType<typeof createServer>, i
         resolve();
       });
     });
+    const messagingClosed = stopMessagingSocket().catch((err) => {
+      logDb("WARN", "Messaging socket shutdown failed", { error: String(err) });
+    });
 
     const remainingAfterHttpClose = () => Math.max(0, shutdownTimeoutMs - (Date.now() - shutdownStartedAt));
+    await messagingClosed;
     const requestsDrained = await waitForActiveHttpRequests(remainingAfterHttpClose());
     if (!requestsDrained) {
       logDb("WARN", "Active HTTP requests still running before database shutdown", {
@@ -466,29 +466,30 @@ function registerGracefulShutdown(httpServer: ReturnType<typeof createServer>, i
         activeHttpRequests: getActiveHttpRequestCount(),
       });
       httpServer.closeAllConnections?.();
-      await waitForActiveHttpRequests(Math.min(remainingAfterHttpClose(), 1_000));
     }
 
-    const databaseDisconnected = await drainDatabaseForShutdown({
-      lifecycle: startupLifecycle,
-      timeoutMs: remainingAfterHttpClose(),
-      stopDatabaseTasks: async () => {
-        await Promise.all([stopAuditLogRetention(), stopRefreshTokenCleanup()]);
-      },
-      disconnectDatabase: async () => {
-        try {
-          await disconnectCache();
-        } catch (err) {
-          logDb("WARN", "Cache disconnect failed during shutdown", { error: String(err) });
-        }
-        try {
-          const { disconnectDatabase } = await import("../db");
-          await disconnectDatabase();
-        } catch (err) {
-          logDb("WARN", "Database disconnect failed during shutdown", { error: String(err) });
-        }
-      },
-    });
+    const databaseDisconnected = requestsDrained
+      ? await drainDatabaseForShutdown({
+          lifecycle: startupLifecycle,
+          timeoutMs: remainingAfterHttpClose(),
+          stopDatabaseTasks: async () => {
+            await Promise.all([stopAuditLogRetention(), stopRefreshTokenCleanup()]);
+          },
+          disconnectDatabase: async () => {
+            try {
+              await disconnectCache();
+            } catch (err) {
+              logDb("WARN", "Cache disconnect failed during shutdown", { error: String(err) });
+            }
+            try {
+              const { disconnectDatabase } = await import("../db");
+              await disconnectDatabase();
+            } catch (err) {
+              logDb("WARN", "Database disconnect failed during shutdown", { error: String(err) });
+            }
+          },
+        })
+      : false;
 
     if (!databaseDisconnected) {
       logDb("WARN", "Database disconnect skipped because startup tasks did not finish in time", {
