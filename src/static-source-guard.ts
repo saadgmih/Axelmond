@@ -28,5 +28,8 @@ export function isBlockedProductionSourcePath(requestPath: string): boolean {
   const dotIndex = lastSegment.lastIndexOf(".");
   if (dotIndex === -1) return false;
 
-  return BLOCKED_EXTENSIONS.has(lastSegment.slice(dotIndex));
+  const extension = lastSegment.slice(dotIndex);
+  if (extension === ".mjs" && path.startsWith("/assets/")) return false;
+
+  return BLOCKED_EXTENSIONS.has(extension);
 }

@@ -10,7 +10,7 @@ export function getStaticCacheControl(filePath: string, distPath: string): strin
   if (fileName === "robots.txt" || fileName.endsWith(".xml")) return "public, max-age=86400";
   if (
     normalizedFile.startsWith(normalizedAssets) &&
-    /\.(js|css|woff2?|ttf|png|svg|jpg|jpeg|webp|ico)$/i.test(normalizedFile)
+    /\.(js|mjs|css|woff2?|ttf|png|svg|jpg|jpeg|webp|ico)$/i.test(normalizedFile)
   ) {
     return "public, max-age=31536000, immutable";
   }

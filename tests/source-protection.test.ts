@@ -17,6 +17,8 @@ rulesTest("source-protection", () => {
   assert.equal(isBlockedProductionSourcePath("/package.json"), true);
   assert.equal(isBlockedProductionSourcePath("/node_modules/react/index.js"), true);
   assert.equal(isBlockedProductionSourcePath("/assets/a1b2c3.js"), false);
+  assert.equal(isBlockedProductionSourcePath("/assets/pdf-worker.mjs"), false);
+  assert.equal(isBlockedProductionSourcePath("/internal-tool.mjs"), true);
   assert.equal(isBlockedProductionSourcePath("/assets/a1b2c3.css"), false);
   assert.equal(isBlockedProductionSourcePath("/"), false);
 

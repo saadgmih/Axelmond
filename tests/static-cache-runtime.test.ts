@@ -9,6 +9,9 @@ describe("static cache policy", () => {
     expect(getStaticCacheControl(path.join(dist, "assets", "abc123.js"), dist)).toBe(
       "public, max-age=31536000, immutable",
     );
+    expect(getStaticCacheControl(path.join(dist, "assets", "pdf-worker.mjs"), dist)).toBe(
+      "public, max-age=31536000, immutable",
+    );
   });
 
   test("allows non-versioned public images to be refreshed", () => {
