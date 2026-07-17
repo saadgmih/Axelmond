@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getClientErrorMessage } from "../client-errors";
-import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 import {
   ArrowRight,
   BookOpen,
@@ -40,13 +39,6 @@ type PayPalConfig = {
 };
 
 const PAYPAL_MAD_TO_USD_RATE = 0.1;
-
-const paypalButtonBaseStyle = {
-  layout: "vertical" as const,
-  shape: "rect" as const,
-  height: 44,
-  tagline: false,
-};
 
 const scrollAreaClass = "payment-modal-scroll-area min-h-0 overflow-y-auto overscroll-contain";
 
@@ -218,7 +210,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
     return order.id;
   };
 
-  const handleHostedCardCheckout = async () => {
+  const handleHostedPayPalCheckout = async () => {
     if (!paypalConfig || isProcessing) return;
     setIsProcessing(true);
     setPaymentError("");
@@ -235,16 +227,6 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
     } catch (err: unknown) {
       setPaymentError(getClientErrorMessage(err, "Impossible d'ouvrir le paiement sécurisé par carte."));
       setIsProcessing(false);
-    }
-  };
-
-  const onPayPalCreateOrder = async () => {
-    try {
-      return await handleCreatePayPalOrder();
-    } catch (err: any) {
-      const message = getClientErrorMessage(err, "Impossible de créer la commande PayPal.");
-      setPaymentError(message);
-      throw err;
     }
   };
 
@@ -454,71 +436,26 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                               </div>
                             )}
 
-                            <PayPalScriptProvider
-                              options={{
-                                clientId: paypalConfig.clientId,
-                                currency: paypalConfig.currency,
-                                intent: "capture",
-                                components: "buttons",
-                                locale: "fr_FR",
-                                disableFunding: ["venmo", "paylater", "credit", "card"],
-                              }}
+                            <button
+                              type="button"
+                              data-testid="paypal-hosted-card-checkout"
+                              onClick={() => void handleHostedPayPalCheckout()}
+                              disabled={isProcessing}
+                              className="flex w-full items-center justify-center gap-3 rounded-xl bg-[#0070ba] px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-sky-950/20 transition-colors hover:bg-[#005ea6] disabled:cursor-wait disabled:opacity-60"
                             >
-                              <div className="space-y-3">
-                                <div className="axelmond-paypal-buttons min-h-[58px] w-full min-w-0">
-                                  <PayPalButtons
-                                    className="w-full"
-                                    style={{
-                                      ...paypalButtonBaseStyle,
-                                      color: "blue",
-                                      label: "paypal",
-                                    }}
-                                    disabled={isProcessing}
-                                    createOrder={onPayPalCreateOrder}
-                                    onApprove={async (data) => {
-                                      if (!data.orderID) {
-                                        setPaymentError("Commande PayPal invalide.");
-                                        return;
-                                      }
-                                      await handlePayPalApprove(data.orderID);
-                                    }}
-                                    onError={(err) => {
-                                      console.error("[paypal] checkout error", err);
-                                      setPaymentError(
-                                        (current) =>
-                                          current ||
-                                          "Erreur PayPal. Veuillez réessayer ou utiliser un autre moyen de paiement.",
-                                      );
-                                    }}
-                                    onCancel={() => {
-                                      setPaymentError("Paiement annulé.");
-                                    }}
-                                  />
-                                </div>
-
-                                <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                                  <span className="h-px flex-1 bg-white/10" />
-                                  ou
-                                  <span className="h-px flex-1 bg-white/10" />
-                                </div>
-
-                                <button
-                                  type="button"
-                                  data-testid="paypal-hosted-card-checkout"
-                                  onClick={() => void handleHostedCardCheckout()}
-                                  disabled={isProcessing}
-                                  className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/15 bg-white px-4 py-3 text-sm font-bold text-slate-900 transition-colors hover:bg-slate-100 disabled:cursor-wait disabled:opacity-60"
-                                >
-                                  <CreditCard className="h-5 w-5" />
-                                  <span className="text-left">
-                                    <span className="block">Payer par carte bancaire</span>
-                                    <span className="block text-[10px] font-medium text-slate-500">
-                                      Formulaire sécurisé sur PayPal
-                                    </span>
-                                  </span>
-                                </button>
-                              </div>
-                            </PayPalScriptProvider>
+                              {isProcessing ? (
+                                <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                              ) : (
+                                <CreditCard className="h-5 w-5 shrink-0" />
+                              )}
+                              <span className="text-left">
+                                <span className="block">Payer par carte bancaire ou PayPal</span>
+                                <span className="block text-[10px] font-medium text-white/75">
+                                  Ouverture du formulaire sécurisé PayPal
+                                </span>
+                              </span>
+                              <ArrowRight className="h-4 w-4 shrink-0" />
+                            </button>
 
                             <p className="mt-3 flex items-center justify-center gap-1.5 text-[10px] font-medium text-slate-500">
                               <CreditCard className="h-3 w-3 text-emerald-400/80" />
