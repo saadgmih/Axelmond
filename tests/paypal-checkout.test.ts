@@ -19,6 +19,11 @@ rulesTest("paypal-checkout", () => {
   assert.match(apiSource, /"\/api\/paypal\/create-order"/);
   assert.match(apiSource, /"\/api\/paypal\/capture-order"/);
   assert.match(paymentModalSource, /PayPalButtons/);
+  assert.match(paymentModalSource, /locale:\s*"fr_FR"/);
+  assert.match(paymentModalSource, /max-w-\[520px\]/);
+  assert.match(paymentModalSource, /max-h-\[min\(820px,96dvh\)\]/);
+  assert.match(paymentModalSource, /payment-modal-scroll-area min-h-0 overflow-y-auto/);
+  assert.match(paymentModalSource, /height:\s*55/);
   assert.match(paymentModalSource, /api\.createPayPalOrder\(course\.id,\s*appliedPromo,\s*includeAiAssistant\)/);
   assert.match(paymentModalSource, /api\.capturePayPalOrder\(/);
   assert.match(serverSource, /app\.post\("\/api\/paypal\/create-order"/);

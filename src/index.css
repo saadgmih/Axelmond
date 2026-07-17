@@ -1035,11 +1035,27 @@ body {
 }
 
 /* PayPal checkout — align iframe shells with Axelmond dark UI */
+.payment-modal-scroll-area {
+  scrollbar-gutter: stable;
+}
+
+.axelmond-paypal-shell,
+.axelmond-paypal-shell > div,
 .axelmond-paypal-shell [data-funding-source] {
+  width: 100%;
+  min-width: 0;
+}
+
+.axelmond-paypal-shell [data-funding-source] {
+  overflow: visible;
   border-radius: 0.75rem;
 }
 
 .axelmond-paypal-shell iframe.component-frame {
+  display: block;
+  width: 100% !important;
+  max-width: 100% !important;
+  border: 0;
   border-radius: 0.75rem !important;
 }
 

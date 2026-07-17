@@ -37,11 +37,11 @@ const PAYPAL_MAD_TO_USD_RATE = 0.1;
 const paypalButtonBaseStyle = {
   layout: "vertical" as const,
   shape: "rect" as const,
-  height: 44,
+  height: 55,
   tagline: false,
 };
 
-const scrollAreaClass = "overflow-y-auto overscroll-contain";
+const scrollAreaClass = "payment-modal-scroll-area min-h-0 overflow-y-auto overscroll-contain";
 
 export default function PaymentModal({ course, onClose, onSuccess }: PaymentModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -198,8 +198,8 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
       aria-modal="true"
       aria-labelledby="payment-modal-title"
     >
-      <div className="w-full max-w-[440px] animate-in fade-in slide-in-from-bottom-4 duration-300 sm:zoom-in-95 sm:slide-in-from-bottom-0">
-        <div className="flex max-h-[min(680px,94dvh)] flex-col overflow-hidden rounded-t-[24px] border border-white/10 bg-[#0b1220] shadow-[0_24px_80px_-12px_rgba(0,0,0,0.65)] sm:rounded-[24px]">
+      <div className="w-full max-w-[520px] animate-in fade-in slide-in-from-bottom-4 duration-300 sm:zoom-in-95 sm:slide-in-from-bottom-0">
+        <div className="flex max-h-[min(820px,96dvh)] flex-col overflow-hidden rounded-t-[24px] border border-white/10 bg-[#0b1220] shadow-[0_24px_80px_-12px_rgba(0,0,0,0.65)] sm:rounded-[24px]">
           {step === "form" && (
             <>
               {/* Header */}
@@ -373,7 +373,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                         )}
 
                         {paypalConfig && (
-                          <div className="axelmond-paypal-shell relative rounded-2xl border border-emerald-400/15 bg-gradient-to-br from-emerald-500/[0.1] via-slate-900/50 to-teal-500/[0.08] p-3 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
+                          <div className="axelmond-paypal-shell relative w-full min-w-0 overflow-visible rounded-2xl border border-emerald-400/15 bg-gradient-to-br from-emerald-500/[0.1] via-slate-900/50 to-teal-500/[0.08] p-3 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
                             {paypalConfig.currency !== PLATFORM_CURRENCY_CODE && (
                               <div className="mb-3 flex items-start gap-2.5 rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-3 py-2.5">
                                 <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-300" />
@@ -393,11 +393,13 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                                 currency: paypalConfig.currency,
                                 intent: "capture",
                                 components: "buttons",
+                                locale: "fr_FR",
                                 disableFunding: ["venmo", "paylater", "credit"],
                               }}
                             >
-                              <div className="min-h-[120px]">
+                              <div className="min-h-[132px] w-full min-w-0">
                                 <PayPalButtons
+                                  className="w-full"
                                   style={{
                                     ...paypalButtonBaseStyle,
                                     color: "blue",
