@@ -170,7 +170,7 @@ function getPayPalApplicationContext() {
     brand_name: "Performance Académique",
     user_action: "PAY_NOW" as const,
     shipping_preference: "NO_SHIPPING" as const,
-    landing_page: "NO_PREFERENCE" as const,
+    landing_page: "BILLING" as const,
     return_url: `${appUrl}/?payment=success`,
     cancel_url: `${appUrl}/?payment=cancel`,
   };

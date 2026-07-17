@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getClientErrorMessage } from "../client-errors";
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 import {
@@ -19,6 +19,13 @@ import { api, getFreshSessionToken } from "../api";
 import { formatCredits, formatMad, PLATFORM_CURRENCY_CODE } from "../utils/morocco-locale";
 import { AI_TUTOR_ADDON_PRICE_MAD, computeCourseCheckoutTotalMad } from "../utils/ai-tutor-pricing";
 import { useFocusTrap } from "../hooks/useFocusTrap";
+import {
+  buildPayPalHostedCheckoutUrl,
+  clearPayPalReturnQuery,
+  clearPendingPayPalCheckout,
+  readPendingPayPalCheckout,
+  storePendingPayPalCheckout,
+} from "../utils/paypal-hosted-checkout";
 
 interface PaymentModalProps {
   course: Course | null;
@@ -45,6 +52,7 @@ const scrollAreaClass = "payment-modal-scroll-area min-h-0 overflow-y-auto overs
 
 export default function PaymentModal({ course, onClose, onSuccess }: PaymentModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const hostedReturnHandledRef = useRef(false);
   const [promoCode, setPromoCode] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState(0);
   const [promoError, setPromoError] = useState("");
@@ -104,6 +112,65 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
 
   useFocusTrap(dialogRef, Boolean(course));
 
+  const handlePayPalApprove = useCallback(
+    async (orderId: string) => {
+      if (!course) return;
+      setStep("loading");
+      setIsProcessing(true);
+      setPaymentError("");
+
+      try {
+        const result = await api.capturePayPalOrder(orderId, course.id);
+        if (!result.user) {
+          throw new Error("Inscription non confirmée par le serveur. Contactez le support.");
+        }
+        await onSuccess(course.id, result.invoice?.amount ?? finalPrice, result.user);
+        setStep("success");
+      } catch (err: unknown) {
+        setPaymentError(getClientErrorMessage(err, "Impossible de finaliser le paiement PayPal."));
+        setStep("form");
+      } finally {
+        setIsProcessing(false);
+      }
+    },
+    [course, finalPrice, onSuccess],
+  );
+
+  useEffect(() => {
+    if (!course || hostedReturnHandledRef.current || typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const paymentStatus = params.get("payment");
+    if (paymentStatus !== "success" && paymentStatus !== "cancel") return;
+
+    const pending = readPendingPayPalCheckout();
+    if (!pending || pending.courseId !== course.id) {
+      clearPendingPayPalCheckout();
+      clearPayPalReturnQuery();
+      return;
+    }
+
+    hostedReturnHandledRef.current = true;
+    if (paymentStatus === "cancel") {
+      setPaymentError("Paiement par carte annulé. Vous pouvez réessayer.");
+      clearPendingPayPalCheckout();
+      clearPayPalReturnQuery();
+      return;
+    }
+
+    const orderId = String(params.get("token") || "").trim();
+    if (!orderId || orderId !== pending.orderId) {
+      setPaymentError("Le retour PayPal est invalide ou a expiré. Veuillez recommencer le paiement.");
+      clearPendingPayPalCheckout();
+      clearPayPalReturnQuery();
+      return;
+    }
+
+    void handlePayPalApprove(orderId).finally(() => {
+      clearPendingPayPalCheckout();
+      clearPayPalReturnQuery();
+    });
+  }, [course, handlePayPalApprove]);
+
   if (!course) return null;
 
   const handleApplyPromo = () => {
@@ -139,26 +206,6 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
     }
   };
 
-  const handlePayPalApprove = async (orderId: string) => {
-    setStep("loading");
-    setIsProcessing(true);
-    setPaymentError("");
-
-    try {
-      const result = await api.capturePayPalOrder(orderId, course.id);
-      if (!result.user) {
-        throw new Error("Inscription non confirmée par le serveur. Contactez le support.");
-      }
-      await onSuccess(course.id, result.invoice?.amount ?? finalPrice, result.user);
-      setStep("success");
-    } catch (err: any) {
-      setPaymentError(getClientErrorMessage(err, "Impossible de finaliser le paiement PayPal."));
-      setStep("form");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
   const handleCreatePayPalOrder = async () => {
     setPaymentError("");
     const appliedPromo = appliedDiscount > 0 ? promoCode.trim().toUpperCase() : undefined;
@@ -169,6 +216,26 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
       setOrderPreviewAmount(`${order.amount} ${order.currency}`);
     }
     return order.id;
+  };
+
+  const handleHostedCardCheckout = async () => {
+    if (!paypalConfig || isProcessing) return;
+    setIsProcessing(true);
+    setPaymentError("");
+
+    try {
+      const orderId = await handleCreatePayPalOrder();
+      storePendingPayPalCheckout({
+        orderId,
+        courseId: course.id,
+        amountMad: finalPrice,
+        createdAt: Date.now(),
+      });
+      window.location.assign(buildPayPalHostedCheckoutUrl(orderId, paypalConfig.env));
+    } catch (err: unknown) {
+      setPaymentError(getClientErrorMessage(err, "Impossible d'ouvrir le paiement sécurisé par carte."));
+      setIsProcessing(false);
+    }
   };
 
   const onPayPalCreateOrder = async () => {
@@ -394,44 +461,68 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                                 intent: "capture",
                                 components: "buttons",
                                 locale: "fr_FR",
-                                disableFunding: ["venmo", "paylater", "credit"],
+                                disableFunding: ["venmo", "paylater", "credit", "card"],
                               }}
                             >
-                              <div className="axelmond-paypal-buttons min-h-[160px] w-full min-w-0">
-                                <PayPalButtons
-                                  className="w-full"
-                                  style={{
-                                    ...paypalButtonBaseStyle,
-                                    color: "blue",
-                                    label: "paypal",
-                                  }}
+                              <div className="space-y-3">
+                                <div className="axelmond-paypal-buttons min-h-[58px] w-full min-w-0">
+                                  <PayPalButtons
+                                    className="w-full"
+                                    style={{
+                                      ...paypalButtonBaseStyle,
+                                      color: "blue",
+                                      label: "paypal",
+                                    }}
+                                    disabled={isProcessing}
+                                    createOrder={onPayPalCreateOrder}
+                                    onApprove={async (data) => {
+                                      if (!data.orderID) {
+                                        setPaymentError("Commande PayPal invalide.");
+                                        return;
+                                      }
+                                      await handlePayPalApprove(data.orderID);
+                                    }}
+                                    onError={(err) => {
+                                      console.error("[paypal] checkout error", err);
+                                      setPaymentError(
+                                        (current) =>
+                                          current ||
+                                          "Erreur PayPal. Veuillez réessayer ou utiliser un autre moyen de paiement.",
+                                      );
+                                    }}
+                                    onCancel={() => {
+                                      setPaymentError("Paiement annulé.");
+                                    }}
+                                  />
+                                </div>
+
+                                <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                                  <span className="h-px flex-1 bg-white/10" />
+                                  ou
+                                  <span className="h-px flex-1 bg-white/10" />
+                                </div>
+
+                                <button
+                                  type="button"
+                                  data-testid="paypal-hosted-card-checkout"
+                                  onClick={() => void handleHostedCardCheckout()}
                                   disabled={isProcessing}
-                                  createOrder={onPayPalCreateOrder}
-                                  onApprove={async (data) => {
-                                    if (!data.orderID) {
-                                      setPaymentError("Commande PayPal invalide.");
-                                      return;
-                                    }
-                                    await handlePayPalApprove(data.orderID);
-                                  }}
-                                  onError={(err) => {
-                                    console.error("[paypal] checkout error", err);
-                                    setPaymentError(
-                                      (current) =>
-                                        current ||
-                                        "Erreur PayPal. Veuillez réessayer ou utiliser un autre moyen de paiement.",
-                                    );
-                                  }}
-                                  onCancel={() => {
-                                    setPaymentError("Paiement annulé.");
-                                  }}
-                                />
+                                  className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/15 bg-white px-4 py-3 text-sm font-bold text-slate-900 transition-colors hover:bg-slate-100 disabled:cursor-wait disabled:opacity-60"
+                                >
+                                  <CreditCard className="h-5 w-5" />
+                                  <span className="text-left">
+                                    <span className="block">Payer par carte bancaire</span>
+                                    <span className="block text-[10px] font-medium text-slate-500">
+                                      Formulaire sécurisé sur PayPal
+                                    </span>
+                                  </span>
+                                </button>
                               </div>
                             </PayPalScriptProvider>
 
                             <p className="mt-3 flex items-center justify-center gap-1.5 text-[10px] font-medium text-slate-500">
                               <CreditCard className="h-3 w-3 text-emerald-400/80" />
-                              Carte ou compte PayPal — traitement chiffré
+                              Carte ou compte PayPal — traitement chiffré sur PayPal
                             </p>
                           </div>
                         )}

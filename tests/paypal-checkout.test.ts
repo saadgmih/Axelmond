@@ -6,7 +6,7 @@ import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("paypal-checkout", () => {
   const apiSource = fs.readFileSync("src/api.ts", "utf8");
-  const _appSource = readAppSources();
+  const appSource = readAppSources();
   const paymentModalSource = fs.readFileSync("src/components/PaymentModal.tsx", "utf8");
   const serverSource = readApiRouteSources();
   const paypalServerSource = fs.readFileSync("src/paypal-server.ts", "utf8");
@@ -23,9 +23,15 @@ rulesTest("paypal-checkout", () => {
   assert.match(paymentModalSource, /max-w-\[520px\]/);
   assert.match(paymentModalSource, /max-h-\[min\(820px,96dvh\)\]/);
   assert.match(paymentModalSource, /payment-modal-scroll-area min-h-0 overflow-y-auto/);
-  assert.match(paymentModalSource, /axelmond-paypal-buttons min-h-\[160px\]/);
+  assert.match(paymentModalSource, /axelmond-paypal-buttons min-h-\[58px\]/);
   assert.match(paymentModalSource, /height:\s*44/);
   assert.doesNotMatch(paymentModalSource, /height:\s*55/);
+  assert.match(paymentModalSource, /disableFunding:\s*\["venmo",\s*"paylater",\s*"credit",\s*"card"\]/);
+  assert.match(paymentModalSource, /data-testid="paypal-hosted-card-checkout"/);
+  assert.match(paymentModalSource, /buildPayPalHostedCheckoutUrl/);
+  assert.match(paymentModalSource, /storePendingPayPalCheckout/);
+  assert.match(appSource, /readPendingPayPalCheckout/);
+  assert.match(appSource, /setCourseToPurchase\(checkoutCourse\)/);
   const globalStyles = fs.readFileSync("src/index.css", "utf8");
   assert.doesNotMatch(globalStyles, /iframe\.component-frame/);
   assert.doesNotMatch(globalStyles, /\[data-funding-source\]/);
@@ -38,6 +44,7 @@ rulesTest("paypal-checkout", () => {
   assert.match(serverSource, /PAYMENT_PAYPAL_SUCCESS/);
   assert.match(serverSource, /PayPal capture duplicate ignored/);
   assert.match(paypalServerSource, /\/v2\/checkout\/orders/);
+  assert.match(paypalServerSource, /landing_page:\s*"BILLING"/);
   assert.doesNotMatch(serverSource, /stripe\.checkout\.sessions\.create/);
   assert.doesNotMatch(serverSource, /\/api\/stripe\/webhook/);
   assert.doesNotMatch(apiSource, /createCheckoutSession/);

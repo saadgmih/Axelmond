@@ -25,6 +25,7 @@ import { usePlatformNotificationHandlers } from "./hooks/usePlatformNotification
 import { usePlatformTeacherWorkspace } from "./hooks/usePlatformTeacherWorkspace";
 import { useSidebarLayout } from "../hooks/useSidebarLayout";
 import { useInitialViewPreload } from "./hooks/useInitialViewPreload";
+import { usePayPalHostedCheckoutReturn } from "./hooks/usePayPalHostedCheckoutReturn";
 import { resolveInitialPlatformRoute } from "../navigation/platformPaths";
 import { shouldRefreshCourseForNotification } from "../utils/academic-notification-events";
 
@@ -254,6 +255,7 @@ export function usePlatformApp() {
     window.history.replaceState(null, "", `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ""}`);
   }, [isAuthReady, currentUser?.id]);
 
+  usePayPalHostedCheckoutReturn(isAuthReady, currentUser, courses, setCourseToPurchase);
   const { navigateTo, handleTeacherViewChange } = usePlatformNavigation({
     currentUser,
     currentView,
@@ -272,12 +274,10 @@ export function usePlatformApp() {
     setQuizScore,
     setQuizSubmitError,
   });
-
   useLayoutEffect(() => {
     if (!currentUser) return;
     scrollAppToTopDeferred();
   }, [currentUser, location.pathname, location.key, currentView, teacherView]);
-
   const {
     notifications,
     unreadCount: notificationUnreadCount,
