@@ -21,6 +21,8 @@ rulesTest("student-course-live-pdf", () => {
 
   assert.match(pdfViewerSource, /\/api\/lesson-contents\/\$\{contentId\}\/document/);
   assert.match(pdfViewerSource, /signal:\s*AbortSignal\.timeout\(30_000\)/);
+  assert.match(pdfViewerSource, /new URL\(\s*"pdfjs-dist\/build\/pdf\.worker\.min\.mjs",\s*import\.meta\.url/);
+  assert.doesNotMatch(pdfViewerSource, /unpkg\.com\/pdfjs-dist/);
   assert.doesNotMatch(pdfViewerSource, /downloadUrl/);
   assert.doesNotMatch(pdfViewerSource, /Ouvrir le PDF/);
   assert.match(pdfViewerSource, /mediaType === "IMAGE"/);
