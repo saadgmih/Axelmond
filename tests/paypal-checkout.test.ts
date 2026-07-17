@@ -23,7 +23,12 @@ rulesTest("paypal-checkout", () => {
   assert.match(paymentModalSource, /max-w-\[520px\]/);
   assert.match(paymentModalSource, /max-h-\[min\(820px,96dvh\)\]/);
   assert.match(paymentModalSource, /payment-modal-scroll-area min-h-0 overflow-y-auto/);
-  assert.match(paymentModalSource, /height:\s*55/);
+  assert.match(paymentModalSource, /axelmond-paypal-buttons min-h-\[160px\]/);
+  assert.match(paymentModalSource, /height:\s*44/);
+  assert.doesNotMatch(paymentModalSource, /height:\s*55/);
+  const globalStyles = fs.readFileSync("src/index.css", "utf8");
+  assert.doesNotMatch(globalStyles, /iframe\.component-frame/);
+  assert.doesNotMatch(globalStyles, /\[data-funding-source\]/);
   assert.match(paymentModalSource, /api\.createPayPalOrder\(course\.id,\s*appliedPromo,\s*includeAiAssistant\)/);
   assert.match(paymentModalSource, /api\.capturePayPalOrder\(/);
   assert.match(serverSource, /app\.post\("\/api\/paypal\/create-order"/);

@@ -37,7 +37,7 @@ const PAYPAL_MAD_TO_USD_RATE = 0.1;
 const paypalButtonBaseStyle = {
   layout: "vertical" as const,
   shape: "rect" as const,
-  height: 55,
+  height: 44,
   tagline: false,
 };
 
@@ -397,7 +397,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                                 disableFunding: ["venmo", "paylater", "credit"],
                               }}
                             >
-                              <div className="min-h-[132px] w-full min-w-0">
+                              <div className="axelmond-paypal-buttons min-h-[160px] w-full min-w-0">
                                 <PayPalButtons
                                   className="w-full"
                                   style={{
