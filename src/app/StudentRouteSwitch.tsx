@@ -9,6 +9,7 @@ import {
   LazyStudentStudyPlanView,
   RouteChunkFallback,
   LazyStudentCharityView,
+  LazyStudentCenterPaymentsView,
 } from "../lazyViews";
 import { CHARITY_LOADING_LABEL } from "../charity-labels";
 import { getCourseIcon, getDomainIcon } from "./catalogIcons";
@@ -164,6 +165,11 @@ export function StudentRouteSwitch() {
       {currentView === "charity" && (
         <Suspense fallback={<RouteChunkFallback label={CHARITY_LOADING_LABEL} />}>
           <LazyStudentCharityView />
+        </Suspense>
+      )}
+      {currentView === "payments" && (
+        <Suspense fallback={<RouteChunkFallback label="Chargement de vos paiements…" />}>
+          <LazyStudentCenterPaymentsView />
         </Suspense>
       )}
       {currentView === "live" && !activeLiveCourse && (

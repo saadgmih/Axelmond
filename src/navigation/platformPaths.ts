@@ -13,6 +13,7 @@ export const STUDENT_VIEWS = new Set([
   "messages",
   "notifications",
   "charity",
+  "payments",
 ]);
 
 export const TEACHER_VIEWS = new Set([
@@ -26,6 +27,7 @@ export const TEACHER_VIEWS = new Set([
   "schedule",
   "messages",
   "notifications",
+  "center-payments",
 ]);
 
 export function isKnownPlatformPath(pathname: string): boolean {

@@ -2,6 +2,7 @@ import type { PaymentProvider } from "@prisma/client";
 import { prisma } from "./db";
 import type { Invoice } from "./types";
 import { buildEnrollmentEndDate } from "./enrollment-access";
+import { activateModuleSubscriptionInTransaction } from "./module-subscription";
 
 export const APP_USER_BILLING_INCLUDE = {
   enrollments: true,
@@ -79,113 +80,48 @@ export async function persistCoursePaymentEnrollment(
   if (!user) {
     throw new Error("USER_NOT_FOUND");
   }
+  const activatedAt = new Date();
   const enrollmentEndDate =
-    typeof params.enrollmentEndDate === "undefined" ? buildEnrollmentEndDate() : params.enrollmentEndDate;
+    typeof params.enrollmentEndDate === "undefined" ? buildEnrollmentEndDate(activatedAt) : params.enrollmentEndDate;
   const hasAiAccess = Boolean(params.hasAiAccess);
 
-  const enrollmentUpsertData = {
-    active: true,
-    startDate: new Date(),
-    endDate: enrollmentEndDate,
-    hasAiAccess,
-  };
-
-  const existingPayment = await prisma.payment.findUnique({
-    where: {
-      provider_externalId: {
+  const execute = () =>
+    prisma.$transaction(async (tx) => {
+      const activation = await activateModuleSubscriptionInTransaction(tx, {
+        userId: params.userId,
+        courseId: params.courseId,
+        courseTitle: params.courseTitle,
+        amountMad: params.coursePrice,
         provider: params.provider,
         externalId: params.externalId,
-      },
-    },
-    include: {
-      invoice: true,
-      user: { include: APP_USER_BILLING_INCLUDE },
-    },
-  });
-
-  if (existingPayment) {
-    const user = await prisma.$transaction(async (tx) => {
-      await tx.enrollment.upsert({
-        where: { userId_courseId: { userId: params.userId, courseId: params.courseId } },
-        update: enrollmentUpsertData,
-        create: {
-          userId: params.userId,
-          courseId: params.courseId,
-          ...enrollmentUpsertData,
-        },
+        invoiceId: params.invoiceId,
+        activatedAt,
+        enrollmentEndDate,
+        hasAiAccess,
       });
-      return tx.user.findUnique({
+      const updatedUser = await tx.user.findUnique({
         where: { id: params.userId },
         include: APP_USER_BILLING_INCLUDE,
       });
+      if (!updatedUser) throw new Error("USER_NOT_FOUND");
+      return { activation, updatedUser };
     });
-    if (!user) {
-      throw new Error("USER_NOT_FOUND");
-    }
-    deps.invalidateAuthUserCache(params.userId);
-    return {
-      duplicate: true as const,
-      user,
-      invoice: existingPayment.invoice ? serializeInvoiceRecord(existingPayment.invoice) : null,
-    };
+
+  let result: Awaited<ReturnType<typeof execute>>;
+  try {
+    result = await execute();
+  } catch (err: any) {
+    if (err?.code !== "P2002") throw err;
+    const racedPayment = await prisma.payment.findUnique({
+      where: { provider_externalId: { provider: params.provider, externalId: params.externalId } },
+      select: { id: true },
+    });
+    if (!racedPayment) throw err;
+    result = await execute();
   }
 
-  const newInvoicePayload = {
-    id: params.invoiceId,
-    courseTitle: params.courseTitle,
-    amountMad: params.coursePrice,
-    status: "Payé",
-  };
-
-  try {
-    let persistedInvoice: {
-      id: string;
-      courseTitle: string;
-      amountMad: number;
-      status: string;
-      issuedAt: Date;
-    } | null = null;
-
-    const updatedUser = await prisma.$transaction(async (tx) => {
-      const payment = await tx.payment.create({
-        data: {
-          userId: params.userId,
-          courseId: params.courseId,
-          provider: params.provider,
-          externalId: params.externalId,
-          amountMad: params.coursePrice,
-          invoice: {
-            create: {
-              userId: params.userId,
-              ...newInvoicePayload,
-            },
-          },
-        },
-        include: { invoice: true },
-      });
-      persistedInvoice = payment.invoice!;
-
-      await tx.enrollment.upsert({
-        where: { userId_courseId: { userId: params.userId, courseId: params.courseId } },
-        update: enrollmentUpsertData,
-        create: {
-          userId: params.userId,
-          courseId: params.courseId,
-          ...enrollmentUpsertData,
-        },
-      });
-
-      return tx.user.findUnique({
-        where: { id: params.userId },
-        include: APP_USER_BILLING_INCLUDE,
-      });
-    });
-
-    if (!updatedUser) {
-      throw new Error("USER_NOT_FOUND");
-    }
-
-    deps.invalidateAuthUserCache(params.userId);
+  deps.invalidateAuthUserCache(params.userId);
+  if (!result.activation.duplicate) {
     await deps.logAudit(
       params.userId,
       user.email,
@@ -200,61 +136,11 @@ export async function persistCoursePaymentEnrollment(
       },
       params.reqIp,
     );
-
-    return {
-      duplicate: false as const,
-      user: updatedUser,
-      invoice: persistedInvoice
-        ? serializeInvoiceRecord(persistedInvoice)
-        : serializeInvoiceRecord({
-            id: params.invoiceId,
-            courseTitle: params.courseTitle,
-            amountMad: params.coursePrice,
-            status: "Payé",
-            issuedAt: new Date(),
-          }),
-    };
-  } catch (err: any) {
-    if (err?.code === "P2002") {
-      const racedPayment = await prisma.payment.findUnique({
-        where: {
-          provider_externalId: {
-            provider: params.provider,
-            externalId: params.externalId,
-          },
-        },
-        include: {
-          invoice: true,
-          user: { include: APP_USER_BILLING_INCLUDE },
-        },
-      });
-      if (racedPayment) {
-        const user = await prisma.$transaction(async (tx) => {
-          await tx.enrollment.upsert({
-            where: { userId_courseId: { userId: params.userId, courseId: params.courseId } },
-            update: enrollmentUpsertData,
-            create: {
-              userId: params.userId,
-              courseId: params.courseId,
-              ...enrollmentUpsertData,
-            },
-          });
-          return tx.user.findUnique({
-            where: { id: params.userId },
-            include: APP_USER_BILLING_INCLUDE,
-          });
-        });
-        if (!user) {
-          throw new Error("USER_NOT_FOUND");
-        }
-        deps.invalidateAuthUserCache(params.userId);
-        return {
-          duplicate: true as const,
-          user,
-          invoice: racedPayment.invoice ? serializeInvoiceRecord(racedPayment.invoice) : null,
-        };
-      }
-    }
-    throw err;
   }
+
+  return {
+    duplicate: result.activation.duplicate,
+    user: result.updatedUser,
+    invoice: result.activation.invoice ? serializeInvoiceRecord(result.activation.invoice) : null,
+  };
 }

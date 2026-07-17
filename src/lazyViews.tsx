@@ -29,6 +29,8 @@ export const LazyStudentObjectivesView = lazy(() => import("./views/student/Stud
 export const LazyNotificationsView = lazy(() => import("./views/shared/NotificationsView"));
 export const LazyStudentCourseView = lazy(() => import("./views/student/StudentCourseView"));
 export const LazyStudentCharityView = lazy(() => import("./views/student/CharityView"));
+export const LazyStudentCenterPaymentsView = lazy(() => import("./views/student/StudentCenterPaymentsView"));
+export const LazyAdminCenterPaymentsView = lazy(() => import("./views/teacher/AdminCenterPaymentsView"));
 export const LazyStudentLiveView = lazy(() => import("./views/student/StudentLiveView"));
 export const LazyPaymentModal = lazy(() => import("./components/PaymentModal"));
 export const LazyLiveKitSessionHost = lazy(() => import("./views/live/LiveKitSessionHost"));

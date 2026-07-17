@@ -12,6 +12,7 @@ import {
   ShieldAlert,
   KeyRound,
   HandHeart,
+  WalletCards,
 } from "lucide-react";
 import { getTeacherSpaceTitle } from "../rbac";
 import type { UserRole } from "../rbac";
@@ -81,6 +82,15 @@ function studentItems(): SidebarNavItem[] {
       isActive: ({ currentView }) =>
         currentView === "study-plan" || currentView === "study-schedule" || currentView === "objectives",
       onSelect: ({ navigateTo }) => navigateTo("study-plan"),
+    },
+    {
+      id: "nav-center-payments",
+      label: "Mes paiements",
+      icon: WalletCards,
+      iconClassName: "text-emerald-300",
+      prefetch: () => prefetchStudentView("payments"),
+      isActive: ({ currentView }) => currentView === "payments",
+      onSelect: ({ navigateTo }) => navigateTo("payments"),
     },
     {
       id: "nav-charity",
@@ -189,6 +199,15 @@ function teacherItems(role?: UserRole): SidebarNavItem[] {
       prefetch: () => prefetchTeacherView("access-keys"),
       isActive: ({ teacherView }) => teacherView === "access-keys",
       onSelect: ({ setTeacherView }) => setTeacherView("access-keys"),
+    });
+    items.splice(3, 0, {
+      id: "nav-center-payments",
+      label: "Paiements au centre",
+      icon: WalletCards,
+      iconClassName: "text-emerald-300",
+      prefetch: () => prefetchTeacherView("center-payments"),
+      isActive: ({ teacherView }) => teacherView === "center-payments",
+      onSelect: ({ setTeacherView }) => setTeacherView("center-payments"),
     });
   }
 

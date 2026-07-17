@@ -3,6 +3,8 @@ import { getClientErrorMessage } from "../client-errors";
 import {
   ArrowRight,
   BookOpen,
+  Building2,
+  CalendarDays,
   CheckCircle2,
   Clock,
   CreditCard,
@@ -25,6 +27,7 @@ import {
   readPendingPayPalCheckout,
   storePendingPayPalCheckout,
 } from "../utils/paypal-hosted-checkout";
+import type { CenterPaymentConfig, CenterPaymentRequestView } from "../center-payment-types";
 
 interface PaymentModalProps {
   course: Course | null;
@@ -56,6 +59,11 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
   const [configError, setConfigError] = useState("");
   const [orderPreviewAmount, setOrderPreviewAmount] = useState<string | null>(null);
   const [includeAiAssistant, setIncludeAiAssistant] = useState(false);
+  const [paymentMode, setPaymentMode] = useState<"PAYPAL" | "CENTER">("PAYPAL");
+  const [centerConfig, setCenterConfig] = useState<CenterPaymentConfig | null>(null);
+  const [centerConfigError, setCenterConfigError] = useState("");
+  const [centerRequest, setCenterRequest] = useState<CenterPaymentRequestView | null>(null);
+  const [studentNote, setStudentNote] = useState("");
 
   const originalPrice = course?.price ?? 0;
   const modulePriceAfterPromo = Math.round(originalPrice * (1 - appliedDiscount / 100) * 100) / 100;
@@ -66,6 +74,12 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
     isFreeModule: isFreeCheckout,
   });
   const savings = originalPrice - modulePriceAfterPromo;
+
+  useEffect(() => {
+    setPaymentMode("PAYPAL");
+    setCenterRequest(null);
+    setStudentNote("");
+  }, [course?.id]);
 
   useEffect(() => {
     if (!course || isFreeCheckout) {
@@ -81,6 +95,27 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
       })
       .catch((err: any) => {
         if (active) setConfigError(getClientErrorMessage(err, "PayPal indisponible pour le moment."));
+      });
+    return () => {
+      active = false;
+    };
+  }, [course?.id, isFreeCheckout]);
+
+  useEffect(() => {
+    if (!course || isFreeCheckout) return;
+    let active = true;
+    setCenterConfig(null);
+    setCenterConfigError("");
+    api
+      .getCenterPaymentConfig()
+      .then((config) => {
+        if (active) {
+          setCenterConfig(config);
+          setCenterConfigError("");
+        }
+      })
+      .catch((error: unknown) => {
+        if (active) setCenterConfigError(getClientErrorMessage(error, "Paiement au centre indisponible."));
       });
     return () => {
       active = false;
@@ -226,6 +261,25 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
       window.location.assign(buildPayPalHostedCheckoutUrl(orderId, paypalConfig.env));
     } catch (err: unknown) {
       setPaymentError(getClientErrorMessage(err, "Impossible d'ouvrir le paiement sécurisé par carte."));
+      setIsProcessing(false);
+    }
+  };
+
+  const handleCenterPaymentRequest = async () => {
+    if (!centerConfig || isProcessing) return;
+    setIsProcessing(true);
+    setPaymentError("");
+    try {
+      const appliedPromo = appliedDiscount > 0 ? promoCode.trim().toUpperCase() : undefined;
+      const result = await api.createCenterPaymentRequest(course.id, {
+        includeAiAssistant,
+        promoCode: appliedPromo,
+        studentNote: studentNote.trim() || undefined,
+      });
+      setCenterRequest(result.request);
+    } catch (error: unknown) {
+      setPaymentError(getClientErrorMessage(error, "Impossible de créer la demande de paiement au centre."));
+    } finally {
       setIsProcessing(false);
     }
   };
@@ -405,62 +459,179 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                     ) : (
                       <>
                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                          Payer avec PayPal
+                          Choisir le mode de paiement
                         </p>
+                        <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Mode de paiement">
+                          <button
+                            type="button"
+                            role="radio"
+                            aria-checked={paymentMode === "PAYPAL"}
+                            onClick={() => setPaymentMode("PAYPAL")}
+                            className={`rounded-xl border p-3 text-left transition ${
+                              paymentMode === "PAYPAL"
+                                ? "border-sky-400/50 bg-sky-500/10"
+                                : "border-white/10 bg-white/[0.03] hover:border-white/20"
+                            }`}
+                          >
+                            <span className="flex items-center gap-2 text-sm font-bold text-white">
+                              <CreditCard className="h-4 w-4 text-sky-300" /> Payer avec PayPal
+                            </span>
+                            <span className="mt-1 block text-[10px] leading-relaxed text-slate-400">
+                              Paiement en ligne et activation automatique.
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            role="radio"
+                            aria-checked={paymentMode === "CENTER"}
+                            onClick={() => setPaymentMode("CENTER")}
+                            className={`rounded-xl border p-3 text-left transition ${
+                              paymentMode === "CENTER"
+                                ? "border-emerald-400/50 bg-emerald-500/10"
+                                : "border-white/10 bg-white/[0.03] hover:border-white/20"
+                            }`}
+                          >
+                            <span className="flex items-center gap-2 text-sm font-bold text-white">
+                              <Building2 className="h-4 w-4 text-emerald-300" /> Payer au centre
+                            </span>
+                            <span className="mt-1 block text-[10px] leading-relaxed text-slate-400">
+                              Réservez en ligne, payez au centre, accès après validation.
+                            </span>
+                          </button>
+                        </div>
 
-                        {configError && (
-                          <p className="rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2.5 text-xs font-medium text-red-300">
-                            {configError}
-                          </p>
-                        )}
+                        {paymentMode === "PAYPAL" && (
+                          <>
+                            {configError && (
+                              <p className="rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2.5 text-xs font-medium text-red-300">
+                                {configError}
+                              </p>
+                            )}
 
-                        {!paypalConfig && !configError && (
-                          <div className="flex items-center justify-center gap-2.5 rounded-2xl border border-white/[0.06] bg-white/[0.02] py-7">
-                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-400/80 border-t-transparent" />
-                            <span className="text-xs font-medium text-slate-400">Initialisation PayPal…</span>
-                          </div>
-                        )}
-
-                        {paypalConfig && (
-                          <div className="axelmond-paypal-shell relative w-full min-w-0 overflow-visible rounded-2xl border border-emerald-400/15 bg-gradient-to-br from-emerald-500/[0.1] via-slate-900/50 to-teal-500/[0.08] p-3 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
-                            {paypalConfig.currency !== PLATFORM_CURRENCY_CODE && (
-                              <div className="mb-3 flex items-start gap-2.5 rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-3 py-2.5">
-                                <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-300" />
-                                <p className="text-[11px] leading-relaxed text-emerald-100/90">
-                                  Tarif affiché en{" "}
-                                  <span className="font-semibold text-white">{PLATFORM_CURRENCY_CODE}</span>.
-                                  Encaissement sécurisé en{" "}
-                                  <span className="font-semibold text-emerald-200">{paypalConfig.currency}</span>
-                                  {displayedCheckoutAmount ? ` (~${displayedCheckoutAmount})` : ""}.
-                                </p>
+                            {!paypalConfig && !configError && (
+                              <div className="flex items-center justify-center gap-2.5 rounded-2xl border border-white/[0.06] bg-white/[0.02] py-7">
+                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-400/80 border-t-transparent" />
+                                <span className="text-xs font-medium text-slate-400">Initialisation PayPal…</span>
                               </div>
                             )}
 
-                            <button
-                              type="button"
-                              data-testid="paypal-hosted-card-checkout"
-                              onClick={() => void handleHostedPayPalCheckout()}
-                              disabled={isProcessing}
-                              className="flex w-full items-center justify-center gap-3 rounded-xl bg-[#0070ba] px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-sky-950/20 transition-colors hover:bg-[#005ea6] disabled:cursor-wait disabled:opacity-60"
-                            >
-                              {isProcessing ? (
-                                <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                              ) : (
-                                <CreditCard className="h-5 w-5 shrink-0" />
-                              )}
-                              <span className="text-left">
-                                <span className="block">Payer par carte bancaire ou PayPal</span>
-                                <span className="block text-[10px] font-medium text-white/75">
-                                  Ouverture du formulaire sécurisé PayPal
-                                </span>
-                              </span>
-                              <ArrowRight className="h-4 w-4 shrink-0" />
-                            </button>
+                            {paypalConfig && (
+                              <div className="axelmond-paypal-shell relative w-full min-w-0 overflow-visible rounded-2xl border border-emerald-400/15 bg-gradient-to-br from-emerald-500/[0.1] via-slate-900/50 to-teal-500/[0.08] p-3 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
+                                {paypalConfig.currency !== PLATFORM_CURRENCY_CODE && (
+                                  <div className="mb-3 flex items-start gap-2.5 rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-3 py-2.5">
+                                    <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-300" />
+                                    <p className="text-[11px] leading-relaxed text-emerald-100/90">
+                                      Tarif affiché en{" "}
+                                      <span className="font-semibold text-white">{PLATFORM_CURRENCY_CODE}</span>.
+                                      Encaissement sécurisé en{" "}
+                                      <span className="font-semibold text-emerald-200">{paypalConfig.currency}</span>
+                                      {displayedCheckoutAmount ? ` (~${displayedCheckoutAmount})` : ""}.
+                                    </p>
+                                  </div>
+                                )}
 
-                            <p className="mt-3 flex items-center justify-center gap-1.5 text-[10px] font-medium text-slate-500">
-                              <CreditCard className="h-3 w-3 text-emerald-400/80" />
-                              Carte ou compte PayPal — traitement chiffré sur PayPal
-                            </p>
+                                <button
+                                  type="button"
+                                  data-testid="paypal-hosted-card-checkout"
+                                  onClick={() => void handleHostedPayPalCheckout()}
+                                  disabled={isProcessing}
+                                  className="flex w-full items-center justify-center gap-3 rounded-xl bg-[#0070ba] px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-sky-950/20 transition-colors hover:bg-[#005ea6] disabled:cursor-wait disabled:opacity-60"
+                                >
+                                  {isProcessing ? (
+                                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                                  ) : (
+                                    <CreditCard className="h-5 w-5 shrink-0" />
+                                  )}
+                                  <span className="text-left">
+                                    <span className="block">Payer par carte bancaire ou PayPal</span>
+                                    <span className="block text-[10px] font-medium text-white/75">
+                                      Ouverture du formulaire sécurisé PayPal
+                                    </span>
+                                  </span>
+                                  <ArrowRight className="h-4 w-4 shrink-0" />
+                                </button>
+
+                                <p className="mt-3 flex items-center justify-center gap-1.5 text-[10px] font-medium text-slate-500">
+                                  <CreditCard className="h-3 w-3 text-emerald-400/80" />
+                                  Carte ou compte PayPal — traitement chiffré sur PayPal
+                                </p>
+                              </div>
+                            )}
+                          </>
+                        )}
+
+                        {paymentMode === "CENTER" && (
+                          <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/[0.07] p-4">
+                            {centerConfigError ? (
+                              <p className="text-sm font-medium text-red-300">{centerConfigError}</p>
+                            ) : !centerConfig ? (
+                              <p className="text-sm text-slate-400" role="status">
+                                Chargement des informations du centre…
+                              </p>
+                            ) : centerRequest ? (
+                              <div className="text-center">
+                                <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-300" />
+                                <h3 className="mt-3 text-lg font-black text-white">Demande créée</h3>
+                                <p className="mt-2 text-xs text-slate-400">Présentez cette référence au centre :</p>
+                                <p className="mt-2 rounded-xl bg-slate-950/60 px-4 py-3 font-mono text-xl font-black tracking-wider text-emerald-200">
+                                  {centerRequest.reference}
+                                </p>
+                                <p className="mt-3 text-xs leading-relaxed text-amber-100/80">
+                                  Le module reste verrouillé jusqu’à la validation réelle du paiement par
+                                  l’administration.
+                                </p>
+                                <p className="mt-2 text-xs text-slate-400">
+                                  À payer avant le {new Date(centerRequest.expiresAt).toLocaleString("fr-MA")}.
+                                </p>
+                              </div>
+                            ) : (
+                              <div className="space-y-3">
+                                <div className="space-y-2 text-xs text-slate-300">
+                                  <p className="font-bold text-white">{course.title}</p>
+                                  <p className="line-clamp-2 text-slate-400">{course.description}</p>
+                                  <div className="grid gap-2 sm:grid-cols-2">
+                                    <span className="rounded-lg bg-black/20 p-2 font-bold text-emerald-200">
+                                      {formatMad(finalPrice)} · {centerConfig.currency}
+                                    </span>
+                                    <span className="flex items-center gap-1 rounded-lg bg-black/20 p-2">
+                                      <CalendarDays className="h-3.5 w-3.5 text-emerald-300" />
+                                      {centerConfig.accessDurationDays} jours après validation
+                                    </span>
+                                  </div>
+                                  <p>
+                                    <strong className="text-white">Adresse :</strong> {centerConfig.address}
+                                  </p>
+                                  <p>
+                                    <strong className="text-white">Horaires :</strong> {centerConfig.openingHours}
+                                  </p>
+                                  <p>
+                                    <strong className="text-white">Délai :</strong> {centerConfig.expirationDays} jours
+                                  </p>
+                                </div>
+                                <label className="block text-xs font-bold text-slate-300">
+                                  Note facultative
+                                  <textarea
+                                    value={studentNote}
+                                    onChange={(event) => setStudentNote(event.target.value)}
+                                    maxLength={500}
+                                    rows={2}
+                                    className="mt-1.5 w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-sm font-normal text-white outline-none focus:border-emerald-400/50"
+                                  />
+                                </label>
+                                <p className="rounded-xl border border-amber-400/20 bg-amber-500/10 p-3 text-xs leading-relaxed text-amber-100">
+                                  Cette demande n’active pas immédiatement le module. L’accès commence uniquement à la
+                                  date de validation du paiement.
+                                </p>
+                                <button
+                                  type="button"
+                                  onClick={() => void handleCenterPaymentRequest()}
+                                  disabled={isProcessing}
+                                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white hover:bg-emerald-500 disabled:opacity-60"
+                                >
+                                  {isProcessing ? "Création de la demande…" : "Confirmer ma demande"}
+                                </button>
+                              </div>
+                            )}
                           </div>
                         )}
                       </>
@@ -486,7 +657,11 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                 </button>
                 <p className="flex items-center justify-center gap-1.5 text-[10px] text-slate-600">
                   <Lock className="h-3 w-3" />
-                  {isFreeCheckout ? "Inscription sécurisée sur la plateforme" : "Paiement chiffré via PayPal Checkout"}
+                  {isFreeCheckout
+                    ? "Inscription sécurisée sur la plateforme"
+                    : paymentMode === "CENTER"
+                      ? "Activation uniquement après validation par l’administration"
+                      : "Paiement chiffré via PayPal Checkout"}
                 </p>
               </div>
             </>

@@ -1475,3 +1475,36 @@ html.force-desktop-mode #root {
 .founder-photo-carousel::-webkit-scrollbar {
   display: none;
 }
+
+.admin-payment-input {
+  width: 100%;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 0.75rem;
+  background: rgb(2 6 23 / 0.65);
+  padding: 0.625rem 0.75rem;
+  color: white;
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.admin-payment-input:focus {
+  border-color: rgb(52 211 153 / 0.6);
+  box-shadow: 0 0 0 3px rgb(16 185 129 / 0.12);
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .center-payment-receipt,
+  .center-payment-receipt * {
+    visibility: visible;
+  }
+
+  .center-payment-receipt {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+  }
+}

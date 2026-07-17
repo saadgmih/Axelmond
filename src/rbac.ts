@@ -384,6 +384,22 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
     return normalized === "STUDENT";
   }
 
+  if (verb === "POST" && /^\/api\/courses\/\d+\/center-payment-requests$/.test(cleanPath)) {
+    return normalized === "STUDENT";
+  }
+
+  if (verb === "GET" && cleanPath === "/api/center-payment/config") {
+    return normalized === "STUDENT";
+  }
+
+  if (
+    normalized === "STUDENT" &&
+    ((verb === "GET" && /^\/api\/me\/center-payment-requests(?:\/PC-\d{4}-\d{6})?$/.test(cleanPath)) ||
+      (verb === "POST" && /^\/api\/me\/center-payment-requests\/PC-\d{4}-\d{6}\/cancel$/.test(cleanPath)))
+  ) {
+    return true;
+  }
+
   if (verb === "POST" && cleanPath === "/api/chat-tutor") {
     return normalized === "STUDENT";
   }

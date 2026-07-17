@@ -32,6 +32,7 @@ rulesTest("free-enrollment-wiring", () => {
   const rbacSource = fs.readFileSync("src/rbac.ts", "utf8");
   const freeEnrollmentSource = fs.readFileSync("src/course-free-enrollment.ts", "utf8");
   const coursePaymentsSource = fs.readFileSync("src/course-payments.ts", "utf8");
+  const moduleSubscriptionSource = fs.readFileSync("src/module-subscription.ts", "utf8");
   const prismaSchemaSource = fs.readFileSync("prisma/schema.prisma", "utf8");
   const migrationSource = fs.readFileSync(
     "prisma/migrations/20260629013000_course_free_access_duration/migration.sql",
@@ -61,7 +62,8 @@ rulesTest("free-enrollment-wiring", () => {
   assert.match(freeEnrollmentSource, /FREE_ENROLL_WINDOW_EXPIRED/);
   assert.match(freeEnrollmentSource, /enrollmentEndDate/);
   assert.match(freeEnrollmentSource, /persistCoursePaymentEnrollment/);
-  assert.match(coursePaymentsSource, /enrollment\.upsert/);
+  assert.match(coursePaymentsSource, /activateModuleSubscriptionInTransaction/);
+  assert.match(moduleSubscriptionSource, /enrollment\.upsert/);
   assert.match(coursePaymentsSource, /enrollmentEndDate/);
   assert.match(prismaSchemaSource, /freeAccessStartsAt\s+DateTime\?/);
   assert.match(prismaSchemaSource, /freeAccessEndsAt\s+DateTime\?/);
@@ -72,7 +74,7 @@ rulesTest("free-enrollment-wiring", () => {
   assert.match(fixedWindowMigrationSource, /ADD COLUMN "freeAccessEndsAt" TIMESTAMP\(3\)/);
   assert.doesNotMatch(appSessionSource, /useState<number\[\]>\(\[1\]\)/);
   assert.doesNotMatch(appSessionSource, /enrolledCourses \|\| \[1\]/);
-  assert.doesNotMatch(paypalEnrollmentSource, /ALREADY_ENROLLED/);
+  assert.match(paypalEnrollmentSource, /ALREADY_ENROLLED/);
 
   const start = new Date("2026-06-29T00:00:00.000Z");
   assert.equal(buildEnrollmentEndDate(start, 7).toISOString(), "2026-07-06T00:00:00.000Z");

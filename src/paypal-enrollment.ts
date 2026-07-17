@@ -3,6 +3,7 @@ import { formatPayPalAmount, logPayPalError, parsePayPalCustomId } from "./paypa
 import { convertMadAmountForPayPal, getPayPalCheckoutCurrency } from "./paypal-currency";
 import { resolveEnrollmentHasAiAccess } from "./utils/ai-tutor-pricing";
 import { PUBLIC_API_ERRORS } from "./public-api-errors";
+import { ActiveEnrollmentExistsError } from "./module-subscription";
 export type PayPalCaptureEnrollmentInput = {
   orderId: string;
   captureResult: any;
@@ -46,6 +47,7 @@ export const PAYPAL_CAPTURE_CLIENT_MESSAGES: Record<string, string> = {
   PAYPAL_CAPTURE_INCOMPLETE: "Paiement PayPal non finalisé",
   PAYPAL_AMOUNT_MISMATCH: "Montant de paiement incorrect",
   USER_NOT_FOUND: "Paiement PayPal invalide",
+  ALREADY_ENROLLED: "Ce module est déjà actif. Aucun nouveau paiement n'est nécessaire.",
 };
 
 export function toPayPalCaptureClientResponse(result: { ok: false; status: number; error: string; code?: string }) {
@@ -152,6 +154,14 @@ export async function processPayPalCaptureEnrollment(
       user: enrollmentResult.user,
     };
   } catch (err: any) {
+    if (err instanceof ActiveEnrollmentExistsError || err?.message === "ACTIVE_ENROLLMENT_EXISTS") {
+      return {
+        ok: false,
+        status: 409,
+        error: "Ce module est déjà actif",
+        code: "ALREADY_ENROLLED",
+      };
+    }
     if (err?.message === "USER_NOT_FOUND") {
       return { ok: false, status: 404, error: PUBLIC_API_ERRORS.accountNotFound, code: "USER_NOT_FOUND" };
     }

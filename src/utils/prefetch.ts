@@ -54,6 +54,7 @@ const STUDENT_VIEW_CHUNKS: Record<string, () => Promise<unknown>> = {
   course: () => import("../views/student/StudentCourseView"),
   live: () => import("../views/student/StudentLiveView"),
   charity: () => import("../views/student/CharityView"),
+  payments: () => import("../views/student/StudentCenterPaymentsView"),
 };
 
 const TEACHER_VIEW_CHUNKS: Record<string, () => Promise<unknown>> = {
@@ -67,6 +68,7 @@ const TEACHER_VIEW_CHUNKS: Record<string, () => Promise<unknown>> = {
   charity: () => import("../views/teacher/AdminCharityView"),
   messages: () => import("../views/shared/MessagesView"),
   notifications: () => import("../views/shared/NotificationsView"),
+  "center-payments": () => import("../views/teacher/AdminCenterPaymentsView"),
 };
 
 const INSTITUTIONAL_VIEW_CHUNKS: Record<string, () => Promise<unknown>> = {

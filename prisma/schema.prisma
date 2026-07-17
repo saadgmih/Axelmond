@@ -99,6 +99,9 @@ model User {
   pushSubscriptions        PushSubscription[]
   payments                 Payment[]
   invoiceRecords           Invoice[]
+  centerPaymentRequests    CenterPaymentRequest[]        @relation("CenterPaymentStudent")
+  validatedCenterPayments  CenterPaymentRequest[]        @relation("CenterPaymentValidator")
+  centerPaymentChanges     CenterPaymentStatusHistory[]  @relation("CenterPaymentHistoryActor")
   totpRecoveryCodes        TotpRecoveryCode[]
   webAuthnCredentials      WebAuthnCredential[]
   securityChallenges       SecurityChallenge[]
@@ -273,6 +276,7 @@ model Course {
   moduleProgress         ModuleProgress[]
   contentProgress        StudentContentProgress[]
   payments               Payment[]
+  centerPaymentRequests  CenterPaymentRequest[]
   courseModules          CourseModule[]
 
   @@index([disciplineId])
@@ -392,15 +396,16 @@ model Attachment {
 }
 
 model Enrollment {
-  id          String    @id @default(cuid())
-  userId      String
-  courseId    Int
-  active      Boolean   @default(true)
-  hasAiAccess Boolean   @default(false)
-  startDate   DateTime  @default(now())
-  endDate     DateTime?
-  user        User      @relation(fields: [userId], references: [id])
-  course      Course    @relation(fields: [courseId], references: [id])
+  id                    String                 @id @default(cuid())
+  userId                String
+  courseId              Int
+  active                Boolean                @default(true)
+  hasAiAccess           Boolean                @default(false)
+  startDate             DateTime               @default(now())
+  endDate               DateTime?
+  user                  User                   @relation(fields: [userId], references: [id])
+  course                Course                 @relation(fields: [courseId], references: [id])
+  centerPaymentRequests CenterPaymentRequest[]
 
   @@unique([userId, courseId])
   @@index([courseId])
@@ -894,6 +899,7 @@ model PushSubscription {
 
 enum PaymentProvider {
   PAYPAL
+  CENTER
   MOCK
 
   @@schema("AxelmondResearchLab")
@@ -907,20 +913,117 @@ enum PaymentStatus {
 }
 
 model Payment {
-  id         String          @id @default(cuid())
-  userId     String
-  courseId   Int
-  provider   PaymentProvider
-  externalId String
-  amountMad  Float
-  status     PaymentStatus   @default(COMPLETED)
-  createdAt  DateTime        @default(now())
-  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course     Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  invoice    Invoice?
+  id                   String                @id @default(cuid())
+  userId               String
+  courseId             Int
+  provider             PaymentProvider
+  externalId           String
+  amountMad            Float
+  status               PaymentStatus         @default(COMPLETED)
+  createdAt            DateTime              @default(now())
+  user                 User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course               Course                @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  invoice              Invoice?
+  centerPaymentRequest CenterPaymentRequest?
 
   @@unique([provider, externalId])
   @@index([userId, courseId])
+  @@schema("AxelmondResearchLab")
+}
+
+enum CenterPaymentStatus {
+  PENDING_PAYMENT
+  UNDER_REVIEW
+  PAID
+  REJECTED
+  EXPIRED
+  CANCELLED
+  REFUNDED
+
+  @@schema("AxelmondResearchLab")
+}
+
+enum CenterPaymentMethod {
+  CASH
+  CARD_AT_CENTER
+  BANK_TRANSFER
+  CHECK
+  OTHER
+
+  @@schema("AxelmondResearchLab")
+}
+
+enum CenterPaymentActorType {
+  STUDENT
+  ADMIN
+  SYSTEM
+
+  @@schema("AxelmondResearchLab")
+}
+
+model CenterPaymentRequest {
+  id                         String                       @id @default(cuid())
+  publicReference            String                       @unique
+  openRequestKey             String?                      @unique
+  userId                     String
+  courseId                   Int
+  amountMad                  Float
+  currency                   String                       @default("MAD")
+  modulePriceSnapshot        Float
+  moduleTitleSnapshot        String
+  moduleDescriptionSnapshot  String?
+  accessDurationDaysSnapshot Int
+  hasAiAccessSnapshot        Boolean                      @default(false)
+  status                     CenterPaymentStatus          @default(PENDING_PAYMENT)
+  expiresAt                  DateTime
+  paidAt                     DateTime?
+  validatedAt                DateTime?
+  validatedByUserId          String?
+  paymentMethod              CenterPaymentMethod?
+  receivedAmountMad          Float?
+  physicalReceiptReference   String?
+  generatedReceiptNumber     String?                      @unique
+  studentNote                String?
+  adminNote                  String?
+  publicReason               String?
+  paymentId                  String?                      @unique
+  enrollmentId               String?
+  validationIdempotencyKey   String?                      @unique
+  createdAt                  DateTime                     @default(now())
+  updatedAt                  DateTime                     @updatedAt
+  user                       User                         @relation("CenterPaymentStudent", fields: [userId], references: [id], onDelete: Cascade)
+  course                     Course                       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  validatedBy                User?                        @relation("CenterPaymentValidator", fields: [validatedByUserId], references: [id], onDelete: SetNull)
+  payment                    Payment?                     @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  enrollment                 Enrollment?                  @relation(fields: [enrollmentId], references: [id], onDelete: SetNull)
+  history                    CenterPaymentStatusHistory[]
+
+  @@index([userId])
+  @@index([courseId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([expiresAt])
+  @@index([validatedByUserId])
+  @@index([userId, courseId, status])
+  @@schema("AxelmondResearchLab")
+}
+
+model CenterPaymentStatusHistory {
+  id                     String                 @id @default(cuid())
+  centerPaymentRequestId String
+  previousStatus         CenterPaymentStatus?
+  newStatus              CenterPaymentStatus
+  changedByUserId        String?
+  actorType              CenterPaymentActorType
+  reason                 String?
+  publicReason           String?
+  internalNote           String?
+  createdAt              DateTime               @default(now())
+  request                CenterPaymentRequest   @relation(fields: [centerPaymentRequestId], references: [id], onDelete: Cascade)
+  changedBy              User?                  @relation("CenterPaymentHistoryActor", fields: [changedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([centerPaymentRequestId, createdAt])
+  @@index([changedByUserId])
   @@schema("AxelmondResearchLab")
 }
 

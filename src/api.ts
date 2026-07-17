@@ -12,6 +12,13 @@ import {
 } from "./api-response";
 import type { Discipline, FacultyDomain, QuizAttemptResult, QuizQuestion } from "./types";
 import type { OnboardingSnapshot, OnboardingUpdate } from "./onboarding/onboarding-types";
+import type {
+  AdminCenterPaymentRequestView,
+  CenterPaymentConfig,
+  CenterPaymentMethod,
+  CenterPaymentRequestView,
+  CenterPaymentStatus,
+} from "./center-payment-types";
 
 export interface SiteSettings {
   forceDesktopMode: boolean;
@@ -464,6 +471,96 @@ export const api = {
   ) => request<any>("PATCH", `/api/courses/${courseId}`, data),
   getPayPalConfig: () =>
     request<{ clientId: string; env: "sandbox" | "live"; currency: string }>("GET", "/api/paypal/config"),
+  getCenterPaymentConfig: () => request<CenterPaymentConfig>("GET", "/api/center-payment/config"),
+  createCenterPaymentRequest: (
+    courseId: number,
+    data: { includeAiAssistant?: boolean; promoCode?: string; studentNote?: string } = {},
+  ) =>
+    request<{ duplicate: boolean; request: CenterPaymentRequestView }>(
+      "POST",
+      `/api/courses/${courseId}/center-payment-requests`,
+      data,
+    ),
+  getMyCenterPaymentRequests: () => request<CenterPaymentRequestView[]>("GET", "/api/me/center-payment-requests"),
+  getMyCenterPaymentRequest: (reference: string) =>
+    request<CenterPaymentRequestView>("GET", `/api/me/center-payment-requests/${encodeURIComponent(reference)}`),
+  cancelMyCenterPaymentRequest: (reference: string) =>
+    request<CenterPaymentRequestView>(
+      "POST",
+      `/api/me/center-payment-requests/${encodeURIComponent(reference)}/cancel`,
+      {},
+    ),
+  getAdminCenterPaymentRequests: (
+    filters: {
+      status?: CenterPaymentStatus;
+      q?: string;
+      courseId?: number;
+      amount?: number;
+      validatedBy?: string;
+      from?: string;
+      to?: string;
+    } = {},
+  ) => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== "") params.set(key, String(value));
+    });
+    const query = params.toString();
+    return request<AdminCenterPaymentRequestView[]>(
+      "GET",
+      `/api/admin/center-payment-requests${query ? `?${query}` : ""}`,
+    );
+  },
+  getAdminCenterPaymentRequest: (reference: string) =>
+    request<AdminCenterPaymentRequestView>(
+      "GET",
+      `/api/admin/center-payment-requests/${encodeURIComponent(reference)}`,
+    ),
+  reviewCenterPaymentRequest: (reference: string, internalNote?: string) =>
+    request<AdminCenterPaymentRequestView>(
+      "POST",
+      `/api/admin/center-payment-requests/${encodeURIComponent(reference)}/review`,
+      { internalNote },
+    ),
+  validateCenterPaymentRequest: (
+    reference: string,
+    data: {
+      receivedAmount: number;
+      paymentMethod: CenterPaymentMethod;
+      physicalReceiptReference?: string;
+      internalNote?: string;
+      idempotencyKey: string;
+    },
+  ) =>
+    request<{ idempotent: boolean; request: AdminCenterPaymentRequestView }>(
+      "POST",
+      `/api/admin/center-payment-requests/${encodeURIComponent(reference)}/validate`,
+      data,
+    ),
+  rejectCenterPaymentRequest: (reference: string, publicReason: string, internalNote?: string) =>
+    request<AdminCenterPaymentRequestView>(
+      "POST",
+      `/api/admin/center-payment-requests/${encodeURIComponent(reference)}/reject`,
+      { publicReason, internalNote },
+    ),
+  cancelAdminCenterPaymentRequest: (reference: string, publicReason: string, internalNote?: string) =>
+    request<AdminCenterPaymentRequestView>(
+      "POST",
+      `/api/admin/center-payment-requests/${encodeURIComponent(reference)}/cancel`,
+      { publicReason, internalNote },
+    ),
+  refundCenterPaymentRequest: (reference: string, publicReason: string, internalNote?: string) =>
+    request<AdminCenterPaymentRequestView>(
+      "POST",
+      `/api/admin/center-payment-requests/${encodeURIComponent(reference)}/refund`,
+      { publicReason, internalNote },
+    ),
+  addCenterPaymentAdminNote: (reference: string, note: string) =>
+    request<AdminCenterPaymentRequestView>(
+      "POST",
+      `/api/admin/center-payment-requests/${encodeURIComponent(reference)}/note`,
+      { note },
+    ),
   createPayPalOrder: (courseId: number, promoCode?: string, includeAiAssistant?: boolean) =>
     request<{ id: string; currency?: string; amount?: string; amountMad?: string }>(
       "POST",
