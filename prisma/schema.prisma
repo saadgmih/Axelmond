@@ -109,6 +109,10 @@ model User {
   createdCharityCodes      CharityAccessCode[]           @relation("CreatedCharityCodes")
   charityDonations         Donation[]
   onboardingProgress       UserOnboarding[]
+  createdPromoCodes        PromoCode[]                   @relation("PromoCodeCreator")
+  eligiblePromoCodes       PromoCodeEligibleUser[]
+  promoCodeUsages          PromoCodeUsage[]
+  promoCodeAuditActions    PromoCodeAuditLog[]
 
   @@index([role])
   @@schema("AxelmondResearchLab")
@@ -278,6 +282,8 @@ model Course {
   payments               Payment[]
   centerPaymentRequests  CenterPaymentRequest[]
   courseModules          CourseModule[]
+  promoCodeModules       PromoCodeModule[]
+  promoCodeUsages        PromoCodeUsage[]
 
   @@index([disciplineId])
   @@index([createdById])
@@ -925,6 +931,7 @@ model Payment {
   course               Course                @relation(fields: [courseId], references: [id], onDelete: Cascade)
   invoice              Invoice?
   centerPaymentRequest CenterPaymentRequest?
+  promoCodeUsage       PromoCodeUsage?
 
   @@unique([provider, externalId])
   @@index([userId, courseId])
@@ -997,6 +1004,7 @@ model CenterPaymentRequest {
   payment                    Payment?                     @relation(fields: [paymentId], references: [id], onDelete: SetNull)
   enrollment                 Enrollment?                  @relation(fields: [enrollmentId], references: [id], onDelete: SetNull)
   history                    CenterPaymentStatusHistory[]
+  promoCodeUsage             PromoCodeUsage?
 
   @@index([userId])
   @@index([courseId])
@@ -1005,6 +1013,189 @@ model CenterPaymentRequest {
   @@index([expiresAt])
   @@index([validatedByUserId])
   @@index([userId, courseId, status])
+  @@schema("AxelmondResearchLab")
+}
+
+enum PromoDiscountType {
+  PERCENTAGE
+  FIXED
+
+  @@schema("AxelmondResearchLab")
+}
+
+enum PromoAdministrativeStatus {
+  DRAFT
+  SCHEDULED
+  ACTIVE
+  PAUSED
+  EXPIRED
+  DISABLED
+  ARCHIVED
+
+  @@schema("AxelmondResearchLab")
+}
+
+enum PromoEligibilityScope {
+  ALL_STUDENTS
+  NEW_STUDENTS
+  EXISTING_STUDENTS
+  SELECTED_USERS
+  SELECTED_FILIERES
+
+  @@schema("AxelmondResearchLab")
+}
+
+enum PromoUsageStatus {
+  RESERVED
+  CONFIRMED
+  RELEASED
+  CANCELLED
+  REFUNDED
+
+  @@schema("AxelmondResearchLab")
+}
+
+enum PromoUsageProvider {
+  PAYPAL
+  CENTER
+  FREE
+
+  @@schema("AxelmondResearchLab")
+}
+
+model PromoCode {
+  id                    String                     @id @default(cuid())
+  publicId              String                     @unique
+  code                  String                     @unique
+  internalName          String
+  publicDescription     String?
+  internalDescription   String?
+  discountType          PromoDiscountType
+  discountValue         Decimal                    @db.Decimal(12, 2)
+  maximumDiscountAmount Decimal?                   @db.Decimal(12, 2)
+  minimumPurchaseAmount Decimal?                   @db.Decimal(12, 2)
+  currency              String                     @default("MAD")
+  startsAt              DateTime
+  endsAt                DateTime
+  relativeDuration      Json?
+  administrativeStatus  PromoAdministrativeStatus  @default(DRAFT)
+  appliesToAllModules   Boolean                    @default(false)
+  eligibilityScope      PromoEligibilityScope      @default(ALL_STUDENTS)
+  firstPurchaseOnly     Boolean                    @default(false)
+  maxTotalUses          Int?
+  maxUsesPerUser        Int?
+  totalReservedUses     Int                        @default(0)
+  totalConfirmedUses    Int                        @default(0)
+  stackable             Boolean                    @default(false)
+  priority              Int                        @default(0)
+  version               Int                        @default(1)
+  createdByUserId       String
+  createdAt             DateTime                   @default(now())
+  updatedAt             DateTime                   @updatedAt
+  disabledAt            DateTime?
+  archivedAt            DateTime?
+  createdBy             User                       @relation("PromoCodeCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  modules               PromoCodeModule[]
+  eligibleUsers         PromoCodeEligibleUser[]
+  eligibleFilieres      PromoCodeEligibleFiliere[]
+  usages                PromoCodeUsage[]
+  auditLog              PromoCodeAuditLog[]
+
+  @@index([administrativeStatus])
+  @@index([startsAt])
+  @@index([endsAt])
+  @@index([createdByUserId])
+  @@index([discountType])
+  @@schema("AxelmondResearchLab")
+}
+
+model PromoCodeModule {
+  promoCodeId String
+  courseId    Int
+  promoCode   PromoCode @relation(fields: [promoCodeId], references: [id], onDelete: Cascade)
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@id([promoCodeId, courseId])
+  @@index([courseId])
+  @@schema("AxelmondResearchLab")
+}
+
+model PromoCodeEligibleUser {
+  promoCodeId String
+  userId      String
+  promoCode   PromoCode @relation(fields: [promoCodeId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([promoCodeId, userId])
+  @@index([userId])
+  @@schema("AxelmondResearchLab")
+}
+
+model PromoCodeEligibleFiliere {
+  promoCodeId String
+  filiere     String
+  promoCode   PromoCode @relation(fields: [promoCodeId], references: [id], onDelete: Cascade)
+
+  @@id([promoCodeId, filiere])
+  @@index([filiere])
+  @@schema("AxelmondResearchLab")
+}
+
+model PromoCodeUsage {
+  id                      String                @id @default(cuid())
+  publicReference         String                @unique
+  promoCodeId             String
+  userId                  String
+  courseId                Int
+  paymentId               String?               @unique
+  centerPaymentRequestId  String?               @unique
+  provider                PromoUsageProvider
+  status                  PromoUsageStatus      @default(RESERVED)
+  externalReference       String?               @unique
+  idempotencyKey          String?               @unique
+  promoCodeSnapshot       String
+  discountTypeSnapshot    PromoDiscountType
+  discountValueSnapshot   Decimal               @db.Decimal(12, 2)
+  maximumDiscountSnapshot Decimal?              @db.Decimal(12, 2)
+  originalPriceSnapshot   Decimal               @db.Decimal(12, 2)
+  discountAmountSnapshot  Decimal               @db.Decimal(12, 2)
+  finalPriceSnapshot      Decimal               @db.Decimal(12, 2)
+  currencySnapshot        String
+  promoVersionSnapshot    Int
+  reservedAt              DateTime              @default(now())
+  confirmedAt             DateTime?
+  releasedAt              DateTime?
+  expiresAt               DateTime?
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
+  promoCode               PromoCode             @relation(fields: [promoCodeId], references: [id], onDelete: Restrict)
+  user                    User                  @relation(fields: [userId], references: [id], onDelete: Restrict)
+  course                  Course                @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  payment                 Payment?              @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  centerPaymentRequest    CenterPaymentRequest? @relation(fields: [centerPaymentRequestId], references: [id], onDelete: SetNull)
+
+  @@index([promoCodeId, status])
+  @@index([userId, promoCodeId, status])
+  @@index([courseId])
+  @@index([status, expiresAt])
+  @@index([provider])
+  @@schema("AxelmondResearchLab")
+}
+
+model PromoCodeAuditLog {
+  id             String    @id @default(cuid())
+  promoCodeId    String
+  action         String
+  actorUserId    String?
+  previousValues Json?
+  newValues      Json?
+  reason         String?
+  createdAt      DateTime  @default(now())
+  promoCode      PromoCode @relation(fields: [promoCodeId], references: [id], onDelete: Cascade)
+  actor          User?     @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([promoCodeId, createdAt])
+  @@index([actorUserId])
   @@schema("AxelmondResearchLab")
 }
 

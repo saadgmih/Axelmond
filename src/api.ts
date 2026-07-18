@@ -19,6 +19,7 @@ import type {
   CenterPaymentRequestView,
   CenterPaymentStatus,
 } from "./center-payment-types";
+import type { PromoCodeDetails, PromoCodeInput, PromoCodeView, PromoQuote } from "./promo-code-types";
 
 export interface SiteSettings {
   forceDesktopMode: boolean;
@@ -572,6 +573,8 @@ export const api = {
       orderId,
       courseId,
     }),
+  cancelPayPalOrder: (orderId: string) =>
+    request<{ released: boolean }>("POST", "/api/paypal/cancel-order", { orderId }),
   freeEnrollCourse: (courseId: number, promoCode?: string, includeAiAssistant?: boolean) =>
     request<{ ok: boolean; invoice?: any; user?: any; message?: string }>(
       "POST",
@@ -581,6 +584,41 @@ export const api = {
         ...(includeAiAssistant ? { includeAiAssistant: true } : {}),
       },
     ),
+  validatePromoCode: (courseId: number, code: string) =>
+    request<PromoQuote>("POST", `/api/modules/${courseId}/promo-code/validate`, { code }),
+  removePromoCode: (courseId: number) => request<{ removed: boolean }>("DELETE", `/api/modules/${courseId}/promo-code`),
+  getAdminPromoOptions: () =>
+    request<{
+      courses: Array<{ id: number; title: string; price: number }>;
+      students: Array<{ id: string; fullName: string; email: string; filiere: string | null }>;
+      creators: Array<{ id: string; fullName: string; email: string }>;
+      filieres: string[];
+      timeZone: string;
+      currency: string;
+    }>("GET", "/api/admin/promo-codes/options"),
+  generatePromoCode: () => request<{ code: string }>("POST", "/api/admin/promo-codes/generate", {}),
+  getAdminPromoCodes: (filters: Record<string, string | number | boolean | undefined> = {}) => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== "") params.set(key, String(value));
+    });
+    const query = params.toString();
+    return request<{ items: PromoCodeView[]; page: number; pageSize: number; total: number; totalPages: number }>(
+      "GET",
+      `/api/admin/promo-codes${query ? `?${query}` : ""}`,
+    );
+  },
+  getAdminPromoCode: (id: string) =>
+    request<PromoCodeDetails>("GET", `/api/admin/promo-codes/${encodeURIComponent(id)}`),
+  createAdminPromoCode: (data: PromoCodeInput) => request<PromoCodeView>("POST", "/api/admin/promo-codes", data),
+  updateAdminPromoCode: (id: string, data: Partial<PromoCodeInput>) =>
+    request<PromoCodeView>("PATCH", `/api/admin/promo-codes/${encodeURIComponent(id)}`, data),
+  setAdminPromoStatus: (id: string, action: "activate" | "pause" | "disable" | "archive", reason?: string) =>
+    request<PromoCodeView>("POST", `/api/admin/promo-codes/${encodeURIComponent(id)}/${action}`, { reason }),
+  duplicateAdminPromoCode: (id: string) =>
+    request<PromoCodeView>("POST", `/api/admin/promo-codes/${encodeURIComponent(id)}/duplicate`, {}),
+  deleteAdminPromoCode: (id: string) =>
+    request<{ deleted: boolean; id: string }>("DELETE", `/api/admin/promo-codes/${encodeURIComponent(id)}`),
   login: (email: string, password: string, role: string) =>
     request<any>("POST", "/api/auth/login", { email, password, role }),
   verifyMfaTotp: (mfaToken: string, code: string) =>

@@ -13,6 +13,15 @@ import {
 } from "../paypal-webhook";
 import { logPayPalError } from "../paypal-server";
 import { registerPayPalConfigRoute } from "../paypal-routes";
+import {
+  assertPayPalPromoReservationUsable,
+  attachPromoReservationExternalReference,
+  PromoCodeError,
+  releasePromoCodeReservationByExternalReference,
+  releasePromoCodeReservationById,
+  reservePromoCodeUsage,
+  validatePromoCodeEligibility,
+} from "../promo-code-service";
 
 function buildPersistCoursePaymentEnrollment(ctx: RouteContext) {
   const d = ctx.deps;
@@ -27,6 +36,7 @@ function buildPersistCoursePaymentEnrollment(ctx: RouteContext) {
     auditAction: string;
     reqIp?: string;
     hasAiAccess?: boolean;
+    promoUsageId?: string;
   }) =>
     api.persistCoursePaymentEnrollment(params, {
       logAudit: d.logAudit,
@@ -149,15 +159,42 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
     const promoCode = String(req.body?.promoCode || "").trim();
     const includeAiAssistant = Boolean(req.body?.includeAiAssistant);
 
-    const chargePricing = api.resolveCourseChargeAmount(course.price, promoCode);
-
-    if (chargePricing.error) {
-      res.status(400).json({ error: chargePricing.error });
-
-      return;
+    let moduleAmountMad = course.price;
+    let promoReservation: Awaited<ReturnType<typeof reservePromoCodeUsage>> = null;
+    if (promoCode) {
+      try {
+        const preview = await validatePromoCodeEligibility({
+          code: promoCode,
+          userId: authUser.id,
+          courseId,
+          originalAmount: course.price,
+        });
+        if (api.isFreeCourseCharge(preview.finalAmount)) {
+          res.status(400).json({
+            error: "Utilisez l'inscription gratuite pour ce module.",
+            code: "FREE_ENROLLMENT_REQUIRED",
+          });
+          return;
+        }
+        promoReservation = await reservePromoCodeUsage({
+          code: promoCode,
+          userId: authUser.id,
+          courseId,
+          originalAmount: course.price,
+          provider: "PAYPAL",
+          expiresAt: new Date(Date.now() + 30 * 60_000),
+        });
+        moduleAmountMad = promoReservation?.quote.finalAmount ?? course.price;
+      } catch (error) {
+        if (error instanceof PromoCodeError) {
+          res.status(error.statusCode).json({ error: error.message, code: error.code });
+          return;
+        }
+        throw error;
+      }
     }
 
-    if (api.isFreeCourseCharge(chargePricing.amount)) {
+    if (api.isFreeCourseCharge(moduleAmountMad)) {
       res.status(400).json({
         error: "Utilisez l'inscription gratuite pour ce module.",
         code: "FREE_ENROLLMENT_REQUIRED",
@@ -166,18 +203,18 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
       return;
     }
 
-    if (chargePricing.discountPercent > 0) {
+    if (promoReservation) {
       api.logSecurity("INFO", "PayPal order promo applied", {
         userId: authUser.id,
         courseId,
-        discountPercent: chargePricing.discountPercent,
-        amountMad: chargePricing.amount,
+        promoUsageId: promoReservation.usage.id,
+        amountMad: moduleAmountMad,
       });
     }
 
     try {
       const checkoutTotalMad = api.computeCourseCheckoutTotalMad({
-        modulePriceMad: chargePricing.amount,
+        modulePriceMad: moduleAmountMad,
         includeAiAssistant,
         isFreeModule: false,
       });
@@ -194,7 +231,16 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
         userId: authUser.id,
 
         includeAiAssistant,
+        promoReservationReference: promoReservation?.usage.publicReference,
       });
+
+      if (promoReservation) {
+        const attached = await attachPromoReservationExternalReference(promoReservation.usage.id, order.id);
+        if (attached.count !== 1) {
+          await releasePromoCodeReservationById(promoReservation.usage.id, true);
+          throw new Error("PROMO_PAYPAL_RESERVATION_ATTACH_FAILED");
+        }
+      }
 
       res.json({
         id: order.id,
@@ -204,8 +250,19 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
         amount: order.amount,
 
         amountMad: order.amountMad,
+        promotion: promoReservation
+          ? {
+              code: promoReservation.promo.code,
+              originalAmount: promoReservation.quote.originalAmount,
+              discountAmount: promoReservation.quote.discountAmount,
+              finalAmount: promoReservation.quote.finalAmount,
+              provisional: true,
+            }
+          : null,
       });
     } catch (err: any) {
+      if (promoReservation)
+        await releasePromoCodeReservationById(promoReservation.usage.id, true).catch(() => undefined);
       api.logPayPalError("PayPal create-order route failed", {
         userId: authUser.id,
 
@@ -246,6 +303,15 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
     }
 
     try {
+      try {
+        await assertPayPalPromoReservationUsable(orderId);
+      } catch (error) {
+        if (error instanceof PromoCodeError) {
+          res.status(error.statusCode).json({ error: error.message, code: error.code });
+          return;
+        }
+        throw error;
+      }
       const captureResult = await api.capturePayPalOrder(orderId);
 
       const result = await api.processPayPalCaptureEnrollment(
@@ -312,6 +378,23 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
 
       res.status(500).json({ error: api.PUBLIC_API_ERRORS.paypalCaptureFailed });
     }
+  });
+
+  app.post("/api/paypal/cancel-order", requireAuth, async (req, res) => {
+    const orderId = String(req.body?.orderId || "").trim();
+    if (!orderId) {
+      res.status(400).json({ error: "orderId requis" });
+      return;
+    }
+    const usage = await api.prisma.promoCodeUsage.findUnique({
+      where: { externalReference: orderId },
+      select: { userId: true },
+    });
+    if (usage && usage.userId !== getAuthUser(req).id) {
+      res.status(403).json({ error: "Commande PayPal invalide" });
+      return;
+    }
+    res.json(await releasePromoCodeReservationByExternalReference(orderId, true));
   });
 
   // POST /api/payments/enroll-mock - Mock enrollment backend validation

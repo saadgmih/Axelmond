@@ -60,6 +60,16 @@ export interface CenterPaymentRequestView {
   accessEndsAt: string | null;
   receipt: CenterPaymentReceipt | null;
   center: CenterPaymentConfig;
+  promotion: {
+    code: string;
+    discountType: "PERCENTAGE" | "FIXED";
+    discountValue: number;
+    originalAmount: number;
+    discountAmount: number;
+    finalAmount: number;
+    currency: string;
+    status: "RESERVED" | "CONFIRMED" | "RELEASED" | "CANCELLED" | "REFUNDED";
+  } | null;
   history: Array<{
     previousStatus: CenterPaymentStatus | null;
     newStatus: CenterPaymentStatus;

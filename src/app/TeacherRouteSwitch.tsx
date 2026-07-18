@@ -12,6 +12,7 @@ import {
   LazyTeacherScheduleView,
   LazyTeacherWorkspace,
   LazyAdminCenterPaymentsView,
+  LazyAdminPromoCodesView,
   RouteChunkFallback,
 } from "../lazyViews";
 import { CHARITY_LOADING_LABEL } from "../charity-labels";
@@ -82,6 +83,16 @@ export function TeacherRouteSwitch() {
         {teacherView === "center-payments" && currentUser.role !== "ADMIN" && (
           <div className="rounded-lg border border-red-300/30 bg-red-500/10 p-5 text-sm font-semibold text-red-100">
             Cet espace financier est réservé aux administrateurs autorisés.
+          </div>
+        )}
+        {teacherView === "promo-codes" && currentUser.role === "ADMIN" && (
+          <Suspense fallback={<RouteChunkFallback label="Chargement des codes promotionnels…" />}>
+            <LazyAdminPromoCodesView />
+          </Suspense>
+        )}
+        {teacherView === "promo-codes" && currentUser.role !== "ADMIN" && (
+          <div className="rounded-lg border border-red-300/30 bg-red-500/10 p-5 text-sm font-semibold text-red-100">
+            Cette gestion commerciale est réservée aux administrateurs autorisés.
           </div>
         )}
         {teacherView === "charity" && currentUser.role === "ADMIN" && (

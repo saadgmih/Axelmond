@@ -297,6 +297,12 @@ export default function AdminCenterPaymentsView() {
             <dl className="grid gap-3 rounded-xl bg-white/[0.03] p-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
               <AdminDetail label="Prix enregistré" value={`${selected.amount.toFixed(2)} ${selected.currency}`} />
               <AdminDetail label="Prix actuel" value={`${selected.currentModulePrice.toFixed(2)} MAD`} />
+              {selected.promotion && (
+                <AdminDetail
+                  label={`Promotion ${selected.promotion.code}`}
+                  value={`${selected.promotion.originalAmount.toFixed(2)} − ${selected.promotion.discountAmount.toFixed(2)} = ${selected.promotion.finalAmount.toFixed(2)} ${selected.promotion.currency}`}
+                />
+              )}
               <AdminDetail label="Expiration" value={new Date(selected.expiresAt).toLocaleString("fr-MA")} />
               <AdminDetail label="Création" value={new Date(selected.createdAt).toLocaleString("fr-MA")} />
               <AdminDetail

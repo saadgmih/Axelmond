@@ -1,7 +1,7 @@
 import { prisma } from "./db";
 import { formatPayPalAmount, logPayPalError, parsePayPalCustomId } from "./paypal-server";
 import { convertMadAmountForPayPal, getPayPalCheckoutCurrency } from "./paypal-currency";
-import { resolveEnrollmentHasAiAccess } from "./utils/ai-tutor-pricing";
+import { computeCourseCheckoutTotalMad, resolveEnrollmentHasAiAccess } from "./utils/ai-tutor-pricing";
 import { PUBLIC_API_ERRORS } from "./public-api-errors";
 import { ActiveEnrollmentExistsError } from "./module-subscription";
 export type PayPalCaptureEnrollmentInput = {
@@ -71,6 +71,7 @@ export async function processPayPalCaptureEnrollment(
     auditAction: string;
     reqIp?: string;
     hasAiAccess?: boolean;
+    promoUsageId?: string;
   }) => Promise<{ duplicate: boolean; user: any; invoice: any }>,
   findCourseById: FindPayPalCourseById = (courseId) => prisma.course.findUnique({ where: { id: courseId } }),
 ): Promise<PayPalCaptureEnrollmentResult> {
@@ -129,6 +130,28 @@ export async function processPayPalCaptureEnrollment(
   const coursePricePaid = metadata.amountMad
     ? Number.parseFloat(metadata.amountMad)
     : Number.parseFloat(expectedAmount);
+  const promoUsage = metadata.promoReservationReference
+    ? await prisma.promoCodeUsage.findUnique({ where: { publicReference: metadata.promoReservationReference } })
+    : await prisma.promoCodeUsage.findUnique({ where: { externalReference: orderId } });
+  if (metadata.promoReservationReference && !promoUsage) {
+    return {
+      ok: false,
+      status: 409,
+      error: "Réservation promotionnelle introuvable",
+      code: "PROMO_RESERVATION_NOT_FOUND",
+    };
+  }
+  if (promoUsage) {
+    const expectedMad = computeCourseCheckoutTotalMad({
+      modulePriceMad: Number(promoUsage.finalPriceSnapshot),
+      includeAiAssistant: Boolean(metadata.includeAiAssistant),
+      isFreeModule: Number(promoUsage.finalPriceSnapshot) <= 0,
+    });
+    if (!metadata.amountMad || Math.abs(Number(metadata.amountMad) - expectedMad) > 0.001) {
+      logPayPalError("PayPal promo reservation amount mismatch", { orderId, courseId: metadata.courseId });
+      return { ok: false, status: 400, error: "Montant de paiement incorrect", code: "PAYPAL_AMOUNT_MISMATCH" };
+    }
+  }
 
   try {
     const enrollmentResult = await persistCoursePaymentEnrollment({
@@ -142,6 +165,7 @@ export async function processPayPalCaptureEnrollment(
       auditAction,
       reqIp,
       hasAiAccess: resolveEnrollmentHasAiAccess(Boolean(metadata.includeAiAssistant)),
+      promoUsageId: promoUsage?.id,
     });
 
     return {

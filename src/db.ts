@@ -116,6 +116,10 @@ function createPrismaClient(): PrismaClient {
   return new PrismaClient({
     adapter: new PrismaPg(pool),
     log: process.env.LOG_LEVEL === "debug" ? ["error", "warn"] : ["error"],
+    transactionOptions: {
+      maxWait: 10_000,
+      timeout: 30_000,
+    },
   });
 }
 

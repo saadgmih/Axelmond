@@ -25,9 +25,14 @@ import {
   isValidCenterPaymentIdempotencyKey,
   normalizeCenterPaymentNote,
 } from "../center-payment-domain";
+import { PromoCodeError } from "../promo-code-service";
 
 function handleCenterPaymentError(error: unknown, res: Response) {
   if (error instanceof CenterPaymentError) {
+    res.status(error.statusCode).json({ error: error.message, code: error.code });
+    return;
+  }
+  if (error instanceof PromoCodeError) {
     res.status(error.statusCode).json({ error: error.message, code: error.code });
     return;
   }

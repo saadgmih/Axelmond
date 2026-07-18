@@ -45,8 +45,12 @@ rulesTest("promo-codes", () => {
     apiSource,
     /createPayPalOrder:\s*\(courseId:\s*number,\s*promoCode\?:\s*string,\s*includeAiAssistant\?:\s*boolean\)/,
   );
-  assert.match(paymentModalSource, /api\.createPayPalOrder\(course\.id,\s*appliedPromo,\s*includeAiAssistant\)/);
-  assert.match(serverSource, /resolveCourseChargeAmount\(course\.price,\s*promoCode\)/);
+  assert.match(
+    paymentModalSource,
+    /api\.createPayPalOrder\(course\.id,\s*appliedPromo\?\.code,\s*includeAiAssistant\)/,
+  );
+  assert.match(serverSource, /validatePromoCodeEligibility\(/);
+  assert.match(serverSource, /reservePromoCodeUsage\(/);
   assert.match(paypalEnrollmentSource, /metadata\.expectedAmount/);
   assert.match(paypalServerSource, /buildPayPalCustomId\([\s\S]*payPalCurrency/);
   assert.match(serverSource, /computeCourseCheckoutTotalMad/);

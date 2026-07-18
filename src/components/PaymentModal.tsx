@@ -28,6 +28,7 @@ import {
   storePendingPayPalCheckout,
 } from "../utils/paypal-hosted-checkout";
 import type { CenterPaymentConfig, CenterPaymentRequestView } from "../center-payment-types";
+import type { PromoQuote } from "../promo-code-types";
 
 interface PaymentModalProps {
   course: Course | null;
@@ -49,7 +50,8 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
   const dialogRef = useRef<HTMLDivElement>(null);
   const hostedReturnHandledRef = useRef(false);
   const [promoCode, setPromoCode] = useState("");
-  const [appliedDiscount, setAppliedDiscount] = useState(0);
+  const [appliedPromo, setAppliedPromo] = useState<PromoQuote | null>(null);
+  const [isApplyingPromo, setIsApplyingPromo] = useState(false);
   const [promoError, setPromoError] = useState("");
   const [promoSuccess, setPromoSuccess] = useState("");
   const [paymentError, setPaymentError] = useState("");
@@ -66,7 +68,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
   const [studentNote, setStudentNote] = useState("");
 
   const originalPrice = course?.price ?? 0;
-  const modulePriceAfterPromo = Math.round(originalPrice * (1 - appliedDiscount / 100) * 100) / 100;
+  const modulePriceAfterPromo = appliedPromo?.finalAmount ?? originalPrice;
   const isFreeCheckout = modulePriceAfterPromo <= 0;
   const finalPrice = computeCourseCheckoutTotalMad({
     modulePriceMad: modulePriceAfterPromo,
@@ -79,6 +81,10 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
     setPaymentMode("PAYPAL");
     setCenterRequest(null);
     setStudentNote("");
+    setPromoCode("");
+    setAppliedPromo(null);
+    setPromoError("");
+    setPromoSuccess("");
   }, [course?.id]);
 
   useEffect(() => {
@@ -179,6 +185,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
     hostedReturnHandledRef.current = true;
     if (paymentStatus === "cancel") {
       setPaymentError("Paiement par carte annulé. Vous pouvez réessayer.");
+      void api.cancelPayPalOrder(pending.orderId).catch(() => undefined);
       clearPendingPayPalCheckout();
       clearPayPalReturnQuery();
       return;
@@ -200,16 +207,31 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
 
   if (!course) return null;
 
-  const handleApplyPromo = () => {
+  const handleApplyPromo = async () => {
     setPromoError("");
     setPromoSuccess("");
     const code = promoCode.trim().toUpperCase();
-    if (code === "AXELMOND20" || code === "PERFORMANCE20") {
-      setAppliedDiscount(20);
-      setPromoSuccess("Réduction de 20% appliquée.");
-    } else if (promoCode.trim() !== "") {
-      setPromoError("Code invalide ou expiré.");
+    if (!code) return;
+    setIsApplyingPromo(true);
+    try {
+      const quote = await api.validatePromoCode(course.id, code);
+      setAppliedPromo(quote);
+      setPromoCode(quote.code);
+      setPromoSuccess("Code validé par le serveur. Il sera revérifié lors du paiement.");
+    } catch (error: unknown) {
+      setAppliedPromo(null);
+      setPromoError(getClientErrorMessage(error, "Ce code promotionnel n’est pas valide."));
+    } finally {
+      setIsApplyingPromo(false);
     }
+  };
+
+  const handleRemovePromo = () => {
+    setAppliedPromo(null);
+    setPromoCode("");
+    setPromoError("");
+    setPromoSuccess("");
+    void api.removePromoCode(course.id).catch(() => undefined);
   };
 
   const handleFreeEnroll = async () => {
@@ -218,8 +240,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
     setPaymentError("");
 
     try {
-      const appliedPromo = appliedDiscount > 0 ? promoCode.trim().toUpperCase() : undefined;
-      const result = await api.freeEnrollCourse(course.id, appliedPromo, includeAiAssistant);
+      const result = await api.freeEnrollCourse(course.id, appliedPromo?.code, includeAiAssistant);
       if (!result.user) {
         throw new Error("Inscription non confirmée par le serveur. Contactez le support.");
       }
@@ -235,10 +256,9 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
 
   const handleCreatePayPalOrder = async () => {
     setPaymentError("");
-    const appliedPromo = appliedDiscount > 0 ? promoCode.trim().toUpperCase() : undefined;
     const token = await getFreshSessionToken();
     if (!token) throw new Error("Session expirée. Reconnectez-vous.");
-    const order = await api.createPayPalOrder(course.id, appliedPromo, includeAiAssistant);
+    const order = await api.createPayPalOrder(course.id, appliedPromo?.code, includeAiAssistant);
     if (order.amount && order.currency) {
       setOrderPreviewAmount(`${order.amount} ${order.currency}`);
     }
@@ -270,10 +290,9 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
     setIsProcessing(true);
     setPaymentError("");
     try {
-      const appliedPromo = appliedDiscount > 0 ? promoCode.trim().toUpperCase() : undefined;
       const result = await api.createCenterPaymentRequest(course.id, {
         includeAiAssistant,
-        promoCode: appliedPromo,
+        promoCode: appliedPromo?.code,
         studentNote: studentNote.trim() || undefined,
       });
       setCenterRequest(result.request);
@@ -346,7 +365,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                         <p className="text-xs text-slate-400">Résiliable en 1 clic</p>
                       </div>
                       <div className="shrink-0 text-right">
-                        {appliedDiscount > 0 && (
+                        {appliedPromo && (
                           <p className="text-xs font-medium text-slate-500 line-through">{formatMad(originalPrice)}</p>
                         )}
                         <div className="flex items-baseline justify-end gap-1">
@@ -355,7 +374,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                           </span>
                           <span className="text-[10px] font-bold uppercase text-slate-500">/mois</span>
                         </div>
-                        {appliedDiscount > 0 && (
+                        {appliedPromo && (
                           <span className="mt-1 inline-flex rounded-md bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
                             Économie {formatMad(savings)}
                           </span>
@@ -416,24 +435,51 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                         type="text"
                         placeholder="PERFORMANCE20"
                         value={promoCode}
-                        onChange={(e) => setPromoCode(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && handleApplyPromo()}
+                        onChange={(e) => {
+                          setPromoCode(e.target.value);
+                          setAppliedPromo(null);
+                          setPromoSuccess("");
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") void handleApplyPromo();
+                        }}
                         className="w-full rounded-xl border border-white/10 bg-white/[0.04] py-2.5 pl-10 pr-[5.5rem] font-mono text-sm uppercase text-white placeholder:text-slate-600 focus:border-emerald-400/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                       />
                       <button
                         type="button"
-                        onClick={handleApplyPromo}
+                        onClick={() => void handleApplyPromo()}
+                        disabled={isApplyingPromo || !promoCode.trim()}
                         className="absolute right-1 top-1 bottom-1 rounded-lg bg-emerald-600 px-3 text-[11px] font-bold text-white transition-colors hover:bg-emerald-500"
                       >
-                        Appliquer
+                        {isApplyingPromo ? "Vérification…" : "Appliquer"}
                       </button>
                     </div>
                     {promoError && <p className="text-xs font-medium text-red-400">{promoError}</p>}
                     {promoSuccess && (
-                      <p className="inline-flex items-center gap-1 text-xs font-medium text-emerald-400">
-                        <Sparkles className="h-3.5 w-3.5" />
-                        {promoSuccess}
-                      </p>
+                      <div className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 p-3 text-xs text-emerald-100">
+                        <p className="inline-flex items-center gap-1 font-semibold text-emerald-300">
+                          <Sparkles className="h-3.5 w-3.5" /> {promoSuccess}
+                        </p>
+                        {appliedPromo && (
+                          <dl className="mt-2 grid grid-cols-2 gap-1">
+                            <dt>Code</dt>
+                            <dd className="text-right font-mono font-bold">{appliedPromo.code}</dd>
+                            <dt>Prix initial</dt>
+                            <dd className="text-right">{formatMad(appliedPromo.originalAmount)}</dd>
+                            <dt>Réduction</dt>
+                            <dd className="text-right text-emerald-300">−{formatMad(appliedPromo.discountAmount)}</dd>
+                            <dt>Prix final</dt>
+                            <dd className="text-right font-bold">{formatMad(appliedPromo.finalAmount)}</dd>
+                          </dl>
+                        )}
+                        <button
+                          type="button"
+                          onClick={handleRemovePromo}
+                          className="mt-2 font-bold text-white underline"
+                        >
+                          Retirer le code
+                        </button>
+                      </div>
                     )}
                   </div>
 

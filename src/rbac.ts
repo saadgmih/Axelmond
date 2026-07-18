@@ -373,6 +373,7 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
       cleanPath === "/api/livekit/messages" ||
       cleanPath === "/api/paypal/create-order" ||
       cleanPath === "/api/paypal/capture-order" ||
+      cleanPath === "/api/paypal/cancel-order" ||
       cleanPath === "/api/payments/enroll-mock" ||
       cleanPath === "/api/contact" ||
       cleanPath === "/api/support/tickets")
@@ -386,6 +387,14 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
 
   if (verb === "POST" && /^\/api\/courses\/\d+\/center-payment-requests$/.test(cleanPath)) {
     return normalized === "STUDENT";
+  }
+
+  if (
+    normalized === "STUDENT" &&
+    ((verb === "POST" && /^\/api\/modules\/\d+\/promo-code\/validate$/.test(cleanPath)) ||
+      (verb === "DELETE" && /^\/api\/modules\/\d+\/promo-code$/.test(cleanPath)))
+  ) {
+    return true;
   }
 
   if (verb === "GET" && cleanPath === "/api/center-payment/config") {

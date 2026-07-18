@@ -11,6 +11,8 @@ import { resolveEnrollmentHasAiAccess } from "./utils/ai-tutor-pricing";
 import { PUBLIC_API_ERRORS } from "./public-api-errors";
 import { isStudentRole } from "./rbac";
 import { toAppUser } from "./server/mappers/user-mappers";
+import { buildEnrollmentEndDate } from "./enrollment-access";
+import { PromoCodeError, releasePromoCodeReservationById, reservePromoCodeUsage } from "./promo-code-service";
 
 export type FreeCourseEnrollmentResult =
   | {
@@ -49,12 +51,32 @@ export async function processFreeCourseEnrollment(params: {
     return { ok: false, status: 404, error: PUBLIC_API_ERRORS.courseNotFound, code: "COURSE_NOT_FOUND" };
   }
 
-  const chargePricing = resolveCourseChargeAmount(course.price, params.promoCode);
-  if (chargePricing.error) {
-    return { ok: false, status: 400, error: chargePricing.error, code: "PROMO_INVALID" };
+  let promoReservation: Awaited<ReturnType<typeof reservePromoCodeUsage>> = null;
+  let chargeAmount = course.price;
+  if (params.promoCode?.trim()) {
+    try {
+      promoReservation = await reservePromoCodeUsage({
+        code: params.promoCode,
+        userId: params.userId,
+        courseId: params.courseId,
+        originalAmount: course.price,
+        provider: "FREE",
+        expiresAt: new Date(Date.now() + 5 * 60_000),
+      });
+      chargeAmount = promoReservation?.quote.finalAmount ?? course.price;
+    } catch (error) {
+      if (error instanceof PromoCodeError) {
+        return { ok: false, status: error.statusCode, error: error.message, code: error.code };
+      }
+      throw error;
+    }
+  } else {
+    const chargePricing = resolveCourseChargeAmount(course.price, "");
+    chargeAmount = chargePricing.amount;
   }
 
-  if (!isFreeCourseCharge(chargePricing.amount)) {
+  if (!isFreeCourseCharge(chargeAmount)) {
+    if (promoReservation) await releasePromoCodeReservationById(promoReservation.usage.id, true);
     return {
       ok: false,
       status: 400,
@@ -64,38 +86,40 @@ export async function processFreeCourseEnrollment(params: {
   }
 
   const invoiceId = buildCourseInvoiceId("FREE");
-  const externalId = `free-enroll-${params.userId}-${params.courseId}`;
+  const externalId = promoReservation
+    ? `free-promo-${promoReservation.usage.publicReference}`
+    : `free-enroll-${params.userId}-${params.courseId}`;
   const now = new Date();
   const freeAccessWindow = resolveCourseFreeAccessWindow(course);
-  const enrollmentEndDate = resolveFreeEnrollmentEndDate(course, now);
+  const enrollmentEndDate = promoReservation ? buildEnrollmentEndDate(now) : resolveFreeEnrollmentEndDate(course, now);
 
-  if (!freeAccessWindow) {
-    return {
-      ok: false,
-      status: 400,
-      error: "Ce module gratuit doit avoir une période de gratuité (date de début et de fin).",
-      code: "FREE_ENROLL_WINDOW_NOT_CONFIGURED",
-    };
-  }
-
-  if (isBeforeFreeAccessWindow(course, now)) {
-    return {
-      ok: false,
-      status: 400,
-      error: `La période de gratuité commence le ${freeAccessWindow.startsAt.toLocaleDateString("fr-FR")}.`,
-      code: "FREE_ENROLL_WINDOW_NOT_STARTED",
-    };
-  }
-
-  if (isAfterFreeAccessWindow(course, now)) {
-    return {
-      ok: false,
-      status: 400,
-      error: `La période de gratuité de ce module est terminée depuis le ${freeAccessWindow.endsAt.toLocaleDateString(
-        "fr-FR",
-      )}.`,
-      code: "FREE_ENROLL_WINDOW_EXPIRED",
-    };
+  if (!promoReservation) {
+    if (!freeAccessWindow) {
+      return {
+        ok: false,
+        status: 400,
+        error: "Ce module gratuit doit avoir une période de gratuité (date de début et de fin).",
+        code: "FREE_ENROLL_WINDOW_NOT_CONFIGURED",
+      };
+    }
+    if (isBeforeFreeAccessWindow(course, now)) {
+      return {
+        ok: false,
+        status: 400,
+        error: `La période de gratuité commence le ${freeAccessWindow.startsAt.toLocaleDateString("fr-FR")}.`,
+        code: "FREE_ENROLL_WINDOW_NOT_STARTED",
+      };
+    }
+    if (isAfterFreeAccessWindow(course, now)) {
+      return {
+        ok: false,
+        status: 400,
+        error: `La période de gratuité de ce module est terminée depuis le ${freeAccessWindow.endsAt.toLocaleDateString(
+          "fr-FR",
+        )}.`,
+        code: "FREE_ENROLL_WINDOW_EXPIRED",
+      };
+    }
   }
 
   try {
@@ -111,6 +135,7 @@ export async function processFreeCourseEnrollment(params: {
       reqIp: params.reqIp,
       enrollmentEndDate,
       hasAiAccess: resolveEnrollmentHasAiAccess(Boolean(params.includeAiAssistant)),
+      promoUsageId: promoReservation?.usage.id,
     });
 
     return {
@@ -121,6 +146,7 @@ export async function processFreeCourseEnrollment(params: {
       message: result.duplicate ? "Vous êtes déjà inscrit à ce module." : "Inscription gratuite confirmée.",
     };
   } catch (err: unknown) {
+    if (promoReservation) await releasePromoCodeReservationById(promoReservation.usage.id, true).catch(() => undefined);
     if (err instanceof Error && err.message === "USER_NOT_FOUND") {
       return { ok: false, status: 404, error: PUBLIC_API_ERRORS.accountNotFound, code: "USER_NOT_FOUND" };
     }

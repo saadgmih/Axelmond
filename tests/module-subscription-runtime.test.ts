@@ -27,6 +27,9 @@ function buildTransaction(
       findMany: vi.fn().mockResolvedValue(options.openRequests || []),
       updateMany: updateOpen,
     },
+    promoCodeUsage: {
+      findUnique: vi.fn().mockResolvedValue(null),
+    },
     centerPaymentStatusHistory: { create: historyCreate },
     notification: { create: notificationCreate },
   };

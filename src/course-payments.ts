@@ -3,6 +3,7 @@ import { prisma } from "./db";
 import type { Invoice } from "./types";
 import { buildEnrollmentEndDate } from "./enrollment-access";
 import { activateModuleSubscriptionInTransaction } from "./module-subscription";
+import { confirmPromoCodeUsageInTransaction } from "./promo-code-service";
 
 export const APP_USER_BILLING_INCLUDE = {
   enrollments: true,
@@ -31,6 +32,8 @@ export type CoursePaymentEnrollmentInput = {
   reqIp?: string;
   enrollmentEndDate?: Date | null;
   hasAiAccess?: boolean;
+  promoUsageId?: string;
+  allowInactiveReservedPromo?: boolean;
 };
 
 export function serializeInvoiceRecord(invoice: {
@@ -99,6 +102,14 @@ export async function persistCoursePaymentEnrollment(
         enrollmentEndDate,
         hasAiAccess,
       });
+      if (params.promoUsageId) {
+        await confirmPromoCodeUsageInTransaction(tx, {
+          usageId: params.promoUsageId,
+          paymentId: activation.payment.id,
+          idempotencyKey: `payment:${params.provider}:${params.externalId}`,
+          allowInactiveReservedPromo: Boolean(params.allowInactiveReservedPromo),
+        });
+      }
       const updatedUser = await tx.user.findUnique({
         where: { id: params.userId },
         include: APP_USER_BILLING_INCLUDE,

@@ -137,6 +137,12 @@ export default function StudentCenterPaymentsView() {
 
               <dl className="grid gap-3 rounded-xl bg-white/[0.03] p-4 text-sm sm:grid-cols-2">
                 <Detail label="Montant" value={`${selected.amount.toFixed(2)} ${selected.currency}`} />
+                {selected.promotion && (
+                  <Detail
+                    label={`Promotion ${selected.promotion.code}`}
+                    value={`${selected.promotion.originalAmount.toFixed(2)} − ${selected.promotion.discountAmount.toFixed(2)} = ${selected.promotion.finalAmount.toFixed(2)} ${selected.promotion.currency}`}
+                  />
+                )}
                 <Detail label="Créée le" value={new Date(selected.createdAt).toLocaleString("fr-MA")} />
                 <Detail label="À payer avant" value={new Date(selected.expiresAt).toLocaleString("fr-MA")} />
                 <Detail label="Durée d’accès" value={`${selected.accessDurationDays} jours après validation`} />

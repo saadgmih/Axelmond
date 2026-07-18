@@ -1,5 +1,6 @@
 import { Prisma, type PaymentProvider } from "@prisma/client";
 import { isEnrollmentActive } from "./enrollment-access";
+import { releasePromoCodeReservationInTransaction } from "./promo-code-service";
 
 type TransactionClient = Prisma.TransactionClient;
 
@@ -52,6 +53,11 @@ export async function cancelOpenCenterPaymentRequestsInTransaction(
       data: { status: "CANCELLED", openRequestKey: null, publicReason: reason },
     });
     if (claimed.count !== 1) continue;
+    const promoUsage = await tx.promoCodeUsage.findUnique({
+      where: { centerPaymentRequestId: request.id },
+      select: { id: true },
+    });
+    if (promoUsage) await releasePromoCodeReservationInTransaction(tx, promoUsage.id, true);
     cancelled.push(request);
     await tx.centerPaymentStatusHistory.create({
       data: {

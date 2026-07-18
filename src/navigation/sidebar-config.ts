@@ -13,6 +13,7 @@ import {
   KeyRound,
   HandHeart,
   WalletCards,
+  BadgePercent,
 } from "lucide-react";
 import { getTeacherSpaceTitle } from "../rbac";
 import type { UserRole } from "../rbac";
@@ -208,6 +209,15 @@ function teacherItems(role?: UserRole): SidebarNavItem[] {
       prefetch: () => prefetchTeacherView("center-payments"),
       isActive: ({ teacherView }) => teacherView === "center-payments",
       onSelect: ({ setTeacherView }) => setTeacherView("center-payments"),
+    });
+    items.splice(4, 0, {
+      id: "nav-promo-codes",
+      label: "Codes promotionnels",
+      icon: BadgePercent,
+      iconClassName: "text-emerald-300",
+      prefetch: () => prefetchTeacherView("promo-codes"),
+      isActive: ({ teacherView }) => teacherView === "promo-codes",
+      onSelect: ({ setTeacherView }) => setTeacherView("promo-codes"),
     });
   }
 

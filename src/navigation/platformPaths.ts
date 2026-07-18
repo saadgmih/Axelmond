@@ -28,6 +28,7 @@ export const TEACHER_VIEWS = new Set([
   "messages",
   "notifications",
   "center-payments",
+  "promo-codes",
 ]);
 
 export function isKnownPlatformPath(pathname: string): boolean {

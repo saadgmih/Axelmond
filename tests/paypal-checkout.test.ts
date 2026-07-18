@@ -32,7 +32,10 @@ rulesTest("paypal-checkout", () => {
   const globalStyles = fs.readFileSync("src/index.css", "utf8");
   assert.doesNotMatch(globalStyles, /iframe\.component-frame/);
   assert.doesNotMatch(globalStyles, /\[data-funding-source\]/);
-  assert.match(paymentModalSource, /api\.createPayPalOrder\(course\.id,\s*appliedPromo,\s*includeAiAssistant\)/);
+  assert.match(
+    paymentModalSource,
+    /api\.createPayPalOrder\(course\.id,\s*appliedPromo\?\.code,\s*includeAiAssistant\)/,
+  );
   assert.match(paymentModalSource, /api\.capturePayPalOrder\(/);
   assert.match(serverSource, /app\.post\("\/api\/paypal\/create-order"/);
   assert.match(serverSource, /app\.post\("\/api\/paypal\/capture-order"/);

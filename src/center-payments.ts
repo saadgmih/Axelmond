@@ -16,7 +16,11 @@ import {
   activateModuleSubscriptionInTransaction,
   lockModuleSubscriptionScopeInTransaction,
 } from "./module-subscription";
-import { resolveCourseChargeAmount } from "./promo-codes";
+import {
+  confirmPromoCodeUsageInTransaction,
+  releasePromoCodeReservationInTransaction,
+  reservePromoCodeUsageInTransaction,
+} from "./promo-code-service";
 
 const centerPaymentInclude = {
   user: { select: { id: true, fullName: true, email: true } },
@@ -28,6 +32,7 @@ const centerPaymentInclude = {
     orderBy: { createdAt: "asc" as const },
     include: { changedBy: { select: { id: true, fullName: true, email: true } } },
   },
+  promoCodeUsage: true,
 } as const;
 
 export class CenterPaymentError extends Error {
@@ -87,6 +92,18 @@ export function serializeCenterPaymentRequest(record: CenterPaymentRecord, admin
     accessEndsAt: record.enrollment?.endDate?.toISOString() || null,
     receipt: receiptSnapshot(record),
     center: getCenterPaymentConfig(),
+    promotion: record.promoCodeUsage
+      ? {
+          code: record.promoCodeUsage.promoCodeSnapshot,
+          discountType: record.promoCodeUsage.discountTypeSnapshot,
+          discountValue: Number(record.promoCodeUsage.discountValueSnapshot),
+          originalAmount: Number(record.promoCodeUsage.originalPriceSnapshot),
+          discountAmount: Number(record.promoCodeUsage.discountAmountSnapshot),
+          finalAmount: Number(record.promoCodeUsage.finalPriceSnapshot),
+          currency: record.promoCodeUsage.currencySnapshot,
+          status: record.promoCodeUsage.status,
+        }
+      : null,
   };
   if (!admin) {
     return {
@@ -133,7 +150,7 @@ export async function expireCenterPaymentRequests(input: { userId?: string; refe
         status: { in: CENTER_PAYMENT_OPEN_STATUSES },
         expiresAt: { lte: now },
       },
-      select: { id: true, userId: true, publicReference: true, status: true },
+      select: { id: true, userId: true, publicReference: true, status: true, promoCodeUsage: { select: { id: true } } },
     });
     let claimedCount = 0;
     for (const request of expired) {
@@ -146,6 +163,9 @@ export async function expireCenterPaymentRequests(input: { userId?: string; refe
         },
       });
       if (claimed.count !== 1) continue;
+      if (request.promoCodeUsage) {
+        await releasePromoCodeReservationInTransaction(tx, request.promoCodeUsage.id);
+      }
       claimedCount += 1;
       await tx.centerPaymentStatusHistory.create({
         data: {
@@ -175,18 +195,14 @@ export async function expireCenterPaymentRequests(input: { userId?: string; refe
 async function createWithUniqueReference(input: {
   userId: string;
   course: { id: number; title: string; description: string; price: number };
-  modulePriceMad: number;
+  promoCode?: string;
   includeAiAssistant: boolean;
   studentNote: string | null;
   now: Date;
 }) {
   const config = getCenterPaymentConfig();
   const openRequestKey = `${input.userId}:${input.course.id}`;
-  const amountMad = computeCourseCheckoutTotalMad({
-    modulePriceMad: input.modulePriceMad,
-    includeAiAssistant: input.includeAiAssistant,
-    isFreeModule: input.course.price <= 0,
-  });
+  const expiresAt = buildCenterPaymentExpiry(input.now, config.expirationDays);
   for (let attempt = 0; attempt < 8; attempt += 1) {
     const publicReference = generateCenterPaymentReference(input.now);
     try {
@@ -205,6 +221,22 @@ async function createWithUniqueReference(input: {
         if (concurrentOpenRequest) {
           return { duplicate: true as const, record: concurrentOpenRequest };
         }
+        const promoReservation = input.promoCode
+          ? await reservePromoCodeUsageInTransaction(tx, {
+              code: input.promoCode,
+              userId: input.userId,
+              courseId: input.course.id,
+              originalAmount: input.course.price,
+              provider: "CENTER",
+              expiresAt,
+            })
+          : null;
+        const modulePriceMad = promoReservation?.quote.finalAmount ?? input.course.price;
+        const amountMad = computeCourseCheckoutTotalMad({
+          modulePriceMad,
+          includeAiAssistant: input.includeAiAssistant,
+          isFreeModule: input.course.price <= 0,
+        });
         const request = await tx.centerPaymentRequest.create({
           data: {
             publicReference,
@@ -213,15 +245,21 @@ async function createWithUniqueReference(input: {
             courseId: input.course.id,
             amountMad,
             currency: config.currency,
-            modulePriceSnapshot: input.modulePriceMad,
+            modulePriceSnapshot: input.course.price,
             moduleTitleSnapshot: input.course.title,
             moduleDescriptionSnapshot: input.course.description,
             accessDurationDaysSnapshot: config.accessDurationDays,
             hasAiAccessSnapshot: resolveEnrollmentHasAiAccess(input.includeAiAssistant),
-            expiresAt: buildCenterPaymentExpiry(input.now, config.expirationDays),
+            expiresAt,
             studentNote: input.studentNote,
           },
         });
+        if (promoReservation) {
+          await tx.promoCodeUsage.update({
+            where: { id: promoReservation.usage.id },
+            data: { centerPaymentRequestId: request.id },
+          });
+        }
         await tx.centerPaymentStatusHistory.create({
           data: {
             centerPaymentRequestId: request.id,
@@ -273,9 +311,6 @@ export async function createCenterPaymentRequest(input: {
   });
   if (!course || !course.published) throw new CenterPaymentError("COURSE_NOT_FOUND", 404, "Module non trouvé");
   if (course.price <= 0) throw new CenterPaymentError("FREE_MODULE", 400, "Ce module est accessible gratuitement");
-  const pricing = resolveCourseChargeAmount(course.price, input.promoCode || "");
-  if (pricing.error) throw new CenterPaymentError("INVALID_PROMO_CODE", 400, pricing.error);
-
   const enrollment = await prisma.enrollment.findUnique({
     where: { userId_courseId: { userId: input.userId, courseId: input.courseId } },
   });
@@ -292,7 +327,7 @@ export async function createCenterPaymentRequest(input: {
   const created = await createWithUniqueReference({
     userId: input.userId,
     course,
-    modulePriceMad: pricing.amount,
+    promoCode: input.promoCode?.trim() || undefined,
     includeAiAssistant: Boolean(input.includeAiAssistant),
     studentNote: normalizeCenterPaymentNote(input.studentNote, 500),
     now: new Date(),
@@ -348,6 +383,13 @@ async function transitionRequest(input: {
       },
     });
     if (claimed.count !== 1) throw new CenterPaymentError("CONCURRENT_UPDATE", 409, "La demande a déjà été modifiée");
+    if (["CANCELLED", "REJECTED", "EXPIRED"].includes(input.toStatus)) {
+      const usage = await tx.promoCodeUsage.findUnique({
+        where: { centerPaymentRequestId: request.id },
+        select: { id: true },
+      });
+      if (usage) await releasePromoCodeReservationInTransaction(tx, usage.id, input.toStatus === "CANCELLED");
+    }
     await tx.centerPaymentStatusHistory.create({
       data: {
         centerPaymentRequestId: request.id,
@@ -549,13 +591,13 @@ export async function validateCenterPaymentRequest(input: {
       const outcome = await prisma.$transaction(async (tx) => {
         let request = await tx.centerPaymentRequest.findUnique({
           where: { publicReference: input.reference },
-          include: { enrollment: true },
+          include: { enrollment: true, promoCodeUsage: true },
         });
         if (!request) throw new CenterPaymentError("REQUEST_NOT_FOUND", 404, "Demande introuvable");
         await lockModuleSubscriptionScopeInTransaction(tx, request.userId);
         request = await tx.centerPaymentRequest.findUnique({
           where: { publicReference: input.reference },
-          include: { enrollment: true },
+          include: { enrollment: true, promoCodeUsage: true },
         });
         if (!request) throw new CenterPaymentError("REQUEST_NOT_FOUND", 404, "Demande introuvable");
         if (request.status === "PAID" && request.validationIdempotencyKey === input.idempotencyKey) {
@@ -631,6 +673,15 @@ export async function validateCenterPaymentRequest(input: {
           hasAiAccess: request.hasAiAccessSnapshot,
           excludeCenterRequestId: request.id,
         });
+        if (request.promoCodeUsage) {
+          await confirmPromoCodeUsageInTransaction(tx, {
+            usageId: request.promoCodeUsage.id,
+            paymentId: activation.payment.id,
+            centerPaymentRequestId: request.id,
+            idempotencyKey: `center:${request.publicReference}`,
+            allowInactiveReservedPromo: true,
+          });
+        }
         await tx.centerPaymentRequest.update({
           where: { id: request.id },
           data: {
@@ -725,6 +776,10 @@ export async function refundCenterPaymentRequest(
       await tx.payment.update({ where: { id: request.paymentId }, data: { status: "REFUNDED" } });
       await tx.invoice.updateMany({ where: { paymentId: request.paymentId }, data: { status: "Remboursé" } });
     }
+    await tx.promoCodeUsage.updateMany({
+      where: { centerPaymentRequestId: request.id, status: "CONFIRMED" },
+      data: { status: "REFUNDED", releasedAt: new Date() },
+    });
     if (request.enrollment && request.validatedAt) {
       const validationWindowEnd = new Date(request.validatedAt.getTime() + 60_000);
       await tx.enrollment.updateMany({

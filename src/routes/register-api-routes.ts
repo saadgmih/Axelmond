@@ -19,6 +19,7 @@ import { registerCharityAdminRoutes } from "./charity-admin-routes";
 import { registerMobileApiRoutes } from "./mobile-api-routes";
 import { registerOnboardingRoutes } from "./onboarding-routes";
 import { registerCenterPaymentRoutes } from "./center-payment-routes";
+import { registerPromoCodeRoutes } from "./promo-code-routes";
 import type { RouteContext } from "../server/route-context";
 
 export function registerApiRoutes(app: Express, ctx: RouteContext): void {
@@ -38,6 +39,7 @@ export function registerApiRoutes(app: Express, ctx: RouteContext): void {
   registerLiveRoutes(app, ctx);
   registerPaymentsRoutes(app, ctx);
   registerCenterPaymentRoutes(app, ctx);
+  registerPromoCodeRoutes(app, ctx);
   registerMiscRoutes(app, ctx);
   registerMessagingRoutes(app, ctx.middleware);
   registerOnboardingRoutes(app, ctx);

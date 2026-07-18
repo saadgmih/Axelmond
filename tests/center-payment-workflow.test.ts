@@ -25,7 +25,7 @@ rulesTest("secure center payment workflow", () => {
   assert.match(migration, /ALTER TYPE "AxelmondResearchLab"\."PaymentProvider" ADD VALUE IF NOT EXISTS 'CENTER'/);
 
   assert.match(service, /prisma\.course\.findUnique/);
-  assert.match(service, /modulePriceSnapshot:\s*input\.modulePriceMad/);
+  assert.match(service, /modulePriceSnapshot:\s*input\.course\.price/);
   assert.doesNotMatch(routes, /req\.body\?\.(amount|price)/);
   assert.match(service, /prisma\.\$transaction/);
   assert.match(service, /validationIdempotencyKey:\s*input\.idempotencyKey/);
