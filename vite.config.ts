@@ -14,6 +14,7 @@ export default defineConfig(() => {
       },
     },
     build: {
+      manifest: true,
       sourcemap: false,
       minify: "oxc",
       cssMinify: true,

@@ -12,7 +12,15 @@ export function AppFooter() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-slate-100 font-extrabold text-sm">
-            <img src="/performance-logo-e6657b8a.png" className="w-6 h-6 object-contain" alt="Performance Académique" />
+            <img
+              src="/performance-logo-003a24a4-192.png"
+              className="w-6 h-6 object-contain"
+              alt="Performance Académique"
+              width={24}
+              height={24}
+              loading="lazy"
+              decoding="async"
+            />
             <span>Performance Académique</span>
           </div>
           <p className="text-xs text-slate-400 leading-relaxed">

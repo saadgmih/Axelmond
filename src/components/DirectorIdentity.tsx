@@ -63,6 +63,10 @@ export function DirectorFounderSection() {
                   className="absolute inset-0 h-full w-full select-none object-cover"
                   style={{ objectPosition: photo.objectPosition }}
                   loading={index === 0 ? "eager" : "lazy"}
+                  decoding="async"
+                  fetchPriority={index === 0 ? "high" : "low"}
+                  width={720}
+                  height={1080}
                   draggable={false}
                 />
               </div>
@@ -122,6 +126,9 @@ export function DirectorAuthCard() {
           alt={directorProfile.photoAlt}
           className="h-14 w-14 shrink-0 rounded-full border border-emerald-300/30 object-cover object-[50%_22%]"
           loading="lazy"
+          decoding="async"
+          width={160}
+          height={240}
         />
         <div className="min-w-0">
           <p className="truncate text-sm font-black text-white">{directorProfile.name}</p>

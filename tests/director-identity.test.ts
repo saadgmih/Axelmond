@@ -7,16 +7,21 @@ rulesTest("director-identity", () => {
   assert.equal(fs.existsSync("public/director-oussama-el-abboudi-full.png"), true);
   assert.equal(fs.existsSync("public/director-oussama-el-abboudi-thinking.png"), true);
   assert.equal(fs.existsSync("public/director-oussama-footer.png"), true);
+  assert.equal(fs.existsSync("public/director-oussama-avatar-160-d71a9347.jpg"), true);
+  assert.equal(fs.existsSync("public/director-oussama-full-720-8e453474.jpg"), true);
+  assert.equal(fs.existsSync("public/director-oussama-thinking-720-a43920b8.jpg"), true);
+  assert.equal(fs.existsSync("public/director-oussama-footer-160-ce163101.jpg"), true);
   assert.equal(fs.existsSync("public/director-oussama-el-abboudi.jpg"), false);
   assert.equal(fs.existsSync("public/director-oussama-el-abboudi-full.jpg"), false);
 
   const profileSource = fs.readFileSync("src/content/director-profile.ts", "utf8");
   assert.match(profileSource, /Pr\. Oussama El Abboudi/);
   assert.match(profileSource, /Former aujourd'hui les talents de demain/);
-  assert.match(profileSource, /\/director-oussama-el-abboudi\.png/);
-  assert.match(profileSource, /\/director-oussama-el-abboudi-thinking\.png/);
+  assert.match(profileSource, /\/director-oussama-avatar-160-d71a9347\.jpg/);
+  assert.match(profileSource, /\/director-oussama-full-720-8e453474\.jpg/);
+  assert.match(profileSource, /\/director-oussama-thinking-720-a43920b8\.jpg/);
   assert.match(profileSource, /founderPhotos/);
-  assert.match(profileSource, /\/director-oussama-footer\.png/);
+  assert.match(profileSource, /\/director-oussama-footer-160-ce163101\.jpg/);
 
   const identitySource = fs.readFileSync("src/components/DirectorIdentity.tsx", "utf8");
   assert.doesNotMatch(identitySource, /DirectorSidebarCard/);

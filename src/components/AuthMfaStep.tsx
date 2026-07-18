@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { KeyRound, ShieldCheck, Smartphone } from "lucide-react";
-import { startAuthentication } from "@simplewebauthn/browser";
 import { getClientErrorMessage } from "../client-errors";
 import { api, setSessionToken } from "../api";
 import type { AppUser } from "./AuthScreen";
@@ -42,6 +41,7 @@ export default function AuthMfaStep({ mfaToken, email, role, passkeysAvailable, 
     setIsLoading(true);
     try {
       const { options, challengeId } = await api.beginPasskeyLogin(email);
+      const { startAuthentication } = await import("@simplewebauthn/browser");
       const response = await startAuthentication({ optionsJSON: options });
       const user = await api.completePasskeyLogin(challengeId, response, role);
       completeSession(user);

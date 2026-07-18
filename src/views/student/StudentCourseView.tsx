@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import {
   Brain,
   Camera,
@@ -15,9 +15,7 @@ import {
 } from "lucide-react";
 import AITutorChat from "../../components/AITutorChat";
 import { LayoutFloatingToggle } from "../../components/LayoutFloatingToggle";
-import LatexText from "../../components/LatexText";
-import PdfLessonViewer from "../../components/PdfLessonViewer";
-import PremiumVideoPlayer from "../../components/PremiumVideoPlayer";
+import LatexText from "../../components/LazyLatexText";
 import { lessonContentIdFromModule } from "../../course-curriculum-utils";
 import { findLessonContent } from "../../hooks/useCourseContent";
 import { sanitizeCourseAttachmentUrl } from "../../external-url-security";
@@ -25,6 +23,20 @@ import { getEnrollmentEffectiveEndDate, getEnrollmentRemainingMs, isEnrollmentAc
 import type { ContentSection, Course, CourseModule, LessonContent, QuizQuestion } from "../../types";
 import { formatCredits } from "../../utils/morocco-locale";
 import { getCourseContentProgress } from "../../utils/course-content-metrics";
+
+const PdfLessonViewer = lazy(() => import("../../components/PdfLessonViewer"));
+const PremiumVideoPlayer = lazy(() => import("../../components/PremiumVideoPlayer"));
+
+function CourseMediaFallback({ label }: { label: string }) {
+  return (
+    <div
+      className="flex min-h-48 items-center justify-center rounded-2xl border border-slate-800 bg-slate-950 px-6 text-center text-xs font-bold text-slate-400"
+      role="status"
+    >
+      {label}
+    </div>
+  );
+}
 
 type NavigateTo = (view: string, targetCourse?: Course | null) => void;
 interface StudentCourseViewProps {
@@ -446,17 +458,21 @@ export default function StudentCourseView({
                         </div>
 
                         {selectedLessonContent.type === "VIDEO" && safeAttachmentUrl && (
-                          <PremiumVideoPlayer
-                            src={safeAttachmentUrl}
-                            contentId={selectedLessonContent.id}
-                            title={selectedLessonContent.title}
-                            instructor={selectedCourse.instructor}
-                            activeSector="student"
-                          />
+                          <Suspense fallback={<CourseMediaFallback label="Chargement de la vidéo…" />}>
+                            <PremiumVideoPlayer
+                              src={safeAttachmentUrl}
+                              contentId={selectedLessonContent.id}
+                              title={selectedLessonContent.title}
+                              instructor={selectedCourse.instructor}
+                              activeSector="student"
+                            />
+                          </Suspense>
                         )}
 
                         {selectedLessonContent.type === "PDF" && (
-                          <PdfLessonViewer contentId={selectedLessonContent.id} title={selectedLessonContent.title} />
+                          <Suspense fallback={<CourseMediaFallback label="Chargement du document…" />}>
+                            <PdfLessonViewer contentId={selectedLessonContent.id} title={selectedLessonContent.title} />
+                          </Suspense>
                         )}
 
                         {selectedLessonContent.type === "PDF" && rawAttachmentUrl && !safeAttachmentUrl && (
@@ -466,11 +482,13 @@ export default function StudentCourseView({
                         )}
 
                         {selectedLessonContent.type === "IMAGE" && (
-                          <PdfLessonViewer
-                            contentId={selectedLessonContent.id}
-                            title={selectedLessonContent.title}
-                            mediaType="IMAGE"
-                          />
+                          <Suspense fallback={<CourseMediaFallback label="Chargement de l’image…" />}>
+                            <PdfLessonViewer
+                              contentId={selectedLessonContent.id}
+                              title={selectedLessonContent.title}
+                              mediaType="IMAGE"
+                            />
+                          </Suspense>
                         )}
 
                         {selectedLessonContent.type === "IMAGE" && rawAttachmentUrl && !safeAttachmentUrl && (
@@ -526,12 +544,14 @@ export default function StudentCourseView({
                     return (
                       <div className="space-y-5">
                         {safeModuleVideoUrl ? (
-                          <PremiumVideoPlayer
-                            src={safeModuleVideoUrl}
-                            title={selectedModule.title}
-                            instructor={selectedCourse.instructor}
-                            activeSector="student"
-                          />
+                          <Suspense fallback={<CourseMediaFallback label="Chargement de la vidéo…" />}>
+                            <PremiumVideoPlayer
+                              src={safeModuleVideoUrl}
+                              title={selectedModule.title}
+                              instructor={selectedCourse.instructor}
+                              activeSector="student"
+                            />
+                          </Suspense>
                         ) : (
                           <div className="relative w-full aspect-video bg-slate-950 rounded-2xl overflow-hidden shadow-md border border-slate-800 flex flex-col items-center justify-center gap-3 px-6 text-center">
                             <Video className="w-12 h-12 text-emerald-400" />

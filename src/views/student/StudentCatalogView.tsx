@@ -44,6 +44,8 @@ const CatalogCourseCard = memo(function CatalogCourseCard({
               className="h-14 w-14 shrink-0 rounded-xl border border-slate-200 object-cover shadow-sm"
               loading="lazy"
               decoding="async"
+              width={56}
+              height={56}
             />
           ) : (
             <div className={`p-3 rounded-xl ${course.color}`}>

@@ -12,7 +12,6 @@ import {
   Smartphone,
   Trash2,
 } from "lucide-react";
-import { startRegistration } from "@simplewebauthn/browser";
 import { getClientErrorMessage } from "../client-errors";
 import { api } from "../api";
 
@@ -243,6 +242,7 @@ export default function SecuritySettingsPanel({
         return;
       }
       const { options, challengeId } = await api.beginPasskeyRegister(passkeyDeviceName.trim() || undefined);
+      const { startRegistration } = await import("@simplewebauthn/browser");
       const response = await startRegistration({ optionsJSON: options });
       await api.completePasskeyRegister(challengeId, response, passkeyDeviceName.trim() || undefined);
       setMessage("Passkey enregistrée.");

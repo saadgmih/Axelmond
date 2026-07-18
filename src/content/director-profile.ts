@@ -5,20 +5,20 @@ export const directorProfile = {
   quote: "Former aujourd'hui les talents de demain.",
   welcome:
     "Bienvenue sur Performance Académique. Notre engagement est d'accompagner chaque étudiant avec une formation claire, exigeante et orientée réussite.",
-  photo: "/director-oussama-el-abboudi.png",
-  fullPhoto: "/director-oussama-el-abboudi-full.png",
+  photo: "/director-oussama-avatar-160-d71a9347.jpg",
+  fullPhoto: "/director-oussama-full-720-8e453474.jpg",
   founderPhotos: [
     {
-      src: "/director-oussama-el-abboudi-full.png",
+      src: "/director-oussama-full-720-8e453474.jpg",
       alt: "Portrait du Pr. Oussama El Abboudi en costume bleu",
       objectPosition: "50% 18%",
     },
     {
-      src: "/director-oussama-el-abboudi-thinking.png",
+      src: "/director-oussama-thinking-720-a43920b8.jpg",
       alt: "Portrait du Pr. Oussama El Abboudi en costume noir",
       objectPosition: "50% 18%",
     },
   ],
-  footerPhoto: "/director-oussama-footer.png",
+  footerPhoto: "/director-oussama-footer-160-ce163101.jpg",
   photoAlt: "Portrait du Pr. Oussama El Abboudi, directeur de Performance Académique",
 } as const;

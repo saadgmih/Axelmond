@@ -52,7 +52,7 @@ rulesTest("accessibility", () => {
   assert.match(appRootSource, /repeatCount="1"/);
   assert.match(appRootSource, /from="0 12 12"/);
   assert.match(appRootSource, /to="360 12 12"/);
-  assert.match(appRootSource, /performance-logo-e6657b8a\.png/);
+  assert.match(appRootSource, /performance-logo-003a24a4-192\.png/);
   assert.doesNotMatch(appRootSource, /L’excellence est en mouvement/);
   assert.doesNotMatch(appRootSource, /Session sécurisée/);
   assert.doesNotMatch(appRootSource, /right-\[0\.55rem\]/);

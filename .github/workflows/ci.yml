@@ -82,6 +82,10 @@ jobs:
           CI_PREFLIGHT_PAYPAL_ENV: live
         run: node scripts/run-ci-with-postgres.mjs
 
+      - name: Report performance budgets
+        shell: powershell
+        run: npm run ci:performance
+
       - name: Clean CI PostgreSQL
         if: always()
         shell: powershell

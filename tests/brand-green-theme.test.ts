@@ -46,7 +46,7 @@ rulesTest("brand-green-theme", () => {
 
   const emailSource = fs.readFileSync("src/email.ts", "utf8");
   assert.match(emailSource, /#05C2A5/);
-  assert.match(emailSource, /performance-logo-e6657b8a\.png/);
+  assert.match(emailSource, /performance-logo-003a24a4-192\.png/);
   assert.doesNotMatch(emailSource, /performance-logo-symbol\.png/);
   assert.doesNotMatch(emailSource, /#8b5cf6|#ec4899|#6366f1|#4c1d95|#9d174d|#93c5fd|#ef4444|#7f1d1d|#fca5a5/i);
 
@@ -58,8 +58,8 @@ rulesTest("brand-green-theme", () => {
   assert.doesNotMatch(indexHtml, /#111827/i);
   assert.match(manifestSource, /"theme_color":\s*"#05C2A5"/);
   assert.match(manifestSource, /"background_color":\s*"#042f29"/);
-  assert.match(manifestSource, /performance-logo-e6657b8a\.png/);
-  assert.match(manifestSource, /"sizes":\s*"1024x1024"/);
+  assert.match(manifestSource, /performance-logo-003a24a4-192\.png/);
+  assert.match(manifestSource, /"sizes":\s*"192x192"/);
   assert.doesNotMatch(manifestSource, /performance-logo-symbol\.png/);
 
   const legalDocumentsSource = fs.readFileSync("src/data/legalDocuments.ts", "utf8");
@@ -76,6 +76,10 @@ rulesTest("brand-green-theme", () => {
   assert.doesNotMatch(faviconSvg, /#0ea5e9/i);
 
   const canonicalLogoHash = sha256("public/performance-logo-e6657b8a.png");
+  const criticalLogo = readPngInfo("public/performance-logo-003a24a4-192.png");
+  assert.equal(criticalLogo.width, 192);
+  assert.equal(criticalLogo.height, 192);
+  assert.ok(criticalLogo.size < 64 * 1024, "the critical UI logo must stay below 64 KiB");
   for (const logoPath of [
     "public/performance-logo-e6657b8a.png",
     "public/performance-logo-3d-symbol.png",

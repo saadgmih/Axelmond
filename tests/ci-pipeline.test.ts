@@ -29,6 +29,7 @@ rulesTest("ci-pipeline", () => {
   assert.match(pipeline, /"test:coverage"/);
   assert.match(pipeline, /"test:summary"/);
   assert.match(pipeline, /"build"/);
+  assert.match(pipeline, /ci:performance|check-performance-budget/);
   assert.match(pipeline, /"audit", "--audit-level=high"/);
   assert.match(pipeline, /ci:secrets|scan-secrets/);
   assert.match(pipeline, /ci:migrations|check-migrations-ci/);

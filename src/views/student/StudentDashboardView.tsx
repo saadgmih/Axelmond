@@ -152,7 +152,10 @@ const DashboardCourseCard = memo(function DashboardCourseCard({
               src={course.imageUrl}
               alt={`Illustration du module ${course.title}`}
               className="h-14 w-14 shrink-0 rounded-xl border border-white/10 object-cover shadow-sm"
+              loading="lazy"
               decoding="async"
+              width={56}
+              height={56}
             />
           ) : (
             <div className={`p-3 rounded-xl ${course.color}`}>

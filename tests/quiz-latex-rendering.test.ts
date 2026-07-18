@@ -11,7 +11,8 @@ rulesTest("quiz-latex-rendering", () => {
   const studentCourseSource = readFileSync("src/views/student/StudentCourseView.tsx", "utf8");
 
   assert.match(packageJson, /"katex"/);
-  assert.match(globalCssSource, /katex\/dist\/katex\.min\.css/);
+  assert.doesNotMatch(globalCssSource, /katex\/dist\/katex\.min\.css/);
+  assert.match(latexTextSource, /katex\/dist\/katex\.min\.css/);
   assert.match(latexTextSource, /katex\.renderToString/);
   assert.match(latexTextSource, /displayMode/);
   assert.match(latexTextSource, /splitLatexText/);

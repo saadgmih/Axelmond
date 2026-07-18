@@ -1,6 +1,6 @@
 import { CheckCircle2, ChevronRight, HelpCircle, Sigma, Sparkles, X } from "lucide-react";
 
-import LatexText from "../../../components/LatexText";
+import LatexText from "../../../components/LazyLatexText";
 import { curriculumUi, getStepTheme } from "../curriculum-theme";
 import type { TeacherCurriculumViewProps } from "../curriculum-types";
 

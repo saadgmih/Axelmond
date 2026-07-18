@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
-import { io, type Socket } from "socket.io-client";
+import type { Socket } from "socket.io-client";
 import { getFreshSessionToken } from "../api";
 import type { ChatMessage } from "../types/messaging";
 
@@ -28,6 +28,8 @@ export function useMessagingSocket(enabled: boolean, handlers: MessagingSocketHa
       const token = await getFreshSessionToken();
       if (!token || cancelled) return;
 
+      const { io } = await import("socket.io-client");
+      if (cancelled) return;
       const socket = io(socketBaseUrl, {
         path: "/socket.io",
         auth: { token },

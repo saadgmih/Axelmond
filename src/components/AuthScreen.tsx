@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { getClientErrorMessage } from "../client-errors";
-import { motion } from "motion/react";
 import { User, ShieldAlert, Mail, Lock, LogIn, UserPlus, KeyRound } from "lucide-react";
-import { startAuthentication } from "@simplewebauthn/browser";
 import { api, setSessionToken } from "../api";
 import AuthMfaStep from "./AuthMfaStep";
 import PasswordStrengthMeter, { isPasswordValid } from "./PasswordStrengthMeter";
@@ -68,6 +66,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
     const normalizedEmail = email.trim().toLowerCase();
     try {
       const { options, challengeId } = await api.beginPasskeyLogin(normalizedEmail || undefined);
+      const { startAuthentication } = await import("@simplewebauthn/browser");
       const response = await startAuthentication({ optionsJSON: options });
       const user = await api.completePasskeyLogin(challengeId, response, getLoginRole());
       finishAuthSuccess(user);
@@ -256,10 +255,10 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
           </div>
         </div>
 
-        <motion.div
-          initial={preferences.reduceMotion ? false : { opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-slate-950/80 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-xl"
+        <div
+          className={`bg-slate-950/80 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-xl ${
+            preferences.reduceMotion ? "" : "animate-in fade-in slide-in-from-bottom-4 duration-300"
+          }`}
         >
           <main id="auth-main" tabIndex={-1} className="outline-none">
             <div className="grid grid-cols-2 bg-slate-900 border-b border-slate-800 p-2 gap-2">
@@ -751,7 +750,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
               </div>
             </div>
           </main>
-        </motion.div>
+        </div>
 
         <div className="flex justify-center">
           <AccessibilityControls />
