@@ -66,16 +66,18 @@ export async function persistLessonAsset(input: PersistLessonAssetInput) {
     }
   }
 
-  if (created && content.published && content.status === "READY") {
-    await notifyPublishedLessonContent({
-      contentId: content.id,
-      courseId: content.courseId,
-      contentTitle: content.title,
-      contentType: content.type,
-      published: content.published,
-      actorId: input.userId,
-      sourceEvent: "LESSON_ASSET_PUBLISHED",
-    });
+  if (created && content.published) {
+    if (content.status === "READY") {
+      await notifyPublishedLessonContent({
+        contentId: content.id,
+        courseId: content.courseId,
+        contentTitle: content.title,
+        contentType: content.type,
+        published: content.published,
+        actorId: input.userId,
+        sourceEvent: "LESSON_ASSET_PUBLISHED",
+      });
+    }
   }
   if (content.published && content.status === "READY") {
     try {
