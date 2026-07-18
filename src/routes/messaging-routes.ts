@@ -519,6 +519,15 @@ export function registerMessagingRoutes(
     res.json(notifications.map(serializeNotification));
   });
 
+  app.get("/api/notifications/overview", middleware.requireAuth, middleware.requireRbac, async (req, res) => {
+    const authUser = getAuthUser(req) as AuthUser;
+    const [notifications, unreadCount] = await Promise.all([
+      listUserNotifications(authUser.id),
+      getUnreadNotificationCount(authUser.id),
+    ]);
+    res.json({ notifications: notifications.map(serializeNotification), unreadCount });
+  });
+
   app.get("/api/notifications/unread-count", middleware.requireAuth, middleware.requireRbac, async (req, res) => {
     const authUser = getAuthUser(req) as AuthUser;
     const count = await getUnreadNotificationCount(authUser.id);

@@ -69,6 +69,7 @@ let csrfTokenMemory: string | null = null;
 let refreshedSessionUserMemory: Record<string, unknown> | null = null;
 let lastSessionRefreshState: SessionRefreshState = "idle";
 let authenticationLifecycleState: AuthenticationLifecycleState = "AUTH_INITIALIZING";
+const inFlightGetRequests = new Map<string, Promise<unknown>>();
 
 function readCsrfFromCookie(): string | null {
   if (typeof document === "undefined") return null;
@@ -138,6 +139,7 @@ function clearReadableCsrfCookie() {
 }
 
 function clearSessionTokens() {
+  inFlightGetRequests.clear();
   accessTokenMemory = null;
   csrfTokenMemory = null;
   refreshedSessionUserMemory = null;
@@ -288,7 +290,7 @@ export function getStoredRefreshToken(): string | null {
   return null;
 }
 
-async function request<T>(method: string, path: string, body?: unknown, allowCsrfRetry = true): Promise<T> {
+async function executeRequest<T>(method: string, path: string, body?: unknown, allowCsrfRetry = true): Promise<T> {
   let token = accessTokenMemory;
   const url = `${BASE_URL}${path}`;
   const timeoutMs = getRequestTimeoutMs(path);
@@ -322,7 +324,7 @@ async function request<T>(method: string, path: string, body?: unknown, allowCsr
       csrfTokenMemory = null;
       token = await refreshSessionToken();
       if (token) {
-        return request<T>(method, path, body, false);
+        return executeRequest<T>(method, path, body, false);
       }
     }
 
@@ -366,6 +368,24 @@ async function request<T>(method: string, path: string, body?: unknown, allowCsr
     throw error;
   }
   return parsed.payload as T;
+}
+
+function request<T>(method: string, path: string, body?: unknown, allowCsrfRetry = true): Promise<T> {
+  if (method !== "GET" || body !== undefined || !allowCsrfRetry) {
+    return executeRequest<T>(method, path, body, allowCsrfRetry);
+  }
+
+  const key = `${accessTokenMemory || "anonymous"}:${path}`;
+  const existing = inFlightGetRequests.get(key);
+  if (existing) return existing as Promise<T>;
+
+  const pending = executeRequest<T>(method, path, body, allowCsrfRetry);
+  inFlightGetRequests.set(key, pending);
+  const clearPending = () => {
+    if (inFlightGetRequests.get(key) === pending) inFlightGetRequests.delete(key);
+  };
+  void pending.then(clearPending, clearPending);
+  return pending;
 }
 
 export const api = {
@@ -897,6 +917,8 @@ export const api = {
     ),
   markConversationRead: (conversationId: string) => request<any>("POST", `/api/conversations/${conversationId}/read`),
   getNotifications: () => request<any[]>("GET", "/api/notifications"),
+  getNotificationsOverview: () =>
+    request<{ notifications: any[]; unreadCount: number }>("GET", "/api/notifications/overview"),
   getNotificationUnreadCount: () => request<{ count: number }>("GET", "/api/notifications/unread-count"),
   getVapidPublicKey: () =>
     request<{ publicKey: string; configured?: boolean }>("GET", "/api/notifications/vapid-public-key"),
@@ -956,6 +978,7 @@ export const api = {
 
 export function setSessionToken(token: string | undefined, csrfToken?: string) {
   purgeLegacyTokenStorage();
+  inFlightGetRequests.clear();
   if (token) {
     accessTokenMemory = token;
     if (csrfToken) csrfTokenMemory = csrfToken;

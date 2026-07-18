@@ -11,6 +11,16 @@ export const DEFAULT_SITE_SETTINGS: SiteSettingsSnapshot = {
   forceDesktopMode: false,
 };
 
+const SITE_SETTINGS_CACHE_TTL_MS = 30_000;
+let cachedSiteSettings: SiteSettingsSnapshot | null = null;
+let cachedSiteSettingsExpiresAt = 0;
+
+function cacheSiteSettings(settings: SiteSettingsSnapshot): SiteSettingsSnapshot {
+  cachedSiteSettings = settings;
+  cachedSiteSettingsExpiresAt = Date.now() + SITE_SETTINGS_CACHE_TTL_MS;
+  return settings;
+}
+
 export class SiteSettingsPersistenceError extends Error {
   status = 503;
 
@@ -30,6 +40,8 @@ function isMissingSiteSettingsStorageError(err: unknown): boolean {
 }
 
 export async function getSiteSettings(): Promise<SiteSettingsSnapshot> {
+  if (cachedSiteSettings && Date.now() < cachedSiteSettingsExpiresAt) return cachedSiteSettings;
+
   let forceDesktopModeSetting: { value: unknown } | null = null;
   try {
     forceDesktopModeSetting = await prisma.siteSetting.findUnique({
@@ -37,13 +49,13 @@ export async function getSiteSettings(): Promise<SiteSettingsSnapshot> {
       select: { value: true },
     });
   } catch (err) {
-    if (isMissingSiteSettingsStorageError(err)) return DEFAULT_SITE_SETTINGS;
+    if (isMissingSiteSettingsStorageError(err)) return cacheSiteSettings(DEFAULT_SITE_SETTINGS);
     throw err;
   }
 
-  return {
+  return cacheSiteSettings({
     forceDesktopMode: readBooleanSetting(forceDesktopModeSetting?.value, DEFAULT_SITE_SETTINGS.forceDesktopMode),
-  };
+  });
 }
 
 export async function setForceDesktopMode(forceDesktopMode: boolean): Promise<SiteSettingsSnapshot> {
@@ -63,5 +75,5 @@ export async function setForceDesktopMode(forceDesktopMode: boolean): Promise<Si
     throw err;
   }
 
-  return getSiteSettings();
+  return cacheSiteSettings({ forceDesktopMode });
 }

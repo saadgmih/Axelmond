@@ -5,12 +5,13 @@ import { rulesTest } from "./helpers/rulesTest.ts";
 rulesTest("service-worker", () => {
   const source = readFileSync("public/sw.js", "utf8");
   assert.match(source, /STATIC_CACHE/);
-  assert.match(source, /performance-academique-static-v7/);
+  assert.match(source, /performance-academique-static-v8/);
+  assert.match(source, /isVersionedStaticAsset/);
   assert.match(source, /isVersionedAsset/);
   assert.match(source, /const response = await fetch\(event\.request\)/);
   assert.doesNotMatch(source, /if \(cached\) return cached;\s*\n\s*const response/);
-  assert.doesNotMatch(source, /performance-academique-static-v6/);
-  assert.match(source, /performance-logo-e6657b8a\.png/);
+  assert.doesNotMatch(source, /performance-academique-static-v7/);
+  assert.match(source, /performance-logo-003a24a4-192\.png/);
   assert.doesNotMatch(source, /performance-logo-3d-symbol\.png|performance-logo-3d\.png/);
   assert.doesNotMatch(source, /favicon-3d\.ico/);
   assert.doesNotMatch(source, /performance-logo-symbol\.png|performance-logo\.png|performance-academique-static-v2/);

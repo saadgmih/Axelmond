@@ -1,4 +1,4 @@
-const STATIC_CACHE = "performance-academique-static-v7";
+const STATIC_CACHE = "performance-academique-static-v8";
 const CACHE_PREFIX = "performance-academique-static-";
 
 function sanitizeNotificationUrl(raw) {
@@ -25,6 +25,10 @@ function isCacheableStaticRequest(request, url) {
   return /\.(svg|png|jpg|jpeg|webp|ico|woff2?)$/i.test(url.pathname);
 }
 
+function isVersionedStaticAsset(url) {
+  return url.pathname.startsWith("/assets/") || /-[a-f0-9]{8}(?:-\d+)?\.[a-z0-9]+$/i.test(url.pathname);
+}
+
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(STATIC_CACHE).then(() => self.skipWaiting()));
 });
@@ -48,7 +52,7 @@ self.addEventListener("fetch", (event) => {
 
   event.respondWith(
     caches.open(STATIC_CACHE).then(async (cache) => {
-      const isVersionedAsset = url.pathname.startsWith("/assets/");
+      const isVersionedAsset = isVersionedStaticAsset(url);
       const cached = await cache.match(event.request);
       if (isVersionedAsset && cached) return cached;
 
@@ -79,8 +83,8 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(payload.title || "Performance Académique", {
       body: payload.body || "",
-      icon: "/performance-logo-e6657b8a.png",
-      badge: "/performance-logo-e6657b8a.png",
+      icon: "/performance-logo-003a24a4-192.png",
+      badge: "/performance-logo-003a24a4-192.png",
       data: { url: safeUrl },
       tag: payload.notificationId || undefined,
       renotify: false,

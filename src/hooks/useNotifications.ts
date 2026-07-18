@@ -26,15 +26,16 @@ export function useNotifications(enabled: boolean) {
     setLoading(true);
     setError("");
     try {
-      const rows = await api.getNotifications();
-      setNotifications(Array.isArray(rows) ? rows : []);
-      await refreshUnreadCount();
+      const overview = await api.getNotificationsOverview();
+      const nextNotifications = Array.isArray(overview.notifications) ? overview.notifications : [];
+      setNotifications(nextNotifications);
+      setUnreadCount(Number(overview.unreadCount || 0));
     } catch (err: any) {
       setError(getClientErrorMessage(err, "Impossible de charger les notifications"));
     } finally {
       setLoading(false);
     }
-  }, [enabled, refreshUnreadCount]);
+  }, [enabled]);
 
   const markRead = useCallback(async (id: string) => {
     setError("");

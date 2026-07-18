@@ -11,6 +11,9 @@ export function registerMiscRoutes(app: Express, ctx: RouteContext): void {
   app.get("/api/site-settings", async (_req, res) => {
     try {
       const settings = await api.getSiteSettings();
+      res.setHeader("Cache-Control", "public, max-age=30, s-maxage=60, stale-while-revalidate=120");
+      res.removeHeader("Pragma");
+      res.removeHeader("Expires");
       res.json(settings);
     } catch (err) {
       api.logDb("WARN", "Public site settings unavailable", { error: String(err) });

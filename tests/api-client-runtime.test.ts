@@ -139,4 +139,23 @@ describe("API client resilience", () => {
     });
     expect(postFetch).toHaveBeenCalledOnce();
   });
+
+  test("shares only concurrent identical GET requests", async () => {
+    let releaseResponse!: (value: Response) => void;
+    const pendingResponse = new Promise<Response>((resolve) => {
+      releaseResponse = resolve;
+    });
+    const fetchMock = vi.fn().mockReturnValueOnce(pendingResponse).mockResolvedValue(jsonResponse([]));
+    vi.stubGlobal("fetch", fetchMock);
+    const apiClient = await loadApi();
+
+    const first = apiClient.api.getCourses();
+    const second = apiClient.api.getCourses();
+    expect(fetchMock).toHaveBeenCalledOnce();
+    releaseResponse(jsonResponse([{ id: 1 }]));
+    await expect(Promise.all([first, second])).resolves.toEqual([[{ id: 1 }], [{ id: 1 }]]);
+
+    await expect(apiClient.api.getCourses()).resolves.toEqual([]);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
 });

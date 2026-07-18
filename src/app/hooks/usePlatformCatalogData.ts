@@ -111,7 +111,9 @@ export function usePlatformCatalogData(
 
   const loadCatalog = useCallback(
     async (options?: { silent?: boolean }) => {
-      if (!isAuthReady) return;
+      // The public authentication screen does not consume catalog data. Waiting
+      // for a real session removes two database-backed requests from first paint.
+      if (!isAuthReady || !currentUser) return;
       const request = startRequest();
       if (!options?.silent) {
         setCatalogError(null);
@@ -126,16 +128,14 @@ export function usePlatformCatalogData(
           if (!request.isActive()) return;
         }
 
-        if (currentUser) {
-          try {
-            const token = await getFreshSessionToken();
-            if (!request.isActive()) return;
-            if (!token) {
-              console.warn("[catalog] Session token unavailable — loading public catalog as fallback.");
-            }
-          } catch (err) {
-            console.warn("[catalog] Session refresh failed — loading public catalog as fallback.", err);
+        try {
+          const token = await getFreshSessionToken();
+          if (!request.isActive()) return;
+          if (!token) {
+            console.warn("[catalog] Session token unavailable — loading public catalog as fallback.");
           }
+        } catch (err) {
+          console.warn("[catalog] Session refresh failed — loading public catalog as fallback.", err);
         }
 
         const [coursesResult, domainsResult] = await Promise.allSettled([api.getCourses(), api.getDomains()]);
