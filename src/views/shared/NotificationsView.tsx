@@ -142,6 +142,13 @@ export default function NotificationsView({
           <div className="flex items-center justify-center p-10 text-slate-400">
             <Loader2 className="h-6 w-6 animate-spin" />
           </div>
+        ) : error ? (
+          <div className="flex flex-col items-center gap-3 p-12 text-center text-slate-500">
+            <Bell className="h-10 w-10 text-slate-600 opacity-50" />
+            <p className="text-sm font-semibold text-red-400/80">
+              Une erreur est survenue lors de la récupération des notifications.
+            </p>
+          </div>
         ) : notifications.length === 0 ? (
           <div className="flex flex-col items-center gap-3 p-12 text-center text-slate-500">
             <Bell className="h-10 w-10 text-slate-600" />

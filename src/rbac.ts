@@ -277,6 +277,7 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
     (cleanPath === "/api/conversations" ||
       cleanPath === "/api/messaging/users/search" ||
       cleanPath === "/api/notifications" ||
+      cleanPath === "/api/notifications/overview" ||
       cleanPath === "/api/notifications/unread-count" ||
       cleanPath === "/api/notifications/vapid-public-key")
   ) {

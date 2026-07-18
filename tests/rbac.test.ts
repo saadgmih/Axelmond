@@ -126,6 +126,8 @@ rulesTest("rbac", () => {
   assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/livekit/token"), true);
   assert.equal(canAccessApiRoute("PROFESSOR", "POST", "/api/chat-tutor"), false);
   assert.equal(canAccessApiRoute("STUDENT", "POST", "/api/chat-tutor"), true);
+  assert.equal(canAccessApiRoute("STUDENT", "GET", "/api/notifications/overview"), true);
+  assert.equal(canAccessApiRoute("PROFESSOR", "GET", "/api/notifications/overview"), true);
   assert.equal(canAccessApiRoute("STUDENT", "GET", "/api/mobile/student-profile"), true);
   assert.equal(canAccessApiRoute("PROFESSOR", "GET", "/api/mobile/student-profile"), false);
 
