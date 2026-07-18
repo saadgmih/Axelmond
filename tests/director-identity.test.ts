@@ -17,11 +17,11 @@ rulesTest("director-identity", () => {
   const profileSource = fs.readFileSync("src/content/director-profile.ts", "utf8");
   assert.match(profileSource, /Pr\. Oussama El Abboudi/);
   assert.match(profileSource, /Former aujourd'hui les talents de demain/);
-  assert.match(profileSource, /\/director-oussama-avatar-160-d71a9347\.jpg/);
-  assert.match(profileSource, /\/director-oussama-full-720-8e453474\.jpg/);
-  assert.match(profileSource, /\/director-oussama-thinking-720-a43920b8\.jpg/);
+  assert.match(profileSource, /\/assets\/director-oussama-avatar-160-d71a9347\.jpg/);
+  assert.match(profileSource, /\/assets\/director-oussama-full-720-8e453474\.jpg/);
+  assert.match(profileSource, /\/assets\/director-oussama-thinking-720-a43920b8\.jpg/);
   assert.match(profileSource, /founderPhotos/);
-  assert.match(profileSource, /\/director-oussama-footer-160-ce163101\.jpg/);
+  assert.match(profileSource, /\/assets\/director-oussama-footer-160-ce163101\.jpg/);
 
   const identitySource = fs.readFileSync("src/components/DirectorIdentity.tsx", "utf8");
   assert.doesNotMatch(identitySource, /DirectorSidebarCard/);

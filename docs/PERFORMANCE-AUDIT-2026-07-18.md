@@ -120,7 +120,9 @@ La réponse JSON de `/api/courses` était compressée avec gzip. Le HTML et les 
 
 ### Cache HTTP et service worker
 
-- Assets hashés : `public, max-age=31536000, immutable`.
+- Assets hashés : `public, max-age=31536000, immutable`. Les images publiques
+  versionnées sont aussi émises sous `/assets/`, car la couche statique Hostinger
+  retire les en-têtes applicatifs des images placées à la racine.
 - HTML : `no-cache, must-revalidate` (et `no-transform` pour le document généré).
 - Réglages publics : cache partagé court avec revalidation en arrière-plan.
 - API privées, erreurs 401/403/5xx et médias protégés : jamais placés dans un
@@ -172,5 +174,62 @@ n'ont pas été simulés sans compte de test autorisé.
 
 ## Résultats après déploiement
 
-Cette section est complétée après le push et la détection de la nouvelle version
-sur l'origine publique.
+Le déploiement Hostinger a été détecté par l'apparition du nouvel asset versionné.
+Les mesures ci-dessous utilisent exactement Lighthouse 13.0.1, comme le baseline,
+avec une exécution par page et profil. Une exécution unique est sensible à la
+variation réseau ; elle ne constitue pas une garantie de durée fixe.
+
+| Page / profil | Score avant → après | FCP avant → après | LCP avant → après | CLS | TBT avant → après | Requêtes avant → après | Transfert avant → après |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Accueil mobile | 88 → 93 | 2 458 → 2 107 ms | 3 474 → 3 010 ms | 0 → 0 | 18 → 0 ms | 20 → 18 | 1 895 903 → 253 105 o |
+| Accueil ordinateur | 63 → 100 | 2 395 → 469 ms | 3 460 → 549 ms | 0 → 0 | 124 → 0 ms | 20 → 18 | 1 903 250 → 249 541 o |
+| À propos mobile | 97 → 95 | 1 925 → 2 074 ms | 2 289 → 2 599 ms | 0 → 0 | 38 → 0 ms | 28 → 26 | 4 106 899 → 373 342 o |
+
+Résultats complémentaires :
+
+- Accueil mobile : travail du thread principal réduit de 911 à 502 ms (−44,9 %),
+  JavaScript inutilisé de 115 648 à 79 770 o (−31,0 %) et transfert total réduit
+  de 86,6 %.
+- Accueil ordinateur : transfert réduit de 86,9 % et TBT supprimé dans cette
+  mesure.
+- Page À propos : transfert réduit de 90,9 % et TBT supprimé. Le FCP/LCP de cette
+  exécution isolée est légèrement moins bon malgré la forte réduction réseau ;
+  cela illustre la variabilité Hostinger/Internet et doit être suivi par les
+  données réelles plutôt que masqué.
+- DCL / événement Load observés : accueil mobile 293/580 → 225/425 ms, accueil
+  ordinateur 1 015/1 016 → 380/631 ms, À propos 208/419 → 228/374 ms.
+
+### Sondes publiques après déploiement
+
+Cinq nouvelles connexions par URL :
+
+| URL | Plage TTFB après correction | Plage avant |
+| --- | ---: | ---: |
+| `/` | 410–427 ms | 371–824 ms |
+| `/api/health` | 402–538 ms | 401–581 ms |
+| `/api/courses` | 407–495 ms | 406–559 ms |
+
+Cinq séries supplémentaires, espacées de cinq secondes et lançant `/`,
+`/api/health` et `/api/courses` en parallèle, ont toutes réussi : 15 réponses
+`200`, avec 211 à 279 ms par série. Une réponse santé transitoire au moment exact
+du redémarrage a été écartée après vérification du corps puis cinq séries stables.
+
+### En-têtes et contrôle visuel public
+
+- HTML : `no-cache, must-revalidate, no-transform`.
+- Bundle JavaScript `/assets/*` et images versionnées `/assets/*` :
+  `public, max-age=31536000, immutable`.
+- `/api/site-settings` :
+  `public, max-age=30, s-maxage=60, stale-while-revalidate=120`.
+- `/api/health` : privé/non stockable ; `/api/courses` reste compressé.
+- Service worker public : version 8 détectée.
+- Une purge Cloudflare ciblée sur l'ancien emplacement du seul logo a été
+  effectuée après déploiement. Aucune purge globale, API ou donnée privée.
+- Accueil réel : logo naturel 192 × 192 px, rendu 96 × 96, priorité haute.
+- À propos réel : portrait principal naturel 720 × 1 080, rendu 359 × 360 ; second
+  portrait 720 × 1 082 avec lazy loading et priorité basse.
+
+La vérification manuelle publique confirme l'accueil, la connexion et la page À
+propos sans erreur visible. Les parcours authentifiés et financiers restent non
+mesurés manuellement faute de session de test autorisée ; aucune conclusion
+chiffrée n'est inventée pour ces rôles.

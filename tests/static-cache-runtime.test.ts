@@ -15,7 +15,7 @@ describe("static cache policy", () => {
   });
 
   test("keeps content-hashed public images immutable", () => {
-    const policy = getStaticCacheControl(path.join(dist, "performance-logo-003a24a4-192.png"), dist);
+    const policy = getStaticCacheControl(path.join(dist, "assets", "performance-logo-003a24a4-192.png"), dist);
     expect(policy).toBe("public, max-age=31536000, immutable");
   });
 

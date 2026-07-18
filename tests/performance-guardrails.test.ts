@@ -37,6 +37,14 @@ describe("performance guardrails", () => {
     expect(logo.readUInt32BE(20)).toBe(192);
   });
 
+  test("emits content-hashed public images under the immutable asset path", () => {
+    const viteConfig = read("vite.config.ts");
+    const appRoot = read("src/app/PlatformAppRoot.tsx");
+    expect(viteConfig).toMatch(/emit-hashed-public-images/);
+    expect(viteConfig).toMatch(/fileName: `assets\/\$\{fileName\}`/);
+    expect(appRoot).toMatch(/\/assets\/performance-logo-003a24a4-192\.png/);
+  });
+
   test("keeps the public founder portrait within its image budget", () => {
     const portrait = fs.readFileSync("public/director-oussama-full-720-8e453474.jpg");
     expect(portrait.length).toBeLessThan(80 * 1024);

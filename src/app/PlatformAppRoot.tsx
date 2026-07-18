@@ -63,7 +63,7 @@ function PlatformLoadingScreen() {
         </svg>
         <div className="relative h-28 w-28 overflow-hidden rounded-[1.7rem] border border-emerald-200/25 bg-[#042c25] p-1.5 shadow-[0_14px_45px_rgba(0,0,0,0.48),0_0_24px_rgba(52,211,153,0.16)]">
           <img
-            src="/performance-logo-003a24a4-192.png"
+            src="/assets/performance-logo-003a24a4-192.png"
             alt=""
             width={192}
             height={192}

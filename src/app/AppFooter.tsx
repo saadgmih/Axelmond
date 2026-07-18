@@ -13,7 +13,7 @@ export function AppFooter() {
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-slate-100 font-extrabold text-sm">
             <img
-              src="/performance-logo-003a24a4-192.png"
+              src="/assets/performance-logo-003a24a4-192.png"
               className="w-6 h-6 object-contain"
               alt="Performance Académique"
               width={24}

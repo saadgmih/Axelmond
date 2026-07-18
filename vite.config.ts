@@ -1,13 +1,37 @@
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
+import { readFileSync } from "node:fs";
 import path from "path";
 import { defineConfig } from "vite";
 
 const REACT_VENDOR_PACKAGES = /\/node_modules\/(?:react|react-dom|react-router|react-router-dom|scheduler)\//;
+const HASHED_PUBLIC_IMAGES = [
+  "performance-logo-003a24a4-192.png",
+  "director-oussama-avatar-160-d71a9347.jpg",
+  "director-oussama-footer-160-ce163101.jpg",
+  "director-oussama-full-720-8e453474.jpg",
+  "director-oussama-thinking-720-a43920b8.jpg",
+];
 
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [
+      react(),
+      tailwindcss(),
+      {
+        name: "emit-hashed-public-images",
+        apply: "build",
+        generateBundle() {
+          for (const fileName of HASHED_PUBLIC_IMAGES) {
+            this.emitFile({
+              type: "asset",
+              fileName: `assets/${fileName}`,
+              source: readFileSync(path.resolve(__dirname, "public", fileName)),
+            });
+          }
+        },
+      },
+    ],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "."),

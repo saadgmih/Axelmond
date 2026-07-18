@@ -83,8 +83,8 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(payload.title || "Performance Académique", {
       body: payload.body || "",
-      icon: "/performance-logo-003a24a4-192.png",
-      badge: "/performance-logo-003a24a4-192.png",
+      icon: "/assets/performance-logo-003a24a4-192.png",
+      badge: "/assets/performance-logo-003a24a4-192.png",
       data: { url: safeUrl },
       tag: payload.notificationId || undefined,
       renotify: false,

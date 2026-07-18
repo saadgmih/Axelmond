@@ -156,7 +156,7 @@ export function getEmailErrorDetails(err: any) {
 
 // ─── Shared Email Design System ───────────────────────────────────────────────
 
-const PERFORMANCE_LOGO_URL = "https://axelmond.com/performance-logo-003a24a4-192.png";
+const PERFORMANCE_LOGO_URL = "https://axelmond.com/assets/performance-logo-003a24a4-192.png";
 
 /**
  * PNG logo badge — Gmail proxies remote images correctly and the alt text keeps the header readable.
