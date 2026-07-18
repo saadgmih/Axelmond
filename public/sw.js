@@ -1,4 +1,4 @@
-const STATIC_CACHE = "performance-academique-static-v6";
+const STATIC_CACHE = "performance-academique-static-v7";
 const CACHE_PREFIX = "performance-academique-static-";
 
 function sanitizeNotificationUrl(raw) {
@@ -15,8 +15,11 @@ function sanitizeNotificationUrl(raw) {
 function isCacheableStaticRequest(request, url) {
   if (request.method !== "GET") return false;
   if (url.origin !== self.location.origin) return false;
+  if (request.headers.has("authorization")) return false;
   if (url.pathname === "/sw.js") return false;
   if (url.pathname.startsWith("/api/")) return false;
+  if (/\.(pdf|mp4|webm|mov|m4v|mp3|m4a|wav|ogg)$/i.test(url.pathname)) return false;
+  if (["video", "audio", "document"].includes(request.destination)) return false;
   if (url.pathname === "/manifest.json") return true;
   if (url.pathname.startsWith("/assets/")) return true;
   return /\.(svg|png|jpg|jpeg|webp|ico|woff2?)$/i.test(url.pathname);
@@ -51,7 +54,9 @@ self.addEventListener("fetch", (event) => {
 
       try {
         const response = await fetch(event.request);
-        if (response.ok) await cache.put(event.request, response.clone());
+        const contentType = response.headers.get("content-type") || "";
+        const isUnexpectedHtml = contentType.toLowerCase().includes("text/html") && url.pathname !== "/manifest.json";
+        if (response.ok && !isUnexpectedHtml) await cache.put(event.request, response.clone());
         return response;
       } catch (error) {
         if (cached) return cached;

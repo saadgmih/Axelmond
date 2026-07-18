@@ -4,16 +4,18 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
+  ExternalLink,
   FileText,
   Fullscreen,
   Maximize2,
   Minimize2,
   MoveHorizontal,
+  RefreshCw,
   RotateCcw,
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
-import { getFreshSessionToken } from "../api";
+import { loadProtectedResource, ProtectedResourceError } from "../protected-resource";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
@@ -32,6 +34,15 @@ interface PdfLessonViewerProps {
 }
 
 type ImageViewMode = "width" | "screen" | "actual";
+type ViewerState =
+  | "IDLE"
+  | "WAITING_FOR_SESSION"
+  | "LOADING_METADATA"
+  | "LOADING_DOCUMENT"
+  | "RENDERING"
+  | "READY"
+  | "TEMPORARY_ERROR"
+  | "PERMANENT_ERROR";
 
 const viewerToolbarClass =
   "sticky top-0 z-30 flex min-h-[68px] flex-wrap items-center justify-between gap-3 border-b border-[#202838] bg-[#0b1019] px-3 py-2.5 text-slate-200 shadow-[0_12px_32px_rgba(2,6,23,0.28)] sm:min-h-[80px] sm:flex-nowrap sm:gap-4 sm:px-4 sm:py-3";
@@ -57,7 +68,8 @@ export default function PdfLessonViewer({
 }: PdfLessonViewerProps) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [viewerState, setViewerState] = useState<ViewerState>("IDLE");
+  const [retryKey, setRetryKey] = useState(0);
 
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState(1);
@@ -110,7 +122,7 @@ export default function PdfLessonViewer({
     });
     observer.observe(containerRef.current);
     return () => observer.disconnect();
-  }, [loading, blobUrl, mediaType]);
+  }, [viewerState, blobUrl, mediaType]);
 
   // Handle Fullscreen changes
   useEffect(() => {
@@ -153,9 +165,24 @@ export default function PdfLessonViewer({
   }
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
+    if (!Number.isInteger(numPages) || numPages < 1) {
+      setError("Le document reçu ne contient aucune page lisible.");
+      setViewerState("TEMPORARY_ERROR");
+      return;
+    }
     setNumPages(numPages);
     setPageNumber(1);
     setScale(1.0);
+    setViewerState("READY");
+  }
+
+  function handleDocumentLoadError() {
+    setError("Le document reçu n’a pas pu être interprété. Veuillez réessayer.");
+    setViewerState("TEMPORARY_ERROR");
+  }
+
+  function retryDocumentLoad() {
+    setRetryKey((current) => current + 1);
   }
 
   function changePage(offset: number) {
@@ -239,11 +266,14 @@ export default function PdfLessonViewer({
   useEffect(() => {
     let active = true;
     let objectUrl: string | null = null;
+    const controller = new AbortController();
 
     const loadDocument = async () => {
-      setLoading(true);
+      setViewerState(documentUrl ? "LOADING_METADATA" : "WAITING_FOR_SESSION");
       setError("");
       setBlobUrl(null);
+      setNumPages(null);
+      setPageNumber(1);
       setScale(1.0);
       setImageViewMode("width");
       setImageNaturalSize({ width: 0, height: 0 });
@@ -251,35 +281,35 @@ export default function PdfLessonViewer({
       setIsImagePanning(false);
 
       try {
-        let response: Response;
-
-        if (documentUrl) {
-          response = await fetch(documentUrl, {
-            signal: AbortSignal.timeout(30_000),
-          });
-        } else {
-          if (!contentId) throw new Error("Document introuvable.");
-
-          const token = await getFreshSessionToken();
-          if (!token) throw new Error("Session expirée. Reconnectez-vous.");
-
-          response = await fetch(`/api/lesson-contents/${contentId}/document`, {
-            headers: { Authorization: `Bearer ${token}` },
-            signal: AbortSignal.timeout(30_000),
-          });
+        if (!documentUrl && !contentId) {
+          throw new ProtectedResourceError("Document introuvable.", "permanent");
         }
-
-        if (!response.ok) throw new Error("Impossible d'afficher ce contenu dans la plateforme.");
-
-        const blob = await response.blob();
-        if (!blob.size) throw new Error("Le fichier est vide ou inaccessible.");
+        const blob = await loadProtectedResource({
+          url: documentUrl || `/api/lesson-contents/${contentId}/document`,
+          kind: mediaType,
+          requiresSession: !documentUrl,
+          maxRetries: 2,
+          timeoutMs: 30_000,
+          signal: controller.signal,
+          onPhase: (phase) => {
+            if (!active) return;
+            setViewerState(phase === "WAITING_FOR_SESSION" ? "WAITING_FOR_SESSION" : "LOADING_METADATA");
+          },
+        });
 
         objectUrl = URL.createObjectURL(blob);
-        if (active) setBlobUrl(objectUrl);
+        if (active) {
+          setBlobUrl(objectUrl);
+          setViewerState(mediaType === "IMAGE" ? "RENDERING" : "LOADING_DOCUMENT");
+        }
       } catch (err) {
-        if (active) setError(err instanceof Error ? err.message : "Impossible de charger le contenu.");
-      } finally {
-        if (active) setLoading(false);
+        if (!active || (err instanceof ProtectedResourceError && err.kind === "cancelled")) return;
+        setError(err instanceof Error ? err.message : "Impossible de charger le contenu.");
+        setViewerState(
+          err instanceof ProtectedResourceError && (err.kind === "permanent" || err.kind === "session")
+            ? "PERMANENT_ERROR"
+            : "TEMPORARY_ERROR",
+        );
       }
     };
 
@@ -287,27 +317,30 @@ export default function PdfLessonViewer({
 
     return () => {
       active = false;
+      controller.abort();
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [contentId, documentUrl, mediaType]);
+  }, [contentId, documentUrl, mediaType, retryKey]);
 
   useEffect(() => {
     if (mediaType !== "IMAGE" || !imageRenderWidth || !imageRenderHeight) return;
     centerImageStage();
   }, [mediaType, imageRenderWidth, imageRenderHeight, isExpandedView]);
 
-  if (loading) {
+  if (!blobUrl && ["IDLE", "WAITING_FOR_SESSION", "LOADING_METADATA"].includes(viewerState)) {
     return (
       <div className="flex h-[70vh] items-center justify-center rounded-2xl border border-slate-200 bg-slate-50">
         <div className="text-center">
           <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
-          <p className="mt-3 text-sm font-medium text-slate-600">Chargement du contenu…</p>
+          <p className="mt-3 text-sm font-medium text-slate-600">
+            {viewerState === "WAITING_FOR_SESSION" ? "Restauration de votre session…" : "Chargement du contenu…"}
+          </p>
         </div>
       </div>
     );
   }
 
-  if (error || !blobUrl) {
+  if (viewerState === "TEMPORARY_ERROR" || viewerState === "PERMANENT_ERROR" || !blobUrl) {
     return (
       <div className="space-y-4 rounded-2xl border border-lime-200 bg-lime-50 px-4 py-5">
         <div className="flex items-start gap-3">
@@ -316,9 +349,30 @@ export default function PdfLessonViewer({
           ) : (
             <FileText className="mt-0.5 h-5 w-5 shrink-0 text-lime-600" />
           )}
-          <div>
+          <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-lime-900">{title}</p>
             <p className="mt-1 text-sm text-lime-800">{error || "Aperçu indisponible."}</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={retryDocumentLoad}
+                className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Réessayer
+              </button>
+              {blobUrl ? (
+                <a
+                  href={blobUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-lime-300 bg-white px-4 py-2 text-sm font-bold text-lime-900"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Ouvrir dans un nouvel onglet
+                </a>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>
@@ -447,6 +501,11 @@ export default function PdfLessonViewer({
                     width: event.currentTarget.naturalWidth,
                     height: event.currentTarget.naturalHeight,
                   });
+                  setViewerState("READY");
+                }}
+                onError={() => {
+                  setError("L’image reçue n’a pas pu être affichée. Veuillez réessayer.");
+                  setViewerState("TEMPORARY_ERROR");
                 }}
                 className="block max-w-none select-none rounded-sm shadow-2xl ring-1 ring-white/10 pointer-events-none"
                 style={
@@ -476,31 +535,38 @@ export default function PdfLessonViewer({
         onPointerDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className={toolbarPillClass}>
-          <button
-            type="button"
-            onClick={() => changePage(-1)}
-            disabled={pageNumber <= 1}
-            className={toolbarPillButtonClass}
-            title="Page précédente"
-            aria-label="Page précédente"
-          >
-            <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
-          </button>
-          <span className="min-w-[4.5rem] px-1 text-center text-base font-bold tabular-nums text-slate-100 sm:min-w-[5rem] sm:px-1.5 sm:text-lg">
-            {pageNumber} <span className="mx-1 font-medium text-slate-500">/</span> {numPages || "?"}
-          </span>
-          <button
-            type="button"
-            onClick={() => changePage(1)}
-            disabled={!numPages || pageNumber >= numPages}
-            className={toolbarPillButtonClass}
-            title="Page suivante"
-            aria-label="Page suivante"
-          >
-            <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
-          </button>
-        </div>
+        {viewerState === "READY" && numPages ? (
+          <div className={toolbarPillClass}>
+            <button
+              type="button"
+              onClick={() => changePage(-1)}
+              disabled={pageNumber <= 1}
+              className={toolbarPillButtonClass}
+              title="Page précédente"
+              aria-label="Page précédente"
+            >
+              <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+            </button>
+            <span className="min-w-[4.5rem] px-1 text-center text-base font-bold tabular-nums text-slate-100 sm:min-w-[5rem] sm:px-1.5 sm:text-lg">
+              {pageNumber} <span className="mx-1 font-medium text-slate-500">/</span> {numPages}
+            </span>
+            <button
+              type="button"
+              onClick={() => changePage(1)}
+              disabled={!numPages || pageNumber >= numPages}
+              className={toolbarPillButtonClass}
+              title="Page suivante"
+              aria-label="Page suivante"
+            >
+              <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+            </button>
+          </div>
+        ) : (
+          <div className={`${toolbarPillClass} gap-3 px-4 text-sm font-semibold text-slate-300`} role="status">
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent" />
+            Chargement du document…
+          </div>
+        )}
 
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
           <button
@@ -561,16 +627,13 @@ export default function PdfLessonViewer({
           <Document
             file={blobUrl}
             onLoadSuccess={onDocumentLoadSuccess}
+            onLoadError={handleDocumentLoadError}
             loading={
               <div className="flex h-[50vh] w-full items-center justify-center">
                 <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
               </div>
             }
-            error={
-              <div className="flex h-[50vh] w-full items-center justify-center text-sm font-semibold text-emerald-500">
-                Impossible de lire ce PDF.
-              </div>
-            }
+            error={null}
           >
             <Page
               key={`${pageNumber}-${renderWidth}`}

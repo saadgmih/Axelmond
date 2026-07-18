@@ -36,7 +36,7 @@ export function formatCourseVideoTime(timeInSeconds: number): string {
   return `${minutes}:${pad(seconds)}`;
 }
 
-export function useCourseVideoPlayer(src: string) {
+export function useCourseVideoPlayer(src: string, sourceVersion = 0) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -51,6 +51,10 @@ export function useCourseVideoPlayer(src: string) {
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
+
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setDuration(0);
 
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
@@ -72,7 +76,7 @@ export function useCourseVideoPlayer(src: string) {
       video.removeEventListener("timeupdate", handleTimeUpdate);
       video.removeEventListener("durationchange", handleDurationChange);
     };
-  }, [src]);
+  }, [src, sourceVersion]);
 
   useEffect(() => {
     if (videoRef.current) {

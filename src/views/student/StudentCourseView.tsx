@@ -448,6 +448,7 @@ export default function StudentCourseView({
                         {selectedLessonContent.type === "VIDEO" && safeAttachmentUrl && (
                           <PremiumVideoPlayer
                             src={safeAttachmentUrl}
+                            contentId={selectedLessonContent.id}
                             title={selectedLessonContent.title}
                             instructor={selectedCourse.instructor}
                             activeSector="student"

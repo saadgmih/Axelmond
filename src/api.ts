@@ -47,7 +47,20 @@ const API_MAX_IDEMPOTENT_RETRIES = 2;
 const SESSION_UNAVAILABLE_EVENT = "axelmond:session-unavailable";
 const SESSION_EXPIRED_EVENT = "axelmond:session-expired";
 
-export type SessionRefreshState = "idle" | "anonymous" | "available" | "temporarily-unavailable" | "expired";
+export type SessionRefreshState =
+  | "idle"
+  | "refreshing"
+  | "anonymous"
+  | "available"
+  | "temporarily-unavailable"
+  | "expired";
+
+export type AuthenticationLifecycleState =
+  | "AUTH_INITIALIZING"
+  | "AUTHENTICATED"
+  | "REFRESHING_SESSION"
+  | "TEMPORARILY_OFFLINE"
+  | "UNAUTHENTICATED";
 
 let refreshPromise: Promise<string | null> | null = null;
 let sessionExpiredNotified = false;
@@ -55,6 +68,7 @@ let accessTokenMemory: string | null = null;
 let csrfTokenMemory: string | null = null;
 let refreshedSessionUserMemory: Record<string, unknown> | null = null;
 let lastSessionRefreshState: SessionRefreshState = "idle";
+let authenticationLifecycleState: AuthenticationLifecycleState = "AUTH_INITIALIZING";
 
 function readCsrfFromCookie(): string | null {
   if (typeof document === "undefined") return null;
@@ -112,6 +126,7 @@ function notifySessionExpired() {
 
 function notifySessionUnavailable(message = TEMPORARY_SERVICE_MESSAGE) {
   lastSessionRefreshState = "temporarily-unavailable";
+  authenticationLifecycleState = "TEMPORARILY_OFFLINE";
   if (typeof window !== "undefined") {
     window.dispatchEvent(new CustomEvent(SESSION_UNAVAILABLE_EVENT, { detail: { message } }));
   }
@@ -161,6 +176,7 @@ async function performSessionRefresh(): Promise<string | null> {
   // 403 before the route runs, which spams logs on anonymous boot.
   if (!legacyRefreshToken && !getCsrfToken()) {
     lastSessionRefreshState = "anonymous";
+    authenticationLifecycleState = "UNAUTHENTICATED";
     return null;
   }
   const body = legacyRefreshToken ? { refreshToken: legacyRefreshToken } : undefined;
@@ -179,6 +195,7 @@ async function performSessionRefresh(): Promise<string | null> {
   if (!res.ok) {
     if (isDefinitiveRefreshFailure(res, parsed)) {
       lastSessionRefreshState = "expired";
+      authenticationLifecycleState = "UNAUTHENTICATED";
       clearSessionTokens();
       notifySessionExpired();
       return null;
@@ -219,11 +236,16 @@ async function performSessionRefresh(): Promise<string | null> {
   purgeLegacyTokenStorage();
   sessionExpiredNotified = false;
   lastSessionRefreshState = "available";
+  authenticationLifecycleState = "AUTHENTICATED";
   return payload.token;
 }
 
 export function getSessionRefreshState(): SessionRefreshState {
   return lastSessionRefreshState;
+}
+
+export function getAuthenticationLifecycleState(): AuthenticationLifecycleState {
+  return authenticationLifecycleState;
 }
 
 export const sessionAvailabilityEvents = {
@@ -233,6 +255,8 @@ export const sessionAvailabilityEvents = {
 
 export async function refreshSessionToken(): Promise<string | null> {
   if (!refreshPromise) {
+    lastSessionRefreshState = "refreshing";
+    authenticationLifecycleState = "REFRESHING_SESSION";
     refreshPromise = performSessionRefresh().finally(() => {
       refreshPromise = null;
     });
@@ -443,6 +467,8 @@ export const api = {
   updateLessonContent: (contentId: string, data: { title?: string; body?: string | null; published?: boolean }) =>
     request<any>("PATCH", `/api/lesson-contents/${contentId}`, data),
   deleteLessonContent: (contentId: string) => request<any>("DELETE", `/api/lesson-contents/${contentId}`),
+  getLessonContentMediaSource: (contentId: string) =>
+    request<{ sourceUrl: string; mimeType: string }>("GET", `/api/lesson-contents/${contentId}/media-source`),
   getQuiz: (courseId: number, moduleId: number) =>
     request<QuizQuestion[]>("GET", `/api/courses/${courseId}/quizzes/${moduleId}`),
   submitQuizAttempt: (courseId: number, moduleId: number, answers: Record<string, string>) =>
@@ -935,8 +961,10 @@ export function setSessionToken(token: string | undefined, csrfToken?: string) {
     if (csrfToken) csrfTokenMemory = csrfToken;
     sessionExpiredNotified = false;
     lastSessionRefreshState = "available";
+    authenticationLifecycleState = "AUTHENTICATED";
   } else {
     lastSessionRefreshState = "anonymous";
+    authenticationLifecycleState = "UNAUTHENTICATED";
     clearSessionTokens();
   }
 }

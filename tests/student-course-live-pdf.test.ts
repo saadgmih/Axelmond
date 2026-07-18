@@ -20,7 +20,11 @@ rulesTest("student-course-live-pdf", () => {
   assert.doesNotMatch(studentCourseViewSource, /target="_blank"[\s\S]*safeAttachmentUrl/);
 
   assert.match(pdfViewerSource, /\/api\/lesson-contents\/\$\{contentId\}\/document/);
-  assert.match(pdfViewerSource, /signal:\s*AbortSignal\.timeout\(30_000\)/);
+  assert.match(pdfViewerSource, /timeoutMs:\s*30_000/);
+  assert.match(pdfViewerSource, /WAITING_FOR_SESSION/);
+  assert.match(pdfViewerSource, /TEMPORARY_ERROR/);
+  assert.match(pdfViewerSource, /Réessayer/);
+  assert.doesNotMatch(pdfViewerSource, /numPages \|\| "\?"/);
   assert.match(pdfViewerSource, /new URL\(\s*"pdfjs-dist\/build\/pdf\.worker\.min\.mjs",\s*import\.meta\.url/);
   assert.doesNotMatch(pdfViewerSource, /unpkg\.com\/pdfjs-dist/);
   assert.doesNotMatch(pdfViewerSource, /downloadUrl/);
@@ -59,8 +63,10 @@ rulesTest("student-course-live-pdf", () => {
 
   assert.match(lessonDocumentSource, /content\.type !== "PDF" && content\.type !== "IMAGE"/);
   assert.match(lessonDocumentSource, /contentType/);
+  assert.match(lessonDocumentSource, /isExpectedDocumentPayload/);
+  assert.match(lessonDocumentSource, /text\/html/);
 
-  assert.match(rbacSource, /lesson-contents.*\/document/);
+  assert.match(rbacSource, /lesson-contents.*document\|media-source/);
   assert.match(serverSource, /streamLessonContentDocument/);
 
   console.log("Student course live/pdf rules passed");

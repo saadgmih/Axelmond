@@ -35,7 +35,7 @@ rulesTest("legal-documents-pdf", () => {
 
   assert.match(viewerSource, /documentUrl/);
   assert.match(viewerSource, /allowDownload/);
-  assert.match(viewerSource, /getFreshSessionToken/);
+  assert.match(viewerSource, /loadProtectedResource/);
   assert.match(viewerSource, /\/api\/lesson-contents\/\$\{contentId\}\/document/);
   assert.doesNotMatch(viewerSource, /download=\{title \|\| "document\.pdf"\}/);
 

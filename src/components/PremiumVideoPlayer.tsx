@@ -1,10 +1,25 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Maximize, PauseCircle, PlayCircle, Volume2, VolumeX } from "lucide-react";
+import {
+  AlertTriangle,
+  LoaderCircle,
+  Maximize,
+  PauseCircle,
+  PlayCircle,
+  RefreshCw,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 import { COURSE_VIDEO_PLAYBACK_RATES, useCourseVideoPlayer } from "../hooks/useCourseVideoPlayer";
+import { api } from "../api";
+import { sanitizeCourseAttachmentUrl } from "../external-url-security";
 
 const OVERLAY_HIDE_DELAY_MS = 500;
 const CONTROLS_HIDE_DELAY_MS = 1600;
 const VOLUME_CONTROL_CLOSE_DELAY_MS = 250;
+const VIDEO_MAX_AUTOMATIC_RETRIES = 2;
+const VIDEO_RETRY_BASE_DELAY_MS = 500;
+
+type VideoLoadState = "LOADING" | "READY" | "BUFFERING" | "PLAYING" | "PAUSED" | "ERROR";
 
 interface PremiumVideoPlayerProps {
   src: string;
@@ -12,6 +27,7 @@ interface PremiumVideoPlayerProps {
   instructor: string;
   activeSector: string;
   showMetadata?: boolean;
+  contentId?: string;
 }
 
 export default function PremiumVideoPlayer({
@@ -20,7 +36,14 @@ export default function PremiumVideoPlayer({
   instructor,
   activeSector,
   showMetadata = true,
+  contentId,
 }: PremiumVideoPlayerProps) {
+  const [sourceVersion, setSourceVersion] = useState(0);
+  const [sourceResolutionVersion, setSourceResolutionVersion] = useState(0);
+  const [resolvedSrc, setResolvedSrc] = useState(contentId ? "" : src);
+  const [videoLoadState, setVideoLoadState] = useState<VideoLoadState>("LOADING");
+  const automaticRetryCountRef = useRef(0);
+  const automaticRetryTimeoutRef = useRef<number | null>(null);
   const {
     videoRef,
     containerRef,
@@ -38,7 +61,7 @@ export default function PremiumVideoPlayer({
     handlePlaybackRateChange,
     toggleFullscreen,
     formatTime,
-  } = useCourseVideoPlayer(src);
+  } = useCourseVideoPlayer(resolvedSrc, sourceVersion);
 
   const isStudent = activeSector === "student";
   const themeAccentClass = isStudent ? "accent-emerald-500" : "accent-emerald-500";
@@ -52,6 +75,79 @@ export default function PremiumVideoPlayer({
   const hideVolumeControlTimeoutRef = useRef<number | null>(null);
   const volumeDraggingRef = useRef(false);
   const volumeHasFocusRef = useRef(false);
+
+  const clearAutomaticRetryTimeout = useCallback(() => {
+    if (automaticRetryTimeoutRef.current !== null) {
+      window.clearTimeout(automaticRetryTimeoutRef.current);
+      automaticRetryTimeoutRef.current = null;
+    }
+  }, []);
+
+  const reloadVideoSource = useCallback(() => {
+    setVideoLoadState("LOADING");
+    if (contentId) {
+      setResolvedSrc("");
+      setSourceResolutionVersion((current) => current + 1);
+    } else {
+      setSourceVersion((current) => current + 1);
+    }
+  }, [contentId]);
+
+  const retryVideoManually = useCallback(() => {
+    clearAutomaticRetryTimeout();
+    automaticRetryCountRef.current = 0;
+    reloadVideoSource();
+  }, [clearAutomaticRetryTimeout, reloadVideoSource]);
+
+  const handleVideoError = useCallback(() => {
+    clearAutomaticRetryTimeout();
+    if (automaticRetryCountRef.current >= VIDEO_MAX_AUTOMATIC_RETRIES) {
+      setVideoLoadState("ERROR");
+      return;
+    }
+
+    const attempt = automaticRetryCountRef.current;
+    automaticRetryCountRef.current += 1;
+    setVideoLoadState("LOADING");
+    automaticRetryTimeoutRef.current = window.setTimeout(reloadVideoSource, VIDEO_RETRY_BASE_DELAY_MS * 2 ** attempt);
+  }, [clearAutomaticRetryTimeout, reloadVideoSource]);
+
+  useEffect(() => {
+    clearAutomaticRetryTimeout();
+    automaticRetryCountRef.current = 0;
+    setVideoLoadState("LOADING");
+    setSourceVersion(0);
+    return clearAutomaticRetryTimeout;
+  }, [clearAutomaticRetryTimeout, contentId, src]);
+
+  useEffect(() => {
+    let active = true;
+    if (!contentId) {
+      setResolvedSrc(src);
+      return () => {
+        active = false;
+      };
+    }
+
+    setVideoLoadState("LOADING");
+    setResolvedSrc("");
+    void api
+      .getLessonContentMediaSource(contentId)
+      .then(({ sourceUrl }) => {
+        if (!active) return;
+        const safeSource = sanitizeCourseAttachmentUrl(sourceUrl);
+        if (!safeSource) throw new Error("Source vidéo non autorisée");
+        setResolvedSrc(safeSource);
+        setSourceVersion((current) => current + 1);
+      })
+      .catch(() => {
+        if (active) setVideoLoadState("ERROR");
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [contentId, sourceResolutionVersion, src]);
 
   const clearHideControlsTimeout = useCallback(() => {
     if (hideControlsTimeoutRef.current) {
@@ -153,11 +249,21 @@ export default function PremiumVideoPlayer({
 
   const handleSurfaceClick = () => {
     revealControlsTemporarily();
+    if (videoLoadState === "ERROR") {
+      retryVideoManually();
+      return;
+    }
+    if (videoLoadState === "LOADING" || videoLoadState === "BUFFERING") return;
     togglePlay();
   };
 
   const chromeVisible = !isPlaying || controlsVisible || volumeControlOpen || !showMetadata;
-  const centerOverlayVisible = !isPlaying || overlayVisible;
+  const centerOverlayVisible =
+    !isPlaying ||
+    overlayVisible ||
+    videoLoadState === "LOADING" ||
+    videoLoadState === "BUFFERING" ||
+    videoLoadState === "ERROR";
   const volumePercent = Math.round(volume * 100);
   const overlayButtonClass = showMetadata ? "w-20 h-20" : "w-14 h-14";
   const overlayIconClass = showMetadata ? "w-10 h-10" : "w-7 h-7";
@@ -172,18 +278,53 @@ export default function PremiumVideoPlayer({
       className="group relative w-full aspect-video bg-slate-950 rounded-2xl overflow-hidden shadow-md border border-slate-800 flex flex-col items-center justify-center cursor-pointer select-none"
     >
       <video
+        key={`${resolvedSrc}-${sourceVersion}`}
         ref={videoRef}
-        src={src}
+        src={resolvedSrc || undefined}
+        preload="metadata"
         playsInline
         controlsList="nodownload"
         className="w-full h-full object-contain"
         onContextMenu={(e) => e.preventDefault()}
+        onLoadStart={() => setVideoLoadState("LOADING")}
+        onLoadedMetadata={() => setVideoLoadState("READY")}
+        onCanPlay={() => setVideoLoadState(isPlaying ? "PLAYING" : "READY")}
+        onWaiting={() => setVideoLoadState("BUFFERING")}
+        onStalled={() => setVideoLoadState("BUFFERING")}
+        onPlaying={() => {
+          automaticRetryCountRef.current = 0;
+          setVideoLoadState("PLAYING");
+        }}
+        onPause={() => setVideoLoadState("PAUSED")}
+        onError={handleVideoError}
       />
 
       <div
         className={`absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-950/20 transition-opacity duration-300 ${centerOverlayVisible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
       >
-        {!isPlaying ? (
+        {videoLoadState === "ERROR" ? (
+          <div className="flex max-w-md flex-col items-center gap-3 px-6 text-center" role="alert">
+            <AlertTriangle className="h-10 w-10 text-amber-300" />
+            <p className="text-sm font-bold text-white">La vidéo ne peut pas être chargée pour le moment.</p>
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                retryVideoManually();
+              }}
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700"
+            >
+              <RefreshCw className="h-4 w-4" /> Réessayer
+            </button>
+          </div>
+        ) : videoLoadState === "LOADING" || videoLoadState === "BUFFERING" ? (
+          <div className="flex flex-col items-center gap-3" role="status">
+            <LoaderCircle className="h-10 w-10 animate-spin text-emerald-300" />
+            <p className="text-xs font-bold text-white">
+              {videoLoadState === "BUFFERING" ? "Mise en mémoire tampon…" : "Chargement de la vidéo…"}
+            </p>
+          </div>
+        ) : !isPlaying ? (
           <div className="flex flex-col items-center gap-3">
             <button
               type="button"

@@ -93,10 +93,22 @@ describe("API client resilience", () => {
 
     const first = apiClient.getFreshSessionToken();
     const second = apiClient.getFreshSessionToken();
+    expect(apiClient.getSessionRefreshState()).toBe("refreshing");
+    expect(apiClient.getAuthenticationLifecycleState()).toBe("REFRESHING_SESSION");
     releaseResponse(jsonResponse({ token: freshToken, csrfToken: "next", id: "user-1" }));
 
     await expect(Promise.all([first, second])).resolves.toEqual([freshToken, freshToken]);
     expect(fetchMock).toHaveBeenCalledOnce();
+    expect(apiClient.getAuthenticationLifecycleState()).toBe("AUTHENTICATED");
+  });
+
+  test("exposes authenticated and unauthenticated lifecycle states", async () => {
+    const apiClient = await loadApi();
+    apiClient.setSessionToken(freshToken, "test-csrf");
+    expect(apiClient.getAuthenticationLifecycleState()).toBe("AUTHENTICATED");
+
+    apiClient.setSessionToken(undefined);
+    expect(apiClient.getAuthenticationLifecycleState()).toBe("UNAUTHENTICATED");
   });
 
   test("retries temporary idempotent responses but never retries a POST", async () => {

@@ -358,7 +358,7 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
       /^\/api\/courses\/\d+\/chapters$/.test(cleanPath) ||
       /^\/api\/courses\/\d+\/grades$/.test(cleanPath) ||
       /^\/api\/courses\/\d+\/quizzes\/\d+$/.test(cleanPath) ||
-      /^\/api\/lesson-contents\/[^/]+\/document$/.test(cleanPath))
+      /^\/api\/lesson-contents\/[^/]+\/(document|media-source)$/.test(cleanPath))
   ) {
     return true;
   }

@@ -5,11 +5,14 @@ import { rulesTest } from "./helpers/rulesTest.ts";
 rulesTest("student-video-protection", () => {
   const studentCourseViewSource = readFileSync("src/views/student/StudentCourseView.tsx", "utf8");
   const sessionSource = readFileSync("src/hooks/useStudentCourseSession.ts", "utf8");
+  const playerSource = readFileSync("src/components/PremiumVideoPlayer.tsx", "utf8");
+  const contentRoutesSource = readFileSync("src/routes/content-routes.ts", "utf8");
 
   assert.match(studentCourseViewSource, /sanitizeCourseAttachmentUrl/);
   assert.match(studentCourseViewSource, /PdfLessonViewer/);
   assert.match(studentCourseViewSource, /selectedLessonContent\.type === "VIDEO" && safeAttachmentUrl/);
   assert.match(studentCourseViewSource, /PremiumVideoPlayer/);
+  assert.match(studentCourseViewSource, /contentId=\{selectedLessonContent\.id\}/);
   assert.match(studentCourseViewSource, /activeSector="student"/);
   assert.match(studentCourseViewSource, /selectedModule\.attachmentUrl/);
   assert.match(studentCourseViewSource, /Vidéo à venir/);
@@ -26,4 +29,11 @@ rulesTest("student-video-protection", () => {
   assert.doesNotMatch(sessionSource, /isVideoPlaying/);
   assert.doesNotMatch(sessionSource, /videoProgress/);
   assert.doesNotMatch(sessionSource, /videoSpeed/);
+
+  assert.match(playerSource, /getLessonContentMediaSource\(contentId\)/);
+  assert.match(playerSource, /sourceResolutionVersion/);
+  assert.match(playerSource, /VIDEO_MAX_AUTOMATIC_RETRIES = 2/);
+  assert.match(playerSource, /Mise en mémoire tampon/);
+  assert.match(contentRoutesSource, /\/api\/lesson-contents\/:contentId\/media-source/);
+  assert.match(contentRoutesSource, /private, no-store/);
 });

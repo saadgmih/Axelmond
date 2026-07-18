@@ -340,7 +340,7 @@ export {
   getStudentProgressSnapshotsByCourseIds,
   setStudentModuleCompletion,
 } from "../student-content-progress";
-export { streamLessonContentDocument } from "./lesson-document";
+export { resolveLessonContentMediaSource, streamLessonContentDocument } from "./lesson-document";
 export { collectRuntimeMemoryMetrics } from "./memory-metrics";
 export { decodeStoredText } from "../text";
 export { Prisma } from "@prisma/client";
