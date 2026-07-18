@@ -3,6 +3,7 @@ import { getClientErrorMessage } from "../client-errors";
 import { CHAT_TUTOR_MAX_HISTORY_MESSAGES } from "../chat-tutor-limits";
 import { Send, Sparkles, Brain, GraduationCap, ArrowRight, X } from "lucide-react";
 import { api } from "../api";
+import LazyLatexText from "./LazyLatexText";
 
 interface ChatMessage {
   role: "user" | "model";
@@ -47,6 +48,17 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, isLoading]);
+
+  useEffect(() => {
+    if (!onClose) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   const handleSend = async (textToSend?: string) => {
     const messageText = textToSend || input;
@@ -147,18 +159,18 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
               if (subPart.startsWith("**") && subPart.endsWith("**")) {
                 return (
                   <strong key={subIndex} className="font-extrabold text-slate-900 dark:text-slate-100">
-                    {subPart.slice(2, -2)}
+                    <LazyLatexText value={subPart.slice(2, -2)} />
                   </strong>
                 );
               } else if (subPart.startsWith("* ")) {
                 return (
                   <span key={subIndex} className="block pl-4 my-1 relative">
                     <span className="absolute left-0 text-emerald-500">•</span>
-                    {subPart.slice(2)}
+                    <LazyLatexText value={subPart.slice(2)} />
                   </span>
                 );
               }
-              return subPart;
+              return <LazyLatexText key={subIndex} value={subPart} />;
             })}
           </span>
         );
@@ -172,7 +184,7 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
       className={`flex flex-col overflow-hidden ${
         isLive
           ? "min-h-0 flex-1 w-full self-stretch rounded-2xl border border-white/10 bg-zinc-950 shadow-xl"
-          : "bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 min-h-[320px] h-[min(520px,60dvh)]"
+          : "bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 h-full w-full"
       } ${className || ""}`}
     >
       {/* Header */}
@@ -210,7 +222,7 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
         )}
       </div>
 
-      {/* Messages */}
+      {/* Messages & Suggestions Scrollable Area */}
       <div
         ref={scrollRef}
         role="log"
@@ -259,45 +271,45 @@ Je peux vous expliquer n'importe quelle portion du module, décortiquer un morce
             </div>
           </div>
         )}
-      </div>
 
-      {/* Suggestion tags */}
-      {messages.length === 1 && (
-        <div
-          className={`px-4 py-3 border-t flex-shrink-0 space-y-2 ${
-            isLive
-              ? "bg-zinc-900/80 border-white/10"
-              : "bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800"
-          }`}
-        >
-          <p
-            className={`font-bold uppercase flex items-center gap-1.5 px-1 ${isLive ? "text-[11px] text-zinc-400" : "text-[11px] text-slate-500"}`}
+        {/* Suggestion tags inside scrollable container */}
+        {messages.length === 1 && (
+          <div
+            className={`pt-2 space-y-2 border-t ${
+              isLive ? "border-white/10" : "border-slate-200 dark:border-slate-800"
+            }`}
           >
-            <GraduationCap className="w-4 h-4 text-emerald-400" aria-hidden="true" /> Suggestions de questions
-          </p>
-          <div className="flex flex-col gap-1.5">
-            {suggestions.map((sug, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => handleSend(sug.text)}
-                aria-label={`Suggestion : ${sug.label}`}
-                className={`kbd-nav-focus w-full text-left font-medium px-3 py-3 rounded-xl transition-all flex items-center justify-between group ${
-                  isLive
-                    ? "bg-zinc-950 text-sm text-emerald-100 border border-white/10 hover:border-emerald-400/40 hover:bg-emerald-500/10"
-                    : "bg-white dark:bg-slate-900 text-xs text-emerald-700 dark:text-emerald-300 border border-slate-200 dark:border-slate-800 hover:border-emerald-400 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/40"
-                }`}
-              >
-                <span className="pr-2">{sug.label}</span>
-                <ArrowRight
-                  className="w-4 h-4 shrink-0 text-zinc-500 group-hover:text-emerald-300 group-hover:translate-x-0.5 transition-all"
-                  aria-hidden="true"
-                />
-              </button>
-            ))}
+            <p
+              className={`font-bold uppercase flex items-center gap-1.5 px-1 ${isLive ? "text-[11px] text-zinc-400" : "text-[11px] text-slate-500"}`}
+            >
+              <GraduationCap className="w-4 h-4 text-emerald-400" aria-hidden="true" /> Suggestions de questions
+            </p>
+            <div className="flex flex-col gap-1.5">
+              {suggestions.map((sug, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => handleSend(sug.text)}
+                  aria-label={`Suggestion : ${sug.label}`}
+                  className={`kbd-nav-focus w-full text-left font-medium px-3 py-3 rounded-xl transition-all flex items-center justify-between group ${
+                    isLive
+                      ? "bg-zinc-950 text-sm text-emerald-100 border border-white/10 hover:border-emerald-400/40 hover:bg-emerald-500/10"
+                      : "bg-white dark:bg-slate-900 text-xs text-emerald-700 dark:text-emerald-300 border border-slate-200 dark:border-slate-800 hover:border-emerald-400 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/40"
+                  }`}
+                >
+                  <span className="pr-2">
+                    <LazyLatexText value={sug.label} />
+                  </span>
+                  <ArrowRight
+                    className="w-4 h-4 shrink-0 text-zinc-500 group-hover:text-emerald-300 group-hover:translate-x-0.5 transition-all"
+                    aria-hidden="true"
+                  />
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Input */}
       <div

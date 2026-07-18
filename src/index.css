@@ -1507,3 +1507,91 @@ html.force-desktop-mode #root {
     width: 100%;
   }
 }
+
+/* ─── AI Tutor Responsive Layout ─── */
+.tutor-layout-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.tutor-layout-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.tutor-layout-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  z-index: 100;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  animation: tutor-slide-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.tutor-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: tutor-fade-in 0.2s ease-out forwards;
+}
+
+@keyframes tutor-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes tutor-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (min-width: 768px) {
+  .tutor-layout-sidebar {
+    width: min(420px, calc(100vw - 32px));
+  }
+}
+
+@media (min-width: 1440px) {
+  .tutor-layout-container {
+    flex-direction: row;
+    align-items: start;
+  }
+
+  .tutor-layout-sidebar {
+    position: sticky;
+    top: 1.5rem;
+    bottom: auto;
+    width: clamp(360px, 25vw, 420px);
+    height: calc(100dvh - 120px);
+    min-height: 500px;
+    max-height: 800px;
+    z-index: 10;
+    box-shadow: none;
+    animation: none;
+  }
+
+  .tutor-drawer-backdrop {
+    display: none;
+  }
+}
+

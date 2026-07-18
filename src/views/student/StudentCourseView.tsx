@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState, useRef, type Dispatch, type SetStateAction } from "react";
 import {
   Brain,
   Camera,
@@ -89,6 +89,33 @@ export default function StudentCourseView({
   setCourseToPurchase,
 }: StudentCourseViewProps) {
   const [isModuleDrawerOpen, setIsModuleDrawerOpen] = useState(false);
+
+  const openTutorBtnRef = useRef<HTMLButtonElement>(null);
+  const prevShowAITutor = useRef(showAITutor);
+
+  const [isLargeScreen, setIsLargeScreen] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return window.matchMedia("(min-width: 1440px)").matches;
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(min-width: 1440px)");
+    const handler = (e: MediaQueryListEvent) => {
+      setIsLargeScreen(e.matches);
+    };
+    media.addEventListener("change", handler);
+    return () => media.removeEventListener("change", handler);
+  }, []);
+
+  useEffect(() => {
+    if (prevShowAITutor.current && !showAITutor) {
+      openTutorBtnRef.current?.focus();
+    }
+    prevShowAITutor.current = showAITutor;
+  }, [showAITutor]);
+
+  const shouldLockScroll = showAITutor && !isLargeScreen;
 
   const enrollment = selectedCourse.enrollment;
 
@@ -328,7 +355,7 @@ export default function StudentCourseView({
       </div>
 
       {/* Central Module Lesson space */}
-      <div className="flex-1 bg-white overflow-y-auto flex flex-col min-w-0 min-h-0">
+      <div className={`flex-1 bg-white flex flex-col min-w-0 min-h-0 ${shouldLockScroll ? "overflow-hidden" : "overflow-y-auto"}`}>
         <div className="p-4 sm:p-6 md:p-8 space-y-6 flex-1">
           {/* Lesson Context Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
@@ -341,6 +368,7 @@ export default function StudentCourseView({
 
             {hasAiTutorAccess && (
               <button
+                ref={openTutorBtnRef}
                 onClick={() => setShowAITutor(!showAITutor)}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5 self-start cursor-pointer group"
               >
@@ -422,9 +450,9 @@ export default function StudentCourseView({
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+            <div className="tutor-layout-container">
               {/* Module body (Video / Text / Quiz) */}
-              <div className={`${showAITutor ? "xl:col-span-7" : "xl:col-span-12"} space-y-6`}>
+              <div className="tutor-layout-main space-y-6">
                 {selectedLessonContent &&
                   (() => {
                     const rawAttachmentUrl = selectedLessonContent.attachments[0]?.url;
@@ -974,15 +1002,22 @@ export default function StudentCourseView({
 
               {/* AI Tutor Chat Widget right inside column layout */}
               {showAITutor && hasAiTutorAccess && (
-                <div className="xl:col-span-5 min-h-[320px] h-[min(520px,55dvh)] xl:h-[min(520px,calc(100dvh-120px))] xl:sticky xl:top-4 animate-in slide-in-from-right duration-200">
-                  <AITutorChat
-                    courseId={selectedCourse.id}
-                    moduleId={selectedModule.id}
-                    courseTitle={selectedCourse.title}
-                    moduleTitle={selectedModule.title}
-                    onClose={() => setShowAITutor(false)}
+                <>
+                  <div
+                    className="tutor-drawer-backdrop"
+                    onClick={() => setShowAITutor(false)}
+                    aria-hidden="true"
                   />
-                </div>
+                  <div className="tutor-layout-sidebar">
+                    <AITutorChat
+                      courseId={selectedCourse.id}
+                      moduleId={selectedModule.id}
+                      courseTitle={selectedCourse.title}
+                      moduleTitle={selectedModule.title}
+                      onClose={() => setShowAITutor(false)}
+                    />
+                  </div>
+                </>
               )}
             </div>
           )}
