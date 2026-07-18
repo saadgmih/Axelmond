@@ -23,7 +23,7 @@ import "react-pdf/dist/Page/TextLayer.css";
 // Bundle the PDF.js worker with the application using standard relative path
 // so Vite compiles it correctly as a separate asset.
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "../../node_modules/pdfjs-dist/build/pdf.worker.min.mjs",
+  "pdfjs-dist/build/pdf.worker.min.mjs",
   import.meta.url
 ).toString();
 
