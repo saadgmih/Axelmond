@@ -20,9 +20,12 @@ import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
-// Bundle the PDF.js worker with the application so production CSP can keep
-// worker-src restricted to same-origin resources.
-pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+// Bundle the PDF.js worker with the application using standard relative path
+// so Vite compiles it correctly as a separate asset.
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  "../../node_modules/pdfjs-dist/build/pdf.worker.min.mjs",
+  import.meta.url
+).toString();
 
 interface PdfLessonViewerProps {
   contentId?: string;
@@ -35,14 +38,12 @@ interface PdfLessonViewerProps {
 
 type ImageViewMode = "width" | "screen" | "actual";
 type ViewerState =
-  | "IDLE"
   | "WAITING_FOR_SESSION"
-  | "LOADING_METADATA"
+  | "LOADING_URL"
   | "LOADING_DOCUMENT"
-  | "RENDERING"
+  | "VALIDATING_DOCUMENT"
   | "READY"
-  | "TEMPORARY_ERROR"
-  | "PERMANENT_ERROR";
+  | "ERROR";
 
 const viewerToolbarClass =
   "sticky top-0 z-30 flex min-h-[68px] flex-wrap items-center justify-between gap-3 border-b border-[#202838] bg-[#0b1019] px-3 py-2.5 text-slate-200 shadow-[0_12px_32px_rgba(2,6,23,0.28)] sm:min-h-[80px] sm:flex-nowrap sm:gap-4 sm:px-4 sm:py-3";
@@ -68,7 +69,7 @@ export default function PdfLessonViewer({
 }: PdfLessonViewerProps) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [viewerState, setViewerState] = useState<ViewerState>("IDLE");
+  const [viewerState, setViewerState] = useState<ViewerState>("WAITING_FOR_SESSION");
   const [retryKey, setRetryKey] = useState(0);
 
   const [numPages, setNumPages] = useState<number | null>(null);
@@ -167,7 +168,7 @@ export default function PdfLessonViewer({
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     if (!Number.isInteger(numPages) || numPages < 1) {
       setError("Le document reçu ne contient aucune page lisible.");
-      setViewerState("TEMPORARY_ERROR");
+      setViewerState("ERROR");
       return;
     }
     setNumPages(numPages);
@@ -178,7 +179,7 @@ export default function PdfLessonViewer({
 
   function handleDocumentLoadError() {
     setError("Le document reçu n’a pas pu être interprété. Veuillez réessayer.");
-    setViewerState("TEMPORARY_ERROR");
+    setViewerState("ERROR");
   }
 
   function retryDocumentLoad() {
@@ -269,8 +270,11 @@ export default function PdfLessonViewer({
     const controller = new AbortController();
 
     const loadDocument = async () => {
-      setViewerState(documentUrl ? "LOADING_METADATA" : "WAITING_FOR_SESSION");
+      setViewerState(documentUrl ? "LOADING_URL" : "WAITING_FOR_SESSION");
       setError("");
+      if (blobUrl) {
+        URL.revokeObjectURL(blobUrl);
+      }
       setBlobUrl(null);
       setNumPages(null);
       setPageNumber(1);
@@ -293,23 +297,23 @@ export default function PdfLessonViewer({
           signal: controller.signal,
           onPhase: (phase) => {
             if (!active) return;
-            setViewerState(phase === "WAITING_FOR_SESSION" ? "WAITING_FOR_SESSION" : "LOADING_METADATA");
+            if (phase === "WAITING_FOR_SESSION") {
+              setViewerState("WAITING_FOR_SESSION");
+            } else {
+              setViewerState("LOADING_DOCUMENT");
+            }
           },
         });
 
         objectUrl = URL.createObjectURL(blob);
         if (active) {
           setBlobUrl(objectUrl);
-          setViewerState(mediaType === "IMAGE" ? "RENDERING" : "LOADING_DOCUMENT");
+          setViewerState(mediaType === "IMAGE" ? "READY" : "VALIDATING_DOCUMENT");
         }
       } catch (err) {
         if (!active || (err instanceof ProtectedResourceError && err.kind === "cancelled")) return;
         setError(err instanceof Error ? err.message : "Impossible de charger le contenu.");
-        setViewerState(
-          err instanceof ProtectedResourceError && (err.kind === "permanent" || err.kind === "session")
-            ? "PERMANENT_ERROR"
-            : "TEMPORARY_ERROR",
-        );
+        setViewerState("ERROR");
       }
     };
 
@@ -327,20 +331,22 @@ export default function PdfLessonViewer({
     centerImageStage();
   }, [mediaType, imageRenderWidth, imageRenderHeight, isExpandedView]);
 
-  if (!blobUrl && ["IDLE", "WAITING_FOR_SESSION", "LOADING_METADATA"].includes(viewerState)) {
+  if (!blobUrl && ["WAITING_FOR_SESSION", "LOADING_URL", "LOADING_DOCUMENT"].includes(viewerState)) {
     return (
       <div className="flex h-[70vh] items-center justify-center rounded-2xl border border-slate-200 bg-slate-50">
         <div className="text-center">
           <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
           <p className="mt-3 text-sm font-medium text-slate-600">
-            {viewerState === "WAITING_FOR_SESSION" ? "Restauration de votre session…" : "Chargement du contenu…"}
+            {viewerState === "WAITING_FOR_SESSION" && "Restauration de votre session…"}
+            {viewerState === "LOADING_URL" && "Récupération du lien du document…"}
+            {viewerState === "LOADING_DOCUMENT" && "Téléchargement du document…"}
           </p>
         </div>
       </div>
     );
   }
 
-  if (viewerState === "TEMPORARY_ERROR" || viewerState === "PERMANENT_ERROR" || !blobUrl) {
+  if (viewerState === "ERROR" || !blobUrl) {
     return (
       <div className="space-y-4 rounded-2xl border border-lime-200 bg-lime-50 px-4 py-5">
         <div className="flex items-start gap-3">

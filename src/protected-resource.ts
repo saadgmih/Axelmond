@@ -137,6 +137,7 @@ export async function loadProtectedResource(options: LoadProtectedResourceOption
     if (signal?.aborted) throw new ProtectedResourceError("Chargement annulé.", "cancelled");
     onAttempt?.(attempt);
     const requestSignal = createRequestSignal(signal, timeoutMs);
+    const startTime = Date.now();
 
     try {
       const response = await fetchImpl(url, {
@@ -150,6 +151,21 @@ export async function loadProtectedResource(options: LoadProtectedResourceOption
         signal: requestSignal.signal,
       });
 
+      const contentType = response.headers.get("content-type") || "";
+
+      // Safe debug logging of response headers
+      try {
+        const duration = Date.now() - startTime;
+        console.log(`[PDF-DEBUG] URL: ${url}`);
+        console.log(`[PDF-DEBUG] Status: ${response.status}`);
+        console.log(`[PDF-DEBUG] Content-Type: ${contentType}`);
+        console.log(`[PDF-DEBUG] Content-Length: ${response.headers.get("content-length") || "unknown"}`);
+        console.log(`[PDF-DEBUG] Redirected: ${response.redirected}`);
+        console.log(`[PDF-DEBUG] Duration: ${duration}ms`);
+      } catch (e: any) {
+        console.log(`[PDF-DEBUG] Header logging failed: ${e.message}`);
+      }
+
       if (response.status === 401 && requiresSession && !sessionRefreshAttempted) {
         sessionRefreshAttempted = true;
         token = await refreshToken();
@@ -157,11 +173,18 @@ export async function loadProtectedResource(options: LoadProtectedResourceOption
         if (token) continue;
       }
 
-      const contentType = response.headers.get("content-type") || "";
       const retryableStatus =
         TEMPORARY_STATUSES.has(response.status) || (response.status === 403 && isCdnLikeResponse(response));
       if (!response.ok) {
-        await response.body?.cancel().catch(() => undefined);
+        // Safe debug logging of error body since we're about to fail the request
+        try {
+          const errorText = await response.text();
+          console.log(`[PDF-DEBUG] Error Response Body: "${errorText.substring(0, 200)}"`);
+        } catch (e: any) {
+          console.log(`[PDF-DEBUG] Error body logging failed: ${e.message}`);
+          await response.body?.cancel().catch(() => undefined);
+        }
+
         if (retryableStatus && attempt < maxRetries) {
           await pause(getRetryDelayMs(attempt, response));
           continue;
@@ -174,6 +197,18 @@ export async function loadProtectedResource(options: LoadProtectedResourceOption
       }
 
       const blob = await response.blob();
+
+      // Safe debug logging of downloaded blob since it's now in memory
+      try {
+        console.log(`[PDF-DEBUG] Blob Size: ${blob.size} bytes`);
+        const headerBytes = new Uint8Array(await blob.slice(0, 20).arrayBuffer());
+        const signatureText = String.fromCharCode(...headerBytes);
+        console.log(`[PDF-DEBUG] First 20 bytes hex: ${Array.from(headerBytes).map(b => b.toString(16).padStart(2, '0')).join(' ')}`);
+        console.log(`[PDF-DEBUG] First 20 bytes text: "${signatureText.replace(/[\r\n]/g, ' ')}"`);
+      } catch (e: any) {
+        console.log(`[PDF-DEBUG] Blob logging failed: ${e.message}`);
+      }
+
       const validMime = expectedMimeType(kind, contentType || blob.type);
       const validSignature = blob.size > 0 && (await hasExpectedSignature(blob, kind));
       if (!validMime || !validSignature) {
@@ -181,7 +216,11 @@ export async function loadProtectedResource(options: LoadProtectedResourceOption
           await pause(getRetryDelayMs(attempt));
           continue;
         }
-        throw new ProtectedResourceError(temporaryMessage(), "temporary", response.status);
+        throw new ProtectedResourceError(
+          "Le document reçu n'a pas pu être interprété. Veuillez réessayer.",
+          "temporary",
+          response.status
+        );
       }
 
       return blob;
