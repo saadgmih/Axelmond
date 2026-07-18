@@ -185,6 +185,8 @@ async function attachStaticOrVite(app: express.Express, isSecurityRuntimeTest: b
     });
   }
 
+  const FILE_EXTENSION_RE = /\.[a-zA-Z0-9]{2,8}$/;
+
   app.get("*", (req, res) => {
     if (isBlockedProductionSourcePath(req.path)) {
       res.status(404).end();
@@ -194,6 +196,15 @@ async function attachStaticOrVite(app: express.Express, isSecurityRuntimeTest: b
       res.status(404).type("text/plain").send("Not found");
       return;
     }
+
+    // Never serve the SPA shell for URLs with file extensions.
+    // A request for /uploads/file.pdf or /assets/missing.js that reaches
+    // this point means the static file was not found — return a real 404.
+    if (FILE_EXTENSION_RE.test(req.path)) {
+      res.status(404).type("text/plain").send("File not found");
+      return;
+    }
+
     res
       .status(isKnownPlatformPath(req.path) ? 200 : 404)
       .type("html")
