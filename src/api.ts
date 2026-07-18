@@ -456,6 +456,8 @@ export const api = {
       size: number;
     },
   ) => request<any>("POST", `/api/courses/${courseId}/lesson-assets/confirm`, data),
+  retryVideoJob: (jobId: string) => request<any>("POST", `/api/teacher/video-jobs/${jobId}/retry`),
+  getVideoJobStatus: (jobId: string) => request<any>("GET", `/api/teacher/video-jobs/${jobId}`),
   deleteCourse: (courseId: number) => request<any>("DELETE", `/api/courses/${courseId}`),
   getChapters: (courseId: number) => request<any[]>("GET", `/api/courses/${courseId}/chapters`),
   createChapter: (courseId: number, data: { title: string; description?: string; published: boolean }) =>

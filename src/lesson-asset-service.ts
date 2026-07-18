@@ -30,6 +30,7 @@ export async function persistLessonAsset(input: PersistLessonAssetInput) {
         title: input.intent.title.trim(),
         type: input.intent.contentType,
         published: input.intent.published,
+        status: input.intent.contentType === "VIDEO" ? "PROCESSING" : "READY",
         createdById: input.userId,
         attachments: {
           create: {
@@ -65,7 +66,7 @@ export async function persistLessonAsset(input: PersistLessonAssetInput) {
     }
   }
 
-  if (created && content.published) {
+  if (created && content.published && content.status === "READY") {
     await notifyPublishedLessonContent({
       contentId: content.id,
       courseId: content.courseId,
@@ -76,7 +77,7 @@ export async function persistLessonAsset(input: PersistLessonAssetInput) {
       sourceEvent: "LESSON_ASSET_PUBLISHED",
     });
   }
-  if (content.published) {
+  if (content.published && content.status === "READY") {
     try {
       await syncPublishedLessonModules(content.courseId);
     } catch (error) {

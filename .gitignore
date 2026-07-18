@@ -23,3 +23,8 @@ tmp-catalog.json
 tmp-prod-catalog.json
 git_diff.txt
 list-users.ts
+
+# Video branding work directories
+videos/working/
+videos/original/
+videos/test_temp/

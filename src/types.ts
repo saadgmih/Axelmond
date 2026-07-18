@@ -114,6 +114,8 @@ export interface LessonContent {
   title: string;
   body?: string;
   published: boolean;
+  status?: string;
+  jobId?: string;
   attachments: ContentAttachment[];
 }
 

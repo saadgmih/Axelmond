@@ -52,6 +52,32 @@ enum AttachmentType {
   @@schema("AxelmondResearchLab")
 }
 
+enum LessonContentStatus {
+  DRAFT
+  PROCESSING
+  READY
+  PUBLISHED
+  FAILED
+
+  @@schema("AxelmondResearchLab")
+}
+
+enum VideoJobStatus {
+  UPLOADED
+  QUEUED
+  VALIDATING
+  PROBING
+  NORMALIZING
+  ADDING_INTRO
+  ENCODING
+  VERIFYING
+  READY
+  FAILED
+  CANCELLED
+
+  @@schema("AxelmondResearchLab")
+}
+
 model User {
   id                       String                        @id @default(cuid())
   email                    String                        @unique
@@ -358,19 +384,20 @@ model ContentSection {
 }
 
 model LessonContent {
-  id          String            @id @default(cuid())
+  id          String              @id @default(cuid())
   courseId    Int
   sectionId   String?
   type        LessonContentType
   title       String
   body        String?
-  published   Boolean           @default(false)
+  published   Boolean             @default(false)
+  status      LessonContentStatus @default(READY)
   createdById String?
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  course      Course            @relation(fields: [courseId], references: [id])
-  section     ContentSection?   @relation(fields: [sectionId], references: [id])
-  createdBy   User?             @relation("CreatedContents", fields: [createdById], references: [id])
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  course      Course              @relation(fields: [courseId], references: [id])
+  section     ContentSection?     @relation(fields: [sectionId], references: [id])
+  createdBy   User?               @relation("CreatedContents", fields: [createdById], references: [id])
   attachments Attachment[]
 
   @@index([courseId])
@@ -398,6 +425,32 @@ model Attachment {
   @@index([courseId])
   @@index([contentId])
   @@index([createdById])
+  @@schema("AxelmondResearchLab")
+}
+
+model VideoProcessingJob {
+  id               String         @id @default(cuid())
+  contentId        String         @unique
+  uploadedByUserId String
+  sourceVideoPath  String
+  outputVideoPath  String?
+  introVersion     Int            @default(1)
+  status           VideoJobStatus @default(UPLOADED)
+  progressPercent  Int            @default(0)
+  currentStep      String?
+  sourceDuration   Float?
+  outputDuration   Float?
+  sourceSizeBytes  Int?
+  outputSizeBytes  Int?
+  errorCode        String?
+  errorMessage     String?
+  startedAt        DateTime?
+  completedAt      DateTime?
+  failedAt         DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([contentId])
   @@schema("AxelmondResearchLab")
 }
 

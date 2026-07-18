@@ -1,7 +1,9 @@
-import { FileText, Download } from "lucide-react";
+import { useEffect, useState } from "react";
+import { FileText, Download, Loader2, RotateCcw, AlertTriangle } from "lucide-react";
 import { RASTER_IMAGE_ACCEPT } from "../../../avatar-security";
 import PremiumVideoPlayer from "../../../components/PremiumVideoPlayer";
 import { formatLessonContentTypeLabel } from "../../../utils/user-facing-labels";
+import { api } from "../../../api";
 
 import { curriculumUi, getStepTheme, publishedBadge, publishedLabel } from "../curriculum-theme";
 import type { TeacherCurriculumViewProps } from "../curriculum-types";
@@ -94,12 +96,12 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
     selectedManagedContents,
     managedLiveReplays,
     handleSetUploadSectionId,
-    showCurriculumSuccess: _showCurriculumSuccess,
-    showCurriculumError: _showCurriculumError,
+    showCurriculumSuccess,
+    showCurriculumError,
     handleCreateCourse: _handleCreateCourse,
     handleCreateSection: _handleCreateSection,
     handleUploadLessonAsset,
-    handleSelectManagedCourse: _handleSelectManagedCourse,
+    handleSelectManagedCourse,
     loadTeacherQuizzes: _loadTeacherQuizzes,
     handleCreateQuiz: _handleCreateQuiz,
     handleAddQuestion: _handleAddQuestion,
@@ -115,11 +117,56 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
     handleToggleContentPublished,
     handleDeleteLessonContent,
   } = props;
+
   const stepTheme = getStepTheme(4);
   const inputFocus = `${curriculumUi.input} ${stepTheme.focus}`;
   const destinationLabel = uploadSectionId
     ? managedSections.find((section) => section.id === uploadSectionId)?.title || "Section sélectionnée"
     : "Racine du module";
+
+  const processingVideos = selectedManagedContents.filter(
+    (c) => c.type === "VIDEO" && c.status === "PROCESSING"
+  );
+
+  useEffect(() => {
+    if (processingVideos.length === 0 || !managedCourse) return;
+
+    const interval = setInterval(async () => {
+      let shouldRefresh = false;
+      for (const video of processingVideos) {
+        if (video.jobId) {
+          try {
+            const job = await api.getVideoJobStatus(video.jobId);
+            if (job.status === "READY" || job.status === "FAILED" || job.status === "CANCELLED") {
+              shouldRefresh = true;
+            }
+          } catch (e) {
+            console.error("Error polling job status:", e);
+          }
+        } else {
+          shouldRefresh = true;
+        }
+      }
+
+      if (shouldRefresh) {
+        handleSelectManagedCourse(managedCourse.id);
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [processingVideos, managedCourse, handleSelectManagedCourse]);
+
+  const handleRetryVideoJob = async (jobId: string) => {
+    try {
+      await api.retryVideoJob(jobId);
+      if (managedCourse) {
+        handleSelectManagedCourse(managedCourse.id);
+      }
+      showCurriculumSuccess("Le traitement vidéo a été relancé.");
+    } catch (err: any) {
+      showCurriculumError(err.message || "Impossible de relancer le traitement.");
+    }
+  };
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
       {managedLiveReplays.length > 0 && (
@@ -375,12 +422,37 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
                           />
                         )}
                         {content.type === "VIDEO" && (
-                          <PremiumVideoPlayer
-                            src={attachment.url}
-                            title={content.title}
-                            instructor={managedCourse?.instructor ?? "Professeur"}
-                            activeSector="teacher"
-                          />
+                          content.status === "PROCESSING" ? (
+                            <div className="py-12 flex flex-col items-center justify-center gap-3 bg-slate-950 rounded-xl text-emerald-400">
+                              <Loader2 className="h-8 w-8 animate-spin text-emerald-400" />
+                              <p className="text-[11px] font-bold">Vidéo en cours de préparation (ajout de l'intro)...</p>
+                            </div>
+                          ) : content.status === "FAILED" ? (
+                            <div className="py-12 flex flex-col items-center justify-center gap-3 bg-slate-950 rounded-xl text-red-400 px-4 text-center">
+                              <AlertTriangle className="h-8 w-8 text-red-500" />
+                              <div>
+                                <p className="text-xs font-bold">Échec de la préparation de la vidéo.</p>
+                                <p className="text-[10px] text-slate-500 mt-1">L'intro n'a pas pu être injectée.</p>
+                              </div>
+                              {content.jobId && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleRetryVideoJob(content.jobId!)}
+                                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-md inline-flex items-center gap-1.5"
+                                >
+                                  <RotateCcw className="h-3.5 w-3.5" />
+                                  Relancer la préparation
+                                </button>
+                              )}
+                            </div>
+                          ) : (
+                            <PremiumVideoPlayer
+                              src={attachment.url}
+                              title={content.title}
+                              instructor={managedCourse?.instructor ?? "Professeur"}
+                              activeSector="teacher"
+                            />
+                          )
                         )}
                         {content.type === "PDF" && (
                           <div className="py-6 flex flex-col items-center justify-center gap-2">
@@ -392,20 +464,22 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
                     )}
 
                     <div className={`flex flex-wrap gap-2 pt-3 ${curriculumUi.divider}`}>
-                      {attachment?.url && (
+                      {attachment?.url && content.status !== "PROCESSING" && (
                         <a href={attachment.url} target="_blank" rel="noreferrer" className={curriculumUi.ghostBtn}>
                           Ouvrir le fichier
                         </a>
                       )}
                       <button
+                        disabled={content.status === "PROCESSING"}
                         onClick={() => handleToggleContentPublished(content)}
-                        className={`${curriculumUi.ghostBtn} ${content.published ? "" : "border-emerald-500/30 bg-emerald-950/40 text-emerald-400 hover:bg-emerald-950/60"}`}
+                        className={`${curriculumUi.ghostBtn} ${content.published ? "" : "border-emerald-500/30 bg-emerald-950/40 text-emerald-400 hover:bg-emerald-950/60"} disabled:opacity-50`}
                       >
                         {content.published ? "Dépublier" : "Publier"}
                       </button>
                       <button
+                        disabled={content.status === "PROCESSING"}
                         onClick={() => handleDeleteLessonContent(content)}
-                        className="px-3.5 py-2 text-[10px] font-black rounded-xl bg-red-950/50 border border-red-500/30 text-red-400 hover:bg-red-950/70 ml-auto"
+                        className="px-3.5 py-2 text-[10px] font-black rounded-xl bg-red-950/50 border border-red-500/30 text-red-400 hover:bg-red-950/70 ml-auto disabled:opacity-50"
                       >
                         Supprimer média
                       </button>

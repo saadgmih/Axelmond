@@ -19,6 +19,7 @@ import { seedDatabase, synchronizePostgresSequences } from "./startup-db";
 import { apiErrorStatus, apiErrorMessage } from "./api-errors";
 import { createAxelmondApp } from "./create-app";
 import { logDb, logEmail, startAuthUserCachePruner, stopAuthUserCachePruner } from "./route-deps";
+import { startVideoBrandingWorker, stopVideoBrandingWorker } from "../services/video-branding-worker";
 import { startupState } from "./startup-state";
 import { stopPerformanceMonitor } from "../performance";
 import { isVerboseStartup } from "./startup-logging";
@@ -392,6 +393,12 @@ async function runDeferredStartupTasks(securityTest: boolean, signal: AbortSigna
       logEmail("WARN", "Email service verification threw at startup", { error: String(err) });
     }
   });
+
+  if (!signal.aborted) {
+    void startVideoBrandingWorker().catch((err) => {
+      logDb("ERROR", "Failed to start video branding worker", { error: String(err) });
+    });
+  }
 }
 
 async function verifySmtpAtStartup(signal: AbortSignal) {
@@ -453,6 +460,7 @@ function registerGracefulShutdown(httpServer: ReturnType<typeof createServer>, i
     }, shutdownTimeoutMs);
     forcedShutdownTimer.unref();
 
+    stopVideoBrandingWorker();
     stopPerformanceMonitor();
     stopCachePruner();
     stopAuthUserCachePruner();

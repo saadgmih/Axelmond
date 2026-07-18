@@ -32,6 +32,7 @@ export async function canViewLessonContent(
     published: boolean;
     sectionId: string | null;
     section: { published: boolean } | null;
+    status?: string;
   },
 ): Promise<boolean> {
   if (authUser.role === "ADMIN") return true;
@@ -39,6 +40,7 @@ export async function canViewLessonContent(
   if (authUser.role === "STUDENT") {
     if (!authUser.enrolledCourses.includes(content.courseId)) return false;
     if (!content.published) return false;
+    if (content.status && content.status !== "READY" && content.status !== "PUBLISHED") return false;
     if (content.sectionId && content.section && !content.section.published) return false;
     return true;
   }
