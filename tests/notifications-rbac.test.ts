@@ -101,7 +101,7 @@ describe("Notifications RBAC and Routes Unit Tests", () => {
       const mockNotifs = [
         { id: "n-1", userId: "user-1", type: "NEW_COURSE", title: "T1", body: "B1", readAt: null, createdAt: new Date() },
       ];
-      vi.mocked(prisma.notification.findMany).mockResolvedValueOnce(mockNotifs);
+      vi.mocked(prisma.notification.findMany).mockResolvedValueOnce(mockNotifs as any);
 
       const req: any = { authUser: { id: "user-1", role: "STUDENT" } };
       const res: any = { json: vi.fn() };

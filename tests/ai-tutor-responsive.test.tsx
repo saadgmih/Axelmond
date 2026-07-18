@@ -37,7 +37,7 @@ const mockCourse: Course = {
   updatedAt: "2026-07-18",
   modules: [],
   isLiveNow: false,
-};
+} as any;
 
 const mockModule: CourseModule = {
   id: 10,
@@ -49,7 +49,7 @@ const mockModule: CourseModule = {
   published: true,
   sectionId: "sec-1",
   attachmentUrl: "https://example.com/video.mp4",
-};
+} as any;
 
 describe("AITutorChat component behavior", () => {
   afterEach(() => {

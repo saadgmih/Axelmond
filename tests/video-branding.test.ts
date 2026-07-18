@@ -187,27 +187,20 @@ vi.mock("../src/course-curriculum-sync", () => ({
 }));
 
 // Mock fetch globally
-import fetch from "node-fetch";
-vi.mock("node-fetch", () => {
+vi.stubGlobal("fetch", vi.fn().mockImplementation(async (url: string) => {
+  if (url.endsWith(".mp4") && fs.existsSync(url)) {
+    const buffer = fs.readFileSync(url);
+    return {
+      ok: true,
+      arrayBuffer: async () => buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength),
+    };
+  }
   return {
-    default: vi.fn().mockImplementation(async (url: string) => {
-      // If downloading the source video, read it locally
-      if (url.endsWith(".mp4") && fs.existsSync(url)) {
-        const buffer = fs.readFileSync(url);
-        return {
-          ok: true,
-          arrayBuffer: async () => buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength),
-        };
-      }
-      // Otherwise, return empty/dummy response
-      return {
-        ok: true,
-        statusText: "OK",
-        arrayBuffer: async () => new ArrayBuffer(0),
-      };
-    }),
+    ok: true,
+    statusText: "OK",
+    arrayBuffer: async () => new ArrayBuffer(0),
   };
-});
+}));
 
 const TEST_DIR = path.join(process.cwd(), "videos", "test_temp");
 const SRC_LANDSCAPE_AUDIO = path.join(TEST_DIR, "src_landscape_audio.mp4");
@@ -314,7 +307,7 @@ describe("Video Branding Automatic Pipeline", () => {
           iconName: "BookOpen",
           color: "emerald",
           published: true,
-        },
+        } as any,
       });
 
       const lesson = await prisma.lessonContent.create({
@@ -377,7 +370,7 @@ describe("Video Branding Automatic Pipeline", () => {
       role: "STUDENT",
       emailVerified: true,
       enrolledCourses: [100],
-    };
+    } as any;
 
     const adminUser: AppUser = {
       id: "admin-1",
@@ -385,7 +378,7 @@ describe("Video Branding Automatic Pipeline", () => {
       role: "ADMIN",
       emailVerified: true,
       enrolledCourses: [],
-    };
+    } as any;
 
     it("rejects student access if video is in PROCESSING status", async () => {
       const content = {

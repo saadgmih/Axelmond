@@ -1,6 +1,5 @@
 import fs from "fs";
 import path from "path";
-import fetch from "node-fetch";
 import { execFile } from "child_process";
 import { prisma } from "../db";
 import { utapi } from "../uploadthing-api";

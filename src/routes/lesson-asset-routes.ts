@@ -111,7 +111,7 @@ export function registerLessonAssetRoutes(app: Express, ctx: RouteContext): void
             });
             // Sync modules since it's ready
             if (result.content.published) {
-              await syncPublishedLessonModules(courseId);
+              await api.syncPublishedLessonModules(courseId);
             }
           }
         }
