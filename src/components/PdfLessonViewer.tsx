@@ -43,6 +43,7 @@ type ViewerState =
   | "LOADING_DOCUMENT"
   | "VALIDATING_DOCUMENT"
   | "READY"
+  | "TEMPORARY_ERROR"
   | "ERROR";
 
 const viewerToolbarClass =
@@ -511,7 +512,7 @@ export default function PdfLessonViewer({
                 }}
                 onError={() => {
                   setError("L’image reçue n’a pas pu être affichée. Veuillez réessayer.");
-                  setViewerState("ERROR");
+                  setViewerState("TEMPORARY_ERROR");
                 }}
                 className="block max-w-none select-none rounded-sm shadow-2xl ring-1 ring-white/10 pointer-events-none"
                 style={
