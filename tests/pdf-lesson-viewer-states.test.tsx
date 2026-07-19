@@ -66,6 +66,7 @@ describe("PdfLessonViewer state machine and validation", () => {
 
   afterEach(() => {
     cleanup();
+    vi.useRealTimers();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
@@ -111,12 +112,16 @@ describe("PdfLessonViewer state machine and validation", () => {
 
   it("handles strict PDF validation error correctly and supports retry", async () => {
     protectedResourceMock.load
-      .mockRejectedValueOnce(new ProtectedResourceError("Le document reçu n'a pas pu être interprété. Veuillez réessayer.", "temporary"))
+      .mockRejectedValueOnce(
+        new ProtectedResourceError("Le document reçu n'a pas pu être interprété. Veuillez réessayer.", "temporary"),
+      )
       .mockResolvedValueOnce(new Blob(["%PDF-1.7"], { type: "application/pdf" }));
 
     render(<PdfLessonViewer contentId="content-test" title="Cours Test" />);
 
-    expect(await screen.findByText("Le document reçu n'a pas pu être interprété. Veuillez réessayer.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Le document reçu n'a pas pu être interprété. Veuillez réessayer."),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Réessayer" })).toBeInTheDocument();
 
     // Retry
@@ -125,5 +130,21 @@ describe("PdfLessonViewer state machine and validation", () => {
     // Should go back to loading
     expect(screen.getByText("Restauration de votre session…")).toBeInTheDocument();
     await waitFor(() => expect(protectedResourceMock.load).toHaveBeenCalledTimes(2));
+  });
+
+  it("automatically reloads a valid blob when PDF.js fails transiently", async () => {
+    protectedResourceMock.load.mockResolvedValue(new Blob(["%PDF-1.7"], { type: "application/pdf" }));
+
+    render(<PdfLessonViewer contentId="content-test" title="Cours Test" />);
+    expect(await screen.findByTestId("mock-pdf-document")).toBeInTheDocument();
+
+    vi.useFakeTimers();
+    fireEvent.click(screen.getByRole("button", { name: "Simuler une erreur PDF" }));
+    expect(screen.getByText("Nouvelle tentative de lecture du document…")).toBeInTheDocument();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(600);
+    });
+    expect(protectedResourceMock.load).toHaveBeenCalledTimes(2);
   });
 });

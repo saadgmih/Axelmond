@@ -6,7 +6,7 @@ rulesTest("student-video-protection", () => {
   const studentCourseViewSource = readFileSync("src/views/student/StudentCourseView.tsx", "utf8");
   const sessionSource = readFileSync("src/hooks/useStudentCourseSession.ts", "utf8");
   const playerSource = readFileSync("src/components/PremiumVideoPlayer.tsx", "utf8");
-  const contentRoutesSource = readFileSync("src/routes/content-routes.ts", "utf8");
+  const lessonMediaRoutesSource = readFileSync("src/routes/lesson-media-routes.ts", "utf8");
 
   assert.match(studentCourseViewSource, /sanitizeCourseAttachmentUrl/);
   assert.match(studentCourseViewSource, /PdfLessonViewer/);
@@ -34,6 +34,9 @@ rulesTest("student-video-protection", () => {
   assert.match(playerSource, /sourceResolutionVersion/);
   assert.match(playerSource, /VIDEO_MAX_AUTOMATIC_RETRIES = 2/);
   assert.match(playerSource, /Mise en mémoire tampon/);
-  assert.match(contentRoutesSource, /\/api\/lesson-contents\/:contentId\/media-source/);
-  assert.match(contentRoutesSource, /private, no-store/);
+  assert.match(lessonMediaRoutesSource, /\/api\/lesson-contents\/:contentId\/media-source/);
+  assert.match(lessonMediaRoutesSource, /\/api\/lesson-contents\/:contentId\/media/);
+  assert.match(lessonMediaRoutesSource, /createLessonMediaTicket/);
+  assert.match(lessonMediaRoutesSource, /Readable\.fromWeb/);
+  assert.match(lessonMediaRoutesSource, /private, no-store/);
 });

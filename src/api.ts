@@ -490,7 +490,10 @@ export const api = {
     request<any>("PATCH", `/api/lesson-contents/${contentId}`, data),
   deleteLessonContent: (contentId: string) => request<any>("DELETE", `/api/lesson-contents/${contentId}`),
   getLessonContentMediaSource: (contentId: string) =>
-    request<{ sourceUrl: string; mimeType: string }>("GET", `/api/lesson-contents/${contentId}/media-source`),
+    request<{ sourceUrl: string; proxySourceUrl?: string; mimeType: string }>(
+      "GET",
+      `/api/lesson-contents/${contentId}/media-source`,
+    ),
   getQuiz: (courseId: number, moduleId: number) =>
     request<QuizQuestion[]>("GET", `/api/courses/${courseId}/quizzes/${moduleId}`),
   submitQuizAttempt: (courseId: number, moduleId: number, answers: Record<string, string>) =>

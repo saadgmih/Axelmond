@@ -65,6 +65,7 @@ describe("PdfLessonViewer session restoration states", () => {
 
   afterEach(() => {
     cleanup();
+    vi.useRealTimers();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
@@ -117,7 +118,19 @@ describe("PdfLessonViewer session restoration states", () => {
     protectedResourceMock.load.mockResolvedValue(new Blob(["%PDF-1.7"], { type: "application/pdf" }));
     render(<PdfLessonViewer contentId="content-a" title="Cours PDF" />);
 
-    fireEvent.click(await screen.findByRole("button", { name: "Simuler une erreur PDF" }));
+    await screen.findByRole("button", { name: "Simuler une erreur PDF" });
+    vi.useFakeTimers();
+    fireEvent.click(screen.getByRole("button", { name: "Simuler une erreur PDF" }));
+    expect(screen.getByText("Nouvelle tentative de lecture du document…")).toBeInTheDocument();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(600);
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Simuler une erreur PDF" }));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1_200);
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Simuler une erreur PDF" }));
     expect(screen.getByText(/n’a pas pu être interprété/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Réessayer/ })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Ouvrir dans un nouvel onglet/ })).toHaveAttribute(

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import {
   Camera,
   ChevronLeft,
@@ -22,10 +22,7 @@ import "react-pdf/dist/Page/TextLayer.css";
 
 // Bundle the PDF.js worker with the application using standard relative path
 // so Vite compiles it correctly as a separate asset.
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url
-).toString();
+pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
 
 interface PdfLessonViewerProps {
   contentId?: string;
@@ -41,10 +38,14 @@ type ViewerState =
   | "WAITING_FOR_SESSION"
   | "LOADING_URL"
   | "LOADING_DOCUMENT"
+  | "RETRYING_DOCUMENT"
   | "VALIDATING_DOCUMENT"
   | "READY"
   | "TEMPORARY_ERROR"
   | "ERROR";
+
+const PDF_PARSE_MAX_AUTOMATIC_RETRIES = 2;
+const PDF_PARSE_RETRY_BASE_DELAY_MS = 600;
 
 const viewerToolbarClass =
   "sticky top-0 z-30 flex min-h-[68px] flex-wrap items-center justify-between gap-3 border-b border-[#202838] bg-[#0b1019] px-3 py-2.5 text-slate-200 shadow-[0_12px_32px_rgba(2,6,23,0.28)] sm:min-h-[80px] sm:flex-nowrap sm:gap-4 sm:px-4 sm:py-3";
@@ -86,6 +87,8 @@ export default function PdfLessonViewer({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const imageStageRef = useRef<HTMLDivElement>(null);
+  const parseRetryCountRef = useRef(0);
+  const parseRetryTimeoutRef = useRef<number | null>(null);
   const imageDragRef = useRef({
     active: false,
     pointerId: 0,
@@ -166,6 +169,13 @@ export default function PdfLessonViewer({
     });
   }
 
+  const clearParseRetryTimeout = useCallback(() => {
+    if (parseRetryTimeoutRef.current !== null) {
+      window.clearTimeout(parseRetryTimeoutRef.current);
+      parseRetryTimeoutRef.current = null;
+    }
+  }, []);
+
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     if (!Number.isInteger(numPages) || numPages < 1) {
       setError("Le document reçu ne contient aucune page lisible.");
@@ -175,17 +185,39 @@ export default function PdfLessonViewer({
     setNumPages(numPages);
     setPageNumber(1);
     setScale(1.0);
+    clearParseRetryTimeout();
+    parseRetryCountRef.current = 0;
     setViewerState("READY");
   }
 
   function handleDocumentLoadError() {
+    clearParseRetryTimeout();
+    if (parseRetryCountRef.current < PDF_PARSE_MAX_AUTOMATIC_RETRIES) {
+      const attempt = parseRetryCountRef.current;
+      parseRetryCountRef.current += 1;
+      setError("");
+      setViewerState("RETRYING_DOCUMENT");
+      parseRetryTimeoutRef.current = window.setTimeout(
+        () => setRetryKey((current) => current + 1),
+        PDF_PARSE_RETRY_BASE_DELAY_MS * 2 ** attempt,
+      );
+      return;
+    }
     setError("Le document reçu n’a pas pu être interprété. Veuillez réessayer.");
     setViewerState("ERROR");
   }
 
   function retryDocumentLoad() {
+    clearParseRetryTimeout();
+    parseRetryCountRef.current = 0;
     setRetryKey((current) => current + 1);
   }
+
+  useEffect(() => {
+    parseRetryCountRef.current = 0;
+    clearParseRetryTimeout();
+    return clearParseRetryTimeout;
+  }, [clearParseRetryTimeout, contentId, documentUrl, mediaType]);
 
   function changePage(offset: number) {
     setPageNumber((prevPageNumber) => {
@@ -332,7 +364,10 @@ export default function PdfLessonViewer({
     centerImageStage();
   }, [mediaType, imageRenderWidth, imageRenderHeight, isExpandedView]);
 
-  if (!blobUrl && ["WAITING_FOR_SESSION", "LOADING_URL", "LOADING_DOCUMENT"].includes(viewerState)) {
+  if (
+    viewerState === "RETRYING_DOCUMENT" ||
+    (!blobUrl && ["WAITING_FOR_SESSION", "LOADING_URL", "LOADING_DOCUMENT"].includes(viewerState))
+  ) {
     return (
       <div className="flex h-[70vh] items-center justify-center rounded-2xl border border-slate-200 bg-slate-50">
         <div className="text-center">
@@ -341,6 +376,7 @@ export default function PdfLessonViewer({
             {viewerState === "WAITING_FOR_SESSION" && "Restauration de votre session…"}
             {viewerState === "LOADING_URL" && "Récupération du lien du document…"}
             {viewerState === "LOADING_DOCUMENT" && "Téléchargement du document…"}
+            {viewerState === "RETRYING_DOCUMENT" && "Nouvelle tentative de lecture du document…"}
           </p>
         </div>
       </div>

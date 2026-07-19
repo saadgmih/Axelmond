@@ -121,6 +121,7 @@ export function isRbacExemptRoute(method: string, path: string): boolean {
   if (verb === "OPTIONS") return true;
   if (RBAC_EXEMPT_AUTH_PATHS.has(cleanPath)) return true;
   if (cleanPath === "/api/test-email") return true;
+  if (verb === "GET" && /^\/api\/lesson-contents\/[^/]+\/media$/.test(cleanPath)) return true;
 
   if (RBAC_EXEMPT_PREFIXES.some((prefix) => cleanPath === prefix || cleanPath.startsWith(prefix))) {
     return true;

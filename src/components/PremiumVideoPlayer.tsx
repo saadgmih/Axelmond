@@ -20,6 +20,12 @@ const VIDEO_MAX_AUTOMATIC_RETRIES = 2;
 const VIDEO_RETRY_BASE_DELAY_MS = 500;
 
 type VideoLoadState = "LOADING" | "READY" | "BUFFERING" | "PLAYING" | "PAUSED" | "ERROR";
+type VideoSourceKind = "DIRECT" | "PROXY";
+
+function sanitizeLessonMediaProxyUrl(value: unknown, contentId: string): string | null {
+  const expected = `/api/lesson-contents/${encodeURIComponent(contentId)}/media`;
+  return value === expected ? expected : null;
+}
 
 interface PremiumVideoPlayerProps {
   src: string;
@@ -41,9 +47,11 @@ export default function PremiumVideoPlayer({
   const [sourceVersion, setSourceVersion] = useState(0);
   const [sourceResolutionVersion, setSourceResolutionVersion] = useState(0);
   const [resolvedSrc, setResolvedSrc] = useState(contentId ? "" : src);
+  const [proxySrc, setProxySrc] = useState("");
   const [videoLoadState, setVideoLoadState] = useState<VideoLoadState>("LOADING");
   const automaticRetryCountRef = useRef(0);
   const automaticRetryTimeoutRef = useRef<number | null>(null);
+  const activeSourceKindRef = useRef<VideoSourceKind>("DIRECT");
   const {
     videoRef,
     containerRef,
@@ -87,6 +95,8 @@ export default function PremiumVideoPlayer({
     setVideoLoadState("LOADING");
     if (contentId) {
       setResolvedSrc("");
+      setProxySrc("");
+      activeSourceKindRef.current = "DIRECT";
       setSourceResolutionVersion((current) => current + 1);
     } else {
       setSourceVersion((current) => current + 1);
@@ -99,7 +109,7 @@ export default function PremiumVideoPlayer({
     reloadVideoSource();
   }, [clearAutomaticRetryTimeout, reloadVideoSource]);
 
-  const handleVideoError = useCallback(() => {
+  const scheduleAutomaticRetry = useCallback(() => {
     clearAutomaticRetryTimeout();
     if (automaticRetryCountRef.current >= VIDEO_MAX_AUTOMATIC_RETRIES) {
       setVideoLoadState("ERROR");
@@ -112,11 +122,25 @@ export default function PremiumVideoPlayer({
     automaticRetryTimeoutRef.current = window.setTimeout(reloadVideoSource, VIDEO_RETRY_BASE_DELAY_MS * 2 ** attempt);
   }, [clearAutomaticRetryTimeout, reloadVideoSource]);
 
+  const handleVideoError = useCallback(() => {
+    clearAutomaticRetryTimeout();
+    if (contentId && activeSourceKindRef.current === "DIRECT" && proxySrc) {
+      activeSourceKindRef.current = "PROXY";
+      setVideoLoadState("LOADING");
+      setResolvedSrc(proxySrc);
+      setSourceVersion((current) => current + 1);
+      return;
+    }
+    scheduleAutomaticRetry();
+  }, [clearAutomaticRetryTimeout, contentId, proxySrc, scheduleAutomaticRetry]);
+
   useEffect(() => {
     clearAutomaticRetryTimeout();
     automaticRetryCountRef.current = 0;
     setVideoLoadState("LOADING");
     setSourceVersion(0);
+    setProxySrc("");
+    activeSourceKindRef.current = "DIRECT";
     return clearAutomaticRetryTimeout;
   }, [clearAutomaticRetryTimeout, contentId, src]);
 
@@ -133,21 +157,24 @@ export default function PremiumVideoPlayer({
     setResolvedSrc("");
     void api
       .getLessonContentMediaSource(contentId)
-      .then(({ sourceUrl }) => {
+      .then(({ sourceUrl, proxySourceUrl }) => {
         if (!active) return;
         const safeSource = sanitizeCourseAttachmentUrl(sourceUrl);
-        if (!safeSource) throw new Error("Source vidéo non autorisée");
-        setResolvedSrc(safeSource);
+        const safeProxySource = sanitizeLessonMediaProxyUrl(proxySourceUrl, contentId);
+        if (!safeSource && !safeProxySource) throw new Error("Source vidéo non autorisée");
+        setProxySrc(safeProxySource || "");
+        activeSourceKindRef.current = safeSource ? "DIRECT" : "PROXY";
+        setResolvedSrc(safeSource || safeProxySource || "");
         setSourceVersion((current) => current + 1);
       })
       .catch(() => {
-        if (active) setVideoLoadState("ERROR");
+        if (active) scheduleAutomaticRetry();
       });
 
     return () => {
       active = false;
     };
-  }, [contentId, sourceResolutionVersion, src]);
+  }, [contentId, scheduleAutomaticRetry, sourceResolutionVersion, src]);
 
   const clearHideControlsTimeout = useCallback(() => {
     if (hideControlsTimeoutRef.current) {
@@ -287,7 +314,10 @@ export default function PremiumVideoPlayer({
         className="w-full h-full object-contain"
         onContextMenu={(e) => e.preventDefault()}
         onLoadStart={() => setVideoLoadState("LOADING")}
-        onLoadedMetadata={() => setVideoLoadState("READY")}
+        onLoadedMetadata={() => {
+          automaticRetryCountRef.current = 0;
+          setVideoLoadState("READY");
+        }}
         onCanPlay={() => setVideoLoadState(isPlaying ? "PLAYING" : "READY")}
         onWaiting={() => setVideoLoadState("BUFFERING")}
         onStalled={() => setVideoLoadState("BUFFERING")}

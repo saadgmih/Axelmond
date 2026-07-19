@@ -880,24 +880,4 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
       res.status(502).json({ error: "Impossible de charger le document" });
     }
   });
-
-  app.get("/api/lesson-contents/:contentId/media-source", requireAuth, async (req, res) => {
-    const authUser = getAuthUser(req);
-    try {
-      const result = await api.resolveLessonContentMediaSource(req.params.contentId, authUser);
-      res.setHeader("Cache-Control", "private, no-store");
-      if (!result.ok) {
-        res.status(result.status).json({ error: result.error });
-        return;
-      }
-      res.json({ sourceUrl: result.sourceUrl, mimeType: result.mimeType });
-    } catch (err) {
-      api.logDb("ERROR", "Lesson media source resolution failed", {
-        contentId: req.params.contentId,
-        userId: authUser.id,
-        error: String(err),
-      });
-      res.status(502).json({ error: "Impossible de charger la vidéo" });
-    }
-  });
 }
