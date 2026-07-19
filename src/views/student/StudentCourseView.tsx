@@ -355,7 +355,9 @@ export default function StudentCourseView({
       </div>
 
       {/* Central Module Lesson space */}
-      <div className={`flex-1 bg-white flex flex-col min-w-0 min-h-0 ${shouldLockScroll ? "overflow-hidden" : "overflow-y-auto"}`}>
+      <div
+        className={`flex-1 bg-white flex flex-col min-w-0 min-h-0 ${shouldLockScroll ? "overflow-hidden" : "overflow-y-auto"}`}
+      >
         <div className="p-4 sm:p-6 md:p-8 space-y-6 flex-1">
           {/* Lesson Context Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
@@ -1003,11 +1005,7 @@ export default function StudentCourseView({
               {/* AI Tutor Chat Widget right inside column layout */}
               {showAITutor && hasAiTutorAccess && (
                 <>
-                  <div
-                    className="tutor-drawer-backdrop"
-                    onClick={() => setShowAITutor(false)}
-                    aria-hidden="true"
-                  />
+                  <div className="tutor-drawer-backdrop" onClick={() => setShowAITutor(false)} aria-hidden="true" />
                   <div className="tutor-layout-sidebar">
                     <AITutorChat
                       courseId={selectedCourse.id}

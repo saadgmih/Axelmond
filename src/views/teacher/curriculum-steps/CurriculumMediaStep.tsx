@@ -124,9 +124,7 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
     ? managedSections.find((section) => section.id === uploadSectionId)?.title || "Section sélectionnée"
     : "Racine du module";
 
-  const processingVideos = selectedManagedContents.filter(
-    (c) => c.type === "VIDEO" && c.status === "PROCESSING"
-  );
+  const processingVideos = selectedManagedContents.filter((c) => c.type === "VIDEO" && c.status === "PROCESSING");
 
   useEffect(() => {
     if (processingVideos.length === 0 || !managedCourse) return;
@@ -421,11 +419,13 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
                             className="w-full max-h-48 object-contain rounded-xl bg-slate-950"
                           />
                         )}
-                        {content.type === "VIDEO" && (
-                          content.status === "PROCESSING" ? (
+                        {content.type === "VIDEO" &&
+                          (content.status === "PROCESSING" ? (
                             <div className="py-12 flex flex-col items-center justify-center gap-3 bg-slate-950 rounded-xl text-emerald-400">
                               <Loader2 className="h-8 w-8 animate-spin text-emerald-400" />
-                              <p className="text-[11px] font-bold">Vidéo en cours de préparation (ajout de l'intro)...</p>
+                              <p className="text-[11px] font-bold">
+                                Vidéo en cours de préparation (ajout de l'intro)...
+                              </p>
                             </div>
                           ) : content.status === "FAILED" ? (
                             <div className="py-12 flex flex-col items-center justify-center gap-3 bg-slate-950 rounded-xl text-red-400 px-4 text-center">
@@ -452,8 +452,7 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
                               instructor={managedCourse?.instructor ?? "Professeur"}
                               activeSector="teacher"
                             />
-                          )
-                        )}
+                          ))}
                         {content.type === "PDF" && (
                           <div className="py-6 flex flex-col items-center justify-center gap-2">
                             <FileText className="h-12 w-12 text-red-500" />

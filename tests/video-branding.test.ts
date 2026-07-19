@@ -75,7 +75,16 @@ const dbMocks = vi.hoisted(() => {
         const attachList = Object.values(attachments).filter((a) => a.contentId === id);
         return {
           ...lesson,
-          attachments: attachList.length > 0 ? attachList : [{ id: "attach-123", url: job?.sourceVideoPath || "https://example.com/initial.mp4", key: "initial-key" }],
+          attachments:
+            attachList.length > 0
+              ? attachList
+              : [
+                  {
+                    id: "attach-123",
+                    url: job?.sourceVideoPath || "https://example.com/initial.mp4",
+                    key: "initial-key",
+                  },
+                ],
         };
       }),
       delete: vi.fn().mockImplementation(async ({ where }) => {
@@ -153,12 +162,14 @@ vi.mock("../src/db", () => ({
 
 import { prisma } from "../src/db";
 import {
+  isVideoBrandingToolUnavailableError,
   probeVideo,
   runCommand,
   processVideoJob,
 } from "../src/services/video-branding-service";
 import {
   getBrandingConfig,
+  shouldQueueVideoBranding,
   updateBrandingConfig,
 } from "../src/services/video-branding-config";
 import { startVideoBrandingWorker, stopVideoBrandingWorker } from "../src/services/video-branding-worker";
@@ -187,20 +198,23 @@ vi.mock("../src/course-curriculum-sync", () => ({
 }));
 
 // Mock fetch globally
-vi.stubGlobal("fetch", vi.fn().mockImplementation(async (url: string) => {
-  if (url.endsWith(".mp4") && fs.existsSync(url)) {
-    const buffer = fs.readFileSync(url);
+vi.stubGlobal(
+  "fetch",
+  vi.fn().mockImplementation(async (url: string) => {
+    if (url.endsWith(".mp4") && fs.existsSync(url)) {
+      const buffer = fs.readFileSync(url);
+      return {
+        ok: true,
+        arrayBuffer: async () => buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength),
+      };
+    }
     return {
       ok: true,
-      arrayBuffer: async () => buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength),
+      statusText: "OK",
+      arrayBuffer: async () => new ArrayBuffer(0),
     };
-  }
-  return {
-    ok: true,
-    statusText: "OK",
-    arrayBuffer: async () => new ArrayBuffer(0),
-  };
-}));
+  }),
+);
 
 const TEST_DIR = path.join(process.cwd(), "videos", "test_temp");
 const SRC_LANDSCAPE_AUDIO = path.join(TEST_DIR, "src_landscape_audio.mp4");
@@ -208,31 +222,84 @@ const SRC_LANDSCAPE_NO_AUDIO = path.join(TEST_DIR, "src_landscape_no_audio.mp4")
 const SRC_PORTRAIT_AUDIO = path.join(TEST_DIR, "src_portrait_audio.mp4");
 
 describe("Video Branding Automatic Pipeline", () => {
+  describe("managed runtime fallback", () => {
+    it("does not queue ffmpeg branding on Hostinger Web App", () => {
+      expect(shouldQueueVideoBranding({ introEnabled: true }, { HOSTINGER_WEBAPP: "1" })).toBe(false);
+      expect(shouldQueueVideoBranding({ introEnabled: true }, {})).toBe(true);
+      expect(shouldQueueVideoBranding({ introEnabled: false }, {})).toBe(false);
+    });
+
+    it("recognizes missing ffmpeg and ffprobe binaries", () => {
+      expect(isVideoBrandingToolUnavailableError(new Error("spawn ffprobe ENOENT"))).toBe(true);
+      expect(isVideoBrandingToolUnavailableError(new Error("spawn ffmpeg ENOENT"))).toBe(true);
+      expect(isVideoBrandingToolUnavailableError(new Error("Invalid video stream"))).toBe(false);
+    });
+  });
+
   beforeAll(async () => {
     fs.mkdirSync(TEST_DIR, { recursive: true });
 
     // Generate very fast, small test assets (1 second duration)
     // 1. Landscape with audio
     await runCommand("ffmpeg", [
-      "-f", "lavfi", "-i", "color=c=blue:s=320x240:d=1",
-      "-f", "lavfi", "-i", "anullsrc=cl=stereo:r=44100",
-      "-c:v", "libx264", "-t", "1", "-pix_fmt", "yuv420p", "-c:a", "aac", "-shortest",
-      SRC_LANDSCAPE_AUDIO, "-y",
+      "-f",
+      "lavfi",
+      "-i",
+      "color=c=blue:s=320x240:d=1",
+      "-f",
+      "lavfi",
+      "-i",
+      "anullsrc=cl=stereo:r=44100",
+      "-c:v",
+      "libx264",
+      "-t",
+      "1",
+      "-pix_fmt",
+      "yuv420p",
+      "-c:a",
+      "aac",
+      "-shortest",
+      SRC_LANDSCAPE_AUDIO,
+      "-y",
     ]);
 
     // 2. Landscape without audio
     await runCommand("ffmpeg", [
-      "-f", "lavfi", "-i", "color=c=red:s=320x240:d=1",
-      "-c:v", "libx264", "-t", "1", "-pix_fmt", "yuv420p",
-      SRC_LANDSCAPE_NO_AUDIO, "-y",
+      "-f",
+      "lavfi",
+      "-i",
+      "color=c=red:s=320x240:d=1",
+      "-c:v",
+      "libx264",
+      "-t",
+      "1",
+      "-pix_fmt",
+      "yuv420p",
+      SRC_LANDSCAPE_NO_AUDIO,
+      "-y",
     ]);
 
     // 3. Portrait with audio
     await runCommand("ffmpeg", [
-      "-f", "lavfi", "-i", "color=c=green:s=240x320:d=1",
-      "-f", "lavfi", "-i", "anullsrc=cl=stereo:r=44100",
-      "-c:v", "libx264", "-t", "1", "-pix_fmt", "yuv420p", "-c:a", "aac", "-shortest",
-      SRC_PORTRAIT_AUDIO, "-y",
+      "-f",
+      "lavfi",
+      "-i",
+      "color=c=green:s=240x320:d=1",
+      "-f",
+      "lavfi",
+      "-i",
+      "anullsrc=cl=stereo:r=44100",
+      "-c:v",
+      "libx264",
+      "-t",
+      "1",
+      "-pix_fmt",
+      "yuv420p",
+      "-c:a",
+      "aac",
+      "-shortest",
+      SRC_PORTRAIT_AUDIO,
+      "-y",
     ]);
   });
 

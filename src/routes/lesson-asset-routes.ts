@@ -9,7 +9,7 @@ import { persistLessonAsset } from "../lesson-asset-service";
 import type { RouteContext } from "../server/route-context";
 import { getAuthUser } from "../server/route-types";
 import * as api from "../server/route-deps";
-import { getBrandingConfig, updateBrandingConfig } from "../services/video-branding-config";
+import { getBrandingConfig, shouldQueueVideoBranding, updateBrandingConfig } from "../services/video-branding-config";
 
 const confirmLessonAssetSchema = z.object({
   customId: z.string().trim().min(1).max(160),
@@ -83,7 +83,7 @@ export function registerLessonAssetRoutes(app: Express, ctx: RouteContext): void
         let jobId: string | null = null;
         if (intent.contentType === "VIDEO") {
           const config = await getBrandingConfig();
-          if (config.introEnabled) {
+          if (shouldQueueVideoBranding(config)) {
             const existingJob = await api.prisma.videoProcessingJob.findFirst({
               where: { contentId: result.content.id },
             });
@@ -104,14 +104,24 @@ export function registerLessonAssetRoutes(app: Express, ctx: RouteContext): void
               jobId = existingJob.id;
             }
           } else {
-            // If branding config is disabled, mark content as READY directly
+            // Managed runtimes such as Hostinger Web App do not ship
+            // ffmpeg/ffprobe. The original confirmed upload remains the
+            // authoritative playable file in that case.
             await api.prisma.lessonContent.update({
               where: { id: result.content.id },
               data: { status: "READY" },
             });
-            // Sync modules since it's ready
             if (result.content.published) {
               await api.syncPublishedLessonModules(courseId);
+              await api.notifyPublishedLessonContent({
+                contentId: result.content.id,
+                courseId,
+                contentTitle: result.content.title,
+                contentType: result.content.type,
+                published: result.content.published,
+                actorId: authUser.id,
+                sourceEvent: "LESSON_ASSET_PUBLISHED",
+              });
             }
           }
         }
@@ -155,158 +165,153 @@ export function registerLessonAssetRoutes(app: Express, ctx: RouteContext): void
   );
 
   // 1. GET /api/teacher/video-jobs/:jobId
-  app.get(
-    "/api/teacher/video-jobs/:jobId",
-    requireAuth,
-    requireRbac,
-    async (req, res) => {
-      const authUser = getAuthUser(req);
-      const { jobId } = req.params;
-      const job = await api.prisma.videoProcessingJob.findUnique({
-        where: { id: jobId },
-      });
+  app.get("/api/teacher/video-jobs/:jobId", requireAuth, requireRbac, async (req, res) => {
+    const authUser = getAuthUser(req);
+    const { jobId } = req.params;
+    const job = await api.prisma.videoProcessingJob.findUnique({
+      where: { id: jobId },
+    });
 
-      if (!job) {
-        res.status(404).json({ error: "Job introuvable" });
-        return;
-      }
-
-      if (authUser.role !== "ADMIN" && job.uploadedByUserId !== authUser.id) {
-        res.status(403).json({ error: "Accès refusé pour ce job" });
-        return;
-      }
-
-      res.status(200).json(job);
+    if (!job) {
+      res.status(404).json({ error: "Job introuvable" });
+      return;
     }
-  );
+
+    if (authUser.role !== "ADMIN" && job.uploadedByUserId !== authUser.id) {
+      res.status(403).json({ error: "Accès refusé pour ce job" });
+      return;
+    }
+
+    res.status(200).json(job);
+  });
 
   // 2. POST /api/teacher/video-jobs/:jobId/retry
-  app.post(
-    "/api/teacher/video-jobs/:jobId/retry",
-    requireAuth,
-    requireRbac,
-    async (req, res) => {
-      const authUser = getAuthUser(req);
-      const { jobId } = req.params;
-      const job = await api.prisma.videoProcessingJob.findUnique({
-        where: { id: jobId },
-      });
+  app.post("/api/teacher/video-jobs/:jobId/retry", requireAuth, requireRbac, async (req, res) => {
+    const authUser = getAuthUser(req);
+    const { jobId } = req.params;
+    const job = await api.prisma.videoProcessingJob.findUnique({
+      where: { id: jobId },
+    });
 
-      if (!job) {
-        res.status(404).json({ error: "Job introuvable" });
-        return;
-      }
-
-      if (authUser.role !== "ADMIN" && job.uploadedByUserId !== authUser.id) {
-        res.status(403).json({ error: "Accès refusé pour ce job" });
-        return;
-      }
-
-      if (job.status !== "FAILED" && job.status !== "CANCELLED") {
-        res.status(400).json({ error: "Seuls les jobs échoués ou annulés peuvent être relancés" });
-        return;
-      }
-
-      const updatedJob = await api.prisma.videoProcessingJob.update({
-        where: { id: jobId },
-        data: {
-          status: "UPLOADED",
-          progressPercent: 0,
-          currentStep: "Relance du traitement...",
-          errorCode: null,
-          errorMessage: null,
-          startedAt: null,
-          completedAt: null,
-          failedAt: null,
-        },
-      });
-
-      await api.prisma.lessonContent.update({
-        where: { id: job.contentId },
-        data: { status: "PROCESSING" },
-      });
-
-      res.status(200).json(updatedJob);
+    if (!job) {
+      res.status(404).json({ error: "Job introuvable" });
+      return;
     }
-  );
+
+    if (authUser.role !== "ADMIN" && job.uploadedByUserId !== authUser.id) {
+      res.status(403).json({ error: "Accès refusé pour ce job" });
+      return;
+    }
+
+    if (job.status !== "FAILED" && job.status !== "CANCELLED") {
+      res.status(400).json({ error: "Seuls les jobs échoués ou annulés peuvent être relancés" });
+      return;
+    }
+
+    const brandingConfig = await getBrandingConfig();
+    if (!shouldQueueVideoBranding(brandingConfig)) {
+      const fallbackJob = await api.prisma.$transaction(async (tx) => {
+        await tx.lessonContent.update({
+          where: { id: job.contentId },
+          data: { status: "READY" },
+        });
+        return tx.videoProcessingJob.update({
+          where: { id: jobId },
+          data: {
+            status: "FAILED",
+            currentStep: "Outils vidéo indisponibles ; la vidéo originale reste publiée.",
+            errorCode: "VIDEO_TOOL_UNAVAILABLE",
+          },
+        });
+      });
+      res.status(200).json(fallbackJob);
+      return;
+    }
+
+    const updatedJob = await api.prisma.videoProcessingJob.update({
+      where: { id: jobId },
+      data: {
+        status: "UPLOADED",
+        progressPercent: 0,
+        currentStep: "Relance du traitement...",
+        errorCode: null,
+        errorMessage: null,
+        startedAt: null,
+        completedAt: null,
+        failedAt: null,
+      },
+    });
+
+    await api.prisma.lessonContent.update({
+      where: { id: job.contentId },
+      data: { status: "PROCESSING" },
+    });
+
+    res.status(200).json(updatedJob);
+  });
 
   // 3. POST /api/teacher/video-jobs/:jobId/cancel
-  app.post(
-    "/api/teacher/video-jobs/:jobId/cancel",
-    requireAuth,
-    requireRbac,
-    async (req, res) => {
-      const authUser = getAuthUser(req);
-      const { jobId } = req.params;
-      const job = await api.prisma.videoProcessingJob.findUnique({
-        where: { id: jobId },
-      });
+  app.post("/api/teacher/video-jobs/:jobId/cancel", requireAuth, requireRbac, async (req, res) => {
+    const authUser = getAuthUser(req);
+    const { jobId } = req.params;
+    const job = await api.prisma.videoProcessingJob.findUnique({
+      where: { id: jobId },
+    });
 
-      if (!job) {
-        res.status(404).json({ error: "Job introuvable" });
-        return;
-      }
-
-      if (authUser.role !== "ADMIN" && job.uploadedByUserId !== authUser.id) {
-        res.status(403).json({ error: "Accès refusé pour ce job" });
-        return;
-      }
-
-      const cancellableStates = ["UPLOADED", "QUEUED"];
-      if (!cancellableStates.includes(job.status)) {
-        res.status(400).json({ error: "Impossible d'annuler un job déjà en cours de traitement" });
-        return;
-      }
-
-      const updatedJob = await api.prisma.videoProcessingJob.update({
-        where: { id: jobId },
-        data: {
-          status: "CANCELLED",
-          currentStep: "Job annulé par l'utilisateur",
-          failedAt: new Date(),
-        },
-      });
-
-      await api.prisma.lessonContent.update({
-        where: { id: job.contentId },
-        data: { status: "FAILED" },
-      });
-
-      res.status(200).json(updatedJob);
+    if (!job) {
+      res.status(404).json({ error: "Job introuvable" });
+      return;
     }
-  );
+
+    if (authUser.role !== "ADMIN" && job.uploadedByUserId !== authUser.id) {
+      res.status(403).json({ error: "Accès refusé pour ce job" });
+      return;
+    }
+
+    const cancellableStates = ["UPLOADED", "QUEUED"];
+    if (!cancellableStates.includes(job.status)) {
+      res.status(400).json({ error: "Impossible d'annuler un job déjà en cours de traitement" });
+      return;
+    }
+
+    const updatedJob = await api.prisma.videoProcessingJob.update({
+      where: { id: jobId },
+      data: {
+        status: "CANCELLED",
+        currentStep: "Job annulé par l'utilisateur",
+        failedAt: new Date(),
+      },
+    });
+
+    await api.prisma.lessonContent.update({
+      where: { id: job.contentId },
+      data: { status: "FAILED" },
+    });
+
+    res.status(200).json(updatedJob);
+  });
 
   // 4. GET /api/admin/video-branding
-  app.get(
-    "/api/admin/video-branding",
-    requireAuth,
-    requireRbac,
-    async (req, res) => {
-      const authUser = getAuthUser(req);
-      if (authUser.role !== "ADMIN") {
-        res.status(403).json({ error: "Accès réservé aux administrateurs" });
-        return;
-      }
-
-      const config = await getBrandingConfig();
-      res.status(200).json(config);
+  app.get("/api/admin/video-branding", requireAuth, requireRbac, async (req, res) => {
+    const authUser = getAuthUser(req);
+    if (authUser.role !== "ADMIN") {
+      res.status(403).json({ error: "Accès réservé aux administrateurs" });
+      return;
     }
-  );
+
+    const config = await getBrandingConfig();
+    res.status(200).json(config);
+  });
 
   // 5. POST /api/admin/video-branding/config
-  app.post(
-    "/api/admin/video-branding/config",
-    requireAuth,
-    requireRbac,
-    async (req, res) => {
-      const authUser = getAuthUser(req);
-      if (authUser.role !== "ADMIN") {
-        res.status(403).json({ error: "Accès réservé aux administrateurs" });
-        return;
-      }
-
-      const updated = await updateBrandingConfig(req.body);
-      res.status(200).json(updated);
+  app.post("/api/admin/video-branding/config", requireAuth, requireRbac, async (req, res) => {
+    const authUser = getAuthUser(req);
+    if (authUser.role !== "ADMIN") {
+      res.status(403).json({ error: "Accès réservé aux administrateurs" });
+      return;
     }
-  );
+
+    const updated = await updateBrandingConfig(req.body);
+    res.status(200).json(updated);
+  });
 }

@@ -13,10 +13,7 @@ import {
   seedChatTutorRuntimeFixtures,
   SECURITY_RUNTIME_TEST_PASSWORD,
 } from "./helpers/security-runtime-fixtures.ts";
-import {
-  cleanupAdminRuntimeFixtures,
-  seedAdminRuntimeFixtures,
-} from "./helpers/security-runtime-admin-fixtures.ts";
+import { cleanupAdminRuntimeFixtures, seedAdminRuntimeFixtures } from "./helpers/security-runtime-admin-fixtures.ts";
 import { prisma } from "../src/db.ts";
 import { runtimeTest } from "./helpers/runtimeTest.ts";
 
@@ -169,12 +166,7 @@ await runtimeTest("security-runtime-notifications", async () => {
 
     // Student tries to mark professor's notification as read (should return 404)
     {
-      const res = await authedFetch(
-        handle.baseUrl,
-        studentSession,
-        "PATCH",
-        `/api/notifications/${profNotif.id}/read`,
-      );
+      const res = await authedFetch(handle.baseUrl, studentSession, "PATCH", `/api/notifications/${profNotif.id}/read`);
       assert.equal(res.status, 404, "Student marking prof's notification as read should return 404");
     }
 

@@ -27,10 +27,7 @@ describe("Notifications RBAC and Routes Unit Tests", () => {
       "/api/notifications/vapid-public-key",
     ];
 
-    const postRoutes = [
-      "/api/notifications/read-all",
-      "/api/notifications/push-subscribe",
-    ];
+    const postRoutes = ["/api/notifications/read-all", "/api/notifications/push-subscribe"];
 
     it("allows authorized roles (Student, Professor, Admin) for GET endpoints", () => {
       for (const role of roles) {
@@ -91,7 +88,7 @@ describe("Notifications RBAC and Routes Unit Tests", () => {
       expect(prisma.notification.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { userId: "user-1" },
-        })
+        }),
       );
       expect(res.json).toHaveBeenCalledWith([]);
     });
@@ -99,7 +96,15 @@ describe("Notifications RBAC and Routes Unit Tests", () => {
     it("GET /api/notifications returns list of user's notifications", async () => {
       const getNotifsRoute = routes.find((r) => r.method === "GET" && r.path === "/api/notifications")!;
       const mockNotifs = [
-        { id: "n-1", userId: "user-1", type: "NEW_COURSE", title: "T1", body: "B1", readAt: null, createdAt: new Date() },
+        {
+          id: "n-1",
+          userId: "user-1",
+          type: "NEW_COURSE",
+          title: "T1",
+          body: "B1",
+          readAt: null,
+          createdAt: new Date(),
+        },
       ];
       vi.mocked(prisma.notification.findMany).mockResolvedValueOnce(mockNotifs as any);
 
@@ -109,9 +114,7 @@ describe("Notifications RBAC and Routes Unit Tests", () => {
       await getNotifsRoute.handler(req, res);
 
       expect(res.json).toHaveBeenCalledWith(
-        expect.arrayContaining([
-          expect.objectContaining({ id: "n-1", title: "T1" }),
-        ])
+        expect.arrayContaining([expect.objectContaining({ id: "n-1", title: "T1" })]),
       );
     });
 

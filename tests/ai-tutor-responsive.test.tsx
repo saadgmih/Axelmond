@@ -58,14 +58,7 @@ describe("AITutorChat component behavior", () => {
   });
 
   it("renders welcome messages and suggestions", () => {
-    render(
-      <AITutorChat
-        courseId={1}
-        courseTitle="C"
-        moduleTitle="Chapitre 1"
-        onClose={vi.fn()}
-      />
-    );
+    render(<AITutorChat courseId={1} courseTitle="C" moduleTitle="Chapitre 1" onClose={vi.fn()} />);
 
     expect(screen.getByText(/Bonjour ! Je suis l'assistant académique/)).toBeInTheDocument();
     expect(screen.getByText("Suggestions de questions")).toBeInTheDocument();
@@ -73,14 +66,7 @@ describe("AITutorChat component behavior", () => {
 
   it("closes the chat panel when the Escape key is pressed", () => {
     const handleClose = vi.fn();
-    render(
-      <AITutorChat
-        courseId={1}
-        courseTitle="C"
-        moduleTitle="Chapitre 1"
-        onClose={handleClose}
-      />
-    );
+    render(<AITutorChat courseId={1} courseTitle="C" moduleTitle="Chapitre 1" onClose={handleClose} />);
 
     fireEvent.keyDown(window, { key: "Escape", code: "Escape" });
     expect(handleClose).toHaveBeenCalledTimes(1);
@@ -136,7 +122,7 @@ describe("StudentCourseView integration with AI Tutor", () => {
         handleQuizAnswerSelect={vi.fn()}
         handleQuizSubmit={vi.fn()}
         resetQuiz={vi.fn()}
-      />
+      />,
     );
 
     // AI Tutor should be rendered
@@ -180,7 +166,7 @@ describe("StudentCourseView integration with AI Tutor", () => {
         handleQuizAnswerSelect={vi.fn()}
         handleQuizSubmit={vi.fn()}
         resetQuiz={vi.fn()}
-      />
+      />,
     );
 
     // Scroll should be locked
@@ -222,7 +208,7 @@ describe("StudentCourseView integration with AI Tutor", () => {
         handleQuizAnswerSelect={vi.fn()}
         handleQuizSubmit={vi.fn()}
         resetQuiz={vi.fn()}
-      />
+      />,
     );
 
     // Scroll should be active on large screen (overflow-y-auto, not overflow-hidden)
@@ -260,7 +246,7 @@ describe("StudentCourseView integration with AI Tutor", () => {
         handleQuizAnswerSelect={vi.fn()}
         handleQuizSubmit={vi.fn()}
         resetQuiz={vi.fn()}
-      />
+      />,
     );
 
     const openButton = screen.getByRole("button", { name: "Masquer Tuteur IA" });
@@ -290,7 +276,7 @@ describe("StudentCourseView integration with AI Tutor", () => {
         handleQuizAnswerSelect={vi.fn()}
         handleQuizSubmit={vi.fn()}
         resetQuiz={vi.fn()}
-      />
+      />,
     );
 
     // Wait and check if focus is back on the button

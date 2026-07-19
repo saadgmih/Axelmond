@@ -1,5 +1,6 @@
 import { prisma } from "../db";
 import { processVideoJob } from "./video-branding-service";
+import { getBrandingConfig, shouldQueueVideoBranding } from "./video-branding-config";
 
 let workerInterval: NodeJS.Timeout | null = null;
 let isProcessing = false;
@@ -51,7 +52,7 @@ async function pollAndProcessJobs() {
 
     if (nextJob) {
       console.log(`[video-branding-worker] Starting processing of job: ${nextJob.id}`);
-      
+
       // Update status to QUEUED / Processing start
       await prisma.videoProcessingJob.update({
         where: { id: nextJob.id },
@@ -69,6 +70,12 @@ async function pollAndProcessJobs() {
 
 export async function startVideoBrandingWorker() {
   if (workerInterval) return;
+
+  const config = await getBrandingConfig();
+  if (!shouldQueueVideoBranding(config)) {
+    console.log("[video-branding-worker] Disabled for this runtime; original uploaded videos remain playable.");
+    return;
+  }
 
   console.log("[video-branding-worker] Starting video branding worker queue...");
   await resetInterruptedJobs();

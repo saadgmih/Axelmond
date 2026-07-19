@@ -9,6 +9,21 @@ export interface VideoIntroConfig {
   introEnabled: boolean;
 }
 
+/**
+ * Hostinger's managed Node.js Web App runtime does not provide ffmpeg/ffprobe.
+ * Queueing a branding job there would leave an otherwise valid upload blocked
+ * in PROCESSING/FAILED. Keep the original video playable on runtimes that
+ * cannot execute the branding pipeline.
+ */
+export function shouldQueueVideoBranding(
+  config: Pick<VideoIntroConfig, "introEnabled">,
+  env: NodeJS.ProcessEnv = process.env,
+): boolean {
+  if (!config.introEnabled) return false;
+  if (env.VIDEO_BRANDING_DISABLED === "true") return false;
+  return env.HOSTINGER_WEBAPP !== "1";
+}
+
 const DEFAULT_CONFIG: VideoIntroConfig = {
   introAssetId: "default-intro",
   introVersion: 1,

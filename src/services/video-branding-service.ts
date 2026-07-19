@@ -26,12 +26,39 @@ export function runCommand(executable: string, args: string[]): Promise<{ stdout
   });
 }
 
+export function isVideoBrandingToolUnavailableError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /spawn (?:ffmpeg|ffprobe) ENOENT/i.test(message);
+}
+
+function hasRecognizedVideoSignature(filePath: string): boolean {
+  try {
+    const file = fs.openSync(filePath, "r");
+    try {
+      const bytes = Buffer.alloc(12);
+      const bytesRead = fs.readSync(file, bytes, 0, bytes.length, 0);
+      if (bytesRead < 4) return false;
+      const isMp4 = bytesRead >= 8 && bytes.subarray(4, 8).toString("ascii") === "ftyp";
+      const isWebm = bytes.subarray(0, 4).equals(Buffer.from([0x1a, 0x45, 0xdf, 0xa3]));
+      const isOgg = bytes.subarray(0, 4).toString("ascii") === "OggS";
+      return isMp4 || isWebm || isOgg;
+    } finally {
+      fs.closeSync(file);
+    }
+  } catch {
+    return false;
+  }
+}
+
 export async function probeVideo(filePath: string): Promise<VideoInfo> {
   const { stdout } = await runCommand("ffprobe", [
-    "-v", "error",
-    "-show_entries", "format=duration,size",
+    "-v",
+    "error",
+    "-show_entries",
+    "format=duration,size",
     "-show_streams",
-    "-of", "json",
+    "-of",
+    "json",
     filePath,
   ]);
 
@@ -84,20 +111,50 @@ export async function ensureDefaultIntros(config: VideoIntroConfig) {
   if (!fs.existsSync(landscapePath)) {
     console.log("[branding-service] Generating default landscape intro...");
     await runCommand("ffmpeg", [
-      "-f", "lavfi", "-i", "color=c=black:s=1920x1080:d=5",
-      "-f", "lavfi", "-i", "anullsrc=cl=stereo:r=48000",
-      "-c:v", "libx264", "-t", "5", "-pix_fmt", "yuv420p", "-c:a", "aac", "-shortest",
-      landscapePath, "-y"
+      "-f",
+      "lavfi",
+      "-i",
+      "color=c=black:s=1920x1080:d=5",
+      "-f",
+      "lavfi",
+      "-i",
+      "anullsrc=cl=stereo:r=48000",
+      "-c:v",
+      "libx264",
+      "-t",
+      "5",
+      "-pix_fmt",
+      "yuv420p",
+      "-c:a",
+      "aac",
+      "-shortest",
+      landscapePath,
+      "-y",
     ]);
   }
 
   if (!fs.existsSync(portraitPath)) {
     console.log("[branding-service] Generating default portrait intro...");
     await runCommand("ffmpeg", [
-      "-f", "lavfi", "-i", "color=c=black:s=1080x1920:d=5",
-      "-f", "lavfi", "-i", "anullsrc=cl=stereo:r=48000",
-      "-c:v", "libx264", "-t", "5", "-pix_fmt", "yuv420p", "-c:a", "aac", "-shortest",
-      portraitPath, "-y"
+      "-f",
+      "lavfi",
+      "-i",
+      "color=c=black:s=1080x1920:d=5",
+      "-f",
+      "lavfi",
+      "-i",
+      "anullsrc=cl=stereo:r=48000",
+      "-c:v",
+      "libx264",
+      "-t",
+      "5",
+      "-pix_fmt",
+      "yuv420p",
+      "-c:a",
+      "aac",
+      "-shortest",
+      portraitPath,
+      "-y",
     ]);
   }
 }
@@ -161,38 +218,82 @@ export async function processVideoJob(jobId: string): Promise<void> {
     // 3. Normalizing intro and video
     await prisma.videoProcessingJob.update({
       where: { id: jobId },
-      data: { status: "NORMALIZING", currentStep: "Normalisation du format...", sourceDuration: info.duration, sourceSizeBytes: info.sizeBytes },
+      data: {
+        status: "NORMALIZING",
+        currentStep: "Normalisation du format...",
+        sourceDuration: info.duration,
+        sourceSizeBytes: info.sizeBytes,
+      },
     });
 
     // Normalize intro
     console.log(`[branding-service] Normalizing intro to match target resolution ${targetW}x${targetH}...`);
     await runCommand("ffmpeg", [
-      "-i", introPath,
-      "-vf", `scale=w=${targetW}:h=${targetH}:force_original_aspect_ratio=decrease,pad=w=${targetW}:h=${targetH}:x=(${targetW}-iw)/2:y=(${targetH}-ih)/2:color=black,fps=30`,
-      "-c:v", "libx264", "-pix_fmt", "yuv420p", "-r", "30",
-      "-c:a", "aac", "-ar", "48000", "-ac", "2",
-      normalizedIntroPath, "-y"
+      "-i",
+      introPath,
+      "-vf",
+      `scale=w=${targetW}:h=${targetH}:force_original_aspect_ratio=decrease,pad=w=${targetW}:h=${targetH}:x=(${targetW}-iw)/2:y=(${targetH}-ih)/2:color=black,fps=30`,
+      "-c:v",
+      "libx264",
+      "-pix_fmt",
+      "yuv420p",
+      "-r",
+      "30",
+      "-c:a",
+      "aac",
+      "-ar",
+      "48000",
+      "-ac",
+      "2",
+      normalizedIntroPath,
+      "-y",
     ]);
 
     // Normalize user video
     console.log(`[branding-service] Normalizing user video (hasAudio: ${info.hasAudio})...`);
     if (info.hasAudio) {
       await runCommand("ffmpeg", [
-        "-i", originalPath,
-        "-vf", `scale=w=${targetW}:h=${targetH}:force_original_aspect_ratio=decrease,pad=w=${targetW}:h=${targetH}:x=(${targetW}-iw)/2:y=(${targetH}-ih)/2:color=black,fps=30`,
-        "-c:v", "libx264", "-pix_fmt", "yuv420p", "-r", "30",
-        "-c:a", "aac", "-ar", "48000", "-ac", "2",
-        normalizedUserPath, "-y"
+        "-i",
+        originalPath,
+        "-vf",
+        `scale=w=${targetW}:h=${targetH}:force_original_aspect_ratio=decrease,pad=w=${targetW}:h=${targetH}:x=(${targetW}-iw)/2:y=(${targetH}-ih)/2:color=black,fps=30`,
+        "-c:v",
+        "libx264",
+        "-pix_fmt",
+        "yuv420p",
+        "-r",
+        "30",
+        "-c:a",
+        "aac",
+        "-ar",
+        "48000",
+        "-ac",
+        "2",
+        normalizedUserPath,
+        "-y",
       ]);
     } else {
       // Add silent audio stream
       await runCommand("ffmpeg", [
-        "-i", originalPath,
-        "-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=48000",
-        "-vf", `scale=w=${targetW}:h=${targetH}:force_original_aspect_ratio=decrease,pad=w=${targetW}:h=${targetH}:x=(${targetW}-iw)/2:y=(${targetH}-ih)/2:color=black,fps=30`,
-        "-c:v", "libx264", "-pix_fmt", "yuv420p", "-r", "30",
-        "-c:a", "aac", "-shortest",
-        normalizedUserPath, "-y"
+        "-i",
+        originalPath,
+        "-f",
+        "lavfi",
+        "-i",
+        "anullsrc=channel_layout=stereo:sample_rate=48000",
+        "-vf",
+        `scale=w=${targetW}:h=${targetH}:force_original_aspect_ratio=decrease,pad=w=${targetW}:h=${targetH}:x=(${targetW}-iw)/2:y=(${targetH}-ih)/2:color=black,fps=30`,
+        "-c:v",
+        "libx264",
+        "-pix_fmt",
+        "yuv420p",
+        "-r",
+        "30",
+        "-c:a",
+        "aac",
+        "-shortest",
+        normalizedUserPath,
+        "-y",
       ]);
     }
 
@@ -207,12 +308,18 @@ export async function processVideoJob(jobId: string): Promise<void> {
 
     console.log(`[branding-service] Concatenating intro and user video...`);
     await runCommand("ffmpeg", [
-      "-f", "concat",
-      "-safe", "0",
-      "-i", concatListPath,
-      "-c", "copy",
-      "-movflags", "+faststart",
-      finalOutputPath, "-y"
+      "-f",
+      "concat",
+      "-safe",
+      "0",
+      "-i",
+      concatListPath,
+      "-c",
+      "copy",
+      "-movflags",
+      "+faststart",
+      finalOutputPath,
+      "-y",
     ]);
 
     // 5. Verify processed video
@@ -226,18 +333,25 @@ export async function processVideoJob(jobId: string): Promise<void> {
 
     const expectedDuration = config.introDuration + info.duration;
     if (Math.abs(finalInfo.duration - expectedDuration) > 1.5) {
-      throw new Error(`La durée de la vidéo finale (${finalInfo.duration}s) ne correspond pas à la durée attendue (${expectedDuration}s).`);
+      throw new Error(
+        `La durée de la vidéo finale (${finalInfo.duration}s) ne correspond pas à la durée attendue (${expectedDuration}s).`,
+      );
     }
 
     // 6. Generate thumbnail from the main video content
     const thumbTime = config.introDuration + Math.min(2.0, info.duration / 2);
     console.log(`[branding-service] Generating thumbnail at timestamp ${thumbTime}s...`);
     await runCommand("ffmpeg", [
-      "-ss", String(thumbTime),
-      "-i", finalOutputPath,
-      "-vframes", "1",
-      "-q:v", "2",
-      thumbnailPath, "-y"
+      "-ss",
+      String(thumbTime),
+      "-i",
+      finalOutputPath,
+      "-vframes",
+      "1",
+      "-q:v",
+      "2",
+      thumbnailPath,
+      "-y",
     ]);
 
     // 7. Upload final video and thumbnail to UploadThing
@@ -258,10 +372,15 @@ export async function processVideoJob(jobId: string): Promise<void> {
     const thumbUpload = uploadResults[1];
 
     if (!videoUpload?.data || !thumbUpload?.data) {
-      throw new Error(`Upload to UploadThing failed. Video: ${JSON.stringify(videoUpload?.error)}, Thumb: ${JSON.stringify(thumbUpload?.error)}`);
+      throw new Error(
+        `Upload to UploadThing failed. Video: ${JSON.stringify(videoUpload?.error)}, Thumb: ${JSON.stringify(thumbUpload?.error)}`,
+      );
     }
 
-    console.log(`[branding-service] Final upload complete:`, { videoUrl: videoUpload.data.url, thumbUrl: thumbUpload.data.url });
+    console.log(`[branding-service] Final upload complete:`, {
+      videoUrl: videoUpload.data.url,
+      thumbUrl: thumbUpload.data.url,
+    });
 
     // 8. Update database and publish
     await prisma.$transaction(async (tx) => {
@@ -326,21 +445,44 @@ export async function processVideoJob(jobId: string): Promise<void> {
     console.log(`[branding-service] Video job ${jobId} finished successfully.`);
   } catch (error: any) {
     console.error(`[branding-service] Job ${jobId} failed:`, error);
+    const originalVideoCanBeUsed =
+      isVideoBrandingToolUnavailableError(error) && hasRecognizedVideoSignature(originalPath);
     await prisma.videoProcessingJob.update({
       where: { id: jobId },
       data: {
         status: "FAILED",
-        currentStep: "Le traitement a échoué.",
-        errorCode: "FFMPEG_ERROR",
+        currentStep: originalVideoCanBeUsed
+          ? "Outils vidéo indisponibles ; la vidéo originale reste publiée."
+          : "Le traitement a échoué.",
+        errorCode: originalVideoCanBeUsed ? "VIDEO_TOOL_UNAVAILABLE" : "FFMPEG_ERROR",
         errorMessage: error.message || String(error),
         failedAt: new Date(),
       },
     });
 
-    await prisma.lessonContent.update({
-      where: { id: job.contentId },
-      data: { status: "FAILED" },
-    }).catch(() => {});
+    const fallbackContent = await prisma.lessonContent
+      .update({
+        where: { id: job.contentId },
+        data: { status: originalVideoCanBeUsed ? "READY" : "FAILED" },
+      })
+      .catch(() => null);
+
+    if (originalVideoCanBeUsed && fallbackContent?.published) {
+      await syncPublishedLessonModules(fallbackContent.courseId).catch((syncError) => {
+        console.error(`[branding-service] Original video curriculum sync failed:`, syncError);
+      });
+      await notifyPublishedLessonContent({
+        contentId: fallbackContent.id,
+        courseId: fallbackContent.courseId,
+        contentTitle: fallbackContent.title,
+        contentType: fallbackContent.type,
+        published: fallbackContent.published,
+        actorId: job.uploadedByUserId,
+        sourceEvent: "LESSON_ASSET_PUBLISHED",
+      }).catch((notificationError) => {
+        console.error(`[branding-service] Original video notification failed:`, notificationError);
+      });
+    }
   } finally {
     // Cleanup temporary files
     try {
