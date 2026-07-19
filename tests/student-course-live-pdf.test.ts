@@ -10,6 +10,9 @@ rulesTest("student-course-live-pdf", () => {
   const lessonDocumentSource = fs.readFileSync("src/server/lesson-document.ts", "utf8");
   const rbacSource = fs.readFileSync("src/rbac.ts", "utf8");
   const serverSource = readApiRouteSources();
+  const packageLock = JSON.parse(fs.readFileSync("package-lock.json", "utf8"));
+  const applicationPdfJsVersion = packageLock.packages["node_modules/pdfjs-dist"]?.version;
+  const reactPdfJsVersion = packageLock.packages["node_modules/react-pdf"]?.dependencies?.["pdfjs-dist"];
 
   assert.match(studentCourseViewSource, /selectedCourse\.isLiveNow/);
   assert.match(studentCourseViewSource, /PdfLessonViewer/);
@@ -27,6 +30,8 @@ rulesTest("student-course-live-pdf", () => {
   assert.doesNotMatch(pdfViewerSource, /numPages \|\| "\?"/);
   assert.match(pdfViewerSource, /new URL\(\s*"pdfjs-dist\/build\/pdf\.worker\.min\.mjs",\s*import\.meta\.url/);
   assert.doesNotMatch(pdfViewerSource, /unpkg\.com\/pdfjs-dist/);
+  assert.equal(applicationPdfJsVersion, reactPdfJsVersion, "React-PDF and its PDF.js worker must use one version");
+  assert.equal(packageLock.packages["node_modules/react-pdf/node_modules/pdfjs-dist"], undefined);
   assert.doesNotMatch(pdfViewerSource, /downloadUrl/);
   assert.doesNotMatch(pdfViewerSource, /Ouvrir le PDF/);
   assert.match(pdfViewerSource, /mediaType === "IMAGE"/);
