@@ -49,6 +49,8 @@ class ResizeObserverMock {
   disconnect() {}
 }
 
+const originalBlobArrayBuffer = Blob.prototype.arrayBuffer;
+
 describe("PdfLessonViewer session restoration states", () => {
   beforeEach(() => {
     vi.stubGlobal("ResizeObserver", ResizeObserverMock);
@@ -60,6 +62,10 @@ describe("PdfLessonViewer session restoration states", () => {
       configurable: true,
       value: vi.fn(() => undefined),
     });
+    Object.defineProperty(Blob.prototype, "arrayBuffer", {
+      configurable: true,
+      value: vi.fn(async () => new TextEncoder().encode("%PDF-1.7").buffer),
+    });
     protectedResourceMock.load.mockReset();
   });
 
@@ -68,6 +74,10 @@ describe("PdfLessonViewer session restoration states", () => {
     vi.useRealTimers();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
+    Object.defineProperty(Blob.prototype, "arrayBuffer", {
+      configurable: true,
+      value: originalBlobArrayBuffer,
+    });
   });
 
   it("shows session restoration before starting protected content", () => {
@@ -114,7 +124,7 @@ describe("PdfLessonViewer session restoration states", () => {
     expect(protectedResourceMock.load).toHaveBeenCalledTimes(2);
   });
 
-  it("converts a PDF parser failure into a retryable state", async () => {
+  it("falls back to the browser renderer after repeated PDF.js failures", async () => {
     protectedResourceMock.load.mockResolvedValue(new Blob(["%PDF-1.7"], { type: "application/pdf" }));
     render(<PdfLessonViewer contentId="content-a" title="Cours PDF" />);
 
@@ -131,11 +141,11 @@ describe("PdfLessonViewer session restoration states", () => {
       await vi.advanceTimersByTimeAsync(1_200);
     });
     fireEvent.click(screen.getByRole("button", { name: "Simuler une erreur PDF" }));
-    expect(screen.getByText(/n’a pas pu être interprété/)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Réessayer/ })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Ouvrir dans un nouvel onglet/ })).toHaveAttribute(
-      "href",
-      "blob:protected-document",
+    expect(screen.queryByText(/n’a pas pu être interprété/)).not.toBeInTheDocument();
+    expect(screen.getByTitle("Lecteur PDF de secours — Cours PDF")).toHaveAttribute(
+      "src",
+      "blob:protected-document#toolbar=0&navpanes=0&scrollbar=1&view=FitH",
     );
+    expect(screen.getByRole("button", { name: "Réessayer le lecteur intégré" })).toBeInTheDocument();
   });
 });

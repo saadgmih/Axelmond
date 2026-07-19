@@ -1,4 +1,4 @@
-const STATIC_CACHE = "performance-academique-static-v8";
+const STATIC_CACHE = "performance-academique-static-v9";
 const CACHE_PREFIX = "performance-academique-static-";
 
 function sanitizeNotificationUrl(raw) {

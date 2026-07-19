@@ -123,7 +123,7 @@ describe("performance guardrails", () => {
 
   test("uses cache-first only for versioned static assets", () => {
     const source = read("public/sw.js");
-    expect(source).toMatch(/performance-academique-static-v8/);
+    expect(source).toMatch(/performance-academique-static-v9/);
     expect(source).toMatch(/isVersionedStaticAsset/);
   });
 

@@ -22,7 +22,8 @@ import "react-pdf/dist/Page/TextLayer.css";
 
 // Bundle the PDF.js worker with the application using standard relative path
 // so Vite compiles it correctly as a separate asset.
-pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+const BUNDLED_PDF_WORKER_SRC = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+pdfjs.GlobalWorkerOptions.workerSrc = BUNDLED_PDF_WORKER_SRC;
 
 interface PdfLessonViewerProps {
   contentId?: string;
@@ -34,6 +35,8 @@ interface PdfLessonViewerProps {
 }
 
 type ImageViewMode = "width" | "screen" | "actual";
+type PdfRenderer = "PDF_JS" | "BROWSER";
+type PdfFile = { data: Uint8Array<ArrayBuffer> };
 type ViewerState =
   | "WAITING_FOR_SESSION"
   | "LOADING_URL"
@@ -61,6 +64,26 @@ function imageModeButtonClass(active: boolean) {
   return `${toolbarButtonClass} ${active ? "border-teal-500/50 bg-teal-500/10 text-teal-300" : ""}`;
 }
 
+async function readBlobBytes(blob: Blob): Promise<Uint8Array<ArrayBuffer>> {
+  if (typeof blob.arrayBuffer === "function") {
+    return new Uint8Array((await blob.arrayBuffer()) as ArrayBuffer);
+  }
+
+  // Safari versions without Blob.arrayBuffer still support FileReader.
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error || new Error("Impossible de lire le document."));
+    reader.onload = () => {
+      if (!(reader.result instanceof ArrayBuffer)) {
+        reject(new Error("Le document reçu est illisible."));
+        return;
+      }
+      resolve(new Uint8Array(reader.result));
+    };
+    reader.readAsArrayBuffer(blob);
+  });
+}
+
 export default function PdfLessonViewer({
   contentId,
   title,
@@ -70,6 +93,8 @@ export default function PdfLessonViewer({
   allowDownload = false,
 }: PdfLessonViewerProps) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [pdfFile, setPdfFile] = useState<PdfFile | null>(null);
+  const [pdfRenderer, setPdfRenderer] = useState<PdfRenderer>("PDF_JS");
   const [error, setError] = useState("");
   const [viewerState, setViewerState] = useState<ViewerState>("WAITING_FOR_SESSION");
   const [retryKey, setRetryKey] = useState(0);
@@ -190,7 +215,14 @@ export default function PdfLessonViewer({
     setViewerState("READY");
   }
 
-  function handleDocumentLoadError() {
+  function activateBrowserPdfRenderer(loadError?: unknown) {
+    console.warn("[pdf-viewer] PDF.js unavailable; using the native PDF renderer", loadError);
+    setError("");
+    setPdfRenderer("BROWSER");
+    setViewerState("READY");
+  }
+
+  function handleDocumentLoadError(loadError?: unknown) {
     clearParseRetryTimeout();
     if (parseRetryCountRef.current < PDF_PARSE_MAX_AUTOMATIC_RETRIES) {
       const attempt = parseRetryCountRef.current;
@@ -203,13 +235,18 @@ export default function PdfLessonViewer({
       );
       return;
     }
-    setError("Le document reçu n’a pas pu être interprété. Veuillez réessayer.");
-    setViewerState("ERROR");
+
+    // The bytes have already passed our MIME/signature validation. If PDF.js
+    // still cannot initialise (worker/CSP/browser issue), keep the lesson
+    // readable with the browser's native PDF engine instead of showing a
+    // terminal error for a valid document.
+    activateBrowserPdfRenderer(loadError);
   }
 
   function retryDocumentLoad() {
     clearParseRetryTimeout();
     parseRetryCountRef.current = 0;
+    setPdfRenderer("PDF_JS");
     setRetryKey((current) => current + 1);
   }
 
@@ -309,6 +346,8 @@ export default function PdfLessonViewer({
         URL.revokeObjectURL(blobUrl);
       }
       setBlobUrl(null);
+      setPdfFile(null);
+      setPdfRenderer("PDF_JS");
       setNumPages(null);
       setPageNumber(1);
       setScale(1.0);
@@ -338,9 +377,11 @@ export default function PdfLessonViewer({
           },
         });
 
+        const validatedPdfData = mediaType === "PDF" ? await readBlobBytes(blob) : null;
         objectUrl = URL.createObjectURL(blob);
         if (active) {
           setBlobUrl(objectUrl);
+          setPdfFile(validatedPdfData ? { data: validatedPdfData } : null);
           setViewerState(mediaType === "IMAGE" ? "READY" : "VALIDATING_DOCUMENT");
         }
       } catch (err) {
@@ -366,7 +407,8 @@ export default function PdfLessonViewer({
 
   if (
     viewerState === "RETRYING_DOCUMENT" ||
-    (!blobUrl && ["WAITING_FOR_SESSION", "LOADING_URL", "LOADING_DOCUMENT"].includes(viewerState))
+    ((!blobUrl || (mediaType === "PDF" && !pdfFile)) &&
+      ["WAITING_FOR_SESSION", "LOADING_URL", "LOADING_DOCUMENT", "VALIDATING_DOCUMENT"].includes(viewerState))
   ) {
     return (
       <div className="flex h-[70vh] items-center justify-center rounded-2xl border border-slate-200 bg-slate-50">
@@ -568,6 +610,65 @@ export default function PdfLessonViewer({
   const renderWidth = Math.round(baseReadingWidth * scale);
   const resolvedDownloadFileName = downloadFileName || `${title}.pdf`;
 
+  if (pdfRenderer === "BROWSER") {
+    const nativePdfUrl = `${blobUrl}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`;
+
+    return (
+      <div
+        ref={wrapperRef}
+        className={`flex flex-col overflow-hidden rounded-[24px] border border-[#202838] bg-slate-950 shadow-lg transition-all ${isExpandedView ? "fixed inset-0 z-[120] h-[100dvh] w-full rounded-none border-none" : "h-[75vh]"}`}
+      >
+        <div className={viewerToolbarClass}>
+          <div className={`${toolbarPillClass} min-w-0 gap-2 px-3 sm:px-4`}>
+            <FileText className="h-4 w-4 shrink-0 text-[#8175ff] sm:h-5 sm:w-5" />
+            <span className="truncate text-xs font-semibold text-slate-200 sm:text-sm">{title}</span>
+          </div>
+          <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={retryDocumentLoad}
+              className={toolbarButtonClass}
+              title="Réessayer le lecteur intégré"
+              aria-label="Réessayer le lecteur intégré"
+            >
+              <RefreshCw className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+            </button>
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              className={toolbarButtonClass}
+              title={isExpandedView ? "Quitter le plein écran" : "Plein écran"}
+              aria-label={isExpandedView ? "Quitter le plein écran" : "Plein écran"}
+            >
+              {isExpandedView ? (
+                <Minimize2 className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+              ) : (
+                <Fullscreen className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+              )}
+            </button>
+            {allowDownload ? (
+              <a
+                href={blobUrl}
+                download={resolvedDownloadFileName}
+                className={toolbarButtonClass}
+                title="Télécharger le PDF"
+                aria-label="Télécharger le PDF"
+              >
+                <Download className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+              </a>
+            ) : null}
+          </div>
+        </div>
+        <iframe
+          src={nativePdfUrl}
+          title={`Lecteur PDF de secours — ${title}`}
+          className="min-h-0 flex-1 border-0 bg-white"
+          referrerPolicy="same-origin"
+        />
+      </div>
+    );
+  }
+
   return (
     <div
       ref={wrapperRef}
@@ -668,7 +769,7 @@ export default function PdfLessonViewer({
       >
         <div className="relative mx-auto w-fit shadow-2xl ring-1 ring-white/10 transition-transform duration-200">
           <Document
-            file={blobUrl}
+            file={pdfFile}
             onLoadSuccess={onDocumentLoadSuccess}
             onLoadError={handleDocumentLoadError}
             loading={

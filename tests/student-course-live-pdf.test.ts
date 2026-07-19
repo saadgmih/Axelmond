@@ -32,6 +32,12 @@ rulesTest("student-course-live-pdf", () => {
   assert.doesNotMatch(pdfViewerSource, /unpkg\.com\/pdfjs-dist/);
   assert.equal(applicationPdfJsVersion, reactPdfJsVersion, "React-PDF and its PDF.js worker must use one version");
   assert.equal(packageLock.packages["node_modules/react-pdf/node_modules/pdfjs-dist"], undefined);
+  assert.match(pdfViewerSource, /await readBlobBytes\(blob\)/);
+  assert.match(pdfViewerSource, /reader\.readAsArrayBuffer\(blob\)/);
+  assert.match(pdfViewerSource, /setPdfFile\(validatedPdfData \? \{ data: validatedPdfData \} : null\)/);
+  assert.match(pdfViewerSource, /file=\{pdfFile\}/);
+  assert.match(pdfViewerSource, /pdfRenderer === "BROWSER"/);
+  assert.match(pdfViewerSource, /Lecteur PDF de secours/);
   assert.doesNotMatch(pdfViewerSource, /downloadUrl/);
   assert.doesNotMatch(pdfViewerSource, /Ouvrir le PDF/);
   assert.match(pdfViewerSource, /mediaType === "IMAGE"/);
