@@ -36,8 +36,6 @@ rulesTest("student-course-live-pdf", () => {
   assert.match(pdfViewerSource, /reader\.readAsArrayBuffer\(blob\)/);
   assert.match(pdfViewerSource, /setPdfFile\(validatedPdfData \? \{ data: validatedPdfData \} : null\)/);
   assert.match(pdfViewerSource, /file=\{pdfFile\}/);
-  assert.match(pdfViewerSource, /pdfRenderer === "BROWSER"/);
-  assert.match(pdfViewerSource, /Lecteur PDF de secours/);
   assert.doesNotMatch(pdfViewerSource, /downloadUrl/);
   assert.doesNotMatch(pdfViewerSource, /Ouvrir le PDF/);
   assert.match(pdfViewerSource, /mediaType === "IMAGE"/);

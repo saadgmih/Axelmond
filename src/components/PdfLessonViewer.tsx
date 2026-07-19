@@ -35,7 +35,6 @@ interface PdfLessonViewerProps {
 }
 
 type ImageViewMode = "width" | "screen" | "actual";
-type PdfRenderer = "PDF_JS" | "BROWSER";
 type PdfFile = { data: Uint8Array<ArrayBuffer> };
 type ViewerState =
   | "WAITING_FOR_SESSION"
@@ -94,7 +93,6 @@ export default function PdfLessonViewer({
 }: PdfLessonViewerProps) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [pdfFile, setPdfFile] = useState<PdfFile | null>(null);
-  const [pdfRenderer, setPdfRenderer] = useState<PdfRenderer>("PDF_JS");
   const [error, setError] = useState("");
   const [viewerState, setViewerState] = useState<ViewerState>("WAITING_FOR_SESSION");
   const [retryKey, setRetryKey] = useState(0);
@@ -215,14 +213,7 @@ export default function PdfLessonViewer({
     setViewerState("READY");
   }
 
-  function activateBrowserPdfRenderer(loadError?: unknown) {
-    console.warn("[pdf-viewer] PDF.js unavailable; using the native PDF renderer", loadError);
-    setError("");
-    setPdfRenderer("BROWSER");
-    setViewerState("READY");
-  }
-
-  function handleDocumentLoadError(loadError?: unknown) {
+  function handleDocumentLoadError() {
     clearParseRetryTimeout();
     if (parseRetryCountRef.current < PDF_PARSE_MAX_AUTOMATIC_RETRIES) {
       const attempt = parseRetryCountRef.current;
@@ -236,17 +227,13 @@ export default function PdfLessonViewer({
       return;
     }
 
-    // The bytes have already passed our MIME/signature validation. If PDF.js
-    // still cannot initialise (worker/CSP/browser issue), keep the lesson
-    // readable with the browser's native PDF engine instead of showing a
-    // terminal error for a valid document.
-    activateBrowserPdfRenderer(loadError);
+    setError("Le document reçu n’a pas pu être interprété. Veuillez réessayer.");
+    setViewerState("ERROR");
   }
 
   function retryDocumentLoad() {
     clearParseRetryTimeout();
     parseRetryCountRef.current = 0;
-    setPdfRenderer("PDF_JS");
     setRetryKey((current) => current + 1);
   }
 
@@ -347,7 +334,6 @@ export default function PdfLessonViewer({
       }
       setBlobUrl(null);
       setPdfFile(null);
-      setPdfRenderer("PDF_JS");
       setNumPages(null);
       setPageNumber(1);
       setScale(1.0);
@@ -609,65 +595,6 @@ export default function PdfLessonViewer({
   const baseReadingWidth = Math.max(containerDimensions.width - 32, 280);
   const renderWidth = Math.round(baseReadingWidth * scale);
   const resolvedDownloadFileName = downloadFileName || `${title}.pdf`;
-
-  if (pdfRenderer === "BROWSER") {
-    const nativePdfUrl = `${blobUrl}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`;
-
-    return (
-      <div
-        ref={wrapperRef}
-        className={`flex flex-col overflow-hidden rounded-[24px] border border-[#202838] bg-slate-950 shadow-lg transition-all ${isExpandedView ? "fixed inset-0 z-[120] h-[100dvh] w-full rounded-none border-none" : "h-[75vh]"}`}
-      >
-        <div className={viewerToolbarClass}>
-          <div className={`${toolbarPillClass} min-w-0 gap-2 px-3 sm:px-4`}>
-            <FileText className="h-4 w-4 shrink-0 text-[#8175ff] sm:h-5 sm:w-5" />
-            <span className="truncate text-xs font-semibold text-slate-200 sm:text-sm">{title}</span>
-          </div>
-          <div className="ml-auto flex items-center gap-2 sm:gap-3">
-            <button
-              type="button"
-              onClick={retryDocumentLoad}
-              className={toolbarButtonClass}
-              title="Réessayer le lecteur intégré"
-              aria-label="Réessayer le lecteur intégré"
-            >
-              <RefreshCw className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
-            </button>
-            <button
-              type="button"
-              onClick={toggleFullscreen}
-              className={toolbarButtonClass}
-              title={isExpandedView ? "Quitter le plein écran" : "Plein écran"}
-              aria-label={isExpandedView ? "Quitter le plein écran" : "Plein écran"}
-            >
-              {isExpandedView ? (
-                <Minimize2 className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
-              ) : (
-                <Fullscreen className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
-              )}
-            </button>
-            {allowDownload ? (
-              <a
-                href={blobUrl}
-                download={resolvedDownloadFileName}
-                className={toolbarButtonClass}
-                title="Télécharger le PDF"
-                aria-label="Télécharger le PDF"
-              >
-                <Download className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
-              </a>
-            ) : null}
-          </div>
-        </div>
-        <iframe
-          src={nativePdfUrl}
-          title={`Lecteur PDF de secours — ${title}`}
-          className="min-h-0 flex-1 border-0 bg-white"
-          referrerPolicy="same-origin"
-        />
-      </div>
-    );
-  }
 
   return (
     <div
