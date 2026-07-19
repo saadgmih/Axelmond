@@ -6,7 +6,6 @@ import {
   startSecurityRuntimeServer,
   stopSecurityRuntimeServer,
   waitForSecurityRuntimeHealth,
-  type SecurityRuntimeSession,
 } from "./helpers/security-runtime-harness.ts";
 import { skipSecurityRuntimeTests } from "./helpers/security-runtime-harness.ts";
 import {

@@ -113,7 +113,7 @@ describe("StudentCourseView integration with AI Tutor", () => {
   it("renders the AI Tutor side-by-side or inside drawer based on screen width", async () => {
     const setShowAITutor = vi.fn();
 
-    const { rerender } = render(
+    render(
       <StudentCourseView
         selectedCourse={mockCourse}
         selectedModule={mockModule}
