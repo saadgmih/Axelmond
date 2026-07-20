@@ -140,6 +140,7 @@ const dbMocks = vi.hoisted(() => {
           const statusMatches =
             !where.status ||
             where.status === job.status ||
+            (where.status.not && where.status.not !== job.status) ||
             (where.status.in && where.status.in.includes(job.status));
           if (idMatches && statusMatches) {
             Object.assign(job, data);
@@ -590,6 +591,27 @@ describe("Video Branding Automatic Pipeline", () => {
       await prisma.lessonContent.delete({ where: { id: lesson.id } });
     });
 
+    it("returns an interrupted branding job to the queue during graceful shutdown", async () => {
+      const controller = new AbortController();
+      const job = await prisma.videoProcessingJob.create({
+        data: {
+          contentId: "shutdown-video",
+          uploadedByUserId: "user-1",
+          sourceVideoPath: SRC_LANDSCAPE_AUDIO,
+          status: "QUEUED",
+        },
+      });
+      controller.abort();
+
+      await processVideoJob(job.id, controller.signal);
+
+      const interruptedJob = await prisma.videoProcessingJob.findUnique({ where: { id: job.id } });
+      expect(interruptedJob?.status).toBe("QUEUED");
+      expect(interruptedJob?.errorMessage).toBeNull();
+      await prisma.videoProcessingJob.delete({ where: { id: job.id } });
+      await prisma.lessonContent.delete({ where: { id: "shutdown-video" } });
+    });
+
     it("recovers an existing job that failed only because video tools were unavailable", async () => {
       const lesson = await prisma.lessonContent.create({
         data: {
@@ -639,7 +661,7 @@ describe("Video Branding Automatic Pipeline", () => {
 
     it("starts and stops the worker cleanly", async () => {
       await startVideoBrandingWorker();
-      stopVideoBrandingWorker();
+      await stopVideoBrandingWorker();
     });
   });
 });

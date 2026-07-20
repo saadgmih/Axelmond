@@ -47,10 +47,11 @@ export function getBrandingTargetDimensions(width: number, height: number): { wi
 export function runCommand(
   executable: VideoBrandingExecutable,
   args: string[],
+  signal?: AbortSignal,
 ): Promise<{ stdout: string; stderr: string }> {
   const resolvedExecutable = getVideoBrandingExecutable(executable);
   return new Promise((resolve, reject) => {
-    execFile(resolvedExecutable, args, { maxBuffer: 10 * 1024 * 1024 }, (err, stdout, stderr) => {
+    execFile(resolvedExecutable, args, { maxBuffer: 10 * 1024 * 1024, signal }, (err, stdout, stderr) => {
       if (err) {
         return reject(
           new Error(
@@ -82,7 +83,7 @@ function concatFileEntry(filePath: string): string {
   return `file '${portablePath}'`;
 }
 
-export async function probeVideo(filePath: string): Promise<VideoInfo> {
+export async function probeVideo(filePath: string, signal?: AbortSignal): Promise<VideoInfo> {
   const { stdout } = await runCommand("ffprobe", [
     "-v",
     "error",
@@ -92,7 +93,7 @@ export async function probeVideo(filePath: string): Promise<VideoInfo> {
     "-of",
     "json",
     filePath,
-  ]);
+  ], signal);
 
   const data = JSON.parse(stdout);
   const videoStream = data.streams?.find((s: any) => s.codec_type === "video");
@@ -185,7 +186,7 @@ export async function ensureDefaultIntros(config: VideoIntroConfig) {
   }
 }
 
-export async function processVideoJob(jobId: string): Promise<void> {
+export async function processVideoJob(jobId: string, signal?: AbortSignal): Promise<void> {
   const job = await prisma.videoProcessingJob.findUnique({ where: { id: jobId } });
   if (!job) return;
 
@@ -200,6 +201,10 @@ export async function processVideoJob(jobId: string): Promise<void> {
   const normalizedUserPath = path.join(workDir, "normalized_user.mp4");
   const finalOutputPath = path.join(workDir, "final.mp4");
   const thumbnailPath = path.join(workDir, "thumbnail.jpg");
+  const runJobCommand = (executable: VideoBrandingExecutable, args: string[]) => runCommand(executable, args, signal);
+  const throwIfJobAborted = () => {
+    if (signal?.aborted) throw new DOMException("Video branding interrupted by shutdown", "AbortError");
+  };
 
   try {
     // 1. Download original video if it's a URL
@@ -209,11 +214,12 @@ export async function processVideoJob(jobId: string): Promise<void> {
     });
 
     console.log(`[branding-service] Downloading source video from ${job.sourceVideoPath}...`);
-    const response = await fetch(job.sourceVideoPath);
+    const response = await fetch(job.sourceVideoPath, { signal });
     if (!response.ok) {
       throw new Error(`Failed to download source video: ${response.statusText}`);
     }
     const buffer = Buffer.from(await response.arrayBuffer());
+    throwIfJobAborted();
     fs.writeFileSync(originalPath, buffer);
 
     // 2. Probing source video
@@ -222,7 +228,7 @@ export async function processVideoJob(jobId: string): Promise<void> {
       data: { status: "PROBING", currentStep: "Analyse des codecs et dimensions..." },
     });
 
-    const info = await probeVideo(originalPath);
+    const info = await probeVideo(originalPath, signal);
     console.log(`[branding-service] Probed video info:`, info);
 
     // Validation checks
@@ -256,7 +262,7 @@ export async function processVideoJob(jobId: string): Promise<void> {
 
     // Normalize intro
     console.log(`[branding-service] Normalizing intro to match target resolution ${targetW}x${targetH}...`);
-    await runCommand("ffmpeg", [
+    await runJobCommand("ffmpeg", [
       "-i",
       introPath,
       "-vf",
@@ -275,7 +281,7 @@ export async function processVideoJob(jobId: string): Promise<void> {
     // Normalize user video
     console.log(`[branding-service] Normalizing user video (hasAudio: ${info.hasAudio})...`);
     if (info.hasAudio) {
-      await runCommand("ffmpeg", [
+      await runJobCommand("ffmpeg", [
         "-i",
         originalPath,
         "-vf",
@@ -292,7 +298,7 @@ export async function processVideoJob(jobId: string): Promise<void> {
       ]);
     } else {
       // Add silent audio stream
-      await runCommand("ffmpeg", [
+      await runJobCommand("ffmpeg", [
         "-i",
         originalPath,
         "-f",
@@ -323,7 +329,7 @@ export async function processVideoJob(jobId: string): Promise<void> {
     );
 
     console.log(`[branding-service] Concatenating intro and user video...`);
-    await runCommand("ffmpeg", [
+    await runJobCommand("ffmpeg", [
       "-f",
       "concat",
       "-safe",
@@ -344,7 +350,7 @@ export async function processVideoJob(jobId: string): Promise<void> {
       data: { status: "VERIFYING", currentStep: "Vérification de la vidéo finale..." },
     });
 
-    const finalInfo = await probeVideo(finalOutputPath);
+    const finalInfo = await probeVideo(finalOutputPath, signal);
     console.log(`[branding-service] Processed video info:`, finalInfo);
 
     const expectedDuration = config.introDuration + info.duration;
@@ -357,7 +363,7 @@ export async function processVideoJob(jobId: string): Promise<void> {
     // 6. Generate thumbnail from the main video content
     const thumbTime = config.introDuration + Math.min(2.0, info.duration / 2);
     console.log(`[branding-service] Generating thumbnail at timestamp ${thumbTime}s...`);
-    await runCommand("ffmpeg", [
+    await runJobCommand("ffmpeg", [
       "-ss",
       String(thumbTime),
       "-i",
@@ -384,6 +390,7 @@ export async function processVideoJob(jobId: string): Promise<void> {
     const thumbFile = new globalThis.File([thumbBuffer], `${jobId}-thumb.jpg`, { type: "image/jpeg" });
 
     const uploadResults = await utapi.uploadFiles([finalVideoFile, thumbFile]);
+    throwIfJobAborted();
     const videoUpload = uploadResults[0];
     const thumbUpload = uploadResults[1];
 
@@ -460,6 +467,23 @@ export async function processVideoJob(jobId: string): Promise<void> {
 
     console.log(`[branding-service] Video job ${jobId} finished successfully.`);
   } catch (error: any) {
+    if (signal?.aborted) {
+      console.log(`[branding-service] Job ${jobId} paused for graceful shutdown.`);
+      await prisma.videoProcessingJob.updateMany({
+        where: { id: jobId, status: { not: "READY" } },
+        data: {
+          status: "QUEUED",
+          currentStep: "En attente de reprise après redémarrage...",
+          errorCode: null,
+          errorMessage: null,
+          failedAt: null,
+        },
+      });
+      await prisma.lessonContent
+        .update({ where: { id: job.contentId }, data: { status: "PROCESSING" } })
+        .catch(() => null);
+      return;
+    }
     console.error(`[branding-service] Job ${jobId} failed:`, error);
     await prisma.videoProcessingJob.update({
       where: { id: jobId },

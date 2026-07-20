@@ -460,7 +460,7 @@ function registerGracefulShutdown(httpServer: ReturnType<typeof createServer>, i
     }, shutdownTimeoutMs);
     forcedShutdownTimer.unref();
 
-    stopVideoBrandingWorker();
+    await stopVideoBrandingWorker();
     stopPerformanceMonitor();
     stopCachePruner();
     stopAuthUserCachePruner();

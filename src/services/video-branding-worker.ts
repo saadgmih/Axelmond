@@ -4,7 +4,11 @@ import { getBrandingConfig, shouldQueueVideoBranding } from "./video-branding-co
 
 let workerInterval: NodeJS.Timeout | null = null;
 let isProcessing = false;
-const INTERRUPTED_JOB_STALE_MS = 15 * 60 * 1000;
+let activeJobAbortController: AbortController | null = null;
+let activeJobPromise: Promise<void> | null = null;
+let activeJobHeartbeat: NodeJS.Timeout | null = null;
+const INTERRUPTED_JOB_STALE_MS = 2 * 60 * 1000;
+const ACTIVE_JOB_HEARTBEAT_MS = 30 * 1000;
 const TOOL_FAILURE_PATTERN =
   /(?:spawn\s+\S*(?:ffmpeg|ffprobe)\S*.*(?:ENOENT|EACCES)|outils vidéo indisponibles|error while opening encoder for output stream)/i;
 
@@ -157,11 +161,23 @@ async function pollAndProcessJobs() {
       if (claimed.count === 0) return;
 
       console.log(`[video-branding-worker] Starting processing of job: ${nextJob.id}`);
-      await processVideoJob(nextJob.id);
+      activeJobAbortController = new AbortController();
+      activeJobHeartbeat = setInterval(() => {
+        void prisma.videoProcessingJob
+          .update({ where: { id: nextJob.id }, data: { updatedAt: new Date() } })
+          .catch((error) => console.warn("[video-branding-worker] Failed to heartbeat active job:", error));
+      }, ACTIVE_JOB_HEARTBEAT_MS);
+      activeJobHeartbeat.unref();
+      activeJobPromise = processVideoJob(nextJob.id, activeJobAbortController.signal);
+      await activeJobPromise;
     }
   } catch (error) {
     console.error("[video-branding-worker] Error in polling loop:", error);
   } finally {
+    if (activeJobHeartbeat) clearInterval(activeJobHeartbeat);
+    activeJobHeartbeat = null;
+    activeJobAbortController = null;
+    activeJobPromise = null;
     isProcessing = false;
   }
 }
@@ -185,10 +201,13 @@ export async function startVideoBrandingWorker() {
   workerInterval = setInterval(pollAndProcessJobs, 5000);
 }
 
-export function stopVideoBrandingWorker() {
+export async function stopVideoBrandingWorker() {
   if (workerInterval) {
     clearInterval(workerInterval);
     workerInterval = null;
-    console.log("[video-branding-worker] Stopped video branding worker queue.");
   }
+  const processing = activeJobPromise;
+  activeJobAbortController?.abort();
+  if (processing) await processing.catch(() => undefined);
+  console.log("[video-branding-worker] Stopped video branding worker queue.");
 }
