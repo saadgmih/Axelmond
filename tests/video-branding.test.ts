@@ -749,11 +749,11 @@ describe("Video Branding Automatic Pipeline", () => {
         },
       });
 
-      expect(await queueUnbrandedVideoJobs(3)).toBe(1);
-      expect(await queueUnbrandedVideoJobs(3)).toBe(0);
+      expect(await queueUnbrandedVideoJobs(DEFAULT_VIDEO_INTRO_CONFIG.introVersion)).toBe(1);
+      expect(await queueUnbrandedVideoJobs(DEFAULT_VIDEO_INTRO_CONFIG.introVersion)).toBe(0);
       const upgradedJob = await prisma.videoProcessingJob.findUnique({ where: { id: job.id } });
       expect(upgradedJob?.status).toBe("QUEUED");
-      expect(upgradedJob?.introVersion).toBe(3);
+      expect(upgradedJob?.introVersion).toBe(DEFAULT_VIDEO_INTRO_CONFIG.introVersion);
       expect(upgradedJob?.sourceVideoPath).toBe("https://example.com/original-unbranded.mp4");
 
       await prisma.videoProcessingJob.delete({ where: { id: job.id } });
