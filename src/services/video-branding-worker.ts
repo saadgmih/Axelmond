@@ -5,6 +5,7 @@ import { getBrandingConfig, shouldQueueVideoBranding } from "./video-branding-co
 let workerInterval: NodeJS.Timeout | null = null;
 let isProcessing = false;
 const INTERRUPTED_JOB_STALE_MS = 15 * 60 * 1000;
+const TOOL_FAILURE_PATTERN = /(?:spawn\s+\S*(?:ffmpeg|ffprobe)\S*.*(?:ENOENT|EACCES)|outils vidéo indisponibles)/i;
 
 export async function queueUnbrandedVideoJobs(introVersion: number): Promise<number> {
   const videos = await prisma.lessonContent.findMany({
@@ -28,9 +29,19 @@ export async function queueUnbrandedVideoJobs(introVersion: number): Promise<num
 
   const existingJobs = await prisma.videoProcessingJob.findMany({
     where: { contentId: { in: videos.map((video) => video.id) } },
-    select: { contentId: true },
+    select: { id: true, contentId: true, status: true, currentStep: true, errorMessage: true },
   });
   const contentIdsWithJobs = new Set(existingJobs.map((job) => job.contentId));
+  const videosById = new Map(videos.map((video) => [video.id, video]));
+  const jobsToRecover = existingJobs.flatMap((job) => {
+    const failureDetails = `${job.currentStep || ""}\n${job.errorMessage || ""}`;
+    if (job.status !== "FAILED" || !TOOL_FAILURE_PATTERN.test(failureDetails)) return [];
+    const video = videosById.get(job.contentId);
+    const attachment = video?.attachments[0];
+    const uploadedByUserId = video?.createdById || attachment?.createdById;
+    if (!attachment?.url || !uploadedByUserId) return [];
+    return [{ id: job.id, contentId: job.contentId, sourceVideoPath: attachment.url, uploadedByUserId }];
+  });
   const jobsToCreate = videos.flatMap((video) => {
     if (contentIdsWithJobs.has(video.id)) return [];
     const attachment = video.attachments[0];
@@ -52,24 +63,43 @@ export async function queueUnbrandedVideoJobs(introVersion: number): Promise<num
     ];
   });
 
-  if (jobsToCreate.length === 0) return 0;
+  if (jobsToCreate.length === 0 && jobsToRecover.length === 0) return 0;
 
-  const createdCount = await prisma.$transaction(async (tx) => {
+  const queuedCount = await prisma.$transaction(async (tx) => {
+    const recoveredResults = await Promise.all(
+      jobsToRecover.map((job) =>
+        tx.videoProcessingJob.updateMany({
+          where: { id: job.id, status: "FAILED" },
+          data: {
+            uploadedByUserId: job.uploadedByUserId,
+            sourceVideoPath: job.sourceVideoPath,
+            status: "QUEUED",
+            progressPercent: 0,
+            currentStep: "Nouvelle tentative avec les outils vidéo intégrés...",
+            errorMessage: null,
+            introVersion,
+          },
+        }),
+      ),
+    );
     const created = await tx.videoProcessingJob.createMany({
       data: jobsToCreate,
       skipDuplicates: true,
     });
+    const recoveredCount = recoveredResults.reduce((total, result) => total + result.count, 0);
     await tx.lessonContent.updateMany({
-      where: { id: { in: jobsToCreate.map((job) => job.contentId) } },
+      where: {
+        id: { in: [...jobsToCreate.map((job) => job.contentId), ...jobsToRecover.map((job) => job.contentId)] },
+      },
       data: { status: "PROCESSING" },
     });
-    return created.count;
+    return created.count + recoveredCount;
   });
 
-  if (createdCount > 0) {
-    console.log(`[video-branding-worker] Queued ${createdCount} existing unbranded video(s).`);
+  if (queuedCount > 0) {
+    console.log(`[video-branding-worker] Queued ${queuedCount} existing unbranded video(s).`);
   }
-  return createdCount;
+  return queuedCount;
 }
 
 async function resetInterruptedJobs() {

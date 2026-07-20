@@ -129,11 +129,7 @@ const dbMocks = vi.hoisted(() => {
       update: vi.fn().mockImplementation(async ({ where, data }) => {
         const id = where.id;
         const job = jobs[id] || { id };
-        if (data.status) job.status = data.status;
-        if (data.outputVideoPath) job.outputVideoPath = data.outputVideoPath;
-        if (data.outputDuration) job.outputDuration = data.outputDuration;
-        if (data.outputSizeBytes) job.outputSizeBytes = data.outputSizeBytes;
-        if (data.progressPercent !== undefined) job.progressPercent = data.progressPercent;
+        Object.assign(job, data);
         jobs[id] = job;
         return job;
       }),
@@ -141,8 +137,12 @@ const dbMocks = vi.hoisted(() => {
         let count = 0;
         Object.values(jobs).forEach((job) => {
           const idMatches = !where.id || where.id === job.id;
-          if (idMatches && where.status && where.status.in && where.status.in.includes(job.status)) {
-            job.status = data.status;
+          const statusMatches =
+            !where.status ||
+            where.status === job.status ||
+            (where.status.in && where.status.in.includes(job.status));
+          if (idMatches && statusMatches) {
+            Object.assign(job, data);
             count += 1;
           }
         });
@@ -151,7 +151,13 @@ const dbMocks = vi.hoisted(() => {
       findMany: vi.fn().mockImplementation(async ({ where }) =>
         Object.values(jobs)
           .filter((job: any) => !where.contentId?.in || where.contentId.in.includes(job.contentId))
-          .map((job: any) => ({ contentId: job.contentId })),
+          .map((job: any) => ({
+            id: job.id,
+            contentId: job.contentId,
+            status: job.status,
+            currentStep: job.currentStep,
+            errorMessage: job.errorMessage,
+          })),
       ),
       createMany: vi.fn().mockImplementation(async ({ data }) => {
         let count = 0;
@@ -572,6 +578,53 @@ describe("Video Branding Automatic Pipeline", () => {
       expect(job?.sourceVideoPath).toBe("https://example.com/legacy.mp4");
 
       await prisma.videoProcessingJob.delete({ where: { id: job!.id } });
+      await prisma.attachment.deleteMany({ where: { contentId: lesson.id } });
+      await prisma.lessonContent.delete({ where: { id: lesson.id } });
+    });
+
+    it("recovers an existing job that failed only because video tools were unavailable", async () => {
+      const lesson = await prisma.lessonContent.create({
+        data: {
+          id: "legacy-tool-failure",
+          courseId: 123,
+          title: "Vidéo bloquée avant activation",
+          type: "VIDEO",
+          published: true,
+          status: "READY",
+          createdById: "user-1",
+          attachments: {
+            create: {
+              courseId: 123,
+              type: "VIDEO",
+              fileName: "legacy-failure.mp4",
+              fileKey: "legacy-failure-key",
+              url: "https://example.com/legacy-failure.mp4",
+              size: 1024,
+            },
+          },
+        } as any,
+      });
+      const job = await prisma.videoProcessingJob.create({
+        data: {
+          contentId: lesson.id,
+          uploadedByUserId: "user-1",
+          sourceVideoPath: "https://example.com/legacy-failure.mp4",
+          status: "FAILED",
+        },
+      });
+      await prisma.videoProcessingJob.update({
+        where: { id: job.id },
+        data: { errorMessage: "spawn ffprobe ENOENT" },
+      });
+
+      expect(await queueUnbrandedVideoJobs(1)).toBe(1);
+      expect(await queueUnbrandedVideoJobs(1)).toBe(0);
+      const recoveredJob = await prisma.videoProcessingJob.findUnique({ where: { id: job.id } });
+      expect(recoveredJob?.status).toBe("QUEUED");
+      expect(recoveredJob?.errorMessage).toBeNull();
+      expect(recoveredJob?.sourceVideoPath).toBe("https://example.com/legacy-failure.mp4");
+
+      await prisma.videoProcessingJob.delete({ where: { id: job.id } });
       await prisma.attachment.deleteMany({ where: { contentId: lesson.id } });
       await prisma.lessonContent.delete({ where: { id: lesson.id } });
     });
