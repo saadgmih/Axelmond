@@ -121,6 +121,7 @@ const dbMocks = vi.hoisted(() => {
           contentId: data.contentId,
           uploadedByUserId: data.uploadedByUserId,
           sourceVideoPath: data.sourceVideoPath,
+          introVersion: data.introVersion ?? 1,
           status: data.status || "UPLOADED",
         };
         jobs[id] = job;
@@ -155,6 +156,9 @@ const dbMocks = vi.hoisted(() => {
           .map((job: any) => ({
             id: job.id,
             contentId: job.contentId,
+            uploadedByUserId: job.uploadedByUserId,
+            sourceVideoPath: job.sourceVideoPath,
+            introVersion: job.introVersion ?? 1,
             status: job.status,
             currentStep: job.currentStep,
             errorMessage: job.errorMessage,
@@ -208,12 +212,14 @@ vi.mock("../src/db", () => ({
 import { prisma } from "../src/db";
 import {
   getBrandingTargetDimensions,
+  ensureDefaultIntros,
   isVideoBrandingToolUnavailableError,
   probeVideo,
   runCommand,
   processVideoJob,
 } from "../src/services/video-branding-service";
 import {
+  DEFAULT_VIDEO_INTRO_CONFIG,
   getBrandingConfig,
   shouldQueueVideoBranding,
   updateBrandingConfig,
@@ -386,8 +392,17 @@ describe("Video Branding Automatic Pipeline", () => {
     it("seeds default configuration if missing and retrieves it", async () => {
       const config = await getBrandingConfig();
       expect(config).toBeDefined();
-      expect(config.introAssetId).toBe("default-intro");
+      expect(config.introAssetId).toBe("performance-academique-animated");
+      expect(config.introVersion).toBe(2);
       expect(config.introEnabled).toBe(true);
+    });
+
+    it("migrates the legacy black intro configuration", async () => {
+      await updateBrandingConfig({ introAssetId: "default-intro", introVersion: 1 });
+
+      const migrated = await getBrandingConfig();
+      expect(migrated.introAssetId).toBe(DEFAULT_VIDEO_INTRO_CONFIG.introAssetId);
+      expect(migrated.introVersion).toBe(DEFAULT_VIDEO_INTRO_CONFIG.introVersion);
     });
 
     it("updates configuration settings", async () => {
@@ -404,6 +419,39 @@ describe("Video Branding Automatic Pipeline", () => {
   });
 
   describe("Probing logic with ffprobe", () => {
+    it("generates visible animated intro assets instead of black frames", async () => {
+      const landscapePath = path.join(TEST_DIR, "generated-intro-landscape.mp4");
+      const portraitPath = path.join(TEST_DIR, "generated-intro-portrait.mp4");
+      await ensureDefaultIntros(
+        {
+          ...DEFAULT_VIDEO_INTRO_CONFIG,
+          introFilePathLandscape: landscapePath,
+          introFilePathPortrait: portraitPath,
+        },
+        undefined,
+        true,
+      );
+
+      expect(await probeVideo(landscapePath)).toMatchObject({ width: 1280, height: 720, hasAudio: true });
+      expect(await probeVideo(portraitPath)).toMatchObject({ width: 720, height: 1280, hasAudio: true });
+
+      const frameStats = await runCommand("ffmpeg", [
+        "-ss",
+        "2",
+        "-i",
+        portraitPath,
+        "-vf",
+        "signalstats,metadata=print:key=lavfi.signalstats.YAVG",
+        "-frames:v",
+        "1",
+        "-f",
+        "null",
+        "-",
+      ]);
+      const yAverage = Number(`${frameStats.stdout}\n${frameStats.stderr}`.match(/YAVG=([0-9.]+)/)?.[1]);
+      expect(yAverage).toBeGreaterThan(18);
+    }, 30_000);
+
     it("probes landscape video with audio correctly", async () => {
       const info = await probeVideo(SRC_LANDSCAPE_AUDIO);
       expect(info.width).toBe(320);
@@ -653,6 +701,50 @@ describe("Video Branding Automatic Pipeline", () => {
       expect(recoveredJob?.status).toBe("QUEUED");
       expect(recoveredJob?.errorMessage).toBeNull();
       expect(recoveredJob?.sourceVideoPath).toBe("https://example.com/legacy-failure.mp4");
+
+      await prisma.videoProcessingJob.delete({ where: { id: job.id } });
+      await prisma.attachment.deleteMany({ where: { contentId: lesson.id } });
+      await prisma.lessonContent.delete({ where: { id: lesson.id } });
+    });
+
+    it("reprocesses a ready video when the official intro version changes", async () => {
+      const lesson = await prisma.lessonContent.create({
+        data: {
+          id: "legacy-black-intro",
+          courseId: 123,
+          title: "Vidéo avec ancienne intro noire",
+          type: "VIDEO",
+          published: true,
+          status: "READY",
+          createdById: "user-1",
+          attachments: {
+            create: {
+              courseId: 123,
+              type: "VIDEO",
+              fileName: "branded-v1.mp4",
+              fileKey: "branded-v1-key",
+              url: "https://example.com/branded-v1.mp4",
+              size: 1024,
+            },
+          },
+        } as any,
+      });
+      const job = await prisma.videoProcessingJob.create({
+        data: {
+          contentId: lesson.id,
+          uploadedByUserId: "user-1",
+          sourceVideoPath: "https://example.com/original-unbranded.mp4",
+          introVersion: 1,
+          status: "READY",
+        },
+      });
+
+      expect(await queueUnbrandedVideoJobs(2)).toBe(1);
+      expect(await queueUnbrandedVideoJobs(2)).toBe(0);
+      const upgradedJob = await prisma.videoProcessingJob.findUnique({ where: { id: job.id } });
+      expect(upgradedJob?.status).toBe("QUEUED");
+      expect(upgradedJob?.introVersion).toBe(2);
+      expect(upgradedJob?.sourceVideoPath).toBe("https://example.com/original-unbranded.mp4");
 
       await prisma.videoProcessingJob.delete({ where: { id: job.id } });
       await prisma.attachment.deleteMany({ where: { contentId: lesson.id } });

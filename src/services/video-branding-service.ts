@@ -21,6 +21,8 @@ export interface VideoInfo {
 }
 
 const MAX_BRANDING_LONG_EDGE = 1280;
+const DEFAULT_BRAND_LOGO_PATH = path.join("public", "performance-logo-003a24a4-192.png");
+const DEFAULT_BRAND_FONT_PATH = path.join("node_modules", "pdfjs-dist", "standard_fonts", "LiberationSans-Bold.ttf");
 const LOW_MEMORY_VIDEO_ENCODING_ARGS = [
   "-c:v",
   "libx264",
@@ -84,16 +86,11 @@ function concatFileEntry(filePath: string): string {
 }
 
 export async function probeVideo(filePath: string, signal?: AbortSignal): Promise<VideoInfo> {
-  const { stdout } = await runCommand("ffprobe", [
-    "-v",
-    "error",
-    "-show_entries",
-    "format=duration,size",
-    "-show_streams",
-    "-of",
-    "json",
-    filePath,
-  ], signal);
+  const { stdout } = await runCommand(
+    "ffprobe",
+    ["-v", "error", "-show_entries", "format=duration,size", "-show_streams", "-of", "json", filePath],
+    signal,
+  );
 
   const data = JSON.parse(stdout);
   const videoStream = data.streams?.find((s: any) => s.codec_type === "video");
@@ -129,7 +126,90 @@ async function resolveIntroFile(urlOrPath: string, filename: string): Promise<st
   return path.resolve(process.cwd(), urlOrPath);
 }
 
-export async function ensureDefaultIntros(config: VideoIntroConfig) {
+function escapeFilterPath(filePath: string): string {
+  return path.resolve(filePath).replace(/\\/g, "/").replace(/:/g, "\\:").replace(/'/g, "\\'");
+}
+
+async function generateAnimatedBrandIntro(
+  targetPath: string,
+  width: number,
+  height: number,
+  duration: number,
+  signal?: AbortSignal,
+): Promise<void> {
+  const logoPath = path.resolve(process.cwd(), DEFAULT_BRAND_LOGO_PATH);
+  const fontPath = path.resolve(process.cwd(), DEFAULT_BRAND_FONT_PATH);
+  if (!fs.existsSync(logoPath)) {
+    throw new Error(`Logo Performance Académique introuvable: ${logoPath}`);
+  }
+  if (!fs.existsSync(fontPath)) {
+    throw new Error(`Police de l'intro Performance Académique introuvable: ${fontPath}`);
+  }
+
+  const portrait = height > width;
+  const logoSize = Math.round(Math.min(width, height) * (portrait ? 0.44 : 0.38));
+  const logoOffset = portrait ? Math.round(height * 0.085) : Math.round(height * 0.075);
+  const titleSize = Math.max(28, Math.round(Math.min(width, height) * (portrait ? 0.05 : 0.052)));
+  const subtitleSize = Math.max(16, Math.round(titleSize * 0.46));
+  const titleY = Math.round(height / 2 + logoSize / 2 - logoOffset + titleSize * 0.95);
+  const subtitleY = Math.round(titleY + titleSize * 1.55);
+  const escapedFontPath = escapeFilterPath(fontPath);
+  const filter = [
+    `[0:v]vignette=angle=PI/5,drawbox=x='-iw+(t/1.5)*iw':y='ih/2-2':w=iw:h=4:color=0x34d399@0.34:t=fill:enable='between(t\\,0\\,1.5)'[background]`,
+    `[1:v]format=rgba,scale=w=${logoSize}:h=-2,fade=t=in:st=0.10:d=0.65:alpha=1,fade=t=out:st=${Math.max(0, duration - 0.75)}:d=0.65:alpha=1[logo]`,
+    `[background][logo]overlay=x='(W-w)/2':y='(H-h)/2-${logoOffset}':shortest=1[brand]`,
+    `[brand]drawtext=fontfile='${escapedFontPath}':text='PERFORMANCE ACADEMIQUE':fontcolor=0xf3fff9:fontsize=${titleSize}:x='(w-text_w)/2':y=${titleY}:enable='between(t\\,0.85\\,${Math.max(0.85, duration - 0.35)})',drawtext=fontfile='${escapedFontPath}':text='EXCELLENCE  -  SAVOIR  -  AVENIR':fontcolor=0x5ee9c1:fontsize=${subtitleSize}:x='(w-text_w)/2':y=${subtitleY}:enable='between(t\\,1.25\\,${Math.max(1.25, duration - 0.35)})',fade=t=out:st=${Math.max(0, duration - 0.35)}:d=0.35[outv]`,
+  ].join(";");
+  const temporaryPath = path.join(
+    path.dirname(targetPath),
+    `${path.basename(targetPath, path.extname(targetPath))}.tmp-${process.pid}-${Date.now()}.mp4`,
+  );
+
+  try {
+    await runCommand(
+      "ffmpeg",
+      [
+        "-f",
+        "lavfi",
+        "-i",
+        `color=c=0x001a15:s=${width}x${height}:r=30:d=${duration}`,
+        "-loop",
+        "1",
+        "-framerate",
+        "30",
+        "-i",
+        logoPath,
+        "-f",
+        "lavfi",
+        "-i",
+        "anullsrc=channel_layout=stereo:sample_rate=48000",
+        "-filter_complex",
+        filter,
+        "-map",
+        "[outv]",
+        "-map",
+        "2:a",
+        ...LOW_MEMORY_VIDEO_ENCODING_ARGS,
+        "-t",
+        String(duration),
+        "-c:a",
+        "aac",
+        "-shortest",
+        "-movflags",
+        "+faststart",
+        temporaryPath,
+        "-y",
+      ],
+      signal,
+    );
+    fs.rmSync(targetPath, { force: true });
+    fs.renameSync(temporaryPath, targetPath);
+  } finally {
+    fs.rmSync(temporaryPath, { force: true });
+  }
+}
+
+export async function ensureDefaultIntros(config: VideoIntroConfig, signal?: AbortSignal, force = false) {
   if (config.introFilePathLandscape.startsWith("http") || config.introFilePathPortrait.startsWith("http")) {
     // Will be downloaded on demand
     return;
@@ -141,48 +221,14 @@ export async function ensureDefaultIntros(config: VideoIntroConfig) {
   fs.mkdirSync(path.dirname(landscapePath), { recursive: true });
   fs.mkdirSync(path.dirname(portraitPath), { recursive: true });
 
-  if (!fs.existsSync(landscapePath)) {
-    console.log("[branding-service] Generating default landscape intro...");
-    await runCommand("ffmpeg", [
-      "-f",
-      "lavfi",
-      "-i",
-      "color=c=black:s=1280x720:d=5",
-      "-f",
-      "lavfi",
-      "-i",
-      "anullsrc=cl=stereo:r=48000",
-      ...LOW_MEMORY_VIDEO_ENCODING_ARGS,
-      "-t",
-      "5",
-      "-c:a",
-      "aac",
-      "-shortest",
-      landscapePath,
-      "-y",
-    ]);
+  if (force || !fs.existsSync(landscapePath)) {
+    console.log("[branding-service] Generating animated landscape brand intro...");
+    await generateAnimatedBrandIntro(landscapePath, 1280, 720, config.introDuration, signal);
   }
 
-  if (!fs.existsSync(portraitPath)) {
-    console.log("[branding-service] Generating default portrait intro...");
-    await runCommand("ffmpeg", [
-      "-f",
-      "lavfi",
-      "-i",
-      "color=c=black:s=720x1280:d=5",
-      "-f",
-      "lavfi",
-      "-i",
-      "anullsrc=cl=stereo:r=48000",
-      ...LOW_MEMORY_VIDEO_ENCODING_ARGS,
-      "-t",
-      "5",
-      "-c:a",
-      "aac",
-      "-shortest",
-      portraitPath,
-      "-y",
-    ]);
+  if (force || !fs.existsSync(portraitPath)) {
+    console.log("[branding-service] Generating animated portrait brand intro...");
+    await generateAnimatedBrandIntro(portraitPath, 720, 1280, config.introDuration, signal);
   }
 }
 
@@ -191,7 +237,6 @@ export async function processVideoJob(jobId: string, signal?: AbortSignal): Prom
   if (!job) return;
 
   const config = await getBrandingConfig();
-  await ensureDefaultIntros(config);
 
   const workDir = path.join(process.cwd(), "videos", "working", jobId);
   fs.mkdirSync(workDir, { recursive: true });
@@ -207,6 +252,8 @@ export async function processVideoJob(jobId: string, signal?: AbortSignal): Prom
   };
 
   try {
+    await ensureDefaultIntros(config, signal);
+
     // 1. Download original video if it's a URL
     await prisma.videoProcessingJob.update({
       where: { id: jobId },

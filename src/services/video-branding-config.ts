@@ -23,9 +23,9 @@ export function shouldQueueVideoBranding(
   return true;
 }
 
-const DEFAULT_CONFIG: VideoIntroConfig = {
-  introAssetId: "default-intro",
-  introVersion: 1,
+export const DEFAULT_VIDEO_INTRO_CONFIG: VideoIntroConfig = {
+  introAssetId: "performance-academique-animated",
+  introVersion: 2,
   introFilePathLandscape: "videos/intros/intro-landscape.mp4",
   introFilePathPortrait: "videos/intros/intro-portrait.mp4",
   introDuration: 5.0,
@@ -33,6 +33,32 @@ const DEFAULT_CONFIG: VideoIntroConfig = {
 };
 
 const CONFIG_KEY = "video-branding-config";
+
+function mergeWithDefaults(value: Partial<VideoIntroConfig>): VideoIntroConfig {
+  return {
+    introAssetId: value.introAssetId ?? DEFAULT_VIDEO_INTRO_CONFIG.introAssetId,
+    introVersion: value.introVersion ?? DEFAULT_VIDEO_INTRO_CONFIG.introVersion,
+    introFilePathLandscape: value.introFilePathLandscape ?? DEFAULT_VIDEO_INTRO_CONFIG.introFilePathLandscape,
+    introFilePathPortrait: value.introFilePathPortrait ?? DEFAULT_VIDEO_INTRO_CONFIG.introFilePathPortrait,
+    introDuration: value.introDuration ?? DEFAULT_VIDEO_INTRO_CONFIG.introDuration,
+    introEnabled: value.introEnabled ?? DEFAULT_VIDEO_INTRO_CONFIG.introEnabled,
+  };
+}
+
+function migrateLegacyDefaultIntro(value: Partial<VideoIntroConfig>): VideoIntroConfig | null {
+  const version = value.introVersion ?? 1;
+  const usesLegacyDefault = !value.introAssetId || value.introAssetId === "default-intro";
+  if (!usesLegacyDefault || version >= DEFAULT_VIDEO_INTRO_CONFIG.introVersion) return null;
+
+  return {
+    ...mergeWithDefaults(value),
+    introAssetId: DEFAULT_VIDEO_INTRO_CONFIG.introAssetId,
+    introVersion: DEFAULT_VIDEO_INTRO_CONFIG.introVersion,
+    introFilePathLandscape: DEFAULT_VIDEO_INTRO_CONFIG.introFilePathLandscape,
+    introFilePathPortrait: DEFAULT_VIDEO_INTRO_CONFIG.introFilePathPortrait,
+    introDuration: DEFAULT_VIDEO_INTRO_CONFIG.introDuration,
+  };
+}
 
 export async function getBrandingConfig(): Promise<VideoIntroConfig> {
   try {
@@ -44,23 +70,26 @@ export async function getBrandingConfig(): Promise<VideoIntroConfig> {
       await prisma.siteSetting.create({
         data: {
           key: CONFIG_KEY,
-          value: DEFAULT_CONFIG as any,
+          value: DEFAULT_VIDEO_INTRO_CONFIG as any,
         },
       });
-      return DEFAULT_CONFIG;
+      return DEFAULT_VIDEO_INTRO_CONFIG;
     }
     const val = setting.value as unknown as Partial<VideoIntroConfig>;
-    return {
-      introAssetId: val.introAssetId ?? DEFAULT_CONFIG.introAssetId,
-      introVersion: val.introVersion ?? DEFAULT_CONFIG.introVersion,
-      introFilePathLandscape: val.introFilePathLandscape ?? DEFAULT_CONFIG.introFilePathLandscape,
-      introFilePathPortrait: val.introFilePathPortrait ?? DEFAULT_CONFIG.introFilePathPortrait,
-      introDuration: val.introDuration ?? DEFAULT_CONFIG.introDuration,
-      introEnabled: val.introEnabled ?? DEFAULT_CONFIG.introEnabled,
-    };
+    const migrated = migrateLegacyDefaultIntro(val);
+    if (migrated) {
+      await prisma.siteSetting.upsert({
+        where: { key: CONFIG_KEY },
+        update: { value: migrated as any },
+        create: { key: CONFIG_KEY, value: migrated as any },
+      });
+      console.log("[branding-config] Migrated the legacy black intro to the animated brand intro.");
+      return migrated;
+    }
+    return mergeWithDefaults(val);
   } catch (error) {
     console.error("[branding-config] Failed to retrieve branding config, falling back to default:", error);
-    return DEFAULT_CONFIG;
+    return DEFAULT_VIDEO_INTRO_CONFIG;
   }
 }
 

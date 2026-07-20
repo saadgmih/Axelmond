@@ -34,7 +34,16 @@ export async function queueUnbrandedVideoJobs(introVersion: number): Promise<num
 
   const existingJobs = await prisma.videoProcessingJob.findMany({
     where: { contentId: { in: videos.map((video) => video.id) } },
-    select: { id: true, contentId: true, status: true, currentStep: true, errorMessage: true },
+    select: {
+      id: true,
+      contentId: true,
+      uploadedByUserId: true,
+      sourceVideoPath: true,
+      introVersion: true,
+      status: true,
+      currentStep: true,
+      errorMessage: true,
+    },
   });
   const contentIdsWithJobs = new Set(existingJobs.map((job) => job.contentId));
   const videosById = new Map(videos.map((video) => [video.id, video]));
@@ -45,7 +54,35 @@ export async function queueUnbrandedVideoJobs(introVersion: number): Promise<num
     const attachment = video?.attachments[0];
     const uploadedByUserId = video?.createdById || attachment?.createdById;
     if (!attachment?.url || !uploadedByUserId) return [];
-    return [{ id: job.id, contentId: job.contentId, sourceVideoPath: attachment.url, uploadedByUserId }];
+    return [
+      {
+        id: job.id,
+        contentId: job.contentId,
+        sourceVideoPath: attachment.url,
+        uploadedByUserId,
+        expectedStatus: "FAILED" as const,
+        currentStep: "Nouvelle tentative avec les outils vidéo intégrés...",
+      },
+    ];
+  });
+  const jobsToUpgrade = existingJobs.flatMap((job) => {
+    if (job.status !== "READY" || job.introVersion >= introVersion) return [];
+    if (!job.sourceVideoPath || !job.uploadedByUserId) {
+      console.warn(
+        `[video-branding-worker] Cannot upgrade video ${job.contentId}: original source or owner is missing.`,
+      );
+      return [];
+    }
+    return [
+      {
+        id: job.id,
+        contentId: job.contentId,
+        sourceVideoPath: job.sourceVideoPath,
+        uploadedByUserId: job.uploadedByUserId,
+        expectedStatus: "READY" as const,
+        currentStep: "Mise à niveau vers la nouvelle intro animée Performance Académique...",
+      },
+    ];
   });
   const jobsToCreate = videos.flatMap((video) => {
     if (contentIdsWithJobs.has(video.id)) return [];
@@ -68,20 +105,27 @@ export async function queueUnbrandedVideoJobs(introVersion: number): Promise<num
     ];
   });
 
-  if (jobsToCreate.length === 0 && jobsToRecover.length === 0) return 0;
+  const jobsToRequeue = [...jobsToRecover, ...jobsToUpgrade];
+  if (jobsToCreate.length === 0 && jobsToRequeue.length === 0) return 0;
 
   const queuedCount = await prisma.$transaction(async (tx) => {
     const recoveredResults = await Promise.all(
-      jobsToRecover.map((job) =>
+      jobsToRequeue.map((job) =>
         tx.videoProcessingJob.updateMany({
-          where: { id: job.id, status: "FAILED" },
+          where: { id: job.id, status: job.expectedStatus },
           data: {
             uploadedByUserId: job.uploadedByUserId,
             sourceVideoPath: job.sourceVideoPath,
             status: "QUEUED",
             progressPercent: 0,
-            currentStep: "Nouvelle tentative avec les outils vidéo intégrés...",
+            currentStep: job.currentStep,
+            outputVideoPath: null,
+            outputDuration: null,
+            outputSizeBytes: null,
             errorMessage: null,
+            errorCode: null,
+            completedAt: null,
+            failedAt: null,
             introVersion,
           },
         }),
@@ -94,7 +138,7 @@ export async function queueUnbrandedVideoJobs(introVersion: number): Promise<num
     const recoveredCount = recoveredResults.reduce((total, result) => total + result.count, 0);
     await tx.lessonContent.updateMany({
       where: {
-        id: { in: [...jobsToCreate.map((job) => job.contentId), ...jobsToRecover.map((job) => job.contentId)] },
+        id: { in: [...jobsToCreate.map((job) => job.contentId), ...jobsToRequeue.map((job) => job.contentId)] },
       },
       data: { status: "PROCESSING" },
     });
@@ -102,7 +146,7 @@ export async function queueUnbrandedVideoJobs(introVersion: number): Promise<num
   });
 
   if (queuedCount > 0) {
-    console.log(`[video-branding-worker] Queued ${queuedCount} existing unbranded video(s).`);
+    console.log(`[video-branding-worker] Queued ${queuedCount} video branding job(s).`);
   }
   return queuedCount;
 }
