@@ -36,7 +36,12 @@ export function registerLessonMediaRoutes(app: Express, ctx: RouteContext): void
           maxAge: LESSON_MEDIA_TICKET_TTL_SECONDS * 1000,
         },
       );
-      res.json({ sourceUrl: result.sourceUrl, proxySourceUrl, mimeType: result.mimeType });
+      res.json({
+        sourceUrl: result.sourceUrl,
+        proxySourceUrl,
+        mimeType: result.mimeType,
+        brandedIntroDuration: result.brandedIntroDuration,
+      });
     } catch (err) {
       api.logDb("ERROR", "Lesson media source resolution failed", {
         contentId: req.params.contentId,

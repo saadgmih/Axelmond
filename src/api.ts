@@ -490,7 +490,7 @@ export const api = {
     request<any>("PATCH", `/api/lesson-contents/${contentId}`, data),
   deleteLessonContent: (contentId: string) => request<any>("DELETE", `/api/lesson-contents/${contentId}`),
   getLessonContentMediaSource: (contentId: string) =>
-    request<{ sourceUrl: string; proxySourceUrl?: string; mimeType: string }>(
+    request<{ sourceUrl: string; proxySourceUrl?: string; mimeType: string; brandedIntroDuration?: number }>(
       "GET",
       `/api/lesson-contents/${contentId}/media-source`,
     ),

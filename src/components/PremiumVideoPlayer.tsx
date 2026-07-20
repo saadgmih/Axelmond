@@ -18,9 +18,16 @@ const CONTROLS_HIDE_DELAY_MS = 1600;
 const VOLUME_CONTROL_CLOSE_DELAY_MS = 250;
 const VIDEO_MAX_AUTOMATIC_RETRIES = 2;
 const VIDEO_RETRY_BASE_DELAY_MS = 500;
+const MAX_BRANDED_INTRO_DURATION_SECONDS = 30;
 
 type VideoLoadState = "LOADING" | "READY" | "BUFFERING" | "PLAYING" | "PAUSED" | "ERROR";
 type VideoSourceKind = "DIRECT" | "PROXY";
+
+function normalizeBrandedIntroDuration(value: unknown): number {
+  const duration = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(duration) || duration < 0.5 || duration > MAX_BRANDED_INTRO_DURATION_SECONDS) return 0;
+  return duration;
+}
 
 function sanitizeLessonMediaProxyUrl(value: unknown, contentId: string): string | null {
   const expected = `/api/lesson-contents/${encodeURIComponent(contentId)}/media`;
@@ -48,6 +55,7 @@ export default function PremiumVideoPlayer({
   const [sourceResolutionVersion, setSourceResolutionVersion] = useState(0);
   const [resolvedSrc, setResolvedSrc] = useState(contentId ? "" : src);
   const [proxySrc, setProxySrc] = useState("");
+  const [brandedIntroDuration, setBrandedIntroDuration] = useState(0);
   const [videoLoadState, setVideoLoadState] = useState<VideoLoadState>("LOADING");
   const automaticRetryCountRef = useRef(0);
   const automaticRetryTimeoutRef = useRef<number | null>(null);
@@ -140,6 +148,7 @@ export default function PremiumVideoPlayer({
     setVideoLoadState("LOADING");
     setSourceVersion(0);
     setProxySrc("");
+    setBrandedIntroDuration(0);
     activeSourceKindRef.current = "DIRECT";
     return clearAutomaticRetryTimeout;
   }, [clearAutomaticRetryTimeout, contentId, src]);
@@ -147,6 +156,7 @@ export default function PremiumVideoPlayer({
   useEffect(() => {
     let active = true;
     if (!contentId) {
+      setBrandedIntroDuration(0);
       setResolvedSrc(src);
       return () => {
         active = false;
@@ -157,12 +167,13 @@ export default function PremiumVideoPlayer({
     setResolvedSrc("");
     void api
       .getLessonContentMediaSource(contentId)
-      .then(({ sourceUrl, proxySourceUrl }) => {
+      .then(({ sourceUrl, proxySourceUrl, brandedIntroDuration: resolvedIntroDuration }) => {
         if (!active) return;
         const safeSource = sanitizeCourseAttachmentUrl(sourceUrl);
         const safeProxySource = sanitizeLessonMediaProxyUrl(proxySourceUrl, contentId);
         if (!safeSource && !safeProxySource) throw new Error("Source vidéo non autorisée");
         setProxySrc(safeProxySource || "");
+        setBrandedIntroDuration(normalizeBrandedIntroDuration(resolvedIntroDuration));
         activeSourceKindRef.current = safeSource ? "DIRECT" : "PROXY";
         setResolvedSrc(safeSource || safeProxySource || "");
         setSourceVersion((current) => current + 1);
@@ -292,6 +303,12 @@ export default function PremiumVideoPlayer({
     videoLoadState === "BUFFERING" ||
     videoLoadState === "ERROR";
   const volumePercent = Math.round(volume * 100);
+  const brandedIntroVisible =
+    brandedIntroDuration > 0 && currentTime < brandedIntroDuration && videoLoadState !== "ERROR";
+  const introFadeInProgress = Math.min(1, Math.max(0, currentTime / 0.75));
+  const introFadeOutProgress = Math.min(1, Math.max(0, (brandedIntroDuration - currentTime) / 0.55));
+  const brandSignatureOpacity = Math.min(introFadeInProgress, introFadeOutProgress);
+  const brandSignatureScale = 0.96 + introFadeInProgress * 0.04;
   const overlayButtonClass = showMetadata ? "w-20 h-20" : "w-14 h-14";
   const overlayIconClass = showMetadata ? "w-10 h-10" : "w-7 h-7";
 
@@ -311,7 +328,7 @@ export default function PremiumVideoPlayer({
         preload="metadata"
         playsInline
         controlsList="nodownload"
-        className="w-full h-full object-contain"
+        className={`h-full w-full object-contain transition-opacity duration-150 ${brandedIntroVisible ? "opacity-0" : "opacity-100"}`}
         onContextMenu={(e) => e.preventDefault()}
         onLoadStart={() => setVideoLoadState("LOADING")}
         onLoadedMetadata={() => {
@@ -328,6 +345,29 @@ export default function PremiumVideoPlayer({
         onPause={() => setVideoLoadState("PAUSED")}
         onError={handleVideoError}
       />
+
+      {brandedIntroVisible && (
+        <div
+          data-testid="branded-video-intro"
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-[1] flex items-center justify-center bg-slate-950"
+        >
+          <div
+            className="flex flex-col items-center gap-5 transition-[opacity,transform] duration-200 ease-out"
+            style={{ opacity: brandSignatureOpacity, transform: `scale(${brandSignatureScale})` }}
+          >
+            <img
+              src="/performance-logo-003a24a4-192.png"
+              alt=""
+              className="h-auto w-28 drop-shadow-[0_10px_24px_rgba(16,185,129,0.14)] sm:w-32 lg:w-36"
+              draggable={false}
+            />
+            <p className="text-center text-sm font-black uppercase tracking-[0.035em] text-emerald-50 sm:text-base lg:text-lg">
+              Performance Académique
+            </p>
+          </div>
+        </div>
+      )}
 
       <div
         className={`absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-950/20 transition-opacity duration-300 ${centerOverlayVisible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}

@@ -191,10 +191,29 @@ export async function resolveLessonContentMediaSource(contentId: string, authUse
   const safeUrl = sanitizeCourseAttachmentUrl(attachment.url);
   if (!safeUrl) return { ok: false as const, status: 403, error: "URL de la vidéo non autorisée" };
 
+  const brandingJob = await prisma.videoProcessingJob.findUnique({
+    where: { contentId },
+    select: {
+      status: true,
+      outputVideoPath: true,
+      sourceDuration: true,
+      outputDuration: true,
+    },
+  });
+  const measuredIntroDuration =
+    brandingJob?.status === "READY" && brandingJob.outputVideoPath === safeUrl
+      ? (brandingJob.outputDuration ?? 0) - (brandingJob.sourceDuration ?? 0)
+      : 0;
+  const brandedIntroDuration =
+    Number.isFinite(measuredIntroDuration) && measuredIntroDuration >= 0.5 && measuredIntroDuration <= 30
+      ? measuredIntroDuration
+      : 0;
+
   return {
     ok: true as const,
     sourceUrl: safeUrl,
     mimeType: attachment.mimeType || "video/mp4",
+    brandedIntroDuration,
   };
 }
 
