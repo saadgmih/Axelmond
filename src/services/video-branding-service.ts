@@ -21,6 +21,11 @@ export interface VideoInfo {
 }
 
 const MAX_BRANDING_LONG_EDGE = 1280;
+// H.264's limited-range YUV conversion decodes this source color to #031512,
+// which matches --pa-neutral-950 / bg-slate-950 in src/index.css exactly.
+// Keeping the compensation here makes portrait intros disappear into the
+// player's pillarbox instead of looking like a separate clip.
+const VIDEO_PLAYER_BACKGROUND_SOURCE_COLOR = "0x051714";
 const DEFAULT_BRAND_LOGO_PATH = path.join("public", "performance-logo-003a24a4-192.png");
 const DEFAULT_BRAND_FONT_PATH = path.join("node_modules", "pdfjs-dist", "standard_fonts", "LiberationSans-Bold.ttf");
 const LOW_MEMORY_VIDEO_ENCODING_ARGS = [
@@ -150,15 +155,13 @@ async function generateAnimatedBrandIntro(
   const logoSize = Math.round(Math.min(width, height) * (portrait ? 0.44 : 0.38));
   const logoOffset = portrait ? Math.round(height * 0.085) : Math.round(height * 0.075);
   const titleSize = Math.max(28, Math.round(Math.min(width, height) * (portrait ? 0.05 : 0.052)));
-  const subtitleSize = Math.max(16, Math.round(titleSize * 0.46));
-  const titleY = Math.round(height / 2 + logoSize / 2 - logoOffset + titleSize * 0.95);
-  const subtitleY = Math.round(titleY + titleSize * 1.55);
+  const titleY = Math.round(height / 2 + logoSize / 2 - logoOffset + titleSize * 0.7);
   const escapedFontPath = escapeFilterPath(fontPath);
   const filter = [
-    `[0:v]vignette=angle=PI/5,drawbox=x='-iw+(t/1.5)*iw':y='ih/2-2':w=iw:h=4:color=0x34d399@0.34:t=fill:enable='between(t\\,0\\,1.5)'[background]`,
-    `[1:v]format=rgba,scale=w=${logoSize}:h=-2,fade=t=in:st=0.10:d=0.65:alpha=1,fade=t=out:st=${Math.max(0, duration - 0.75)}:d=0.65:alpha=1[logo]`,
+    `[0:v]null[background]`,
+    `[1:v]format=rgba,scale=w=${logoSize}:h=-2[logo]`,
     `[background][logo]overlay=x='(W-w)/2':y='(H-h)/2-${logoOffset}':shortest=1[brand]`,
-    `[brand]drawtext=fontfile='${escapedFontPath}':text='PERFORMANCE ACADEMIQUE':fontcolor=0xf3fff9:fontsize=${titleSize}:x='(w-text_w)/2':y=${titleY}:enable='between(t\\,0.85\\,${Math.max(0.85, duration - 0.35)})',drawtext=fontfile='${escapedFontPath}':text='EXCELLENCE  -  SAVOIR  -  AVENIR':fontcolor=0x5ee9c1:fontsize=${subtitleSize}:x='(w-text_w)/2':y=${subtitleY}:enable='between(t\\,1.25\\,${Math.max(1.25, duration - 0.35)})',fade=t=out:st=${Math.max(0, duration - 0.35)}:d=0.35[outv]`,
+    `[brand]drawtext=fontfile='${escapedFontPath}':text='PERFORMANCE ACADEMIQUE':fontcolor=0xf3fff9:fontsize=${titleSize}:x='(w-text_w)/2':y=${titleY},fade=t=in:st=0.08:d=0.72:color=${VIDEO_PLAYER_BACKGROUND_SOURCE_COLOR},fade=t=out:st=${Math.max(0, duration - 0.55)}:d=0.55:color=${VIDEO_PLAYER_BACKGROUND_SOURCE_COLOR}[outv]`,
   ].join(";");
   const temporaryPath = path.join(
     path.dirname(targetPath),
@@ -172,7 +175,7 @@ async function generateAnimatedBrandIntro(
         "-f",
         "lavfi",
         "-i",
-        `color=c=0x001a15:s=${width}x${height}:r=30:d=${duration}`,
+        `color=c=${VIDEO_PLAYER_BACKGROUND_SOURCE_COLOR}:s=${width}x${height}:r=30:d=${duration}`,
         "-loop",
         "1",
         "-framerate",

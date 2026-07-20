@@ -393,7 +393,7 @@ describe("Video Branding Automatic Pipeline", () => {
       const config = await getBrandingConfig();
       expect(config).toBeDefined();
       expect(config.introAssetId).toBe("performance-academique-animated");
-      expect(config.introVersion).toBe(2);
+      expect(config.introVersion).toBe(DEFAULT_VIDEO_INTRO_CONFIG.introVersion);
       expect(config.introEnabled).toBe(true);
     });
 
@@ -402,6 +402,16 @@ describe("Video Branding Automatic Pipeline", () => {
 
       const migrated = await getBrandingConfig();
       expect(migrated.introAssetId).toBe(DEFAULT_VIDEO_INTRO_CONFIG.introAssetId);
+      expect(migrated.introVersion).toBe(DEFAULT_VIDEO_INTRO_CONFIG.introVersion);
+    });
+
+    it("migrates an older bundled animated intro to the current visual version", async () => {
+      await updateBrandingConfig({
+        introAssetId: DEFAULT_VIDEO_INTRO_CONFIG.introAssetId,
+        introVersion: DEFAULT_VIDEO_INTRO_CONFIG.introVersion - 1,
+      });
+
+      const migrated = await getBrandingConfig();
       expect(migrated.introVersion).toBe(DEFAULT_VIDEO_INTRO_CONFIG.introVersion);
     });
 
@@ -739,11 +749,11 @@ describe("Video Branding Automatic Pipeline", () => {
         },
       });
 
-      expect(await queueUnbrandedVideoJobs(2)).toBe(1);
-      expect(await queueUnbrandedVideoJobs(2)).toBe(0);
+      expect(await queueUnbrandedVideoJobs(3)).toBe(1);
+      expect(await queueUnbrandedVideoJobs(3)).toBe(0);
       const upgradedJob = await prisma.videoProcessingJob.findUnique({ where: { id: job.id } });
       expect(upgradedJob?.status).toBe("QUEUED");
-      expect(upgradedJob?.introVersion).toBe(2);
+      expect(upgradedJob?.introVersion).toBe(3);
       expect(upgradedJob?.sourceVideoPath).toBe("https://example.com/original-unbranded.mp4");
 
       await prisma.videoProcessingJob.delete({ where: { id: job.id } });

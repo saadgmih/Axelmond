@@ -25,7 +25,7 @@ export function shouldQueueVideoBranding(
 
 export const DEFAULT_VIDEO_INTRO_CONFIG: VideoIntroConfig = {
   introAssetId: "performance-academique-animated",
-  introVersion: 2,
+  introVersion: 3,
   introFilePathLandscape: "videos/intros/intro-landscape.mp4",
   introFilePathPortrait: "videos/intros/intro-portrait.mp4",
   introDuration: 5.0,
@@ -45,10 +45,13 @@ function mergeWithDefaults(value: Partial<VideoIntroConfig>): VideoIntroConfig {
   };
 }
 
-function migrateLegacyDefaultIntro(value: Partial<VideoIntroConfig>): VideoIntroConfig | null {
+function migrateBundledIntro(value: Partial<VideoIntroConfig>): VideoIntroConfig | null {
   const version = value.introVersion ?? 1;
-  const usesLegacyDefault = !value.introAssetId || value.introAssetId === "default-intro";
-  if (!usesLegacyDefault || version >= DEFAULT_VIDEO_INTRO_CONFIG.introVersion) return null;
+  const usesBundledIntro =
+    !value.introAssetId ||
+    value.introAssetId === "default-intro" ||
+    value.introAssetId === DEFAULT_VIDEO_INTRO_CONFIG.introAssetId;
+  if (!usesBundledIntro || version >= DEFAULT_VIDEO_INTRO_CONFIG.introVersion) return null;
 
   return {
     ...mergeWithDefaults(value),
@@ -76,14 +79,14 @@ export async function getBrandingConfig(): Promise<VideoIntroConfig> {
       return DEFAULT_VIDEO_INTRO_CONFIG;
     }
     const val = setting.value as unknown as Partial<VideoIntroConfig>;
-    const migrated = migrateLegacyDefaultIntro(val);
+    const migrated = migrateBundledIntro(val);
     if (migrated) {
       await prisma.siteSetting.upsert({
         where: { key: CONFIG_KEY },
         update: { value: migrated as any },
         create: { key: CONFIG_KEY, value: migrated as any },
       });
-      console.log("[branding-config] Migrated the legacy black intro to the animated brand intro.");
+      console.log("[branding-config] Migrated the bundled intro to the current visual version.");
       return migrated;
     }
     return mergeWithDefaults(val);
