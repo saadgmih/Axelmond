@@ -41,7 +41,7 @@ export function runCommand(
 
 export function isVideoBrandingToolUnavailableError(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
-  return /spawn .*ff(?:mpeg|probe)(?:\.exe)? ENOENT/i.test(message);
+  return /spawn .*ff(?:mpeg|probe)(?:\.exe)? (?:ENOENT|EACCES)/i.test(message);
 }
 
 export async function verifyVideoBrandingTools(): Promise<void> {

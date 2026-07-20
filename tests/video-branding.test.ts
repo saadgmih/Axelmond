@@ -241,6 +241,7 @@ describe("Video Branding Automatic Pipeline", () => {
     it("recognizes missing ffmpeg and ffprobe binaries", () => {
       expect(isVideoBrandingToolUnavailableError(new Error("spawn ffprobe ENOENT"))).toBe(true);
       expect(isVideoBrandingToolUnavailableError(new Error("spawn ffmpeg ENOENT"))).toBe(true);
+      expect(isVideoBrandingToolUnavailableError(new Error("spawn /app/ffmpeg EACCES"))).toBe(true);
       expect(isVideoBrandingToolUnavailableError(new Error("Invalid video stream"))).toBe(false);
     });
   });
