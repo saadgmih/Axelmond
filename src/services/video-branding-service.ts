@@ -368,6 +368,8 @@ export async function processVideoJob(jobId: string, signal?: AbortSignal): Prom
       String(thumbTime),
       "-i",
       finalOutputPath,
+      "-threads",
+      "1",
       "-vframes",
       "1",
       "-q:v",
