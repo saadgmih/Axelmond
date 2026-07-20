@@ -87,6 +87,26 @@ const dbMocks = vi.hoisted(() => {
                 ],
         };
       }),
+      findMany: vi.fn().mockImplementation(async () =>
+        Object.values(lessons).map((lesson: any) => ({
+          id: lesson.id,
+          createdById: lesson.createdById || "user-1",
+          attachments: Object.values(attachments)
+            .filter((attachment: any) => attachment.contentId === lesson.id)
+            .map((attachment: any) => ({ url: attachment.url, createdById: "user-1" })),
+        })),
+      ),
+      updateMany: vi.fn().mockImplementation(async ({ where, data }) => {
+        const ids = where.id?.in || [];
+        let count = 0;
+        ids.forEach((id: string) => {
+          if (lessons[id]) {
+            Object.assign(lessons[id], data);
+            count += 1;
+          }
+        });
+        return { count };
+      }),
       delete: vi.fn().mockImplementation(async ({ where }) => {
         const lesson = lessons[where.id];
         delete lessons[where.id];
@@ -118,12 +138,30 @@ const dbMocks = vi.hoisted(() => {
         return job;
       }),
       updateMany: vi.fn().mockImplementation(async ({ where, data }) => {
+        let count = 0;
         Object.values(jobs).forEach((job) => {
-          if (where.status && where.status.in && where.status.in.includes(job.status)) {
+          const idMatches = !where.id || where.id === job.id;
+          if (idMatches && where.status && where.status.in && where.status.in.includes(job.status)) {
             job.status = data.status;
+            count += 1;
           }
         });
-        return { count: 1 };
+        return { count };
+      }),
+      findMany: vi.fn().mockImplementation(async ({ where }) =>
+        Object.values(jobs)
+          .filter((job: any) => !where.contentId?.in || where.contentId.in.includes(job.contentId))
+          .map((job: any) => ({ contentId: job.contentId })),
+      ),
+      createMany: vi.fn().mockImplementation(async ({ data }) => {
+        let count = 0;
+        data.forEach((item: any) => {
+          if (Object.values(jobs).some((job: any) => job.contentId === item.contentId)) return;
+          const id = `job-backfill-${Object.keys(jobs).length + 1}`;
+          jobs[id] = { id, ...item };
+          count += 1;
+        });
+        return { count };
       }),
       findUnique: vi.fn().mockImplementation(async ({ where }) => jobs[where.id] || null),
       findFirst: vi.fn().mockImplementation(async () => Object.values(jobs)[0] || null),
@@ -172,7 +210,11 @@ import {
   shouldQueueVideoBranding,
   updateBrandingConfig,
 } from "../src/services/video-branding-config";
-import { startVideoBrandingWorker, stopVideoBrandingWorker } from "../src/services/video-branding-worker";
+import {
+  queueUnbrandedVideoJobs,
+  startVideoBrandingWorker,
+  stopVideoBrandingWorker,
+} from "../src/services/video-branding-worker";
 import { getVideoBrandingExecutable } from "../src/services/video-branding-binaries";
 import { canViewLessonContent } from "../src/server/lesson-document";
 import { AppUser } from "../src/server/route-types";
@@ -498,6 +540,42 @@ describe("Video Branding Automatic Pipeline", () => {
   });
 
   describe("Worker execution and recovery", () => {
+    it("queues an existing video exactly once for automatic intro backfill", async () => {
+      const lesson = await prisma.lessonContent.create({
+        data: {
+          id: "legacy-video",
+          courseId: 123,
+          title: "Vidéo existante",
+          type: "VIDEO",
+          published: true,
+          status: "READY",
+          createdById: "user-1",
+          attachments: {
+            create: {
+              courseId: 123,
+              type: "VIDEO",
+              fileName: "legacy.mp4",
+              fileKey: "legacy-key",
+              url: "https://example.com/legacy.mp4",
+              size: 1024,
+            },
+          },
+        } as any,
+      });
+
+      expect(await queueUnbrandedVideoJobs(1)).toBe(1);
+      expect(await queueUnbrandedVideoJobs(1)).toBe(0);
+      const updatedLesson = await prisma.lessonContent.findUnique({ where: { id: lesson.id } });
+      expect(updatedLesson?.status).toBe("PROCESSING");
+
+      const job = await prisma.videoProcessingJob.findFirst({ where: { contentId: lesson.id } });
+      expect(job?.sourceVideoPath).toBe("https://example.com/legacy.mp4");
+
+      await prisma.videoProcessingJob.delete({ where: { id: job!.id } });
+      await prisma.attachment.deleteMany({ where: { contentId: lesson.id } });
+      await prisma.lessonContent.delete({ where: { id: lesson.id } });
+    });
+
     it("starts and stops the worker cleanly", async () => {
       await startVideoBrandingWorker();
       stopVideoBrandingWorker();

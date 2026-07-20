@@ -4,6 +4,73 @@ import { getBrandingConfig, shouldQueueVideoBranding } from "./video-branding-co
 
 let workerInterval: NodeJS.Timeout | null = null;
 let isProcessing = false;
+const INTERRUPTED_JOB_STALE_MS = 15 * 60 * 1000;
+
+export async function queueUnbrandedVideoJobs(introVersion: number): Promise<number> {
+  const videos = await prisma.lessonContent.findMany({
+    where: {
+      type: "VIDEO",
+      attachments: { some: { type: "VIDEO" } },
+    },
+    select: {
+      id: true,
+      createdById: true,
+      attachments: {
+        where: { type: "VIDEO" },
+        orderBy: { createdAt: "asc" },
+        take: 1,
+        select: { url: true, createdById: true },
+      },
+    },
+  });
+
+  if (videos.length === 0) return 0;
+
+  const existingJobs = await prisma.videoProcessingJob.findMany({
+    where: { contentId: { in: videos.map((video) => video.id) } },
+    select: { contentId: true },
+  });
+  const contentIdsWithJobs = new Set(existingJobs.map((job) => job.contentId));
+  const jobsToCreate = videos.flatMap((video) => {
+    if (contentIdsWithJobs.has(video.id)) return [];
+    const attachment = video.attachments[0];
+    const uploadedByUserId = video.createdById || attachment?.createdById;
+    if (!attachment?.url || !uploadedByUserId) {
+      console.warn(`[video-branding-worker] Cannot backfill video ${video.id}: source or owner is missing.`);
+      return [];
+    }
+    return [
+      {
+        contentId: video.id,
+        uploadedByUserId,
+        sourceVideoPath: attachment.url,
+        status: "UPLOADED" as const,
+        progressPercent: 0,
+        currentStep: "Vidéo existante en attente de l'intro Performance Académique...",
+        introVersion,
+      },
+    ];
+  });
+
+  if (jobsToCreate.length === 0) return 0;
+
+  const createdCount = await prisma.$transaction(async (tx) => {
+    const created = await tx.videoProcessingJob.createMany({
+      data: jobsToCreate,
+      skipDuplicates: true,
+    });
+    await tx.lessonContent.updateMany({
+      where: { id: { in: jobsToCreate.map((job) => job.contentId) } },
+      data: { status: "PROCESSING" },
+    });
+    return created.count;
+  });
+
+  if (createdCount > 0) {
+    console.log(`[video-branding-worker] Queued ${createdCount} existing unbranded video(s).`);
+  }
+  return createdCount;
+}
 
 async function resetInterruptedJobs() {
   try {
@@ -20,6 +87,7 @@ async function resetInterruptedJobs() {
     const result = await prisma.videoProcessingJob.updateMany({
       where: {
         status: { in: interruptedStates as any },
+        updatedAt: { lt: new Date(Date.now() - INTERRUPTED_JOB_STALE_MS) },
       },
       data: {
         status: "QUEUED",
@@ -51,14 +119,13 @@ async function pollAndProcessJobs() {
     });
 
     if (nextJob) {
-      console.log(`[video-branding-worker] Starting processing of job: ${nextJob.id}`);
-
-      // Update status to QUEUED / Processing start
-      await prisma.videoProcessingJob.update({
-        where: { id: nextJob.id },
-        data: { status: "QUEUED", currentStep: "Démarrage du traitement..." },
+      const claimed = await prisma.videoProcessingJob.updateMany({
+        where: { id: nextJob.id, status: { in: ["UPLOADED", "QUEUED"] } },
+        data: { status: "VALIDATING", currentStep: "Démarrage du traitement..." },
       });
+      if (claimed.count === 0) return;
 
+      console.log(`[video-branding-worker] Starting processing of job: ${nextJob.id}`);
       await processVideoJob(nextJob.id);
     }
   } catch (error) {
@@ -80,6 +147,7 @@ export async function startVideoBrandingWorker() {
   await verifyVideoBrandingTools();
   console.log("[video-branding-worker] Starting video branding worker queue...");
   await resetInterruptedJobs();
+  await queueUnbrandedVideoJobs(config.introVersion);
 
   // Poll immediately and then every 5 seconds
   pollAndProcessJobs();
