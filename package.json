@@ -63,6 +63,8 @@
     "trailer": "npm run trailer:capture && npm run trailer:build"
   },
   "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@ffprobe-installer/ffprobe": "^2.1.2",
     "@paypal/react-paypal-js": "^8.9.2",
     "@prisma/adapter-pg": "^6.19.3",
     "@prisma/client": "^6.19.3",

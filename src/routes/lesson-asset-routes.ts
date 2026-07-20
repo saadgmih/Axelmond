@@ -104,9 +104,8 @@ export function registerLessonAssetRoutes(app: Express, ctx: RouteContext): void
               jobId = existingJob.id;
             }
           } else {
-            // Managed runtimes such as Hostinger Web App do not ship
-            // ffmpeg/ffprobe. The original confirmed upload remains the
-            // authoritative playable file in that case.
+            // Branding can only be bypassed through the explicit application
+            // configuration or the VIDEO_BRANDING_DISABLED emergency switch.
             await api.prisma.lessonContent.update({
               where: { id: result.content.id },
               data: { status: "READY" },

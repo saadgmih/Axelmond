@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const database = vi.hoisted(() => {
   const state: { promo: any; usages: any[]; priorPayments: number; userFiliere: string | null; sequence: number } = {
@@ -145,8 +145,14 @@ import {
 } from "../src/promo-code-service";
 
 beforeEach(() => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date("2026-07-15T12:00:00Z"));
   vi.clearAllMocks();
   database.reset();
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 function reserve(userId = "student-1", courseId = 42) {

@@ -173,6 +173,7 @@ import {
   updateBrandingConfig,
 } from "../src/services/video-branding-config";
 import { startVideoBrandingWorker, stopVideoBrandingWorker } from "../src/services/video-branding-worker";
+import { getVideoBrandingExecutable } from "../src/services/video-branding-binaries";
 import { canViewLessonContent } from "../src/server/lesson-document";
 import { AppUser } from "../src/server/route-types";
 
@@ -222,11 +223,19 @@ const SRC_LANDSCAPE_NO_AUDIO = path.join(TEST_DIR, "src_landscape_no_audio.mp4")
 const SRC_PORTRAIT_AUDIO = path.join(TEST_DIR, "src_portrait_audio.mp4");
 
 describe("Video Branding Automatic Pipeline", () => {
-  describe("managed runtime fallback", () => {
-    it("does not queue ffmpeg branding on Hostinger Web App", () => {
-      expect(shouldQueueVideoBranding({ introEnabled: true }, { HOSTINGER_WEBAPP: "1" })).toBe(false);
+  describe("runtime activation", () => {
+    it("queues automatic branding on Hostinger Web App", () => {
+      expect(shouldQueueVideoBranding({ introEnabled: true }, { HOSTINGER_WEBAPP: "1" })).toBe(true);
       expect(shouldQueueVideoBranding({ introEnabled: true }, {})).toBe(true);
       expect(shouldQueueVideoBranding({ introEnabled: false }, {})).toBe(false);
+      expect(shouldQueueVideoBranding({ introEnabled: true }, { VIDEO_BRANDING_DISABLED: "true" })).toBe(false);
+    });
+
+    it("resolves packaged binaries with optional operator overrides", () => {
+      expect(fs.existsSync(getVideoBrandingExecutable("ffmpeg"))).toBe(true);
+      expect(fs.existsSync(getVideoBrandingExecutable("ffprobe"))).toBe(true);
+      expect(getVideoBrandingExecutable("ffmpeg", { FFMPEG_PATH: " /custom/ffmpeg " })).toBe("/custom/ffmpeg");
+      expect(getVideoBrandingExecutable("ffprobe", { FFPROBE_PATH: " /custom/ffprobe " })).toBe("/custom/ffprobe");
     });
 
     it("recognizes missing ffmpeg and ffprobe binaries", () => {

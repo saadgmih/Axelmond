@@ -6,6 +6,11 @@ import { utapi } from "../uploadthing-api";
 import { getBrandingConfig, VideoIntroConfig } from "./video-branding-config";
 import { syncPublishedLessonModules } from "../course-curriculum-sync";
 import { notifyPublishedLessonContent } from "../academic-notifications";
+import {
+  getVideoBrandingBinaryInfo,
+  getVideoBrandingExecutable,
+  type VideoBrandingExecutable,
+} from "./video-branding-binaries";
 
 export interface VideoInfo {
   width: number;
@@ -15,11 +20,19 @@ export interface VideoInfo {
   sizeBytes: number;
 }
 
-export function runCommand(executable: string, args: string[]): Promise<{ stdout: string; stderr: string }> {
+export function runCommand(
+  executable: VideoBrandingExecutable,
+  args: string[],
+): Promise<{ stdout: string; stderr: string }> {
+  const resolvedExecutable = getVideoBrandingExecutable(executable);
   return new Promise((resolve, reject) => {
-    execFile(executable, args, { maxBuffer: 10 * 1024 * 1024 }, (err, stdout, stderr) => {
+    execFile(resolvedExecutable, args, { maxBuffer: 10 * 1024 * 1024 }, (err, stdout, stderr) => {
       if (err) {
-        return reject(new Error(`Failed to run ${executable} ${args.join(" ")}: ${err.message}\nStderr: ${stderr}`));
+        return reject(
+          new Error(
+            `Failed to run ${executable} (${resolvedExecutable}) ${args.join(" ")}: ${err.message}\nStderr: ${stderr}`,
+          ),
+        );
       }
       resolve({ stdout, stderr });
     });
@@ -28,26 +41,21 @@ export function runCommand(executable: string, args: string[]): Promise<{ stdout
 
 export function isVideoBrandingToolUnavailableError(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
-  return /spawn (?:ffmpeg|ffprobe) ENOENT/i.test(message);
+  return /spawn .*ff(?:mpeg|probe)(?:\.exe)? ENOENT/i.test(message);
 }
 
-function hasRecognizedVideoSignature(filePath: string): boolean {
-  try {
-    const file = fs.openSync(filePath, "r");
-    try {
-      const bytes = Buffer.alloc(12);
-      const bytesRead = fs.readSync(file, bytes, 0, bytes.length, 0);
-      if (bytesRead < 4) return false;
-      const isMp4 = bytesRead >= 8 && bytes.subarray(4, 8).toString("ascii") === "ftyp";
-      const isWebm = bytes.subarray(0, 4).equals(Buffer.from([0x1a, 0x45, 0xdf, 0xa3]));
-      const isOgg = bytes.subarray(0, 4).toString("ascii") === "OggS";
-      return isMp4 || isWebm || isOgg;
-    } finally {
-      fs.closeSync(file);
-    }
-  } catch {
-    return false;
-  }
+export async function verifyVideoBrandingTools(): Promise<void> {
+  const binaries = getVideoBrandingBinaryInfo();
+  await Promise.all([runCommand("ffmpeg", ["-version"]), runCommand("ffprobe", ["-version"])]);
+  console.log("[branding-service] Bundled video tools are ready.", {
+    ffmpegVersion: binaries.ffmpegVersion,
+    ffprobeVersion: binaries.ffprobeVersion,
+  });
+}
+
+function concatFileEntry(filePath: string): string {
+  const portablePath = path.resolve(filePath).replace(/\\/g, "/").replace(/'/g, "'\\''");
+  return `file '${portablePath}'`;
 }
 
 export async function probeVideo(filePath: string): Promise<VideoInfo> {
@@ -304,7 +312,10 @@ export async function processVideoJob(jobId: string): Promise<void> {
     });
 
     const concatListPath = path.join(workDir, "concat.txt");
-    fs.writeFileSync(concatListPath, `file 'normalized_intro.mp4'\nfile 'normalized_user.mp4'\n`);
+    fs.writeFileSync(
+      concatListPath,
+      `${concatFileEntry(normalizedIntroPath)}\n${concatFileEntry(normalizedUserPath)}\n`,
+    );
 
     console.log(`[branding-service] Concatenating intro and user video...`);
     await runCommand("ffmpeg", [
@@ -445,44 +456,23 @@ export async function processVideoJob(jobId: string): Promise<void> {
     console.log(`[branding-service] Video job ${jobId} finished successfully.`);
   } catch (error: any) {
     console.error(`[branding-service] Job ${jobId} failed:`, error);
-    const originalVideoCanBeUsed =
-      isVideoBrandingToolUnavailableError(error) && hasRecognizedVideoSignature(originalPath);
     await prisma.videoProcessingJob.update({
       where: { id: jobId },
       data: {
         status: "FAILED",
-        currentStep: originalVideoCanBeUsed
-          ? "Outils vidéo indisponibles ; la vidéo originale reste publiée."
-          : "Le traitement a échoué.",
-        errorCode: originalVideoCanBeUsed ? "VIDEO_TOOL_UNAVAILABLE" : "FFMPEG_ERROR",
+        currentStep: "Le traitement a échoué. La vidéo n'a pas été publiée sans son intro.",
+        errorCode: isVideoBrandingToolUnavailableError(error) ? "VIDEO_TOOL_UNAVAILABLE" : "FFMPEG_ERROR",
         errorMessage: error.message || String(error),
         failedAt: new Date(),
       },
     });
 
-    const fallbackContent = await prisma.lessonContent
+    await prisma.lessonContent
       .update({
         where: { id: job.contentId },
-        data: { status: originalVideoCanBeUsed ? "READY" : "FAILED" },
+        data: { status: "FAILED" },
       })
       .catch(() => null);
-
-    if (originalVideoCanBeUsed && fallbackContent?.published) {
-      await syncPublishedLessonModules(fallbackContent.courseId).catch((syncError) => {
-        console.error(`[branding-service] Original video curriculum sync failed:`, syncError);
-      });
-      await notifyPublishedLessonContent({
-        contentId: fallbackContent.id,
-        courseId: fallbackContent.courseId,
-        contentTitle: fallbackContent.title,
-        contentType: fallbackContent.type,
-        published: fallbackContent.published,
-        actorId: job.uploadedByUserId,
-        sourceEvent: "LESSON_ASSET_PUBLISHED",
-      }).catch((notificationError) => {
-        console.error(`[branding-service] Original video notification failed:`, notificationError);
-      });
-    }
   } finally {
     // Cleanup temporary files
     try {

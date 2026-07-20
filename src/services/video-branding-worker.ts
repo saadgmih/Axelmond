@@ -1,5 +1,5 @@
 import { prisma } from "../db";
-import { processVideoJob } from "./video-branding-service";
+import { processVideoJob, verifyVideoBrandingTools } from "./video-branding-service";
 import { getBrandingConfig, shouldQueueVideoBranding } from "./video-branding-config";
 
 let workerInterval: NodeJS.Timeout | null = null;
@@ -73,10 +73,11 @@ export async function startVideoBrandingWorker() {
 
   const config = await getBrandingConfig();
   if (!shouldQueueVideoBranding(config)) {
-    console.log("[video-branding-worker] Disabled for this runtime; original uploaded videos remain playable.");
+    console.log("[video-branding-worker] Disabled by configuration.");
     return;
   }
 
+  await verifyVideoBrandingTools();
   console.log("[video-branding-worker] Starting video branding worker queue...");
   await resetInterruptedJobs();
 
