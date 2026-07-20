@@ -206,6 +206,7 @@ vi.mock("../src/db", () => ({
 
 import { prisma } from "../src/db";
 import {
+  getBrandingTargetDimensions,
   isVideoBrandingToolUnavailableError,
   probeVideo,
   runCommand,
@@ -291,6 +292,13 @@ describe("Video Branding Automatic Pipeline", () => {
       expect(isVideoBrandingToolUnavailableError(new Error("spawn ffmpeg ENOENT"))).toBe(true);
       expect(isVideoBrandingToolUnavailableError(new Error("spawn /app/ffmpeg EACCES"))).toBe(true);
       expect(isVideoBrandingToolUnavailableError(new Error("Invalid video stream"))).toBe(false);
+    });
+
+    it("keeps source dimensions within the low-memory 720p-equivalent limit", () => {
+      expect(getBrandingTargetDimensions(1080, 1920)).toEqual({ width: 720, height: 1280 });
+      expect(getBrandingTargetDimensions(1920, 1080)).toEqual({ width: 1280, height: 720 });
+      expect(getBrandingTargetDimensions(576, 1024)).toEqual({ width: 576, height: 1024 });
+      expect(getBrandingTargetDimensions(320, 241)).toEqual({ width: 320, height: 240 });
     });
   });
 

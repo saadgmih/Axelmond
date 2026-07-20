@@ -20,6 +20,30 @@ export interface VideoInfo {
   sizeBytes: number;
 }
 
+const MAX_BRANDING_LONG_EDGE = 1280;
+const LOW_MEMORY_VIDEO_ENCODING_ARGS = [
+  "-c:v",
+  "libx264",
+  "-preset",
+  "veryfast",
+  "-threads",
+  "1",
+  "-crf",
+  "23",
+  "-pix_fmt",
+  "yuv420p",
+  "-r",
+  "30",
+];
+
+export function getBrandingTargetDimensions(width: number, height: number): { width: number; height: number } {
+  const safeWidth = Math.max(2, Math.floor(width));
+  const safeHeight = Math.max(2, Math.floor(height));
+  const scale = Math.min(1, MAX_BRANDING_LONG_EDGE / Math.max(safeWidth, safeHeight));
+  const even = (value: number) => Math.max(2, Math.floor((value * scale) / 2) * 2);
+  return { width: even(safeWidth), height: even(safeHeight) };
+}
+
 export function runCommand(
   executable: VideoBrandingExecutable,
   args: string[],
@@ -122,17 +146,14 @@ export async function ensureDefaultIntros(config: VideoIntroConfig) {
       "-f",
       "lavfi",
       "-i",
-      "color=c=black:s=1920x1080:d=5",
+      "color=c=black:s=1280x720:d=5",
       "-f",
       "lavfi",
       "-i",
       "anullsrc=cl=stereo:r=48000",
-      "-c:v",
-      "libx264",
+      ...LOW_MEMORY_VIDEO_ENCODING_ARGS,
       "-t",
       "5",
-      "-pix_fmt",
-      "yuv420p",
       "-c:a",
       "aac",
       "-shortest",
@@ -147,17 +168,14 @@ export async function ensureDefaultIntros(config: VideoIntroConfig) {
       "-f",
       "lavfi",
       "-i",
-      "color=c=black:s=1080x1920:d=5",
+      "color=c=black:s=720x1280:d=5",
       "-f",
       "lavfi",
       "-i",
       "anullsrc=cl=stereo:r=48000",
-      "-c:v",
-      "libx264",
+      ...LOW_MEMORY_VIDEO_ENCODING_ARGS,
       "-t",
       "5",
-      "-pix_fmt",
-      "yuv420p",
       "-c:a",
       "aac",
       "-shortest",
@@ -215,10 +233,12 @@ export async function processVideoJob(jobId: string): Promise<void> {
       throw new Error("La durée de la vidéo dépasse la limite autorisée de 4 heures.");
     }
 
-    // Determine landscape vs portrait
+    // Preserve the uploaded resolution without upscaling and cap large videos at 720p-equivalent.
+    // A single x264 thread keeps memory usage predictable on constrained web-app hosting.
     const isLandscape = info.width >= info.height;
-    const targetW = isLandscape ? 1920 : 1080;
-    const targetH = isLandscape ? 1080 : 1920;
+    const target = getBrandingTargetDimensions(info.width, info.height);
+    const targetW = target.width;
+    const targetH = target.height;
 
     const rawIntroPath = isLandscape ? config.introFilePathLandscape : config.introFilePathPortrait;
     const introPath = await resolveIntroFile(rawIntroPath, isLandscape ? "intro-landscape.mp4" : "intro-portrait.mp4");
@@ -241,12 +261,7 @@ export async function processVideoJob(jobId: string): Promise<void> {
       introPath,
       "-vf",
       `scale=w=${targetW}:h=${targetH}:force_original_aspect_ratio=decrease,pad=w=${targetW}:h=${targetH}:x=(${targetW}-iw)/2:y=(${targetH}-ih)/2:color=black,fps=30`,
-      "-c:v",
-      "libx264",
-      "-pix_fmt",
-      "yuv420p",
-      "-r",
-      "30",
+      ...LOW_MEMORY_VIDEO_ENCODING_ARGS,
       "-c:a",
       "aac",
       "-ar",
@@ -265,12 +280,7 @@ export async function processVideoJob(jobId: string): Promise<void> {
         originalPath,
         "-vf",
         `scale=w=${targetW}:h=${targetH}:force_original_aspect_ratio=decrease,pad=w=${targetW}:h=${targetH}:x=(${targetW}-iw)/2:y=(${targetH}-ih)/2:color=black,fps=30`,
-        "-c:v",
-        "libx264",
-        "-pix_fmt",
-        "yuv420p",
-        "-r",
-        "30",
+        ...LOW_MEMORY_VIDEO_ENCODING_ARGS,
         "-c:a",
         "aac",
         "-ar",
@@ -291,12 +301,7 @@ export async function processVideoJob(jobId: string): Promise<void> {
         "anullsrc=channel_layout=stereo:sample_rate=48000",
         "-vf",
         `scale=w=${targetW}:h=${targetH}:force_original_aspect_ratio=decrease,pad=w=${targetW}:h=${targetH}:x=(${targetW}-iw)/2:y=(${targetH}-ih)/2:color=black,fps=30`,
-        "-c:v",
-        "libx264",
-        "-pix_fmt",
-        "yuv420p",
-        "-r",
-        "30",
+        ...LOW_MEMORY_VIDEO_ENCODING_ARGS,
         "-c:a",
         "aac",
         "-shortest",

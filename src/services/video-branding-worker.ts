@@ -5,7 +5,8 @@ import { getBrandingConfig, shouldQueueVideoBranding } from "./video-branding-co
 let workerInterval: NodeJS.Timeout | null = null;
 let isProcessing = false;
 const INTERRUPTED_JOB_STALE_MS = 15 * 60 * 1000;
-const TOOL_FAILURE_PATTERN = /(?:spawn\s+\S*(?:ffmpeg|ffprobe)\S*.*(?:ENOENT|EACCES)|outils vidéo indisponibles)/i;
+const TOOL_FAILURE_PATTERN =
+  /(?:spawn\s+\S*(?:ffmpeg|ffprobe)\S*.*(?:ENOENT|EACCES)|outils vidéo indisponibles|error while opening encoder for output stream)/i;
 
 export async function queueUnbrandedVideoJobs(introVersion: number): Promise<number> {
   const videos = await prisma.lessonContent.findMany({
