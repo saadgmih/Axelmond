@@ -85,7 +85,7 @@ rulesTest("onboarding", () => {
   assert.match(tour, /MutationObserver/);
   assert.match(settings, /Relancer le tutoriel/);
   assert.match(topbar, /onRestartTutorial=\{onboarding\.restart\}/);
-  assert.match(topbar, /Relancer le tutoriel interactif/);
+  assert.match(settings, /Relancer le tutoriel interactif/);
   assert.match(css, /\.dark \.onboarding-card/);
   assert.match(fs.readFileSync("prisma/schema.prisma", "utf8"), /@@unique\(\[userId, flow, version\]\)/);
 });

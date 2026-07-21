@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Contrast, Eye, Minimize2, RotateCcw, Settings2, X } from "lucide-react";
+import { Bell, CircleHelp, Contrast, Eye, Minimize2, Settings2, X } from "lucide-react";
 import { useAccessibilityPreferences } from "../hooks/useAccessibilityPreferences";
 import { getFocusableElements, useFocusTrap } from "../hooks/useFocusTrap";
 import { computeFloatingPanelPosition, type FloatingPanelPosition } from "../utils/floating-panel-position";
@@ -10,9 +10,18 @@ const PANEL_Z_INDEX = 140;
 interface AccessibilityControlsProps {
   labeled?: boolean;
   onRestartTutorial?: () => void;
+  onOpenNotifications?: () => void;
+  notificationUnreadCount?: number;
+  activeView?: string;
 }
 
-export default function AccessibilityControls({ labeled = false, onRestartTutorial }: AccessibilityControlsProps) {
+export default function AccessibilityControls({
+  labeled = false,
+  onRestartTutorial,
+  onOpenNotifications,
+  notificationUnreadCount = 0,
+  activeView,
+}: AccessibilityControlsProps) {
   const { preferences, toggleHighContrast, toggleReduceMotion } = useAccessibilityPreferences();
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState<FloatingPanelPosition | null>(null);
@@ -172,19 +181,53 @@ export default function AccessibilityControls({ labeled = false, onRestartTutori
             {onRestartTutorial && (
               <button
                 type="button"
+                data-onboarding="help-menu"
                 onClick={() => {
                   setOpen(false);
                   onRestartTutorial();
                 }}
                 className="kbd-nav-focus flex w-full items-center gap-3 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3 py-3 text-left text-xs font-semibold text-emerald-100 transition-colors hover:border-emerald-400/50 hover:bg-emerald-500/20"
+                aria-label="Aide - Relancer le tutoriel interactif"
               >
-                <RotateCcw className="h-4 w-4 shrink-0 text-emerald-300" aria-hidden="true" />
+                <CircleHelp className="h-4 w-4 shrink-0 text-emerald-300" aria-hidden="true" />
                 <span>
-                  Relancer le tutoriel
+                  Aide
                   <span className="mt-0.5 block text-[10px] font-medium text-slate-400">
-                    Revoir à tout moment le parcours guidé de votre espace.
+                    Relancer le tutoriel et revoir le parcours guidé de votre espace.
                   </span>
                 </span>
+              </button>
+            )}
+
+            {onOpenNotifications && (
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  onOpenNotifications();
+                }}
+                aria-label="Notifications"
+                aria-current={activeView === "notifications" ? "page" : undefined}
+                className={`kbd-nav-focus flex w-full items-center justify-between gap-3 rounded-xl border px-3 py-3 text-left text-xs font-semibold transition-colors ${
+                  activeView === "notifications"
+                    ? "border-teal-400/50 bg-teal-950/30 text-teal-200"
+                    : "border-slate-700 bg-slate-950/60 text-slate-200 hover:border-slate-600"
+                }`}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <Bell className="h-4 w-4 shrink-0 text-teal-400" aria-hidden="true" />
+                  <div>
+                    <span>Notifications</span>
+                    <span className="mt-0.5 block text-[10px] font-medium text-slate-400">
+                      Consulter vos notifications et alertes académiques.
+                    </span>
+                  </div>
+                </div>
+                {notificationUnreadCount > 0 && (
+                  <span className="ml-2 flex h-[18px] min-w-[18px] shrink-0 items-center justify-center rounded-full bg-teal-500 px-1 text-[10px] font-black leading-none text-white shadow-lg shadow-teal-900/40">
+                    {notificationUnreadCount > 99 ? "99+" : notificationUnreadCount}
+                  </span>
+                )}
               </button>
             )}
 

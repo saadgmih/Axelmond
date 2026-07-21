@@ -273,27 +273,15 @@ export default function Topbar({
             <div className="w-full max-w-md basis-full lg:hidden">{catalogSearch}</div>
           )}
 
-          <div data-onboarding="help-menu">
-            <TopbarConsoleAction label="Aide" onClick={onboarding.restart} ariaLabel="Relancer le tutoriel interactif">
-              <CircleHelp className="topbar-console-action-icon" />
-            </TopbarConsoleAction>
-          </div>
-
           <div data-onboarding="platform-settings">
-            <AccessibilityControls labeled onRestartTutorial={onboarding.restart} />
+            <AccessibilityControls
+              labeled
+              onRestartTutorial={onboarding.restart}
+              onOpenNotifications={onOpenNotifications}
+              notificationUnreadCount={notificationUnreadCount}
+              activeView={activeView}
+            />
           </div>
-
-          {onOpenNotifications && (
-            <TopbarConsoleAction
-              label="Notifications"
-              onClick={onOpenNotifications}
-              ariaLabel="Ouvrir les notifications"
-              ariaCurrent={activeView === "notifications"}
-              badge={notificationUnreadCount}
-            >
-              <Bell className="topbar-console-action-icon" />
-            </TopbarConsoleAction>
-          )}
 
           <div className="hidden h-12 w-px bg-white/10 lg:block" aria-hidden="true" />
 
