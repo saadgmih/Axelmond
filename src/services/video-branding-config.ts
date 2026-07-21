@@ -25,10 +25,11 @@ export function shouldQueueVideoBranding(
 
 export const DEFAULT_VIDEO_INTRO_CONFIG: VideoIntroConfig = {
   introAssetId: "performance-academique-animated",
-  introVersion: 4,
+  introVersion: 5,
   introFilePathLandscape: "videos/intros/intro-landscape.mp4",
   introFilePathPortrait: "videos/intros/intro-portrait.mp4",
-  introDuration: 3.0,
+  // 70% faster than the previous 3-second intro (3 / 1.7 = ~1.76s).
+  introDuration: 1.75,
   introEnabled: true,
 };
 

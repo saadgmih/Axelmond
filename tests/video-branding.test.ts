@@ -447,7 +447,7 @@ describe("Video Branding Automatic Pipeline", () => {
 
       const frameStats = await runCommand("ffmpeg", [
         "-ss",
-        "2",
+        String(DEFAULT_VIDEO_INTRO_CONFIG.introDuration / 2),
         "-i",
         portraitPath,
         "-vf",

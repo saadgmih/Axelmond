@@ -1,5 +1,5 @@
-import { type ReactNode, type RefObject } from "react";
-import { Search, GraduationCap, Mic, Bell, BadgeCheck, PanelTopClose, PanelTopOpen, CircleHelp } from "lucide-react";
+import { type RefObject } from "react";
+import { Search, GraduationCap, Mic, BadgeCheck, PanelTopClose, PanelTopOpen } from "lucide-react";
 import { Course } from "../types";
 import { AppUser } from "./AuthScreen";
 import { getRoleLabel, getTeacherRoleBadgeTone, type UserRole } from "../rbac";
@@ -48,42 +48,6 @@ function getBrandKicker(role: "student" | "teacher") {
 
 function getBrandSubtitle(role: "student" | "teacher") {
   return role === "teacher" ? "Plateforme de gestion académique" : "Espace académique et modules";
-}
-
-function TopbarConsoleAction({
-  label,
-  onClick,
-  ariaLabel,
-  ariaCurrent,
-  badge,
-  children,
-}: {
-  label: string;
-  onClick?: () => void;
-  ariaLabel?: string;
-  ariaCurrent?: boolean;
-  badge?: number;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={ariaLabel || label}
-      aria-current={ariaCurrent ? "page" : undefined}
-      className="topbar-console-action kbd-nav-focus touch-target"
-    >
-      <span className="relative inline-flex">
-        {children}
-        {badge != null && badge > 0 && (
-          <span className="absolute -right-2 -top-2 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-teal-500 px-1 text-[10px] font-black leading-none text-white shadow-lg shadow-teal-900/40">
-            {badge > 99 ? "99+" : badge}
-          </span>
-        )}
-      </span>
-      <span className="topbar-console-action-label">{label}</span>
-    </button>
-  );
 }
 
 function TopbarBrand({ role }: { role: "student" | "teacher" }) {

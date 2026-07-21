@@ -157,11 +157,16 @@ async function generateAnimatedBrandIntro(
   const titleSize = Math.max(28, Math.round(Math.min(width, height) * (portrait ? 0.05 : 0.052)));
   const titleY = Math.round(height / 2 + logoSize / 2 - logoOffset + titleSize * 0.7);
   const escapedFontPath = escapeFilterPath(fontPath);
+  // Keep the fades proportional to the shortened intro so the branding feels
+  // intentionally faster instead of looking like the final frames were cut.
+  const fadeInDuration = Math.min(0.42, duration * 0.24);
+  const fadeOutDuration = Math.min(0.32, duration * 0.18);
+  const fadeOutStart = Math.max(0, duration - fadeOutDuration);
   const filter = [
     `[0:v]null[background]`,
     `[1:v]format=rgba,scale=w=${logoSize}:h=-2[logo]`,
     `[background][logo]overlay=x='(W-w)/2':y='(H-h)/2-${logoOffset}':shortest=1[brand]`,
-    `[brand]drawtext=fontfile='${escapedFontPath}':text='PERFORMANCE ACADEMIQUE':fontcolor=0xf3fff9:fontsize=${titleSize}:x='(w-text_w)/2':y=${titleY},fade=t=in:st=0.08:d=0.72:color=${VIDEO_PLAYER_BACKGROUND_SOURCE_COLOR},fade=t=out:st=${Math.max(0, duration - 0.55)}:d=0.55:color=${VIDEO_PLAYER_BACKGROUND_SOURCE_COLOR}[outv]`,
+    `[brand]drawtext=fontfile='${escapedFontPath}':text='PERFORMANCE ACADEMIQUE':fontcolor=0xf3fff9:fontsize=${titleSize}:x='(w-text_w)/2':y=${titleY},fade=t=in:st=0.04:d=${fadeInDuration}:color=${VIDEO_PLAYER_BACKGROUND_SOURCE_COLOR},fade=t=out:st=${fadeOutStart}:d=${fadeOutDuration}:color=${VIDEO_PLAYER_BACKGROUND_SOURCE_COLOR}[outv]`,
   ].join(";");
   const temporaryPath = path.join(
     path.dirname(targetPath),
