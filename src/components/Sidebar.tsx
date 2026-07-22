@@ -1,5 +1,14 @@
-import { useEffect, useMemo, useRef } from "react";
-import { BadgeCheck, LogOut, Plus, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  BadgeCheck,
+  ChevronDown,
+  LogOut,
+  MessageCircle,
+  Plus,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Settings2,
+} from "lucide-react";
 import type { Course } from "../types";
 import { AppUser } from "./AuthScreen";
 import LogoSymbol from "./LogoSymbol";
@@ -7,7 +16,12 @@ import { LayoutFloatingToggle } from "./LayoutFloatingToggle";
 import { useTvNavigation } from "../hooks/useTvNavigation";
 import { useSidebarConversations } from "../hooks/useSidebarConversations";
 import { useSidebarLayout } from "../hooks/useSidebarLayout";
-import { getSidebarNavItems, type SidebarNavContext } from "../navigation/sidebar-config";
+import {
+  getSidebarNavGroups,
+  type SidebarNavContext,
+  type SidebarNavGroup,
+  type SidebarNavItem,
+} from "../navigation/sidebar-config";
 import { SidebarNavButton } from "./sidebar/SidebarNavButton";
 import AccessibilityControls from "./AccessibilityControls";
 
@@ -58,6 +72,7 @@ export default function Sidebar({
   onToggleSidebarCollapsed,
 }: SidebarProps) {
   const navRef = useRef<HTMLElement>(null);
+  const [openCategoryId, setOpenCategoryId] = useState<string | null>(null);
   const { isDocked, isDrawer } = useSidebarLayout();
   useTvNavigation(navRef, true);
 
@@ -77,7 +92,7 @@ export default function Sidebar({
   const conversations = useSidebarConversations(
     Boolean(currentUser) && (isDrawer ? isMobileMenuOpen : isDockedVisible),
   );
-  const navItems = useMemo(() => getSidebarNavItems(role, currentUser?.role), [role, currentUser?.role]);
+  const navGroups = useMemo(() => getSidebarNavGroups(role, currentUser?.role), [role, currentUser?.role]);
 
   const navContext: SidebarNavContext = {
     currentView,
@@ -122,8 +137,8 @@ export default function Sidebar({
 
   const reservedWidth = isDocked && isDockedVisible ? "var(--sidebar-expanded-width)" : "0px";
 
-  const renderNavItems = () =>
-    navItems.map((item) => {
+  const renderNavItems = (items: SidebarNavItem[]) =>
+    items.map((item) => {
       const badge = item.id === "nav-notifications" ? notificationUnreadCount : undefined;
       return (
         <SidebarNavButton
@@ -147,21 +162,36 @@ export default function Sidebar({
       );
     });
 
+  const messageUnreadCount = conversations.reduce((total, conversation) => total + conversation.unreadCount, 0);
+  const communicationUnreadCount = messageUnreadCount + notificationUnreadCount;
+  const isMessagesActive = role === "student" ? currentView === "messages" : teacherView === "messages";
+
   const renderMessages = () => (
-    <div className="px-4 py-3" data-onboarding="messages">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Messages</span>
+    <div className="space-y-1">
+      <div className="flex items-center gap-1">
+        <div className="min-w-0 flex-1">
+          <SidebarNavButton
+            id="nav-messages"
+            label="Messages"
+            icon={MessageCircle}
+            iconClassName="text-teal-300"
+            active={isMessagesActive}
+            accent={role}
+            badge={messageUnreadCount}
+            onClick={openMessages}
+          />
+        </div>
         <button
           type="button"
           onClick={openMessages}
           aria-label="Nouvelle conversation"
-          className="touch-target flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
+          className="kbd-nav-focus touch-target flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
         >
           <Plus className="h-4 w-4" />
         </button>
       </div>
       {conversations.length > 0 && (
-        <div className="space-y-1.5">
+        <div className="space-y-1 border-l border-teal-400/20 pl-3">
           {conversations.map((conversation) => {
             const peerName = conversation.peer?.fullName || "Contact";
             const initials = getInitials(peerName);
@@ -171,7 +201,7 @@ export default function Sidebar({
                 type="button"
                 onClick={openMessages}
                 aria-label={`Ouvrir la conversation avec ${peerName}`}
-                className="relative flex w-full items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-white/5"
+                className="kbd-nav-focus relative flex w-full items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-white/5"
               >
                 <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-slate-700/80 text-xs font-bold text-slate-200">
                   {conversation.peer?.avatarUrl ? (
@@ -191,6 +221,101 @@ export default function Sidebar({
       )}
     </div>
   );
+
+  const toggleCategory = (categoryId: string) => {
+    setOpenCategoryId((current) => (current === categoryId ? null : categoryId));
+  };
+
+  const renderCategory = (group: SidebarNavGroup) => {
+    const isOpen = openCategoryId === group.id;
+    const hasActiveItem = group.items.some((item) => item.isActive(navContext));
+    const isActive = hasActiveItem || (group.id === "communication" && isMessagesActive);
+    const badge = group.id === "communication" ? communicationUnreadCount : 0;
+    const onboardingTarget = group.id === "communication" ? "messages" : undefined;
+    const contentId = `sidebar-category-${group.id}-content`;
+    const GroupIcon = group.icon;
+
+    return (
+      <section key={group.id} className="space-y-1" data-sidebar-category={group.id}>
+        <button
+          id={`sidebar-category-${group.id}`}
+          type="button"
+          data-tv-focusable
+          data-onboarding={onboardingTarget}
+          aria-expanded={isOpen}
+          aria-controls={contentId}
+          onClick={() => toggleCategory(group.id)}
+          className={`kbd-nav-focus touch-target flex min-h-[46px] w-full items-center gap-2 rounded-xl border px-3 py-3 text-left transition-all ${
+            isOpen
+              ? "border-teal-400/25 bg-teal-400/10 text-white"
+              : isActive
+                ? "border-emerald-500/20 bg-emerald-500/[0.07] text-emerald-200"
+                : "border-transparent text-slate-300 hover:border-white/10 hover:bg-white/5 hover:text-white"
+          }`}
+        >
+          <GroupIcon className={`h-5 w-5 shrink-0 ${isOpen || isActive ? "text-teal-300" : "text-slate-500"}`} />
+          <span className="min-w-0 flex-1 truncate text-[13px] font-bold">{group.label}</span>
+          {badge > 0 && (
+            <span className="rounded-full bg-teal-400 px-2 py-0.5 text-[10px] font-black text-slate-950">
+              {badge > 99 ? "99+" : badge}
+            </span>
+          )}
+          <ChevronDown
+            className={`h-4 w-4 shrink-0 text-slate-500 transition-transform duration-200 ${isOpen ? "rotate-180 text-teal-300" : ""}`}
+            aria-hidden="true"
+          />
+        </button>
+        {isOpen && (
+          <div id={contentId} className="space-y-1 border-l border-teal-400/20 pb-1 pl-2" data-category-content>
+            {renderNavItems(group.items)}
+            {group.id === "communication" && renderMessages()}
+          </div>
+        )}
+      </section>
+    );
+  };
+
+  const renderPreferencesCategory = () => {
+    const isOpen = openCategoryId === "preferences";
+    const contentId = "sidebar-category-preferences-content";
+
+    return (
+      <section className="space-y-1" data-sidebar-category="preferences">
+        <button
+          id="sidebar-category-preferences"
+          type="button"
+          data-tv-focusable
+          data-onboarding="platform-settings"
+          aria-expanded={isOpen}
+          aria-controls={contentId}
+          onClick={() => toggleCategory("preferences")}
+          className={`kbd-nav-focus touch-target flex min-h-[46px] w-full items-center gap-2 rounded-xl border px-3 py-3 text-left transition-all ${
+            isOpen
+              ? "border-teal-400/25 bg-teal-400/10 text-white"
+              : "border-transparent text-slate-300 hover:border-white/10 hover:bg-white/5 hover:text-white"
+          }`}
+        >
+          <Settings2 className={`h-5 w-5 shrink-0 ${isOpen ? "text-teal-300" : "text-slate-500"}`} />
+          <span className="min-w-0 flex-1 truncate text-[13px] font-bold">Préférences</span>
+          <ChevronDown
+            className={`h-4 w-4 shrink-0 text-slate-500 transition-transform duration-200 ${isOpen ? "rotate-180 text-teal-300" : ""}`}
+            aria-hidden="true"
+          />
+        </button>
+        {isOpen && (
+          <div id={contentId} className="border-l border-teal-400/20 pb-1 pl-2" data-category-content>
+            <AccessibilityControls
+              labeled
+              onRestartTutorial={onRestartTutorial}
+              onOpenNotifications={openNotifications}
+              notificationUnreadCount={notificationUnreadCount}
+              activeView={role === "student" ? currentView : teacherView}
+            />
+          </div>
+        )}
+      </section>
+    );
+  };
 
   const renderUserFooter = () => (
     <div className="sidebar-glass-section border-t border-white/10 p-4" data-onboarding="sidebar-profile">
@@ -312,19 +437,10 @@ export default function Sidebar({
         aria-label="Navigation principale"
         className="sidebar-nav-scroll flex-1 space-y-1.5 overflow-y-auto px-4 py-4"
       >
-        {renderNavItems()}
-        <div data-onboarding="platform-settings">
-          <AccessibilityControls
-            labeled
-            onRestartTutorial={onRestartTutorial}
-            onOpenNotifications={openNotifications}
-            notificationUnreadCount={notificationUnreadCount}
-            activeView={role === "student" ? currentView : teacherView}
-          />
-        </div>
+        {navGroups.map(renderCategory)}
+        {renderPreferencesCategory()}
       </nav>
 
-      {renderMessages()}
       {renderUserFooter()}
     </>
   );

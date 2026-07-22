@@ -32,6 +32,13 @@ export interface SidebarNavItem {
   onSelect: (ctx: SidebarNavContext) => void;
 }
 
+export interface SidebarNavGroup {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+  items: SidebarNavItem[];
+}
+
 export interface SidebarNavContext {
   currentView: string;
   teacherView: string;
@@ -226,6 +233,79 @@ function teacherItems(role?: UserRole): SidebarNavItem[] {
 
 export function getSidebarNavItems(role: "student" | "teacher", userRole?: UserRole): SidebarNavItem[] {
   return role === "student" ? studentItems() : teacherItems(userRole);
+}
+
+function selectItems(items: SidebarNavItem[], ids: string[]) {
+  const byId = new Map(items.map((item) => [item.id, item]));
+  return ids.map((id) => byId.get(id)).filter((item): item is SidebarNavItem => Boolean(item));
+}
+
+export function getSidebarNavGroups(role: "student" | "teacher", userRole?: UserRole): SidebarNavGroup[] {
+  const items = getSidebarNavItems(role, userRole);
+
+  if (role === "student") {
+    return [
+      {
+        id: "studies",
+        label: "Études",
+        icon: BookOpen,
+        items: selectItems(items, ["nav-dashboard", "nav-catalog", "nav-study-plan"]),
+      },
+      {
+        id: "account",
+        label: "Mon compte",
+        icon: User,
+        items: selectItems(items, ["nav-profile", "nav-account-security", "nav-center-payments"]),
+      },
+      {
+        id: "communication",
+        label: "Communication",
+        icon: Bell,
+        items: selectItems(items, ["nav-charity", "nav-notifications"]),
+      },
+    ];
+  }
+
+  const groups: SidebarNavGroup[] = [
+    {
+      id: "pilotage",
+      label: "Pilotage",
+      icon: LayoutDashboard,
+      items: selectItems(items, ["nav-teacher-dashboard", "nav-schedule"]),
+    },
+    {
+      id: "teaching",
+      label: "Enseignement",
+      icon: BookOpen,
+      items: selectItems(items, ["nav-curriculum", "nav-live-control"]),
+    },
+  ];
+
+  if (userRole === "ADMIN") {
+    groups.push({
+      id: "administration",
+      label: "Administration",
+      icon: ShieldAlert,
+      items: selectItems(items, ["nav-professor-access-keys", "nav-center-payments", "nav-promo-codes"]),
+    });
+  }
+
+  groups.push(
+    {
+      id: "account",
+      label: "Mon compte",
+      icon: User,
+      items: selectItems(items, ["nav-academic-profile", "nav-account-security"]),
+    },
+    {
+      id: "communication",
+      label: "Communication",
+      icon: Bell,
+      items: selectItems(items, ["nav-charity", "nav-notifications"]),
+    },
+  );
+
+  return groups;
 }
 
 export function getSidebarRoleIcon(role: "student" | "teacher") {

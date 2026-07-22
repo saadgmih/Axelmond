@@ -29,6 +29,11 @@ rulesTest("sidebar-layout-responsive", () => {
   assert.match(sidebarSource, /Utilisateur actuel/);
   assert.match(sidebarSource, /data-onboarding="profile-menu"/);
   assert.match(sidebarSource, /data-onboarding="platform-settings"/);
+  assert.match(sidebarSource, /openCategoryId/);
+  assert.match(sidebarSource, /aria-expanded=\{isOpen\}/);
+  assert.match(sidebarSource, /data-sidebar-category/);
+  assert.match(sidebarSource, /data-category-content/);
+  assert.match(sidebarSource, /navGroups\.map\(renderCategory\)/);
   assert.match(sidebarSource, /<AccessibilityControls/);
   assert.doesNotMatch(sidebarSource, /\bX\b/);
 

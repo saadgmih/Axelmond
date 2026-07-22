@@ -2,7 +2,7 @@
 import "@testing-library/jest-dom/vitest";
 import { act } from "react";
 import * as React from "react";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import Sidebar from "../src/components/Sidebar";
 import type { AppUser } from "../src/shared/app-user";
@@ -71,9 +71,44 @@ describe("Sidebar authenticated identity", () => {
     expect(screen.getByText("Utilisateur actuel")).toBeInTheDocument();
     expect(screen.getByText("Accès étudiant")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Profil de Utilisateur Test" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Options d'accessibilité" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Préférences" }));
     expect(screen.getByRole("button", { name: "Options d'accessibilité" })).toHaveTextContent("Paramètres");
     expect(screen.queryByText("Rôle authentifié")).not.toBeInTheDocument();
     expect(screen.queryByText(/\bPA\b/)).not.toBeInTheDocument();
+  });
+
+  it("keeps every section private until its category is opened and only expands one at a time", () => {
+    renderSidebar("student", baseUser);
+
+    expect(screen.getByRole("button", { name: "Études" })).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByRole("button", { name: "Mon compte" })).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByRole("button", { name: "Communication" })).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByRole("button", { name: "Préférences" })).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByText("Catalogue des Modules")).not.toBeInTheDocument();
+    expect(screen.queryByText("Mon Profil Étudiant")).not.toBeInTheDocument();
+    expect(screen.queryByText("Messages")).not.toBeInTheDocument();
+    expect(screen.queryByText("Paramètres")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Études" }));
+    expect(screen.getByText("Catalogue des Modules")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Études" })).toHaveAttribute("aria-expanded", "true");
+
+    fireEvent.click(screen.getByRole("button", { name: "Mon compte" }));
+    expect(screen.getByText("Mon Profil Étudiant")).toBeInTheDocument();
+    expect(screen.queryByText("Catalogue des Modules")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Études" })).toHaveAttribute("aria-expanded", "false");
+
+    fireEvent.click(screen.getByRole("button", { name: "Communication" }));
+    expect(screen.getByText("Messages")).toBeInTheDocument();
+    expect(screen.queryByText("Mon Profil Étudiant")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Préférences" }));
+    expect(screen.getByText("Paramètres")).toBeInTheDocument();
+    expect(screen.queryByText("Messages")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Préférences" }));
+    expect(screen.queryByText("Paramètres")).not.toBeInTheDocument();
   });
 
   it("shows the professor only in the current-user footer", () => {
