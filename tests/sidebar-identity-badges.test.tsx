@@ -6,11 +6,20 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import Sidebar from "../src/components/Sidebar";
 import type { AppUser } from "../src/shared/app-user";
+import { AccessibilityPreferencesProvider } from "../src/hooks/useAccessibilityPreferences";
 
 if (typeof React.act !== "function") {
   (React as typeof React & { act: typeof act }).act = act;
 }
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+Object.defineProperty(window, "matchMedia", {
+  configurable: true,
+  value: vi.fn().mockReturnValue({
+    matches: false,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  }),
+});
 
 vi.mock("../src/hooks/useSidebarLayout", () => ({
   useSidebarLayout: () => ({ isDocked: true, isDrawer: false }),
@@ -37,17 +46,19 @@ const baseUser: AppUser = {
 
 function renderSidebar(role: "student" | "teacher", currentUser: AppUser) {
   return render(
-    <Sidebar
-      currentView="dashboard"
-      isMobileMenuOpen={false}
-      setIsMobileMenuOpen={vi.fn()}
-      navigateTo={vi.fn()}
-      role={role}
-      teacherView="dashboard"
-      setTeacherView={vi.fn()}
-      currentUser={currentUser}
-      onLogout={vi.fn()}
-    />,
+    <AccessibilityPreferencesProvider>
+      <Sidebar
+        currentView="dashboard"
+        isMobileMenuOpen={false}
+        setIsMobileMenuOpen={vi.fn()}
+        navigateTo={vi.fn()}
+        role={role}
+        teacherView="dashboard"
+        setTeacherView={vi.fn()}
+        currentUser={currentUser}
+        onLogout={vi.fn()}
+      />
+    </AccessibilityPreferencesProvider>,
   );
 }
 
@@ -60,6 +71,7 @@ describe("Sidebar authenticated identity", () => {
     expect(screen.getByText("Utilisateur actuel")).toBeInTheDocument();
     expect(screen.getByText("Accès étudiant")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Profil de Utilisateur Test" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Options d'accessibilité" })).toHaveTextContent("Paramètres");
     expect(screen.queryByText("Rôle authentifié")).not.toBeInTheDocument();
     expect(screen.queryByText(/\bPA\b/)).not.toBeInTheDocument();
   });

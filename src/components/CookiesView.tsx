@@ -244,12 +244,6 @@ export default function CookiesView() {
       category: "Fonctionnel",
     },
     {
-      name: "axelmond_topbar_collapsed",
-      type: "localStorage",
-      duration: "Jusqu'à modification ou effacement navigateur",
-      category: "Fonctionnel",
-    },
-    {
       name: "axelmond-a11y-preferences",
       type: "localStorage",
       duration: "Jusqu'à modification ou effacement navigateur",

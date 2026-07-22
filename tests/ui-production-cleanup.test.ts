@@ -7,13 +7,12 @@ import { rulesTest } from "./helpers/rulesTest.ts";
 rulesTest("ui-production-cleanup", () => {
   const appSource = readAppSources();
   const curriculumSource = readCurriculumViewSources();
-  const topbarSource = fs.readFileSync("src/components/Topbar.tsx", "utf8");
   const coachSource = fs.readFileSync("src/components/SuccessCoachPanel.tsx", "utf8");
   const paymentSource = fs.readFileSync("src/components/PaymentModal.tsx", "utf8");
   const cssSource = fs.readFileSync("src/index.css", "utf8");
   const schema = fs.readFileSync("prisma/schema.prisma", "utf8");
 
-  assert.doesNotMatch(topbarSource, /setTheme|theme:\s*"light"|Passer en mode clair|Passer en mode sombre|Sun|Moon/);
+  assert.equal(fs.existsSync("src/components/Topbar.tsx"), false);
   assert.doesNotMatch(
     appSource + coachSource + paymentSource,
     /UniCode|unicode|Sandbox|Test SMTP|e-mail de test|👋|🖥️|🔴|⚪|Pr\. Martin Dubois|Alexandre Dubois|Marie Curie|Alan Turing|Grace Hopper/,

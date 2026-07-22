@@ -14,7 +14,7 @@ import {
 import { rulesTest } from "./helpers/rulesTest.ts";
 
 rulesTest("voice-search", () => {
-  const topbarSource = fs.readFileSync("src/components/Topbar.tsx", "utf8");
+  const catalogSource = fs.readFileSync("src/views/student/StudentCatalogView.tsx", "utf8");
   const hookSource = fs.readFileSync("src/hooks/useVoiceSearch.ts", "utf8");
   const utilsSource = fs.readFileSync("src/utils/voiceSearch.ts", "utf8");
   const cssSource = fs.readFileSync("src/index.css", "utf8");
@@ -38,14 +38,14 @@ rulesTest("voice-search", () => {
   assert.match(hookSource, /VOICE_SEARCH_MAX_LISTEN_MS/);
   assert.match(hookSource, /extractLatestTranscript/);
 
-  assert.match(topbarSource, /useVoiceSearch/);
-  assert.match(topbarSource, /Mic/);
-  assert.match(topbarSource, /toggleListening/);
-  assert.match(topbarSource, /Écoute\.\.\./);
-  assert.match(topbarSource, /onTranscript: setSearchQuery/);
-  assert.match(topbarSource, /aria-pressed=\{isListening\}/);
-  assert.match(topbarSource, /voiceSearchError/);
-  assert.match(topbarSource, /Rechercher dans le catalogue/);
+  assert.match(catalogSource, /useVoiceSearch/);
+  assert.match(catalogSource, /Mic/);
+  assert.match(catalogSource, /toggleListening/);
+  assert.match(catalogSource, /Écoute\.\.\./);
+  assert.match(catalogSource, /onTranscript: setSearchQuery/);
+  assert.match(catalogSource, /aria-pressed=\{isListening\}/);
+  assert.match(catalogSource, /voiceSearchError/);
+  assert.match(catalogSource, /Rechercher dans le catalogue/);
 
   assert.match(cssSource, /voice-search-mic-active/);
   assert.match(cssSource, /voice-search-mic-pulse/);

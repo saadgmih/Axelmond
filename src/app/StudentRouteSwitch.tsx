@@ -44,7 +44,9 @@ export function StudentRouteSwitch() {
     courses,
     setSelectedDomainId,
     setSelectedDisciplineId,
+    searchQuery,
     setSearchQuery,
+    catalogSearchRef,
   } = catalog;
   const { studentCourseBindings } = bindings;
   const { activeLiveCourse } = live;
@@ -84,7 +86,9 @@ export function StudentRouteSwitch() {
             setCourseToPurchase={ui.setCourseToPurchase}
             setSelectedDomainId={setSelectedDomainId}
             setSelectedDisciplineId={setSelectedDisciplineId}
+            searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
+            catalogSearchRef={catalogSearchRef}
           />
         </Suspense>
       )}

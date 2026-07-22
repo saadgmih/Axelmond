@@ -11,11 +11,6 @@ export function usePlatformNotificationHandlers(options: {
 }) {
   const { role, courses, enrolledCourses, navigateTo, handleTeacherViewChange } = options;
 
-  const openNotificationsView = useCallback(() => {
-    if (role === "teacher") handleTeacherViewChange("notifications");
-    else navigateTo("notifications");
-  }, [role, handleTeacherViewChange, navigateTo]);
-
   const handleNotificationNavigate = useCallback(
     (notification: AppNotification) => {
       const { actionUrl, metadata } = notification;
@@ -66,5 +61,5 @@ export function usePlatformNotificationHandlers(options: {
     [role, courses, enrolledCourses, handleTeacherViewChange, navigateTo],
   );
 
-  return { openNotificationsView, handleNotificationNavigate };
+  return { handleNotificationNavigate };
 }

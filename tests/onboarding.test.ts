@@ -74,7 +74,8 @@ rulesTest("onboarding", () => {
   const provider = fs.readFileSync("src/onboarding/OnboardingProvider.tsx", "utf8");
   const tour = fs.readFileSync("src/onboarding/OnboardingTour.tsx", "utf8");
   const settings = fs.readFileSync("src/components/AccessibilityControls.tsx", "utf8");
-  const topbar = fs.readFileSync("src/components/Topbar.tsx", "utf8");
+  const sidebar = fs.readFileSync("src/components/Sidebar.tsx", "utf8");
+  const layout = fs.readFileSync("src/app/AuthenticatedPlatformLayout.tsx", "utf8");
   const css = fs.readFileSync("src/index.css", "utf8");
   assert.match(provider, /status === "COMPLETED" \|\| status === "DISMISSED"/);
   assert.match(provider, /api\.restartOnboarding/);
@@ -84,7 +85,8 @@ rulesTest("onboarding", () => {
   assert.match(tour, /window\.innerWidth < 640/);
   assert.match(tour, /MutationObserver/);
   assert.match(settings, /Relancer le tutoriel/);
-  assert.match(topbar, /onRestartTutorial=\{onboarding\.restart\}/);
+  assert.match(layout, /onRestartTutorial=\{onboarding\.restart\}/);
+  assert.match(sidebar, /data-onboarding="platform-settings"/);
   assert.match(settings, /Relancer le tutoriel interactif/);
   assert.match(css, /\.dark \.onboarding-card/);
   assert.match(fs.readFileSync("prisma/schema.prisma", "utf8"), /@@unique\(\[userId, flow, version\]\)/);

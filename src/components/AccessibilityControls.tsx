@@ -344,18 +344,19 @@ export default function AccessibilityControls({
     <button
       ref={triggerRef}
       type="button"
+      data-tv-focusable={labeled ? true : undefined}
       onClick={() => setOpen((value) => !value)}
       className={
         labeled
-          ? "topbar-console-action kbd-nav-focus touch-target"
+          ? "kbd-nav-focus touch-target flex min-h-[44px] w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-slate-400 transition-all hover:bg-white/5 hover:text-white"
           : "kbd-nav-focus touch-target flex h-10 min-w-10 items-center justify-center rounded-xl border border-slate-700 bg-slate-900/70 text-slate-300 transition-colors hover:border-teal-500/40 hover:bg-teal-950/40 hover:text-teal-300"
       }
       aria-label="Options d'accessibilité"
       aria-expanded={open}
       aria-controls="accessibility-controls-panel"
     >
-      <Settings2 className={labeled ? "topbar-console-action-icon" : "h-4 w-4"} aria-hidden="true" />
-      {labeled && <span className="topbar-console-action-label">Paramètres</span>}
+      <Settings2 className={labeled ? "h-5 w-5 shrink-0 text-teal-300" : "h-4 w-4"} aria-hidden="true" />
+      {labeled && <span className="truncate text-left">Paramètres</span>}
     </button>
   );
 

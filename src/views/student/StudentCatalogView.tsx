@@ -1,11 +1,12 @@
-import { BookOpen, CheckCircle, ChevronRight, Clock, Lock } from "lucide-react";
+import { BookOpen, CheckCircle, ChevronRight, Clock, Lock, Mic, Search } from "lucide-react";
 import { memo, useRef } from "react";
-import type { ReactNode } from "react";
+import type { ReactNode, RefObject } from "react";
 import type { Course, Discipline, FacultyDomain } from "../../types";
 import { formatCredits, formatMad } from "../../utils/morocco-locale";
 import { getCourseContentProgress } from "../../utils/course-content-metrics";
 import { prefetchCatalogDiscipline, prefetchCourseContent } from "../../utils/prefetch";
 import { useTvNavigation } from "../../hooks/useTvNavigation";
+import { useVoiceSearch } from "../../hooks/useVoiceSearch";
 
 type NavigateTo = (view: string, targetCourse?: Course | null) => void;
 type CourseIconRenderer = (iconName: string, colorClass?: string) => ReactNode;
@@ -194,7 +195,9 @@ interface StudentCatalogViewProps {
   setCourseToPurchase: (course: Course) => void;
   setSelectedDomainId: (id: number | null) => void;
   setSelectedDisciplineId: (id: number | null) => void;
+  searchQuery: string;
   setSearchQuery: (query: string) => void;
+  catalogSearchRef?: RefObject<HTMLInputElement | null>;
 }
 
 export default function StudentCatalogView({
@@ -212,10 +215,18 @@ export default function StudentCatalogView({
   setCourseToPurchase,
   setSelectedDomainId,
   setSelectedDisciplineId,
+  searchQuery,
   setSearchQuery,
+  catalogSearchRef,
 }: StudentCatalogViewProps) {
   const catalogGridRef = useRef<HTMLDivElement>(null);
   useTvNavigation(catalogGridRef, true);
+  const {
+    isListening,
+    error: voiceSearchError,
+    toggleListening,
+    clearError: clearVoiceSearchError,
+  } = useVoiceSearch({ onTranscript: setSearchQuery });
 
   const catalogCrumbClass =
     "inline-flex items-center justify-center max-w-full px-4 py-2 rounded-full text-xs font-bold leading-snug border text-center transition-all";
@@ -232,6 +243,56 @@ export default function StudentCatalogView({
         <p className="text-sm text-slate-500 leading-relaxed max-w-2xl">
           Parcourez les domaines académiques, choisissez une discipline, puis accédez aux modules publiés.
         </p>
+      </div>
+
+      <div className="max-w-2xl space-y-1.5">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <input
+            ref={catalogSearchRef}
+            id="catalog-search"
+            type="search"
+            value={searchQuery}
+            onChange={(event) => {
+              clearVoiceSearchError();
+              setSearchQuery(event.target.value);
+            }}
+            placeholder="Rechercher une matière ou un module..."
+            aria-label="Rechercher dans le catalogue"
+            className={`kbd-nav-focus min-h-[44px] w-full rounded-xl border bg-white py-2.5 pl-10 text-sm text-slate-800 shadow-sm outline-none transition-colors placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/25 ${
+              isListening ? "border-emerald-500 pr-28" : "border-slate-200 pr-12"
+            }`}
+          />
+          <div className="absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center gap-1">
+            {isListening && (
+              <span
+                className="hidden text-[10px] font-bold uppercase tracking-wide text-emerald-600 sm:inline"
+                aria-live="polite"
+              >
+                Écoute...
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={toggleListening}
+              aria-label={isListening ? "Arrêter la recherche vocale" : "Lancer la recherche vocale"}
+              aria-pressed={isListening}
+              title={isListening ? "Arrêter l'écoute" : "Recherche vocale"}
+              className={`kbd-nav-focus flex h-9 w-9 items-center justify-center rounded-lg border transition-colors ${
+                isListening
+                  ? "voice-search-mic-active border-emerald-500/40 bg-emerald-50 text-emerald-600"
+                  : "border-transparent text-slate-400 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-600"
+              }`}
+            >
+              <Mic className={`h-4 w-4 ${isListening ? "voice-search-mic-pulse" : ""}`} aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+        {voiceSearchError && (
+          <p role="alert" className="text-[11px] font-semibold leading-snug text-lime-700">
+            {voiceSearchError}
+          </p>
+        )}
       </div>
 
       {(selectedDomain || selectedDiscipline) && (

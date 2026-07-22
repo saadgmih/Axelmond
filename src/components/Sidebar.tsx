@@ -9,6 +9,7 @@ import { useSidebarConversations } from "../hooks/useSidebarConversations";
 import { useSidebarLayout } from "../hooks/useSidebarLayout";
 import { getSidebarNavItems, type SidebarNavContext } from "../navigation/sidebar-config";
 import { SidebarNavButton } from "./sidebar/SidebarNavButton";
+import AccessibilityControls from "./AccessibilityControls";
 
 interface SidebarProps {
   currentView: string;
@@ -20,6 +21,7 @@ interface SidebarProps {
   setTeacherView: (view: string) => void;
   currentUser: AppUser | null;
   onLogout: () => void;
+  onRestartTutorial?: () => void;
   notificationUnreadCount?: number;
   isSidebarCollapsed?: boolean;
   onToggleSidebarCollapsed?: () => void;
@@ -50,6 +52,7 @@ export default function Sidebar({
   setTeacherView,
   currentUser,
   onLogout,
+  onRestartTutorial,
   notificationUnreadCount = 0,
   isSidebarCollapsed = false,
   onToggleSidebarCollapsed,
@@ -96,6 +99,12 @@ export default function Sidebar({
   const openMessages = () => {
     if (role === "student") navigateTo("messages");
     else setTeacherView("messages");
+    hideSidebarAfterAction();
+  };
+
+  const openNotifications = () => {
+    if (role === "student") navigateTo("notifications");
+    else setTeacherView("notifications");
     hideSidebarAfterAction();
   };
 
@@ -304,6 +313,15 @@ export default function Sidebar({
         className="sidebar-nav-scroll flex-1 space-y-1.5 overflow-y-auto px-4 py-4"
       >
         {renderNavItems()}
+        <div data-onboarding="platform-settings">
+          <AccessibilityControls
+            labeled
+            onRestartTutorial={onRestartTutorial}
+            onOpenNotifications={openNotifications}
+            notificationUnreadCount={notificationUnreadCount}
+            activeView={role === "student" ? currentView : teacherView}
+          />
+        </div>
       </nav>
 
       {renderMessages()}

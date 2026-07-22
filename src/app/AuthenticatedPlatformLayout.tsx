@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { createPortal } from "react-dom";
 import Sidebar from "../components/Sidebar";
-import Topbar from "../components/Topbar";
 import SkipLink from "../components/SkipLink";
 import KeyboardShortcutsHelp from "../components/KeyboardShortcutsHelp";
 import { useSidebarLayout } from "../hooks/useSidebarLayout";
@@ -20,6 +19,7 @@ import { StudentRouteSwitch } from "./StudentRouteSwitch";
 import { TeacherRouteSwitch } from "./TeacherRouteSwitch";
 import { AppFooter } from "./AppFooter";
 import { OnboardingExperience } from "../onboarding/OnboardingExperience";
+import { useOnboarding } from "../onboarding/OnboardingProvider";
 
 export function AuthenticatedPlatformLayout() {
   const session = usePlatformSession();
@@ -28,6 +28,7 @@ export function AuthenticatedPlatformLayout() {
   const live = usePlatformLive();
   const ui = usePlatformUi();
   const bindings = usePlatformBindings();
+  const onboarding = useOnboarding();
   const currentView = navigation.currentView;
   const { isDrawer } = useSidebarLayout();
 
@@ -71,6 +72,7 @@ export function AuthenticatedPlatformLayout() {
         setTeacherView={navigation.handleTeacherViewChange}
         currentUser={session.currentUser!}
         onLogout={session.handleLogout}
+        onRestartTutorial={onboarding.restart}
         notificationUnreadCount={session.notificationUnreadCount}
         isSidebarCollapsed={ui.isSidebarCollapsed}
         onToggleSidebarCollapsed={ui.toggleSidebarCollapsed}
@@ -89,19 +91,6 @@ export function AuthenticatedPlatformLayout() {
         )}
 
       <div className="flex-1 flex flex-col overflow-hidden relative">
-        <Topbar
-          currentView={currentView}
-          searchQuery={catalog.searchQuery}
-          setSearchQuery={catalog.setSearchQuery}
-          role={session.role}
-          catalogSearchRef={catalog.catalogSearchRef}
-          notificationUnreadCount={session.notificationUnreadCount}
-          onOpenNotifications={session.openNotificationsView}
-          activeView={session.role === "teacher" ? navigation.teacherView : currentView}
-          isTopbarCollapsed={ui.isTopbarCollapsed}
-          onToggleTopbarCollapsed={ui.toggleTopbarCollapsed}
-        />
-
         <main
           id="main-content"
           tabIndex={-1}

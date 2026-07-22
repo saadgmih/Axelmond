@@ -10,7 +10,6 @@ export interface OnboardingStep {
   targetSelectors: string[];
   placement?: OnboardingPlacement;
   requiresSidebar?: boolean;
-  requiresTopbar?: boolean;
   view?: string;
 }
 
@@ -88,10 +87,10 @@ const studentSteps: OnboardingStep[] = [
     eyebrow: "Votre compte",
     title: "Profil et paramètres",
     description:
-      "Mettez à jour votre profil, votre photo et vos préférences. Le tutoriel reste relançable depuis Aide.",
+      "Mettez à jour votre profil, votre photo et vos préférences. Le tutoriel reste relançable depuis Paramètres.",
     targetSelectors: ['[data-onboarding="profile-menu"]', "#nav-profile"],
     placement: "bottom",
-    requiresTopbar: true,
+    requiresSidebar: true,
     view: "profile",
   },
 ];
@@ -170,10 +169,11 @@ const teacherSteps: OnboardingStep[] = [
     id: "teacher-profile",
     eyebrow: "Votre identité académique",
     title: "Profil et paramètres",
-    description: "Gérez votre profil, la sécurité du compte et vos préférences. Aide permet de relancer ce tutoriel.",
+    description:
+      "Gérez votre profil, la sécurité du compte et vos préférences. Paramètres permet de relancer ce tutoriel.",
     targetSelectors: ['[data-onboarding="profile-menu"]', "#nav-academic-profile"],
     placement: "bottom",
-    requiresTopbar: true,
+    requiresSidebar: true,
     view: "academic-profile",
   },
 ];
@@ -216,7 +216,7 @@ const adminSteps: OnboardingStep[] = [
     description: "Adaptez l'accessibilité et les préférences d'affichage depuis les paramètres globaux.",
     targetSelectors: ['[data-onboarding="platform-settings"]'],
     placement: "bottom",
-    requiresTopbar: true,
+    requiresSidebar: true,
   },
   {
     id: "admin-statistics",
@@ -231,10 +231,11 @@ const adminSteps: OnboardingStep[] = [
     id: "admin-profile",
     eyebrow: "Votre compte",
     title: "Profil et paramètres",
-    description: "Mettez à jour votre profil administrateur, sécurisez le compte et relancez le tutoriel depuis Aide.",
+    description:
+      "Mettez à jour votre profil administrateur, sécurisez le compte et relancez le tutoriel depuis Paramètres.",
     targetSelectors: ['[data-onboarding="profile-menu"]', "#nav-academic-profile"],
     placement: "bottom",
-    requiresTopbar: true,
+    requiresSidebar: true,
     view: "academic-profile",
   },
 ];

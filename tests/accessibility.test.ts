@@ -6,7 +6,7 @@ import { rulesTest } from "./helpers/rulesTest.ts";
 rulesTest("accessibility", () => {
   const appSource = readAppSources();
   const authSource = fs.readFileSync("src/components/AuthScreen.tsx", "utf8");
-  const topbarSource = fs.readFileSync("src/components/Topbar.tsx", "utf8");
+  const catalogSource = fs.readFileSync("src/views/student/StudentCatalogView.tsx", "utf8");
   const paymentSource = fs.readFileSync("src/components/PaymentModal.tsx", "utf8");
   const helpSource = fs.readFileSync("src/components/KeyboardShortcutsHelp.tsx", "utf8");
   const coachSource = fs.readFileSync("src/components/SuccessCoachPanel.tsx", "utf8");
@@ -40,8 +40,9 @@ rulesTest("accessibility", () => {
   assert.match(authSource, /id="auth-main"/);
   assert.match(authSource, /role="alert"/);
   assert.match(authSource, /htmlFor=/);
-  assert.match(topbarSource, /AccessibilityControls/);
-  assert.match(topbarSource, /useVoiceSearch/);
+  assert.match(sidebarSource, /AccessibilityControls/);
+  assert.match(sidebarSource, /data-onboarding="platform-settings"/);
+  assert.match(catalogSource, /useVoiceSearch/);
   assert.match(paymentSource, /useFocusTrap/);
   assert.match(helpSource, /useFocusTrap/);
   assert.match(coachSource, /aria-label="Coach de réussite"/);

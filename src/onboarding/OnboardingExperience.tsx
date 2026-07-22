@@ -12,7 +12,6 @@ export function OnboardingExperience() {
   const { isDrawer } = useSidebarLayout();
   const layoutSnapshot = useRef<{
     sidebar: boolean;
-    topbar: boolean;
     mobileMenu: boolean;
     currentView: string;
     teacherView: string;
@@ -25,7 +24,6 @@ export function OnboardingExperience() {
     if (onboarding.isOpen && !wasOpen.current) {
       layoutSnapshot.current = {
         sidebar: ui.isSidebarCollapsed,
-        topbar: ui.isTopbarCollapsed,
         mobileMenu: ui.isMobileMenuOpen,
         currentView: navigation.currentView,
         teacherView: navigation.teacherView,
@@ -33,7 +31,6 @@ export function OnboardingExperience() {
     }
     if (!onboarding.isOpen && wasOpen.current && layoutSnapshot.current) {
       ui.setIsSidebarCollapsed(layoutSnapshot.current.sidebar);
-      ui.setIsTopbarCollapsed(layoutSnapshot.current.topbar);
       ui.setIsMobileMenuOpen(layoutSnapshot.current.mobileMenu);
       if (session.role === "teacher") {
         navigation.handleTeacherViewChange(layoutSnapshot.current.teacherView);
@@ -66,7 +63,6 @@ export function OnboardingExperience() {
     } else if (isDrawer) {
       ui.setIsMobileMenuOpen(false);
     }
-    if (step.requiresTopbar) ui.setIsTopbarCollapsed(false);
   }, [isDrawer, onboarding.isOpen, step, ui]);
 
   if (!onboarding.isOpen || !step) return null;

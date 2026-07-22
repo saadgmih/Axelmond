@@ -132,10 +132,6 @@ export function usePlatformApp() {
   const [liveCourseId, setLiveCourseId] = useState<number>(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(readInitialSidebarCollapsed);
-  const [isTopbarCollapsed, setIsTopbarCollapsed] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return window.localStorage.getItem("axelmond_topbar_collapsed") === "1";
-  });
   const [courseToPurchase, setCourseToPurchase] = useState<Course | null>(null);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const catalogSearchRef = useRef<HTMLInputElement>(null);
@@ -175,20 +171,6 @@ export function usePlatformApp() {
   useLayoutEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
-
-  const toggleTopbarCollapsed = useCallback(() => {
-    setIsTopbarCollapsed((previous) => {
-      const next = !previous;
-      if (typeof window !== "undefined") {
-        if (next) {
-          window.localStorage.setItem("axelmond_topbar_collapsed", "1");
-        } else {
-          window.localStorage.removeItem("axelmond_topbar_collapsed");
-        }
-      }
-      return next;
-    });
-  }, []);
 
   const {
     curriculumBindings,
@@ -366,7 +348,7 @@ export function usePlatformApp() {
     },
   });
 
-  const { openNotificationsView, handleNotificationNavigate } = usePlatformNotificationHandlers({
+  const { handleNotificationNavigate } = usePlatformNotificationHandlers({
     role,
     courses,
     enrolledCourses,
@@ -551,7 +533,6 @@ export function usePlatformApp() {
       catalogHasData,
       retryCatalogLoad,
       notificationUnreadCount,
-      openNotificationsView,
       isLoginDataLoading,
       isEnrolledCatalogSyncing,
       isInitialViewLoading,
@@ -574,7 +555,6 @@ export function usePlatformApp() {
       catalogHasData,
       retryCatalogLoad,
       notificationUnreadCount,
-      openNotificationsView,
       isLoginDataLoading,
       isEnrolledCatalogSyncing,
       isInitialViewLoading,
@@ -711,9 +691,6 @@ export function usePlatformApp() {
       isSidebarCollapsed,
       setIsSidebarCollapsed,
       toggleSidebarCollapsed,
-      isTopbarCollapsed,
-      setIsTopbarCollapsed,
-      toggleTopbarCollapsed,
       courseToPurchase,
       setCourseToPurchase,
       showKeyboardHelp,
@@ -730,9 +707,6 @@ export function usePlatformApp() {
       isSidebarCollapsed,
       setIsSidebarCollapsed,
       toggleSidebarCollapsed,
-      isTopbarCollapsed,
-      setIsTopbarCollapsed,
-      toggleTopbarCollapsed,
       courseToPurchase,
       setCourseToPurchase,
       showKeyboardHelp,
