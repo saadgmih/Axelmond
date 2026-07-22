@@ -17,6 +17,9 @@ rulesTest("sidebar-layout-responsive", () => {
   assert.match(sidebarSource, /isDockedHidden/);
   assert.match(sidebarSource, /isDockedVisible/);
   assert.match(sidebarSource, /floatingSidebarToggle/);
+  assert.match(sidebarSource, /sidebar-identity-badges/);
+  assert.match(sidebarSource, /formatCredits\(activeCredits\)/);
+  assert.match(sidebarSource, /Titre académique/);
   assert.doesNotMatch(sidebarSource, /sidebar-collapse-toggle--attached/);
   assert.doesNotMatch(sidebarSource, /inactive=\{/);
   assert.match(topbarSource, /LayoutFloatingToggle/);
@@ -32,6 +35,8 @@ rulesTest("sidebar-layout-responsive", () => {
   assert.match(topbarSource, /topbar-console-actions/);
   assert.match(topbarSource, /flex-wrap items-center justify-center/);
   assert.match(topbarSource, /Utilisateur actuel/);
+  assert.doesNotMatch(topbarSource, /function RolePill/);
+  assert.doesNotMatch(topbarSource, /formatCredits\(activeCredits\)/);
   assert.doesNotMatch(topbarSource, /\bMenu\b/);
   assert.doesNotMatch(sidebarSource, /\bX\b/);
 

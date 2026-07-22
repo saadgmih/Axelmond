@@ -1287,23 +1287,6 @@ body {
   color: rgb(220 239 233);
 }
 
-.topbar-role-pill {
-  align-items: center;
-  gap: 0.375rem;
-  border-radius: 9999px;
-  border-width: 1px;
-  padding: 0.375rem 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 800;
-  transition:
-    border-color 0.15s ease,
-    background-color 0.15s ease;
-}
-
-.topbar-role-pill:hover {
-  filter: brightness(1.08);
-}
-
 .topbar-avatar-button {
   position: relative;
   display: inline-flex;

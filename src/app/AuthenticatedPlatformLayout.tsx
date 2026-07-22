@@ -95,8 +95,6 @@ export function AuthenticatedPlatformLayout() {
           currentView={currentView}
           searchQuery={catalog.searchQuery}
           setSearchQuery={catalog.setSearchQuery}
-          enrolledCourses={session.enrolledCourses}
-          courses={catalog.courses}
           navigateTo={navigation.navigateTo}
           role={session.role}
           currentUser={session.currentUser!}

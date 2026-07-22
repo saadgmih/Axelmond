@@ -1,22 +1,19 @@
 import { type RefObject } from "react";
-import { Search, GraduationCap, Mic, BadgeCheck, PanelTopClose, PanelTopOpen } from "lucide-react";
+import { Search, Mic, BadgeCheck, PanelTopClose, PanelTopOpen } from "lucide-react";
 import { Course } from "../types";
 import { AppUser } from "./AuthScreen";
-import { getRoleLabel, getTeacherRoleBadgeTone, type UserRole } from "../rbac";
+import { type UserRole } from "../rbac";
 import LogoSymbol from "./LogoSymbol";
 import { useVoiceSearch } from "../hooks/useVoiceSearch";
 import { useSidebarLayout } from "../hooks/useSidebarLayout";
 import AccessibilityControls from "./AccessibilityControls";
 import { LayoutFloatingToggle } from "./LayoutFloatingToggle";
-import { formatCredits } from "../utils/morocco-locale";
 import { useOnboarding } from "../onboarding/OnboardingProvider";
 
 interface TopbarProps {
   currentView: string;
   searchQuery: string;
   setSearchQuery: (q: string) => void;
-  enrolledCourses: number[];
-  courses: Course[];
   navigateTo: (view: string, course?: Course | null) => void;
   role?: "student" | "teacher";
   currentUser: AppUser | null;
@@ -65,48 +62,10 @@ function TopbarBrand({ role }: { role: "student" | "teacher" }) {
   );
 }
 
-function RolePill({
-  role,
-  userRole,
-  onClick,
-}: {
-  role: "student" | "teacher";
-  userRole?: UserRole;
-  onClick: () => void;
-}) {
-  const tone =
-    role === "student"
-      ? "border-emerald-400/25 bg-emerald-500/15 text-emerald-100"
-      : getTeacherRoleBadgeTone(userRole) === "admin"
-        ? "border-teal-400/25 bg-teal-500/15 text-teal-100"
-        : "border-emerald-400/25 bg-emerald-500/15 text-emerald-100";
-
-  const iconTone =
-    role === "student"
-      ? "text-emerald-300"
-      : getTeacherRoleBadgeTone(userRole) === "admin"
-        ? "text-teal-300"
-        : "text-emerald-300";
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`topbar-role-pill kbd-nav-focus inline-flex ${tone}`}
-      aria-label={`Ouvrir le profil ${getRoleLabel(userRole)}`}
-    >
-      <GraduationCap className={`h-4 w-4 ${iconTone}`} />
-      <span>{role === "student" ? "Étudiant" : getRoleLabel(userRole)}</span>
-    </button>
-  );
-}
-
 export default function Topbar({
   currentView,
   searchQuery,
   setSearchQuery,
-  enrolledCourses,
-  courses,
   navigateTo,
   role = "student",
   currentUser,
@@ -122,11 +81,6 @@ export default function Topbar({
   const onboarding = useOnboarding();
   const canCollapseTopbar = Boolean(onToggleTopbarCollapsed);
   const effectiveTopbarCollapsed = canCollapseTopbar && isTopbarCollapsed;
-
-  const activeCredits = enrolledCourses.reduce((sum, id) => {
-    const found = courses.find((c) => c.id === id);
-    return sum + (found ? found.credits : 0);
-  }, 0);
 
   const {
     isListening,
@@ -261,15 +215,6 @@ export default function Topbar({
               {getAccessLabel(role, currentUser?.role)}
             </span>
           </div>
-
-          <RolePill role={role} userRole={currentUser?.role} onClick={openProfile} />
-
-          {role === "student" && (
-            <div className="flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1.5">
-              <GraduationCap className="h-4 w-4 text-emerald-300" />
-              <span className="font-mono text-xs font-extrabold text-emerald-200">{formatCredits(activeCredits)}</span>
-            </div>
-          )}
 
           <button
             type="button"
