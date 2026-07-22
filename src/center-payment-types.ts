@@ -45,7 +45,6 @@ export interface CenterPaymentRequestView {
   currency: string;
   modulePriceSnapshot: number;
   accessDurationDays: number;
-  includesAiAssistant: boolean;
   status: CenterPaymentStatus;
   expiresAt: string;
   paidAt: string | null;

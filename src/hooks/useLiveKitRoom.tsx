@@ -472,11 +472,6 @@ export function useLiveKitRoom({
     onDismissResource: dismissLiveResource,
   };
 
-  const hasAiTutorAccess = useMemo(() => {
-    if (!activeLiveCourse || !currentUser?.aiTutorCourseIds?.length) return false;
-    return currentUser.aiTutorCourseIds.includes(activeLiveCourse.id);
-  }, [activeLiveCourse?.id, currentUser?.aiTutorCourseIds]);
-
   const renderLiveRoomInterface = (mode: "student" | "teacher"): ReactNode => {
     if (!activeLiveCourse) return null;
     return (
@@ -485,7 +480,6 @@ export function useLiveKitRoom({
         mode={mode}
         course={activeLiveCourse}
         currentUserRole={currentUser?.role || "STUDENT"}
-        showAiTutor={mode === "student" && hasAiTutorAccess}
         onBack={mode === "student" ? () => navigateTo("course", activeLiveCourse) : undefined}
         onLeave={leaveLiveRoom}
       />

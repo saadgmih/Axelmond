@@ -38,12 +38,8 @@ rulesTest("security-hardening", () => {
     serverSource,
     /app\.post\("\/api\/livekit\/messages",\s*requireAuth,\s*validateBody\(api\.liveMessageSchema\)/,
   );
-  assert.match(serverSource, /app\.post\("\/api\/chat-tutor",\s*requireAuth,\s*validateBody\(api\.chatTutorSchema\)/);
-  assert.match(serverSource, /api\.generateChatTutorResponse/);
+  assert.doesNotMatch(serverSource, /\/api\/chat-tutor|generateChatTutorResponse|chatTutorSchema/);
   assert.doesNotMatch(serverSource, /GEMINI_API_KEY|GoogleGenAI|@google\/genai|gemini-/i);
-  assert.match(serverSource, /courseId:\s*z\.number\(\)\.int\(\)\.positive\(\)/);
-  assert.match(serverSource, /api\.assertAiTutorAccess\(/);
-  assert.doesNotMatch(serverSource, /courseContext:\s*z\.string\(\)/);
   assert.match(serverSource, /strongPasswordField/);
   assert.match(serverSource, /Refresh token reuse detected/);
   assert.match(serverSource, /Permissions-Policy/);
@@ -93,15 +89,6 @@ rulesTest("security-hardening", () => {
   assert.match(paymentsRoutesSource, /toPayPalCaptureClientResponse\(result\)/);
   assert.doesNotMatch(paymentsRoutesSource, /error:\s*result\.error/);
 
-  const miscRoutesSource = fs.readFileSync("src/routes/misc-routes.ts", "utf8");
-  assert.match(miscRoutesSource, /toChatTutorClientResponse\(err\)/);
-  assert.doesNotMatch(miscRoutesSource, /details:\s*err\.cause/);
-
-  const openaiServiceSource = fs.readFileSync("src/openai-service.ts", "utf8");
-  assert.match(openaiServiceSource, /trimChatTutorHistory/);
-  assert.doesNotMatch(openaiServiceSource, /Quota OpenAI épuisé/);
-  assert.doesNotMatch(openaiServiceSource, /Clé OpenAI invalide/);
-
   const routeDepsSource = fs.readFileSync("src/server/route-deps.ts", "utf8");
   assert.match(routeDepsSource, /LIVE_ACCESS_ERRORS/);
   assert.match(routeDepsSource, /PUBLIC_API_ERRORS/);
@@ -145,11 +132,8 @@ rulesTest("security-hardening", () => {
   const createAppSource = fs.readFileSync("src/server/create-app.ts", "utf8");
   assert.match(createAppSource, /RATE_LIMIT_MAX_REQUESTS\) \|\| 500/);
   assert.match(createAppSource, /app\.use\("\/api\/livekit\/sync", liveKitSyncRateLimiter\)/);
-  assert.match(createAppSource, /chat-tutor:user:/);
-
-  const securityHardeningSource = fs.readFileSync("src/chat-tutor-limits.ts", "utf8");
-  assert.match(securityHardeningSource, /trimChatTutorHistory/);
-  assert.match(securityHardeningSource, /CHAT_TUTOR_MAX_HISTORY_CHARS/);
+  assert.doesNotMatch(createAppSource, /chat-tutor|CHAT_TUTOR/i);
+  assert.doesNotMatch(routeDepsSource, /openai-service|assertAiTutorAccess|ChatTutorServiceError/);
 
   const liveKitUiSource = fs.readFileSync("src/hooks/useLiveKitRoom.tsx", "utf8");
   assert.doesNotMatch(liveKitUiSource, /process\.env\.LIVEKIT_API_KEY/);

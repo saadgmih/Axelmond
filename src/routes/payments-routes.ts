@@ -35,7 +35,6 @@ function buildPersistCoursePaymentEnrollment(ctx: RouteContext) {
     externalId: string;
     auditAction: string;
     reqIp?: string;
-    hasAiAccess?: boolean;
     promoUsageId?: string;
   }) =>
     api.persistCoursePaymentEnrollment(params, {
@@ -157,8 +156,6 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
     }
 
     const promoCode = String(req.body?.promoCode || "").trim();
-    const includeAiAssistant = Boolean(req.body?.includeAiAssistant);
-
     let moduleAmountMad = course.price;
     let promoReservation: Awaited<ReturnType<typeof reservePromoCodeUsage>> = null;
     if (promoCode) {
@@ -213,12 +210,6 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
     }
 
     try {
-      const checkoutTotalMad = api.computeCourseCheckoutTotalMad({
-        modulePriceMad: moduleAmountMad,
-        includeAiAssistant,
-        isFreeModule: false,
-      });
-
       const order = await api.createPayPalOrder({
         courseId,
 
@@ -226,11 +217,10 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
 
         courseDescription: course.description,
 
-        amountMad: checkoutTotalMad,
+        amountMad: moduleAmountMad,
 
         userId: authUser.id,
 
-        includeAiAssistant,
         promoReservationReference: promoReservation?.usage.publicReference,
       });
 
@@ -443,25 +433,18 @@ export function registerPaymentsRoutes(app: Express, ctx: RouteContext): void {
 
     const invoiceId = api.buildCourseInvoiceId("MOCK");
     const chargePricing = api.resolveCourseChargeAmount(course.price, "");
-    const includeAiAssistant = Boolean(req.body?.includeAiAssistant);
-    const checkoutTotalMad = api.computeCourseCheckoutTotalMad({
-      modulePriceMad: chargePricing.amount,
-      includeAiAssistant,
-      isFreeModule: api.isFreeCourseCharge(chargePricing.amount),
-    });
 
     try {
       const result = await persistCoursePaymentEnrollment({
         userId: authUser.id,
         courseId,
         courseTitle: course.title,
-        coursePrice: checkoutTotalMad,
+        coursePrice: chargePricing.amount,
         invoiceId,
         provider: "MOCK",
         externalId: `mock-${authUser.id}-${courseId}`,
         auditAction: "ENROLL_MOCK",
         reqIp: req.ip,
-        hasAiAccess: api.resolveEnrollmentHasAiAccess(includeAiAssistant),
       });
 
       api.logDb("INFO", "Student enrollment synchronized", {

@@ -47,7 +47,6 @@ function activationInput(provider: "PAYPAL" | "CENTER" = "PAYPAL") {
     invoiceId: "REC-2026-000001",
     activatedAt: new Date("2026-07-20T10:00:00Z"),
     enrollmentEndDate: new Date("2026-08-19T10:00:00Z"),
-    hasAiAccess: false,
   };
 }
 

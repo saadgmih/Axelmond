@@ -11,10 +11,7 @@ rulesTest("paypal-checkout", () => {
   const serverSource = readApiRouteSources();
   const paypalServerSource = fs.readFileSync("src/paypal-server.ts", "utf8");
 
-  assert.match(
-    apiSource,
-    /createPayPalOrder:\s*\(courseId:\s*number,\s*promoCode\?:\s*string,\s*includeAiAssistant\?:\s*boolean\)/,
-  );
+  assert.match(apiSource, /createPayPalOrder:\s*\(courseId:\s*number,\s*promoCode\?:\s*string\)/);
   assert.match(apiSource, /capturePayPalOrder:\s*\(orderId:\s*string,\s*courseId:\s*number\)/);
   assert.match(apiSource, /"\/api\/paypal\/create-order"/);
   assert.match(apiSource, /"\/api\/paypal\/capture-order"/);
@@ -32,10 +29,9 @@ rulesTest("paypal-checkout", () => {
   const globalStyles = fs.readFileSync("src/index.css", "utf8");
   assert.doesNotMatch(globalStyles, /iframe\.component-frame/);
   assert.doesNotMatch(globalStyles, /\[data-funding-source\]/);
-  assert.match(
-    paymentModalSource,
-    /api\.createPayPalOrder\(course\.id,\s*appliedPromo\?\.code,\s*includeAiAssistant\)/,
-  );
+  assert.match(paymentModalSource, /api\.createPayPalOrder\(course\.id,\s*appliedPromo\?\.code\)/);
+  assert.doesNotMatch(paymentModalSource, /includeAiAssistant|Tuteur IA|Assistant IA pédagogique/);
+  assert.doesNotMatch(apiSource + serverSource, /includeAiAssistant|computeCourseCheckoutTotalMad/);
   assert.match(paymentModalSource, /api\.capturePayPalOrder\(/);
   assert.match(serverSource, /app\.post\("\/api\/paypal\/create-order"/);
   assert.match(serverSource, /app\.post\("\/api\/paypal\/capture-order"/);

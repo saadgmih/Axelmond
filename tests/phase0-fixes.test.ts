@@ -14,8 +14,7 @@ rulesTest("phase0-fixes", () => {
   assert.match(serverSource, /await api\.revokeAllUserSessions\(user\.id\)/);
   assert.match(serverSource, /await api\.revokeAllUserSessions\(authUser\.id\)/);
   assert.match(serverSource, /api\.seedQuizModuleCourseMap\[moduleId\]/);
-  assert.match(serverSource, /err instanceof api\.ChatTutorServiceError/);
-  assert.match(serverSource, /toChatTutorClientResponse\(err\)/);
+  assert.doesNotMatch(serverSource, /ChatTutorServiceError|toChatTutorClientResponse|\/api\/chat-tutor/);
   assert.doesNotMatch(serverSource, /details:\s*err\.cause\.message/);
 
   assert.match(navigationSource, /INSTITUTIONAL_VIEWS\.has\(view\)/);

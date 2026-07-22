@@ -3,13 +3,13 @@ import { DEFAULT_DISCIPLINE_ID } from "../../src/academic-taxonomy.ts";
 import { prisma } from "../../src/db.ts";
 import { deleteRuntimeCoursesByTitle } from "./security-runtime-course-cleanup.ts";
 
-const CHAT_TUTOR_RUNTIME_COURSE_TITLE = "Security runtime chat-tutor course";
+const SECURITY_RUNTIME_COURSE_TITLE = "Security runtime student course";
 
 export const SECURITY_RUNTIME_TEST_PASSWORD = "Password123!";
-export const CHAT_TUTOR_RUNTIME_EMAIL_PREFIX = "security-runtime-chat-tutor+";
-export const CHAT_TUTOR_RUNTIME_VALID_MODULE_ID = 99001;
+export const SECURITY_RUNTIME_EMAIL_PREFIX = "security-runtime-course+";
+export const SECURITY_RUNTIME_VALID_MODULE_ID = 99001;
 
-export interface ChatTutorRuntimeFixture {
+export interface StudentCourseRuntimeFixture {
   courseId: number;
   validModuleId: number;
   missingCourseId: number;
@@ -23,10 +23,10 @@ export interface ChatTutorRuntimeFixture {
 }
 
 function runtimeEmail(label: string) {
-  return `${CHAT_TUTOR_RUNTIME_EMAIL_PREFIX}${label}@test.axelmond.local`;
+  return `${SECURITY_RUNTIME_EMAIL_PREFIX}${label}@test.axelmond.local`;
 }
 
-export async function cleanupChatTutorRuntimeFixtures() {
+export async function cleanupStudentCourseRuntimeFixtures() {
   const emails = [runtimeEmail("owner"), runtimeEmail("enrolled"), runtimeEmail("unenrolled"), runtimeEmail("foreign")];
 
   const users = await prisma.user.findMany({
@@ -41,35 +41,35 @@ export async function cleanupChatTutorRuntimeFixtures() {
     await prisma.academicProfile.deleteMany({ where: { userId: { in: userIds } } });
   }
 
-  await deleteRuntimeCoursesByTitle(CHAT_TUTOR_RUNTIME_COURSE_TITLE);
+  await deleteRuntimeCoursesByTitle(SECURITY_RUNTIME_COURSE_TITLE);
 
   if (userIds.length > 0) {
     await prisma.user.deleteMany({ where: { id: { in: userIds } } });
   }
 }
 
-export async function seedChatTutorRuntimeFixtures(): Promise<ChatTutorRuntimeFixture> {
-  await cleanupChatTutorRuntimeFixtures();
+export async function seedStudentCourseRuntimeFixtures(): Promise<StudentCourseRuntimeFixture> {
+  await cleanupStudentCourseRuntimeFixtures();
 
   const passwordHash = bcrypt.hashSync(SECURITY_RUNTIME_TEST_PASSWORD, 10);
   const users = {
     ownerProfessor: {
-      id: "sec-rt-chat-owner",
+      id: "sec-rt-course-owner",
       email: runtimeEmail("owner"),
       role: "PROFESSOR" as const,
     },
     enrolledStudent: {
-      id: "sec-rt-chat-enrolled",
+      id: "sec-rt-course-enrolled",
       email: runtimeEmail("enrolled"),
       role: "STUDENT" as const,
     },
     unenrolledStudent: {
-      id: "sec-rt-chat-unenrolled",
+      id: "sec-rt-course-unenrolled",
       email: runtimeEmail("unenrolled"),
       role: "STUDENT" as const,
     },
     foreignProfessor: {
-      id: "sec-rt-chat-foreign",
+      id: "sec-rt-course-foreign",
       email: runtimeEmail("foreign"),
       role: "PROFESSOR" as const,
     },
@@ -91,7 +91,7 @@ export async function seedChatTutorRuntimeFixtures(): Promise<ChatTutorRuntimeFi
 
   const course = await prisma.course.create({
     data: {
-      title: CHAT_TUTOR_RUNTIME_COURSE_TITLE,
+      title: SECURITY_RUNTIME_COURSE_TITLE,
       level: "Module académique",
       credits: 3,
       duration: "10 heures",
@@ -101,7 +101,7 @@ export async function seedChatTutorRuntimeFixtures(): Promise<ChatTutorRuntimeFi
       iconName: "Code",
       color: "bg-blue-100",
       instructor: "Runtime Owner",
-      description: "Cours éphémère pour les tests runtime chat-tutor.",
+      description: "Cours éphémère pour les tests runtime étudiant.",
       progress: 0,
       isLiveNow: false,
       published: true,
@@ -109,7 +109,7 @@ export async function seedChatTutorRuntimeFixtures(): Promise<ChatTutorRuntimeFi
       courseModules: {
         create: [
           {
-            id: CHAT_TUTOR_RUNTIME_VALID_MODULE_ID,
+            id: SECURITY_RUNTIME_VALID_MODULE_ID,
             title: "Chapitre runtime ACL",
             type: "video",
             duration: "10 min",
@@ -125,13 +125,12 @@ export async function seedChatTutorRuntimeFixtures(): Promise<ChatTutorRuntimeFi
       userId: users.enrolledStudent.id,
       courseId: course.id,
       active: true,
-      hasAiAccess: true,
     },
   });
 
   return {
     courseId: course.id,
-    validModuleId: CHAT_TUTOR_RUNTIME_VALID_MODULE_ID,
+    validModuleId: SECURITY_RUNTIME_VALID_MODULE_ID,
     missingCourseId: 9_999_999,
     invalidModuleId: 9_888_888,
     users,

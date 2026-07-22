@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { getClientErrorMessage } from "../client-errors";
 import { api } from "../api";
 import type { AppUser } from "../components/AuthScreen";
@@ -58,18 +58,11 @@ export function useStudentCourseSession({
   const [moduleProgressPendingId, setModuleProgressPendingId] = useState<number | null>(null);
   const [moduleProgressError, setModuleProgressError] = useState("");
   const moduleProgressRequestRef = useRef<number | null>(null);
-  const [showAITutor, setShowAITutor] = useState(false);
-
-  const hasAiTutorAccess = useMemo(() => {
-    if (!selectedCourse || !currentUser?.aiTutorCourseIds?.length) return false;
-    return currentUser.aiTutorCourseIds.includes(selectedCourse.id);
-  }, [currentUser?.aiTutorCourseIds, selectedCourse?.id]);
+  const [showSuccessCoach, setShowSuccessCoach] = useState(false);
 
   useEffect(() => {
-    if (!hasAiTutorAccess) {
-      setShowAITutor(false);
-    }
-  }, [hasAiTutorAccess, selectedCourse?.id]);
+    setShowSuccessCoach(false);
+  }, [selectedCourse?.id]);
 
   useEffect(() => {
     if (selectedCourse && selectedModule && selectedModule.type === "quiz") {
@@ -277,9 +270,8 @@ export function useStudentCourseSession({
     setQuizSubmitError,
     moduleProgressPendingId,
     moduleProgressError,
-    showAITutor,
-    setShowAITutor,
-    hasAiTutorAccess,
+    showSuccessCoach,
+    setShowSuccessCoach,
     markModuleCompleted,
     handleQuizAnswerSelect,
     handleQuizSubmit,

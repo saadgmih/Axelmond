@@ -73,9 +73,7 @@ export function buildSecurityRuntimeServerEnv(port = DEFAULT_SECURITY_RUNTIME_PO
     NODE_ENV: "test",
     DATABASE_URL: process.env.TEST_DATABASE_URL,
     TEST_DATABASE_URL: process.env.TEST_DATABASE_URL,
-    OPENAI_API_KEY: "",
     RATE_LIMIT_MAX_REQUESTS: process.env.RATE_LIMIT_MAX_REQUESTS || "999999",
-    CHAT_TUTOR_RATE_LIMIT_MAX: process.env.CHAT_TUTOR_RATE_LIMIT_MAX || "9999",
     UPLOAD_RATE_LIMIT_MAX: process.env.UPLOAD_RATE_LIMIT_MAX || "9999",
     AUTH_TOKEN_SECRET: process.env.AUTH_TOKEN_SECRET || "security-runtime-test-secret",
   };

@@ -117,7 +117,6 @@ type PersistCoursePaymentEnrollment = (input: {
   externalId: string;
   auditAction: string;
   reqIp?: string;
-  hasAiAccess?: boolean;
 }) => Promise<{ duplicate: boolean; user: any; invoice: any }>;
 
 export type PayPalWebhookEventResult =

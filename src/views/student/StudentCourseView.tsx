@@ -1,6 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useState, useRef, type Dispatch, type SetStateAction } from "react";
 import {
-  Brain,
   Camera,
   CheckCircle,
   FileText,
@@ -10,12 +9,13 @@ import {
   PanelLeftOpen,
   PlayCircle,
   Sigma,
+  Target,
   Video,
   X,
 } from "lucide-react";
-import AITutorChat from "../../components/AITutorChat";
 import { LayoutFloatingToggle } from "../../components/LayoutFloatingToggle";
 import LatexText from "../../components/LazyLatexText";
+import SuccessCoachPanel from "../../components/SuccessCoachPanel";
 import { lessonContentIdFromModule } from "../../course-curriculum-utils";
 import { findLessonContent } from "../../hooks/useCourseContent";
 import { sanitizeCourseAttachmentUrl } from "../../external-url-security";
@@ -45,8 +45,7 @@ interface StudentCourseViewProps {
   courseContentSections: ContentSection[];
   moduleRootContents: LessonContent[];
   selectedLessonContent: LessonContent | null;
-  showAITutor: boolean;
-  hasAiTutorAccess: boolean;
+  showSuccessCoach: boolean;
   quizQuestions: QuizQuestion[] | null;
   quizAnswers: Record<string, string>;
   quizSubmitted: boolean;
@@ -56,7 +55,7 @@ interface StudentCourseViewProps {
   moduleProgressError: string;
   navigateTo: NavigateTo;
   onModuleSelect: (mod: CourseModule) => void;
-  setShowAITutor: Dispatch<SetStateAction<boolean>>;
+  setShowSuccessCoach: Dispatch<SetStateAction<boolean>>;
   markModuleCompleted: (modId: number, completed?: boolean) => void | Promise<void>;
   handleQuizAnswerSelect: (index: number, optionValue: string) => void;
   handleQuizSubmit: () => void | Promise<void>;
@@ -70,8 +69,7 @@ export default function StudentCourseView({
   courseContentSections,
   moduleRootContents,
   selectedLessonContent: selectedLessonContentFromProps,
-  showAITutor,
-  hasAiTutorAccess,
+  showSuccessCoach,
   quizQuestions,
   quizAnswers,
   quizSubmitted,
@@ -81,7 +79,7 @@ export default function StudentCourseView({
   moduleProgressError,
   navigateTo,
   onModuleSelect,
-  setShowAITutor,
+  setShowSuccessCoach,
   markModuleCompleted,
   handleQuizAnswerSelect,
   handleQuizSubmit,
@@ -90,8 +88,8 @@ export default function StudentCourseView({
 }: StudentCourseViewProps) {
   const [isModuleDrawerOpen, setIsModuleDrawerOpen] = useState(false);
 
-  const openTutorBtnRef = useRef<HTMLButtonElement>(null);
-  const prevShowAITutor = useRef(showAITutor);
+  const openCoachBtnRef = useRef<HTMLButtonElement>(null);
+  const prevShowSuccessCoach = useRef(showSuccessCoach);
 
   const [isLargeScreen, setIsLargeScreen] = useState(() => {
     if (typeof window === "undefined") return true;
@@ -109,13 +107,13 @@ export default function StudentCourseView({
   }, []);
 
   useEffect(() => {
-    if (prevShowAITutor.current && !showAITutor) {
-      openTutorBtnRef.current?.focus();
+    if (prevShowSuccessCoach.current && !showSuccessCoach) {
+      openCoachBtnRef.current?.focus();
     }
-    prevShowAITutor.current = showAITutor;
-  }, [showAITutor]);
+    prevShowSuccessCoach.current = showSuccessCoach;
+  }, [showSuccessCoach]);
 
-  const shouldLockScroll = showAITutor && !isLargeScreen;
+  const shouldLockScroll = showSuccessCoach && !isLargeScreen;
 
   const enrollment = selectedCourse.enrollment;
 
@@ -368,16 +366,16 @@ export default function StudentCourseView({
               <h1 className="text-xl md:text-2xl font-black text-slate-800 leading-tight">{selectedModule.title}</h1>
             </div>
 
-            {hasAiTutorAccess && (
-              <button
-                ref={openTutorBtnRef}
-                onClick={() => setShowAITutor(!showAITutor)}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5 self-start cursor-pointer group"
-              >
-                <Brain className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                {showAITutor ? "Masquer Tuteur IA" : "Ouvrir Tuteur IA"}
-              </button>
-            )}
+            <button
+              ref={openCoachBtnRef}
+              type="button"
+              onClick={() => setShowSuccessCoach(!showSuccessCoach)}
+              aria-expanded={showSuccessCoach}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5 self-start cursor-pointer group"
+            >
+              <Target className="w-4 h-4 group-hover:scale-110 transition-transform" />
+              {showSuccessCoach ? "Masquer mon coach" : "Mon plan de réussite"}
+            </button>
           </div>
 
           {enrollment && (
@@ -452,9 +450,9 @@ export default function StudentCourseView({
               )}
             </div>
           ) : (
-            <div className="tutor-layout-container">
+            <div className="success-coach-layout-container">
               {/* Module body (Video / Text / Quiz) */}
-              <div className="tutor-layout-main space-y-6">
+              <div className="success-coach-layout-main space-y-6">
                 {selectedLessonContent &&
                   (() => {
                     const rawAttachmentUrl = selectedLessonContent.attachments[0]?.url;
@@ -629,8 +627,8 @@ export default function StudentCourseView({
                             contient de précieux exercices pratiques à faire dans votre propre terminal.
                           </p>
                           <p className="text-xs text-slate-500 border-l-4 border-emerald-400 pl-4 py-1 italic bg-emerald-50/20">
-                            Astuce académique : Vous pouvez poser des questions précises sur le code vidéo s'affichant à
-                            l'écran en utilisant notre tuteur IA situé à votre droite.
+                            Astuce académique : ouvrez votre plan de réussite pour identifier la prochaine leçon à
+                            travailler et lancer une séance de concentration.
                           </p>
                         </div>
                       </div>
@@ -1002,17 +1000,21 @@ export default function StudentCourseView({
                   )}
               </div>
 
-              {/* AI Tutor Chat Widget right inside column layout */}
-              {showAITutor && hasAiTutorAccess && (
+              {/* Personalized success coach inside the responsive course layout */}
+              {showSuccessCoach && (
                 <>
-                  <div className="tutor-drawer-backdrop" onClick={() => setShowAITutor(false)} aria-hidden="true" />
-                  <div className="tutor-layout-sidebar">
-                    <AITutorChat
-                      courseId={selectedCourse.id}
-                      moduleId={selectedModule.id}
-                      courseTitle={selectedCourse.title}
-                      moduleTitle={selectedModule.title}
-                      onClose={() => setShowAITutor(false)}
+                  <div
+                    className="success-coach-drawer-backdrop"
+                    onClick={() => setShowSuccessCoach(false)}
+                    aria-hidden="true"
+                  />
+                  <div className="success-coach-layout-sidebar">
+                    <SuccessCoachPanel
+                      course={selectedCourse}
+                      selectedModuleId={selectedModule.id}
+                      onSelectModule={onModuleSelect}
+                      onResetQuiz={resetQuiz}
+                      onClose={() => setShowSuccessCoach(false)}
                     />
                   </div>
                 </>

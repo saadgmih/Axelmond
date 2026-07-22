@@ -142,7 +142,7 @@ Serveur : `http://127.0.0.1:3000` — **10 s par scénario** — **1 IP** (autoc
 | PDF | ✅ | ⚠️ À valider | Contenu leçon type document |
 | Images | ✅ | ⚠️ À valider | Avatars + pièces jointes validées MIME |
 | Live (LiveKit) | ✅ | ⚠️ À valider | Token 15 min, modération staff ; **migration replay requise** |
-| Chat live | ✅ | ⚠️ À valider | Persistance messages ; test ACL chat-tutor |
+| Chat live | ✅ | ⚠️ À valider | Persistance des messages et contrôle d’accès LiveKit |
 | Profil | ✅ | ⚠️ À valider | Avatar, mot de passe, profil académique staff |
 | Paiement PayPal | ✅ | ⚠️ À valider | Webhook signé ; mock désactivé en prod |
 | Notifications | ✅ | ⚠️ À valider | Push + in-app ; `markAllNotificationsRead` |

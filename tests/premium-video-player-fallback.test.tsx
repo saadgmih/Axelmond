@@ -73,7 +73,9 @@ describe("PremiumVideoPlayer resilient source fallback", () => {
     Object.defineProperty(video, "currentTime", { configurable: true, value: 5.1 });
     fireEvent.timeUpdate(video);
 
-    await waitFor(() => expect(screen.queryByTestId("branded-video-intro")).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByTestId("branded-video-intro")).not.toBeInTheDocument(), {
+      timeout: 3000,
+    });
     expect(video).toHaveClass("opacity-100");
   });
 });

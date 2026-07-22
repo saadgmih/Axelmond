@@ -80,7 +80,6 @@ export function registerCenterPaymentRoutes(app: Express, ctx: RouteContext): vo
       const result = await createCenterPaymentRequest({
         userId: authUser.id,
         courseId,
-        includeAiAssistant: req.body?.includeAiAssistant === true,
         promoCode: String(req.body?.promoCode || "").trim(),
         studentNote: req.body?.studentNote,
       });

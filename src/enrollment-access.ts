@@ -3,7 +3,6 @@ export const COURSE_ENROLLMENT_ACCESS_MS = COURSE_ENROLLMENT_ACCESS_DAYS * 24 * 
 
 export type EnrollmentAccessRecord = {
   active: boolean;
-  hasAiAccess?: boolean;
   endDate?: Date | string | null;
   startDate?: Date | string | null;
   courseId?: number;
@@ -66,20 +65,6 @@ export function getActiveEnrolledCourseIds(
     ...new Set(
       enrollments
         .filter((enrollment) => isEnrollmentActive(enrollment, now))
-        .map((enrollment) => enrollment.courseId)
-        .filter((courseId) => Number.isInteger(courseId) && courseId > 0),
-    ),
-  ];
-}
-
-export function getActiveAiTutorCourseIds(
-  enrollments: Array<EnrollmentAccessRecord & { courseId: number }>,
-  now = new Date(),
-): number[] {
-  return [
-    ...new Set(
-      enrollments
-        .filter((enrollment) => Boolean(enrollment.hasAiAccess) && isEnrollmentActive(enrollment, now))
         .map((enrollment) => enrollment.courseId)
         .filter((courseId) => Number.isInteger(courseId) && courseId > 0),
     ),

@@ -31,7 +31,6 @@ export type CoursePaymentEnrollmentInput = {
   auditAction: string;
   reqIp?: string;
   enrollmentEndDate?: Date | null;
-  hasAiAccess?: boolean;
   promoUsageId?: string;
   allowInactiveReservedPromo?: boolean;
 };
@@ -86,8 +85,6 @@ export async function persistCoursePaymentEnrollment(
   const activatedAt = new Date();
   const enrollmentEndDate =
     typeof params.enrollmentEndDate === "undefined" ? buildEnrollmentEndDate(activatedAt) : params.enrollmentEndDate;
-  const hasAiAccess = Boolean(params.hasAiAccess);
-
   const execute = () =>
     prisma.$transaction(async (tx) => {
       const activation = await activateModuleSubscriptionInTransaction(tx, {
@@ -100,7 +97,6 @@ export async function persistCoursePaymentEnrollment(
         invoiceId: params.invoiceId,
         activatedAt,
         enrollmentEndDate,
-        hasAiAccess,
       });
       if (params.promoUsageId) {
         await confirmPromoCodeUsageInTransaction(tx, {

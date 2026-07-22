@@ -418,7 +418,7 @@ performance-academique/
 │   ├── uploadthing-client.ts   # Typed UploadThing client uploader
 │   ├── components/
 │   │   ├── AuthScreen.tsx
-│   │   ├── AITutorChat.tsx
+│   │   ├── SuccessCoachPanel.tsx
 │   │   ├── PaymentModal.tsx
 │   │   ├── Sidebar.tsx
 │   │   ├── Topbar.tsx
@@ -840,8 +840,8 @@ Uploads
   UploadThing route avatarImage       → [auth] image upload, persists User.avatarUrl and AcademicProfile.avatarUrl when relevant
   UploadThing route supportScreenshot → [auth] screenshot upload for support tickets
 
-AI Tutor
-  POST   /api/chat-tutor             → OpenAI if OPENAI_API_KEY exists, local pedagogical fallback otherwise
+Success Coach
+  Client-only, deterministic study plan based on module progress and quiz scores
 ```
 
 ### Component Tree (React)
@@ -856,7 +856,7 @@ AI Tutor
   ├── Institutional views in App.tsx  (about, research, publications, privacy, terms, cookies, legal)
   ├── <ContactView />                 (complete interactive contact form, FAQ, coordinates, GDPR banner)
   ├── <SupportView />                 (complete searchable support center, FAQ, ticket form with upload, status)
-  ├── <AITutorChat />                 (student assistant panel)
+  ├── <SuccessCoachPanel />           (plan de réussite et simulateur d’examens)
   └── <PaymentModal />                (student enrollment/payment overlay)
 ```
 
@@ -912,7 +912,7 @@ AI Tutor
 | | ✅ Classe virtuelle premium `VirtualClassroom` : participants, modération, tableau blanc, ressources, LaTeX/code, sondages, présence | |
 | | ⏳ Enregistrement + publication replay | |
 | | ✅ Dashboard analytics (KPIs, graphiques) | |
-| **M5 — Polish** | ✅ AI Tutor (OpenAI via API) | Semaine 9-10 |
+| **M5 — Polish** | ✅ Coach de réussite et simulateur d’examens | Semaine 9-10 |
 | | ✅ Responsive design (mobile/tablette) | |
 | | ✅ Tests (Vitest + Supertest) | |
 | | ✅ Performance + bundle optimization | |

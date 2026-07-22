@@ -2,11 +2,6 @@ import express from "express";
 import { z } from "zod";
 import { DEFAULT_MODULE_CLASSIFICATION } from "../types";
 import { MIN_PAID_COURSE_PRICE, isValidCoursePrice } from "../utils/course-pricing";
-import {
-  CHAT_TUTOR_MAX_HISTORY_MESSAGES,
-  CHAT_TUTOR_MAX_PROMPT_CHARS,
-  trimChatTutorHistory,
-} from "../security-hardening";
 import { strongPasswordField } from "../password-policy";
 
 // ─── Input Validation (Zod only — no global HTML entity encoding on req.body) ─
@@ -103,22 +98,6 @@ export const studentObjectiveSchema = z.object({
     .optional()
     .nullable(),
   recurrence: z.enum(["NONE", "DAILY", "WEEKLY", "MONTHLY"]).optional().nullable(),
-});
-
-export const chatTutorSchema = z.object({
-  courseId: z.number().int().positive(),
-  moduleId: z.number().int().positive().optional(),
-  prompt: z.string().min(1, "Question requise").max(CHAT_TUTOR_MAX_PROMPT_CHARS).trim(),
-  chatHistory: z
-    .array(
-      z.object({
-        role: z.enum(["user", "model", "assistant"]),
-        text: z.string().max(CHAT_TUTOR_MAX_PROMPT_CHARS),
-      }),
-    )
-    .max(CHAT_TUTOR_MAX_HISTORY_MESSAGES)
-    .optional()
-    .transform((history) => (history ? trimChatTutorHistory(history) : history)),
 });
 
 export const PASSWORD_RESET_GENERIC_MESSAGE =

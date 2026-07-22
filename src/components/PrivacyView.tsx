@@ -261,7 +261,7 @@ export default function PrivacyView() {
                 {
                   icon: <Globe className="w-4 h-4 text-emerald-400" />,
                   title: "Fourniture des services",
-                  desc: "Accès aux modules, sessions live, quiz, tuteur IA, profils académiques et paiements.",
+                  desc: "Accès aux modules, sessions live, coach de réussite, quiz, profils académiques et paiements.",
                 },
                 {
                   icon: <RefreshCw className="w-4 h-4 text-emerald-400" />,
@@ -412,14 +412,6 @@ export default function PrivacyView() {
                   policy: "Politique de confidentialité disponible auprès du prestataire d'hébergement",
                   color: "border-emerald-800/40 bg-emerald-950/20",
                   chip: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10",
-                },
-                {
-                  name: "Prestataire d'assistance IA",
-                  role: "Tuteur IA pédagogique",
-                  data: "Questions posées au tuteur IA (aucune donnée d'identité transmise, contenu du module uniquement)",
-                  policy: "Politique de confidentialité disponible auprès du prestataire d'assistance IA",
-                  color: "border-lime-800/40 bg-lime-950/20",
-                  chip: "text-lime-300 border-lime-500/30 bg-lime-500/10",
                 },
               ].map(({ name, role, data, policy, color, chip }) => (
                 <div key={name} className={`rounded-2xl border p-4 ${color}`}>

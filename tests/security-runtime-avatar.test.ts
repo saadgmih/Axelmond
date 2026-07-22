@@ -9,8 +9,8 @@ import {
 } from "./helpers/security-runtime-harness.ts";
 import { skipSecurityRuntimeTests } from "./helpers/security-runtime-harness.ts";
 import {
-  cleanupChatTutorRuntimeFixtures,
-  seedChatTutorRuntimeFixtures,
+  cleanupStudentCourseRuntimeFixtures,
+  seedStudentCourseRuntimeFixtures,
   SECURITY_RUNTIME_TEST_PASSWORD,
 } from "./helpers/security-runtime-fixtures.ts";
 import { prisma } from "../src/db.ts";
@@ -44,7 +44,7 @@ await runtimeTest("security-runtime-avatar", async () => {
   let handle: ReturnType<typeof startSecurityRuntimeServer> | undefined;
 
   try {
-    const fixture = await seedChatTutorRuntimeFixtures();
+    const fixture = await seedStudentCourseRuntimeFixtures();
     const runtimePort = await allocateSecurityRuntimePort();
     handle = startSecurityRuntimeServer(runtimePort);
     await waitForSecurityRuntimeHealth(handle.baseUrl, { process: handle.process });
@@ -185,6 +185,6 @@ await runtimeTest("security-runtime-avatar", async () => {
     if (handle) {
       await stopSecurityRuntimeServer(handle);
     }
-    await cleanupChatTutorRuntimeFixtures();
+    await cleanupStudentCourseRuntimeFixtures();
   }
 });

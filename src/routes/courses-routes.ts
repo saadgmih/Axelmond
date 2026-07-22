@@ -921,7 +921,6 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
     if (!courseId) return void res.status(400).json({ error: "Identifiant de module invalide" });
 
     const promoCode = String(req.body?.promoCode || "").trim();
-    const includeAiAssistant = Boolean(req.body?.includeAiAssistant);
     const persistCoursePaymentEnrollment = api.persistCoursePaymentWithAudit;
 
     try {
@@ -930,7 +929,6 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
         role: authUser.role,
         courseId,
         promoCode: promoCode || undefined,
-        includeAiAssistant,
         reqIp: req.ip,
         persistCoursePaymentEnrollment,
       });

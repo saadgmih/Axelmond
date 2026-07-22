@@ -8,17 +8,19 @@ rulesTest("ui-production-cleanup", () => {
   const appSource = readAppSources();
   const curriculumSource = readCurriculumViewSources();
   const topbarSource = fs.readFileSync("src/components/Topbar.tsx", "utf8");
-  const tutorSource = fs.readFileSync("src/components/AITutorChat.tsx", "utf8");
+  const coachSource = fs.readFileSync("src/components/SuccessCoachPanel.tsx", "utf8");
   const paymentSource = fs.readFileSync("src/components/PaymentModal.tsx", "utf8");
   const cssSource = fs.readFileSync("src/index.css", "utf8");
   const schema = fs.readFileSync("prisma/schema.prisma", "utf8");
 
   assert.doesNotMatch(topbarSource, /setTheme|theme:\s*"light"|Passer en mode clair|Passer en mode sombre|Sun|Moon/);
   assert.doesNotMatch(
-    appSource + tutorSource + paymentSource,
+    appSource + coachSource + paymentSource,
     /UniCode|unicode|Sandbox|Test SMTP|e-mail de test|👋|🖥️|🔴|⚪|Pr\. Martin Dubois|Alexandre Dubois|Marie Curie|Alan Turing|Grace Hopper/,
   );
   assert.match(appSource, /document\.documentElement\.classList\.add\("dark"\)/);
+  assert.match(coachSource, /Coach de réussite/);
+  assert.doesNotMatch(coachSource + paymentSource, /Tuteur IA|Assistant IA pédagogique|chatTutor/);
   assert.match(appSource, /Politique de confidentialité/);
   assert.match(appSource, /Conditions d'utilisation/);
   assert.match(appSource, /Politique des cookies/);

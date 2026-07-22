@@ -21,7 +21,6 @@ import { csrfProtection } from "../auth-csrf";
 import { isMobileClientRequest, MOBILE_CLIENT_HEADER } from "../auth-mobile";
 import { mobileClientSpoofGuard } from "../mobile-client-guard";
 import { createUnknownApiRouteGuard } from "./api-not-found";
-import { verifyAuthToken } from "../auth-token";
 import { applyMobileApiCorsHeaders } from "../routes/mobile-api-routes";
 import { emailRateLimitKey } from "../email-rate-limit";
 import { liveKitRateLimitKey } from "../livekit-rate-limit";
@@ -445,23 +444,6 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     next();
   };
 
-  const chatTutorRateLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: Number(process.env.CHAT_TUTOR_RATE_LIMIT_MAX) || 30,
-    standardHeaders: true,
-    legacyHeaders: false,
-    keyGenerator: (req) => {
-      const token = req.headers.authorization?.replace(/^Bearer\s+/i, "");
-      const session = verifyAuthToken(token);
-      if (session?.userId) return `chat-tutor:user:${session.userId}`;
-      return rateLimitIpKey(req);
-    },
-    message: {
-      error: "Trop de questions à l'assistant. Veuillez patienter 15 minutes.",
-      code: "CHAT_TUTOR_RATE_LIMIT_EXCEEDED",
-    },
-  });
-
   const paypalRateLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: isSecurityRuntimeTest ? 9999 : Number(process.env.PAYPAL_RATE_LIMIT_MAX) || 10,
@@ -568,7 +550,6 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
   app.use("/api/contact", contactSupportRateLimiter);
   app.use("/api/support", contactSupportRateLimiter);
   app.use("/api/admin", adminRouteRateLimiter);
-  app.use("/api/chat-tutor", chatTutorRateLimiter);
   app.use("/api/test-email", adminDiagnosticRateLimiter);
 
   app.use(

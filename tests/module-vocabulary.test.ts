@@ -14,7 +14,7 @@ rulesTest("module-vocabulary", () => {
     "src/components/SupportView.tsx",
     "src/components/TermsView.tsx",
     "src/components/PaymentModal.tsx",
-    "src/components/AITutorChat.tsx",
+    "src/components/SuccessCoachPanel.tsx",
     "src/components/CookiesView.tsx",
     "src/components/VirtualClassroom.tsx",
   ];

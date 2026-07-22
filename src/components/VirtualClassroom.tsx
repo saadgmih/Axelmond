@@ -86,7 +86,6 @@ export interface VirtualClassroomProps {
   sharedResource: LiveSharedResource | null;
   onShareResource: (title: string, url: string) => void;
   onDismissResource: () => void;
-  showAiTutor?: boolean;
 }
 
 export default function VirtualClassroom({
@@ -136,7 +135,6 @@ export default function VirtualClassroom({
   sharedResource,
   onShareResource,
   onDismissResource,
-  showAiTutor = false,
 }: VirtualClassroomProps) {
   const ui = useVirtualClassroomUI({
     mode,
@@ -359,10 +357,6 @@ export default function VirtualClassroom({
 
               {ui.activeTab === "chat" && (
                 <LiveChatPanel
-                  course={course}
-                  showAiTutor={showAiTutor}
-                  chatView={ui.chatView}
-                  onChatViewChange={ui.setChatView}
                   messageMode={ui.messageMode}
                   onMessageModeChange={ui.setMessageMode}
                   privateTarget={ui.privateTarget}

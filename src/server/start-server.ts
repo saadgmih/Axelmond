@@ -81,7 +81,6 @@ function logEnvironmentStatus(allowedOrigins: Set<string>, isProduction: boolean
       "SMTP_HOST",
       "SMTP_USER",
       "SMTP_PASS",
-      "OPENAI_API_KEY",
     ] as const;
     const configuredCount = integrationKeys.filter((key) => isConfiguredEnv(key).configured).length;
     logDb("INFO", "Production environment loaded", {
@@ -109,7 +108,6 @@ function logEnvironmentStatus(allowedOrigins: Set<string>, isProduction: boolean
       SMTP_HOST: isConfiguredEnv("SMTP_HOST"),
       SMTP_USER: isConfiguredEnv("SMTP_USER"),
       SMTP_PASS: isConfiguredEnv("SMTP_PASS"),
-      OPENAI_API_KEY: isConfiguredEnv("OPENAI_API_KEY"),
     });
   }
   if (isProduction && allowedOrigins.size === 0) {

@@ -74,7 +74,6 @@ Cela produit **`.hostinger-import.env`** (gitignored) : variables triées, sans 
 | UploadThing | `UPLOADTHING_TOKEN`, `UPLOADTHING_IS_DEV=false`, `UPLOADTHING_CALLBACK_URL`                                                                                                                                     |
 | Email       | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM`, `EMAIL_VERIFICATION_URL`                                                                                                                      |
 | Push        | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`                                                                                                                                                        |
-| AI          | `OPENAI_API_KEY`                                                                                                                                                                                                |
 | Divers      | `PROFESSOR_INVITE_CODES`                                                                                                                                                                                        |
 
 Sans ces variables, le build peut réussir mais l’app crash au démarrage → **503** ou erreur `Invalid production configuration`.

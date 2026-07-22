@@ -21,7 +21,6 @@ export type ActivateModuleSubscriptionInput = {
   invoiceId: string;
   activatedAt: Date;
   enrollmentEndDate: Date | null;
-  hasAiAccess: boolean;
   excludeCenterRequestId?: string;
 };
 
@@ -104,7 +103,6 @@ export async function activateModuleSubscriptionInTransaction(
         active: true,
         startDate: input.activatedAt,
         endDate: input.enrollmentEndDate,
-        hasAiAccess: input.hasAiAccess,
       },
       create: {
         userId: input.userId,
@@ -112,7 +110,6 @@ export async function activateModuleSubscriptionInTransaction(
         active: true,
         startDate: input.activatedAt,
         endDate: input.enrollmentEndDate,
-        hasAiAccess: input.hasAiAccess,
       },
     });
     await cancelOpenCenterPaymentRequestsInTransaction(tx, {
@@ -153,7 +150,6 @@ export async function activateModuleSubscriptionInTransaction(
       active: true,
       startDate: input.activatedAt,
       endDate: input.enrollmentEndDate,
-      hasAiAccess: input.hasAiAccess,
     },
     create: {
       userId: input.userId,
@@ -161,7 +157,6 @@ export async function activateModuleSubscriptionInTransaction(
       active: true,
       startDate: input.activatedAt,
       endDate: input.enrollmentEndDate,
-      hasAiAccess: input.hasAiAccess,
     },
   });
 

@@ -7,7 +7,7 @@ import { rulesTest } from "./helpers/rulesTest.ts";
 rulesTest("live-layout-stability", () => {
   const classroomSource = readLiveClassroomSources();
   const controlBarSource = readFileSync("src/components/live/LiveControlBar.tsx", "utf8");
-  const tutorSource = readFileSync("src/components/AITutorChat.tsx", "utf8");
+  const liveChatSource = readFileSync("src/components/live/LiveChatPanel.tsx", "utf8");
   const themeSource = readFileSync("src/views/teacher/live-control-theme.ts", "utf8");
   const appSource = readAppSources();
 
@@ -24,8 +24,8 @@ rulesTest("live-layout-stability", () => {
   assert.doesNotMatch(classroomSource, /max-h-\[min\(72dvh,780px\)\]/);
   assert.doesNotMatch(classroomSource, /lg:min-h-\[480px\]/);
 
-  assert.match(tutorSource, /isLive[\s\S]*min-h-0 flex-1 w-full self-stretch/);
-  assert.doesNotMatch(tutorSource, /min-h-\[min\(620px,calc\(100dvh-11rem\)\)\]/);
+  assert.match(liveChatSource, /flex min-h-0 flex-1 flex-col/);
+  assert.doesNotMatch(liveChatSource, /AITutorChat|Tuteur IA/);
 
   assert.match(themeSource, /roomShell:[\s\S]*overflow-hidden/);
   assert.match(themeSource, /roomShell:[\s\S]*h-\[min\(78dvh,820px\)\]/);

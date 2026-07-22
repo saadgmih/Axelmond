@@ -409,7 +409,7 @@ export default function StudentDashboardView({
                 ? currentUser.filiere || currentUser.levelOrTitle || DEFAULT_STUDENT_LABEL
                 : DEFAULT_STUDENT_LABEL}
             </strong>{" "}
-            de Performance Académique. Poursuivez vos modules interactifs, ou conversez avec votre tuteur IA.
+            de Performance Académique. Poursuivez vos modules interactifs et suivez votre plan de réussite personnalisé.
           </p>
 
           <div className="pt-2 flex flex-wrap gap-3">

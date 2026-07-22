@@ -32,7 +32,7 @@ const CSRF_COOKIE_NAME = "csrf_token";
 const UNSAFE_HTTP_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 const API_REQUEST_TIMEOUT_MS = Number((import.meta as any).env?.VITE_API_TIMEOUT_MS) || 20_000;
 const API_LONG_REQUEST_TIMEOUT_MS = Number((import.meta as any).env?.VITE_API_LONG_TIMEOUT_MS) || 45_000;
-const LONG_REQUEST_PATH_PREFIXES = ["/api/paypal/", "/api/chat-tutor", "/api/contact", "/api/support"];
+const LONG_REQUEST_PATH_PREFIXES = ["/api/paypal/", "/api/contact", "/api/support"];
 const AUTH_PATHS_WITHOUT_REFRESH = new Set([
   "/api/auth/login",
   "/api/auth/register",
@@ -524,10 +524,7 @@ export const api = {
   getPayPalConfig: () =>
     request<{ clientId: string; env: "sandbox" | "live"; currency: string }>("GET", "/api/paypal/config"),
   getCenterPaymentConfig: () => request<CenterPaymentConfig>("GET", "/api/center-payment/config"),
-  createCenterPaymentRequest: (
-    courseId: number,
-    data: { includeAiAssistant?: boolean; promoCode?: string; studentNote?: string } = {},
-  ) =>
+  createCenterPaymentRequest: (courseId: number, data: { promoCode?: string; studentNote?: string } = {}) =>
     request<{ duplicate: boolean; request: CenterPaymentRequestView }>(
       "POST",
       `/api/courses/${courseId}/center-payment-requests`,
@@ -613,11 +610,11 @@ export const api = {
       `/api/admin/center-payment-requests/${encodeURIComponent(reference)}/note`,
       { note },
     ),
-  createPayPalOrder: (courseId: number, promoCode?: string, includeAiAssistant?: boolean) =>
+  createPayPalOrder: (courseId: number, promoCode?: string) =>
     request<{ id: string; currency?: string; amount?: string; amountMad?: string }>(
       "POST",
       "/api/paypal/create-order",
-      { courseId, ...(promoCode ? { promoCode } : {}), ...(includeAiAssistant ? { includeAiAssistant: true } : {}) },
+      { courseId, ...(promoCode ? { promoCode } : {}) },
     ),
   capturePayPalOrder: (orderId: string, courseId: number) =>
     request<{ ok: boolean; invoice?: any; user?: any; message?: string }>("POST", "/api/paypal/capture-order", {
@@ -626,13 +623,12 @@ export const api = {
     }),
   cancelPayPalOrder: (orderId: string) =>
     request<{ released: boolean }>("POST", "/api/paypal/cancel-order", { orderId }),
-  freeEnrollCourse: (courseId: number, promoCode?: string, includeAiAssistant?: boolean) =>
+  freeEnrollCourse: (courseId: number, promoCode?: string) =>
     request<{ ok: boolean; invoice?: any; user?: any; message?: string }>(
       "POST",
       `/api/courses/${courseId}/free-enroll`,
       {
         ...(promoCode ? { promoCode } : {}),
-        ...(includeAiAssistant ? { includeAiAssistant: true } : {}),
       },
     ),
   validatePromoCode: (courseId: number, code: string) =>
@@ -931,13 +927,6 @@ export const api = {
   markAllNotificationsRead: () => request<any>("POST", "/api/notifications/read-all"),
   subscribePushNotifications: (data: { endpoint: string; keys: { p256dh: string; auth: string } }) =>
     request<any>("POST", "/api/notifications/push-subscribe", data),
-  chatTutor: (data: {
-    courseId: number;
-    moduleId?: number;
-    prompt: string;
-    chatHistory?: Array<{ role: "user" | "model" | "assistant"; text: string }>;
-  }) => request<{ text: string }>("POST", "/api/chat-tutor", data),
-
   getCharityAccessStatus: () =>
     request<{ pageEnabled: boolean; hasAccess: boolean; needsCode: boolean }>("GET", "/api/charity/access-status"),
   verifyCharityCode: (code: string) =>

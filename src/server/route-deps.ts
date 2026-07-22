@@ -196,7 +196,6 @@ export {
 } from "../academic-notifications";
 export { buildCourseGradeRows } from "../grades";
 export { assertCourseLearningAccess } from "../course-access";
-export { assertAiTutorAccess } from "../ai-tutor-access";
 export {
   APP_USER_BILLING_INCLUDE,
   buildCourseInvoiceId,
@@ -221,12 +220,6 @@ export {
 } from "../auth-mobile";
 export { readRefreshTokenFromRequest } from "../auth-cookies";
 export { parsePositiveInt } from "../route-params";
-export {
-  generateChatTutorResponse,
-  ChatTutorServiceError,
-  toChatTutorClientResponse,
-  initializeOpenAIService,
-} from "../openai-service";
 export type { CourseModule } from "../types";
 export {
   bumpAuthTokenVersion,
@@ -302,14 +295,7 @@ export {
 } from "../student-objectives";
 export { validateIncomingLiveSyncMessage, isModeratorOnlyLiveSyncType } from "../live/live-sync-validation";
 export { LIVE_SYNC_TOPIC, createEmptyPoll } from "../live/live-sync";
-export {
-  hashRefreshToken,
-  CHAT_TUTOR_MAX_HISTORY_CHARS,
-  CHAT_TUTOR_MAX_HISTORY_MESSAGES,
-  CHAT_TUTOR_MAX_PROMPT_CHARS,
-  trimChatTutorHistory,
-  getBcryptRounds,
-} from "../security-hardening";
+export { hashRefreshToken, getBcryptRounds } from "../security-hardening";
 export { courseModuleRowFromJsonItem, getNextCourseModuleId, resolveCourseModules } from "../course-syllabus-modules";
 export {
   createPayPalOrder,
@@ -322,11 +308,6 @@ export {
 export { processPayPalCaptureDonation, toPayPalDonationCaptureClientResponse } from "../paypal-charity-donation";
 export { processPayPalCaptureEnrollment, toPayPalCaptureClientResponse } from "../paypal-enrollment";
 export { resolveCourseChargeAmount, isFreeCourseCharge } from "../promo-codes";
-export {
-  AI_TUTOR_ADDON_PRICE_MAD,
-  computeCourseCheckoutTotalMad,
-  resolveEnrollmentHasAiAccess,
-} from "../utils/ai-tutor-pricing";
 export { processFreeCourseEnrollment } from "../course-free-enrollment";
 export { getSiteSettings, setForceDesktopMode } from "../site-settings";
 export {

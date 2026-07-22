@@ -9,8 +9,8 @@ import {
 } from "./helpers/security-runtime-harness.ts";
 import { skipSecurityRuntimeTests } from "./helpers/security-runtime-harness.ts";
 import {
-  cleanupChatTutorRuntimeFixtures,
-  seedChatTutorRuntimeFixtures,
+  cleanupStudentCourseRuntimeFixtures,
+  seedStudentCourseRuntimeFixtures,
   SECURITY_RUNTIME_TEST_PASSWORD,
 } from "./helpers/security-runtime-fixtures.ts";
 import { cleanupAdminRuntimeFixtures, seedAdminRuntimeFixtures } from "./helpers/security-runtime-admin-fixtures.ts";
@@ -24,7 +24,7 @@ await runtimeTest("security-runtime-notifications", async () => {
 
   try {
     // 1. Seed fixtures
-    const chatFixture = await seedChatTutorRuntimeFixtures();
+    const studentFixture = await seedStudentCourseRuntimeFixtures();
     const adminFixture = await seedAdminRuntimeFixtures();
 
     const runtimePort = await allocateSecurityRuntimePort();
@@ -33,12 +33,12 @@ await runtimeTest("security-runtime-notifications", async () => {
 
     // 2. Perform logins
     const studentSession = await loginViaHttp(handle.baseUrl, {
-      email: chatFixture.users.enrolledStudent.email,
+      email: studentFixture.users.enrolledStudent.email,
       password: SECURITY_RUNTIME_TEST_PASSWORD,
       role: "STUDENT",
     });
     const professorSession = await loginViaHttp(handle.baseUrl, {
-      email: chatFixture.users.ownerProfessor.email,
+      email: studentFixture.users.ownerProfessor.email,
       password: SECURITY_RUNTIME_TEST_PASSWORD,
       role: "PROFESSOR",
     });
@@ -56,8 +56,8 @@ await runtimeTest("security-runtime-notifications", async () => {
 
     // Clean up existing notifications for these users
     const allUserIds = [
-      chatFixture.users.enrolledStudent.id,
-      chatFixture.users.ownerProfessor.id,
+      studentFixture.users.enrolledStudent.id,
+      studentFixture.users.ownerProfessor.id,
       adminFixture.users.adminA.id,
     ];
     await prisma.notification.deleteMany({
@@ -130,7 +130,7 @@ await runtimeTest("security-runtime-notifications", async () => {
     // Create notifications in the DB
     const studentNotif = await prisma.notification.create({
       data: {
-        userId: chatFixture.users.enrolledStudent.id,
+        userId: studentFixture.users.enrolledStudent.id,
         type: "NEW_COURSE",
         title: "Test Student Notif",
         body: "Test Body Student",
@@ -139,7 +139,7 @@ await runtimeTest("security-runtime-notifications", async () => {
 
     const profNotif = await prisma.notification.create({
       data: {
-        userId: chatFixture.users.ownerProfessor.id,
+        userId: studentFixture.users.ownerProfessor.id,
         type: "NEW_COURSE",
         title: "Test Prof Notif",
         body: "Test Body Prof",
@@ -193,7 +193,7 @@ await runtimeTest("security-runtime-notifications", async () => {
 
     const studentNotif1 = await prisma.notification.create({
       data: {
-        userId: chatFixture.users.enrolledStudent.id,
+        userId: studentFixture.users.enrolledStudent.id,
         type: "NEW_COURSE",
         title: "S1",
         body: "B1",
@@ -201,7 +201,7 @@ await runtimeTest("security-runtime-notifications", async () => {
     });
     const studentNotif2 = await prisma.notification.create({
       data: {
-        userId: chatFixture.users.enrolledStudent.id,
+        userId: studentFixture.users.enrolledStudent.id,
         type: "NEW_COURSE",
         title: "S2",
         body: "B2",
@@ -209,7 +209,7 @@ await runtimeTest("security-runtime-notifications", async () => {
     });
     const profNotif1 = await prisma.notification.create({
       data: {
-        userId: chatFixture.users.ownerProfessor.id,
+        userId: studentFixture.users.ownerProfessor.id,
         type: "NEW_COURSE",
         title: "P1",
         body: "BP1",
@@ -237,6 +237,6 @@ await runtimeTest("security-runtime-notifications", async () => {
     if (handle) {
       await stopSecurityRuntimeServer(handle);
     }
-    await Promise.all([cleanupChatTutorRuntimeFixtures(), cleanupAdminRuntimeFixtures()]);
+    await Promise.all([cleanupStudentCourseRuntimeFixtures(), cleanupAdminRuntimeFixtures()]);
   }
 });

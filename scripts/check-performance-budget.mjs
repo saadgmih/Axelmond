@@ -14,8 +14,9 @@ const budgets = {
   initialCssGzipBytes: 40 * 1024,
   visitorJsGzipBytes: 170 * 1024,
   entryChunkGzipBytes: 100 * 1024,
-  initialAssetRequests: 4,
-  visitorAssetRequests: 10,
+  // Vite 8 emits the shared Lucide factory as a separate cached chunk.
+  initialAssetRequests: 5,
+  visitorAssetRequests: 11,
   largestJsChunkBytes: 525 * 1024,
   largestWorkerBytes: 1_300 * 1024,
   criticalImageBytes: 64 * 1024,

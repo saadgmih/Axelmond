@@ -71,7 +71,6 @@ export function useVirtualClassroomUI({
   const sidebarRef = useRef<HTMLElement | null>(null);
   const [participantQuery, setParticipantQuery] = useState("");
   const [messageMode, setMessageMode] = useState<"public" | "question" | "private">("public");
-  const [chatView, setChatView] = useState<"messages" | "tutor">("messages");
   const [privateTarget, setPrivateTarget] = useState("");
   const [resourceTitle, setResourceTitle] = useState("");
   const [resourceUrl, setResourceUrl] = useState("");
@@ -325,8 +324,6 @@ export function useVirtualClassroomUI({
     setParticipantQuery,
     messageMode,
     setMessageMode,
-    chatView,
-    setChatView,
     privateTarget,
     setPrivateTarget,
     resourceTitle,

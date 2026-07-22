@@ -8,7 +8,7 @@ import {
   BookOpen,
   Users,
   Video,
-  Brain,
+  Target,
   Award,
   Globe,
   Cpu,
@@ -169,12 +169,12 @@ export default function AboutView() {
       badge: "Live",
     },
     {
-      icon: <Brain className="w-5 h-5 text-teal-300" />,
+      icon: <Target className="w-5 h-5 text-teal-300" />,
       accent: "bg-teal-500/15 border border-teal-500/20",
-      title: "Tuteur IA Personnalisé",
+      title: "Coach de réussite personnalisé",
       description:
-        "Assistant pédagogique intelligent, disponible dans les modules pour répondre aux questions et approfondir les concepts.",
-      badge: "IA",
+        "Plan d'actions, indicateur de préparation, séances chronométrées et examens blancs adaptés à la progression.",
+      badge: "Inclus",
     },
     {
       icon: <Award className="w-5 h-5 text-lime-300" />,
@@ -669,8 +669,8 @@ export default function AboutView() {
                   </p>
                   <p>
                     La plateforme propose un catalogue de modules structurés par domaines et disciplines académiques, un
-                    système de sessions en direct intégré, un tuteur IA, des évaluations automatisées et des profils
-                    académiques complets avec spécialités, suivi et ressources pédagogiques.
+                    système de sessions en direct intégré, un coach de réussite, des évaluations automatisées et des
+                    profils académiques complets avec spécialités, suivi et ressources pédagogiques.
                   </p>
                   <p>
                     Toute l'infrastructure repose sur une{" "}
@@ -695,7 +695,7 @@ export default function AboutView() {
                         label: "Sessions en direct",
                         color: "text-emerald-300 bg-emerald-900/20 border-emerald-800/40",
                       },
-                      { label: "Tuteur IA", color: "text-teal-300 bg-teal-900/20 border-teal-800/40" },
+                      { label: "Coach de réussite", color: "text-teal-300 bg-teal-900/20 border-teal-800/40" },
                       { label: "Paiement en ligne", color: "text-lime-300 bg-lime-900/20 border-lime-800/40" },
                       { label: "Médias pédagogiques", color: "text-orange-300 bg-orange-900/20 border-orange-800/40" },
                       {

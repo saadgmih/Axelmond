@@ -869,7 +869,7 @@ body {
   background-color: rgba(3, 21, 18, 0.7) !important;
 }
 
-/* AI Tutor Chat bubble message stylings */
+/* Success coach panel message stylings */
 .dark .bg-indigo-50 {
   background-color: #042f29 !important; /* opaline-950 */
   color: #ccfbf1 !important; /* opaline-100 */
@@ -1508,8 +1508,8 @@ html.force-desktop-mode #root {
   }
 }
 
-/* ─── AI Tutor Responsive Layout ─── */
-.tutor-layout-container {
+/* ─── Success Coach Responsive Layout ─── */
+.success-coach-layout-container {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -1517,12 +1517,12 @@ html.force-desktop-mode #root {
   min-width: 0;
 }
 
-.tutor-layout-main {
+.success-coach-layout-main {
   flex: 1;
   min-width: 0;
 }
 
-.tutor-layout-sidebar {
+.success-coach-layout-sidebar {
   position: fixed;
   top: 0;
   right: 0;
@@ -1534,20 +1534,20 @@ html.force-desktop-mode #root {
   background: transparent;
   display: flex;
   flex-direction: column;
-  animation: tutor-slide-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: success-coach-slide-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.tutor-drawer-backdrop {
+.success-coach-drawer-backdrop {
   position: fixed;
   inset: 0;
   z-index: 99;
   background: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  animation: tutor-fade-in 0.2s ease-out forwards;
+  animation: success-coach-fade-in 0.2s ease-out forwards;
 }
 
-@keyframes tutor-slide-in {
+@keyframes success-coach-slide-in {
   from {
     transform: translateX(100%);
   }
@@ -1556,7 +1556,7 @@ html.force-desktop-mode #root {
   }
 }
 
-@keyframes tutor-fade-in {
+@keyframes success-coach-fade-in {
   from {
     opacity: 0;
   }
@@ -1566,18 +1566,18 @@ html.force-desktop-mode #root {
 }
 
 @media (min-width: 768px) {
-  .tutor-layout-sidebar {
+  .success-coach-layout-sidebar {
     width: min(420px, calc(100vw - 32px));
   }
 }
 
 @media (min-width: 1440px) {
-  .tutor-layout-container {
+  .success-coach-layout-container {
     flex-direction: row;
     align-items: start;
   }
 
-  .tutor-layout-sidebar {
+  .success-coach-layout-sidebar {
     position: sticky;
     top: 1.5rem;
     bottom: auto;
@@ -1590,8 +1590,7 @@ html.force-desktop-mode #root {
     animation: none;
   }
 
-  .tutor-drawer-backdrop {
+  .success-coach-drawer-backdrop {
     display: none;
   }
 }
-

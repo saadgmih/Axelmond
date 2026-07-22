@@ -26,11 +26,10 @@ rulesTest("paypal-server", () => {
       expectedAmount: "12.80",
       payPalCurrency: "USD",
       amountMad: "128.00",
-      includeAiAssistant: false,
     });
 
-    const customIdWithAi = buildPayPalCustomId("user-123", 42, 18.8, 188, "USD", true);
-    assert.deepEqual(parsePayPalCustomId(customIdWithAi)?.includeAiAssistant, true);
+    const customIdWithPromo = buildPayPalCustomId("user-123", 42, 18.8, 188, "USD", "PROMO-123");
+    assert.deepEqual(parsePayPalCustomId(customIdWithPromo)?.promoReservationReference, "PROMO-123");
     const uuidCustomId = buildPayPalCustomId("a1b2c3d4-e5f6-7890-abcd-ef1234567890", 12, 12.8, 128, "USD");
     assert.ok(uuidCustomId.length <= 127, `custom_id length ${uuidCustomId.length} exceeds PayPal limit`);
     assert.deepEqual(
@@ -43,7 +42,6 @@ rulesTest("paypal-server", () => {
         expectedAmount: "1.00",
         payPalCurrency: "USD",
         amountMad: "10.00",
-        includeAiAssistant: false,
       },
     );
     assert.equal(parsePayPalCustomId("invalid"), null);

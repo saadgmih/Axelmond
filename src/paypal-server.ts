@@ -113,7 +113,6 @@ export function buildPayPalCustomId(
   payPalAmount: number,
   amountMad: number,
   payPalCurrency: string,
-  includeAiAssistant = false,
   promoReservationReference?: string,
 ): string {
   const customId = JSON.stringify({
@@ -122,7 +121,6 @@ export function buildPayPalCustomId(
     e: formatPayPalAmount(payPalAmount),
     p: payPalCurrency,
     m: formatPayPalAmount(amountMad),
-    ...(includeAiAssistant ? { a: 1 } : {}),
     ...(promoReservationReference ? { r: promoReservationReference } : {}),
   });
   if (customId.length > 127) {
@@ -137,7 +135,6 @@ export function parsePayPalCustomId(customId: string | undefined): {
   expectedAmount?: string;
   payPalCurrency?: string;
   amountMad?: string;
-  includeAiAssistant?: boolean;
   promoReservationReference?: string;
 } | null {
   if (!customId?.trim()) return null;
@@ -148,7 +145,6 @@ export function parsePayPalCustomId(customId: string | undefined): {
     const expectedAmount = parsed?.e ?? parsed?.expectedAmount;
     const payPalCurrency = parsed?.p ?? parsed?.payPalCurrency;
     const amountMad = parsed?.m ?? parsed?.amountMad;
-    const includeAiAssistant = Boolean(parsed?.a ?? parsed?.includeAiAssistant);
     const promoReservationReference = parsed?.r ? String(parsed.r).trim() : undefined;
     if (!userId || !courseId || Number.isNaN(courseId)) return null;
     return {
@@ -157,7 +153,6 @@ export function parsePayPalCustomId(customId: string | undefined): {
       expectedAmount: expectedAmount != null ? String(expectedAmount) : undefined,
       payPalCurrency: payPalCurrency != null ? String(payPalCurrency).trim().toUpperCase() : undefined,
       amountMad: amountMad != null ? String(amountMad) : undefined,
-      includeAiAssistant,
       ...(promoReservationReference ? { promoReservationReference } : {}),
     };
   } catch {
@@ -187,7 +182,6 @@ export async function createPayPalOrder(params: {
   courseDescription?: string | null;
   amountMad: number;
   userId: string;
-  includeAiAssistant?: boolean;
   promoReservationReference?: string;
 }): Promise<{ id: string; currency: string; amount: string; amountMad: string }> {
   if (params.amountMad <= 0) {
@@ -201,7 +195,6 @@ export async function createPayPalOrder(params: {
     payPalAmount,
     params.amountMad,
     payPalCurrency,
-    Boolean(params.includeAiAssistant),
     params.promoReservationReference,
   );
   const payload = await paypalRequest<{ id?: string }>("POST", "/v2/checkout/orders", {

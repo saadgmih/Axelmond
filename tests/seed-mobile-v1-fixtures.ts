@@ -1,11 +1,11 @@
-import { seedChatTutorRuntimeFixtures } from "./helpers/security-runtime-fixtures.ts";
+import { seedStudentCourseRuntimeFixtures } from "./helpers/security-runtime-fixtures.ts";
 
 if (!process.env.DATABASE_URL?.trim()) {
   console.error("DATABASE_URL missing");
   process.exit(1);
 }
 
-const fixture = await seedChatTutorRuntimeFixtures();
+const fixture = await seedStudentCourseRuntimeFixtures();
 console.log("Mobile v1 fixtures seeded");
 console.log(
   JSON.stringify(

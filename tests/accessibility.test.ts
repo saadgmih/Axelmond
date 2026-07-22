@@ -9,7 +9,7 @@ rulesTest("accessibility", () => {
   const topbarSource = fs.readFileSync("src/components/Topbar.tsx", "utf8");
   const paymentSource = fs.readFileSync("src/components/PaymentModal.tsx", "utf8");
   const helpSource = fs.readFileSync("src/components/KeyboardShortcutsHelp.tsx", "utf8");
-  const chatSource = fs.readFileSync("src/components/AITutorChat.tsx", "utf8");
+  const coachSource = fs.readFileSync("src/components/SuccessCoachPanel.tsx", "utf8");
   const sidebarSource = fs.readFileSync("src/components/Sidebar.tsx", "utf8");
   const cssSource = fs.readFileSync("src/index.css", "utf8");
   const appRootSource = fs.readFileSync("src/app/PlatformAppRoot.tsx", "utf8");
@@ -38,8 +38,10 @@ rulesTest("accessibility", () => {
   assert.match(topbarSource, /useVoiceSearch/);
   assert.match(paymentSource, /useFocusTrap/);
   assert.match(helpSource, /useFocusTrap/);
-  assert.match(chatSource, /role="log"/);
-  assert.match(chatSource, /aria-label="Envoyer la question au tuteur IA"/);
+  assert.match(coachSource, /aria-label="Coach de réussite"/);
+  assert.match(coachSource, /role="tablist"/);
+  assert.match(coachSource, /aria-selected=/);
+  assert.match(coachSource, /aria-label="Fermer le coach de réussite"/);
   assert.match(sidebarSource, /aria-label="Navigation principale"/);
 
   assert.match(cssSource, /\.skip-link/);

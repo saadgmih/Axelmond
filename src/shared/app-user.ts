@@ -13,7 +13,6 @@ export interface AppUser {
   filiere?: string;
   avatarUrl?: string;
   enrolledCourses: number[];
-  aiTutorCourseIds: number[];
   invoices: Invoice[];
   /** Present only immediately after login/refresh on the client. */
   token?: string;

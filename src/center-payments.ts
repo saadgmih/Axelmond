@@ -11,7 +11,6 @@ import {
   normalizeCenterPaymentNote,
 } from "./center-payment-domain";
 import { buildEnrollmentEndDate, isEnrollmentActive } from "./enrollment-access";
-import { computeCourseCheckoutTotalMad, resolveEnrollmentHasAiAccess } from "./utils/ai-tutor-pricing";
 import {
   activateModuleSubscriptionInTransaction,
   lockModuleSubscriptionScopeInTransaction,
@@ -77,7 +76,6 @@ export function serializeCenterPaymentRequest(record: CenterPaymentRecord, admin
     currency: record.currency,
     modulePriceSnapshot: record.modulePriceSnapshot,
     accessDurationDays: record.accessDurationDaysSnapshot,
-    includesAiAssistant: record.hasAiAccessSnapshot,
     status: record.status,
     expiresAt: record.expiresAt.toISOString(),
     paidAt: record.paidAt?.toISOString() || null,
@@ -196,7 +194,6 @@ async function createWithUniqueReference(input: {
   userId: string;
   course: { id: number; title: string; description: string; price: number };
   promoCode?: string;
-  includeAiAssistant: boolean;
   studentNote: string | null;
   now: Date;
 }) {
@@ -232,11 +229,7 @@ async function createWithUniqueReference(input: {
             })
           : null;
         const modulePriceMad = promoReservation?.quote.finalAmount ?? input.course.price;
-        const amountMad = computeCourseCheckoutTotalMad({
-          modulePriceMad,
-          includeAiAssistant: input.includeAiAssistant,
-          isFreeModule: input.course.price <= 0,
-        });
+        const amountMad = modulePriceMad;
         const request = await tx.centerPaymentRequest.create({
           data: {
             publicReference,
@@ -249,7 +242,6 @@ async function createWithUniqueReference(input: {
             moduleTitleSnapshot: input.course.title,
             moduleDescriptionSnapshot: input.course.description,
             accessDurationDaysSnapshot: config.accessDurationDays,
-            hasAiAccessSnapshot: resolveEnrollmentHasAiAccess(input.includeAiAssistant),
             expiresAt,
             studentNote: input.studentNote,
           },
@@ -300,7 +292,6 @@ async function createWithUniqueReference(input: {
 export async function createCenterPaymentRequest(input: {
   userId: string;
   courseId: number;
-  includeAiAssistant?: boolean;
   promoCode?: string;
   studentNote?: unknown;
 }) {
@@ -328,7 +319,6 @@ export async function createCenterPaymentRequest(input: {
     userId: input.userId,
     course,
     promoCode: input.promoCode?.trim() || undefined,
-    includeAiAssistant: Boolean(input.includeAiAssistant),
     studentNote: normalizeCenterPaymentNote(input.studentNote, 500),
     now: new Date(),
   });
@@ -670,7 +660,6 @@ export async function validateCenterPaymentRequest(input: {
           invoiceId: receiptNumber,
           activatedAt,
           enrollmentEndDate: buildEnrollmentEndDate(activatedAt, request.accessDurationDaysSnapshot),
-          hasAiAccess: request.hasAiAccessSnapshot,
           excludeCenterRequestId: request.id,
         });
         if (request.promoCodeUsage) {

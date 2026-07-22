@@ -6,7 +6,10 @@ import {
   waitForSecurityRuntimeHealth,
 } from "./helpers/security-runtime-harness.ts";
 import { skipSecurityRuntimeTests } from "./helpers/security-runtime-harness.ts";
-import { cleanupChatTutorRuntimeFixtures, seedChatTutorRuntimeFixtures } from "./helpers/security-runtime-fixtures.ts";
+import {
+  cleanupStudentCourseRuntimeFixtures,
+  seedStudentCourseRuntimeFixtures,
+} from "./helpers/security-runtime-fixtures.ts";
 import { SECURITY_RUNTIME_TEST_PASSWORD } from "./helpers/security-runtime-fixtures.ts";
 import { MOBILE_CLIENT_HEADER, MOBILE_CLIENT_VALUE } from "../src/auth-mobile.ts";
 import { prisma } from "../src/db.ts";
@@ -34,7 +37,7 @@ await runtimeTest("mobile-api-runtime", async () => {
   let runtime: ReturnType<typeof startSecurityRuntimeServer> | undefined;
 
   try {
-    const fixture = await seedChatTutorRuntimeFixtures();
+    const fixture = await seedStudentCourseRuntimeFixtures();
     const roomName = buildLiveKitRoomName(fixture.courseId);
     await prisma.course.update({
       where: { id: fixture.courseId },
@@ -152,6 +155,6 @@ await runtimeTest("mobile-api-runtime", async () => {
     if (runtime) {
       await stopSecurityRuntimeServer(runtime);
     }
-    await cleanupChatTutorRuntimeFixtures().catch(() => undefined);
+    await cleanupStudentCourseRuntimeFixtures().catch(() => undefined);
   }
 });
