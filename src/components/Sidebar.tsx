@@ -1,22 +1,18 @@
 import { useEffect, useMemo, useRef } from "react";
-import { BadgeCheck, GraduationCap, LogOut, Plus, PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import { Course } from "../types";
+import { BadgeCheck, LogOut, Plus, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import type { Course } from "../types";
 import { AppUser } from "./AuthScreen";
-import { getRoleLabel, getTeacherRoleBadgeTone } from "../rbac";
 import LogoSymbol from "./LogoSymbol";
 import { LayoutFloatingToggle } from "./LayoutFloatingToggle";
 import { useTvNavigation } from "../hooks/useTvNavigation";
 import { useSidebarConversations } from "../hooks/useSidebarConversations";
 import { useSidebarLayout } from "../hooks/useSidebarLayout";
-import { getSidebarNavItems, getSidebarRoleIcon, type SidebarNavContext } from "../navigation/sidebar-config";
+import { getSidebarNavItems, type SidebarNavContext } from "../navigation/sidebar-config";
 import { SidebarNavButton } from "./sidebar/SidebarNavButton";
-import { formatCredits } from "../utils/morocco-locale";
 
 interface SidebarProps {
   currentView: string;
-  enrolledCourses: number[];
   isMobileMenuOpen: boolean;
-  courses: Course[];
   setIsMobileMenuOpen: (isOpen: boolean) => void;
   navigateTo: (view: string, course?: Course | null) => void;
   role: "student" | "teacher";
@@ -38,15 +34,6 @@ function getInitials(name: string) {
   return name.slice(0, 2).toUpperCase();
 }
 
-function roleBadgeClass(role: "student" | "teacher", userRole?: AppUser["role"]) {
-  if (role === "student") {
-    return "bg-emerald-500/10 border-emerald-400/20 text-emerald-200";
-  }
-  const tone = getTeacherRoleBadgeTone(userRole);
-  if (tone === "admin") return "bg-teal-500/10 border-teal-400/20 text-teal-200";
-  return "bg-emerald-500/10 border-emerald-400/20 text-emerald-200";
-}
-
 function getAccessLabel(role: "student" | "teacher", userRole?: AppUser["role"]) {
   if (role === "student") return "Accès étudiant";
   if (userRole === "ADMIN") return "Accès administrateur";
@@ -55,9 +42,7 @@ function getAccessLabel(role: "student" | "teacher", userRole?: AppUser["role"])
 
 export default function Sidebar({
   currentView,
-  enrolledCourses,
   isMobileMenuOpen,
-  courses,
   setIsMobileMenuOpen,
   navigateTo,
   role,
@@ -90,14 +75,6 @@ export default function Sidebar({
     Boolean(currentUser) && (isDrawer ? isMobileMenuOpen : isDockedVisible),
   );
   const navItems = useMemo(() => getSidebarNavItems(role, currentUser?.role), [role, currentUser?.role]);
-  const activeCredits = useMemo(() => {
-    if (role !== "student") return 0;
-    return enrolledCourses.reduce((total, courseId) => {
-      const enrolledCourse = courses.find((course) => course.id === courseId);
-      return total + (enrolledCourse?.credits ?? 0);
-    }, 0);
-  }, [courses, enrolledCourses, role]);
-  const RoleIcon = getSidebarRoleIcon(role);
 
   const navContext: SidebarNavContext = {
     currentView,
@@ -317,46 +294,6 @@ export default function Sidebar({
               </span>
             </div>
           </button>
-        </div>
-      </div>
-
-      <div className="sidebar-glass-section space-y-2 border-b border-white/10 px-4 py-4">
-        <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
-          Rôle authentifié
-        </span>
-        <div className="flex flex-wrap items-center gap-2" data-testid="sidebar-identity-badges">
-          <button
-            type="button"
-            onClick={goProfile}
-            aria-label={`Ouvrir le profil ${getRoleLabel(currentUser?.role)}`}
-            className={`kbd-nav-focus inline-flex min-h-9 items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold transition-[filter] hover:brightness-110 ${roleBadgeClass(role, currentUser?.role)}`}
-          >
-            <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center">
-              <RoleIcon className="h-3.5 w-3.5" aria-hidden="true" />
-            </span>
-            <span className="leading-none">{getRoleLabel(currentUser?.role)}</span>
-          </button>
-
-          {role === "student" ? (
-            <span
-              className="inline-flex min-h-9 items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-2 text-emerald-200"
-              aria-label={`${formatCredits(activeCredits)} de progression académique`}
-            >
-              <GraduationCap className="h-4 w-4 shrink-0 text-emerald-300" aria-hidden="true" />
-              <span className="font-mono text-xs font-extrabold leading-none">{formatCredits(activeCredits)}</span>
-            </span>
-          ) : (
-            currentUser?.levelOrTitle && (
-              <span
-                className="inline-flex min-h-9 min-w-0 max-w-full items-center gap-2 rounded-full border border-slate-600/70 bg-slate-800/65 px-3 py-2 text-slate-200"
-                title={currentUser.levelOrTitle}
-                aria-label={`Titre académique : ${currentUser.levelOrTitle}`}
-              >
-                <BadgeCheck className="h-4 w-4 shrink-0 text-teal-300" aria-hidden="true" />
-                <span className="truncate text-xs font-bold leading-none">{currentUser.levelOrTitle}</span>
-              </span>
-            )
-          )}
         </div>
       </div>
 

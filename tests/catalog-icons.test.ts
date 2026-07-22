@@ -12,7 +12,7 @@ rulesTest("catalog-icons", () => {
   assert.doesNotMatch(studentDashboard, /\bCpu\b/);
   assert.match(studentDashboard, /GraduationCap className="w-full h-full text-white"/);
   assert.doesNotMatch(studentDashboard, /Licence 3 d'Informatique/);
-  assert.match(sidebar, /GraduationCap className="h-4 w-4 shrink-0 text-emerald-300"/);
+  assert.doesNotMatch(sidebar, /GraduationCap/);
 });
 
 console.log("Catalog icons rules passed");

@@ -63,9 +63,7 @@ export function AuthenticatedPlatformLayout() {
 
       <Sidebar
         currentView={currentView}
-        enrolledCourses={session.enrolledCourses}
         isMobileMenuOpen={ui.isMobileMenuOpen}
-        courses={catalog.courses}
         setIsMobileMenuOpen={ui.setIsMobileMenuOpen}
         navigateTo={navigation.navigateTo}
         role={session.role}

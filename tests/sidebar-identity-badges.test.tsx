@@ -6,7 +6,6 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import Sidebar from "../src/components/Sidebar";
 import type { AppUser } from "../src/shared/app-user";
-import type { Course } from "../src/types";
 
 if (typeof React.act !== "function") {
   (React as typeof React & { act: typeof act }).act = act;
@@ -36,18 +35,11 @@ const baseUser: AppUser = {
   invoices: [],
 };
 
-const courses = [
-  { id: 1, credits: 5 },
-  { id: 2, credits: 10 },
-] as Course[];
-
-function renderSidebar(role: "student" | "teacher", currentUser: AppUser, enrolledCourses: number[] = []) {
+function renderSidebar(role: "student" | "teacher", currentUser: AppUser) {
   return render(
     <Sidebar
       currentView="dashboard"
-      enrolledCourses={enrolledCourses}
       isMobileMenuOpen={false}
-      courses={courses}
       setIsMobileMenuOpen={vi.fn()}
       navigateTo={vi.fn()}
       role={role}
@@ -61,31 +53,26 @@ function renderSidebar(role: "student" | "teacher", currentUser: AppUser, enroll
 
 afterEach(() => cleanup());
 
-describe("Sidebar authenticated identity badges", () => {
-  it("shows the student role and enrolled academic points together", () => {
-    renderSidebar("student", baseUser, [1, 2]);
+describe("Sidebar authenticated identity", () => {
+  it("shows the student only in the current-user footer", () => {
+    renderSidebar("student", baseUser);
 
-    const badgeGroup = screen.getByTestId("sidebar-identity-badges");
-    expect(badgeGroup).toHaveTextContent("Étudiant");
-    expect(badgeGroup).toHaveTextContent("15 PA");
-    expect(screen.getByLabelText("15 PA de progression académique")).toBeInTheDocument();
     expect(screen.getByText("Utilisateur actuel")).toBeInTheDocument();
     expect(screen.getByText("Accès étudiant")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Profil de Utilisateur Test" })).toBeInTheDocument();
+    expect(screen.queryByText("Rôle authentifié")).not.toBeInTheDocument();
+    expect(screen.queryByText(/\bPA\b/)).not.toBeInTheDocument();
   });
 
-  it("shows the professor role and academic title without student points", () => {
+  it("shows the professor only in the current-user footer", () => {
     renderSidebar("teacher", {
       ...baseUser,
       role: "PROFESSOR",
       levelOrTitle: "Maître de conférences",
     });
 
-    const badgeGroup = screen.getByTestId("sidebar-identity-badges");
-    expect(badgeGroup).toHaveTextContent("Professeur");
-    expect(badgeGroup).toHaveTextContent("Maître de conférences");
-    expect(screen.getByLabelText("Titre académique : Maître de conférences")).toBeInTheDocument();
-    expect(badgeGroup).not.toHaveTextContent("PA");
     expect(screen.getByText("Accès professeur")).toBeInTheDocument();
+    expect(screen.queryByText("Rôle authentifié")).not.toBeInTheDocument();
+    expect(screen.queryByText("Maître de conférences")).not.toBeInTheDocument();
   });
 });
