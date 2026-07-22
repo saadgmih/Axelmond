@@ -22,10 +22,16 @@ rulesTest("accessibility", () => {
     /export function useAccessibilityPreferences/,
   );
   assert.match(fs.readFileSync("src/hooks/useFocusTrap.ts", "utf8"), /export function useFocusTrap/);
-  assert.match(fs.readFileSync("src/components/AccessibilityControls.tsx", "utf8"), /Contraste élevé/);
-  assert.match(fs.readFileSync("src/components/AccessibilityControls.tsx", "utf8"), /createPortal/);
-  assert.match(fs.readFileSync("src/components/AccessibilityControls.tsx", "utf8"), /computeFloatingPanelPosition/);
-  assert.match(fs.readFileSync("src/components/AccessibilityControls.tsx", "utf8"), /useFocusTrap/);
+  const accessibilityControlsSource = fs.readFileSync("src/components/AccessibilityControls.tsx", "utf8");
+  assert.match(accessibilityControlsSource, /Contraste élevé/);
+  assert.match(accessibilityControlsSource, /Préférences visuelles/);
+  assert.match(accessibilityControlsSource, /Accès rapides/);
+  assert.match(accessibilityControlsSource, /Navigation clavier/);
+  assert.match(accessibilityControlsSource, /role="switch"/);
+  assert.match(accessibilityControlsSource, /aria-checked=/);
+  assert.match(accessibilityControlsSource, /createPortal/);
+  assert.match(accessibilityControlsSource, /computeFloatingPanelPosition/);
+  assert.match(accessibilityControlsSource, /useFocusTrap/);
   assert.match(fs.readFileSync("src/components/SkipLink.tsx", "utf8"), /Aller au contenu principal/);
 
   assert.match(appSource, /SkipLink/);
