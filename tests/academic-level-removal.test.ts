@@ -11,7 +11,8 @@ rulesTest("academic-level-removal", () => {
 
   assert.doesNotMatch(authSource, /Niveau Académique d'Études/i);
   assert.doesNotMatch(authSource, /const \[levelOrTitle, setLevelOrTitle\]/);
-  assert.match(sidebarSource, /role === "student"[\s\S]*?currentUser\?\.filiere \|\| DEFAULT_STUDENT_LABEL/);
+  assert.match(sidebarSource, /if \(role === "student"\) return "Accès étudiant"/);
+  assert.doesNotMatch(sidebarSource, /DEFAULT_STUDENT_LABEL/);
   assert.match(serverSource, /normalizedRole === "STUDENT" \? api\.DEFAULT_STUDENT_LABEL/);
   assert.match(migrationSource, /UPDATE "Course"/);
   assert.match(migrationSource, /UPDATE "User"/);

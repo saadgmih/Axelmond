@@ -95,14 +95,11 @@ export function AuthenticatedPlatformLayout() {
           currentView={currentView}
           searchQuery={catalog.searchQuery}
           setSearchQuery={catalog.setSearchQuery}
-          navigateTo={navigation.navigateTo}
           role={session.role}
-          currentUser={session.currentUser!}
           catalogSearchRef={catalog.catalogSearchRef}
           notificationUnreadCount={session.notificationUnreadCount}
           onOpenNotifications={session.openNotificationsView}
           activeView={session.role === "teacher" ? navigation.teacherView : currentView}
-          onTeacherNavigate={navigation.handleTeacherViewChange}
           isTopbarCollapsed={ui.isTopbarCollapsed}
           onToggleTopbarCollapsed={ui.toggleTopbarCollapsed}
         />

@@ -69,6 +69,9 @@ describe("Sidebar authenticated identity badges", () => {
     expect(badgeGroup).toHaveTextContent("Étudiant");
     expect(badgeGroup).toHaveTextContent("15 PA");
     expect(screen.getByLabelText("15 PA de progression académique")).toBeInTheDocument();
+    expect(screen.getByText("Utilisateur actuel")).toBeInTheDocument();
+    expect(screen.getByText("Accès étudiant")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Profil de Utilisateur Test" })).toBeInTheDocument();
   });
 
   it("shows the professor role and academic title without student points", () => {
@@ -83,5 +86,6 @@ describe("Sidebar authenticated identity badges", () => {
     expect(badgeGroup).toHaveTextContent("Maître de conférences");
     expect(screen.getByLabelText("Titre académique : Maître de conférences")).toBeInTheDocument();
     expect(badgeGroup).not.toHaveTextContent("PA");
+    expect(screen.getByText("Accès professeur")).toBeInTheDocument();
   });
 });

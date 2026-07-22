@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { BadgeCheck, GraduationCap, LogOut, Plus, PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import { Course, DEFAULT_STUDENT_LABEL } from "../types";
+import { Course } from "../types";
 import { AppUser } from "./AuthScreen";
 import { getRoleLabel, getTeacherRoleBadgeTone } from "../rbac";
 import LogoSymbol from "./LogoSymbol";
@@ -45,6 +45,12 @@ function roleBadgeClass(role: "student" | "teacher", userRole?: AppUser["role"])
   const tone = getTeacherRoleBadgeTone(userRole);
   if (tone === "admin") return "bg-teal-500/10 border-teal-400/20 text-teal-200";
   return "bg-emerald-500/10 border-emerald-400/20 text-emerald-200";
+}
+
+function getAccessLabel(role: "student" | "teacher", userRole?: AppUser["role"]) {
+  if (role === "student") return "Accès étudiant";
+  if (userRole === "ADMIN") return "Accès administrateur";
+  return "Accès professeur";
 }
 
 export default function Sidebar({
@@ -201,35 +207,38 @@ export default function Sidebar({
   );
 
   const renderUserFooter = () => (
-    <div
-      className="sidebar-glass-section flex items-center justify-between gap-2 border-t border-white/10 p-4"
-      data-onboarding="sidebar-profile"
-    >
+    <div className="sidebar-glass-section border-t border-white/10 p-4" data-onboarding="sidebar-profile">
       <button
         type="button"
         onClick={goProfile}
-        className="flex min-w-0 flex-1 items-center gap-3 overflow-hidden transition-opacity hover:opacity-85"
-        aria-label="Ouvrir le profil"
+        data-onboarding="profile-menu"
+        className="kbd-nav-focus group flex w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-xl px-1 py-1 text-left transition-colors hover:bg-white/5"
+        aria-label={currentUser ? `Profil de ${currentUser.fullName}` : "Profil utilisateur"}
       >
-        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full bg-slate-700/80 text-sm font-bold text-slate-200">
-          {currentUser?.avatarUrl ? (
-            <img src={currentUser.avatarUrl} alt="" className="h-full w-full object-cover" />
-          ) : currentUser ? (
-            <span className="flex h-full w-full items-center justify-center">{getInitials(currentUser.fullName)}</span>
-          ) : (
-            "AR"
-          )}
-          <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-slate-900 bg-emerald-500" />
-        </div>
-        <div className="min-w-0 flex-1 truncate text-left">
-          <p className="truncate text-xs font-extrabold leading-none text-slate-100">
-            {currentUser?.fullName || "Performance Académique"}
-          </p>
-          <span className="mt-1.5 block truncate text-[10px] font-bold uppercase tracking-wider text-slate-500">
-            {role === "student"
-              ? currentUser?.filiere || DEFAULT_STUDENT_LABEL
-              : currentUser?.levelOrTitle || "Titulaire Chaire"}
+        <div className="min-w-0 flex-1">
+          <span className="block truncate text-[9px] font-bold uppercase tracking-[0.16em] text-teal-300/80">
+            Utilisateur actuel
           </span>
+          <span className="mt-1 flex min-w-0 items-center gap-1.5">
+            <span className="truncate text-xs font-black leading-none text-slate-100">
+              {currentUser?.fullName || "Performance Académique"}
+            </span>
+            <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-teal-400" aria-hidden="true" />
+          </span>
+          <span className="mt-1.5 block truncate text-[10px] font-medium leading-none text-slate-400">
+            {getAccessLabel(role, currentUser?.role)}
+          </span>
+        </div>
+
+        <div className="sidebar-current-user-avatar">
+          {currentUser?.avatarUrl ? (
+            <img src={currentUser.avatarUrl} alt="" className="sidebar-current-user-avatar-image object-cover" />
+          ) : currentUser ? (
+            <span className="sidebar-current-user-avatar-fallback">{getInitials(currentUser.fullName)}</span>
+          ) : (
+            <span className="sidebar-current-user-avatar-fallback">PA</span>
+          )}
+          <span className="sidebar-current-user-online" aria-hidden="true" />
         </div>
       </button>
       <button
@@ -240,9 +249,10 @@ export default function Sidebar({
         }}
         title="Se déconnecter"
         aria-label="Se déconnecter"
-        className="touch-target shrink-0 rounded-xl p-2.5 text-slate-400 transition-all hover:bg-white/5 hover:text-emerald-400"
+        className="kbd-nav-focus ml-auto mt-1.5 flex min-h-7 items-center gap-1.5 rounded-lg px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-slate-500 transition-all hover:bg-white/5 hover:text-emerald-400"
       >
-        <LogOut className="h-4 w-4" />
+        <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
+        Se déconnecter
       </button>
     </div>
   );

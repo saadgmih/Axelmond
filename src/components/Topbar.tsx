@@ -1,8 +1,5 @@
 import { type RefObject } from "react";
-import { Search, Mic, BadgeCheck, PanelTopClose, PanelTopOpen } from "lucide-react";
-import { Course } from "../types";
-import { AppUser } from "./AuthScreen";
-import { type UserRole } from "../rbac";
+import { Search, Mic, PanelTopClose, PanelTopOpen } from "lucide-react";
 import LogoSymbol from "./LogoSymbol";
 import { useVoiceSearch } from "../hooks/useVoiceSearch";
 import { useSidebarLayout } from "../hooks/useSidebarLayout";
@@ -14,29 +11,13 @@ interface TopbarProps {
   currentView: string;
   searchQuery: string;
   setSearchQuery: (q: string) => void;
-  navigateTo: (view: string, course?: Course | null) => void;
   role?: "student" | "teacher";
-  currentUser: AppUser | null;
   catalogSearchRef?: RefObject<HTMLInputElement | null>;
   notificationUnreadCount?: number;
   onOpenNotifications?: () => void;
   activeView?: string;
-  onTeacherNavigate?: (view: string) => void;
   isTopbarCollapsed?: boolean;
   onToggleTopbarCollapsed?: () => void;
-}
-
-function getInitials(name: string) {
-  if (!name) return "UN";
-  const parts = name.trim().split(/\s+/);
-  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-  return name.slice(0, 2).toUpperCase();
-}
-
-function getAccessLabel(role: "student" | "teacher", userRole?: UserRole) {
-  if (role === "student") return "Accès étudiant";
-  if (userRole === "ADMIN") return "Accès administrateur";
-  return "Accès professeur";
 }
 
 function getBrandKicker(role: "student" | "teacher") {
@@ -66,14 +47,11 @@ export default function Topbar({
   currentView,
   searchQuery,
   setSearchQuery,
-  navigateTo,
   role = "student",
-  currentUser,
   catalogSearchRef,
   notificationUnreadCount = 0,
   onOpenNotifications,
   activeView,
-  onTeacherNavigate,
   isTopbarCollapsed = false,
   onToggleTopbarCollapsed,
 }: TopbarProps) {
@@ -88,11 +66,6 @@ export default function Topbar({
     toggleListening,
     clearError: clearVoiceSearchError,
   } = useVoiceSearch({ onTranscript: setSearchQuery });
-
-  const openProfile = () => {
-    if (role === "student") navigateTo("profile");
-    else onTeacherNavigate?.("academic-profile");
-  };
 
   const catalogSearch = (
     <div className="w-full max-w-md space-y-1">
@@ -200,36 +173,6 @@ export default function Topbar({
               activeView={activeView}
             />
           </div>
-
-          <div className="hidden h-12 w-px bg-white/10 lg:block" aria-hidden="true" />
-
-          <div className="flex min-w-0 flex-col items-center text-center lg:items-end lg:text-right">
-            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-teal-300/80">
-              Utilisateur actuel
-            </span>
-            <span className="mt-0.5 flex max-w-[220px] items-center justify-center gap-1.5 truncate text-sm font-black text-white lg:justify-end">
-              {currentUser ? currentUser.fullName : "Performance Académique"}
-              <BadgeCheck className="h-4 w-4 shrink-0 text-teal-400" aria-hidden="true" />
-            </span>
-            <span className="mt-0.5 text-[11px] font-medium text-slate-400">
-              {getAccessLabel(role, currentUser?.role)}
-            </span>
-          </div>
-
-          <button
-            type="button"
-            data-onboarding="profile-menu"
-            onClick={openProfile}
-            aria-label={currentUser ? `Profil de ${currentUser.fullName}` : "Profil utilisateur"}
-            className="topbar-avatar-button kbd-nav-focus touch-target"
-          >
-            {currentUser?.avatarUrl ? (
-              <img src={currentUser.avatarUrl} alt="" className="topbar-avatar-image object-cover" />
-            ) : (
-              <div className="topbar-avatar-fallback">{currentUser ? getInitials(currentUser.fullName) : "PA"}</div>
-            )}
-            <span className="topbar-avatar-online" aria-hidden="true" />
-          </button>
         </div>
         {topbarFloatingToggle}
       </header>

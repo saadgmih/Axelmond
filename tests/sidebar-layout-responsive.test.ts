@@ -34,7 +34,10 @@ rulesTest("sidebar-layout-responsive", () => {
   assert.match(topbarSource, /canCollapseTopbar/);
   assert.match(topbarSource, /topbar-console-actions/);
   assert.match(topbarSource, /flex-wrap items-center justify-center/);
-  assert.match(topbarSource, /Utilisateur actuel/);
+  assert.match(sidebarSource, /Utilisateur actuel/);
+  assert.match(sidebarSource, /data-onboarding="profile-menu"/);
+  assert.doesNotMatch(topbarSource, /Utilisateur actuel/);
+  assert.doesNotMatch(topbarSource, /topbar-avatar/);
   assert.doesNotMatch(topbarSource, /function RolePill/);
   assert.doesNotMatch(topbarSource, /formatCredits\(activeCredits\)/);
   assert.doesNotMatch(topbarSource, /\bMenu\b/);

@@ -1287,31 +1287,34 @@ body {
   color: rgb(220 239 233);
 }
 
-.topbar-avatar-button {
+.sidebar-current-user-avatar {
   position: relative;
   display: inline-flex;
-  height: 2.75rem;
-  width: 2.75rem;
+  height: 3rem;
+  width: 3rem;
   flex-shrink: 0;
   overflow: visible;
   border-radius: 9999px;
   border: 2px solid rgba(255, 255, 255, 0.12);
   background: rgb(11 36 31);
-  transition: border-color 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    transform 0.15s ease;
 }
 
-.topbar-avatar-button:hover {
+.group:hover .sidebar-current-user-avatar {
   border-color: rgba(5, 194, 165, 0.45);
+  transform: scale(1.02);
 }
 
-.topbar-avatar-image,
-.topbar-avatar-fallback {
+.sidebar-current-user-avatar-image,
+.sidebar-current-user-avatar-fallback {
   height: 100%;
   width: 100%;
   border-radius: 9999px;
 }
 
-.topbar-avatar-fallback {
+.sidebar-current-user-avatar-fallback {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1321,7 +1324,7 @@ body {
   color: rgb(255 255 255);
 }
 
-.topbar-avatar-online {
+.sidebar-current-user-online {
   position: absolute;
   right: -1px;
   bottom: -1px;
