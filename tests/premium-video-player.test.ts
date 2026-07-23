@@ -10,6 +10,7 @@ rulesTest("premium-video-player", () => {
   const teacherCurriculumSource = readCurriculumViewSources();
   const playerSource = readFileSync("src/components/PremiumVideoPlayer.tsx", "utf-8");
   const hookSource = readFileSync("src/hooks/useCourseVideoPlayer.ts", "utf-8");
+  const stylesSource = readFileSync("src/index.css", "utf-8");
 
   assert.match(appSource, /StudentCourseView/);
   assert.match(studentCourseViewSource, /selectedLessonContent\.type === "VIDEO"/);
@@ -41,6 +42,12 @@ rulesTest("premium-video-player", () => {
   assert.match(playerSource, /volumeControlOpen/);
   assert.match(playerSource, /volumeDraggingRef/);
   assert.match(playerSource, /volumeHasFocusRef/);
+  assert.match(playerSource, /course-video-player/);
+  assert.match(playerSource, /course-video-controls/);
+  assert.match(playerSource, /flex-nowrap/);
+  assert.match(playerSource, /course-video-progress flex min-w-0 flex-1/);
+  assert.match(playerSource, /aria-label="Vitesse de lecture"/);
+  assert.doesNotMatch(playerSource, /min-w-\[140px\]/);
   assert.match(playerSource, /onPointerEnter=\{openVolumeControl\}/);
   assert.match(playerSource, /onPointerDown=\{\(event\) =>/);
   assert.match(playerSource, /finishVolumeInteraction/);
@@ -62,4 +69,7 @@ rulesTest("premium-video-player", () => {
   assert.match(hookSource, /handlePlaybackRateChange/);
   assert.match(hookSource, /const \[isFullscreen, setIsFullscreen\] = useState\(false\)/);
   assert.match(hookSource, /export function formatCourseVideoTime/);
+  assert.match(stylesSource, /container-name:\s*course-video/);
+  assert.match(stylesSource, /@container course-video \(max-width: 520px\)/);
+  assert.match(stylesSource, /@container course-video \(max-width: 300px\)/);
 });

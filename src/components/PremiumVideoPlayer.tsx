@@ -309,8 +309,8 @@ export default function PremiumVideoPlayer({
   const introFadeOutProgress = Math.min(1, Math.max(0, (brandedIntroDuration - currentTime) / 0.55));
   const brandSignatureOpacity = Math.min(introFadeInProgress, introFadeOutProgress);
   const brandSignatureScale = 0.96 + introFadeInProgress * 0.04;
-  const overlayButtonClass = showMetadata ? "w-20 h-20" : "w-14 h-14";
-  const overlayIconClass = showMetadata ? "w-10 h-10" : "w-7 h-7";
+  const overlayButtonClass = showMetadata ? "h-20 w-20" : "h-14 w-14";
+  const overlayIconClass = showMetadata ? "h-10 w-10" : "h-7 w-7";
 
   return (
     <div
@@ -319,7 +319,7 @@ export default function PremiumVideoPlayer({
       onMouseEnter={() => revealControlsTemporarily()}
       onMouseMove={() => revealControlsTemporarily()}
       onTouchStart={() => revealControlsTemporarily()}
-      className="group relative w-full aspect-video bg-slate-950 rounded-2xl overflow-hidden shadow-md border border-slate-800 flex flex-col items-center justify-center cursor-pointer select-none"
+      className="course-video-player group relative flex aspect-video w-full cursor-pointer select-none flex-col items-center justify-center overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 shadow-md"
     >
       <video
         key={`${resolvedSrc}-${sourceVersion}`}
@@ -370,11 +370,11 @@ export default function PremiumVideoPlayer({
       )}
 
       <div
-        className={`absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-950/20 transition-opacity duration-300 ${centerOverlayVisible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+        className={`course-video-center-overlay absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-950/20 transition-opacity duration-300 ${centerOverlayVisible ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}
       >
         {videoLoadState === "ERROR" ? (
-          <div className="flex max-w-md flex-col items-center gap-3 px-6 text-center" role="alert">
-            <AlertTriangle className="h-10 w-10 text-amber-300" />
+          <div className="course-video-error flex max-w-md flex-col items-center gap-3 px-6 text-center" role="alert">
+            <AlertTriangle className="course-video-error-icon h-10 w-10 text-amber-300" />
             <p className="text-sm font-bold text-white">La vidéo ne peut pas être chargée pour le moment.</p>
             <button
               type="button"
@@ -382,7 +382,7 @@ export default function PremiumVideoPlayer({
                 event.stopPropagation();
                 retryVideoManually();
               }}
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700"
+              className="course-video-retry inline-flex min-h-11 items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700"
             >
               <RefreshCw className="h-4 w-4" /> Réessayer
             </button>
@@ -399,12 +399,12 @@ export default function PremiumVideoPlayer({
             <button
               type="button"
               onClick={togglePlay}
-              className={`${overlayButtonClass} bg-white/95 text-emerald-900 rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-slate-100 hover:scale-105 transition-all`}
+              className={`course-video-overlay-button ${overlayButtonClass} flex cursor-pointer items-center justify-center rounded-full bg-white/95 text-emerald-900 shadow-lg transition-all hover:scale-105 hover:bg-slate-100`}
             >
               <PlayCircle className={`${overlayIconClass} ml-0.5 ${playButtonThemeClass}`} />
             </button>
             {showMetadata && (
-              <p className="max-w-[90%] truncate text-white text-xs font-bold font-mono tracking-wide bg-slate-900/80 px-3 py-1.5 rounded-lg border border-slate-700/50 shadow-sm animate-in fade-in duration-200">
+              <p className="course-video-metadata max-w-[90%] animate-in truncate rounded-lg border border-slate-700/50 bg-slate-900/80 px-3 py-1.5 font-mono text-xs font-bold tracking-wide text-white shadow-sm duration-200 fade-in">
                 {title} • {instructor} • {formatTime(duration)}
               </p>
             )}
@@ -413,7 +413,7 @@ export default function PremiumVideoPlayer({
           <button
             type="button"
             onClick={togglePlay}
-            className={`${overlayButtonClass} rounded-full bg-white/95 text-slate-950 flex items-center justify-center cursor-pointer shadow-lg hover:bg-slate-100 hover:scale-105 transition-all`}
+            className={`course-video-overlay-button ${overlayButtonClass} flex cursor-pointer items-center justify-center rounded-full bg-white/95 text-slate-950 shadow-lg transition-all hover:scale-105 hover:bg-slate-100`}
             title="Mettre en pause"
           >
             <PauseCircle className={overlayIconClass} />
@@ -425,13 +425,14 @@ export default function PremiumVideoPlayer({
         onClick={(e) => e.stopPropagation()}
         onMouseMove={() => revealControlsTemporarily()}
         onTouchStart={() => revealControlsTemporarily()}
-        className={`absolute bottom-0 left-0 right-0 z-20 flex flex-wrap items-center gap-3 border-t border-slate-800 bg-slate-950/90 p-3 text-xs text-white transition-all duration-300 sm:flex-nowrap sm:p-4 ${chromeVisible ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-2 pointer-events-none"}`}
+        className={`course-video-controls absolute bottom-0 left-0 right-0 z-20 flex min-w-0 flex-nowrap items-center gap-2 border-t border-slate-800 bg-slate-950/90 p-2 text-xs text-white transition-all duration-300 sm:gap-3 sm:p-4 ${chromeVisible ? "pointer-events-auto translate-y-0 opacity-100" : "pointer-events-none translate-y-2 opacity-0"}`}
       >
-        <span className="w-[92px] text-center font-mono text-[11px]">
-          {formatTime(currentTime)} / {formatTime(duration)}
+        <span className="course-video-time shrink-0 whitespace-nowrap text-center font-mono text-[10px] sm:text-[11px]">
+          <span>{formatTime(currentTime)}</span>
+          <span className="course-video-duration"> / {formatTime(duration)}</span>
         </span>
 
-        <div className="flex min-w-[140px] flex-1 items-center">
+        <div className="course-video-progress flex min-w-0 flex-1 items-center">
           <input
             type="range"
             min="0"
@@ -444,7 +445,7 @@ export default function PremiumVideoPlayer({
         </div>
 
         <div
-          className="group/volume relative flex items-center"
+          className="group/volume relative flex shrink-0 items-center"
           onPointerEnter={openVolumeControl}
           onPointerLeave={scheduleVolumeControlClose}
           onFocusCapture={() => {
@@ -497,12 +498,13 @@ export default function PremiumVideoPlayer({
           </div>
         </div>
 
-        <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-300">
-          <span>Vitesse</span>
+        <label className="course-video-speed flex shrink-0 items-center gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-300">
+          <span className="course-video-speed-label">Vitesse</span>
           <select
             value={playbackRate}
             onChange={handlePlaybackRateChange}
-            className={`h-8 rounded-lg border border-slate-700 bg-slate-900 px-2 font-mono text-[11px] text-white outline-none cursor-pointer focus:ring-2 ${controlFocusClass}`}
+            aria-label="Vitesse de lecture"
+            className={`course-video-speed-select h-8 cursor-pointer rounded-lg border border-slate-700 bg-slate-900 px-2 font-mono text-[11px] text-white outline-none focus:ring-2 ${controlFocusClass}`}
             title="Modifier la vitesse de lecture"
           >
             {COURSE_VIDEO_PLAYBACK_RATES.map((rate) => (
@@ -516,7 +518,7 @@ export default function PremiumVideoPlayer({
         <button
           type="button"
           onClick={toggleFullscreen}
-          className={`p-1.5 hover:text-slate-300 transition-colors cursor-pointer rounded-lg focus:outline-none focus:ring-2 ${controlFocusClass}`}
+          className={`shrink-0 cursor-pointer rounded-lg p-1.5 transition-colors hover:text-slate-300 focus:outline-none focus:ring-2 ${controlFocusClass}`}
           title="Plein écran"
         >
           <Maximize className="w-4 h-4" />

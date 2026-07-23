@@ -820,6 +820,79 @@ body {
   color: rgb(16 185 129);
 }
 
+/* Premium video player — compact controls follow the player width, not the viewport. */
+.course-video-player {
+  container-name: course-video;
+  container-type: inline-size;
+}
+
+@container course-video (max-width: 520px) {
+  .course-video-controls {
+    gap: 0.25rem;
+    padding: 0.5rem;
+  }
+
+  .course-video-center-overlay {
+    padding-bottom: 2.5rem;
+  }
+
+  .course-video-speed-label {
+    display: none;
+  }
+
+  .course-video-speed-select {
+    width: 3rem;
+    height: 1.75rem;
+    padding-inline: 0.2rem;
+    font-size: 0.625rem;
+  }
+
+  .course-video-overlay-button {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+}
+
+@container course-video (max-width: 400px) {
+  .course-video-metadata {
+    display: none;
+  }
+}
+
+@container course-video (max-width: 300px) {
+  .course-video-duration {
+    display: none;
+  }
+
+  .course-video-time {
+    min-width: 2.75rem;
+  }
+
+  .course-video-speed-select {
+    width: 2.75rem;
+  }
+
+  .course-video-error {
+    gap: 0.25rem;
+    padding-inline: 0.75rem;
+  }
+
+  .course-video-error-icon {
+    display: none;
+  }
+
+  .course-video-error p {
+    font-size: 0.625rem;
+    line-height: 0.875rem;
+  }
+
+  .course-video-retry {
+    min-height: 2rem;
+    padding: 0.25rem 0.625rem;
+    font-size: 0.625rem;
+  }
+}
+
 /* Neutral hover suppression: avoid grey flashes on the dark enterprise UI. */
 .dark :where(
     [class*="hover:bg-slate-"],
