@@ -18,32 +18,7 @@ export function registerProfileRoutes(app: Express, ctx: RouteContext): void {
 
     const user = await api.prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        id: true,
-        fullName: true,
-        role: true,
-        avatarUrl: true,
-        levelOrTitle: true,
-        filiere: true,
-        academicProfile: {
-          select: {
-            title: true,
-            department: true,
-            lab: true,
-            speciality: true,
-            teachingDomains: true,
-            researchDomains: true,
-            bio: true,
-            links: true,
-          },
-        },
-        createdCourses: {
-          where: { published: true },
-          select: { id: true, title: true, level: true, category: true, imageUrl: true },
-          orderBy: { updatedAt: "desc" },
-          take: 8,
-        },
-      },
+      select: api.consultableUserProfileSelect,
     });
 
     if (!user) {
@@ -53,6 +28,66 @@ export function registerProfileRoutes(app: Express, ctx: RouteContext): void {
 
     res.json(api.toConsultableUserProfile(user));
   });
+
+  // PUT /api/me/user-profile — personal details for every authenticated role
+
+  app.put(
+    "/api/me/user-profile",
+    requireAuth,
+    requireRbac,
+    validateBody(api.userProfileDetailsSchema),
+    async (req, res) => {
+      const authUser = getAuthUser(req);
+      const input = req.body;
+      const isStudent = authUser.role === "STUDENT";
+      const fullName = `${input.firstName} ${input.lastName}`.trim();
+
+      const updated = await api.prisma.user.update({
+        where: { id: authUser.id },
+        data: {
+          fullName,
+          firstName: input.firstName,
+          lastName: input.lastName,
+          phone: input.phone || null,
+          birthDate: input.birthDate ? new Date(`${input.birthDate}T00:00:00.000Z`) : null,
+          country: input.country || null,
+          city: input.city || null,
+          preferredLanguage: input.preferredLanguage || null,
+          ...(isStudent
+            ? {
+                institution: input.institution || null,
+                filiere: input.filiere || null,
+                studyLevel: input.studyLevel || null,
+                academicYear: input.academicYear || null,
+              }
+            : {}),
+        },
+        select: api.consultableUserProfileSelect,
+      });
+
+      api.invalidateAuthUserCache(authUser.id);
+      const profile = api.toConsultableUserProfile(updated);
+      api.logSecurity("INFO", "User profile details updated", { userId: authUser.id, role: authUser.role });
+      res.json({
+        profile,
+        user: {
+          fullName: profile.user.fullName,
+          firstName: profile.user.firstName,
+          lastName: profile.user.lastName,
+          phone: profile.user.phone || undefined,
+          birthDate: profile.user.birthDate || undefined,
+          country: profile.user.country || undefined,
+          city: profile.user.city || undefined,
+          preferredLanguage: profile.user.preferredLanguage || undefined,
+          institution: profile.user.institution || undefined,
+          filiere: profile.user.filiere || undefined,
+          studyLevel: profile.user.studyLevel || undefined,
+          academicYear: profile.user.academicYear || undefined,
+        },
+        message: "Profil utilisateur mis à jour",
+      });
+    },
+  );
 
   // GET /api/me/profile
 

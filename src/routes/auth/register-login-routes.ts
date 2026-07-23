@@ -28,6 +28,8 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
     }
 
     const normalizedEmail = email;
+    const [firstName = "", ...lastNameParts] = fullName.trim().split(/\s+/);
+    const lastName = lastNameParts.join(" ");
 
     const passwordHash = await api.bcrypt.hash(password, api.getBcryptRounds());
 
@@ -47,12 +49,14 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
         data: {
           passwordHash,
           fullName,
+          firstName,
+          lastName,
           filiere:
             existing.role === "STUDENT" && typeof filiere === "string" ? filiere.trim() || null : existing.filiere,
         },
       });
 
-      const safeExisting = api.toAppUser({ ...existing, passwordHash, fullName });
+      const safeExisting = api.toAppUser({ ...existing, passwordHash, fullName, firstName, lastName });
       const delivery = await api.sendEmailVerificationCode(safeExisting);
 
       api.logSecurity("INFO", "Unverified account re-registration: new code issued", {
@@ -100,6 +104,10 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
             passwordHash,
 
             fullName,
+
+            firstName,
+
+            lastName,
 
             role: normalizedRole,
 

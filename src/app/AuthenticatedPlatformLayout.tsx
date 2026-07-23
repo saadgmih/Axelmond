@@ -34,7 +34,7 @@ export function AuthenticatedPlatformLayout() {
   const { isDrawer } = useSidebarLayout();
 
   return (
-    <UserProfileViewerProvider>
+    <UserProfileViewerProvider currentUser={session.currentUser} onCurrentUserUpdated={session.updateSessionUser}>
       <div className="flex h-[100dvh] max-h-[100dvh] overflow-hidden bg-slate-950 font-sans">
         {live.needsLiveKitSession && session.currentUser && (
           <Suspense fallback={null}>

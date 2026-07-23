@@ -32,6 +32,32 @@ export const registerSchema = z.object({
   professorInviteCode: z.string().max(50).trim().optional().nullable(),
 });
 
+const optionalProfileText = (maxLength: number) => z.string().trim().max(maxLength).optional().nullable();
+
+export const userProfileDetailsSchema = z.object({
+  firstName: z.string().trim().min(1, "Le prénom est obligatoire").max(80),
+  lastName: z.string().trim().min(1, "Le nom est obligatoire").max(100),
+  phone: optionalProfileText(30).refine(
+    (value) => !value || /^[+()\d\s.-]{6,30}$/.test(value),
+    "Numéro de téléphone invalide",
+  ),
+  birthDate: z
+    .string()
+    .trim()
+    .refine((value) => !value || /^\d{4}-\d{2}-\d{2}$/.test(value), "Date de naissance invalide")
+    .refine((value) => !value || !Number.isNaN(Date.parse(`${value}T00:00:00.000Z`)), "Date de naissance invalide")
+    .refine((value) => !value || new Date(`${value}T00:00:00.000Z`) <= new Date(), "Date future interdite")
+    .optional()
+    .nullable(),
+  country: optionalProfileText(100),
+  city: optionalProfileText(100),
+  preferredLanguage: optionalProfileText(100),
+  institution: optionalProfileText(160),
+  filiere: optionalProfileText(120),
+  studyLevel: optionalProfileText(120),
+  academicYear: optionalProfileText(30),
+});
+
 export const loginSchema = z.object({
   email: z.string().email("Adresse email invalide").trim().toLowerCase(),
   password: z.string().min(1, "Mot de passe requis"),

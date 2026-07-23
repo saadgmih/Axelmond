@@ -19,17 +19,27 @@ import { resolveCachedAuthDbUser } from "../auth-user-cache";
 import { logEmail } from "../route-loggers";
 import type { AppUser } from "../route-types";
 import { toCourse, courseResponseInclude } from "./catalog-mappers";
-export { toConsultableUserProfile } from "./consultable-user-profile-mapper";
+export { consultableUserProfileSelect, toConsultableUserProfile } from "./consultable-user-profile-mapper";
 
 export function toAppUser(user: any): AppUser {
   return {
     id: user.id,
     email: user.email,
     fullName: user.fullName,
+    firstName: user.firstName || undefined,
+    lastName: user.lastName || undefined,
     role: user.role,
     emailVerified: Boolean(user.emailVerified),
     levelOrTitle: user.levelOrTitle || (user.role === "STUDENT" ? DEFAULT_STUDENT_LABEL : "Enseignant Docteur"),
     filiere: user.filiere || undefined,
+    phone: user.phone || undefined,
+    birthDate: user.birthDate ? new Date(user.birthDate).toISOString().slice(0, 10) : undefined,
+    country: user.country || undefined,
+    city: user.city || undefined,
+    preferredLanguage: user.preferredLanguage || undefined,
+    institution: user.institution || undefined,
+    studyLevel: user.studyLevel || undefined,
+    academicYear: user.academicYear || undefined,
     avatarUrl: user.avatarUrl || undefined,
     enrolledCourses: Array.isArray(user.enrollments) ? getActiveEnrolledCourseIds(user.enrollments) : [],
     invoices: mergeUserInvoices(user),

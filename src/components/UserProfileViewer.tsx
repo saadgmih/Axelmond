@@ -23,7 +23,9 @@ import {
 import { api } from "../api";
 import { getClientErrorMessage } from "../client-errors";
 import { useFocusTrap } from "../hooks/useFocusTrap";
-import type { ConsultableUserProfile } from "../types";
+import type { AppUser } from "../shared/app-user";
+import type { ConsultableUserProfile, EditableUserProfileInput } from "../types";
+import { UserProfileDetails } from "./profile/UserProfileDetails";
 
 interface UserProfileViewerContextValue {
   openUserProfile: (userId: string, fallbackName?: string) => void;
@@ -56,13 +58,26 @@ function DetailCard({ icon: Icon, label, value }: { icon: typeof Building2; labe
   );
 }
 
-function ProfileContent({ profile }: { profile: ConsultableUserProfile }) {
+function ProfileContent({
+  profile,
+  editable,
+  saving,
+  statusMessage,
+  errorMessage,
+  onSave,
+}: {
+  profile: ConsultableUserProfile;
+  editable: boolean;
+  saving: boolean;
+  statusMessage: string;
+  errorMessage: string;
+  onSave: (input: EditableUserProfileInput) => void | Promise<void>;
+}) {
   const { user, academic, courses } = profile;
   const details = [
     academic?.department ? { icon: Building2, label: "Département", value: academic.department } : null,
     academic?.lab ? { icon: FlaskConical, label: "Laboratoire", value: academic.lab } : null,
     academic?.speciality ? { icon: GraduationCap, label: "Spécialité", value: academic.speciality } : null,
-    user.filiere ? { icon: BookOpen, label: "Filière", value: user.filiere } : null,
   ].filter((item): item is { icon: typeof Building2; label: string; value: string } => Boolean(item));
   const links = academic
     ? [
@@ -103,6 +118,15 @@ function ProfileContent({ profile }: { profile: ConsultableUserProfile }) {
       </div>
 
       <div className="max-h-[min(64vh,620px)] space-y-5 overflow-y-auto px-5 py-5 sm:px-7">
+        <UserProfileDetails
+          profile={profile}
+          editable={editable}
+          saving={saving}
+          statusMessage={statusMessage}
+          errorMessage={errorMessage}
+          onSave={onSave}
+        />
+
         {details.length > 0 && (
           <section aria-label="Informations principales" className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {details.map((detail) => (
@@ -178,22 +202,27 @@ function ProfileContent({ profile }: { profile: ConsultableUserProfile }) {
             ))}
           </section>
         )}
-
-        {!academic?.bio && details.length === 0 && courses.length === 0 && (
-          <p className="rounded-2xl border border-white/[0.07] bg-white/[0.035] px-4 py-5 text-center text-sm text-slate-400">
-            Ce membre n’a pas encore complété les informations publiques de son profil.
-          </p>
-        )}
       </div>
     </>
   );
 }
 
-export function UserProfileViewerProvider({ children }: { children: ReactNode }) {
+export function UserProfileViewerProvider({
+  children,
+  currentUser,
+  onCurrentUserUpdated,
+}: {
+  children: ReactNode;
+  currentUser?: AppUser | null;
+  onCurrentUserUpdated?: (user: AppUser) => void;
+}) {
   const [target, setTarget] = useState<{ userId: string; fallbackName: string } | null>(null);
   const [profile, setProfile] = useState<ConsultableUserProfile | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState("");
+  const [saveError, setSaveError] = useState("");
   const dialogRef = useRef<HTMLDivElement>(null);
   const cacheRef = useRef(new Map<string, ConsultableUserProfile>());
   useFocusTrap(dialogRef, Boolean(target));
@@ -201,8 +230,31 @@ export function UserProfileViewerProvider({ children }: { children: ReactNode })
   const close = useCallback(() => setTarget(null), []);
   const openUserProfile = useCallback((userId: string, fallbackName = "Utilisateur") => {
     if (!userId) return;
+    setSaveStatus("");
+    setSaveError("");
     setTarget({ userId, fallbackName });
   }, []);
+
+  const saveUserProfile = useCallback(
+    async (input: EditableUserProfileInput) => {
+      if (!target || !currentUser || target.userId !== currentUser.id) return;
+      setSaving(true);
+      setSaveStatus("");
+      setSaveError("");
+      try {
+        const payload = await api.updateUserProfile(input);
+        cacheRef.current.set(currentUser.id, payload.profile);
+        setProfile(payload.profile);
+        onCurrentUserUpdated?.({ ...currentUser, ...payload.user });
+        setSaveStatus(payload.message || "Profil mis à jour.");
+      } catch (requestError) {
+        setSaveError(getClientErrorMessage(requestError, "Mise à jour du profil impossible."));
+      } finally {
+        setSaving(false);
+      }
+    },
+    [currentUser, onCurrentUserUpdated, target],
+  );
 
   useEffect(() => {
     if (!target) return;
@@ -297,7 +349,16 @@ export function UserProfileViewerProvider({ children }: { children: ReactNode })
                   <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate-400">{error}</p>
                 </div>
               )}
-              {!loading && !error && profile && <ProfileContent profile={profile} />}
+              {!loading && !error && profile && (
+                <ProfileContent
+                  profile={profile}
+                  editable={Boolean(currentUser && profile.user.id === currentUser.id)}
+                  saving={saving}
+                  statusMessage={saveStatus}
+                  errorMessage={saveError}
+                  onSave={saveUserProfile}
+                />
+              )}
             </div>
           </div>,
           document.body,

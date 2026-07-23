@@ -229,6 +229,10 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
     return teacherSpaceRoles.includes(normalized);
   }
 
+  if (verb === "PUT" && cleanPath === "/api/me/user-profile") {
+    return true;
+  }
+
   if (verb === "GET" && /^\/api\/users\/[^/]+\/profile$/.test(cleanPath)) {
     return true;
   }

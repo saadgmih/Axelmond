@@ -83,10 +83,20 @@ model User {
   email                    String                        @unique
   passwordHash             String
   fullName                 String
+  firstName                String?
+  lastName                 String?
   role                     UserRole
   emailVerified            Boolean                       @default(false)
   levelOrTitle             String?
   filiere                  String?
+  phone                    String?
+  birthDate                DateTime?
+  country                  String?
+  city                     String?
+  preferredLanguage        String?
+  institution              String?
+  studyLevel               String?
+  academicYear             String?
   avatarUrl                String?
   failedLoginAttempts      Int                           @default(0)
   lockoutUntil             DateTime?

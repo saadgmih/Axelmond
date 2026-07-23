@@ -10,7 +10,15 @@ import {
   TEMPORARY_SERVICE_MESSAGE,
   TIMEOUT_ERROR_MESSAGE,
 } from "./api-response";
-import type { ConsultableUserProfile, Discipline, FacultyDomain, QuizAttemptResult, QuizQuestion } from "./types";
+import type {
+  ConsultableUserProfile,
+  Discipline,
+  EditableUserProfileInput,
+  FacultyDomain,
+  QuizAttemptResult,
+  QuizQuestion,
+} from "./types";
+import type { AppUser } from "./shared/app-user";
 import type { OnboardingSnapshot, OnboardingUpdate } from "./onboarding/onboarding-types";
 import type {
   AdminCenterPaymentRequestView,
@@ -756,6 +764,12 @@ export const api = {
   getAcademicProfile: () => request<any>("GET", "/api/me/profile"),
   getUserProfile: (userId: string) =>
     request<ConsultableUserProfile>("GET", `/api/users/${encodeURIComponent(userId)}/profile`),
+  updateUserProfile: (data: EditableUserProfileInput) =>
+    request<{ profile: ConsultableUserProfile; user: Partial<AppUser>; message: string }>(
+      "PUT",
+      "/api/me/user-profile",
+      data,
+    ),
   updateAcademicProfile: (data: {
     title?: string;
     department?: string;

@@ -83,7 +83,17 @@ export interface UserProfileSummary {
 
 export interface ConsultableUserProfile {
   user: UserProfileSummary & {
+    firstName: string;
+    lastName: string;
+    phone?: string | null;
+    birthDate?: string | null;
+    country?: string | null;
+    city?: string | null;
+    preferredLanguage?: string | null;
+    institution?: string | null;
     filiere?: string | null;
+    studyLevel?: string | null;
+    academicYear?: string | null;
   };
   academic: {
     department: string;
@@ -106,6 +116,20 @@ export interface ConsultableUserProfile {
     category: string;
     imageUrl?: string | null;
   }>;
+}
+
+export interface EditableUserProfileInput {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  birthDate: string;
+  country: string;
+  city: string;
+  preferredLanguage: string;
+  institution: string;
+  filiere: string;
+  studyLevel: string;
+  academicYear: string;
 }
 
 export interface FacultyDomain {
