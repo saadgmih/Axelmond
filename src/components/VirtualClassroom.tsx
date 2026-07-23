@@ -18,6 +18,7 @@ import { useVirtualClassroomUI } from "../hooks/useVirtualClassroomUI";
 
 export interface LiveParticipantCard {
   identity: string;
+  userId?: string;
   name: string;
   initials: string;
   role?: string;

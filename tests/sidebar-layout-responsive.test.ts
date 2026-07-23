@@ -27,7 +27,7 @@ rulesTest("sidebar-layout-responsive", () => {
   assert.doesNotMatch(sidebarSource, /md:relative/);
 
   assert.match(sidebarSource, /Utilisateur actuel/);
-  assert.match(sidebarSource, /data-onboarding="profile-menu"/);
+  assert.match(sidebarSource, /dataOnboarding="profile-menu"/);
   assert.match(sidebarSource, /data-onboarding="platform-settings"/);
   assert.match(sidebarSource, /openCategoryId/);
   assert.match(sidebarSource, /aria-expanded=\{isOpen\}/);

@@ -23,6 +23,7 @@ import { getEnrollmentEffectiveEndDate, getEnrollmentRemainingMs, isEnrollmentAc
 import type { ContentSection, Course, CourseModule, LessonContent, QuizQuestion } from "../../types";
 import { formatCredits } from "../../utils/morocco-locale";
 import { getCourseContentProgress } from "../../utils/course-content-metrics";
+import { UserProfileTrigger } from "../../components/UserProfileViewer";
 
 const PdfLessonViewer = lazy(() => import("../../components/PdfLessonViewer"));
 const PremiumVideoPlayer = lazy(() => import("../../components/PremiumVideoPlayer"));
@@ -220,7 +221,13 @@ export default function StudentCourseView({
             {selectedCourse.level} · {formatCredits(selectedCourse.credits)}
           </span>
           <h2 className="text-base font-black text-slate-800 leading-tight">{selectedCourse.title}</h2>
-          <p className="text-xs text-slate-500 font-medium">Syllabus officiel • {selectedCourse.instructor}</p>
+          <UserProfileTrigger
+            userId={selectedCourse.instructorProfile?.id || selectedCourse.createdById}
+            userName={selectedCourse.instructorProfile?.fullName || selectedCourse.instructor}
+            avatarUrl={selectedCourse.instructorProfile?.avatarUrl}
+            prefix="Syllabus officiel •"
+            className="inline-flex max-w-full items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-emerald-600"
+          />
         </div>
 
         <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 space-y-1 mt-2">
@@ -587,7 +594,13 @@ export default function StudentCourseView({
                               <h3 className="text-sm font-black text-white">Vidéo à venir</h3>
                               <p className="text-xs text-slate-400">Contenu en préparation pour ce chapitre.</p>
                               <p className="text-[11px] text-slate-500 font-mono">
-                                {selectedCourse.instructor} • {selectedModule.duration}
+                                <UserProfileTrigger
+                                  userId={selectedCourse.instructorProfile?.id || selectedCourse.createdById}
+                                  userName={selectedCourse.instructorProfile?.fullName || selectedCourse.instructor}
+                                  showAvatar={false}
+                                  className="inline-flex text-slate-500 hover:text-emerald-600"
+                                />{" "}
+                                • {selectedModule.duration}
                               </p>
                             </div>
                           </div>
@@ -649,7 +662,15 @@ export default function StudentCourseView({
                             Document du module
                           </p>
                           <h4 className="text-sm font-bold text-white mt-1">{selectedModule.title}</h4>
-                          <p className="text-[11px] text-slate-400">Manuel pédagogique • {selectedCourse.instructor}</p>
+                          <p className="text-[11px] text-slate-400">
+                            Manuel pédagogique •{" "}
+                            <UserProfileTrigger
+                              userId={selectedCourse.instructorProfile?.id || selectedCourse.createdById}
+                              userName={selectedCourse.instructorProfile?.fullName || selectedCourse.instructor}
+                              showAvatar={false}
+                              className="inline-flex text-slate-400 hover:text-emerald-300"
+                            />
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -994,7 +1015,12 @@ export default function StudentCourseView({
                         <span className="text-slate-400">Cours :</span>
                         {selectedCourse.title}
                         <span className="text-slate-300">•</span>
-                        {selectedCourse.instructor}
+                        <UserProfileTrigger
+                          userId={selectedCourse.instructorProfile?.id || selectedCourse.createdById}
+                          userName={selectedCourse.instructorProfile?.fullName || selectedCourse.instructor}
+                          showAvatar={false}
+                          className="inline-flex text-slate-600 hover:text-emerald-600"
+                        />
                       </div>
                     </div>
                   )}

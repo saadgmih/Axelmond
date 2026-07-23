@@ -3,6 +3,8 @@ import { getCourseContentProgress } from "../../utils/course-content-metrics";
 import { Course, CourseEnrollmentInfo } from "../../types";
 import { prisma } from "../../db";
 import { decodeStoredText } from "../../text";
+import { toCourseInstructorProfile } from "./course-instructor-mapper";
+import { toDiscipline, toDomain } from "./academic-taxonomy-mappers";
 import { attachSyncedCourseModules } from "../../course-curriculum-sync";
 import { isEnrollmentActive } from "../../enrollment-access";
 import { resolveCourseModules } from "../../course-syllabus-modules";
@@ -14,41 +16,7 @@ import {
 } from "../../student-content-progress";
 import type { AppUser } from "../route-types";
 
-export function toDomain(domain: any) {
-  return {
-    id: domain.id,
-    name: domain.name,
-    slug: domain.slug,
-    iconName: domain.iconName,
-    color: domain.color,
-    description: domain.description,
-    order: domain.order,
-    courseCount: domain.courseCount,
-    disciplines: Array.isArray(domain.disciplines) ? domain.disciplines.map(toDiscipline) : [],
-  };
-}
-
-export function toDiscipline(discipline: any) {
-  return {
-    id: discipline.id,
-    domainId: discipline.domainId,
-    name: decodeStoredText(discipline.name),
-    slug: discipline.slug,
-    order: discipline.order,
-    courseCount: discipline.courseCount,
-    domain: discipline.domain
-      ? {
-          id: discipline.domain.id,
-          name: decodeStoredText(discipline.domain.name),
-          slug: discipline.domain.slug,
-          iconName: discipline.domain.iconName,
-          color: discipline.domain.color,
-          description: decodeStoredText(discipline.domain.description),
-          order: discipline.domain.order,
-        }
-      : undefined,
-  };
-}
+export { toDiscipline, toDomain };
 
 export const activeLiveSessionSelect = {
   id: true,
@@ -66,12 +34,14 @@ export const activeLiveSessionInclude = {
 
 export const courseResponseInclude = {
   discipline: { include: { domain: true } },
+  createdBy: { select: { id: true, fullName: true, role: true, avatarUrl: true, levelOrTitle: true } },
   liveSessions: activeLiveSessionInclude,
   courseModules: { orderBy: { sortOrder: "asc" as const } },
 } as const;
 
 export const courseListResponseInclude = {
   discipline: { include: { domain: true } },
+  createdBy: { select: { id: true, fullName: true, role: true, avatarUrl: true, levelOrTitle: true } },
   liveSessions: activeLiveSessionInclude,
   courseModules: {
     select: {
@@ -139,6 +109,7 @@ export function toCourse(
     color: course.color,
     imageUrl: course.imageUrl || null,
     instructor: decodeStoredText(course.instructor),
+    instructorProfile: toCourseInstructorProfile(course),
     description: decodeStoredText(course.description),
     progress: course.progress,
     isLiveNow: course.isLiveNow,

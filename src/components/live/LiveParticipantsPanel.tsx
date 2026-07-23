@@ -2,6 +2,7 @@ import React from "react";
 import { CameraOff, Hand, Mic, MicOff, Search, UserX, Video, VideoOff, VolumeX } from "lucide-react";
 import type { LiveParticipantCard } from "../VirtualClassroom";
 import { liveRoleLabel } from "./live-classroom-formatters";
+import { UserProfileTrigger } from "../UserProfileViewer";
 
 export interface LiveParticipantsPanelProps {
   raisedHandParticipants: LiveParticipantCard[];
@@ -55,15 +56,25 @@ export default function LiveParticipantsPanel({
             key={participant.identity}
             className="group relative rounded-xl hover:bg-zinc-800/50 p-2.5 flex items-center justify-between transition-colors border border-transparent hover:border-white/5"
           >
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 flex items-center justify-center text-xs font-bold shrink-0">
-                {participant.initials}
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-medium truncate">{participant.name}</p>
-                <p className="text-[10px] text-zinc-500 truncate font-medium">{liveRoleLabel(participant.role)}</p>
-              </div>
-            </div>
+            <UserProfileTrigger
+              userId={participant.userId}
+              userName={participant.name}
+              className="flex min-w-0 items-center gap-3 text-zinc-100 hover:text-emerald-300"
+            >
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-emerald-500/20 bg-emerald-500/20 text-xs font-bold text-emerald-400">
+                {participant.avatarUrl ? (
+                  <img src={participant.avatarUrl} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  participant.initials
+                )}
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-medium">{participant.name}</span>
+                <span className="block truncate text-[10px] font-medium text-zinc-500">
+                  {liveRoleLabel(participant.role)}
+                </span>
+              </span>
+            </UserProfileTrigger>
 
             <div className="flex items-center gap-2 shrink-0 ml-2">
               {participant.handRaised && <Hand className="w-3.5 h-3.5 text-lime-400" />}

@@ -1,6 +1,7 @@
 import React from "react";
 import { ChevronLeft, Settings } from "lucide-react";
 import { Course } from "../../types";
+import { UserProfileTrigger } from "../UserProfileViewer";
 
 export interface LiveClassroomHeaderProps {
   course: Course;
@@ -33,9 +34,17 @@ export default function LiveClassroomHeader({ course, isRecording, onBack, onOpe
               </span>
             )}
           </div>
-          <p className="text-[11px] text-zinc-400 truncate font-medium">
-            Laboratoire : {course.liveSubject || "Session académique"} • Dr. {course.instructor}
-          </p>
+          <div className="flex min-w-0 items-center gap-1 text-[11px] font-medium text-zinc-400">
+            <span className="truncate">Laboratoire : {course.liveSubject || "Session académique"} •</span>
+            <UserProfileTrigger
+              userId={course.instructorProfile?.id || course.createdById}
+              userName={course.instructorProfile?.fullName || course.instructor}
+              avatarUrl={course.instructorProfile?.avatarUrl}
+              prefix="Dr."
+              showAvatar={false}
+              className="inline-flex min-w-0 items-center font-medium text-zinc-300 hover:text-emerald-300"
+            />
+          </div>
         </div>
       </div>
 

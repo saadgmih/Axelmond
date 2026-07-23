@@ -24,6 +24,7 @@ import {
 } from "../navigation/sidebar-config";
 import { SidebarNavButton } from "./sidebar/SidebarNavButton";
 import AccessibilityControls from "./AccessibilityControls";
+import { UserProfileTrigger } from "./UserProfileViewer";
 
 interface SidebarProps {
   currentView: string;
@@ -129,12 +130,6 @@ export default function Sidebar({
     hideSidebarAfterAction();
   };
 
-  const goProfile = () => {
-    if (role === "student") navigateTo("profile");
-    else setTeacherView("academic-profile");
-    hideSidebarAfterAction();
-  };
-
   const reservedWidth = isDocked && isDockedVisible ? "var(--sidebar-expanded-width)" : "0px";
 
   const renderNavItems = (items: SidebarNavItem[]) =>
@@ -196,25 +191,36 @@ export default function Sidebar({
             const peerName = conversation.peer?.fullName || "Contact";
             const initials = getInitials(peerName);
             return (
-              <button
+              <div
                 key={conversation.id}
-                type="button"
-                onClick={openMessages}
-                aria-label={`Ouvrir la conversation avec ${peerName}`}
-                className="kbd-nav-focus relative flex w-full items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-white/5"
+                className="relative flex w-full items-center gap-1 rounded-xl hover:bg-white/5"
               >
-                <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-slate-700/80 text-xs font-bold text-slate-200">
-                  {conversation.peer?.avatarUrl ? (
-                    <img src={conversation.peer.avatarUrl} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    <span className="flex h-full w-full items-center justify-center">{initials}</span>
-                  )}
-                  {conversation.unreadCount > 0 && (
-                    <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-slate-900 bg-teal-400" />
-                  )}
-                </div>
-                <span className="truncate text-sm font-medium text-slate-300">{peerName}</span>
-              </button>
+                <UserProfileTrigger
+                  userId={conversation.peer?.id}
+                  userName={peerName}
+                  className="flex min-w-0 flex-1 items-center gap-3 px-2 py-2 text-slate-300 hover:text-emerald-200"
+                >
+                  <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-slate-700/80 text-xs font-bold text-slate-200">
+                    {conversation.peer?.avatarUrl ? (
+                      <img src={conversation.peer.avatarUrl} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="flex h-full w-full items-center justify-center">{initials}</span>
+                    )}
+                    {conversation.unreadCount > 0 && (
+                      <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-slate-900 bg-teal-400" />
+                    )}
+                  </div>
+                  <span className="truncate text-sm font-medium text-slate-300">{peerName}</span>
+                </UserProfileTrigger>
+                <button
+                  type="button"
+                  onClick={openMessages}
+                  aria-label={`Ouvrir la conversation avec ${peerName}`}
+                  className="kbd-nav-focus flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-white/10 hover:text-teal-300"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                </button>
+              </div>
             );
           })}
         </div>
@@ -319,12 +325,11 @@ export default function Sidebar({
 
   const renderUserFooter = () => (
     <div className="sidebar-glass-section border-t border-white/10 p-4" data-onboarding="sidebar-profile">
-      <button
-        type="button"
-        onClick={goProfile}
-        data-onboarding="profile-menu"
+      <UserProfileTrigger
+        userId={currentUser?.id}
+        userName={currentUser?.fullName || "Performance Académique"}
+        dataOnboarding="profile-menu"
         className="kbd-nav-focus group flex w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-xl px-1 py-1 text-left transition-colors hover:bg-white/5"
-        aria-label={currentUser ? `Profil de ${currentUser.fullName}` : "Profil utilisateur"}
       >
         <div className="min-w-0 flex-1">
           <span className="block truncate text-[9px] font-bold uppercase tracking-[0.16em] text-teal-300/80">
@@ -351,7 +356,7 @@ export default function Sidebar({
           )}
           <span className="sidebar-current-user-online" aria-hidden="true" />
         </div>
-      </button>
+      </UserProfileTrigger>
       <button
         type="button"
         onClick={(event) => {

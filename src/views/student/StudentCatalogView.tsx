@@ -7,6 +7,7 @@ import { getCourseContentProgress } from "../../utils/course-content-metrics";
 import { prefetchCatalogDiscipline, prefetchCourseContent } from "../../utils/prefetch";
 import { useTvNavigation } from "../../hooks/useTvNavigation";
 import { useVoiceSearch } from "../../hooks/useVoiceSearch";
+import { UserProfileTrigger } from "../../components/UserProfileViewer";
 
 type NavigateTo = (view: string, targetCourse?: Course | null) => void;
 type CourseIconRenderer = (iconName: string, colorClass?: string) => ReactNode;
@@ -63,7 +64,13 @@ const CatalogCourseCard = memo(function CatalogCourseCard({
 
         <div className="space-y-1">
           <h3 className="font-extrabold text-base text-slate-800 leading-tight">{course.title}</h3>
-          <p className="text-xs text-slate-400 font-medium">Enseignant : {course.instructor}</p>
+          <UserProfileTrigger
+            userId={course.instructorProfile?.id || course.createdById}
+            userName={course.instructorProfile?.fullName || course.instructor}
+            avatarUrl={course.instructorProfile?.avatarUrl}
+            prefix="Enseignant :"
+            className="inline-flex max-w-full items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-emerald-700"
+          />
           <p className="text-[10px] text-emerald-600 font-black uppercase tracking-wide">
             {course.discipline?.domain?.name} • {course.discipline?.name || course.category}
           </p>

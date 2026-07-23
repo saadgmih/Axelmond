@@ -41,6 +41,7 @@ import { VirtualList } from "../../components/VirtualList";
 import { useMessagingSocket } from "../../hooks/useMessagingSocket";
 import type { ChatMessage, ConversationSummary, MessagingUser } from "../../types/messaging";
 import { scheduleUi } from "../teacher/schedule-theme";
+import { UserProfileTrigger } from "../../components/UserProfileViewer";
 
 interface MessagesViewProps {
   currentUserId: string;
@@ -269,13 +270,17 @@ const MessageBubble = memo(function MessageBubble({
   return (
     <div className={`group flex items-end gap-2 ${mine ? "justify-end" : "justify-start"}`}>
       {!mine && (
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-[#12352e] text-[10px] font-black text-emerald-100">
+        <UserProfileTrigger
+          userId={message.senderId}
+          userName={message.sender.fullName}
+          className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-[#12352e] text-[10px] font-black text-emerald-100 hover:border-emerald-300/30"
+        >
           {message.sender.avatarUrl ? (
             <img src={message.sender.avatarUrl} alt="" className="h-full w-full object-cover" />
           ) : (
             peerInitials(message.sender.fullName)
           )}
-        </div>
+        </UserProfileTrigger>
       )}
       <div
         className={`relative border shadow-lg shadow-black/15 ${
@@ -832,23 +837,29 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
                 >
                   <ArrowLeft className="h-5 w-5 text-white" />
                 </button>
-                <div className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-emerald-300/20 bg-[#12352e] text-xs font-black text-emerald-100">
-                  {selectedConversation.peer?.avatarUrl ? (
-                    <img src={selectedConversation.peer.avatarUrl} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    peerInitials(selectedConversation.peer?.fullName || "Contact")
-                  )}
-                  <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-[#08231e] bg-emerald-400" />
-                </div>
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="truncate text-sm font-black text-white">{selectedConversation.peer?.fullName}</p>
-                    <span className="rounded-full border border-white/[0.07] bg-white/[0.04] px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-slate-400">
-                      {getPeerRoleLabel(selectedConversation.peer?.role)}
+                  <UserProfileTrigger
+                    userId={selectedConversation.peer?.id}
+                    userName={selectedConversation.peer?.fullName || "Contact"}
+                    className="flex max-w-full items-center gap-3 text-white hover:text-emerald-200"
+                  >
+                    <div className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-emerald-300/20 bg-[#12352e] text-xs font-black text-emerald-100">
+                      {selectedConversation.peer?.avatarUrl ? (
+                        <img src={selectedConversation.peer.avatarUrl} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        peerInitials(selectedConversation.peer?.fullName || "Contact")
+                      )}
+                      <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-[#08231e] bg-emerald-400" />
+                    </div>
+                    <span className="flex min-w-0 flex-wrap items-center gap-2">
+                      <span className="truncate text-sm font-black">{selectedConversation.peer?.fullName}</span>
+                      <span className="rounded-full border border-white/[0.07] bg-white/[0.04] px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-slate-400">
+                        {getPeerRoleLabel(selectedConversation.peer?.role)}
+                      </span>
                     </span>
-                  </div>
+                  </UserProfileTrigger>
                   <p
-                    className={`truncate text-[11px] ${peerTyping ? "font-semibold text-emerald-300" : "text-slate-400"}`}
+                    className={`ml-14 truncate text-[11px] ${peerTyping ? "font-semibold text-emerald-300" : "text-slate-400"}`}
                   >
                     {peerTyping || selectedConversation.isPeerTyping
                       ? "En train d'écrire…"

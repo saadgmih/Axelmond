@@ -27,6 +27,7 @@ import { formatCredits } from "../../utils/morocco-locale";
 import { getCourseContentProgress } from "../../utils/course-content-metrics";
 import { prefetchCourseContent } from "../../utils/prefetch";
 import { useTvNavigation } from "../../hooks/useTvNavigation";
+import { UserProfileTrigger } from "../../components/UserProfileViewer";
 
 type NavigateTo = (view: string, targetCourse?: Course | null) => void;
 
@@ -169,7 +170,13 @@ const DashboardCourseCard = memo(function DashboardCourseCard({
 
         <div className="space-y-1">
           <h3 className="font-extrabold text-base text-white leading-tight truncate">{course.title}</h3>
-          <p className="text-xs text-slate-400 font-medium truncate">Par {course.instructor}</p>
+          <UserProfileTrigger
+            userId={course.instructorProfile?.id || course.createdById}
+            userName={course.instructorProfile?.fullName || course.instructor}
+            avatarUrl={course.instructorProfile?.avatarUrl}
+            prefix="Par"
+            className="inline-flex max-w-full items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-emerald-300"
+          />
         </div>
 
         <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">{course.description}</p>

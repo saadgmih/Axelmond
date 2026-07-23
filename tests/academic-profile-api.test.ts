@@ -10,9 +10,12 @@ rulesTest("academic-profile-api", () => {
   const academicProfileHookSource = fs.readFileSync("src/hooks/useAcademicProfile.ts", "utf8");
   const appProfileBundle = appSource + academicProfileHookSource;
   const sidebarConfigSource = fs.readFileSync("src/navigation/sidebar-config.ts", "utf8");
+  const profileViewerSource = fs.readFileSync("src/components/UserProfileViewer.tsx", "utf8");
 
   assert.match(serverSource, /ensureAcademicProfileForUser\(tx,\s*\{\s*id:\s*createdUser\.id/s);
   assert.match(serverSource, /app\.get\("\/api\/me\/profile",\s*requireAuth,\s*requireRbac/);
+  assert.match(serverSource, /app\.get\("\/api\/users\/:userId\/profile",\s*requireAuth,\s*requireRbac/);
+  assert.match(serverSource, /toConsultableUserProfile/);
   assert.match(serverSource, /app\.put\("\/api\/me\/profile",\s*requireAuth,\s*requireRbac/);
   assert.match(serverSource, /app\.post\("\/api\/me\/avatar",\s*requireAuth,\s*requireRbac/);
   assert.match(serverSource, /AVATAR_URL_INVALID/);
@@ -24,4 +27,7 @@ rulesTest("academic-profile-api", () => {
   assert.match(appProfileBundle, /api\.updateAcademicProfile\(\{/);
   assert.doesNotMatch(appProfileBundle, /api\.updateAcademicProfile\(\{[^}]*role/s);
   assert.match(sidebarConfigSource, /Mon Profil Académique/);
+  assert.match(profileViewerSource, /UserProfileViewerProvider/);
+  assert.match(profileViewerSource, /Consulter le profil de/);
+  assert.match(appSource, /<UserProfileViewerProvider>/);
 });

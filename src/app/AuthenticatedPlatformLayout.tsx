@@ -20,6 +20,7 @@ import { TeacherRouteSwitch } from "./TeacherRouteSwitch";
 import { AppFooter } from "./AppFooter";
 import { OnboardingExperience } from "../onboarding/OnboardingExperience";
 import { useOnboarding } from "../onboarding/OnboardingProvider";
+import { UserProfileViewerProvider } from "../components/UserProfileViewer";
 
 export function AuthenticatedPlatformLayout() {
   const session = usePlatformSession();
@@ -33,147 +34,149 @@ export function AuthenticatedPlatformLayout() {
   const { isDrawer } = useSidebarLayout();
 
   return (
-    <div className="flex h-[100dvh] max-h-[100dvh] overflow-hidden bg-slate-950 font-sans">
-      {live.needsLiveKitSession && session.currentUser && (
-        <Suspense fallback={null}>
-          <LazyLiveKitSessionHost
-            activeLiveCourse={live.activeLiveCourse}
-            setActiveLiveCourse={live.setActiveLiveCourse}
-            currentUser={session.currentUser}
-            courses={catalog.courses}
-            liveCourseId={live.liveCourseId}
-            setSelectedCourse={navigation.setSelectedCourse}
-            setTeacherView={navigation.setTeacherView}
-            setCurrentView={navigation.setCurrentView}
-            setCourseToPurchase={ui.setCourseToPurchase}
-            updateSessionUser={session.updateSessionUser}
-            setEnrolledCourses={session.setEnrolledCourses}
-            setInvoices={session.setInvoices}
-            getInitials={catalog.getInitials}
-            navigateTo={navigation.navigateTo}
-            currentView={currentView}
-            teacherView={navigation.teacherView}
-            handleToggleCourseLive={live.handleToggleCourseLive}
-            onStudentLiveEnded={live.handleStudentLiveEnded}
-            roomRef={live.roomRef}
-          />
-        </Suspense>
-      )}
-
-      <SkipLink />
-
-      <Sidebar
-        currentView={currentView}
-        isMobileMenuOpen={ui.isMobileMenuOpen}
-        setIsMobileMenuOpen={ui.setIsMobileMenuOpen}
-        navigateTo={navigation.navigateTo}
-        role={session.role}
-        teacherView={navigation.teacherView}
-        setTeacherView={navigation.handleTeacherViewChange}
-        currentUser={session.currentUser!}
-        onLogout={session.handleLogout}
-        onRestartTutorial={onboarding.restart}
-        notificationUnreadCount={session.notificationUnreadCount}
-        isSidebarCollapsed={ui.isSidebarCollapsed}
-        onToggleSidebarCollapsed={ui.toggleSidebarCollapsed}
-      />
-
-      {ui.isMobileMenuOpen &&
-        isDrawer &&
-        createPortal(
-          <button
-            type="button"
-            aria-label="Fermer le menu de navigation"
-            className="sidebar-drawer-backdrop fixed inset-0 z-[60]"
-            onClick={() => ui.setIsMobileMenuOpen(false)}
-          />,
-          document.body,
-        )}
-
-      <div className="flex-1 flex flex-col overflow-hidden relative">
-        <main
-          id="main-content"
-          tabIndex={-1}
-          className={`flex-1 relative bg-slate-950 outline-none min-h-0 ${ui.lockMainScroll ? "overflow-hidden" : "overflow-y-auto"}`}
-        >
-          {catalog.isLoading && (
-            <div
-              role="status"
-              aria-label="Synchronisation des données académiques"
-              className="pointer-events-none absolute inset-x-0 top-0 z-50 h-1 overflow-hidden bg-emerald-950/60"
-            >
-              <div className="h-full w-full origin-left animate-pulse bg-emerald-400" />
-              <span className="sr-only">Synchronisation des données académiques...</span>
-            </div>
-          )}
-          {INSTITUTIONAL_VIEWS.has(currentView) ? (
-            <InstitutionalViewSwitch
-              currentView={currentView}
-              currentUser={session.currentUser!}
+    <UserProfileViewerProvider>
+      <div className="flex h-[100dvh] max-h-[100dvh] overflow-hidden bg-slate-950 font-sans">
+        {live.needsLiveKitSession && session.currentUser && (
+          <Suspense fallback={null}>
+            <LazyLiveKitSessionHost
+              activeLiveCourse={live.activeLiveCourse}
+              setActiveLiveCourse={live.setActiveLiveCourse}
+              currentUser={session.currentUser}
+              courses={catalog.courses}
+              liveCourseId={live.liveCourseId}
+              setSelectedCourse={navigation.setSelectedCourse}
+              setTeacherView={navigation.setTeacherView}
+              setCurrentView={navigation.setCurrentView}
+              setCourseToPurchase={ui.setCourseToPurchase}
+              updateSessionUser={session.updateSessionUser}
+              setEnrolledCourses={session.setEnrolledCourses}
+              setInvoices={session.setInvoices}
+              getInitials={catalog.getInitials}
               navigateTo={navigation.navigateTo}
+              currentView={currentView}
+              teacherView={navigation.teacherView}
+              handleToggleCourseLive={live.handleToggleCourseLive}
+              onStudentLiveEnded={live.handleStudentLiveEnded}
+              roomRef={live.roomRef}
             />
-          ) : session.role === "teacher" ? (
-            <TeacherRouteSwitch />
-          ) : (
-            <StudentRouteSwitch />
-          )}
-
-          {/* Global Footer */}
-          {!ui.hideGlobalFooter && <AppFooter />}
-        </main>
-      </div>
-
-      {ui.courseToPurchase && (
-        <Suspense
-          fallback={
-            <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm">
-              <div className="h-10 w-10 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
-            </div>
-          }
-        >
-          <LazyPaymentModal
-            course={ui.courseToPurchase}
-            onClose={() => ui.setCourseToPurchase(null)}
-            onSuccess={bindings.handlePaymentSuccess}
-          />
-        </Suspense>
-      )}
-
-      {live.activeLiveCourse &&
-        !(
-          (session.role === "student" && currentView === "live") ||
-          (session.role === "teacher" && navigation.teacherView === "live-control")
-        ) && (
-          <button
-            type="button"
-            aria-label={`Rejoindre le live actif : ${live.activeLiveCourse.title}`}
-            onClick={() => {
-              navigation.setSelectedCourse(live.activeLiveCourse);
-              live.setLiveCourseId(live.activeLiveCourse!.id);
-              if (session.role === "student") {
-                navigation.setCurrentView("live");
-              } else {
-                navigation.setTeacherView("live-control");
-              }
-              ui.setIsMobileMenuOpen(false);
-            }}
-            className="fixed right-4 bottom-4 sm:right-5 sm:bottom-5 z-50 bg-slate-950 border border-emerald-500/50 text-white rounded-2xl px-4 py-3 shadow-2xl flex items-center gap-3 max-w-[min(280px,calc(100vw-2rem))] text-left cursor-pointer hover:bg-slate-900 transition-colors touch-target kbd-nav-focus"
-          >
-            <span className="relative flex h-3 w-3 flex-shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-            </span>
-            <span className="min-w-0">
-              <span className="block text-[10px] font-black uppercase tracking-widest text-emerald-300">
-                Live actif
-              </span>
-              <span className="block text-xs font-bold truncate">{live.activeLiveCourse.title}</span>
-            </span>
-          </button>
+          </Suspense>
         )}
 
-      <KeyboardShortcutsHelp open={ui.showKeyboardHelp} onClose={() => ui.setShowKeyboardHelp(false)} />
-      <OnboardingExperience />
-    </div>
+        <SkipLink />
+
+        <Sidebar
+          currentView={currentView}
+          isMobileMenuOpen={ui.isMobileMenuOpen}
+          setIsMobileMenuOpen={ui.setIsMobileMenuOpen}
+          navigateTo={navigation.navigateTo}
+          role={session.role}
+          teacherView={navigation.teacherView}
+          setTeacherView={navigation.handleTeacherViewChange}
+          currentUser={session.currentUser!}
+          onLogout={session.handleLogout}
+          onRestartTutorial={onboarding.restart}
+          notificationUnreadCount={session.notificationUnreadCount}
+          isSidebarCollapsed={ui.isSidebarCollapsed}
+          onToggleSidebarCollapsed={ui.toggleSidebarCollapsed}
+        />
+
+        {ui.isMobileMenuOpen &&
+          isDrawer &&
+          createPortal(
+            <button
+              type="button"
+              aria-label="Fermer le menu de navigation"
+              className="sidebar-drawer-backdrop fixed inset-0 z-[60]"
+              onClick={() => ui.setIsMobileMenuOpen(false)}
+            />,
+            document.body,
+          )}
+
+        <div className="flex-1 flex flex-col overflow-hidden relative">
+          <main
+            id="main-content"
+            tabIndex={-1}
+            className={`flex-1 relative bg-slate-950 outline-none min-h-0 ${ui.lockMainScroll ? "overflow-hidden" : "overflow-y-auto"}`}
+          >
+            {catalog.isLoading && (
+              <div
+                role="status"
+                aria-label="Synchronisation des données académiques"
+                className="pointer-events-none absolute inset-x-0 top-0 z-50 h-1 overflow-hidden bg-emerald-950/60"
+              >
+                <div className="h-full w-full origin-left animate-pulse bg-emerald-400" />
+                <span className="sr-only">Synchronisation des données académiques...</span>
+              </div>
+            )}
+            {INSTITUTIONAL_VIEWS.has(currentView) ? (
+              <InstitutionalViewSwitch
+                currentView={currentView}
+                currentUser={session.currentUser!}
+                navigateTo={navigation.navigateTo}
+              />
+            ) : session.role === "teacher" ? (
+              <TeacherRouteSwitch />
+            ) : (
+              <StudentRouteSwitch />
+            )}
+
+            {/* Global Footer */}
+            {!ui.hideGlobalFooter && <AppFooter />}
+          </main>
+        </div>
+
+        {ui.courseToPurchase && (
+          <Suspense
+            fallback={
+              <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm">
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
+              </div>
+            }
+          >
+            <LazyPaymentModal
+              course={ui.courseToPurchase}
+              onClose={() => ui.setCourseToPurchase(null)}
+              onSuccess={bindings.handlePaymentSuccess}
+            />
+          </Suspense>
+        )}
+
+        {live.activeLiveCourse &&
+          !(
+            (session.role === "student" && currentView === "live") ||
+            (session.role === "teacher" && navigation.teacherView === "live-control")
+          ) && (
+            <button
+              type="button"
+              aria-label={`Rejoindre le live actif : ${live.activeLiveCourse.title}`}
+              onClick={() => {
+                navigation.setSelectedCourse(live.activeLiveCourse);
+                live.setLiveCourseId(live.activeLiveCourse!.id);
+                if (session.role === "student") {
+                  navigation.setCurrentView("live");
+                } else {
+                  navigation.setTeacherView("live-control");
+                }
+                ui.setIsMobileMenuOpen(false);
+              }}
+              className="fixed right-4 bottom-4 sm:right-5 sm:bottom-5 z-50 bg-slate-950 border border-emerald-500/50 text-white rounded-2xl px-4 py-3 shadow-2xl flex items-center gap-3 max-w-[min(280px,calc(100vw-2rem))] text-left cursor-pointer hover:bg-slate-900 transition-colors touch-target kbd-nav-focus"
+            >
+              <span className="relative flex h-3 w-3 flex-shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+              </span>
+              <span className="min-w-0">
+                <span className="block text-[10px] font-black uppercase tracking-widest text-emerald-300">
+                  Live actif
+                </span>
+                <span className="block text-xs font-bold truncate">{live.activeLiveCourse.title}</span>
+              </span>
+            </button>
+          )}
+
+        <KeyboardShortcutsHelp open={ui.showKeyboardHelp} onClose={() => ui.setShowKeyboardHelp(false)} />
+        <OnboardingExperience />
+      </div>
+    </UserProfileViewerProvider>
   );
 }

@@ -6,6 +6,54 @@ import * as api from "../server/route-deps";
 export function registerProfileRoutes(app: Express, ctx: RouteContext): void {
   const { requireAuth, requireRbac, validateBody } = ctx.middleware;
 
+  // GET /api/users/:userId/profile — authenticated, privacy-safe profile card
+
+  app.get("/api/users/:userId/profile", requireAuth, requireRbac, async (req, res) => {
+    const userId = String(req.params.userId || "").trim();
+
+    if (!/^[a-zA-Z0-9_-]{1,128}$/.test(userId)) {
+      res.status(400).json({ error: "Identifiant de profil invalide" });
+      return;
+    }
+
+    const user = await api.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        fullName: true,
+        role: true,
+        avatarUrl: true,
+        levelOrTitle: true,
+        filiere: true,
+        academicProfile: {
+          select: {
+            title: true,
+            department: true,
+            lab: true,
+            speciality: true,
+            teachingDomains: true,
+            researchDomains: true,
+            bio: true,
+            links: true,
+          },
+        },
+        createdCourses: {
+          where: { published: true },
+          select: { id: true, title: true, level: true, category: true, imageUrl: true },
+          orderBy: { updatedAt: "desc" },
+          take: 8,
+        },
+      },
+    });
+
+    if (!user) {
+      res.status(404).json({ error: "Profil utilisateur introuvable" });
+      return;
+    }
+
+    res.json(api.toConsultableUserProfile(user));
+  });
+
   // GET /api/me/profile
 
   app.get("/api/me/profile", requireAuth, requireRbac, async (req, res) => {

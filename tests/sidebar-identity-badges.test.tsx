@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import Sidebar from "../src/components/Sidebar";
 import type { AppUser } from "../src/shared/app-user";
 import { AccessibilityPreferencesProvider } from "../src/hooks/useAccessibilityPreferences";
+import { UserProfileViewerProvider } from "../src/components/UserProfileViewer";
 
 if (typeof React.act !== "function") {
   (React as typeof React & { act: typeof act }).act = act;
@@ -47,17 +48,19 @@ const baseUser: AppUser = {
 function renderSidebar(role: "student" | "teacher", currentUser: AppUser) {
   return render(
     <AccessibilityPreferencesProvider>
-      <Sidebar
-        currentView="dashboard"
-        isMobileMenuOpen={false}
-        setIsMobileMenuOpen={vi.fn()}
-        navigateTo={vi.fn()}
-        role={role}
-        teacherView="dashboard"
-        setTeacherView={vi.fn()}
-        currentUser={currentUser}
-        onLogout={vi.fn()}
-      />
+      <UserProfileViewerProvider>
+        <Sidebar
+          currentView="dashboard"
+          isMobileMenuOpen={false}
+          setIsMobileMenuOpen={vi.fn()}
+          navigateTo={vi.fn()}
+          role={role}
+          teacherView="dashboard"
+          setTeacherView={vi.fn()}
+          currentUser={currentUser}
+          onLogout={vi.fn()}
+        />
+      </UserProfileViewerProvider>
     </AccessibilityPreferencesProvider>,
   );
 }
@@ -70,7 +73,7 @@ describe("Sidebar authenticated identity", () => {
 
     expect(screen.getByText("Utilisateur actuel")).toBeInTheDocument();
     expect(screen.getByText("Accès étudiant")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Profil de Utilisateur Test" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Consulter le profil de Utilisateur Test" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Options d'accessibilité" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Préférences" }));
     expect(screen.getByRole("button", { name: "Options d'accessibilité" })).toHaveTextContent("Paramètres");

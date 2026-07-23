@@ -19,6 +19,7 @@ import { resolveCachedAuthDbUser } from "../auth-user-cache";
 import { logEmail } from "../route-loggers";
 import type { AppUser } from "../route-types";
 import { toCourse, courseResponseInclude } from "./catalog-mappers";
+export { toConsultableUserProfile } from "./consultable-user-profile-mapper";
 
 export function toAppUser(user: any): AppUser {
   return {

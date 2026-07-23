@@ -2,6 +2,7 @@ import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { Hand, Mic, MicOff, Wifi, Monitor } from "lucide-react";
 import type { LiveParticipantCard } from "../VirtualClassroom";
 import LiveParticipantAvatar from "./LiveParticipantAvatar";
+import { UserProfileTrigger } from "../UserProfileViewer";
 
 function liveRoleLabel(role?: string) {
   if (role === "ADMIN") return "Administrateur";
@@ -150,11 +151,12 @@ function LiveParticipantTile({
       >
         <div className="flex items-end justify-between gap-2 min-w-0">
           <div className="min-w-0 flex-1">
-            <p
-              className={`truncate font-black text-white ${isFullscreen ? "text-base sm:text-lg" : "text-xs sm:text-sm"}`}
-            >
-              {participant.name}
-            </p>
+            <UserProfileTrigger
+              userId={participant.userId}
+              userName={participant.name}
+              showAvatar={false}
+              className={`inline-flex max-w-full items-center truncate font-black text-white hover:text-emerald-300 ${isFullscreen ? "text-base sm:text-lg" : "text-xs sm:text-sm"}`}
+            />
             <p
               className={`truncate text-zinc-300 ${isFullscreen ? "text-xs sm:text-sm" : "text-[10px] sm:text-[11px]"}`}
             >

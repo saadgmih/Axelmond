@@ -43,6 +43,7 @@ export function buildLiveParticipantCards(
   const localSignal = context.liveSignals[room.localParticipant.identity];
   nextParticipants.push({
     identity: room.localParticipant.identity,
+    userId: context.currentUser?.id,
     name: "Vous",
     initials: context.getInitials(localName),
     role: context.currentUser?.role || "STUDENT",
@@ -74,6 +75,7 @@ export function buildLiveParticipantCards(
     }
     nextParticipants.push({
       identity: participant.identity,
+      userId: participant?.attributes?.userId || undefined,
       name: displayName,
       initials: context.getInitials(displayName),
       role: getParticipantRole(participant),

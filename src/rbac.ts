@@ -229,6 +229,10 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
     return teacherSpaceRoles.includes(normalized);
   }
 
+  if (verb === "GET" && /^\/api\/users\/[^/]+\/profile$/.test(cleanPath)) {
+    return true;
+  }
+
   if ((verb === "POST" || verb === "DELETE") && cleanPath === "/api/me/avatar") {
     return true;
   }

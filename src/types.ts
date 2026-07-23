@@ -61,6 +61,7 @@ export interface Course {
   color: string;
   imageUrl?: string | null;
   instructor: string;
+  instructorProfile?: UserProfileSummary | null;
   description: string;
   progress: number;
   isLiveNow: boolean;
@@ -70,6 +71,41 @@ export interface Course {
   published?: boolean;
   createdById?: string | null;
   enrollment?: CourseEnrollmentInfo | null;
+}
+
+export interface UserProfileSummary {
+  id: string;
+  fullName: string;
+  role: string;
+  avatarUrl?: string | null;
+  title?: string | null;
+}
+
+export interface ConsultableUserProfile {
+  user: UserProfileSummary & {
+    filiere?: string | null;
+  };
+  academic: {
+    department: string;
+    lab: string;
+    speciality: string;
+    teachingDomains: string[];
+    researchDomains: string[];
+    bio: string;
+    links: {
+      linkedIn?: string;
+      orcid?: string;
+      googleScholar?: string;
+      website?: string;
+    };
+  } | null;
+  courses: Array<{
+    id: number;
+    title: string;
+    level: string;
+    category: string;
+    imageUrl?: string | null;
+  }>;
 }
 
 export interface FacultyDomain {

@@ -10,7 +10,7 @@ import {
   TEMPORARY_SERVICE_MESSAGE,
   TIMEOUT_ERROR_MESSAGE,
 } from "./api-response";
-import type { Discipline, FacultyDomain, QuizAttemptResult, QuizQuestion } from "./types";
+import type { ConsultableUserProfile, Discipline, FacultyDomain, QuizAttemptResult, QuizQuestion } from "./types";
 import type { OnboardingSnapshot, OnboardingUpdate } from "./onboarding/onboarding-types";
 import type {
   AdminCenterPaymentRequestView,
@@ -754,6 +754,8 @@ export const api = {
       paidEnrollment: boolean;
     }>("DELETE", `/api/admin/courses/${courseId}/enrollments/${studentId}`),
   getAcademicProfile: () => request<any>("GET", "/api/me/profile"),
+  getUserProfile: (userId: string) =>
+    request<ConsultableUserProfile>("GET", `/api/users/${encodeURIComponent(userId)}/profile`),
   updateAcademicProfile: (data: {
     title?: string;
     department?: string;
