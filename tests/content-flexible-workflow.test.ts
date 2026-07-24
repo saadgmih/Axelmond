@@ -16,11 +16,11 @@ rulesTest("content-flexible-workflow", () => {
   const serverSource = readApiRouteSources();
   const uploadthingSource = readFileSync("src/uploadthing.ts", "utf8");
 
-  assert.match(curriculumBundle, /useState<"chapter" \| "part" \| "subpart">\("chapter"\)/);
-  assert.match(curriculumBundle, /const \[uploadChapterId, setUploadChapterId\]/);
-  assert.match(curriculumBundle, /const \[uploadPartId, setUploadPartId\]/);
-  assert.match(curriculumBundle, /const \[uploadSubpartId, setUploadSubpartId\]/);
+  assert.match(curriculumBundle, /const \[uploadSectionId, setUploadSectionId\]/);
+  assert.doesNotMatch(curriculumBundle, /uploadPartId|uploadSubpartId|newSectionMode/);
   assert.match(curriculumSource, /Directement dans le module/);
+  assert.match(curriculumSource, /Chapitre cible/);
+  assert.match(curriculumSource, /chapterSections\.map/);
   assert.doesNotMatch(curriculumBundle, /!uploadFile \|\| !uploadSectionId \|\| !uploadTitle\.trim\(\)/);
   assert.match(curriculumBundle, /sectionId:\s*uploadSectionId \|\| null/);
   assert.match(courseContentBundle, /getCourseContent/);
@@ -34,4 +34,4 @@ rulesTest("content-flexible-workflow", () => {
   assert.match(serverSource, /\/api\/courses\/:courseId\/module-contents/);
   assert.match(serverSource, /sectionId:\s*null/);
 });
-console.log("Flexible module content workflow rules passed");
+console.log("Module and chapter content workflow rules passed");

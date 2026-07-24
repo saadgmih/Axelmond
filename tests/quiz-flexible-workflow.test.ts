@@ -39,12 +39,13 @@ rulesTest("quiz-flexible-workflow", () => {
   assert.match(apiSource, /submitQuizAttemptById/);
 
   assert.match(curriculumBundle, /const \[quizChapterId, setQuizChapterId\]/);
-  assert.match(curriculumBundle, /const \[quizPartId, setQuizPartId\]/);
-  assert.match(curriculumBundle, /const \[quizSubpartId, setQuizSubpartId\]/);
+  assert.doesNotMatch(curriculumBundle, /quizPartId|quizSubpartId/);
   assert.match(curriculumSource, /Directement dans le module/);
+  assert.match(curriculumSource, /Chapitre de rattachement/);
+  assert.match(curriculumSource, /chapterSections\.map/);
   assert.match(curriculumBundle, /teacherQuizzes/);
   assert.match(curriculumBundle, /loadTeacherQuizzes/);
   assert.match(appSource, /notification\.type === "NEW_QUIZ"/);
   assert.match(appSource, /refreshCourseSnapshot\(courseId\)/);
 });
-console.log("Flexible multiple quiz workflow rules passed");
+console.log("Flexible multiple quiz workflow by module or chapter passed");

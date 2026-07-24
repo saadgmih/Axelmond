@@ -13,24 +13,8 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
     domains: _domains,
     activeCurriculumStep: _activeCurriculumStep,
     setActiveCurriculumStep: _setActiveCurriculumStep,
-    selectedChapterId: _selectedChapterId,
-    setSelectedChapterId: _setSelectedChapterId,
-    selectedPartieId: _selectedPartieId,
-    setSelectedPartieId: _setSelectedPartieId,
-    newSectionMode: _newSectionMode,
-    setNewSectionMode: _setNewSectionMode,
-    uploadChapterId: _uploadChapterId,
-    setUploadChapterId: _setUploadChapterId,
-    uploadPartId: _uploadPartId,
-    setUploadPartId: _setUploadPartId,
-    uploadSubpartId: _uploadSubpartId,
-    setUploadSubpartId: _setUploadSubpartId,
     quizChapterId: _quizChapterId,
     setQuizChapterId: _setQuizChapterId,
-    quizPartId: _quizPartId,
-    setQuizPartId: _setQuizPartId,
-    quizSubpartId: _quizSubpartId,
-    setQuizSubpartId: _setQuizSubpartId,
     curriculumSuccessMsg: _curriculumSuccessMsg,
     curriculumErrorMsg: _curriculumErrorMsg,
     newCourseTitle: _newCourseTitle,
@@ -50,8 +34,6 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
     newSectionCourseId: _newSectionCourseId,
     newSectionTitle: _newSectionTitle,
     setNewSectionTitle: _setNewSectionTitle,
-    newSectionParentId: _newSectionParentId,
-    setNewSectionParentId: _setNewSectionParentId,
     newSectionPublished: _newSectionPublished,
     setNewSectionPublished: _setNewSectionPublished,
     uploadSectionId,
@@ -90,16 +72,15 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
     allDisciplines: _allDisciplines,
     managedCourses: _managedCourses,
     managedCourse,
-    managedSections,
-    chapterSections: _chapterSections,
-    uploadPartOptions: _uploadPartOptions,
+    managedSections: _managedSections,
+    chapterSections,
     selectedManagedContents,
     managedLiveReplays,
     handleSetUploadSectionId,
     showCurriculumSuccess,
     showCurriculumError,
     handleCreateCourse: _handleCreateCourse,
-    handleCreateSection: _handleCreateSection,
+    handleCreateChapter: _handleCreateChapter,
     handleUploadLessonAsset,
     handleSelectManagedCourse,
     loadTeacherQuizzes: _loadTeacherQuizzes,
@@ -113,7 +94,6 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
     handleUpdateSectionTitle: _handleUpdateSectionTitle,
     handleToggleSectionPublished: _handleToggleSectionPublished,
     handleDeleteSection: _handleDeleteSection,
-    handleAddChildSection: _handleAddChildSection,
     handleToggleContentPublished,
     handleDeleteLessonContent,
   } = props;
@@ -121,7 +101,7 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
   const stepTheme = getStepTheme(3);
   const inputFocus = `${curriculumUi.input} ${stepTheme.focus}`;
   const destinationLabel = uploadSectionId
-    ? managedSections.find((section) => section.id === uploadSectionId)?.title || "Section sélectionnée"
+    ? chapterSections.find((chapter) => chapter.id === uploadSectionId)?.title || "Chapitre sélectionné"
     : "Racine du module";
 
   const processingVideos = selectedManagedContents.filter((c) => c.type === "VIDEO" && c.status === "PROCESSING");
@@ -232,23 +212,23 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
               <FileText className="h-5 w-5 text-lime-400" />
               Ajouter des médias
             </h3>
-            <p className={curriculumUi.panelSubtitle}>Uploadez vidéos, PDF ou images dans la section cible.</p>
+            <p className={curriculumUi.panelSubtitle}>Uploadez vidéos, PDF ou images dans le chapitre choisi.</p>
           </div>
 
           <form onSubmit={handleUploadLessonAsset} className={`space-y-4 pt-3 ${curriculumUi.divider}`}>
             <fieldset disabled={isUploadingLessonAsset} className="space-y-4 disabled:opacity-70">
-              {/* Destination Section Selector */}
+              {/* Destination chapter selector */}
               <div className="space-y-1">
-                <span className={curriculumUi.label}>Section cible</span>
+                <span className={curriculumUi.label}>Chapitre cible</span>
                 <select
                   value={uploadSectionId}
                   onChange={(e) => handleSetUploadSectionId(e.target.value)}
                   className={`${inputFocus} text-slate-100`}
                 >
                   <option value="">-- Directement dans le module (racine) --</option>
-                  {managedSections.map((section) => (
-                    <option key={section.id} value={section.id}>
-                      {`${"— ".repeat(section.depth ?? 0)}${section.title}`}
+                  {chapterSections.map((chapter) => (
+                    <option key={chapter.id} value={chapter.id}>
+                      {chapter.title}
                     </option>
                   ))}
                 </select>
@@ -354,7 +334,7 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
           </form>
         </div>
 
-        {/* Right Panel: Section Contents List */}
+        {/* Right Panel: Chapter contents list */}
         <div className="lg:col-span-7 space-y-4">
           <div className="flex items-center justify-between">
             <div>
@@ -372,7 +352,7 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
                 <FileText className="mx-auto mb-2 h-8 w-8 text-lime-300" />
                 <p className="text-xs font-semibold text-slate-500">
                   {uploadSectionId
-                    ? "Aucun média attaché à cette section."
+                    ? "Aucun média attaché à ce chapitre."
                     : "Aucun média attaché directement à la racine du module."}
                 </p>
               </div>

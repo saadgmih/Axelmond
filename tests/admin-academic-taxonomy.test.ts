@@ -87,10 +87,8 @@ rulesTest("admin-academic-taxonomy", () => {
   assert.doesNotMatch(curriculumStepper, /<Check/);
   assert.match(curriculumView, /<AdminAcademicTaxonomyView \{\.\.\.props\} mode="domains" \/>/);
   assert.match(curriculumView, /<AdminAcademicTaxonomyView \{\.\.\.props\} mode="disciplines" \/>/);
-  assert.match(
-    curriculumView,
-    /activeCurriculumStep === chaptersStep[\s\S]*<CurriculumChaptersStep \{\.\.\.props\} \/>[\s\S]*<CurriculumOutlineStep \{\.\.\.props\} \/>/,
-  );
+  assert.match(curriculumView, /activeCurriculumStep === chaptersStep && <CurriculumChaptersStep \{\.\.\.props\} \/>/);
+  assert.doesNotMatch(curriculumView, /CurriculumOutlineStep/);
   assert.doesNotMatch(curriculumModulesStep, /AdminAcademicTaxonomyView/);
   assert.match(teacherCurriculumHook, /currentUser\?\.role === "ADMIN" \? 6 : 4/);
   assert.match(teacherRouteSwitch, /teacherView === "curriculum"/);

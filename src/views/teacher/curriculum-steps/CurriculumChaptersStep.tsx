@@ -9,24 +9,8 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
     canManageAcademicTaxonomy,
     activeCurriculumStep: _activeCurriculumStep,
     setActiveCurriculumStep,
-    selectedChapterId: _selectedChapterId,
-    setSelectedChapterId: _setSelectedChapterId,
-    selectedPartieId: _selectedPartieId,
-    setSelectedPartieId: _setSelectedPartieId,
-    newSectionMode: _newSectionMode,
-    setNewSectionMode,
-    uploadChapterId: _uploadChapterId,
-    setUploadChapterId: _setUploadChapterId,
-    uploadPartId: _uploadPartId,
-    setUploadPartId: _setUploadPartId,
-    uploadSubpartId: _uploadSubpartId,
-    setUploadSubpartId: _setUploadSubpartId,
     quizChapterId: _quizChapterId,
     setQuizChapterId: _setQuizChapterId,
-    quizPartId: _quizPartId,
-    setQuizPartId: _setQuizPartId,
-    quizSubpartId: _quizSubpartId,
-    setQuizSubpartId: _setQuizSubpartId,
     curriculumSuccessMsg: _curriculumSuccessMsg,
     curriculumErrorMsg: _curriculumErrorMsg,
     newCourseTitle: _newCourseTitle,
@@ -46,8 +30,6 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
     newSectionCourseId: _newSectionCourseId,
     newSectionTitle,
     setNewSectionTitle,
-    newSectionParentId,
-    setNewSectionParentId,
     newSectionPublished,
     setNewSectionPublished,
     uploadSectionId,
@@ -86,13 +68,12 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
     managedCourse: _managedCourse,
     managedSections: _managedSections,
     chapterSections,
-    uploadPartOptions: _uploadPartOptions,
     selectedManagedContents: _selectedManagedContents,
     handleSetUploadSectionId,
     showCurriculumSuccess: _showCurriculumSuccess,
     showCurriculumError: _showCurriculumError,
     handleCreateCourse: _handleCreateCourse,
-    handleCreateSection,
+    handleCreateChapter,
     handleUploadLessonAsset: _handleUploadLessonAsset,
     handleSelectManagedCourse: _handleSelectManagedCourse,
     loadTeacherQuizzes: _loadTeacherQuizzes,
@@ -106,7 +87,6 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
     handleUpdateSectionTitle,
     handleToggleSectionPublished,
     handleDeleteSection,
-    handleAddChildSection,
     handleToggleContentPublished: _handleToggleContentPublished,
     handleDeleteLessonContent: _handleDeleteLessonContent,
   } = props;
@@ -121,22 +101,18 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
             <Plus className="h-5 w-5 text-teal-400" />
             Ajouter un chapitre
           </h3>
-          <p className={curriculumUi.panelSubtitle}>Créez un chapitre de premier niveau pour structurer ce module.</p>
+          <p className={curriculumUi.panelSubtitle}>Créez les chapitres qui organisent directement ce module.</p>
         </div>
 
-        <form onSubmit={handleCreateSection} className={`space-y-4 pt-3 ${curriculumUi.divider}`}>
+        <form onSubmit={handleCreateChapter} className={`space-y-4 pt-3 ${curriculumUi.divider}`}>
           <label className="block space-y-1">
             <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Titre du chapitre</span>
             <input
               type="text"
               required
               placeholder="ex: Chapitre 1 : Introduction générale"
-              value={!newSectionParentId ? newSectionTitle : ""}
-              onChange={(e) => {
-                setNewSectionMode("chapter");
-                setNewSectionParentId("");
-                setNewSectionTitle(e.target.value);
-              }}
+              value={newSectionTitle}
+              onChange={(e) => setNewSectionTitle(e.target.value)}
               className={inputFocus}
             />
           </label>
@@ -216,20 +192,6 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
                   </div>
 
                   <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        handleAddChildSection(section);
-                        window.requestAnimationFrame(() => {
-                          document
-                            .getElementById("curriculum-chapter-structure")
-                            ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                        });
-                      }}
-                      className={`inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-[10px] font-black transition-colors ${getStepTheme(2).chip} hover:opacity-90`}
-                    >
-                      <Plus className="w-3 h-3" />
-                      Ajouter partie
-                    </button>
                     <button
                       onClick={() => {
                         handleSetUploadSectionId(section.id);

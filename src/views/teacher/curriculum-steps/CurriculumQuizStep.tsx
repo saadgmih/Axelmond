@@ -15,24 +15,8 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
     domains: _domains,
     activeCurriculumStep: _activeCurriculumStep,
     setActiveCurriculumStep: _setActiveCurriculumStep,
-    selectedChapterId: _selectedChapterId,
-    setSelectedChapterId: _setSelectedChapterId,
-    selectedPartieId: _selectedPartieId,
-    setSelectedPartieId: _setSelectedPartieId,
-    newSectionMode: _newSectionMode,
-    setNewSectionMode: _setNewSectionMode,
-    uploadChapterId: _uploadChapterId,
-    setUploadChapterId: _setUploadChapterId,
-    uploadPartId: _uploadPartId,
-    setUploadPartId: _setUploadPartId,
-    uploadSubpartId: _uploadSubpartId,
-    setUploadSubpartId: _setUploadSubpartId,
     quizChapterId,
     setQuizChapterId,
-    quizPartId,
-    setQuizPartId,
-    quizSubpartId,
-    setQuizSubpartId,
     curriculumSuccessMsg: _curriculumSuccessMsg,
     curriculumErrorMsg: _curriculumErrorMsg,
     newCourseTitle: _newCourseTitle,
@@ -52,8 +36,6 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
     newSectionCourseId: _newSectionCourseId,
     newSectionTitle: _newSectionTitle,
     setNewSectionTitle: _setNewSectionTitle,
-    newSectionParentId: _newSectionParentId,
-    setNewSectionParentId: _setNewSectionParentId,
     newSectionPublished: _newSectionPublished,
     setNewSectionPublished: _setNewSectionPublished,
     uploadSectionId: _uploadSectionId,
@@ -91,15 +73,14 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
     allDisciplines: _allDisciplines,
     managedCourses: _managedCourses,
     managedCourse: _managedCourse,
-    managedSections,
-    chapterSections: _chapterSections,
-    uploadPartOptions: _uploadPartOptions,
+    managedSections: _managedSections,
+    chapterSections,
     selectedManagedContents: _selectedManagedContents,
     handleSetUploadSectionId: _handleSetUploadSectionId,
     showCurriculumSuccess: _showCurriculumSuccess,
     showCurriculumError: _showCurriculumError,
     handleCreateCourse: _handleCreateCourse,
-    handleCreateSection: _handleCreateSection,
+    handleCreateChapter: _handleCreateChapter,
     handleUploadLessonAsset: _handleUploadLessonAsset,
     handleSelectManagedCourse: _handleSelectManagedCourse,
     loadTeacherQuizzes,
@@ -113,7 +94,6 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
     handleUpdateSectionTitle: _handleUpdateSectionTitle,
     handleToggleSectionPublished: _handleToggleSectionPublished,
     handleDeleteSection: _handleDeleteSection,
-    handleAddChildSection: _handleAddChildSection,
     handleToggleContentPublished: _handleToggleContentPublished,
     handleDeleteLessonContent: _handleDeleteLessonContent,
   } = props;
@@ -139,8 +119,6 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                   setSelectedQuizId("");
                   setNewQuizTitle("");
                   setQuizChapterId("");
-                  setQuizPartId("");
-                  setQuizSubpartId("");
                 }}
                 className={`inline-flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-[10px] font-black uppercase transition-colors ${getStepTheme(4).chip} hover:bg-teal-950/80`}
               >
@@ -160,50 +138,20 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
           )}
 
           <form onSubmit={handleCreateQuiz} className="space-y-4">
-            {/* Target Section Selector */}
+            {/* Target chapter selector */}
             <div className="space-y-1">
               <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
-                Section de rattachement
+                Chapitre de rattachement
               </span>
               <select
-                value={quizSubpartId || quizPartId || quizChapterId || ""}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (!value) {
-                    setQuizChapterId("");
-                    setQuizPartId("");
-                    setQuizSubpartId("");
-                  } else {
-                    const section = managedSections.find((s) => s.id === value);
-                    if (section) {
-                      if (!section.parentId) {
-                        setQuizChapterId(section.id);
-                        setQuizPartId("");
-                        setQuizSubpartId("");
-                      } else {
-                        const parent = managedSections.find((s) => s.id === section.parentId);
-                        if (parent && !parent.parentId) {
-                          setQuizChapterId(parent.id);
-                          setQuizPartId(section.id);
-                          setQuizSubpartId("");
-                        } else if (parent && parent.parentId) {
-                          const grandparent = managedSections.find((s) => s.id === parent.parentId);
-                          if (grandparent) {
-                            setQuizChapterId(grandparent.id);
-                            setQuizPartId(parent.id);
-                            setQuizSubpartId(section.id);
-                          }
-                        }
-                      }
-                    }
-                  }
-                }}
+                value={quizChapterId}
+                onChange={(e) => setQuizChapterId(e.target.value)}
                 className={`${inputFocus} text-slate-700`}
               >
                 <option value="">-- Directement dans le module (racine) --</option>
-                {managedSections.map((section) => (
-                  <option key={section.id} value={section.id}>
-                    {`— ${"— ".repeat(section.depth ?? 0)}${section.title}`}
+                {chapterSections.map((chapter) => (
+                  <option key={chapter.id} value={chapter.id}>
+                    {chapter.title}
                   </option>
                 ))}
               </select>

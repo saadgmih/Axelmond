@@ -7,24 +7,8 @@ export interface TeacherCurriculumViewProps extends AdminAcademicTaxonomyViewPro
   domains: FacultyDomain[];
   activeCurriculumStep: number;
   setActiveCurriculumStep: (value: number) => void;
-  selectedChapterId: string;
-  setSelectedChapterId: (value: string) => void;
-  selectedPartieId: string;
-  setSelectedPartieId: (value: string) => void;
-  newSectionMode: "chapter" | "part" | "subpart";
-  setNewSectionMode: (value: "chapter" | "part" | "subpart") => void;
-  uploadChapterId: string;
-  setUploadChapterId: (value: string) => void;
-  uploadPartId: string;
-  setUploadPartId: (value: string) => void;
-  uploadSubpartId: string;
-  setUploadSubpartId: (value: string) => void;
   quizChapterId: string;
   setQuizChapterId: (value: string) => void;
-  quizPartId: string;
-  setQuizPartId: (value: string) => void;
-  quizSubpartId: string;
-  setQuizSubpartId: (value: string) => void;
   curriculumSuccessMsg: string;
   curriculumErrorMsg: string;
   newCourseTitle: string;
@@ -55,8 +39,6 @@ export interface TeacherCurriculumViewProps extends AdminAcademicTaxonomyViewPro
   newSectionCourseId: number;
   newSectionTitle: string;
   setNewSectionTitle: (value: string) => void;
-  newSectionParentId: string;
-  setNewSectionParentId: (value: string) => void;
   newSectionPublished: boolean;
   setNewSectionPublished: (value: boolean) => void;
   uploadSectionId: string;
@@ -129,14 +111,13 @@ export interface TeacherCurriculumViewProps extends AdminAcademicTaxonomyViewPro
   managedCourse: Course | null;
   managedSections: (ContentSection & { depth?: number })[];
   chapterSections: (ContentSection & { depth?: number })[];
-  uploadPartOptions: (ContentSection & { depth?: number })[];
   selectedManagedContents: LessonContent[];
   managedLiveReplays: LessonContent[];
   handleSetUploadSectionId: (sectionId: string) => void;
   showCurriculumSuccess: (message: string) => void;
   showCurriculumError: (message: string) => void;
   handleCreateCourse: (...args: any[]) => void | Promise<void>;
-  handleCreateSection: (...args: any[]) => void | Promise<void>;
+  handleCreateChapter: (...args: any[]) => void | Promise<void>;
   handleUploadLessonAsset: (...args: any[]) => void | Promise<void>;
   handleSelectManagedCourse: (courseId: number) => Promise<void>;
   loadTeacherQuizzes: (courseId?: number) => void | Promise<void>;
@@ -150,7 +131,6 @@ export interface TeacherCurriculumViewProps extends AdminAcademicTaxonomyViewPro
   handleUpdateSectionTitle: (...args: any[]) => void | Promise<void>;
   handleToggleSectionPublished: (...args: any[]) => void | Promise<void>;
   handleDeleteSection: (...args: any[]) => void | Promise<void>;
-  handleAddChildSection: (...args: any[]) => void | Promise<void>;
   handleToggleContentPublished: (...args: any[]) => void | Promise<void>;
   handleDeleteLessonContent: (...args: any[]) => void | Promise<void>;
 }

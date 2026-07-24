@@ -43,7 +43,7 @@ export const CURRICULUM_STEPS: CurriculumStepConfig[] = [
   {
     step: 2,
     label: "Chapitres",
-    desc: "Chapitres & sous-parties",
+    desc: "Organisation du module",
     icon: Layers,
     active: "border-teal-400/70 bg-teal-950/40 text-white shadow-lg shadow-teal-500/15 ring-1 ring-teal-500/35",
     completed: "border-emerald-500/40 bg-emerald-950/30 text-emerald-200",

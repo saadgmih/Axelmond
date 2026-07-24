@@ -5,7 +5,6 @@ import AdminAcademicTaxonomyView from "./AdminAcademicTaxonomyView";
 import CurriculumStepper from "./curriculum-steps/CurriculumStepper";
 import CurriculumModulesStep from "./curriculum-steps/CurriculumModulesStep";
 import CurriculumChaptersStep from "./curriculum-steps/CurriculumChaptersStep";
-import CurriculumOutlineStep from "./curriculum-steps/CurriculumOutlineStep";
 import CurriculumMediaStep from "./curriculum-steps/CurriculumMediaStep";
 import CurriculumQuizStep from "./curriculum-steps/CurriculumQuizStep";
 
@@ -27,12 +26,7 @@ export default function TeacherCurriculumView(props: TeacherCurriculumViewProps)
         <AdminAcademicTaxonomyView {...props} mode="disciplines" />
       )}
       {activeCurriculumStep === moduleStep && <CurriculumModulesStep {...props} />}
-      {activeCurriculumStep === chaptersStep && (
-        <div className="space-y-6">
-          <CurriculumChaptersStep {...props} />
-          <CurriculumOutlineStep {...props} />
-        </div>
-      )}
+      {activeCurriculumStep === chaptersStep && <CurriculumChaptersStep {...props} />}
       {activeCurriculumStep === mediaStep && <CurriculumMediaStep {...props} />}
       {activeCurriculumStep === quizStep && <CurriculumQuizStep {...props} />}
     </div>

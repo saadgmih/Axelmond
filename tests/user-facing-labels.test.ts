@@ -18,7 +18,6 @@ rulesTest("user-facing-labels", () => {
 rulesTest("no-technical-ids-in-ui", () => {
   const curriculumModules = fs.readFileSync("src/views/teacher/curriculum-steps/CurriculumModulesStep.tsx", "utf8");
   const curriculumChapters = fs.readFileSync("src/views/teacher/curriculum-steps/CurriculumChaptersStep.tsx", "utf8");
-  const curriculumOutline = fs.readFileSync("src/views/teacher/curriculum-steps/CurriculumOutlineStep.tsx", "utf8");
   const curriculumMedia = fs.readFileSync("src/views/teacher/curriculum-steps/CurriculumMediaStep.tsx", "utf8");
   const curriculumStepper = fs.readFileSync("src/views/teacher/curriculum-steps/CurriculumStepper.tsx", "utf8");
   const studentProfile = fs.readFileSync("src/views/student/StudentProfileView.tsx", "utf8");
@@ -29,7 +28,6 @@ rulesTest("no-technical-ids-in-ui", () => {
   assert.doesNotMatch(curriculumModules, /Modifier le module #/);
   assert.doesNotMatch(curriculumChapters, /Chapitre ID:/);
   assert.doesNotMatch(curriculumChapters, /Section ID:/);
-  assert.doesNotMatch(curriculumOutline, /ID \{section\.id\}/);
   assert.doesNotMatch(curriculumMedia, /ID: \{content\.id\}/);
   assert.doesNotMatch(curriculumStepper, /ID \{managedCourse\.id\}/);
   assert.doesNotMatch(studentProfile, /ID-\$\{/);

@@ -53,7 +53,6 @@ export function readCurriculumViewSources(): string {
     "src/views/teacher/curriculum-steps/CurriculumStepper.tsx",
     "src/views/teacher/curriculum-steps/CurriculumModulesStep.tsx",
     "src/views/teacher/curriculum-steps/CurriculumChaptersStep.tsx",
-    "src/views/teacher/curriculum-steps/CurriculumOutlineStep.tsx",
     "src/views/teacher/curriculum-steps/CurriculumMediaStep.tsx",
     "src/views/teacher/curriculum-steps/CurriculumQuizStep.tsx",
   ];

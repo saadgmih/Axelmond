@@ -97,15 +97,7 @@ export function useTeacherCurriculum({
   } = courseContent;
 
   const [activeCurriculumStep, setActiveCurriculumStep] = useState<number>(1);
-  const [selectedChapterId, setSelectedChapterId] = useState<string>("");
-  const [selectedPartieId, setSelectedPartieId] = useState<string>("");
-  const [newSectionMode, setNewSectionMode] = useState<"chapter" | "part" | "subpart">("chapter");
-  const [uploadChapterId, setUploadChapterId] = useState<string>("");
-  const [uploadPartId, setUploadPartId] = useState<string>("");
-  const [uploadSubpartId, setUploadSubpartId] = useState<string>("");
   const [quizChapterId, setQuizChapterId] = useState<string>("");
-  const [quizPartId, setQuizPartId] = useState<string>("");
-  const [quizSubpartId, setQuizSubpartId] = useState<string>("");
   const [curriculumSuccessMsg, setCurriculumSuccessMsg] = useState("");
   const [curriculumErrorMsg, setCurriculumErrorMsg] = useState("");
   const [newCourseTitle, setNewCourseTitle] = useState("");
@@ -126,7 +118,6 @@ export function useTeacherCurriculum({
   const [newCoursePublished, setNewCoursePublished] = useState(true);
   const [newSectionCourseId, setNewSectionCourseId] = useState<number>(1);
   const [newSectionTitle, setNewSectionTitle] = useState("");
-  const [newSectionParentId, setNewSectionParentId] = useState("");
   const [newSectionPublished, setNewSectionPublished] = useState(true);
   const [uploadCourseId, setUploadCourseId] = useState<number>(1);
   const [uploadSectionId, setUploadSectionId] = useState("");
@@ -257,7 +248,6 @@ export function useTeacherCurriculum({
     if (managedCourses.length === 0) {
       setCourseContentSections([]);
       setModuleRootContents([]);
-      setNewSectionParentId("");
       setUploadSectionId("");
       return;
     }
@@ -286,16 +276,13 @@ export function useTeacherCurriculum({
     void refreshCourseContent(newSectionCourseId).then((sections) => {
       if (!request.isActive()) return;
       const flat = flattenSectionsFn(sections);
-      if (!flat.some((section) => section.id === newSectionParentId)) setNewSectionParentId("");
+      const chapters = flat.filter((section) => !section.parentId);
       if (
         uploadCourseId === newSectionCourseId &&
         uploadSectionId &&
-        !flat.some((section) => section.id === uploadSectionId)
+        !chapters.some((chapter) => chapter.id === uploadSectionId)
       ) {
         setUploadSectionId("");
-        setUploadChapterId("");
-        setUploadPartId("");
-        setUploadSubpartId("");
       }
     });
   }, [
@@ -310,7 +297,6 @@ export function useTeacherCurriculum({
     setModuleRootContents,
     uploadCourseId,
     uploadSectionId,
-    newSectionParentId,
     startRequest,
   ]);
 
@@ -398,29 +384,23 @@ export function useTeacherCurriculum({
     }
   };
 
-  const handleCreateSection = async (e: FormEvent) => {
+  const handleCreateChapter = async (e: FormEvent) => {
     e.preventDefault();
     if (!newSectionTitle.trim()) return;
 
     try {
-      const result = newSectionParentId
-        ? await api.createSection(newSectionCourseId, {
-            title: newSectionTitle,
-            parentId: newSectionParentId,
-            published: newSectionPublished,
-          })
-        : await api.createChapter(newSectionCourseId, {
-            title: newSectionTitle,
-            published: newSectionPublished,
-          });
+      const result = await api.createChapter(newSectionCourseId, {
+        title: newSectionTitle,
+        published: newSectionPublished,
+      });
       await refreshCourseContent(newSectionCourseId);
       setUploadCourseId(newSectionCourseId);
-      setUploadSectionId(newSectionParentId ? result.id : result.section?.id || "");
+      setUploadSectionId(result.section?.id || "");
       setNewSectionTitle("");
-      showCurriculumSuccess(newSectionParentId ? "Partie créée avec succès." : "Chapitre créé avec succès.");
+      showCurriculumSuccess("Chapitre créé avec succès.");
     } catch (err: any) {
-      console.error("Failed to create content section:", err);
-      showCurriculumError(getClientErrorMessage(err, "Création de section impossible."));
+      console.error("Failed to create chapter:", err);
+      showCurriculumError(getClientErrorMessage(err, "Création du chapitre impossible."));
     }
   };
 
@@ -505,7 +485,6 @@ export function useTeacherCurriculum({
     setNewSectionCourseId(courseId);
     setUploadCourseId(courseId);
     setQuizCourseId(courseId);
-    setNewSectionParentId("");
     setUploadSectionId("");
     await refreshCourseContent(courseId);
   };
@@ -516,7 +495,7 @@ export function useTeacherCurriculum({
       setQuizManagerError("Veuillez saisir un titre pour le quiz.");
       return;
     }
-    const resolvedSectionId = quizSubpartId || quizPartId || quizChapterId || null;
+    const resolvedSectionId = quizChapterId || null;
     try {
       setQuizManagerError("");
       const quiz = await api.createCourseQuiz(quizCourseId, {
@@ -526,8 +505,6 @@ export function useTeacherCurriculum({
       });
       setNewQuizTitle("");
       setQuizChapterId("");
-      setQuizPartId("");
-      setQuizSubpartId("");
       await loadTeacherQuizzes(quizCourseId);
       setSelectedQuizId(quiz.id);
       setQuizManagerMsg(`Quiz créé : "${quiz.title}"`);
@@ -701,63 +678,52 @@ export function useTeacherCurriculum({
   };
 
   const handleUpdateSectionTitle = async (section: ContentSection) => {
-    const title = window.prompt(
-      section.parentId ? "Nouveau titre de la partie" : "Nouveau titre du chapitre",
-      section.title,
-    );
+    if (section.parentId) return;
+    const title = window.prompt("Nouveau titre du chapitre", section.title);
     if (!title || !title.trim()) return;
     try {
-      if (!section.parentId && section.chapterId) {
+      if (section.chapterId) {
         await api.updateChapter(section.chapterId, { title: title.trim() });
       } else {
         await api.putContentSection(section.id, { title: title.trim() });
       }
       await refreshCourseContent(section.courseId);
-      showCurriculumSuccess(`${section.parentId ? "Partie" : "Chapitre"} « ${section.title} » modifié.`);
+      showCurriculumSuccess(`Chapitre « ${section.title} » modifié.`);
     } catch (err: any) {
       showCurriculumError(getClientErrorMessage(err, "Modification impossible."));
     }
   };
 
   const handleToggleSectionPublished = async (section: ContentSection) => {
+    if (section.parentId) return;
     try {
-      if (!section.parentId && section.chapterId) {
+      if (section.chapterId) {
         await api.publishChapter(section.chapterId, !section.published);
       } else {
         await api.updateContentSection(section.id, { published: !section.published });
       }
       await refreshCourseContent(section.courseId);
-      showCurriculumSuccess(
-        `${section.parentId ? "Partie" : "Chapitre"} ${!section.published ? "publié" : "dépublié"}.`,
-      );
+      showCurriculumSuccess(`Chapitre ${!section.published ? "publié" : "dépublié"}.`);
     } catch (err: any) {
       showCurriculumError(getClientErrorMessage(err, "Publication impossible."));
     }
   };
 
   const handleDeleteSection = async (section: ContentSection) => {
+    if (section.parentId) return;
     if (!window.confirm(`Supprimer "${section.title}" et tout son contenu ?`)) return;
     try {
-      if (!section.parentId && section.chapterId) {
+      if (section.chapterId) {
         await api.deleteChapter(section.chapterId);
       } else {
         await api.deleteContentSection(section.id);
       }
       await refreshCourseContent(section.courseId);
       if (uploadSectionId === section.id) setUploadSectionId("");
-      showCurriculumSuccess(`${section.parentId ? "Partie" : "Chapitre"} « ${section.title} » supprimé.`);
+      showCurriculumSuccess(`Chapitre « ${section.title} » supprimé.`);
     } catch (err: any) {
       showCurriculumError(getClientErrorMessage(err, "Suppression impossible."));
     }
-  };
-
-  const handleAddChildSection = (section: ContentSection) => {
-    setNewSectionCourseId(section.courseId);
-    setUploadCourseId(section.courseId);
-    setNewSectionParentId(section.id);
-    setNewSectionTitle("");
-    setUploadSectionId(section.id);
-    showCurriculumSuccess(`Section sélectionnée : ${section.title}.`);
   };
 
   const handleToggleContentPublished = async (content: LessonContent) => {
@@ -784,36 +750,19 @@ export function useTeacherCurriculum({
   const managedCourse = managedCourses.find((course) => course.id === newSectionCourseId) || managedCourses[0] || null;
   const managedSections = flattenSectionsFn(courseContent.courseContentSections);
   const chapterSections = managedSections.filter((section) => !section.parentId);
-  const selectedManagedSection = managedSections.find((section) => section.id === uploadSectionId) || null;
-  const uploadPartOptions = managedSections.filter((section) => section.parentId === uploadChapterId);
+  const selectedManagedSection = chapterSections.find((section) => section.id === uploadSectionId) || null;
 
   const handleSetUploadSectionId = (sectionId: string) => {
-    setUploadSectionId(sectionId);
     if (!sectionId) {
-      setUploadChapterId("");
-      setUploadPartId("");
-      setUploadSubpartId("");
+      setUploadSectionId("");
       return;
     }
-    const sec = managedSections.find((s) => s.id === sectionId);
-    if (!sec) return;
-
-    if (!sec.parentId) {
-      setUploadChapterId(sec.id);
-      setUploadPartId("");
-      setUploadSubpartId("");
-    } else {
-      const parent = managedSections.find((s) => s.id === sec.parentId);
-      if (parent && !parent.parentId) {
-        setUploadChapterId(parent.id);
-        setUploadPartId(sec.id);
-        setUploadSubpartId("");
-      } else if (parent && parent.parentId) {
-        setUploadChapterId(parent.parentId);
-        setUploadPartId(parent.id);
-        setUploadSubpartId(sec.id);
-      }
+    const chapter = chapterSections.find((section) => section.id === sectionId);
+    if (!chapter) {
+      setUploadSectionId("");
+      return;
     }
+    setUploadSectionId(chapter.id);
   };
 
   const selectedManagedContents = uploadSectionId
@@ -828,24 +777,8 @@ export function useTeacherCurriculum({
     newSectionCourseId,
     activeCurriculumStep,
     setActiveCurriculumStep,
-    selectedChapterId,
-    setSelectedChapterId,
-    selectedPartieId,
-    setSelectedPartieId,
-    newSectionMode,
-    setNewSectionMode,
-    uploadChapterId,
-    setUploadChapterId,
-    uploadPartId,
-    setUploadPartId,
-    uploadSubpartId,
-    setUploadSubpartId,
     quizChapterId,
     setQuizChapterId,
-    quizPartId,
-    setQuizPartId,
-    quizSubpartId,
-    setQuizSubpartId,
     curriculumSuccessMsg,
     curriculumErrorMsg,
     newCourseTitle,
@@ -875,8 +808,6 @@ export function useTeacherCurriculum({
     setNewCoursePublished,
     newSectionTitle,
     setNewSectionTitle,
-    newSectionParentId,
-    setNewSectionParentId,
     newSectionPublished,
     setNewSectionPublished,
     uploadSectionId,
@@ -919,14 +850,13 @@ export function useTeacherCurriculum({
     managedCourse,
     managedSections,
     chapterSections,
-    uploadPartOptions,
     selectedManagedContents,
     managedLiveReplays,
     handleSetUploadSectionId,
     showCurriculumSuccess,
     showCurriculumError,
     handleCreateCourse,
-    handleCreateSection,
+    handleCreateChapter,
     handleUploadLessonAsset,
     handleSelectManagedCourse,
     loadTeacherQuizzes,
@@ -940,7 +870,6 @@ export function useTeacherCurriculum({
     handleUpdateSectionTitle,
     handleToggleSectionPublished,
     handleDeleteSection,
-    handleAddChildSection,
     handleToggleContentPublished,
     handleDeleteLessonContent,
   };
