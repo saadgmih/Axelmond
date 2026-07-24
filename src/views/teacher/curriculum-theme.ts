@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import { BookOpen, FolderTree, HelpCircle, Layers, Video } from "lucide-react";
 
-export type CurriculumStepId = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+export type CurriculumStepId = 1 | 2 | 3 | 4 | 5 | 6;
 
 export interface CurriculumStepConfig {
   step: CurriculumStepId;
@@ -42,8 +42,8 @@ export const CURRICULUM_STEPS: CurriculumStepConfig[] = [
   },
   {
     step: 2,
-    label: "Syllabus",
-    desc: "Syllabus principal",
+    label: "Chapitres",
+    desc: "Chapitres & sous-parties",
     icon: Layers,
     active: "border-teal-400/70 bg-teal-950/40 text-white shadow-lg shadow-teal-500/15 ring-1 ring-teal-500/35",
     completed: "border-emerald-500/40 bg-emerald-950/30 text-emerald-200",
@@ -57,21 +57,6 @@ export const CURRICULUM_STEPS: CurriculumStepConfig[] = [
   },
   {
     step: 3,
-    label: "Structure",
-    desc: "Parties & arborescence",
-    icon: FolderTree,
-    active: "border-green-400/70 bg-green-950/40 text-white shadow-lg shadow-green-500/15 ring-1 ring-green-500/35",
-    completed: "border-emerald-500/40 bg-emerald-950/30 text-emerald-200",
-    badgeActive: "bg-green-500 text-white shadow-md shadow-green-500/40",
-    badgeCompleted: "bg-emerald-600 text-white",
-    button: "bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/25",
-    focus: "focus:border-green-400 focus:ring-green-500/20",
-    panel: "border-l-4 border-l-green-500",
-    chip: "bg-green-950/80 text-green-300 border-green-500/30",
-    listActive: "border-green-500/50 bg-green-950/30 shadow-lg shadow-green-900/20",
-  },
-  {
-    step: 4,
     label: "Médias",
     desc: "Vidéos, PDF & images",
     icon: Video,
@@ -86,7 +71,7 @@ export const CURRICULUM_STEPS: CurriculumStepConfig[] = [
     listActive: "border-lime-500/50 bg-lime-950/30 shadow-lg shadow-lime-900/20",
   },
   {
-    step: 5,
+    step: 4,
     label: "Quiz",
     desc: "QCM de validation",
     icon: HelpCircle,
@@ -121,7 +106,6 @@ export const ADMIN_CURRICULUM_STEPS: CurriculumStepConfig[] = [
   { ...CURRICULUM_STEPS[1], step: 4 },
   { ...CURRICULUM_STEPS[2], step: 5 },
   { ...CURRICULUM_STEPS[3], step: 6 },
-  { ...CURRICULUM_STEPS[4], step: 7 },
 ];
 
 export function getCurriculumSteps(canManageAcademicTaxonomy: boolean): CurriculumStepConfig[] {
@@ -132,20 +116,16 @@ export function getModuleStep(canManageAcademicTaxonomy: boolean): number {
   return canManageAcademicTaxonomy ? 3 : 1;
 }
 
-export function getSyllabusStep(canManageAcademicTaxonomy: boolean): number {
+export function getChaptersStep(canManageAcademicTaxonomy: boolean): number {
   return canManageAcademicTaxonomy ? 4 : 2;
 }
 
-export function getStructureStep(canManageAcademicTaxonomy: boolean): number {
+export function getMediaStep(canManageAcademicTaxonomy: boolean): number {
   return canManageAcademicTaxonomy ? 5 : 3;
 }
 
-export function getMediaStep(canManageAcademicTaxonomy: boolean): number {
-  return canManageAcademicTaxonomy ? 6 : 4;
-}
-
 export function getQuizStep(canManageAcademicTaxonomy: boolean): number {
-  return canManageAcademicTaxonomy ? 7 : 5;
+  return canManageAcademicTaxonomy ? 6 : 4;
 }
 
 export function getStepTheme(step: number): CurriculumStepConfig {

@@ -72,9 +72,14 @@ rulesTest("admin-academic-taxonomy", () => {
   assert.doesNotMatch(taxonomyView, /from-emerald-500/);
   assert.match(curriculumTheme, /label:\s*"Domaines"/);
   assert.match(curriculumTheme, /label:\s*"Sous-domaines"/);
+  assert.match(curriculumTheme, /label:\s*"Chapitres"/);
+  assert.doesNotMatch(curriculumTheme, /label:\s*"Syllabus"/);
+  assert.doesNotMatch(curriculumTheme, /label:\s*"Structure"/);
   assert.match(curriculumTheme, /return canManageAcademicTaxonomy \? 3 : 1/);
-  assert.match(curriculumTheme, /return canManageAcademicTaxonomy \? 7 : 5/);
+  assert.match(curriculumTheme, /return canManageAcademicTaxonomy \? 6 : 4/);
   assert.match(curriculumStepper, /getCurriculumSteps\(canManageAcademicTaxonomy\)/);
+  assert.match(curriculumStepper, /xl:grid-cols-6/);
+  assert.match(curriculumStepper, /Parcourez les 6 étapes/);
   assert.match(curriculumStepper, /s\.step <= moduleStep/);
   assert.doesNotMatch(curriculumStepper, /Progression · étape/);
   assert.doesNotMatch(curriculumStepper, /progressTrack/);
@@ -82,8 +87,12 @@ rulesTest("admin-academic-taxonomy", () => {
   assert.doesNotMatch(curriculumStepper, /<Check/);
   assert.match(curriculumView, /<AdminAcademicTaxonomyView \{\.\.\.props\} mode="domains" \/>/);
   assert.match(curriculumView, /<AdminAcademicTaxonomyView \{\.\.\.props\} mode="disciplines" \/>/);
+  assert.match(
+    curriculumView,
+    /activeCurriculumStep === chaptersStep[\s\S]*<CurriculumChaptersStep \{\.\.\.props\} \/>[\s\S]*<CurriculumOutlineStep \{\.\.\.props\} \/>/,
+  );
   assert.doesNotMatch(curriculumModulesStep, /AdminAcademicTaxonomyView/);
-  assert.match(teacherCurriculumHook, /currentUser\?\.role === "ADMIN" \? 7 : 5/);
+  assert.match(teacherCurriculumHook, /currentUser\?\.role === "ADMIN" \? 6 : 4/);
   assert.match(teacherRouteSwitch, /teacherView === "curriculum"/);
   assert.match(teacherRouteSwitch, /canManageAcademicTaxonomy=\{currentUser\.role === "ADMIN"\}/);
   assert.match(teacherRouteSwitch, /\{\.\.\.teacherDashboardBindings\}/);

@@ -118,7 +118,7 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
     handleDeleteLessonContent,
   } = props;
 
-  const stepTheme = getStepTheme(4);
+  const stepTheme = getStepTheme(3);
   const inputFocus = `${curriculumUi.input} ${stepTheme.focus}`;
   const destinationLabel = uploadSectionId
     ? managedSections.find((section) => section.id === uploadSectionId)?.title || "Section sélectionnée"
@@ -226,7 +226,7 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className={`lg:col-span-5 ${curriculumUi.panel} ${getStepTheme(4).panel} space-y-5 self-start`}>
+        <div className={`lg:col-span-5 ${curriculumUi.panel} ${getStepTheme(3).panel} space-y-5 self-start`}>
           <div>
             <h3 className={curriculumUi.panelTitle}>
               <FileText className="h-5 w-5 text-lime-400" />

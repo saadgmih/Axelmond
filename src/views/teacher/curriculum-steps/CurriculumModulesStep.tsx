@@ -28,7 +28,7 @@ import {
   numericInputFromNumber,
 } from "../../../utils/numeric-input";
 
-import { curriculumUi, getStepTheme, getSyllabusStep, publishedBadge, publishedLabel } from "../curriculum-theme";
+import { curriculumUi, getChaptersStep, getStepTheme, publishedBadge, publishedLabel } from "../curriculum-theme";
 import type { TeacherCurriculumViewProps } from "../curriculum-types";
 
 export default function CurriculumModulesStep(props: TeacherCurriculumViewProps) {
@@ -151,7 +151,7 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
     handleDeleteLessonContent: _handleDeleteLessonContent,
   } = props;
   const stepTheme = getStepTheme(1);
-  const syllabusStep = getSyllabusStep(canManageAcademicTaxonomy);
+  const chaptersStep = getChaptersStep(canManageAcademicTaxonomy);
   const inputFocus = `${curriculumUi.input} ${stepTheme.focus}`;
   const paidCoursePriceInputValue = (value: string) =>
     numberFromNumericInput(value, FREE_COURSE_PRICE) >= MIN_PAID_COURSE_PRICE
@@ -632,7 +632,7 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
 
                     <button
                       onClick={() =>
-                        handleSelectManagedCourse(course.id).then(() => setActiveCurriculumStep(syllabusStep))
+                        handleSelectManagedCourse(course.id).then(() => setActiveCurriculumStep(chaptersStep))
                       }
                       className={curriculumUi.manageBtn}
                     >

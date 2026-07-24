@@ -110,12 +110,15 @@ export default function CurriculumOutlineStep(props: TeacherCurriculumViewProps)
     handleToggleContentPublished: _handleToggleContentPublished,
     handleDeleteLessonContent: _handleDeleteLessonContent,
   } = props;
-  const stepTheme = getStepTheme(3);
+  const stepTheme = getStepTheme(2);
   const mediaStep = getMediaStep(canManageAcademicTaxonomy);
   const inputFocus = `${curriculumUi.input} ${stepTheme.focus}`;
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-      <div className={`xl:col-span-5 ${curriculumUi.panel} ${getStepTheme(3).panel} space-y-5 self-start`}>
+    <div
+      id="curriculum-chapter-structure"
+      className="grid scroll-mt-6 grid-cols-1 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300 xl:grid-cols-12"
+    >
+      <div className={`xl:col-span-5 ${curriculumUi.panel} ${getStepTheme(2).panel} space-y-5 self-start`}>
         <div>
           <h3 className={curriculumUi.panelTitle}>
             <FolderTree className="h-5 w-5 text-emerald-400" />
@@ -198,7 +201,7 @@ export default function CurriculumOutlineStep(props: TeacherCurriculumViewProps)
           <button
             type="submit"
             disabled={!selectedChapterId}
-            className={`w-full rounded-xl py-3 text-xs font-black shadow-sm transition-colors active:scale-[0.98] disabled:scale-100 disabled:opacity-50 ${getStepTheme(3).button}`}
+            className={`w-full rounded-xl py-3 text-xs font-black shadow-sm transition-colors active:scale-[0.98] disabled:scale-100 disabled:opacity-50 ${getStepTheme(2).button}`}
           >
             {selectedPartieId ? "Créer la sous-partie" : "Créer la partie"}
           </button>
@@ -208,7 +211,7 @@ export default function CurriculumOutlineStep(props: TeacherCurriculumViewProps)
       {/* Right Panel: Outline Hierarchy Tree View */}
       <div className="xl:col-span-7 space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className={curriculumUi.sectionTitle}>Structure & arborescence du module</h3>
+          <h3 className={curriculumUi.sectionTitle}>Parties et sous-parties des chapitres</h3>
           <span className={curriculumUi.countBadge}>
             {managedSections.length} section{managedSections.length !== 1 ? "s" : ""}
           </span>
@@ -219,7 +222,7 @@ export default function CurriculumOutlineStep(props: TeacherCurriculumViewProps)
             <div className="text-center py-8">
               <FolderTree className="mx-auto mb-2 h-8 w-8 text-emerald-600/60" />
               <p className="text-xs text-slate-400 font-semibold">
-                Le syllabus est vide. Créez un chapitre à l'étape 2.
+                Aucun chapitre disponible. Créez d’abord un chapitre dans le formulaire ci-dessus.
               </p>
             </div>
           ) : (
@@ -236,7 +239,7 @@ export default function CurriculumOutlineStep(props: TeacherCurriculumViewProps)
                     key={section.id}
                     className={`flex flex-col justify-between gap-3 rounded-2xl border p-3 transition-colors md:flex-row md:items-center ${
                       uploadSectionId === section.id
-                        ? getStepTheme(3).listActive
+                        ? getStepTheme(2).listActive
                         : isChapter
                           ? "border-slate-700 bg-slate-800/60"
                           : isPart
@@ -278,7 +281,7 @@ export default function CurriculumOutlineStep(props: TeacherCurriculumViewProps)
                         <button
                           type="button"
                           onClick={() => handleAddChildSection(section)}
-                          className={`rounded-xl border p-2 text-[10px] font-bold transition-colors ${getStepTheme(3).chip} hover:opacity-90`}
+                          className={`rounded-xl border p-2 text-[10px] font-bold transition-colors ${getStepTheme(2).chip} hover:opacity-90`}
                           title="Ajouter sous-partie"
                         >
                           <Plus className="w-3.5 h-3.5" />
@@ -290,7 +293,7 @@ export default function CurriculumOutlineStep(props: TeacherCurriculumViewProps)
                           handleSetUploadSectionId(section.id);
                           setActiveCurriculumStep(mediaStep);
                         }}
-                        className={`rounded-xl border p-2 text-[10px] font-bold transition-colors ${getStepTheme(4).chip} hover:opacity-90`}
+                        className={`rounded-xl border p-2 text-[10px] font-bold transition-colors ${getStepTheme(3).chip} hover:opacity-90`}
                         title="Médias"
                       >
                         <Video className="w-3.5 h-3.5 text-slate-400" />

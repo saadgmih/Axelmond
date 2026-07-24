@@ -225,7 +225,7 @@ export default function StudentCourseView({
             userId={selectedCourse.instructorProfile?.id || selectedCourse.createdById}
             userName={selectedCourse.instructorProfile?.fullName || selectedCourse.instructor}
             avatarUrl={selectedCourse.instructorProfile?.avatarUrl}
-            prefix="Syllabus officiel •"
+            prefix="Chapitres officiels •"
             className="inline-flex max-w-full items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-emerald-600"
           />
         </div>

@@ -49,7 +49,7 @@ rulesTest("content-progress-labels", () => {
   ].map((path) => fs.readFileSync(path, "utf8"));
 
   for (const source of progressViews) {
-    assert.doesNotMatch(source, /\bchapitres?\b[^\n]*(?:publi|compl|\{total|\{completed|\/)/i);
+    assert.doesNotMatch(source, /\bchapitres?\b[^\n]*(?:publi|compl|\{total|\{completed|\d+\s*\/\s*\d+)/i);
   }
 
   assert.match(progressViews.join("\n"), /contenus? (?:publi|compl)|contenus/);

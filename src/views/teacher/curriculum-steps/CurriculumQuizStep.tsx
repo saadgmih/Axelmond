@@ -117,7 +117,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
     handleToggleContentPublished: _handleToggleContentPublished,
     handleDeleteLessonContent: _handleDeleteLessonContent,
   } = props;
-  const stepTheme = getStepTheme(5);
+  const stepTheme = getStepTheme(4);
   const inputFocus = `${curriculumUi.input} ${stepTheme.focus}`;
   const hasQuestionDraft =
     newQuestionText.trim().length > 0 ||
@@ -127,7 +127,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
       <div className="lg:col-span-5 space-y-6">
-        <div className={`${curriculumUi.panel} ${getStepTheme(5).panel} space-y-5`}>
+        <div className={`${curriculumUi.panel} ${getStepTheme(4).panel} space-y-5`}>
           <div className={`flex items-center justify-between ${curriculumUi.divider} pb-2`}>
             <h3 className="text-sm font-black uppercase tracking-wider text-white">
               {selectedQuizId ? "Quiz sélectionné" : "Créer un quiz"}
@@ -142,7 +142,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                   setQuizPartId("");
                   setQuizSubpartId("");
                 }}
-                className={`inline-flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-[10px] font-black uppercase transition-colors ${getStepTheme(5).chip} hover:bg-teal-950/80`}
+                className={`inline-flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-[10px] font-black uppercase transition-colors ${getStepTheme(4).chip} hover:bg-teal-950/80`}
               >
                 Nouveau quiz
               </button>
@@ -258,14 +258,14 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                   onClick={() => setSelectedQuizId(quiz.id)}
                   className={`cursor-pointer rounded-2xl border p-4 transition-all ${
                     selectedQuizId === quiz.id
-                      ? getStepTheme(5).listActive
+                      ? getStepTheme(4).listActive
                       : `${curriculumUi.card} ${curriculumUi.cardHover}`
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <span
-                        className={`rounded border px-1.5 py-0.5 text-[8px] font-black uppercase ${getStepTheme(5).chip}`}
+                        className={`rounded border px-1.5 py-0.5 text-[8px] font-black uppercase ${getStepTheme(4).chip}`}
                       >
                         {quiz.questionCount ?? quiz.questions?.length ?? 0} question(s)
                       </span>
@@ -285,7 +285,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
         {selectedQuizId ? (
           <>
             {/* Question Form */}
-            <div className={`${curriculumUi.panel} ${getStepTheme(5).panel} space-y-5 overflow-hidden`}>
+            <div className={`${curriculumUi.panel} ${getStepTheme(4).panel} space-y-5 overflow-hidden`}>
               <div className="flex flex-col gap-4 rounded-2xl border border-teal-500/20 bg-gradient-to-br from-teal-950/60 via-slate-950 to-cyan-950/30 p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="space-y-1">
@@ -476,7 +476,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
 
                 <button
                   type="submit"
-                  className={`w-full rounded-xl py-3 text-xs font-black shadow-sm transition-colors active:scale-[0.98] ${getStepTheme(5).button}`}
+                  className={`w-full rounded-xl py-3 text-xs font-black shadow-sm transition-colors active:scale-[0.98] ${getStepTheme(4).button}`}
                 >
                   Ajouter cette question au Quiz
                 </button>

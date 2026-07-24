@@ -205,7 +205,7 @@ const DashboardCourseCard = memo(function DashboardCourseCard({
           onClick={() => navigateTo("course", course)}
           className="text-xs font-bold text-emerald-300 hover:text-emerald-200 flex items-center gap-1 cursor-pointer min-h-[44px]"
         >
-          Étudier le syllabus <ChevronRight className="w-4 h-4" />
+          Étudier les chapitres <ChevronRight className="w-4 h-4" />
         </button>
       </div>
     </div>

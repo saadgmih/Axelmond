@@ -399,7 +399,7 @@ export default function TeacherDashboardView({
     {
       label: "Quiz créés",
       value: String(dashboard.quizzesCreated),
-      hint: "dans vos syllabus",
+      hint: "dans vos chapitres",
       icon: HelpCircle,
       accent: "text-emerald-300",
     },

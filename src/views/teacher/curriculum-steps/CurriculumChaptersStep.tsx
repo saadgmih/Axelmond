@@ -1,13 +1,6 @@
 import { Layers, Video, Plus } from "lucide-react";
 
-import {
-  curriculumUi,
-  getMediaStep,
-  getStepTheme,
-  getStructureStep,
-  publishedBadge,
-  publishedLabel,
-} from "../curriculum-theme";
+import { curriculumUi, getMediaStep, getStepTheme, publishedBadge, publishedLabel } from "../curriculum-theme";
 import type { TeacherCurriculumViewProps } from "../curriculum-types";
 
 export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps) {
@@ -118,7 +111,6 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
     handleDeleteLessonContent: _handleDeleteLessonContent,
   } = props;
   const stepTheme = getStepTheme(2);
-  const structureStep = getStructureStep(canManageAcademicTaxonomy);
   const mediaStep = getMediaStep(canManageAcademicTaxonomy);
   const inputFocus = `${curriculumUi.input} ${stepTheme.focus}`;
   return (
@@ -227,9 +219,13 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
                     <button
                       onClick={() => {
                         handleAddChildSection(section);
-                        setActiveCurriculumStep(structureStep);
+                        window.requestAnimationFrame(() => {
+                          document
+                            .getElementById("curriculum-chapter-structure")
+                            ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                        });
                       }}
-                      className={`inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-[10px] font-black transition-colors ${getStepTheme(3).chip} hover:opacity-90`}
+                      className={`inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-[10px] font-black transition-colors ${getStepTheme(2).chip} hover:opacity-90`}
                     >
                       <Plus className="w-3 h-3" />
                       Ajouter partie
@@ -239,7 +235,7 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
                         handleSetUploadSectionId(section.id);
                         setActiveCurriculumStep(mediaStep);
                       }}
-                      className={`inline-flex items-center gap-1 rounded-lg px-3 py-2 text-[10px] font-black text-white transition-colors ${getStepTheme(4).button}`}
+                      className={`inline-flex items-center gap-1 rounded-lg px-3 py-2 text-[10px] font-black text-white transition-colors ${getStepTheme(3).button}`}
                     >
                       <Video className="w-3 h-3" />
                       Médias
