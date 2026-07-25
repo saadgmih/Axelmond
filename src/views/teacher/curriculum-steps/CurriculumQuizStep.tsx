@@ -1,4 +1,4 @@
-import { CheckCircle2, ChevronRight, Edit3, HelpCircle, Plus, Trash2, X } from "lucide-react";
+import { CheckCircle2, ChevronDown, ChevronRight, Edit3, HelpCircle, Plus, Trash2, X } from "lucide-react";
 
 import LatexText from "../../../components/LazyLatexText";
 import { curriculumUi, getStepTheme } from "../curriculum-theme";
@@ -150,15 +150,18 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
               teacherQuizzes.map((quiz, quizIndex) => {
                 const isSelected = selectedQuizId === quiz.id;
                 const questionCount = quiz.questionCount ?? quiz.questions?.length ?? 0;
+                const questions = isSelected ? selectedQuizDetail?.questions || [] : [];
                 return (
                   <div
                     key={quiz.id}
-                    onClick={() => setSelectedQuizId(quiz.id)}
-                    className={`cursor-pointer rounded-2xl border p-4 transition-all ${
+                    className={`rounded-2xl border transition-all ${
                       isSelected ? getStepTheme(4).listActive : `${curriculumUi.card} ${curriculumUi.cardHover}`
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-3">
+                    <div
+                      onClick={() => setSelectedQuizId(isSelected ? "" : quiz.id)}
+                      className="cursor-pointer p-4 flex items-center justify-between gap-3"
+                    >
                       <div className="flex-1 min-w-0">
                         <span
                           className={`rounded border px-1.5 py-0.5 text-[8px] font-black uppercase ${getStepTheme(4).chip}`}
@@ -190,9 +193,84 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         )}
-                        <ChevronRight className="w-4 h-4 text-slate-400 ml-1" />
+                        <button
+                          type="button"
+                          onClick={() => setSelectedQuizId(isSelected ? "" : quiz.id)}
+                          className="p-1 text-slate-400 hover:text-white"
+                        >
+                          {isSelected ? (
+                            <ChevronDown className="w-4 h-4 text-teal-300" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4 text-slate-400" />
+                          )}
+                        </button>
                       </div>
                     </div>
+
+                    {/* Sub-tree for QCMs inside selected Quiz */}
+                    {isSelected && (
+                      <div className="px-4 pb-4 pt-1 border-t border-slate-800/80">
+                        <div className="ml-2 pl-3 border-l-2 border-teal-500/40 space-y-2">
+                          {questions.length > 0 ? (
+                            questions.map((q: any, qIdx: number) => {
+                              const isEditingThisQcm = editingQuestionId === q.id;
+                              return (
+                                <div
+                                  key={q.id}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleStartEditQuestion?.(q);
+                                  }}
+                                  className={`group flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-xs font-semibold transition-all cursor-pointer border ${
+                                    isEditingThisQcm
+                                      ? "border-teal-500/60 bg-teal-950/80 text-teal-200 shadow-sm"
+                                      : "border-slate-800/90 bg-slate-950/60 text-slate-300 hover:border-slate-700 hover:bg-slate-900/80 hover:text-white"
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <span className="shrink-0 font-mono text-[9px] font-black uppercase tracking-wider text-teal-400">
+                                      QCM {qIdx + 1}
+                                    </span>
+                                    <span className="truncate text-[11px] font-medium text-slate-300">
+                                      {q.question ? q.question.replace(/\$+/g, "").slice(0, 30) : "Sans énoncé"}
+                                    </span>
+                                  </div>
+                                  <div
+                                    className="flex items-center gap-1 shrink-0 opacity-80 group-hover:opacity-100"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    {handleStartEditQuestion && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleStartEditQuestion(q)}
+                                        className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-teal-300"
+                                        title="Modifier ce QCM"
+                                      >
+                                        <Edit3 className="w-3 h-3" />
+                                      </button>
+                                    )}
+                                    {handleDeleteQuestion && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteQuestion(q.id)}
+                                        className="rounded p-1 text-slate-400 hover:bg-red-950/60 hover:text-red-400"
+                                        title="Supprimer ce QCM"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })
+                          ) : (
+                            <p className="text-[11px] font-medium text-slate-400 italic py-1">
+                              Aucun QCM dans ce quiz.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })
