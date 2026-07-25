@@ -46,7 +46,7 @@ describe("curriculum step sequence", () => {
     expect(chaptersSource).not.toMatch(/Ajouter partie|sous-partie/i);
     expect(mediaSource).toMatch(/Chapitre cible/);
     expect(mediaSource).not.toMatch(/Section cible|managedSections\.map/);
-    expect(quizSource).toMatch(/Chapitre de rattachement/);
+    expect(quizSource).not.toMatch(/Chapitre de rattachement/);
     expect(quizSource).not.toMatch(/Section de rattachement|managedSections\.map/);
     expect(curriculumHook).toMatch(/const handleCreateChapter[\s\S]*const result = await api\.createChapter/);
     expect(curriculumHook).not.toMatch(/api\.createSection/);

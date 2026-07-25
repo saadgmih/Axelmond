@@ -41,7 +41,6 @@ rulesTest("quiz-flexible-workflow", () => {
   assert.match(curriculumBundle, /const \[quizChapterId, setQuizChapterId\]/);
   assert.doesNotMatch(curriculumBundle, /quizPartId|quizSubpartId/);
   assert.match(curriculumSource, /Directement dans le module/);
-  assert.match(curriculumSource, /Chapitre de rattachement/);
   assert.match(curriculumSource, /chapterSections\.map/);
   assert.match(curriculumBundle, /teacherQuizzes/);
   assert.match(curriculumBundle, /loadTeacherQuizzes/);

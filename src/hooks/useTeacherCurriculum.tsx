@@ -765,12 +765,14 @@ export function useTeacherCurriculum({
     setUploadSectionId(chapter.id);
   };
 
-  const selectedManagedContents = uploadSectionId
-    ? selectedManagedSection?.contents || []
-    : courseContent.moduleRootContents;
+  const allChapterContents = managedSections.flatMap((section) => section.contents || []);
+  const selectedManagedContents = [
+    ...courseContent.moduleRootContents,
+    ...allChapterContents.filter((cc) => !courseContent.moduleRootContents.some((rc) => rc.id === cc.id)),
+  ];
   const managedLiveReplays = [
     ...courseContent.moduleRootContents,
-    ...managedSections.flatMap((section) => section.contents || []),
+    ...allChapterContents,
   ].filter((content) => content.type === "VIDEO" && !content.published && isLiveReplayContent(content.body));
 
   return {

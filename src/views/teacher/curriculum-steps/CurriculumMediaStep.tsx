@@ -339,7 +339,7 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
           <div className="flex items-center justify-between">
             <div>
               <h3 className={curriculumUi.sectionTitle}>Médias enregistrés</h3>
-              <p className="mt-1 text-[10px] font-semibold text-slate-500">{destinationLabel}</p>
+              <p className="mt-1 text-[10px] font-semibold text-slate-500">Tous les médias du module</p>
             </div>
             <span className={curriculumUi.countBadge}>
               {selectedManagedContents.length} média{selectedManagedContents.length !== 1 ? "s" : ""}
@@ -351,14 +351,15 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
               <div className={curriculumUi.empty}>
                 <FileText className="mx-auto mb-2 h-8 w-8 text-lime-300" />
                 <p className="text-xs font-semibold text-slate-500">
-                  {uploadSectionId
-                    ? "Aucun média attaché à ce chapitre."
-                    : "Aucun média attaché directement à la racine du module."}
+                  Aucun média dans ce module.
                 </p>
               </div>
             ) : (
               selectedManagedContents.map((content) => {
                 const attachment = content.attachments?.[0];
+                const chapterTitle = content.sectionId
+                  ? chapterSections.find((s) => s.id === content.sectionId)?.title || "Chapitre"
+                  : "Racine du module";
                 return (
                   <div key={content.id} className={`${curriculumUi.card} space-y-4`}>
                     <div className="flex items-start justify-between gap-4">
@@ -374,6 +375,9 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
                             }`}
                           >
                             {formatLessonContentTypeLabel(content.type)}
+                          </span>
+                          <span className="rounded border border-slate-700 bg-slate-800/80 px-2 py-0.5 text-[8px] font-black uppercase text-slate-300">
+                            {chapterTitle}
                           </span>
                         </div>
                         <h4 className="text-sm font-black text-white leading-snug">{content.title}</h4>

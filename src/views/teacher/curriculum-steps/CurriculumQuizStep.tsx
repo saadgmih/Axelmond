@@ -1,21 +1,15 @@
-import { CheckCircle2, ChevronRight, HelpCircle, Sigma, Sparkles, X } from "lucide-react";
+import { CheckCircle2, ChevronRight, HelpCircle, X } from "lucide-react";
 
 import LatexText from "../../../components/LazyLatexText";
 import { curriculumUi, getStepTheme } from "../curriculum-theme";
 import type { TeacherCurriculumViewProps } from "../curriculum-types";
-
-const latexExamples = [
-  { label: "Fonction", source: String.raw`$f(x)=\frac{x^2-1}{x-1}$` },
-  { label: "Matrice", source: String.raw`$$A=\begin{pmatrix}1&2\\3&4\end{pmatrix}$$` },
-  { label: "Intégrale", source: String.raw`$\int_0^1 e^{-x^2}\,dx$` },
-];
 
 export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
   const {
     domains: _domains,
     activeCurriculumStep: _activeCurriculumStep,
     setActiveCurriculumStep: _setActiveCurriculumStep,
-    quizChapterId,
+    quizChapterId: _quizChapterId,
     setQuizChapterId,
     curriculumSuccessMsg: _curriculumSuccessMsg,
     curriculumErrorMsg: _curriculumErrorMsg,
@@ -74,7 +68,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
     managedCourses: _managedCourses,
     managedCourse: _managedCourse,
     managedSections: _managedSections,
-    chapterSections,
+    chapterSections: _chapterSections,
     selectedManagedContents: _selectedManagedContents,
     handleSetUploadSectionId: _handleSetUploadSectionId,
     showCurriculumSuccess: _showCurriculumSuccess,
@@ -99,10 +93,6 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
   } = props;
   const stepTheme = getStepTheme(4);
   const inputFocus = `${curriculumUi.input} ${stepTheme.focus}`;
-  const hasQuestionDraft =
-    newQuestionText.trim().length > 0 ||
-    newQuestionOptions.some((option) => option.trim().length > 0) ||
-    newQuestionExplanation.trim().length > 0;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
@@ -138,25 +128,6 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
           )}
 
           <form onSubmit={handleCreateQuiz} className="space-y-4">
-            {/* Target chapter selector */}
-            <div className="space-y-1">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
-                Chapitre de rattachement
-              </span>
-              <select
-                value={quizChapterId}
-                onChange={(e) => setQuizChapterId(e.target.value)}
-                className={`${inputFocus} text-slate-700`}
-              >
-                <option value="">-- Directement dans le module (racine) --</option>
-                {chapterSections.map((chapter) => (
-                  <option key={chapter.id} value={chapter.id}>
-                    {chapter.title}
-                  </option>
-                ))}
-              </select>
-            </div>
-
             <div className="space-y-1">
               <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
                 Titre du Quiz
@@ -234,52 +205,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
           <>
             {/* Question Form */}
             <div className={`${curriculumUi.panel} ${getStepTheme(4).panel} space-y-5 overflow-hidden`}>
-              <div className="flex flex-col gap-4 rounded-2xl border border-teal-500/20 bg-gradient-to-br from-teal-950/60 via-slate-950 to-cyan-950/30 p-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="space-y-1">
-                    <div className="inline-flex items-center gap-2 rounded-full border border-teal-400/30 bg-teal-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-teal-200">
-                      <Sigma className="h-3.5 w-3.5" />
-                      LaTeX activé
-                    </div>
-                    <h3 className="text-base font-black text-white">Ajouter une question scientifique</h3>
-                    <p className="text-xs font-medium leading-relaxed text-slate-400">
-                      Quiz :{" "}
-                      <span className="font-bold text-teal-300">
-                        {teacherQuizzes.find((q) => q.id === selectedQuizId)?.title}
-                      </span>
-                    </p>
-                  </div>
-
-                  <div className="rounded-2xl border border-slate-700/80 bg-slate-950/70 px-3 py-2 text-[10px] font-bold text-slate-300">
-                    <div className="flex items-center gap-1.5 text-teal-300">
-                      <Sparkles className="h-3.5 w-3.5" />
-                      Aperçu instantané
-                    </div>
-                    <p className="mt-1 text-slate-500">Questions, choix et explications.</p>
-                  </div>
-                </div>
-
-                <div className="grid min-w-0 grid-cols-1 gap-2 md:grid-cols-3">
-                  {latexExamples.map((example) => (
-                    <div
-                      key={example.label}
-                      className="min-w-0 rounded-2xl border border-slate-700/70 bg-slate-950/75 p-3"
-                    >
-                      <span className="block text-[9px] font-black uppercase tracking-wider text-teal-300">
-                        {example.label}
-                      </span>
-                      <div className="mt-2 min-w-0 overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/70 px-3 py-2 text-[11px] font-semibold text-slate-100">
-                        <LatexText value={example.source} compact />
-                      </div>
-                      <code className="mt-2 block max-w-full whitespace-normal break-all rounded-lg bg-slate-950/90 px-2 py-1.5 text-[9px] font-semibold leading-relaxed text-slate-500">
-                        {example.source}
-                      </code>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <form onSubmit={handleAddQuestion} className={`space-y-4 pt-3 ${curriculumUi.divider}`}>
+              <form onSubmit={handleAddQuestion} className="space-y-4">
                 <label className="block space-y-1">
                   <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
                     Énoncé de la question
@@ -375,52 +301,6 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                     />
                   </label>
                 </div>
-
-                {hasQuestionDraft && (
-                  <div className="rounded-2xl border border-teal-500/20 bg-teal-950/10 p-4">
-                    <div className="mb-3 flex items-center justify-between gap-3">
-                      <span className="text-[10px] font-black uppercase tracking-wider text-teal-300">
-                        Aperçu étudiant
-                      </span>
-                      <span className="text-[10px] font-bold text-slate-500">Rendu KaTeX sécurisé</span>
-                    </div>
-                    <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
-                      {newQuestionText.trim() && (
-                        <div className="text-sm font-black leading-relaxed text-white">
-                          <LatexText value={newQuestionText} />
-                        </div>
-                      )}
-                      <div className="grid gap-2 sm:grid-cols-2">
-                        {newQuestionOptions
-                          .map((option, index) => ({ option, index }))
-                          .filter(({ option }) => option.trim())
-                          .map(({ option, index }) => (
-                            <div
-                              key={`${index}-${option}`}
-                              className={`rounded-xl border px-3 py-2 text-xs font-semibold ${
-                                newQuestionAnswer === option
-                                  ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-200"
-                                  : "border-slate-700 bg-slate-900/80 text-slate-200"
-                              }`}
-                            >
-                              <span className="mb-1 block text-[10px] font-black text-teal-300">
-                                Option {String.fromCharCode(65 + index)}
-                              </span>
-                              <LatexText value={option} compact />
-                            </div>
-                          ))}
-                      </div>
-                      {newQuestionExplanation.trim() && (
-                        <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-3 text-xs text-slate-300">
-                          <span className="mb-1 block text-[10px] font-black uppercase text-slate-500">
-                            Explication
-                          </span>
-                          <LatexText value={newQuestionExplanation} compact />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
 
                 <button
                   type="submit"
