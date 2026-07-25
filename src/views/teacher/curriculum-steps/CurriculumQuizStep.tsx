@@ -1,4 +1,4 @@
-import { CheckCircle2, ChevronRight, HelpCircle, X } from "lucide-react";
+import { CheckCircle2, ChevronRight, HelpCircle, Plus, X } from "lucide-react";
 
 import LatexText from "../../../components/LazyLatexText";
 import { curriculumUi, getStepTheme } from "../curriculum-theme";
@@ -98,23 +98,21 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
       <div className="lg:col-span-5 space-y-6">
         <div className={`${curriculumUi.panel} ${getStepTheme(4).panel} space-y-5`}>
-          <div className={`flex items-center justify-between ${curriculumUi.divider} pb-2`}>
-            <h3 className="text-sm font-black uppercase tracking-wider text-white">
-              {selectedQuizId ? "Quiz sélectionné" : "Créer un quiz"}
-            </h3>
-            {selectedQuizId && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedQuizId("");
-                  setNewQuizTitle("");
-                  setQuizChapterId("");
-                }}
-                className={`inline-flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-[10px] font-black uppercase transition-colors ${getStepTheme(4).chip} hover:bg-teal-950/80`}
-              >
-                Nouveau quiz
-              </button>
-            )}
+          <div className={`flex flex-wrap items-center justify-between gap-3 ${curriculumUi.divider} pb-3`}>
+            <div>
+              <h3 className="text-sm font-black uppercase tracking-wider text-white">
+                Quiz du module ({teacherQuizzes.length})
+              </h3>
+              <p className="text-[11px] font-medium text-slate-400">Sélectionnez un quiz ou ajoutez-en un nouveau.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleCreateQuiz()}
+              className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-black shadow-sm transition-all active:scale-95 ${stepTheme.button}`}
+            >
+              <Plus className="h-4 w-4" />
+              Nouveau Quiz (QCM {teacherQuizzes.length + 1})
+            </button>
           </div>
 
           {(quizManagerMsg || quizManagerError) && (
@@ -127,48 +125,20 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
             </div>
           )}
 
-          <form onSubmit={handleCreateQuiz} className="space-y-4">
-            <div className="space-y-1">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
-                Titre du Quiz
-              </span>
-              <input
-                required
-                placeholder="ex: QCM 1 - Bases algorithmiques"
-                value={newQuizTitle}
-                onChange={(e) => setNewQuizTitle(e.target.value)}
-                className={inputFocus}
-              />
-            </div>
-
-            <button
-              type="submit"
-              className={`w-full rounded-xl py-3 text-xs font-black shadow-sm transition-colors active:scale-[0.98] ${stepTheme.button}`}
-            >
-              Créer et lier ce Quiz
-            </button>
-          </form>
-        </div>
-
-        {/* Quiz List */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className={curriculumUi.sectionTitle}>Quiz du module ({teacherQuizzes.length})</h3>
-            <button
-              type="button"
-              onClick={() => loadTeacherQuizzes(quizCourseId)}
-              className="text-[10px] font-bold text-emerald-700 hover:underline"
-            >
-              Actualiser la liste
-            </button>
-          </div>
-
-          <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
+          <div className="space-y-2.5 max-h-[550px] overflow-y-auto pr-1">
             {teacherQuizzes.length === 0 ? (
-              <div className={`${curriculumUi.empty} p-6`}>
+              <div className={`${curriculumUi.empty} p-6 space-y-3 text-center`}>
                 <p className="text-xs text-slate-400 font-semibold">
-                  Aucun quiz créé. Utilisez le formulaire ci-dessus.
+                  Aucun quiz n'a encore été créé pour ce module.
                 </p>
+                <button
+                  type="button"
+                  onClick={() => handleCreateQuiz()}
+                  className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-black transition-all active:scale-95 ${stepTheme.button}`}
+                >
+                  <Plus className="h-4 w-4" />
+                  Créer le premier Quiz (QCM 1)
+                </button>
               </div>
             ) : (
               teacherQuizzes.map((quiz) => (

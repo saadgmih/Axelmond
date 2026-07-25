@@ -489,18 +489,19 @@ export function useTeacherCurriculum({
     await refreshCourseContent(courseId);
   };
 
-  const handleCreateQuiz = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!newQuizTitle.trim()) {
-      setQuizManagerError("Veuillez saisir un titre pour le quiz.");
-      return;
+  const handleCreateQuiz = async (e?: FormEvent | string) => {
+    if (e && typeof e === "object" && "preventDefault" in e) {
+      e.preventDefault();
     }
+    const autoTitle = typeof e === "string" && e.trim()
+      ? e.trim()
+      : newQuizTitle.trim() || `QCM ${teacherQuizzes.length + 1}`;
     const resolvedSectionId = quizChapterId || null;
     try {
       setQuizManagerError("");
       const quiz = await api.createCourseQuiz(quizCourseId, {
         sectionId: resolvedSectionId,
-        title: newQuizTitle.trim(),
+        title: autoTitle,
         published: true,
       });
       setNewQuizTitle("");
