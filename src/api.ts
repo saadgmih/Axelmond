@@ -826,6 +826,10 @@ export const api = {
     data: { question: string; options: string[]; answer: string; explanation: string },
   ) => request<any>("POST", `/api/quizzes/${quizId}/questions`, data),
   deleteQuizQuestion: (questionId: string) => request<any>("DELETE", `/api/quiz-questions/${questionId}`),
+  updateQuizQuestion: (
+    questionId: string,
+    data: { question?: string; options?: string[]; answer?: string; explanation?: string },
+  ) => request<any>("PATCH", `/api/quiz-questions/${questionId}`, data),
   submitContact: (data: { name: string; email: string; subject: string; category: string; message: string }) =>
     request<any>("POST", "/api/contact", data),
   createSupportTicket: (data: {

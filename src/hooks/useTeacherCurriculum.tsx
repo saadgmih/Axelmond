@@ -489,13 +489,15 @@ export function useTeacherCurriculum({
     await refreshCourseContent(courseId);
   };
 
+  const [editingQuestionId, setEditingQuestionId] = useState<string>("");
+
   const handleCreateQuiz = async (e?: FormEvent | string) => {
     if (e && typeof e === "object" && "preventDefault" in e) {
       e.preventDefault();
     }
     const autoTitle = typeof e === "string" && e.trim()
       ? e.trim()
-      : newQuizTitle.trim() || `QCM ${teacherQuizzes.length + 1}`;
+      : newQuizTitle.trim() || `Quiz ${teacherQuizzes.length + 1}`;
     const resolvedSectionId = quizChapterId || null;
     try {
       setQuizManagerError("");
@@ -515,10 +517,44 @@ export function useTeacherCurriculum({
     }
   };
 
+  const handleDeleteQuiz = async (quizId: string) => {
+    if (!window.confirm("Voulez-vous vraiment supprimer ce quiz et toutes ses questions ?")) return;
+    try {
+      setQuizManagerError("");
+      await api.deleteQuiz(quizId);
+      if (selectedQuizId === quizId) {
+        setSelectedQuizId("");
+        setSelectedQuizDetail(null);
+      }
+      await loadTeacherQuizzes(quizCourseId);
+      setQuizManagerMsg("Quiz supprimé avec succès.");
+      scheduleClear(() => setQuizManagerMsg(""), 4000);
+    } catch (err: any) {
+      setQuizManagerError(getClientErrorMessage(err, "Suppression du quiz impossible."));
+    }
+  };
+
+  const handleUpdateQuizTitle = async (quiz: { id: string; title: string }) => {
+    const updatedTitle = window.prompt("Nouveau nom du quiz :", quiz.title);
+    if (updatedTitle === null || !updatedTitle.trim() || updatedTitle.trim() === quiz.title) return;
+    try {
+      setQuizManagerError("");
+      await api.updateQuiz(quiz.id, { title: updatedTitle.trim() });
+      await loadTeacherQuizzes(quizCourseId);
+      if (selectedQuizId === quiz.id) {
+        await loadSelectedQuizDetail(quiz.id);
+      }
+      setQuizManagerMsg(`Quiz renommé : "${updatedTitle.trim()}"`);
+      scheduleClear(() => setQuizManagerMsg(""), 4000);
+    } catch (err: any) {
+      setQuizManagerError(getClientErrorMessage(err, "Modification du quiz impossible."));
+    }
+  };
+
   const handleAddQuestion = async (e: FormEvent) => {
     e.preventDefault();
     if (!selectedQuizId || !newQuestionText.trim() || !newQuestionAnswer.trim() || !newQuestionExplanation.trim()) {
-      setQuizManagerError("Tous les champs de la question sont requis.");
+      setQuizManagerError("Tous les champs du QCM sont requis.");
       return;
     }
     const filledOptions = newQuestionOptions.filter((o) => o.trim());
@@ -532,35 +568,63 @@ export function useTeacherCurriculum({
     }
     try {
       setQuizManagerError("");
-      await api.addQuizQuestion(selectedQuizId, {
-        question: newQuestionText.trim(),
-        options: filledOptions,
-        answer: newQuestionAnswer.trim(),
-        explanation: newQuestionExplanation.trim(),
-      });
+      if (editingQuestionId) {
+        await api.updateQuizQuestion(editingQuestionId, {
+          question: newQuestionText.trim(),
+          options: filledOptions,
+          answer: newQuestionAnswer.trim(),
+          explanation: newQuestionExplanation.trim(),
+        });
+        setQuizManagerMsg("QCM mis à jour avec succès.");
+      } else {
+        await api.addQuizQuestion(selectedQuizId, {
+          question: newQuestionText.trim(),
+          options: filledOptions,
+          answer: newQuestionAnswer.trim(),
+          explanation: newQuestionExplanation.trim(),
+        });
+        setQuizManagerMsg("QCM ajouté avec succès.");
+      }
+      setEditingQuestionId("");
       setNewQuestionText("");
       setNewQuestionOptions(["Option A", "Option B", "Option C", "Option D"]);
       setNewQuestionAnswer("");
       setNewQuestionExplanation("");
       await loadTeacherQuizzes(quizCourseId);
       await loadSelectedQuizDetail(selectedQuizId);
-      setQuizManagerMsg("Question ajoutée avec succès.");
       scheduleClear(() => setQuizManagerMsg(""), 4000);
     } catch (err: any) {
-      setQuizManagerError(getClientErrorMessage(err, "Ajout de la question impossible."));
+      setQuizManagerError(getClientErrorMessage(err, "Enregistrement du QCM impossible."));
     }
   };
 
+  const handleStartEditQuestion = (q: any) => {
+    setEditingQuestionId(q.id);
+    setNewQuestionText(q.question || "");
+    const options = Array.isArray(q.options) && q.options.length > 0 ? q.options : ["Option A", "Option B", "Option C", "Option D"];
+    setNewQuestionOptions(options);
+    setNewQuestionAnswer(q.answer || "");
+    setNewQuestionExplanation(q.explanation || "");
+  };
+
+  const handleCancelEditQuestion = () => {
+    setEditingQuestionId("");
+    setNewQuestionText("");
+    setNewQuestionOptions(["Option A", "Option B", "Option C", "Option D"]);
+    setNewQuestionAnswer("");
+    setNewQuestionExplanation("");
+  };
+
   const handleDeleteQuestion = async (questionId: string) => {
-    if (!window.confirm("Supprimer cette question ?")) return;
+    if (!window.confirm("Supprimer ce QCM ?")) return;
     try {
       await api.deleteQuizQuestion(questionId);
       await loadTeacherQuizzes(quizCourseId);
       await loadSelectedQuizDetail(selectedQuizId);
-      setQuizManagerMsg("Question supprimée.");
+      setQuizManagerMsg("QCM supprimé.");
       scheduleClear(() => setQuizManagerMsg(""), 3000);
     } catch (err: any) {
-      setQuizManagerError(getClientErrorMessage(err, "Suppression impossible."));
+      setQuizManagerError(getClientErrorMessage(err, "Suppression du QCM impossible."));
     }
   };
 
@@ -862,6 +926,11 @@ export function useTeacherCurriculum({
     handleCreateChapter,
     handleUploadLessonAsset,
     handleSelectManagedCourse,
+    editingQuestionId,
+    handleDeleteQuiz,
+    handleUpdateQuizTitle,
+    handleStartEditQuestion,
+    handleCancelEditQuestion,
     loadTeacherQuizzes,
     handleCreateQuiz,
     handleAddQuestion,

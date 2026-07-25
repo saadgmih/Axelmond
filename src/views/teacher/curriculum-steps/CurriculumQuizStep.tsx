@@ -1,4 +1,4 @@
-import { CheckCircle2, ChevronRight, HelpCircle, Plus, X } from "lucide-react";
+import { CheckCircle2, ChevronRight, Edit3, HelpCircle, Plus, Trash2, X } from "lucide-react";
 
 import LatexText from "../../../components/LazyLatexText";
 import { curriculumUi, getStepTheme } from "../curriculum-theme";
@@ -10,7 +10,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
     activeCurriculumStep: _activeCurriculumStep,
     setActiveCurriculumStep: _setActiveCurriculumStep,
     quizChapterId: _quizChapterId,
-    setQuizChapterId,
+    setQuizChapterId: _setQuizChapterId,
     curriculumSuccessMsg: _curriculumSuccessMsg,
     curriculumErrorMsg: _curriculumErrorMsg,
     newCourseTitle: _newCourseTitle,
@@ -49,9 +49,9 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
     setEditCourseForm: _setEditCourseForm,
     teacherQuizzes,
     selectedQuizDetail,
-    quizCourseId,
-    newQuizTitle,
-    setNewQuizTitle,
+    quizCourseId: _quizCourseId,
+    newQuizTitle: _newQuizTitle,
+    setNewQuizTitle: _setNewQuizTitle,
     selectedQuizId,
     setSelectedQuizId,
     newQuestionText,
@@ -64,6 +64,11 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
     setNewQuestionExplanation,
     quizManagerMsg,
     quizManagerError,
+    editingQuestionId,
+    handleDeleteQuiz,
+    handleUpdateQuizTitle,
+    handleStartEditQuestion,
+    handleCancelEditQuestion,
     allDisciplines: _allDisciplines,
     managedCourses: _managedCourses,
     managedCourse: _managedCourse,
@@ -77,7 +82,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
     handleCreateChapter: _handleCreateChapter,
     handleUploadLessonAsset: _handleUploadLessonAsset,
     handleSelectManagedCourse: _handleSelectManagedCourse,
-    loadTeacherQuizzes,
+    loadTeacherQuizzes: _loadTeacherQuizzes,
     handleCreateQuiz,
     handleAddQuestion,
     handleDeleteQuestion,
@@ -96,6 +101,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+      {/* Left Column: List of Quizzes */}
       <div className="lg:col-span-5 space-y-6">
         <div className={`${curriculumUi.panel} ${getStepTheme(4).panel} space-y-5`}>
           <div className={`flex flex-wrap items-center justify-between gap-3 ${curriculumUi.divider} pb-3`}>
@@ -103,7 +109,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
               <h3 className="text-sm font-black uppercase tracking-wider text-white">
                 Quiz du module ({teacherQuizzes.length})
               </h3>
-              <p className="text-[11px] font-medium text-slate-400">Sélectionnez un quiz ou ajoutez-en un nouveau.</p>
+              <p className="text-[11px] font-medium text-slate-400">Sélectionnez un quiz pour gérer ses QCMs.</p>
             </div>
             <button
               type="button"
@@ -111,7 +117,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
               className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-black shadow-sm transition-all active:scale-95 ${stepTheme.button}`}
             >
               <Plus className="h-4 w-4" />
-              Nouveau Quiz (QCM {teacherQuizzes.length + 1})
+              Nouveau Quiz (Quiz {teacherQuizzes.length + 1})
             </button>
           </div>
 
@@ -137,48 +143,89 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                   className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-black transition-all active:scale-95 ${stepTheme.button}`}
                 >
                   <Plus className="h-4 w-4" />
-                  Créer le premier Quiz (QCM 1)
+                  Créer le premier Quiz (Quiz 1)
                 </button>
               </div>
             ) : (
-              teacherQuizzes.map((quiz) => (
-                <div
-                  key={quiz.id}
-                  onClick={() => setSelectedQuizId(quiz.id)}
-                  className={`cursor-pointer rounded-2xl border p-4 transition-all ${
-                    selectedQuizId === quiz.id
-                      ? getStepTheme(4).listActive
-                      : `${curriculumUi.card} ${curriculumUi.cardHover}`
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <span
-                        className={`rounded border px-1.5 py-0.5 text-[8px] font-black uppercase ${getStepTheme(4).chip}`}
-                      >
-                        {quiz.questionCount ?? quiz.questions?.length ?? 0} question(s)
-                      </span>
-                      <h4 className="text-xs font-black text-white mt-2">{quiz.title}</h4>
+              teacherQuizzes.map((quiz, quizIndex) => {
+                const isSelected = selectedQuizId === quiz.id;
+                const questionCount = quiz.questionCount ?? quiz.questions?.length ?? 0;
+                return (
+                  <div
+                    key={quiz.id}
+                    onClick={() => setSelectedQuizId(quiz.id)}
+                    className={`cursor-pointer rounded-2xl border p-4 transition-all ${
+                      isSelected ? getStepTheme(4).listActive : `${curriculumUi.card} ${curriculumUi.cardHover}`
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <span
+                          className={`rounded border px-1.5 py-0.5 text-[8px] font-black uppercase ${getStepTheme(4).chip}`}
+                        >
+                          {questionCount} QCM{questionCount !== 1 ? "s" : ""}
+                        </span>
+                        <h4 className="text-xs font-black text-white mt-2 truncate">
+                          {quiz.title || `Quiz ${quizIndex + 1}`}
+                        </h4>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                        {handleUpdateQuizTitle && (
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateQuizTitle(quiz)}
+                            className="rounded p-1.5 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+                            title="Renommer le quiz"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        {handleDeleteQuiz && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteQuiz(quiz.id)}
+                            className="rounded p-1.5 text-slate-400 transition-colors hover:bg-red-950/60 hover:text-red-400"
+                            title="Supprimer le quiz"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        <ChevronRight className="w-4 h-4 text-slate-400 ml-1" />
+                      </div>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-slate-400 mt-0.5" />
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
       </div>
 
-      {/* Right Column: Question Builder & Current Questions */}
+      {/* Right Column: QCM Builder & QCMs List */}
       <div className="lg:col-span-7 space-y-6">
         {selectedQuizId ? (
           <>
-            {/* Question Form */}
+            {/* QCM Form (Create or Edit) */}
             <div className={`${curriculumUi.panel} ${getStepTheme(4).panel} space-y-5 overflow-hidden`}>
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-black uppercase tracking-wider text-teal-300">
+                  {editingQuestionId ? "Modifier le QCM" : "Ajouter un QCM à ce Quiz"}
+                </h4>
+                {editingQuestionId && handleCancelEditQuestion && (
+                  <button
+                    type="button"
+                    onClick={handleCancelEditQuestion}
+                    className="text-[10px] font-bold text-slate-400 hover:text-white underline"
+                  >
+                    Annuler la modification
+                  </button>
+                )}
+              </div>
+
               <form onSubmit={handleAddQuestion} className="space-y-4">
                 <label className="block space-y-1">
                   <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                    Énoncé de la question
+                    Énoncé du QCM
                   </span>
                   <textarea
                     required
@@ -276,31 +323,45 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                   type="submit"
                   className={`w-full rounded-xl py-3 text-xs font-black shadow-sm transition-colors active:scale-[0.98] ${getStepTheme(4).button}`}
                 >
-                  Ajouter cette question au Quiz
+                  {editingQuestionId ? "Enregistrer les modifications du QCM" : "Ajouter ce QCM au Quiz"}
                 </button>
               </form>
             </div>
 
-            {/* Current Question List */}
+            {/* QCM List of Selected Quiz */}
             <div className="space-y-4">
               <h3 className={curriculumUi.sectionTitle}>
-                Questions du Quiz ({(selectedQuizDetail?.questions || []).length})
+                QCMs du Quiz ({(selectedQuizDetail?.questions || []).length})
               </h3>
 
-              <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+              <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
                 {(selectedQuizDetail?.questions || []).map((q: any, idx: number) => (
                   <div key={q.id} className={`${curriculumUi.card} space-y-3 relative`}>
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 text-xs font-black leading-relaxed text-slate-100">
-                        <span className="text-teal-300">{idx + 1}.</span> <LatexText value={q.question} compact />
+                        <span className="text-teal-300 font-extrabold uppercase mr-1">QCM {idx + 1}.</span>
+                        <LatexText value={q.question} compact />
                       </div>
-                      <button
-                        onClick={() => handleDeleteQuestion(q.id)}
-                        className="shrink-0 rounded p-1 text-slate-500 transition-colors hover:bg-red-950/50 hover:text-red-400"
-                        title="Supprimer la question"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {handleStartEditQuestion && (
+                          <button
+                            type="button"
+                            onClick={() => handleStartEditQuestion(q)}
+                            className="rounded p-1 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+                            title="Modifier ce QCM"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteQuestion(q.id)}
+                          className="rounded p-1 text-slate-400 transition-colors hover:bg-red-950/50 hover:text-red-400"
+                          title="Supprimer ce QCM"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-2 text-[11px] font-semibold text-slate-400 sm:grid-cols-2">
@@ -340,7 +401,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                 {(selectedQuizDetail?.questions?.length ?? 0) === 0 && (
                   <div className={`${curriculumUi.empty} p-6`}>
                     <p className="text-xs text-slate-400 font-semibold">
-                      Aucune question dans ce quiz. Ajoutez-en avec le formulaire.
+                      Aucun QCM dans ce quiz. Ajoutez-en un avec le formulaire ci-dessus.
                     </p>
                   </div>
                 )}
@@ -355,7 +416,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
             <h4 className="text-sm font-black text-slate-200">Aucun quiz sélectionné</h4>
             <p className="text-xs text-slate-400 font-medium max-w-xs leading-relaxed">
               Sélectionnez un quiz existant dans la colonne de gauche ou créez-en un nouveau pour commencer à y insérer
-              des questions.
+              des QCMs.
             </p>
           </div>
         )}
@@ -363,3 +424,4 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
     </div>
   );
 }
+

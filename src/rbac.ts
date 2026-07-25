@@ -349,7 +349,7 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
   if (verb === "POST" && /^\/api\/quizzes\/[^/]+\/questions$/.test(cleanPath)) {
     return teacherSpaceRoles.includes(normalized);
   }
-  if (verb === "DELETE" && /^\/api\/quiz-questions\/[^/]+$/.test(cleanPath)) {
+  if ((verb === "PATCH" || verb === "DELETE") && /^\/api\/quiz-questions\/[^/]+$/.test(cleanPath)) {
     return teacherSpaceRoles.includes(normalized);
   }
 

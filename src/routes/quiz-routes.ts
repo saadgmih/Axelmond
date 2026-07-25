@@ -703,6 +703,34 @@ export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
       res.status(201).json(q);
     },
   );
+  // PATCH /api/quiz-questions/:id — modifier une question de quiz (QCM)
+  app.patch("/api/quiz-questions/:id", requireAuth, requireRbac, async (req, res) => {
+    const authUser = getAuthUser(req);
+    if (!(await api.verifyQuizQuestionAccess(authUser, req.params.id))) {
+      res.status(403).json({ error: "Accès refusé pour modifier ce quiz" });
+      return;
+    }
+
+    const { question, options, answer, explanation } = req.body || {};
+    const q = await api.prisma.quizQuestion.findUnique({ where: { id: req.params.id } });
+    if (!q) {
+      res.status(404).json({ error: api.PUBLIC_API_ERRORS.questionNotFound });
+      return;
+    }
+
+    const updated = await api.prisma.quizQuestion.update({
+      where: { id: q.id },
+      data: {
+        ...(typeof question === "string" && question.trim() ? { question: question.trim() } : {}),
+        ...(Array.isArray(options) ? { options: options.map((opt: any) => String(opt).trim()) } : {}),
+        ...(typeof answer === "string" && answer.trim() ? { answer: answer.trim() } : {}),
+        ...(typeof explanation === "string" && explanation.trim() ? { explanation: explanation.trim() } : {}),
+      },
+    });
+
+    api.logDb("INFO", "Quiz question updated", { questionId: q.id, quizId: q.quizId, userId: authUser.id });
+    res.json(updated);
+  });
 
   // DELETE /api/quiz-questions/:id — supprimer une question de quiz
 
