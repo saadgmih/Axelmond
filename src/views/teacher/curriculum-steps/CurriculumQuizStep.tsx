@@ -160,7 +160,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                   >
                     <div
                       onClick={() => setSelectedQuizId(isSelected ? "" : quiz.id)}
-                      className="cursor-pointer p-4 flex items-center justify-between gap-3"
+                      className="cursor-pointer p-4 flex items-center justify-between gap-3 select-none"
                     >
                       <div className="flex-1 min-w-0">
                         <span
@@ -172,11 +172,14 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                           {quiz.title || `Quiz ${quizIndex + 1}`}
                         </h4>
                       </div>
-                      <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center gap-1 shrink-0">
                         {handleUpdateQuizTitle && (
                           <button
                             type="button"
-                            onClick={() => handleUpdateQuizTitle(quiz)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleUpdateQuizTitle(quiz);
+                            }}
                             className="rounded p-1.5 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
                             title="Renommer le quiz"
                           >
@@ -186,24 +189,23 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                         {handleDeleteQuiz && (
                           <button
                             type="button"
-                            onClick={() => handleDeleteQuiz(quiz.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteQuiz(quiz.id);
+                            }}
                             className="rounded p-1.5 text-slate-400 transition-colors hover:bg-red-950/60 hover:text-red-400"
                             title="Supprimer le quiz"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         )}
-                        <button
-                          type="button"
-                          onClick={() => setSelectedQuizId(isSelected ? "" : quiz.id)}
-                          className="p-1 text-slate-400 hover:text-white"
-                        >
+                        <span className="p-1 text-slate-400 hover:text-white">
                           {isSelected ? (
                             <ChevronDown className="w-4 h-4 text-teal-300" />
                           ) : (
                             <ChevronRight className="w-4 h-4 text-slate-400" />
                           )}
-                        </button>
+                        </span>
                       </div>
                     </div>
 
@@ -235,14 +237,14 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                                       {q.question ? q.question.replace(/\$+/g, "").slice(0, 30) : "Sans énoncé"}
                                     </span>
                                   </div>
-                                  <div
-                                    className="flex items-center gap-1 shrink-0 opacity-80 group-hover:opacity-100"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
+                                  <div className="flex items-center gap-1 shrink-0 opacity-80 group-hover:opacity-100">
                                     {handleStartEditQuestion && (
                                       <button
                                         type="button"
-                                        onClick={() => handleStartEditQuestion(q)}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleStartEditQuestion(q);
+                                        }}
                                         className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-teal-300"
                                         title="Modifier ce QCM"
                                       >
@@ -252,7 +254,10 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                                     {handleDeleteQuestion && (
                                       <button
                                         type="button"
-                                        onClick={() => handleDeleteQuestion(q.id)}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDeleteQuestion(q.id);
+                                        }}
                                         className="rounded p-1 text-slate-400 hover:bg-red-950/60 hover:text-red-400"
                                         title="Supprimer ce QCM"
                                       >
@@ -279,213 +284,130 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
         </div>
       </div>
 
-      {/* Right Column: QCM Builder & QCMs List */}
+      {/* Right Column: QCM Builder Form ONLY */}
       <div className="lg:col-span-7 space-y-6">
         {selectedQuizId ? (
-          <>
-            {/* QCM Form (Create or Edit) */}
-            <div className={`${curriculumUi.panel} ${getStepTheme(4).panel} space-y-5 overflow-hidden`}>
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs font-black uppercase tracking-wider text-teal-300">
-                  {editingQuestionId ? "Modifier le QCM" : "Ajouter un QCM à ce Quiz"}
-                </h4>
-                {editingQuestionId && handleCancelEditQuestion && (
-                  <button
-                    type="button"
-                    onClick={handleCancelEditQuestion}
-                    className="text-[10px] font-bold text-slate-400 hover:text-white underline"
-                  >
-                    Annuler la modification
-                  </button>
-                )}
+          <div className={`${curriculumUi.panel} ${getStepTheme(4).panel} space-y-5 overflow-hidden`}>
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-black uppercase tracking-wider text-teal-300">
+                {editingQuestionId ? "Modifier le QCM" : "Ajouter un QCM à ce Quiz"}
+              </h4>
+              {editingQuestionId && handleCancelEditQuestion && (
+                <button
+                  type="button"
+                  onClick={handleCancelEditQuestion}
+                  className="text-[10px] font-bold text-slate-400 hover:text-white underline"
+                >
+                  Annuler la modification
+                </button>
+              )}
+            </div>
+
+            <form onSubmit={handleAddQuestion} className="space-y-4">
+              <label className="block space-y-1">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                  Énoncé du QCM
+                </span>
+                <textarea
+                  required
+                  rows={4}
+                  placeholder={String.raw`Exemple : Calculer le déterminant de $$A=\begin{pmatrix}1&2\\3&4\end{pmatrix}$$`}
+                  value={newQuestionText}
+                  onChange={(e) => setNewQuestionText(e.target.value)}
+                  className={`${inputFocus} font-mono leading-relaxed`}
+                />
+              </label>
+
+              <div className="space-y-2">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block font-semibold">
+                  Options de réponses
+                </span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                  {newQuestionOptions.map((opt, idx) => (
+                    <div key={idx} className="rounded-2xl border border-slate-700/80 bg-slate-950/40 p-2.5">
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className="flex h-6 w-6 select-none items-center justify-center rounded-lg border border-teal-500/30 bg-teal-950/60 text-[10px] font-black text-teal-300">
+                          {String.fromCharCode(65 + idx)}
+                        </span>
+                        {newQuestionAnswer === opt && opt.trim() && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-black uppercase text-emerald-300">
+                            <CheckCircle2 className="h-3 w-3" />
+                            Correcte
+                          </span>
+                        )}
+                      </div>
+                      <textarea
+                        required
+                        rows={2}
+                        placeholder={String.raw`Option ${String.fromCharCode(65 + idx)} avec LaTeX`}
+                        value={opt}
+                        onChange={(e) => {
+                          const next = [...newQuestionOptions];
+                          const previousValue = next[idx];
+                          next[idx] = e.target.value;
+                          setNewQuestionOptions(next);
+                          if (newQuestionAnswer === previousValue) {
+                            setNewQuestionAnswer(e.target.value);
+                          }
+                        }}
+                        className={`w-full rounded-xl border border-slate-700 bg-[#031512] px-3 py-2.5 font-mono text-xs font-semibold leading-relaxed text-slate-100 transition-all focus:bg-slate-950 focus:outline-none focus:ring-2 ${stepTheme.focus}`}
+                      />
+                      {opt.trim() && (
+                        <div className="mt-2 rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2 text-[11px] font-semibold text-slate-200">
+                          <LatexText value={opt} compact />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              <form onSubmit={handleAddQuestion} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <label className="block space-y-1">
                   <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                    Énoncé du QCM
+                    Bonne réponse
+                  </span>
+                  <select
+                    value={newQuestionAnswer}
+                    onChange={(e) => setNewQuestionAnswer(e.target.value)}
+                    required
+                    className={`${inputFocus} text-slate-700`}
+                  >
+                    <option value="">-- Choisir la bonne option --</option>
+                    {newQuestionOptions
+                      .map((option, index) => ({ option, index }))
+                      .filter(({ option }) => option.trim())
+                      .map(({ option, index }) => (
+                        <option key={`${index}-${option}`} value={option}>
+                          {`Option ${String.fromCharCode(65 + index)}`}
+                        </option>
+                      ))}
+                  </select>
+                </label>
+
+                <label className="block space-y-1">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                    Explication didactique
                   </span>
                   <textarea
                     required
-                    rows={4}
-                    placeholder={String.raw`Exemple : Calculer le déterminant de $$A=\begin{pmatrix}1&2\\3&4\end{pmatrix}$$`}
-                    value={newQuestionText}
-                    onChange={(e) => setNewQuestionText(e.target.value)}
+                    rows={3}
+                    placeholder={String.raw`Exemple : $\det(A)=1\times4-2\times3=-2$`}
+                    value={newQuestionExplanation}
+                    onChange={(e) => setNewQuestionExplanation(e.target.value)}
                     className={`${inputFocus} font-mono leading-relaxed`}
                   />
                 </label>
-
-                <div className="space-y-2">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block font-semibold">
-                    Options de réponses
-                  </span>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                    {newQuestionOptions.map((opt, idx) => (
-                      <div key={idx} className="rounded-2xl border border-slate-700/80 bg-slate-950/40 p-2.5">
-                        <div className="mb-2 flex items-center justify-between">
-                          <span className="flex h-6 w-6 select-none items-center justify-center rounded-lg border border-teal-500/30 bg-teal-950/60 text-[10px] font-black text-teal-300">
-                            {String.fromCharCode(65 + idx)}
-                          </span>
-                          {newQuestionAnswer === opt && opt.trim() && (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-black uppercase text-emerald-300">
-                              <CheckCircle2 className="h-3 w-3" />
-                              Correcte
-                            </span>
-                          )}
-                        </div>
-                        <textarea
-                          required
-                          rows={2}
-                          placeholder={String.raw`Option ${String.fromCharCode(65 + idx)} avec LaTeX`}
-                          value={opt}
-                          onChange={(e) => {
-                            const next = [...newQuestionOptions];
-                            const previousValue = next[idx];
-                            next[idx] = e.target.value;
-                            setNewQuestionOptions(next);
-                            if (newQuestionAnswer === previousValue) {
-                              setNewQuestionAnswer(e.target.value);
-                            }
-                          }}
-                          className={`w-full rounded-xl border border-slate-700 bg-[#031512] px-3 py-2.5 font-mono text-xs font-semibold leading-relaxed text-slate-100 transition-all focus:bg-slate-950 focus:outline-none focus:ring-2 ${stepTheme.focus}`}
-                        />
-                        {opt.trim() && (
-                          <div className="mt-2 rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2 text-[11px] font-semibold text-slate-200">
-                            <LatexText value={opt} compact />
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <label className="block space-y-1">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                      Bonne réponse
-                    </span>
-                    <select
-                      value={newQuestionAnswer}
-                      onChange={(e) => setNewQuestionAnswer(e.target.value)}
-                      required
-                      className={`${inputFocus} text-slate-700`}
-                    >
-                      <option value="">-- Choisir la bonne option --</option>
-                      {newQuestionOptions
-                        .map((option, index) => ({ option, index }))
-                        .filter(({ option }) => option.trim())
-                        .map(({ option, index }) => (
-                          <option key={`${index}-${option}`} value={option}>
-                            {`Option ${String.fromCharCode(65 + index)}`}
-                          </option>
-                        ))}
-                    </select>
-                  </label>
-
-                  <label className="block space-y-1">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                      Explication didactique
-                    </span>
-                    <textarea
-                      required
-                      rows={3}
-                      placeholder={String.raw`Exemple : $\det(A)=1\times4-2\times3=-2$`}
-                      value={newQuestionExplanation}
-                      onChange={(e) => setNewQuestionExplanation(e.target.value)}
-                      className={`${inputFocus} font-mono leading-relaxed`}
-                    />
-                  </label>
-                </div>
-
-                <button
-                  type="submit"
-                  className={`w-full rounded-xl py-3 text-xs font-black shadow-sm transition-colors active:scale-[0.98] ${getStepTheme(4).button}`}
-                >
-                  {editingQuestionId ? "Enregistrer les modifications du QCM" : "Ajouter ce QCM au Quiz"}
-                </button>
-              </form>
-            </div>
-
-            {/* QCM List of Selected Quiz */}
-            <div className="space-y-4">
-              <h3 className={curriculumUi.sectionTitle}>
-                QCMs du Quiz ({(selectedQuizDetail?.questions || []).length})
-              </h3>
-
-              <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
-                {(selectedQuizDetail?.questions || []).map((q: any, idx: number) => (
-                  <div key={q.id} className={`${curriculumUi.card} space-y-3 relative`}>
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 text-xs font-black leading-relaxed text-slate-100">
-                        <span className="text-teal-300 font-extrabold uppercase mr-1">QCM {idx + 1}.</span>
-                        <LatexText value={q.question} compact />
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        {handleStartEditQuestion && (
-                          <button
-                            type="button"
-                            onClick={() => handleStartEditQuestion(q)}
-                            className="rounded p-1 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
-                            title="Modifier ce QCM"
-                          >
-                            <Edit3 className="w-4 h-4" />
-                          </button>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteQuestion(q.id)}
-                          className="rounded p-1 text-slate-400 transition-colors hover:bg-red-950/50 hover:text-red-400"
-                          title="Supprimer ce QCM"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-2 text-[11px] font-semibold text-slate-400 sm:grid-cols-2">
-                      {(q.options || []).map((opt: string, optIdx: number) => {
-                        const isCorrect = opt === q.answer;
-                        return (
-                          <div
-                            key={optIdx}
-                            className={`p-2 rounded-xl flex items-center gap-1.5 border ${
-                              isCorrect
-                                ? "border-emerald-500/30 bg-emerald-950/40 text-emerald-300"
-                                : "border-slate-700 bg-slate-900/60 text-slate-500"
-                            }`}
-                          >
-                            <span
-                              className={`w-4 h-4 rounded text-[9px] font-black flex items-center justify-center shrink-0 ${
-                                isCorrect ? "bg-emerald-600 text-white" : "bg-slate-800 text-slate-400"
-                              }`}
-                            >
-                              {String.fromCharCode(65 + optIdx)}
-                            </span>
-                            <span className="min-w-0 flex-1 leading-relaxed">
-                              <LatexText value={opt} compact />
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    <div className="rounded-xl border border-slate-700 bg-slate-900/60 p-3 text-[10px] font-medium text-slate-400">
-                      <span className="font-black text-slate-300 uppercase text-[9px] block mb-1">Explication :</span>
-                      <LatexText value={q.explanation} compact />
-                    </div>
-                  </div>
-                ))}
-
-                {(selectedQuizDetail?.questions?.length ?? 0) === 0 && (
-                  <div className={`${curriculumUi.empty} p-6`}>
-                    <p className="text-xs text-slate-400 font-semibold">
-                      Aucun QCM dans ce quiz. Ajoutez-en un avec le formulaire ci-dessus.
-                    </p>
-                  </div>
-                )}
               </div>
-            </div>
-          </>
+
+              <button
+                type="submit"
+                className={`w-full rounded-xl py-3 text-xs font-black shadow-sm transition-colors active:scale-[0.98] ${getStepTheme(4).button}`}
+              >
+                {editingQuestionId ? "Enregistrer les modifications du QCM" : "Ajouter ce QCM au Quiz"}
+              </button>
+            </form>
+          </div>
         ) : (
           <div
             className={`${curriculumUi.panel} flex h-full flex-col items-center justify-center gap-2 py-16 text-center`}
