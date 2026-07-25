@@ -44,7 +44,7 @@ describe("curriculum step sequence", () => {
 
     expect(fs.existsSync("src/views/teacher/curriculum-steps/CurriculumOutlineStep.tsx")).toBe(false);
     expect(chaptersSource).not.toMatch(/Ajouter partie|sous-partie/i);
-    expect(mediaSource).toMatch(/Chapitre cible/);
+    expect(mediaSource).not.toMatch(/Chapitre cible/);
     expect(mediaSource).not.toMatch(/Section cible|managedSections\.map/);
     expect(quizSource).not.toMatch(/Chapitre de rattachement/);
     expect(quizSource).not.toMatch(/Section de rattachement|managedSections\.map/);

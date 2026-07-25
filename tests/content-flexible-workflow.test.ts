@@ -18,8 +18,8 @@ rulesTest("content-flexible-workflow", () => {
 
   assert.match(curriculumBundle, /const \[uploadSectionId, setUploadSectionId\]/);
   assert.doesNotMatch(curriculumBundle, /uploadPartId|uploadSubpartId|newSectionMode/);
-  assert.match(curriculumSource, /Directement dans le module/);
-  assert.match(curriculumSource, /Chapitre cible/);
+  assert.doesNotMatch(curriculumSource, /Directement dans le module/);
+  assert.doesNotMatch(curriculumSource, /Chapitre cible/);
   assert.match(curriculumSource, /chapterSections\.map/);
   assert.doesNotMatch(curriculumBundle, /!uploadFile \|\| !uploadSectionId \|\| !uploadTitle\.trim\(\)/);
   assert.match(curriculumBundle, /sectionId:\s*uploadSectionId \|\| null/);

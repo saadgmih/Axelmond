@@ -100,9 +100,6 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
 
   const stepTheme = getStepTheme(3);
   const inputFocus = `${curriculumUi.input} ${stepTheme.focus}`;
-  const destinationLabel = uploadSectionId
-    ? chapterSections.find((chapter) => chapter.id === uploadSectionId)?.title || "Chapitre sélectionné"
-    : "Racine du module";
 
   const processingVideos = selectedManagedContents.filter((c) => c.type === "VIDEO" && c.status === "PROCESSING");
 
@@ -217,24 +214,6 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
 
           <form onSubmit={handleUploadLessonAsset} className={`space-y-4 pt-3 ${curriculumUi.divider}`}>
             <fieldset disabled={isUploadingLessonAsset} className="space-y-4 disabled:opacity-70">
-              {/* Destination chapter selector */}
-              <div className="space-y-1">
-                <span className={curriculumUi.label}>Chapitre cible</span>
-                <select
-                  value={uploadSectionId}
-                  onChange={(e) => handleSetUploadSectionId(e.target.value)}
-                  className={`${inputFocus} text-slate-100`}
-                >
-                  <option value="">-- Directement dans le module (racine) --</option>
-                  {chapterSections.map((chapter) => (
-                    <option key={chapter.id} value={chapter.id}>
-                      {chapter.title}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-[10px] font-semibold text-lime-300/80">Destination actuelle : {destinationLabel}</p>
-              </div>
-
               <div className="grid grid-cols-2 gap-3">
                 <label className="block space-y-1">
                   <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Type de média</span>

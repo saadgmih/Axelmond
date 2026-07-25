@@ -26,7 +26,7 @@ rulesTest("lesson-asset-persistence", () => {
     /Promise\.all\(\[[\s\S]*?api\.getCourseContent\(courseId\)[\s\S]*?api\.getModuleContents\(courseId\)[\s\S]*?\]\)/,
   );
   assert.doesNotMatch(mediaViewSource, /Cascading selectors/);
-  assert.match(mediaViewSource, /Destination actuelle/);
+  assert.doesNotMatch(mediaViewSource, /Destination actuelle/);
 
   assert.equal(canAccessApiRoute("PROFESSOR", "POST", "/api/courses/42/lesson-assets/confirm"), true);
   assert.equal(canAccessApiRoute("RESEARCHER", "POST", "/api/courses/42/lesson-assets/confirm"), true);
