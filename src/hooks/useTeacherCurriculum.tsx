@@ -150,7 +150,7 @@ export function useTeacherCurriculum({
   const [newQuizTitle, setNewQuizTitle] = useState("");
   const [selectedQuizId, setSelectedQuizId] = useState<string>("");
   const [newQuestionText, setNewQuestionText] = useState("");
-  const [newQuestionOptions, setNewQuestionOptions] = useState(["Option A", "Option B", "Option C", "Option D"]);
+  const [newQuestionOptions, setNewQuestionOptions] = useState(["Choix 1", "Choix 2", "Choix 3", "Choix 4"]);
   const [newQuestionAnswer, setNewQuestionAnswer] = useState("");
   const [newQuestionExplanation, setNewQuestionExplanation] = useState("");
   const [quizManagerMsg, setQuizManagerMsg] = useState("");
@@ -594,7 +594,7 @@ export function useTeacherCurriculum({
       }
       setEditingQuestionId("");
       setNewQuestionText("");
-      setNewQuestionOptions(["Option A", "Option B", "Option C", "Option D"]);
+      setNewQuestionOptions(["Choix 1", "Choix 2", "Choix 3", "Choix 4"]);
       setNewQuestionAnswer("");
       setNewQuestionExplanation("");
       await loadTeacherQuizzes(quizCourseId);
@@ -608,7 +608,7 @@ export function useTeacherCurriculum({
   const handleStartEditQuestion = (q: any) => {
     setEditingQuestionId(q.id);
     setNewQuestionText(q.question || "");
-    const options = Array.isArray(q.options) && q.options.length > 0 ? q.options : ["Option A", "Option B", "Option C", "Option D"];
+    const options = Array.isArray(q.options) && q.options.length > 0 ? q.options : ["Choix 1", "Choix 2", "Choix 3", "Choix 4"];
     setNewQuestionOptions(options);
     setNewQuestionAnswer(q.answer || "");
     setNewQuestionExplanation(q.explanation || "");
@@ -617,7 +617,7 @@ export function useTeacherCurriculum({
   const handleCancelEditQuestion = () => {
     setEditingQuestionId("");
     setNewQuestionText("");
-    setNewQuestionOptions(["Option A", "Option B", "Option C", "Option D"]);
+    setNewQuestionOptions(["Choix 1", "Choix 2", "Choix 3", "Choix 4"]);
     setNewQuestionAnswer("");
     setNewQuestionExplanation("");
   };

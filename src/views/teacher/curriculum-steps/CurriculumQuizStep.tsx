@@ -324,21 +324,23 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                             </label>
 
                             {/* LEVEL 3: CHOICES MANAGEMENT */}
-                            <div className="space-y-3 border-t border-slate-800/80 pt-4">
+                            <div className="space-y-4 border-t border-slate-800/80 pt-4">
                               <div className="flex items-center justify-between gap-3">
                                 <div>
                                   <span className="text-[11px] font-black uppercase tracking-wider text-teal-300 block">
                                     Niveau 3 : Choix de réponses ({newQuestionOptions.length})
                                   </span>
                                   <span className="text-[10px] text-slate-400 font-medium">
-                                    Minimum 2 choix requis. Vous pouvez cocher <strong>une ou plusieurs bonnes réponses</strong> (ex: Option A et Option C).
+                                    Minimum 2 choix requis. Renseignez les options puis sélectionnez le ou les choix corrects dans la liste ci-dessous.
                                   </span>
                                 </div>
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    const nextLetter = String.fromCharCode(65 + newQuestionOptions.length);
-                                    setNewQuestionOptions([...newQuestionOptions, `Option ${nextLetter}`]);
+                                    setNewQuestionOptions([
+                                      ...newQuestionOptions,
+                                      `Choix ${newQuestionOptions.length + 1}`,
+                                    ]);
                                   }}
                                   className="inline-flex items-center gap-1.5 rounded-xl border border-teal-500/40 bg-teal-950/60 px-3 py-1.5 text-xs font-bold text-teal-300 hover:bg-teal-900/80 hover:text-white transition-all shrink-0"
                                 >
@@ -347,38 +349,20 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                                 </button>
                               </div>
 
+                              {/* CHOICE INPUT CARDS GRID */}
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 {newQuestionOptions.map((opt, idx) => {
-                                  const isCorrect = selectedCorrectOptions.includes(opt.trim()) && opt.trim().length > 0;
                                   const canDelete = newQuestionOptions.length > 2;
 
                                   return (
                                     <div
                                       key={idx}
-                                      className={`rounded-2xl border p-3 transition-all space-y-2.5 ${
-                                        isCorrect
-                                          ? "border-emerald-500/60 bg-emerald-950/30 ring-1 ring-emerald-500/30"
-                                          : "border-slate-800 bg-slate-950/60 hover:border-slate-700"
-                                      }`}
+                                      className="rounded-2xl border border-slate-800 bg-slate-950/60 p-3 transition-all space-y-2.5 hover:border-slate-700"
                                     >
                                       <div className="flex items-center justify-between gap-2">
-                                        <div className="flex items-center gap-2">
-                                          <span className="flex h-6 w-6 select-none items-center justify-center rounded-lg border border-teal-500/40 bg-teal-950/80 text-[10px] font-black text-teal-300">
-                                            {String.fromCharCode(65 + idx)}
-                                          </span>
-                                          <button
-                                            type="button"
-                                            onClick={() => toggleCorrectOption(opt)}
-                                            className={`inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-[10px] font-black uppercase transition-all border ${
-                                              isCorrect
-                                                ? "border-emerald-500/50 bg-emerald-500/20 text-emerald-300 shadow-sm"
-                                                : "border-slate-700/80 bg-slate-900 text-slate-400 hover:border-emerald-500/40 hover:text-emerald-300"
-                                            }`}
-                                          >
-                                            <CheckCircle2 className="h-3 w-3" />
-                                            {isCorrect ? "Bonne réponse ✓" : "Définir comme bonne réponse"}
-                                          </button>
-                                        </div>
+                                        <span className="inline-flex items-center gap-1.5 rounded-lg border border-teal-500/40 bg-teal-950/80 px-2.5 py-1 text-[10px] font-black uppercase text-teal-300 font-mono">
+                                          Choix {idx + 1}
+                                        </span>
 
                                         {/* Delete choice button with minimum 2 choices rule */}
                                         <button
@@ -410,7 +394,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                                       <textarea
                                         required
                                         rows={2}
-                                        placeholder={`Contenu du choix ${String.fromCharCode(65 + idx)}`}
+                                        placeholder={`Contenu du Choix ${idx + 1}`}
                                         value={opt}
                                         onChange={(e) => {
                                           const previousVal = newQuestionOptions[idx];
@@ -439,12 +423,67 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                                 })}
                               </div>
 
-                              {selectedCorrectOptions.length === 0 && (
-                                <p className="text-[11px] font-bold text-amber-400 flex items-center gap-1.5 pt-1">
-                                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                                  Veuillez cocher au moins une option comme bonne réponse.
-                                </p>
-                              )}
+                              {/* LIST FOR SELECTING CORRECT CHOICES */}
+                              <div className="space-y-2 border-t border-slate-800/80 pt-4">
+                                <div className="flex items-center justify-between gap-3">
+                                  <div>
+                                    <span className="text-[11px] font-black uppercase tracking-wider text-teal-300 block">
+                                      Liste de sélection des choix corrects
+                                    </span>
+                                    <span className="text-[10px] text-slate-400 font-medium">
+                                      Cochez dans la liste ci-dessous le ou les choix qui constituent la bonne réponse.
+                                    </span>
+                                  </div>
+                                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-500/30 px-2.5 py-1 rounded-lg shrink-0">
+                                    {selectedCorrectOptions.length} choix sélectionné(s)
+                                  </span>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-3 rounded-2xl border border-slate-800 bg-[#031512]">
+                                  {newQuestionOptions.map((opt, idx) => {
+                                    const isCorrect =
+                                      selectedCorrectOptions.includes(opt.trim()) && opt.trim().length > 0;
+                                    const choiceTitle = `Choix ${idx + 1}`;
+                                    const choiceContent = opt.trim() || choiceTitle;
+
+                                    return (
+                                      <label
+                                        key={idx}
+                                        className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer select-none ${
+                                          isCorrect
+                                            ? "border-emerald-500/60 bg-emerald-950/40 text-emerald-200 ring-1 ring-emerald-500/30"
+                                            : "border-slate-800/90 bg-slate-950/70 text-slate-300 hover:border-slate-700 hover:bg-slate-900"
+                                        }`}
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={isCorrect}
+                                          onChange={() => toggleCorrectOption(opt)}
+                                          className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-emerald-500 focus:ring-emerald-400 focus:ring-offset-0 cursor-pointer"
+                                        />
+                                        <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
+                                          <span className="font-mono text-xs font-black text-teal-300 shrink-0">
+                                            {choiceTitle}
+                                          </span>
+                                          <span className="truncate text-xs font-semibold text-slate-200">
+                                            {choiceContent}
+                                          </span>
+                                          {isCorrect && (
+                                            <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                                          )}
+                                        </div>
+                                      </label>
+                                    );
+                                  })}
+                                </div>
+
+                                {selectedCorrectOptions.length === 0 && (
+                                  <p className="text-[11px] font-bold text-amber-400 flex items-center gap-1.5 pt-1">
+                                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                                    Veuillez cocher au moins un choix dans la liste ci-dessus.
+                                  </p>
+                                )}
+                              </div>
                             </div>
 
                             {/* Summary & Explication */}
