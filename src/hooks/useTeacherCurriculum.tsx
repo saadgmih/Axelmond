@@ -187,7 +187,7 @@ export function useTeacherCurriculum({
       if (!targetCourseId) return;
       try {
         const quizList = await api.getCourseQuizzes(targetCourseId);
-        if (!active.isActive()) return;
+        if (request && !active.isActive()) return;
         setTeacherQuizzes(quizList);
         if (selectedQuizId && !quizList.some((q: any) => q.id === selectedQuizId)) {
           setSelectedQuizId("");
@@ -195,7 +195,7 @@ export function useTeacherCurriculum({
           setSelectedQuizId("");
         }
       } catch (err: any) {
-        if (!active.isActive()) return;
+        if (request && !active.isActive()) return;
         console.error("Failed to load quizzes:", err);
         setTeacherQuizzes([]);
       }
@@ -213,10 +213,10 @@ export function useTeacherCurriculum({
       }
       try {
         const quiz = await api.getQuizById(targetQuizId);
-        if (!active.isActive()) return;
+        if (request && !active.isActive()) return;
         setSelectedQuizDetail(quiz);
       } catch (err: any) {
-        if (!active.isActive()) return;
+        if (request && !active.isActive()) return;
         console.error("Failed to load quiz detail:", err);
         setSelectedQuizDetail(null);
       }
@@ -575,8 +575,9 @@ export function useTeacherCurriculum({
     }
     try {
       setQuizManagerError("");
+      let savedQcm: any = null;
       if (editingQuestionId) {
-        await api.updateQuizQuestion(editingQuestionId, {
+        savedQcm = await api.updateQuizQuestion(editingQuestionId, {
           question: newQuestionText.trim(),
           options: filledOptions,
           answer: newQuestionAnswer.trim(),
@@ -584,7 +585,7 @@ export function useTeacherCurriculum({
         });
         setQuizManagerMsg("QCM mis à jour avec succès.");
       } else {
-        await api.addQuizQuestion(selectedQuizId, {
+        savedQcm = await api.addQuizQuestion(selectedQuizId, {
           question: newQuestionText.trim(),
           options: filledOptions,
           answer: newQuestionAnswer.trim(),
@@ -592,6 +593,36 @@ export function useTeacherCurriculum({
         });
         setQuizManagerMsg("QCM ajouté avec succès.");
       }
+
+      if (savedQcm) {
+        setSelectedQuizDetail((prev: any) => {
+          if (!prev) return prev;
+          const currentQuestions = Array.isArray(prev.questions) ? prev.questions : [];
+          if (editingQuestionId) {
+            return {
+              ...prev,
+              questions: currentQuestions.map((q: any) => (q.id === editingQuestionId ? savedQcm : q)),
+            };
+          } else {
+            return {
+              ...prev,
+              questions: [...currentQuestions, savedQcm],
+            };
+          }
+        });
+
+        setTeacherQuizzes((prevList: any[]) =>
+          prevList.map((quiz) => {
+            if (quiz.id !== selectedQuizId) return quiz;
+            const currentCount = quiz.questionCount ?? quiz.questions?.length ?? 0;
+            return {
+              ...quiz,
+              questionCount: editingQuestionId ? currentCount : currentCount + 1,
+            };
+          }),
+        );
+      }
+
       setEditingQuestionId("");
       setNewQuestionText("");
       setNewQuestionOptions(["Choix 1", "Choix 2", "Choix 3", "Choix 4"]);
@@ -626,6 +657,24 @@ export function useTeacherCurriculum({
     if (!window.confirm("Supprimer ce QCM ?")) return;
     try {
       await api.deleteQuizQuestion(questionId);
+      setSelectedQuizDetail((prev: any) => {
+        if (!prev) return prev;
+        const currentQuestions = Array.isArray(prev.questions) ? prev.questions : [];
+        return {
+          ...prev,
+          questions: currentQuestions.filter((q: any) => q.id !== questionId),
+        };
+      });
+      setTeacherQuizzes((prevList: any[]) =>
+        prevList.map((quiz) => {
+          if (quiz.id !== selectedQuizId) return quiz;
+          const currentCount = quiz.questionCount ?? quiz.questions?.length ?? 1;
+          return {
+            ...quiz,
+            questionCount: Math.max(0, currentCount - 1),
+          };
+        }),
+      );
       await loadTeacherQuizzes(quizCourseId);
       await loadSelectedQuizDetail(selectedQuizId);
       setQuizManagerMsg("QCM supprimé.");

@@ -302,8 +302,9 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                           </div>
 
                           <form
-                            onSubmit={(e) => {
-                              handleAddQuestion(e);
+                            onSubmit={async (e) => {
+                              e.preventDefault();
+                              await handleAddQuestion(e);
                               setIsCreatingQcm(false);
                             }}
                             className="space-y-5"
