@@ -562,8 +562,15 @@ export function useTeacherCurriculum({
       setQuizManagerError("Au moins 2 options de réponse sont requises.");
       return;
     }
-    if (!filledOptions.includes(newQuestionAnswer.trim())) {
-      setQuizManagerError("La bonne réponse doit correspondre à l'une des options.");
+    const selectedAnswerList = newQuestionAnswer
+      .split(",")
+      .map((a) => a.trim())
+      .filter(Boolean);
+    if (
+      selectedAnswerList.length === 0 ||
+      !selectedAnswerList.every((ans) => filledOptions.includes(ans))
+    ) {
+      setQuizManagerError("Chaque bonne réponse doit correspondre à l'une des options renseignées.");
       return;
     }
     try {

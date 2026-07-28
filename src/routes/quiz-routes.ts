@@ -158,7 +158,11 @@ export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
     const gradedAnswers = quiz.questions.map((question, index) => {
       const selectedAnswer = String(answers[question.id] ?? answers[index] ?? "").trim();
 
-      const isCorrect = selectedAnswer === question.answer;
+      const correctAnswers = String(question.answer || "")
+        .split(",")
+        .map((a) => a.trim())
+        .filter(Boolean);
+      const isCorrect = correctAnswers.includes(selectedAnswer) || selectedAnswer === question.answer;
 
       if (isCorrect) score += 1;
 
@@ -279,7 +283,11 @@ export function registerQuizRoutes(app: Express, ctx: RouteContext): void {
     const gradedAnswers = quiz.questions.map((question, index) => {
       const selectedAnswer = String(answers[question.id] ?? answers[index] ?? "").trim();
 
-      const isCorrect = selectedAnswer === question.answer;
+      const correctAnswers = String(question.answer || "")
+        .split(",")
+        .map((a) => a.trim())
+        .filter(Boolean);
+      const isCorrect = correctAnswers.includes(selectedAnswer) || selectedAnswer === question.answer;
 
       if (isCorrect) score += 1;
 

@@ -831,7 +831,8 @@ export default function StudentCourseView({
                       {quizQuestions && quizQuestions.length > 0 ? (
                         <div className="space-y-4 sm:space-y-5">
                           {quizQuestions.map((q, idx) => {
-                            const isCorrect = quizAnswers[idx] === q.answer;
+                            const correctAnswers = q.answer ? q.answer.split(",").map((a) => a.trim()).filter(Boolean) : [];
+                            const isCorrect = correctAnswers.includes((quizAnswers[idx] || "").trim()) || quizAnswers[idx] === q.answer;
                             return (
                               <div
                                 key={idx}
@@ -850,6 +851,7 @@ export default function StudentCourseView({
                                 <div className="grid grid-cols-1 gap-3 bg-[#061c18]/70 p-4 sm:p-5 lg:grid-cols-2">
                                   {q.options.map((option, oIdx) => {
                                     const isSelected = quizAnswers[idx] === option;
+                                    const isOptionCorrect = correctAnswers.includes(option.trim()) || option.trim() === q.answer?.trim();
                                     return (
                                       <button
                                         key={oIdx}
@@ -864,7 +866,7 @@ export default function StudentCourseView({
                                                 ? "border-emerald-400/60 bg-emerald-400/[0.12] text-emerald-50 ring-1 ring-inset ring-emerald-400/20"
                                                 : "border-rose-400/60 bg-rose-400/[0.11] text-rose-50 ring-1 ring-inset ring-rose-400/20"
                                               : "border-emerald-300/70 bg-emerald-300/[0.14] text-white shadow-[0_12px_28px_-18px_rgba(52,211,153,0.8)] ring-2 ring-emerald-300/20"
-                                            : quizSubmitted && option === q.answer
+                                            : quizSubmitted && isOptionCorrect
                                               ? "border-emerald-400/50 bg-emerald-400/10 text-emerald-100 ring-1 ring-inset ring-emerald-400/15"
                                               : "border-white/[0.08] bg-[#0a2a23] text-emerald-50/85 hover:-translate-y-0.5 hover:border-emerald-300/35 hover:bg-[#0d352c] hover:text-white hover:shadow-[0_14px_28px_-22px_rgba(52,211,153,0.7)]"
                                         }`}
@@ -877,7 +879,7 @@ export default function StudentCourseView({
                                                   ? "bg-emerald-300 text-emerald-950"
                                                   : "bg-rose-400 text-rose-950"
                                                 : "bg-emerald-200 text-emerald-950"
-                                              : quizSubmitted && option === q.answer
+                                              : quizSubmitted && isOptionCorrect
                                                 ? "bg-emerald-300 text-emerald-950"
                                                 : "border border-white/[0.06] bg-white/[0.06] text-emerald-100/55 group-hover:bg-emerald-300/15 group-hover:text-emerald-200"
                                           }`}
@@ -891,7 +893,7 @@ export default function StudentCourseView({
 
                                         {/* Status indicators */}
                                         {quizSubmitted ? (
-                                          option === q.answer ? (
+                                          isOptionCorrect ? (
                                             <CheckCircle className="h-4 w-4 shrink-0 text-emerald-300" />
                                           ) : isSelected ? (
                                             <X className="h-4 w-4 shrink-0 text-rose-300" />

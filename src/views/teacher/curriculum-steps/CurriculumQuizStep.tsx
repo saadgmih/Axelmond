@@ -102,6 +102,24 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
   const stepTheme = getStepTheme(4);
   const inputFocus = `${curriculumUi.input} ${stepTheme.focus}`;
 
+  // Parse comma-separated list of selected correct options to support multiple correct answers per QCM
+  const selectedCorrectOptions = newQuestionAnswer
+    ? newQuestionAnswer.split(",").map((a) => a.trim()).filter(Boolean)
+    : [];
+
+  const toggleCorrectOption = (opt: string) => {
+    const cleanOpt = opt.trim();
+    if (!cleanOpt) return;
+
+    let updatedList: string[];
+    if (selectedCorrectOptions.includes(cleanOpt)) {
+      updatedList = selectedCorrectOptions.filter((item) => item !== cleanOpt);
+    } else {
+      updatedList = [...selectedCorrectOptions, cleanOpt];
+    }
+    setNewQuestionAnswer(updatedList.join(", "));
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
       {/* Top Bar: Permanent Add Quiz button & Header */}
@@ -307,13 +325,13 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
 
                             {/* LEVEL 3: CHOICES MANAGEMENT */}
                             <div className="space-y-3 border-t border-slate-800/80 pt-4">
-                              <div className="flex items-center justify-between">
+                              <div className="flex items-center justify-between gap-3">
                                 <div>
                                   <span className="text-[11px] font-black uppercase tracking-wider text-teal-300 block">
                                     Niveau 3 : Choix de réponses ({newQuestionOptions.length})
                                   </span>
                                   <span className="text-[10px] text-slate-400 font-medium">
-                                    Minimum 2 choix requis. Cliquez sur "Bonne réponse" pour valider la réponse exacte.
+                                    Minimum 2 choix requis. Vous pouvez cocher <strong>une ou plusieurs bonnes réponses</strong> (ex: Option A et Option C).
                                   </span>
                                 </div>
                                 <button
@@ -322,7 +340,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                                     const nextLetter = String.fromCharCode(65 + newQuestionOptions.length);
                                     setNewQuestionOptions([...newQuestionOptions, `Option ${nextLetter}`]);
                                   }}
-                                  className="inline-flex items-center gap-1.5 rounded-xl border border-teal-500/40 bg-teal-950/60 px-3 py-1.5 text-xs font-bold text-teal-300 hover:bg-teal-900/80 hover:text-white transition-all"
+                                  className="inline-flex items-center gap-1.5 rounded-xl border border-teal-500/40 bg-teal-950/60 px-3 py-1.5 text-xs font-bold text-teal-300 hover:bg-teal-900/80 hover:text-white transition-all shrink-0"
                                 >
                                   <Plus className="h-3.5 w-3.5" />
                                   Ajouter un choix
@@ -331,7 +349,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
 
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 {newQuestionOptions.map((opt, idx) => {
-                                  const isCorrect = newQuestionAnswer === opt && opt.trim().length > 0;
+                                  const isCorrect = selectedCorrectOptions.includes(opt.trim()) && opt.trim().length > 0;
                                   const canDelete = newQuestionOptions.length > 2;
 
                                   return (
@@ -350,7 +368,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                                           </span>
                                           <button
                                             type="button"
-                                            onClick={() => setNewQuestionAnswer(opt)}
+                                            onClick={() => toggleCorrectOption(opt)}
                                             className={`inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-[10px] font-black uppercase transition-all border ${
                                               isCorrect
                                                 ? "border-emerald-500/50 bg-emerald-500/20 text-emerald-300 shadow-sm"
@@ -358,7 +376,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                                             }`}
                                           >
                                             <CheckCircle2 className="h-3 w-3" />
-                                            {isCorrect ? "Bonne réponse" : "Définir comme bonne réponse"}
+                                            {isCorrect ? "Bonne réponse ✓" : "Définir comme bonne réponse"}
                                           </button>
                                         </div>
 
@@ -371,8 +389,11 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                                             const target = newQuestionOptions[idx];
                                             const nextOpts = newQuestionOptions.filter((_, i) => i !== idx);
                                             setNewQuestionOptions(nextOpts);
-                                            if (newQuestionAnswer === target) {
-                                              setNewQuestionAnswer(nextOpts[0] || "");
+                                            if (target && selectedCorrectOptions.includes(target.trim())) {
+                                              const updatedCorrect = selectedCorrectOptions.filter(
+                                                (item) => item !== target.trim(),
+                                              );
+                                              setNewQuestionAnswer(updatedCorrect.join(", "));
                                             }
                                           }}
                                           className={`rounded-lg p-1.5 transition-all border ${
@@ -393,11 +414,16 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                                         value={opt}
                                         onChange={(e) => {
                                           const previousVal = newQuestionOptions[idx];
+                                          const newVal = e.target.value;
                                           const next = [...newQuestionOptions];
-                                          next[idx] = e.target.value;
+                                          next[idx] = newVal;
                                           setNewQuestionOptions(next);
-                                          if (newQuestionAnswer === previousVal) {
-                                            setNewQuestionAnswer(e.target.value);
+
+                                          if (previousVal && selectedCorrectOptions.includes(previousVal.trim())) {
+                                            const updatedCorrect = selectedCorrectOptions.map((item) =>
+                                              item === previousVal.trim() ? newVal.trim() : item,
+                                            );
+                                            setNewQuestionAnswer(updatedCorrect.join(", "));
                                           }
                                         }}
                                         className={`w-full rounded-xl border border-slate-700/80 bg-[#031512] px-3 py-2 font-mono text-xs font-semibold text-slate-100 transition-all focus:bg-slate-950 focus:outline-none focus:ring-2 ${stepTheme.focus}`}
@@ -413,39 +439,38 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                                 })}
                               </div>
 
-                              {!newQuestionOptions.some(
-                                (opt) => opt === newQuestionAnswer && opt.trim().length > 0,
-                              ) && (
+                              {selectedCorrectOptions.length === 0 && (
                                 <p className="text-[11px] font-bold text-amber-400 flex items-center gap-1.5 pt-1">
                                   <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                                  Veuillez sélectionner quelle option est la bonne réponse.
+                                  Veuillez cocher au moins une option comme bonne réponse.
                                 </p>
                               )}
                             </div>
 
-                            {/* Explication & Submitting */}
+                            {/* Summary & Explication */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-800/80 pt-4">
-                              <label className="block space-y-1">
+                              <div className="block space-y-1.5">
                                 <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                                  Bonne réponse sélectionnée
+                                  Bonne(s) réponse(s) définie(s) ({selectedCorrectOptions.length})
                                 </span>
-                                <select
-                                  value={newQuestionAnswer}
-                                  onChange={(e) => setNewQuestionAnswer(e.target.value)}
-                                  required
-                                  className={`${inputFocus} text-slate-700`}
-                                >
-                                  <option value="">-- Choisir la bonne option --</option>
-                                  {newQuestionOptions
-                                    .map((option, index) => ({ option, index }))
-                                    .filter(({ option }) => option.trim())
-                                    .map(({ option, index }) => (
-                                      <option key={`${index}-${option}`} value={option}>
-                                        {`Option ${String.fromCharCode(65 + index)}: ${option.slice(0, 30)}`}
-                                      </option>
-                                    ))}
-                                </select>
-                              </label>
+                                <div className="flex flex-wrap items-center gap-1.5 p-2.5 rounded-xl border border-slate-700/80 bg-[#031512] min-h-[42px]">
+                                  {selectedCorrectOptions.length === 0 ? (
+                                    <span className="text-xs text-amber-400 font-semibold italic">
+                                      Aucune bonne réponse cochée.
+                                    </span>
+                                  ) : (
+                                    selectedCorrectOptions.map((ans, aIdx) => (
+                                      <span
+                                        key={aIdx}
+                                        className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/50 bg-emerald-500/20 px-2.5 py-1 text-xs font-black text-emerald-300 shadow-sm"
+                                      >
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                                        {ans}
+                                      </span>
+                                    ))
+                                  )}
+                                </div>
+                              </div>
 
                               <label className="block space-y-1">
                                 <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
