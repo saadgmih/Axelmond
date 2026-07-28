@@ -429,7 +429,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                                         className={`w-full rounded-xl border border-slate-700/80 bg-[#031512] px-3 py-2 font-mono text-xs font-semibold text-slate-100 transition-all focus:bg-slate-950 focus:outline-none focus:ring-2 ${stepTheme.focus}`}
                                       />
 
-                                      {opt.trim() && (
+                                      {opt.trim() && (opt.includes("$") || opt.includes("\\")) && (
                                         <div className="rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-1.5 text-[11px] font-semibold text-slate-200">
                                           <LatexText value={opt} compact />
                                         </div>
