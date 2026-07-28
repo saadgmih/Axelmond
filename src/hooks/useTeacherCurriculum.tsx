@@ -189,8 +189,8 @@ export function useTeacherCurriculum({
         const quizList = await api.getCourseQuizzes(targetCourseId);
         if (!active.isActive()) return;
         setTeacherQuizzes(quizList);
-        if (quizList.length > 0 && !quizList.some((q: any) => q.id === selectedQuizId)) {
-          setSelectedQuizId(quizList[0].id);
+        if (selectedQuizId && !quizList.some((q: any) => q.id === selectedQuizId)) {
+          setSelectedQuizId("");
         } else if (quizList.length === 0) {
           setSelectedQuizId("");
         }
