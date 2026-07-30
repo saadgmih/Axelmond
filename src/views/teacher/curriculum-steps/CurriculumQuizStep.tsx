@@ -99,6 +99,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
   } = props;
 
   const [isCreatingQcm, setIsCreatingQcm] = useState(false);
+  const [isCorrectChoicesOpen, setIsCorrectChoicesOpen] = useState(false);
   const stepTheme = getStepTheme(4);
   const inputFocus = `${curriculumUi.input} ${stepTheme.focus}`;
 
@@ -426,57 +427,72 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
 
                               {/* LIST FOR SELECTING CORRECT CHOICES */}
                               <div className="space-y-2 border-t border-slate-800/80 pt-4">
-                                <div className="flex items-center justify-between gap-3">
-                                  <div>
-                                    <span className="text-[11px] font-black uppercase tracking-wider text-teal-300 block">
-                                      Liste de sélection des choix corrects
-                                    </span>
-                                    <span className="text-[10px] text-slate-400 font-medium">
-                                      Cochez dans la liste ci-dessous le ou les choix qui constituent la bonne réponse.
-                                    </span>
+                                <button
+                                  type="button"
+                                  onClick={() => setIsCorrectChoicesOpen((prev) => !prev)}
+                                  className="w-full flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-800 bg-[#031512] hover:bg-slate-900/80 transition-all text-left cursor-pointer select-none group"
+                                >
+                                  <div className="flex items-center gap-2.5 min-w-0">
+                                    <ChevronDown
+                                      className={`h-4 w-4 text-teal-400 shrink-0 transition-transform duration-200 ${
+                                        isCorrectChoicesOpen ? "rotate-180" : ""
+                                      }`}
+                                    />
+                                    <div className="min-w-0">
+                                      <span className="text-[11px] font-black uppercase tracking-wider text-teal-300 block truncate">
+                                        Liste de sélection des choix corrects
+                                      </span>
+                                      <span className="text-[10px] text-slate-400 font-medium block truncate">
+                                        {isCorrectChoicesOpen
+                                          ? "Cliquez pour réduire la liste des choix"
+                                          : "Cliquez pour afficher et choisir la ou les bonnes réponses"}
+                                      </span>
+                                    </div>
                                   </div>
                                   <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-500/30 px-2.5 py-1 rounded-lg shrink-0">
                                     {selectedCorrectOptions.length} choix sélectionné(s)
                                   </span>
-                                </div>
+                                </button>
 
-                                <div className="flex flex-col sm:flex-row rounded-xl border border-slate-800 bg-[#031512] overflow-hidden divide-y sm:divide-y-0 sm:divide-x divide-slate-800/80">
-                                  {newQuestionOptions.map((opt, idx) => {
-                                    const isCorrect =
-                                      selectedCorrectOptions.includes(opt.trim()) && opt.trim().length > 0;
-                                    const choiceTitle = `Choix ${idx + 1}`;
-                                    const choiceContent = opt.trim() || choiceTitle;
+                                {isCorrectChoicesOpen && (
+                                  <div className="flex flex-col rounded-xl border border-slate-800 bg-[#031512] overflow-hidden divide-y divide-slate-800/80 transition-all animate-in fade-in duration-200">
+                                    {newQuestionOptions.map((opt, idx) => {
+                                      const isCorrect =
+                                        selectedCorrectOptions.includes(opt.trim()) && opt.trim().length > 0;
+                                      const choiceTitle = `Choix ${idx + 1}`;
+                                      const choiceContent = opt.trim() || choiceTitle;
 
-                                    return (
-                                      <label
-                                        key={idx}
-                                        className={`flex-1 flex items-center justify-between gap-2.5 p-3 transition-all cursor-pointer select-none ${
-                                          isCorrect
-                                            ? "bg-emerald-950/60 text-emerald-200"
-                                            : "bg-slate-950/70 text-slate-300 hover:bg-slate-900/90"
-                                        }`}
-                                      >
-                                        <div className="min-w-0 flex-1 flex items-center gap-2.5">
-                                          <input
-                                            type="checkbox"
-                                            checked={isCorrect}
-                                            onChange={() => toggleCorrectOption(opt)}
-                                            className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-emerald-500 focus:ring-emerald-400 focus:ring-offset-0 cursor-pointer shrink-0"
-                                          />
-                                          <span className="font-mono text-xs font-black text-teal-300 shrink-0">
-                                            {choiceTitle}
-                                          </span>
-                                          <span className="truncate text-xs font-semibold text-slate-200">
-                                            {choiceContent}
-                                          </span>
-                                        </div>
-                                        {isCorrect && (
-                                          <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 ml-1" />
-                                        )}
-                                      </label>
-                                    );
-                                  })}
-                                </div>
+                                      return (
+                                        <label
+                                          key={idx}
+                                          className={`w-full flex items-center justify-between gap-2.5 p-3 transition-all cursor-pointer select-none ${
+                                            isCorrect
+                                              ? "bg-emerald-950/60 text-emerald-200"
+                                              : "bg-slate-950/70 text-slate-300 hover:bg-slate-900/90"
+                                          }`}
+                                        >
+                                          <div className="min-w-0 flex-1 flex items-center gap-2.5">
+                                            <input
+                                              type="checkbox"
+                                              checked={isCorrect}
+                                              onChange={() => toggleCorrectOption(opt)}
+                                              className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-emerald-500 focus:ring-emerald-400 focus:ring-offset-0 cursor-pointer shrink-0"
+                                            />
+                                            <span className="font-mono text-xs font-black text-teal-300 shrink-0">
+                                              {choiceTitle}
+                                            </span>
+                                            <span className="truncate text-xs font-semibold text-slate-200">
+                                              {choiceContent}
+                                            </span>
+                                          </div>
+                                          {isCorrect && (
+                                            <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 ml-1" />
+                                          )}
+                                        </label>
+                                      );
+                                    })}
+                                  </div>
+                                )}
 
                                 {selectedCorrectOptions.length === 0 && (
                                   <p className="text-[11px] font-bold text-amber-400 flex items-center gap-1.5 pt-1">
