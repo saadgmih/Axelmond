@@ -440,7 +440,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                                   </span>
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-3 rounded-2xl border border-slate-800 bg-[#031512]">
+                                <div className="flex flex-col sm:flex-row rounded-xl border border-slate-800 bg-[#031512] overflow-hidden divide-y sm:divide-y-0 sm:divide-x divide-slate-800/80">
                                   {newQuestionOptions.map((opt, idx) => {
                                     const isCorrect =
                                       selectedCorrectOptions.includes(opt.trim()) && opt.trim().length > 0;
@@ -450,29 +450,29 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                                     return (
                                       <label
                                         key={idx}
-                                        className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer select-none ${
+                                        className={`flex-1 flex items-center justify-between gap-2.5 p-3 transition-all cursor-pointer select-none ${
                                           isCorrect
-                                            ? "border-emerald-500/60 bg-emerald-950/40 text-emerald-200 ring-1 ring-emerald-500/30"
-                                            : "border-slate-800/90 bg-slate-950/70 text-slate-300 hover:border-slate-700 hover:bg-slate-900"
+                                            ? "bg-emerald-950/60 text-emerald-200"
+                                            : "bg-slate-950/70 text-slate-300 hover:bg-slate-900/90"
                                         }`}
                                       >
-                                        <input
-                                          type="checkbox"
-                                          checked={isCorrect}
-                                          onChange={() => toggleCorrectOption(opt)}
-                                          className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-emerald-500 focus:ring-emerald-400 focus:ring-offset-0 cursor-pointer"
-                                        />
-                                        <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
+                                        <div className="min-w-0 flex-1 flex items-center gap-2.5">
+                                          <input
+                                            type="checkbox"
+                                            checked={isCorrect}
+                                            onChange={() => toggleCorrectOption(opt)}
+                                            className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-emerald-500 focus:ring-emerald-400 focus:ring-offset-0 cursor-pointer shrink-0"
+                                          />
                                           <span className="font-mono text-xs font-black text-teal-300 shrink-0">
                                             {choiceTitle}
                                           </span>
                                           <span className="truncate text-xs font-semibold text-slate-200">
                                             {choiceContent}
                                           </span>
-                                          {isCorrect && (
-                                            <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-                                          )}
                                         </div>
+                                        {isCorrect && (
+                                          <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 ml-1" />
+                                        )}
                                       </label>
                                     );
                                   })}
