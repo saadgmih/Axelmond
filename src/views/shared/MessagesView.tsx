@@ -339,7 +339,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [uploadState, setUploadState] = useState<{ conversationId: string; progress: number } | null>(null);
   const [error, setError] = useState("");
   const [peerTyping, setPeerTyping] = useState(false);
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null);
@@ -351,6 +351,11 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
   const typingTimerRef = useRef<number | null>(null);
   const messageRequestRef = useRef(0);
   const sendingRef = useRef(false);
+  const selectedIdRef = useRef<string | null>(selectedId);
+
+  useEffect(() => {
+    selectedIdRef.current = selectedId;
+  }, [selectedId]);
 
   const selectedConversation = useMemo(
     () => conversations.find((item) => item.id === selectedId) || null,
@@ -586,15 +591,16 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
   };
 
   const sendMessage = useCallback(
-    async (attachment?: OutgoingMessageAttachment, bodyOverride?: string) => {
-      if (!selectedId || sendingRef.current) return;
+    async (attachment?: OutgoingMessageAttachment, bodyOverride?: string, targetConversationIdOverride?: string) => {
+      const targetId = targetConversationIdOverride || selectedIdRef.current;
+      if (!targetId || sendingRef.current) return;
       const body = bodyOverride === undefined ? draft.trim() : bodyOverride.trim();
       if (!body && !attachment) return;
       sendingRef.current = true;
       setSending(true);
       setError("");
       try {
-        const payload = await api.sendConversationMessage(selectedId, {
+        const payload = await api.sendConversationMessage(targetId, {
           body,
           attachment: attachment
             ? {
@@ -607,18 +613,24 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
               }
             : null,
         });
-        setDraft("");
+        if (targetId === selectedIdRef.current) {
+          setDraft("");
+        }
         if (typingTimerRef.current) window.clearTimeout(typingTimerRef.current);
-        emitTypingStop(selectedId);
-        setMessages((prev) => (prev.some((item) => item.id === payload.id) ? prev : [...prev, payload]));
+        emitTypingStop(targetId);
         setConversations((prev) => {
           const next = prev.map((item) =>
-            item.id === selectedId
+            item.id === targetId
               ? { ...item, lastMessage: payload, updatedAt: payload.createdAt, isPeerTyping: false }
               : item,
           );
           return next.sort((left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime());
         });
+        setMessages((prev) =>
+          selectedIdRef.current === targetId && !prev.some((item) => item.id === payload.id)
+            ? [...prev, payload]
+            : prev,
+        );
       } catch (err: any) {
         setError(getClientErrorMessage(err, "Envoi impossible"));
       } finally {
@@ -626,7 +638,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
         setSending(false);
       }
     },
-    [draft, emitTypingStop, selectedId],
+    [draft, emitTypingStop],
   );
 
   const startConversation = async (participantUserId: string) => {
@@ -650,7 +662,8 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
 
   const uploadAndSendAttachment = useCallback(
     async (file: File) => {
-      if (!selectedId || uploading) return;
+      const targetId = selectedIdRef.current;
+      if (!targetId || uploading) return;
       const normalizedFile = normalizeMessageUploadFile(file);
       const validationError = validateUploadFile(normalizedFile, "MESSAGE");
       if (validationError) {
@@ -658,22 +671,22 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
         return;
       }
       setUploading(true);
-      setUploadProgress(0);
+      setUploadState({ conversationId: targetId, progress: 0 });
       setError("");
       const caption = draft.trim();
       try {
-        const attachment = await uploadMessageAttachmentFile(normalizedFile, selectedId, (progress) =>
-          setUploadProgress(progress),
+        const attachment = await uploadMessageAttachmentFile(normalizedFile, targetId, (progress) =>
+          setUploadState({ conversationId: targetId, progress }),
         );
-        await sendMessage(attachment, caption);
+        await sendMessage(attachment, caption, targetId);
       } catch (err: any) {
         setError(getClientErrorMessage(err, getUploadErrorMessage(err)));
       } finally {
         setUploading(false);
-        setUploadProgress(null);
+        setUploadState(null);
       }
     },
-    [draft, selectedId, uploading, sendMessage],
+    [draft, uploading, sendMessage],
   );
 
   const audioRecorder = useMessageAudioRecorder({
@@ -1033,16 +1046,16 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
               </div>
 
               <footer className="border-t border-white/[0.07] bg-[#08231e]/90 p-3 backdrop-blur-xl sm:p-4">
-                {uploadProgress !== null && (
+                {uploadState !== null && uploadState.conversationId === selectedId && (
                   <div className="mx-auto mb-3 max-w-4xl rounded-xl border border-emerald-300/10 bg-emerald-500/[0.05] px-3 py-2.5">
                     <div className="flex items-center justify-between gap-3 text-[10px] font-bold text-emerald-100/80">
                       <span>Envoi de la pièce jointe</span>
-                      <span>{formatUploadProgressLabel(uploadProgress)}</span>
+                      <span>{formatUploadProgressLabel(uploadState.progress)}</span>
                     </div>
                     <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
                       <div
                         className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-300 transition-all duration-200"
-                        style={{ width: uploadProgressBarWidth(uploadProgress) }}
+                        style={{ width: uploadProgressBarWidth(uploadState.progress) }}
                       />
                     </div>
                   </div>
