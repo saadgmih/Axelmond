@@ -65,7 +65,7 @@ export default function StudentProfileView({
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300">
       {/* Hero */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-indigo-900 to-slate-900 text-white shadow-xl border border-emerald-950/50">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#06241d] via-[#08352b] to-[#041914] text-white shadow-xl border border-emerald-500/20">
         <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl" />
         <div className="absolute -left-10 bottom-0 h-40 w-40 rounded-full bg-teal-500/10 blur-2xl" />
 
@@ -77,7 +77,7 @@ export default function StudentProfileView({
                   avatarUrl={currentUser?.avatarUrl}
                   initials={currentUser ? getInitials(currentUser.fullName) : "PA"}
                   statusMsg=""
-                  accent="indigo"
+                  accent="emerald"
                   layout="hero"
                   previewSize={112}
                   onUpload={handleUploadAvatarFile}
