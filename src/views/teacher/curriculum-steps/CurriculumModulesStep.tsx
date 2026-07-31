@@ -174,10 +174,11 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
           </label>
 
           <label className="block space-y-1.5">
-            <span className={curriculumUi.label}>Description pédagogique</span>
+            <span className={curriculumUi.label}>
+              Description pédagogique <span className="text-slate-400 font-normal text-xs text-transform-none">(facultatif)</span>
+            </span>
             <textarea
               rows={3}
-              required
               placeholder="Objectifs, compétences visées et compétences acquises..."
               value={newCourseDescription}
               onChange={(e) => setNewCourseDescription(e.target.value)}
@@ -374,7 +375,7 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                       />
                     </div>
                     <label className="md:col-span-2 space-y-1 block">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase">Description</span>
+                      <span className="text-[9px] font-bold text-slate-400 uppercase">Description (facultatif)</span>
                       <textarea
                         rows={2}
                         placeholder="Description"
