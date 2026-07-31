@@ -302,7 +302,7 @@ export function useTeacherCurriculum({
 
   const handleCreateCourse = async (e: FormEvent) => {
     e.preventDefault();
-    if (!newCourseTitle.trim() || !newCourseDescription.trim()) return;
+    if (!newCourseTitle.trim()) return;
     if (newCourseImageFile) {
       const validationError = validateUploadFile(newCourseImageFile, "IMAGE");
       if (validationError) {
