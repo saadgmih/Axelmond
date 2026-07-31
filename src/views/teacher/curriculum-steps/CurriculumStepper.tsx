@@ -101,7 +101,6 @@ export default function CurriculumStepper(props: Props) {
                       <p className={`truncate text-sm font-black ${isActive ? "text-white" : "text-slate-200"}`}>
                         {s.label}
                       </p>
-                      <p className="truncate text-[10px] text-slate-500">{s.desc}</p>
                     </div>
                   </button>
                 );
