@@ -1,6 +1,7 @@
 import { useEffect, useId, useState } from "react";
 import { ImagePlus, X } from "lucide-react";
 import { RASTER_IMAGE_ACCEPT } from "../avatar-security";
+import { curriculumUi } from "../views/teacher/curriculum-theme";
 
 interface CourseImageFieldProps {
   file: File | null;
@@ -28,8 +29,8 @@ export default function CourseImageField({ file, currentImageUrl, status = "", o
 
   return (
     <div className="space-y-2">
-      <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
-        Image du module <span className="font-normal text-slate-500 text-transform-none">(facultatif)</span>
+      <span className={curriculumUi.label}>
+        Image du module <span className="text-slate-400 font-normal text-xs text-transform-none">(facultatif)</span>
       </span>
       <div className="flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-950/60 p-3">
         <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-700 bg-slate-900">
