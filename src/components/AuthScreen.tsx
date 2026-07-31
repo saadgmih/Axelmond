@@ -659,7 +659,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                         htmlFor={activeSector === "student" ? "auth-filiere" : "auth-access-key"}
                         className="text-[10px] uppercase font-black tracking-widest text-slate-400 block"
                       >
-                        {activeSector === "student" ? "Filière" : "Clé d'accès"}
+                        {activeSector === "student" ? "Filière (Facultatif)" : "Clé d'accès"}
                       </label>
                       <input
                         id={activeSector === "student" ? "auth-filiere" : "auth-access-key"}
@@ -681,11 +681,6 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                         }}
                         className="w-full bg-slate-900 border border-slate-800 focus:border-slate-700 px-4 py-3 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-700 transition-all"
                       />
-                      {activeSector === "student" && (
-                        <p className="text-[9px] text-slate-500 italic">
-                          Facultatif. Indique votre filière si vous souhaitez personnaliser votre profil.
-                        </p>
-                      )}
                     </div>
                   )}
 
