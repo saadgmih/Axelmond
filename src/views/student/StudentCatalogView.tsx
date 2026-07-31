@@ -296,7 +296,7 @@ export default function StudentCatalogView({
           </div>
         </div>
         {voiceSearchError && (
-          <p role="alert" className="text-[11px] font-semibold leading-snug text-lime-700">
+          <p role="alert" className="text-[11px] font-semibold leading-snug text-rose-600">
             {voiceSearchError}
           </p>
         )}
