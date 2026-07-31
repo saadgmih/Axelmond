@@ -172,258 +172,252 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
               </button>
             </div>
           ) : (
-            teacherQuizzes.map((quiz, quizIndex) => {
-              const isQuizOpen = selectedQuizId === quiz.id;
-              const questionCount =
-                quiz.questionCount ??
-                quiz.questions?.length ??
-                (isQuizOpen ? selectedQuizDetail?.questions?.length || 0 : 0);
-              const questions = isQuizOpen ? selectedQuizDetail?.questions || [] : [];
+            <div className="rounded-2xl border border-slate-800/90 bg-slate-950/60 overflow-hidden divide-y divide-slate-800/80 shadow-md">
+              {teacherQuizzes.map((quiz, quizIndex) => {
+                const isQuizOpen = selectedQuizId === quiz.id;
+                const questionCount =
+                  quiz.questionCount ??
+                  quiz.questions?.length ??
+                  (isQuizOpen ? selectedQuizDetail?.questions?.length || 0 : 0);
+                const questions = isQuizOpen ? selectedQuizDetail?.questions || [] : [];
 
-              return (
-                <div
-                  key={quiz.id}
-                  className={`rounded-2xl border transition-all overflow-hidden ${
-                    isQuizOpen
-                      ? "border-teal-500/60 bg-slate-900/90 shadow-lg ring-1 ring-teal-500/30"
-                      : `${curriculumUi.card} ${curriculumUi.cardHover}`
-                  }`}
-                >
-                  {/* LEVEL 1: QUIZ HEADER */}
-                  <div
-                    onClick={() => {
-                      if (isQuizOpen) {
-                        setSelectedQuizId("");
-                        setIsCreatingQcm(false);
-                        handleCancelEditQuestion?.();
-                      } else {
-                        setSelectedQuizId(quiz.id);
-                        setIsCreatingQcm(false);
-                        handleCancelEditQuestion?.();
-                      }
-                    }}
-                    className="cursor-pointer p-4 flex items-center justify-between gap-4 select-none bg-slate-950/70 hover:bg-slate-900/90 transition-colors"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <span className="p-1 rounded-lg border border-teal-500/30 bg-teal-950/60 text-teal-300 shrink-0">
-                        {isQuizOpen ? (
-                          <ChevronDown className="w-5 h-5 text-teal-400" />
-                        ) : (
-                          <ChevronRight className="w-5 h-5 text-slate-400" />
-                        )}
-                      </span>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
+                return (
+                  <div key={quiz.id} className="transition-all">
+                    {/* LEVEL 1: QUIZ HEADER */}
+                    <div
+                      onClick={() => {
+                        if (isQuizOpen) {
+                          setSelectedQuizId("");
+                          setIsCreatingQcm(false);
+                          handleCancelEditQuestion?.();
+                        } else {
+                          setSelectedQuizId(quiz.id);
+                          setIsCreatingQcm(false);
+                          handleCancelEditQuestion?.();
+                        }
+                      }}
+                      className={`cursor-pointer p-4 flex items-center justify-between gap-4 select-none transition-colors ${
+                        isQuizOpen ? "bg-slate-900/95" : "bg-slate-950/70 hover:bg-slate-900/80"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="p-1.5 rounded-lg border border-teal-500/30 bg-teal-950/60 text-teal-300 shrink-0">
+                          {isQuizOpen ? (
+                            <ChevronDown className="w-4 h-4 text-teal-400" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4 text-slate-400" />
+                          )}
+                        </span>
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <h4 className="text-sm font-black text-white truncate">
+                            {quiz.title || `Quiz ${quizIndex + 1}`}
+                          </h4>
                           <span
-                            className={`rounded border px-2 py-0.5 text-[9px] font-black uppercase tracking-wider ${getStepTheme(4).chip}`}
+                            className={`rounded border px-2 py-0.5 text-[9px] font-black uppercase tracking-wider shrink-0 ${getStepTheme(4).chip}`}
                           >
                             {questionCount} QCM{questionCount !== 1 ? "s" : ""}
                           </span>
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest shrink-0 hidden sm:inline-block">
                             Niveau 1 : Quiz
                           </span>
                         </div>
-                        <h4 className="text-sm font-black text-white mt-1 truncate">
-                          {quiz.title || `Quiz ${quizIndex + 1}`}
-                        </h4>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      {handleUpdateQuizTitle && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleUpdateQuizTitle(quiz);
-                          }}
-                          className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white border border-slate-700/50"
-                          title="Renommer le quiz"
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </button>
-                      )}
-                      {handleDeleteQuiz && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteQuiz(quiz.id);
-                          }}
-                          className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-red-950/60 hover:text-red-400 border border-slate-700/50"
-                          title="Supprimer ce quiz et ses QCMs"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* LEVEL 2: EXPANDED QUIZ CONTENT (QCM LIST) */}
-                  {isQuizOpen && (
-                    <div className="p-5 border-t border-slate-800 bg-slate-950/40 space-y-4">
-                      {/* Button to add QCM to this Quiz */}
-                      <div className="flex items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
-                        <span className="text-xs font-black uppercase tracking-wider text-teal-400 flex items-center gap-2">
-                          Questions QCM de ce Quiz ({questions.length})
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            handleCancelEditQuestion?.();
-                            setIsCreatingQcm(true);
-                          }}
-                          className="inline-flex items-center gap-1.5 rounded-xl border border-teal-500/40 bg-teal-950/70 px-3 py-1.5 text-xs font-bold text-teal-300 hover:bg-teal-900/80 hover:text-white transition-all shadow-sm active:scale-95"
-                        >
-                          <Plus className="h-4 w-4 text-teal-400" />
-                          Ajouter une question QCM
-                        </button>
                       </div>
 
-                      {/* QCM Form when creating a new QCM or editing an existing one */}
-                      {(isCreatingQcm || editingQuestionId) && (
-                        <div className="rounded-2xl border border-teal-500/50 bg-slate-900/95 p-5 space-y-5 shadow-xl ring-1 ring-teal-500/20 animate-in fade-in duration-200">
-                          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                            <h4 className="text-xs font-black uppercase tracking-wider text-teal-300">
-                              {editingQuestionId
-                                ? "Modifier la question QCM"
-                                : "Nouvelle question QCM (Niveau 2)"}
-                            </h4>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setIsCreatingQcm(false);
-                                handleCancelEditQuestion?.();
-                              }}
-                              className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-400 hover:text-white"
-                            >
-                              <X className="w-3.5 h-3.5" />
-                              Fermer
-                            </button>
-                          </div>
-
-                          <form
-                            onSubmit={async (e) => {
-                              e.preventDefault();
-                              await handleAddQuestion(e);
-                              setIsCreatingQcm(false);
+                      <div className="flex items-center gap-2 shrink-0">
+                        {handleUpdateQuizTitle && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleUpdateQuizTitle(quiz);
                             }}
-                            className="space-y-5"
+                            className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white border border-slate-700/50"
+                            title="Renommer le quiz"
                           >
-                            {/* Question Énoncé */}
-                            <label className="block space-y-1.5">
-                              <span className="text-[11px] font-black uppercase tracking-wider text-slate-300 block">
-                                Énoncé de la question QCM
-                              </span>
-                              <textarea
-                                required
-                                rows={3}
-                                placeholder={String.raw`Exemple : Calculer le déterminant de $$A=\begin{pmatrix}1&2\\3&4\end{pmatrix}$$`}
-                                value={newQuestionText}
-                                onChange={(e) => setNewQuestionText(e.target.value)}
-                                className={`${inputFocus} font-mono leading-relaxed text-xs`}
-                              />
-                            </label>
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                        )}
+                        {handleDeleteQuiz && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteQuiz(quiz.id);
+                            }}
+                            className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-red-950/60 hover:text-red-400 border border-slate-700/50"
+                            title="Supprimer ce quiz et ses QCMs"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
 
-                            {/* LEVEL 3: CHOICES MANAGEMENT */}
-                            <div className="space-y-4 border-t border-slate-800/80 pt-4">
-                              <div className="flex items-center justify-between gap-3">
-                                <div>
-                                  <span className="text-[11px] font-black uppercase tracking-wider text-teal-300 block">
-                                    Niveau 3 : Choix de réponses ({newQuestionOptions.length})
-                                  </span>
-                                  <span className="text-[10px] text-slate-400 font-medium">
-                                    Minimum 2 choix requis. Renseignez les options puis sélectionnez le ou les choix corrects dans la liste ci-dessous.
-                                  </span>
+                    {/* LEVEL 2: EXPANDED QUIZ CONTENT (QCM LIST) */}
+                    {isQuizOpen && (
+                      <div className="p-5 border-t border-slate-800/80 bg-slate-950/40 space-y-4">
+                        {/* Button to add QCM to this Quiz */}
+                        <div className="flex items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+                          <span className="text-xs font-black uppercase tracking-wider text-teal-400 flex items-center gap-2">
+                            Questions QCM de ce Quiz ({questions.length})
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleCancelEditQuestion?.();
+                              setIsCreatingQcm(true);
+                            }}
+                            className="inline-flex items-center gap-1.5 rounded-xl border border-teal-500/40 bg-teal-950/70 px-3 py-1.5 text-xs font-bold text-teal-300 hover:bg-teal-900/80 hover:text-white transition-all shadow-sm active:scale-95"
+                          >
+                            <Plus className="h-4 w-4 text-teal-400" />
+                            Ajouter une question QCM
+                          </button>
+                        </div>
+
+                        {/* QCM Form when creating a new QCM or editing an existing one */}
+                        {(isCreatingQcm || editingQuestionId) && (
+                          <div className="rounded-2xl border border-teal-500/50 bg-slate-900/95 p-5 space-y-5 shadow-xl ring-1 ring-teal-500/20 animate-in fade-in duration-200">
+                            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                              <h4 className="text-xs font-black uppercase tracking-wider text-teal-300">
+                                {editingQuestionId
+                                  ? "Modifier la question QCM"
+                                  : "Nouvelle question QCM (Niveau 2)"}
+                              </h4>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setIsCreatingQcm(false);
+                                  handleCancelEditQuestion?.();
+                                }}
+                                className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-400 hover:text-white"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                                Fermer
+                              </button>
+                            </div>
+
+                            <form
+                              onSubmit={async (e) => {
+                                e.preventDefault();
+                                await handleAddQuestion(e);
+                                setIsCreatingQcm(false);
+                              }}
+                              className="space-y-5"
+                            >
+                              {/* Question Énoncé */}
+                              <label className="block space-y-1.5">
+                                <span className="text-[11px] font-black uppercase tracking-wider text-slate-300 block">
+                                  Énoncé de la question QCM
+                                </span>
+                                <textarea
+                                  required
+                                  rows={3}
+                                  placeholder={String.raw`Exemple : Calculer le déterminant de $$A=\begin{pmatrix}1&2\\3&4\end{pmatrix}$$`}
+                                  value={newQuestionText}
+                                  onChange={(e) => setNewQuestionText(e.target.value)}
+                                  className={`${inputFocus} font-mono leading-relaxed text-xs`}
+                                />
+                              </label>
+
+                              {/* LEVEL 3: CHOICES MANAGEMENT */}
+                              <div className="space-y-4 border-t border-slate-800/80 pt-4">
+                                <div className="flex items-center justify-between gap-3">
+                                  <div>
+                                    <span className="text-[11px] font-black uppercase tracking-wider text-teal-300 block">
+                                      Niveau 3 : Choix de réponses ({newQuestionOptions.length})
+                                    </span>
+                                    <span className="text-[10px] text-slate-400 font-medium">
+                                      Minimum 2 choix requis. Renseignez les options puis sélectionnez le ou les choix corrects dans la liste ci-dessous.
+                                    </span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setNewQuestionOptions([
+                                        ...newQuestionOptions,
+                                        `Choix ${newQuestionOptions.length + 1}`,
+                                      ]);
+                                    }}
+                                    className="inline-flex items-center gap-1.5 rounded-xl border border-teal-500/40 bg-teal-950/60 px-3 py-1.5 text-xs font-bold text-teal-300 hover:bg-teal-900/80 hover:text-white transition-all shrink-0"
+                                  >
+                                    <Plus className="h-3.5 w-3.5" />
+                                    Ajouter un choix
+                                  </button>
                                 </div>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setNewQuestionOptions([
-                                      ...newQuestionOptions,
-                                      `Choix ${newQuestionOptions.length + 1}`,
-                                    ]);
-                                  }}
-                                  className="inline-flex items-center gap-1.5 rounded-xl border border-teal-500/40 bg-teal-950/60 px-3 py-1.5 text-xs font-bold text-teal-300 hover:bg-teal-900/80 hover:text-white transition-all shrink-0"
-                                >
-                                  <Plus className="h-3.5 w-3.5" />
-                                  Ajouter un choix
-                                </button>
-                              </div>
 
-                              {/* CHOICE INPUT CARDS GRID */}
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {newQuestionOptions.map((opt, idx) => {
-                                  const canDelete = newQuestionOptions.length > 2;
+                                {/* CHOICE INPUT STRUCTURED LIST */}
+                                <div className="flex flex-col rounded-xl border border-slate-800 bg-[#031512] overflow-hidden divide-y divide-slate-800/80">
+                                  {newQuestionOptions.map((opt, idx) => {
+                                    const canDelete = newQuestionOptions.length > 2;
 
-                                  return (
-                                    <div
-                                      key={idx}
-                                      className="rounded-2xl border border-slate-800 bg-slate-950/60 p-3 transition-all space-y-2.5 hover:border-slate-700"
-                                    >
-                                      <div className="flex items-center justify-between gap-2">
-                                        <span className="inline-flex items-center gap-1.5 rounded-lg border border-teal-500/40 bg-teal-950/80 px-2.5 py-1 text-[10px] font-black uppercase text-teal-300 font-mono">
-                                          Choix {idx + 1}
-                                        </span>
+                                    return (
+                                      <div
+                                        key={idx}
+                                        className="p-3.5 space-y-2.5 transition-colors hover:bg-slate-900/40"
+                                      >
+                                        <div className="flex items-center justify-between gap-2">
+                                          <span className="inline-flex items-center gap-1.5 rounded-lg border border-teal-500/40 bg-teal-950/80 px-2.5 py-1 text-[10px] font-black uppercase text-teal-300 font-mono">
+                                            Choix {idx + 1}
+                                          </span>
 
-                                        {/* Delete choice button with minimum 2 choices rule */}
-                                        <button
-                                          type="button"
-                                          disabled={!canDelete}
-                                          onClick={() => {
-                                            if (!canDelete) return;
-                                            const target = newQuestionOptions[idx];
-                                            const nextOpts = newQuestionOptions.filter((_, i) => i !== idx);
-                                            setNewQuestionOptions(nextOpts);
-                                            if (target && selectedCorrectOptions.includes(target.trim())) {
-                                              const updatedCorrect = selectedCorrectOptions.filter(
-                                                (item) => item !== target.trim(),
+                                          {/* Delete choice button with minimum 2 choices rule */}
+                                          <button
+                                            type="button"
+                                            disabled={!canDelete}
+                                            onClick={() => {
+                                              if (!canDelete) return;
+                                              const target = newQuestionOptions[idx];
+                                              const nextOpts = newQuestionOptions.filter((_, i) => i !== idx);
+                                              setNewQuestionOptions(nextOpts);
+                                              if (target && selectedCorrectOptions.includes(target.trim())) {
+                                                const updatedCorrect = selectedCorrectOptions.filter(
+                                                  (item) => item !== target.trim(),
+                                                );
+                                                setNewQuestionAnswer(updatedCorrect.join(", "));
+                                              }
+                                            }}
+                                            className={`rounded-lg p-1.5 transition-all border ${
+                                              canDelete
+                                                ? "border-slate-800 text-slate-400 hover:bg-red-950/60 hover:text-red-400 hover:border-red-900/50 cursor-pointer"
+                                                : "border-slate-800/40 text-slate-600 cursor-not-allowed opacity-40"
+                                            }`}
+                                            title={canDelete ? "Supprimer ce choix" : "Impossible : 2 choix minimum requis"}
+                                          >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                          </button>
+                                        </div>
+
+                                        <textarea
+                                          required
+                                          rows={2}
+                                          placeholder={`Contenu du Choix ${idx + 1}`}
+                                          value={opt}
+                                          onChange={(e) => {
+                                            const previousVal = newQuestionOptions[idx];
+                                            const newVal = e.target.value;
+                                            const next = [...newQuestionOptions];
+                                            next[idx] = newVal;
+                                            setNewQuestionOptions(next);
+
+                                            if (previousVal && selectedCorrectOptions.includes(previousVal.trim())) {
+                                              const updatedCorrect = selectedCorrectOptions.map((item) =>
+                                                item === previousVal.trim() ? newVal.trim() : item,
                                               );
                                               setNewQuestionAnswer(updatedCorrect.join(", "));
                                             }
                                           }}
-                                          className={`rounded-lg p-1.5 transition-all border ${
-                                            canDelete
-                                              ? "border-slate-800 text-slate-400 hover:bg-red-950/60 hover:text-red-400 hover:border-red-900/50 cursor-pointer"
-                                              : "border-slate-800/40 text-slate-600 cursor-not-allowed opacity-40"
-                                          }`}
-                                          title={canDelete ? "Supprimer ce choix" : "Impossible : 2 choix minimum requis"}
-                                        >
-                                          <Trash2 className="w-3.5 h-3.5" />
-                                        </button>
+                                          className={`w-full rounded-xl border border-slate-700/80 bg-slate-950/90 px-3 py-2 font-mono text-xs font-semibold text-slate-100 transition-all focus:bg-slate-950 focus:outline-none focus:ring-2 ${stepTheme.focus}`}
+                                        />
+
+                                        {opt.trim() && (opt.includes("$") || opt.includes("\\")) && (
+                                          <div className="rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-1.5 text-[11px] font-semibold text-slate-200">
+                                            <LatexText value={opt} compact />
+                                          </div>
+                                        )}
                                       </div>
-
-                                      <textarea
-                                        required
-                                        rows={2}
-                                        placeholder={`Contenu du Choix ${idx + 1}`}
-                                        value={opt}
-                                        onChange={(e) => {
-                                          const previousVal = newQuestionOptions[idx];
-                                          const newVal = e.target.value;
-                                          const next = [...newQuestionOptions];
-                                          next[idx] = newVal;
-                                          setNewQuestionOptions(next);
-
-                                          if (previousVal && selectedCorrectOptions.includes(previousVal.trim())) {
-                                            const updatedCorrect = selectedCorrectOptions.map((item) =>
-                                              item === previousVal.trim() ? newVal.trim() : item,
-                                            );
-                                            setNewQuestionAnswer(updatedCorrect.join(", "));
-                                          }
-                                        }}
-                                        className={`w-full rounded-xl border border-slate-700/80 bg-[#031512] px-3 py-2 font-mono text-xs font-semibold text-slate-100 transition-all focus:bg-slate-950 focus:outline-none focus:ring-2 ${stepTheme.focus}`}
-                                      />
-
-                                      {opt.trim() && (opt.includes("$") || opt.includes("\\")) && (
-                                        <div className="rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-1.5 text-[11px] font-semibold text-slate-200">
-                                          <LatexText value={opt} compact />
-                                        </div>
-                                      )}
-                                    </div>
-                                  );
-                                })}
-                              </div>
+                                    );
+                                  })}
+                                </div>
 
                               {/* LIST FOR SELECTING CORRECT CHOICES */}
                               <div className="space-y-3 border-t border-slate-800/80 pt-4">
@@ -652,8 +646,9 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                   )}
                 </div>
               );
-            })
-          )}
+            })}
+          </div>
+        )}
         </div>
       </div>
     </div>
