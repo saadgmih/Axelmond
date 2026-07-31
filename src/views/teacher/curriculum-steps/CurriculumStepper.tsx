@@ -35,10 +35,10 @@ export default function CurriculumStepper(props: Props) {
   } = props;
   const curriculumSteps = getCurriculumSteps(canManageAcademicTaxonomy);
   const moduleStep = getModuleStep(canManageAcademicTaxonomy);
-  const stepGridClass = canManageAcademicTaxonomy ? "xl:grid-cols-6" : "xl:grid-cols-4";
+  const stepGridClass = canManageAcademicTaxonomy ? "xl:grid-cols-5" : "xl:grid-cols-3";
   const heroDescription = canManageAcademicTaxonomy
-    ? "Parcourez les 6 étapes pour construire votre programme : domaines, sous-domaines, modules, chapitres, médias et évaluations."
-    : "Parcourez les 4 étapes pour construire votre module : catalogue, chapitres, médias et évaluations.";
+    ? "Parcourez les 5 étapes pour construire votre programme : domaines, sous-domaines, modules, chapitres & médias, et évaluations."
+    : "Parcourez les 3 étapes pour construire votre module : modules, chapitres & médias, et quiz.";
 
   return (
     <>

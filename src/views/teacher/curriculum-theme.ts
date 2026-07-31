@@ -42,8 +42,8 @@ export const CURRICULUM_STEPS: CurriculumStepConfig[] = [
   },
   {
     step: 2,
-    label: "Chapitres",
-    desc: "Organisation du module",
+    label: "Chapitres & Médias",
+    desc: "Organisation & contenus",
     icon: Layers,
     active: "border-teal-400/70 bg-teal-950/40 text-white shadow-lg shadow-teal-500/15 ring-1 ring-teal-500/35",
     completed: "border-emerald-500/40 bg-emerald-950/30 text-emerald-200",
@@ -57,9 +57,9 @@ export const CURRICULUM_STEPS: CurriculumStepConfig[] = [
   },
   {
     step: 3,
-    label: "Médias",
-    desc: "Vidéos, PDF & images",
-    icon: Video,
+    label: "Quiz",
+    desc: "QCM de validation",
+    icon: HelpCircle,
     active: "border-lime-400/70 bg-lime-950/40 text-white shadow-lg shadow-lime-500/15 ring-1 ring-lime-500/35",
     completed: "border-emerald-500/40 bg-emerald-950/30 text-emerald-200",
     badgeActive: "bg-lime-500 text-white shadow-md shadow-lime-500/40",
@@ -69,21 +69,6 @@ export const CURRICULUM_STEPS: CurriculumStepConfig[] = [
     panel: "border-l-4 border-l-lime-500",
     chip: "bg-lime-950/80 text-lime-300 border-lime-500/30",
     listActive: "border-lime-500/50 bg-lime-950/30 shadow-lg shadow-lime-900/20",
-  },
-  {
-    step: 4,
-    label: "Quiz",
-    desc: "QCM de validation",
-    icon: HelpCircle,
-    active: "border-teal-400/70 bg-teal-950/40 text-white shadow-lg shadow-teal-500/15 ring-1 ring-teal-500/35",
-    completed: "border-emerald-500/40 bg-emerald-950/30 text-emerald-200",
-    badgeActive: "bg-teal-500 text-white shadow-md shadow-teal-500/40",
-    badgeCompleted: "bg-emerald-600 text-white",
-    button: "bg-teal-600 hover:bg-teal-500 text-white shadow-lg shadow-teal-900/25",
-    focus: "focus:border-teal-400 focus:ring-teal-500/20",
-    panel: "border-l-4 border-l-teal-500",
-    chip: "bg-teal-950/80 text-teal-300 border-teal-500/30",
-    listActive: "border-teal-500/50 bg-teal-950/30 shadow-lg shadow-teal-900/20",
   },
 ];
 
@@ -105,7 +90,6 @@ export const ADMIN_CURRICULUM_STEPS: CurriculumStepConfig[] = [
   { ...CURRICULUM_STEPS[0], step: 3 },
   { ...CURRICULUM_STEPS[1], step: 4 },
   { ...CURRICULUM_STEPS[2], step: 5 },
-  { ...CURRICULUM_STEPS[3], step: 6 },
 ];
 
 export function getCurriculumSteps(canManageAcademicTaxonomy: boolean): CurriculumStepConfig[] {
@@ -121,11 +105,11 @@ export function getChaptersStep(canManageAcademicTaxonomy: boolean): number {
 }
 
 export function getMediaStep(canManageAcademicTaxonomy: boolean): number {
-  return canManageAcademicTaxonomy ? 5 : 3;
+  return canManageAcademicTaxonomy ? 4 : 2;
 }
 
 export function getQuizStep(canManageAcademicTaxonomy: boolean): number {
-  return canManageAcademicTaxonomy ? 6 : 4;
+  return canManageAcademicTaxonomy ? 5 : 3;
 }
 
 export function getStepTheme(step: number): CurriculumStepConfig {
