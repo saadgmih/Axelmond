@@ -775,10 +775,6 @@ export default function StudentCourseView({
                             Quiz scientifique
                           </span>
                           <h2 className="text-xl font-black text-white">Évaluation de fin de module</h2>
-                          <p className="max-w-lg text-xs leading-relaxed text-slate-300">
-                            Les formules, matrices, suites, intégrales et fonctions sont affichées en notation
-                            académique.
-                          </p>
                         </div>
 
                         <div className="grid min-w-[170px] grid-cols-2 gap-2 rounded-2xl border border-emerald-500/20 bg-slate-950/60 p-2 text-center backdrop-blur">
