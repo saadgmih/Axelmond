@@ -93,11 +93,6 @@ export default function CurriculumStepper(props: Props) {
                       <Icon className="h-4 w-4" />
                     </div>
                     <div className="min-w-0">
-                      <p
-                        className={`text-[10px] font-black uppercase tracking-wider ${isActive ? "text-slate-300" : "text-slate-500"}`}
-                      >
-                        Étape {s.step}
-                      </p>
                       <p className={`truncate text-sm font-black ${isActive ? "text-white" : "text-slate-200"}`}>
                         {s.label}
                       </p>
