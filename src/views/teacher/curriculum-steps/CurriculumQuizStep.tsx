@@ -426,7 +426,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                               </div>
 
                               {/* LIST FOR SELECTING CORRECT CHOICES */}
-                              <div className="space-y-2 border-t border-slate-800/80 pt-4">
+                              <div className="space-y-3 border-t border-slate-800/80 pt-4">
                                 <button
                                   type="button"
                                   onClick={() => setIsCorrectChoicesOpen((prev) => !prev)}
@@ -455,92 +455,93 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                                 </button>
 
                                 {isCorrectChoicesOpen && (
-                                  <div className="flex flex-col rounded-xl border border-slate-800 bg-[#031512] overflow-hidden divide-y divide-slate-800/80 transition-all animate-in fade-in duration-200">
-                                    {newQuestionOptions.map((opt, idx) => {
-                                      const isCorrect =
-                                        selectedCorrectOptions.includes(opt.trim()) && opt.trim().length > 0;
-                                      const choiceTitle = `Choix ${idx + 1}`;
-                                      const choiceContent = opt.trim() || choiceTitle;
+                                  <div className="space-y-4 pt-1 animate-in fade-in duration-200">
+                                    <div className="flex flex-col rounded-xl border border-slate-800 bg-[#031512] overflow-hidden divide-y divide-slate-800/80 transition-all">
+                                      {newQuestionOptions.map((opt, idx) => {
+                                        const isCorrect =
+                                          selectedCorrectOptions.includes(opt.trim()) && opt.trim().length > 0;
+                                        const choiceTitle = `Choix ${idx + 1}`;
+                                        const choiceContent = opt.trim() || choiceTitle;
 
-                                      return (
-                                        <label
-                                          key={idx}
-                                          className={`w-full flex items-center justify-between gap-2.5 p-3 transition-all cursor-pointer select-none ${
-                                            isCorrect
-                                              ? "bg-emerald-950/60 text-emerald-200"
-                                              : "bg-slate-950/70 text-slate-300 hover:bg-slate-900/90"
-                                          }`}
-                                        >
-                                          <div className="min-w-0 flex-1 flex items-center gap-2.5">
-                                            <input
-                                              type="checkbox"
-                                              checked={isCorrect}
-                                              onChange={() => toggleCorrectOption(opt)}
-                                              className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-emerald-500 focus:ring-emerald-400 focus:ring-offset-0 cursor-pointer shrink-0"
-                                            />
-                                            <span className="font-mono text-xs font-black text-teal-300 shrink-0">
-                                              {choiceTitle}
+                                        return (
+                                          <label
+                                            key={idx}
+                                            className={`w-full flex items-center justify-between gap-2.5 p-3 transition-all cursor-pointer select-none ${
+                                              isCorrect
+                                                ? "bg-emerald-950/60 text-emerald-200"
+                                                : "bg-slate-950/70 text-slate-300 hover:bg-slate-900/90"
+                                            }`}
+                                          >
+                                            <div className="min-w-0 flex-1 flex items-center gap-2.5">
+                                              <input
+                                                type="checkbox"
+                                                checked={isCorrect}
+                                                onChange={() => toggleCorrectOption(opt)}
+                                                className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-emerald-500 focus:ring-emerald-400 focus:ring-offset-0 cursor-pointer shrink-0"
+                                              />
+                                              <span className="font-mono text-xs font-black text-teal-300 shrink-0">
+                                                {choiceTitle}
+                                              </span>
+                                              <span className="truncate text-xs font-semibold text-slate-200">
+                                                {choiceContent}
+                                              </span>
+                                            </div>
+                                            {isCorrect && (
+                                              <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 ml-1" />
+                                            )}
+                                          </label>
+                                        );
+                                      })}
+                                    </div>
+
+                                    {selectedCorrectOptions.length === 0 && (
+                                      <p className="text-[11px] font-bold text-amber-400 flex items-center gap-1.5 pt-1">
+                                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                                        Veuillez cocher au moins un choix dans la liste ci-dessus.
+                                      </p>
+                                    )}
+
+                                    {/* Summary & Explication (Image 2) */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-800/80 pt-4">
+                                      <div className="block space-y-1.5">
+                                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                                          Bonne(s) réponse(s) définie(s) ({selectedCorrectOptions.length})
+                                        </span>
+                                        <div className="flex flex-wrap items-center gap-1.5 p-2.5 rounded-xl border border-slate-700/80 bg-[#031512] min-h-[42px]">
+                                          {selectedCorrectOptions.length === 0 ? (
+                                            <span className="text-xs text-amber-400 font-semibold italic">
+                                              Aucune bonne réponse cochée.
                                             </span>
-                                            <span className="truncate text-xs font-semibold text-slate-200">
-                                              {choiceContent}
-                                            </span>
-                                          </div>
-                                          {isCorrect && (
-                                            <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 ml-1" />
+                                          ) : (
+                                            selectedCorrectOptions.map((ans, aIdx) => (
+                                              <span
+                                                key={aIdx}
+                                                className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/50 bg-emerald-500/20 px-2.5 py-1 text-xs font-black text-emerald-300 shadow-sm"
+                                              >
+                                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                                                {ans}
+                                              </span>
+                                            ))
                                           )}
-                                        </label>
-                                      );
-                                    })}
+                                        </div>
+                                      </div>
+
+                                      <label className="block space-y-1">
+                                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                                          Explication didactique
+                                        </span>
+                                        <textarea
+                                          rows={2}
+                                          placeholder={String.raw`Exemple : $\det(A)=1\times4-2\times3=-2$`}
+                                          value={newQuestionExplanation}
+                                          onChange={(e) => setNewQuestionExplanation(e.target.value)}
+                                          className={`${inputFocus} font-mono leading-relaxed text-xs`}
+                                        />
+                                      </label>
+                                    </div>
                                   </div>
                                 )}
-
-                                {selectedCorrectOptions.length === 0 && (
-                                  <p className="text-[11px] font-bold text-amber-400 flex items-center gap-1.5 pt-1">
-                                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                                    Veuillez cocher au moins un choix dans la liste ci-dessus.
-                                  </p>
-                                )}
                               </div>
-                            </div>
-
-                            {/* Summary & Explication */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-800/80 pt-4">
-                              <div className="block space-y-1.5">
-                                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                                  Bonne(s) réponse(s) définie(s) ({selectedCorrectOptions.length})
-                                </span>
-                                <div className="flex flex-wrap items-center gap-1.5 p-2.5 rounded-xl border border-slate-700/80 bg-[#031512] min-h-[42px]">
-                                  {selectedCorrectOptions.length === 0 ? (
-                                    <span className="text-xs text-amber-400 font-semibold italic">
-                                      Aucune bonne réponse cochée.
-                                    </span>
-                                  ) : (
-                                    selectedCorrectOptions.map((ans, aIdx) => (
-                                      <span
-                                        key={aIdx}
-                                        className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/50 bg-emerald-500/20 px-2.5 py-1 text-xs font-black text-emerald-300 shadow-sm"
-                                      >
-                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                                        {ans}
-                                      </span>
-                                    ))
-                                  )}
-                                </div>
-                              </div>
-
-                              <label className="block space-y-1">
-                                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                                  Explication didactique
-                                </span>
-                                <textarea
-                                  required
-                                  rows={2}
-                                  placeholder={String.raw`Exemple : $\det(A)=1\times4-2\times3=-2$`}
-                                  value={newQuestionExplanation}
-                                  onChange={(e) => setNewQuestionExplanation(e.target.value)}
-                                  className={`${inputFocus} font-mono leading-relaxed text-xs`}
-                                />
-                              </label>
                             </div>
 
                             <div className="flex items-center justify-end gap-3 pt-2">
@@ -568,13 +569,9 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                       )}
 
                       {/* LEVEL 2: QCM LIST INSIDE QUIZ */}
-                      <div className="space-y-3 pt-1">
-                        {questions.length === 0 ? (
-                          <p className="text-xs font-medium text-slate-400 italic text-center py-4 border border-dashed border-slate-800 rounded-xl">
-                            Aucune question QCM dans ce quiz pour le moment. Cliquez sur "Ajouter une question QCM" ci-dessus.
-                          </p>
-                        ) : (
-                          questions.map((q: any, qIdx: number) => {
+                      {questions.length > 0 && (
+                        <div className="space-y-3 pt-1">
+                          {questions.map((q: any, qIdx: number) => {
                             const isEditingThisQcm = editingQuestionId === q.id;
 
                             return (
@@ -648,9 +645,9 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                                 </div>
                               </div>
                             );
-                          })
-                        )}
-                      </div>
+                          })}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
