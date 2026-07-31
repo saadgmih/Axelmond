@@ -1,6 +1,6 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { Dispatch, FormEvent, SetStateAction } from "react";
-import { BookOpen, ExternalLink, Globe, GraduationCap, Link2, Shield, User, Video } from "lucide-react";
+import { BookOpen, ChevronDown, ExternalLink, Globe, GraduationCap, Link2, Shield, User, Video } from "lucide-react";
 import ProfileAvatarUpload from "../../components/ProfileAvatarUpload";
 import type { AppUser } from "../../components/AuthScreen";
 import { getRoleLabel, type UserRole } from "../../rbac";
@@ -67,6 +67,16 @@ export default function TeacherAcademicProfileView({
   const displayEmail = academicProfileData?.user.email || currentUser.email;
   const roleLabel = getRoleLabel(role);
   const inputFocus = `${profileUi.input} ${theme.focusRing}`;
+
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    academic: false,
+    personal: false,
+    links: false,
+  });
+
+  const toggleSection = (sectionKey: string) => {
+    setOpenSections((prev) => ({ ...prev, [sectionKey]: !prev[sectionKey] }));
+  };
 
   return (
     <div
@@ -154,141 +164,180 @@ export default function TeacherAcademicProfileView({
         <div className="space-y-6">
           <form onSubmit={handleUpdateAcademicProfile} className="space-y-6">
             <section className={profileUi.card}>
-              <div className={profileUi.cardHeader}>
+              <button
+                type="button"
+                onClick={() => toggleSection("academic")}
+                className={`${profileUi.cardHeader} flex w-full items-center justify-between cursor-pointer text-left transition-colors hover:bg-white/[0.02]`}
+                aria-expanded={openSections.academic}
+              >
                 <h2 className={profileUi.cardTitle}>
                   <GraduationCap className={`${profileUi.sectionIcon} ${theme.sectionIcon}`} />
                   Informations académiques
                 </h2>
-              </div>
+                <ChevronDown
+                  className={`h-5 w-5 text-slate-400 transition-transform duration-200 ${
+                    openSections.academic ? "rotate-180 text-emerald-400" : ""
+                  }`}
+                  aria-hidden="true"
+                />
+              </button>
 
-              <div className="space-y-4 p-5 sm:p-6 md:p-8">
-                <label className="block space-y-1.5">
-                  <span className={profileUi.label}>Nom complet</span>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Nom complet (Prénom Nom)"
-                    value={academicProfileForm.fullName}
-                    onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, fullName: e.target.value }))}
-                    className={inputFocus}
-                  />
-                </label>
+              {openSections.academic && (
+                <div className="space-y-4 p-5 sm:p-6 md:p-8 border-t border-white/[0.06]">
+                  <label className="block space-y-1.5">
+                    <span className={profileUi.label}>Nom complet</span>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Nom complet (Prénom Nom)"
+                      value={academicProfileForm.fullName}
+                      onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, fullName: e.target.value }))}
+                      className={inputFocus}
+                    />
+                  </label>
 
-                <label className="block space-y-1.5">
-                  <span className={profileUi.label}>Domaines d'enseignement</span>
-                  <textarea
-                    rows={3}
-                    placeholder="Domaines d'enseignement (séparés par des virgules)"
-                    value={academicProfileForm.teachingDomains}
-                    onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, teachingDomains: e.target.value }))}
-                    className={inputFocus}
-                  />
-                </label>
+                  <label className="block space-y-1.5">
+                    <span className={profileUi.label}>Domaines d'enseignement</span>
+                    <textarea
+                      rows={3}
+                      placeholder="Domaines d'enseignement (séparés par des virgules)"
+                      value={academicProfileForm.teachingDomains}
+                      onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, teachingDomains: e.target.value }))}
+                      className={inputFocus}
+                    />
+                  </label>
 
-                <label className="block space-y-1.5">
-                  <span className={profileUi.label}>Biographie</span>
-                  <textarea
-                    rows={4}
-                    placeholder="Biographie courte"
-                    value={academicProfileForm.bio}
-                    onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, bio: e.target.value }))}
-                    className={inputFocus}
-                  />
-                </label>
-              </div>
+                  <label className="block space-y-1.5">
+                    <span className={profileUi.label}>Biographie</span>
+                    <textarea
+                      rows={4}
+                      placeholder="Biographie courte"
+                      value={academicProfileForm.bio}
+                      onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, bio: e.target.value }))}
+                      className={inputFocus}
+                    />
+                  </label>
+                </div>
+              )}
             </section>
 
             <section className={profileUi.card}>
-              <div className={profileUi.cardHeader}>
+              <button
+                type="button"
+                onClick={() => toggleSection("personal")}
+                className={`${profileUi.cardHeader} flex w-full items-center justify-between cursor-pointer text-left transition-colors hover:bg-white/[0.02]`}
+                aria-expanded={openSections.personal}
+              >
                 <h2 className={profileUi.cardTitle}>
                   <User className={`${profileUi.sectionIcon} ${theme.sectionIcon}`} />
                   Coordonnées & Informations personnelles
                 </h2>
-              </div>
+                <ChevronDown
+                  className={`h-5 w-5 text-slate-400 transition-transform duration-200 ${
+                    openSections.personal ? "rotate-180 text-emerald-400" : ""
+                  }`}
+                  aria-hidden="true"
+                />
+              </button>
 
-              <div className="grid grid-cols-1 gap-4 p-5 sm:p-6 md:grid-cols-2 md:p-8">
-                <label className="block space-y-1.5">
-                  <span className={profileUi.label}>Numéro de téléphone</span>
-                  <input
-                    type="tel"
-                    placeholder="Écrire le numéro"
-                    value={academicProfileForm.phone}
-                    onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, phone: e.target.value }))}
-                    className={inputFocus}
-                  />
-                </label>
+              {openSections.personal && (
+                <div className="grid grid-cols-1 gap-4 p-5 sm:p-6 md:grid-cols-2 md:p-8 border-t border-white/[0.06]">
+                  <label className="block space-y-1.5">
+                    <span className={profileUi.label}>Numéro de téléphone</span>
+                    <input
+                      type="tel"
+                      placeholder="Écrire le numéro"
+                      value={academicProfileForm.phone}
+                      onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, phone: e.target.value }))}
+                      className={inputFocus}
+                    />
+                  </label>
 
-                <label className="block space-y-1.5">
-                  <span className={profileUi.label}>Date de naissance</span>
-                  <input
-                    type="date"
-                    value={academicProfileForm.birthDate}
-                    onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, birthDate: e.target.value }))}
-                    className={inputFocus}
-                  />
-                </label>
+                  <label className="block space-y-1.5">
+                    <span className={profileUi.label}>Date de naissance</span>
+                    <input
+                      type="date"
+                      value={academicProfileForm.birthDate}
+                      onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, birthDate: e.target.value }))}
+                      className={inputFocus}
+                    />
+                  </label>
 
-                <label className="block space-y-1.5">
-                  <span className={profileUi.label}>Pays</span>
-                  <input
-                    type="text"
-                    placeholder="Écrire le pays"
-                    value={academicProfileForm.country}
-                    onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, country: e.target.value }))}
-                    className={inputFocus}
-                  />
-                </label>
+                  <label className="block space-y-1.5">
+                    <span className={profileUi.label}>Pays</span>
+                    <input
+                      type="text"
+                      placeholder="Écrire le pays"
+                      value={academicProfileForm.country}
+                      onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, country: e.target.value }))}
+                      className={inputFocus}
+                    />
+                  </label>
 
-                <label className="block space-y-1.5">
-                  <span className={profileUi.label}>Ville</span>
-                  <input
-                    type="text"
-                    placeholder="Écrire la ville"
-                    value={academicProfileForm.city}
-                    onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, city: e.target.value }))}
-                    className={inputFocus}
-                  />
-                </label>
+                  <label className="block space-y-1.5">
+                    <span className={profileUi.label}>Ville</span>
+                    <input
+                      type="text"
+                      placeholder="Écrire la ville"
+                      value={academicProfileForm.city}
+                      onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, city: e.target.value }))}
+                      className={inputFocus}
+                    />
+                  </label>
 
-                <label className="block space-y-1.5 md:col-span-2">
-                  <span className={profileUi.label}>Langue préférée</span>
-                  <input
-                    type="text"
-                    placeholder="Écrire la langue"
-                    value={academicProfileForm.preferredLanguage}
-                    onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, preferredLanguage: e.target.value }))}
-                    className={inputFocus}
-                  />
-                </label>
-              </div>
+                  <label className="block space-y-1.5 md:col-span-2">
+                    <span className={profileUi.label}>Langue préférée</span>
+                    <input
+                      type="text"
+                      placeholder="Écrire la langue"
+                      value={academicProfileForm.preferredLanguage}
+                      onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, preferredLanguage: e.target.value }))}
+                      className={inputFocus}
+                    />
+                  </label>
+                </div>
+              )}
             </section>
 
             <section className={profileUi.card}>
-              <div className={profileUi.cardHeader}>
+              <button
+                type="button"
+                onClick={() => toggleSection("links")}
+                className={`${profileUi.cardHeader} flex w-full items-center justify-between cursor-pointer text-left transition-colors hover:bg-white/[0.02]`}
+                aria-expanded={openSections.links}
+              >
                 <h2 className={profileUi.cardTitle}>
                   <Link2 className={`${profileUi.sectionIcon} ${theme.sectionIcon}`} />
                   Liens & présence en ligne
                 </h2>
-              </div>
+                <ChevronDown
+                  className={`h-5 w-5 text-slate-400 transition-transform duration-200 ${
+                    openSections.links ? "rotate-180 text-emerald-400" : ""
+                  }`}
+                  aria-hidden="true"
+                />
+              </button>
 
-              <div className="grid grid-cols-1 gap-4 p-5 sm:p-6 md:grid-cols-2 md:p-8">
-                {[
-                  { key: "linkedIn" as const, placeholder: "LinkedIn", icon: ExternalLink },
-                  { key: "orcid" as const, placeholder: "ORCID", icon: ExternalLink },
-                  { key: "googleScholar" as const, placeholder: "Google Scholar", icon: ExternalLink },
-                  { key: "website" as const, placeholder: "Site personnel", icon: Globe },
-                ].map((field) => (
-                  <div key={field.key} className="relative">
-                    <field.icon className={profileUi.inputIcon} />
-                    <input
-                      placeholder={field.placeholder}
-                      value={academicProfileForm[field.key]}
-                      onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, [field.key]: e.target.value }))}
-                      className={`${inputFocus} pl-10`}
-                    />
-                  </div>
-                ))}
-              </div>
+              {openSections.links && (
+                <div className="grid grid-cols-1 gap-4 p-5 sm:p-6 md:grid-cols-2 md:p-8 border-t border-white/[0.06]">
+                  {[
+                    { key: "linkedIn" as const, placeholder: "LinkedIn", icon: ExternalLink },
+                    { key: "orcid" as const, placeholder: "ORCID", icon: ExternalLink },
+                    { key: "googleScholar" as const, placeholder: "Google Scholar", icon: ExternalLink },
+                    { key: "website" as const, placeholder: "Site personnel", icon: Globe },
+                  ].map((field) => (
+                    <div key={field.key} className="relative">
+                      <field.icon className={profileUi.inputIcon} />
+                      <input
+                        placeholder={field.placeholder}
+                        value={academicProfileForm[field.key]}
+                        onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                        className={`${inputFocus} pl-10`}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </section>
 
             <div className={profileUi.saveBtnWrap}>
