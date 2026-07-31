@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   BookOpen,
   Plus,
@@ -10,6 +11,7 @@ import {
   DollarSign,
   Clock,
   Award,
+  ChevronDown,
   ChevronRight,
   Gift,
 } from "lucide-react";
@@ -147,6 +149,8 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
     `${className} ${isDisabled ? "cursor-not-allowed opacity-60" : ""}`;
   const hasDisciplineOptions = allDisciplines.length > 0;
 
+  const [isOptionalSectionOpen, setIsOptionalSectionOpen] = useState(false);
+
   return (
     <div className="grid grid-cols-1 gap-6 xl:grid-cols-12 xl:items-stretch animate-in fade-in slide-in-from-bottom-4 duration-300">
       <div className={`xl:col-span-5 ${curriculumUi.panel} ${getStepTheme(1).panel} space-y-5 self-start`}>
@@ -173,24 +177,46 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
             </div>
           </label>
 
-          <label className="block space-y-1.5">
-            <span className={curriculumUi.label}>
-              Description pédagogique <span className="text-slate-400 font-normal text-xs text-transform-none">(facultatif)</span>
-            </span>
-            <textarea
-              rows={3}
-              placeholder="Objectifs, compétences visées et compétences acquises..."
-              value={newCourseDescription}
-              onChange={(e) => setNewCourseDescription(e.target.value)}
-              className={`${inputFocus} resize-none`}
-            />
-          </label>
+          <div className="rounded-xl border border-slate-800/80 bg-slate-950/40 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setIsOptionalSectionOpen((prev) => !prev)}
+              className="flex w-full items-center justify-between p-3.5 text-left transition hover:bg-slate-900/60"
+            >
+              <div className="flex items-center gap-2">
+                <span className={curriculumUi.label}>Description & Image du module</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">(facultatif)</span>
+              </div>
+              <ChevronDown
+                className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${
+                  isOptionalSectionOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
 
-          <CourseImageField
-            file={newCourseImageFile}
-            status={newCourseImageStatus}
-            onFileChange={setNewCourseImageFile}
-          />
+            {isOptionalSectionOpen && (
+              <div className="space-y-4 p-4 pt-2 border-t border-slate-800/60">
+                <label className="block space-y-1.5">
+                  <span className={curriculumUi.label}>
+                    Description pédagogique <span className="text-slate-400 font-normal text-xs text-transform-none">(facultatif)</span>
+                  </span>
+                  <textarea
+                    rows={3}
+                    placeholder="Objectifs, compétences visées et compétences acquises..."
+                    value={newCourseDescription}
+                    onChange={(e) => setNewCourseDescription(e.target.value)}
+                    className={`${inputFocus} resize-none`}
+                  />
+                </label>
+
+                <CourseImageField
+                  file={newCourseImageFile}
+                  status={newCourseImageStatus}
+                  onFileChange={setNewCourseImageFile}
+                />
+              </div>
+            )}
+          </div>
 
           <div className="grid grid-cols-2 gap-3">
             <label className="block space-y-1.5">
