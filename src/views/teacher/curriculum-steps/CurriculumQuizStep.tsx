@@ -322,7 +322,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                                       Choix de réponses ({newQuestionOptions.length})
                                     </span>
                                     <span className="text-[10px] text-slate-400 font-medium">
-                                      Minimum 2 choix requis. Renseignez les options puis sélectionnez le ou les choix corrects dans la liste ci-dessous.
+                                      Minimum 2 choix requis.
                                     </span>
                                   </div>
                                   <button
