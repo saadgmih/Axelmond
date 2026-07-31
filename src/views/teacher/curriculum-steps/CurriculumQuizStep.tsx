@@ -131,7 +131,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
               Gestion du Contenu - Module Quiz ({teacherQuizzes.length})
             </h3>
             <p className="text-xs font-medium text-slate-400 mt-1">
-              Structure hiérarchique à 3 niveaux : Quiz &rarr; Questions QCM &rarr; Choix de réponses.
+              Quiz &rarr; Questions QCM &rarr; Choix de réponses.
             </p>
           </div>
           <button
@@ -146,9 +146,8 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
 
         {(quizManagerMsg || quizManagerError) && (
           <div
-            className={`p-3 border text-xs font-semibold rounded-xl animate-in fade-in duration-200 ${
-              quizManagerError ? curriculumUi.alertError : curriculumUi.alertSuccess
-            }`}
+            className={`p-3 border text-xs font-semibold rounded-xl animate-in fade-in duration-200 ${quizManagerError ? curriculumUi.alertError : curriculumUi.alertSuccess
+              }`}
           >
             {quizManagerError || quizManagerMsg}
           </div>
@@ -196,9 +195,8 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                           handleCancelEditQuestion?.();
                         }
                       }}
-                      className={`cursor-pointer p-4 flex items-center justify-between gap-4 select-none transition-colors ${
-                        isQuizOpen ? "bg-slate-900/95" : "bg-slate-950/70 hover:bg-slate-900/80"
-                      }`}
+                      className={`cursor-pointer p-4 flex items-center justify-between gap-4 select-none transition-colors ${isQuizOpen ? "bg-slate-900/95" : "bg-slate-950/70 hover:bg-slate-900/80"
+                        }`}
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <span className="p-1.5 rounded-lg border border-teal-500/30 bg-teal-950/60 text-teal-300 shrink-0">
@@ -216,9 +214,6 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                             className={`rounded border px-2 py-0.5 text-[9px] font-black uppercase tracking-wider shrink-0 ${getStepTheme(4).chip}`}
                           >
                             {questionCount} QCM{questionCount !== 1 ? "s" : ""}
-                          </span>
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest shrink-0 hidden sm:inline-block">
-                            Niveau 1 : Quiz
                           </span>
                         </div>
                       </div>
@@ -281,7 +276,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                               <h4 className="text-xs font-black uppercase tracking-wider text-teal-300">
                                 {editingQuestionId
                                   ? "Modifier la question QCM"
-                                  : "Nouvelle question QCM (Niveau 2)"}
+                                  : "Nouvelle question QCM"}
                               </h4>
                               <button
                                 type="button"
@@ -324,7 +319,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                                 <div className="flex items-center justify-between gap-3">
                                   <div>
                                     <span className="text-[11px] font-black uppercase tracking-wider text-teal-300 block">
-                                      Niveau 3 : Choix de réponses ({newQuestionOptions.length})
+                                      Choix de réponses ({newQuestionOptions.length})
                                     </span>
                                     <span className="text-[10px] text-slate-400 font-medium">
                                       Minimum 2 choix requis. Renseignez les options puis sélectionnez le ou les choix corrects dans la liste ci-dessous.
@@ -376,11 +371,10 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                                                 setNewQuestionAnswer(updatedCorrect.join(", "));
                                               }
                                             }}
-                                            className={`rounded-lg p-1.5 transition-all border ${
-                                              canDelete
+                                            className={`rounded-lg p-1.5 transition-all border ${canDelete
                                                 ? "border-slate-800 text-slate-400 hover:bg-red-950/60 hover:text-red-400 hover:border-red-900/50 cursor-pointer"
                                                 : "border-slate-800/40 text-slate-600 cursor-not-allowed opacity-40"
-                                            }`}
+                                              }`}
                                             title={canDelete ? "Supprimer ce choix" : "Impossible : 2 choix minimum requis"}
                                           >
                                             <Trash2 className="w-3.5 h-3.5" />
@@ -419,236 +413,233 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                                   })}
                                 </div>
 
-                              {/* LIST FOR SELECTING CORRECT CHOICES */}
-                              <div className="space-y-3 border-t border-slate-800/80 pt-4">
-                                <button
-                                  type="button"
-                                  onClick={() => setIsCorrectChoicesOpen((prev) => !prev)}
-                                  className="w-full flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-800 bg-[#031512] hover:bg-slate-900/80 transition-all text-left cursor-pointer select-none group"
-                                >
-                                  <div className="flex items-center gap-2.5 min-w-0">
-                                    <ChevronDown
-                                      className={`h-4 w-4 text-teal-400 shrink-0 transition-transform duration-200 ${
-                                        isCorrectChoicesOpen ? "rotate-180" : ""
-                                      }`}
-                                    />
-                                    <div className="min-w-0">
-                                      <span className="text-[11px] font-black uppercase tracking-wider text-teal-300 block truncate">
-                                        Liste de sélection des choix corrects
-                                      </span>
-                                      <span className="text-[10px] text-slate-400 font-medium block truncate">
-                                        {isCorrectChoicesOpen
-                                          ? "Cliquez pour réduire la liste des choix"
-                                          : "Cliquez pour afficher et choisir la ou les bonnes réponses"}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-500/30 px-2.5 py-1 rounded-lg shrink-0">
-                                    {selectedCorrectOptions.length} choix sélectionné(s)
-                                  </span>
-                                </button>
-
-                                {isCorrectChoicesOpen && (
-                                  <div className="space-y-4 pt-1 animate-in fade-in duration-200">
-                                    <div className="flex flex-col rounded-xl border border-slate-800 bg-[#031512] overflow-hidden divide-y divide-slate-800/80 transition-all">
-                                      {newQuestionOptions.map((opt, idx) => {
-                                        const isCorrect =
-                                          selectedCorrectOptions.includes(opt.trim()) && opt.trim().length > 0;
-                                        const choiceTitle = `Choix ${idx + 1}`;
-                                        const choiceContent = opt.trim() || choiceTitle;
-
-                                        return (
-                                          <label
-                                            key={idx}
-                                            className={`w-full flex items-center justify-between gap-2.5 p-3 transition-all cursor-pointer select-none ${
-                                              isCorrect
-                                                ? "bg-emerald-950/60 text-emerald-200"
-                                                : "bg-slate-950/70 text-slate-300 hover:bg-slate-900/90"
-                                            }`}
-                                          >
-                                            <div className="min-w-0 flex-1 flex items-center gap-2.5">
-                                              <input
-                                                type="checkbox"
-                                                checked={isCorrect}
-                                                onChange={() => toggleCorrectOption(opt)}
-                                                className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-emerald-500 focus:ring-emerald-400 focus:ring-offset-0 cursor-pointer shrink-0"
-                                              />
-                                              <span className="font-mono text-xs font-black text-teal-300 shrink-0">
-                                                {choiceTitle}
-                                              </span>
-                                              <span className="truncate text-xs font-semibold text-slate-200">
-                                                {choiceContent}
-                                              </span>
-                                            </div>
-                                            {isCorrect && (
-                                              <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 ml-1" />
-                                            )}
-                                          </label>
-                                        );
-                                      })}
-                                    </div>
-
-                                    {selectedCorrectOptions.length === 0 && (
-                                      <p className="text-[11px] font-bold text-amber-400 flex items-center gap-1.5 pt-1">
-                                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                                        Veuillez cocher au moins un choix dans la liste ci-dessus.
-                                      </p>
-                                    )}
-
-                                    {/* Summary & Explication (Image 2) */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-800/80 pt-4">
-                                      <div className="block space-y-1.5">
-                                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                                          Bonne(s) réponse(s) définie(s) ({selectedCorrectOptions.length})
+                                {/* LIST FOR SELECTING CORRECT CHOICES */}
+                                <div className="space-y-3 border-t border-slate-800/80 pt-4">
+                                  <button
+                                    type="button"
+                                    onClick={() => setIsCorrectChoicesOpen((prev) => !prev)}
+                                    className="w-full flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-800 bg-[#031512] hover:bg-slate-900/80 transition-all text-left cursor-pointer select-none group"
+                                  >
+                                    <div className="flex items-center gap-2.5 min-w-0">
+                                      <ChevronDown
+                                        className={`h-4 w-4 text-teal-400 shrink-0 transition-transform duration-200 ${isCorrectChoicesOpen ? "rotate-180" : ""
+                                          }`}
+                                      />
+                                      <div className="min-w-0">
+                                        <span className="text-[11px] font-black uppercase tracking-wider text-teal-300 block truncate">
+                                          Liste de sélection des choix corrects
                                         </span>
-                                        <div className="flex flex-wrap items-center gap-1.5 p-2.5 rounded-xl border border-slate-700/80 bg-[#031512] min-h-[42px]">
-                                          {selectedCorrectOptions.length === 0 ? (
-                                            <span className="text-xs text-amber-400 font-semibold italic">
-                                              Aucune bonne réponse cochée.
-                                            </span>
-                                          ) : (
-                                            selectedCorrectOptions.map((ans, aIdx) => (
-                                              <span
-                                                key={aIdx}
-                                                className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/50 bg-emerald-500/20 px-2.5 py-1 text-xs font-black text-emerald-300 shadow-sm"
-                                              >
-                                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                                                {ans}
-                                              </span>
-                                            ))
-                                          )}
-                                        </div>
+                                        <span className="text-[10px] text-slate-400 font-medium block truncate">
+                                          {isCorrectChoicesOpen
+                                            ? "Cliquez pour réduire la liste des choix"
+                                            : "Cliquez pour afficher et choisir la ou les bonnes réponses"}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-500/30 px-2.5 py-1 rounded-lg shrink-0">
+                                      {selectedCorrectOptions.length} choix sélectionné(s)
+                                    </span>
+                                  </button>
+
+                                  {isCorrectChoicesOpen && (
+                                    <div className="space-y-4 pt-1 animate-in fade-in duration-200">
+                                      <div className="flex flex-col rounded-xl border border-slate-800 bg-[#031512] overflow-hidden divide-y divide-slate-800/80 transition-all">
+                                        {newQuestionOptions.map((opt, idx) => {
+                                          const isCorrect =
+                                            selectedCorrectOptions.includes(opt.trim()) && opt.trim().length > 0;
+                                          const choiceTitle = `Choix ${idx + 1}`;
+                                          const choiceContent = opt.trim() || choiceTitle;
+
+                                          return (
+                                            <label
+                                              key={idx}
+                                              className={`w-full flex items-center justify-between gap-2.5 p-3 transition-all cursor-pointer select-none ${isCorrect
+                                                  ? "bg-emerald-950/60 text-emerald-200"
+                                                  : "bg-slate-950/70 text-slate-300 hover:bg-slate-900/90"
+                                                }`}
+                                            >
+                                              <div className="min-w-0 flex-1 flex items-center gap-2.5">
+                                                <input
+                                                  type="checkbox"
+                                                  checked={isCorrect}
+                                                  onChange={() => toggleCorrectOption(opt)}
+                                                  className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-emerald-500 focus:ring-emerald-400 focus:ring-offset-0 cursor-pointer shrink-0"
+                                                />
+                                                <span className="font-mono text-xs font-black text-teal-300 shrink-0">
+                                                  {choiceTitle}
+                                                </span>
+                                                <span className="truncate text-xs font-semibold text-slate-200">
+                                                  {choiceContent}
+                                                </span>
+                                              </div>
+                                              {isCorrect && (
+                                                <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 ml-1" />
+                                              )}
+                                            </label>
+                                          );
+                                        })}
                                       </div>
 
-                                      <label className="block space-y-1">
-                                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                                          Explication didactique
-                                        </span>
-                                        <textarea
-                                          rows={2}
-                                          placeholder={String.raw`Exemple : $\det(A)=1\times4-2\times3=-2$`}
-                                          value={newQuestionExplanation}
-                                          onChange={(e) => setNewQuestionExplanation(e.target.value)}
-                                          className={`${inputFocus} font-mono leading-relaxed text-xs`}
-                                        />
-                                      </label>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="flex items-center justify-end gap-3 pt-2">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setIsCreatingQcm(false);
-                                  handleCancelEditQuestion?.();
-                                }}
-                                className="rounded-xl border border-slate-700 px-4 py-2.5 text-xs font-bold text-slate-300 hover:bg-slate-800 hover:text-white transition-all"
-                              >
-                                Annuler
-                              </button>
-                              <button
-                                type="submit"
-                                className={`rounded-xl px-5 py-2.5 text-xs font-black shadow-md transition-all active:scale-95 ${getStepTheme(4).button}`}
-                              >
-                                {editingQuestionId
-                                  ? "Enregistrer les modifications du QCM"
-                                  : "Enregistrer ce QCM dans le Quiz"}
-                              </button>
-                            </div>
-                          </form>
-                        </div>
-                      )}
-
-                      {/* LEVEL 2: QCM LIST INSIDE QUIZ */}
-                      {questions.length > 0 && (
-                        <div className="space-y-3 pt-1">
-                          {questions.map((q: any, qIdx: number) => {
-                            const isEditingThisQcm = editingQuestionId === q.id;
-
-                            return (
-                              <div
-                                key={q.id}
-                                className={`rounded-xl border transition-all ${
-                                  isEditingThisQcm
-                                    ? "border-teal-500/60 bg-teal-950/40 shadow-sm"
-                                    : "border-slate-800/90 bg-slate-950/60 hover:border-slate-700 hover:bg-slate-900/80"
-                                }`}
-                              >
-                                <div
-                                  onClick={() => {
-                                    if (isEditingThisQcm) {
-                                      handleCancelEditQuestion?.();
-                                    } else {
-                                      setIsCreatingQcm(false);
-                                      handleStartEditQuestion?.(q);
-                                    }
-                                  }}
-                                  className="cursor-pointer p-3.5 flex items-center justify-between gap-3 select-none"
-                                >
-                                  <div className="flex items-center gap-3 min-w-0">
-                                    <span className="shrink-0 font-mono text-[10px] font-black uppercase tracking-wider text-teal-400 bg-teal-950/80 border border-teal-500/30 px-2 py-0.5 rounded">
-                                      QCM {qIdx + 1}
-                                    </span>
-                                    <span className="truncate text-xs font-semibold text-slate-200">
-                                      {q.question ? q.question.replace(/\$+/g, "") : "Sans énoncé"}
-                                    </span>
-                                  </div>
-
-                                  <div className="flex items-center gap-2 shrink-0">
-                                    <span className="text-[10px] font-medium text-slate-400">
-                                      {Array.isArray(q.options) ? q.options.length : 0} choix
-                                    </span>
-                                    {handleStartEditQuestion && (
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setIsCreatingQcm(false);
-                                          handleStartEditQuestion(q);
-                                        }}
-                                        className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-teal-300 border border-slate-700/40"
-                                        title="Modifier ce QCM"
-                                      >
-                                        <Edit3 className="w-3.5 h-3.5" />
-                                      </button>
-                                    )}
-                                    {handleDeleteQuestion && (
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleDeleteQuestion(q.id);
-                                        }}
-                                        className="rounded-lg p-1.5 text-slate-400 hover:bg-red-950/60 hover:text-red-400 border border-slate-700/40"
-                                        title="Supprimer ce QCM"
-                                      >
-                                        <Trash2 className="w-3.5 h-3.5" />
-                                      </button>
-                                    )}
-                                    <span className="p-1 text-slate-400">
-                                      {isEditingThisQcm ? (
-                                        <ChevronDown className="w-4 h-4 text-teal-300" />
-                                      ) : (
-                                        <ChevronRight className="w-4 h-4 text-slate-400" />
+                                      {selectedCorrectOptions.length === 0 && (
+                                        <p className="text-[11px] font-bold text-amber-400 flex items-center gap-1.5 pt-1">
+                                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                                          Veuillez cocher au moins un choix dans la liste ci-dessus.
+                                        </p>
                                       )}
-                                    </span>
-                                  </div>
+
+                                      {/* Summary & Explication (Image 2) */}
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-800/80 pt-4">
+                                        <div className="block space-y-1.5">
+                                          <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                                            Bonne(s) réponse(s) définie(s) ({selectedCorrectOptions.length})
+                                          </span>
+                                          <div className="flex flex-wrap items-center gap-1.5 p-2.5 rounded-xl border border-slate-700/80 bg-[#031512] min-h-[42px]">
+                                            {selectedCorrectOptions.length === 0 ? (
+                                              <span className="text-xs text-amber-400 font-semibold italic">
+                                                Aucune bonne réponse cochée.
+                                              </span>
+                                            ) : (
+                                              selectedCorrectOptions.map((ans, aIdx) => (
+                                                <span
+                                                  key={aIdx}
+                                                  className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/50 bg-emerald-500/20 px-2.5 py-1 text-xs font-black text-emerald-300 shadow-sm"
+                                                >
+                                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                                                  {ans}
+                                                </span>
+                                              ))
+                                            )}
+                                          </div>
+                                        </div>
+
+                                        <label className="block space-y-1">
+                                          <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                                            Explication didactique
+                                          </span>
+                                          <textarea
+                                            rows={2}
+                                            placeholder={String.raw`Exemple : $\det(A)=1\times4-2\times3=-2$`}
+                                            value={newQuestionExplanation}
+                                            onChange={(e) => setNewQuestionExplanation(e.target.value)}
+                                            className={`${inputFocus} font-mono leading-relaxed text-xs`}
+                                          />
+                                        </label>
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
+
+                              <div className="flex items-center justify-end gap-3 pt-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setIsCreatingQcm(false);
+                                    handleCancelEditQuestion?.();
+                                  }}
+                                  className="rounded-xl border border-slate-700 px-4 py-2.5 text-xs font-bold text-slate-300 hover:bg-slate-800 hover:text-white transition-all"
+                                >
+                                  Annuler
+                                </button>
+                                <button
+                                  type="submit"
+                                  className={`rounded-xl px-5 py-2.5 text-xs font-black shadow-md transition-all active:scale-95 ${getStepTheme(4).button}`}
+                                >
+                                  {editingQuestionId
+                                    ? "Enregistrer les modifications du QCM"
+                                    : "Enregistrer ce QCM dans le Quiz"}
+                                </button>
+                              </div>
+                            </form>
+                          </div>
+                        )}
+
+                        {/* LEVEL 2: QCM LIST INSIDE QUIZ */}
+                        {questions.length > 0 && (
+                          <div className="space-y-3 pt-1">
+                            {questions.map((q: any, qIdx: number) => {
+                              const isEditingThisQcm = editingQuestionId === q.id;
+
+                              return (
+                                <div
+                                  key={q.id}
+                                  className={`rounded-xl border transition-all ${isEditingThisQcm
+                                      ? "border-teal-500/60 bg-teal-950/40 shadow-sm"
+                                      : "border-slate-800/90 bg-slate-950/60 hover:border-slate-700 hover:bg-slate-900/80"
+                                    }`}
+                                >
+                                  <div
+                                    onClick={() => {
+                                      if (isEditingThisQcm) {
+                                        handleCancelEditQuestion?.();
+                                      } else {
+                                        setIsCreatingQcm(false);
+                                        handleStartEditQuestion?.(q);
+                                      }
+                                    }}
+                                    className="cursor-pointer p-3.5 flex items-center justify-between gap-3 select-none"
+                                  >
+                                    <div className="flex items-center gap-3 min-w-0">
+                                      <span className="shrink-0 font-mono text-[10px] font-black uppercase tracking-wider text-teal-400 bg-teal-950/80 border border-teal-500/30 px-2 py-0.5 rounded">
+                                        QCM {qIdx + 1}
+                                      </span>
+                                      <span className="truncate text-xs font-semibold text-slate-200">
+                                        {q.question ? q.question.replace(/\$+/g, "") : "Sans énoncé"}
+                                      </span>
+                                    </div>
+
+                                    <div className="flex items-center gap-2 shrink-0">
+                                      <span className="text-[10px] font-medium text-slate-400">
+                                        {Array.isArray(q.options) ? q.options.length : 0} choix
+                                      </span>
+                                      {handleStartEditQuestion && (
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setIsCreatingQcm(false);
+                                            handleStartEditQuestion(q);
+                                          }}
+                                          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-teal-300 border border-slate-700/40"
+                                          title="Modifier ce QCM"
+                                        >
+                                          <Edit3 className="w-3.5 h-3.5" />
+                                        </button>
+                                      )}
+                                      {handleDeleteQuestion && (
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteQuestion(q.id);
+                                          }}
+                                          className="rounded-lg p-1.5 text-slate-400 hover:bg-red-950/60 hover:text-red-400 border border-slate-700/40"
+                                          title="Supprimer ce QCM"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                      )}
+                                      <span className="p-1 text-slate-400">
+                                        {isEditingThisQcm ? (
+                                          <ChevronDown className="w-4 h-4 text-teal-300" />
+                                        ) : (
+                                          <ChevronRight className="w-4 h-4 text-slate-400" />
+                                        )}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>
