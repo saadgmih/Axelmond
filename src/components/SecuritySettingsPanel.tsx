@@ -354,7 +354,7 @@ export default function SecuritySettingsPanel({
           {(message || error) && (
             <div
               role="alert"
-              className={`mb-6 rounded-xl px-4 py-3 text-xs ${error ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border border-emerald-500/30 bg-emerald-500/10 text-emerald-300"}`}
+              className={`mb-6 rounded-xl px-4 py-3 text-xs ${error ? "border border-rose-500/30 bg-rose-500/10 text-rose-300" : "border border-emerald-500/30 bg-emerald-500/10 text-emerald-300"}`}
             >
               {error || message}
             </div>
@@ -591,7 +591,7 @@ export default function SecuritySettingsPanel({
       {(message || error) && (
         <div
           role="alert"
-          className={`rounded-xl px-4 py-3 text-xs ${error ? "border border-emerald-200 bg-emerald-50 text-emerald-700" : "border border-emerald-200 bg-emerald-50 text-emerald-700"}`}
+          className={`rounded-xl px-4 py-3 text-xs ${error ? "border border-rose-200 bg-rose-50 text-rose-700" : "border border-emerald-200 bg-emerald-50 text-emerald-700"}`}
         >
           {error || message}
         </div>

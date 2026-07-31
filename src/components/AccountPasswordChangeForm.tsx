@@ -79,8 +79,8 @@ export default function AccountPasswordChangeForm({ variant = "light" }: Account
             className={`rounded-xl px-4 py-3 text-xs ${
               error
                 ? isDark
-                  ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-                  : "border border-emerald-200 bg-emerald-50 text-emerald-700"
+                  ? "border border-rose-500/30 bg-rose-500/10 text-rose-300"
+                  : "border border-rose-200 bg-rose-50 text-rose-700"
                 : isDark
                   ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
                   : "border border-emerald-200 bg-emerald-50 text-emerald-700"
