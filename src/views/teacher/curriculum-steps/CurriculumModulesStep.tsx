@@ -150,6 +150,7 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
   const hasDisciplineOptions = allDisciplines.length > 0;
 
   const [isOptionalSectionOpen, setIsOptionalSectionOpen] = useState(false);
+  const [isEditOptionalSectionOpen, setIsEditOptionalSectionOpen] = useState(false);
 
   return (
     <div className="grid grid-cols-1 gap-6 xl:grid-cols-12 xl:items-stretch animate-in fade-in slide-in-from-bottom-4 duration-300">
@@ -384,71 +385,111 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                       Modifier le module
                     </p>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <label className="md:col-span-2 space-y-1 block">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase">Titre</span>
-                      <input
-                        required
-                        placeholder="Titre du module"
-                        value={editCourseForm.title}
-                        onChange={(e) => setEditCourseForm((prev) => ({ ...prev, title: e.target.value }))}
-                        className={`${curriculumUi.input} ${getStepTheme(1).focus}`}
+
+                  <label className="block space-y-1.5">
+                    <span className={curriculumUi.label}>Titre du module</span>
+                    <input
+                      required
+                      placeholder="Titre du module"
+                      value={editCourseForm.title}
+                      onChange={(e) => setEditCourseForm((prev) => ({ ...prev, title: e.target.value }))}
+                      className={`${curriculumUi.input} ${getStepTheme(1).focus}`}
+                    />
+                  </label>
+
+                  <div className="rounded-xl border border-slate-800/80 bg-slate-950/40 overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setIsEditOptionalSectionOpen((prev) => !prev)}
+                      className="flex w-full items-center justify-between p-3.5 text-left transition hover:bg-slate-900/60"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className={curriculumUi.label}>Options & Détails du module</span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                          (Description, Image, PA, Temps)
+                        </span>
+                      </div>
+                      <ChevronDown
+                        className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${
+                          isEditOptionalSectionOpen ? "rotate-180" : ""
+                        }`}
                       />
-                    </label>
-                    <div className="md:col-span-2">
-                      <CourseImageField
-                        file={editCourseImageFile}
-                        currentImageUrl={editingCourse.imageUrl}
-                        status={editCourseImageStatus}
-                        onFileChange={setEditCourseImageFile}
-                      />
-                    </div>
-                    <label className="md:col-span-2 space-y-1 block">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase">Description (facultatif)</span>
-                      <textarea
-                        rows={2}
-                        placeholder="Description"
-                        value={editCourseForm.description}
-                        onChange={(e) => setEditCourseForm((prev) => ({ ...prev, description: e.target.value }))}
-                        className={`${curriculumUi.input} ${getStepTheme(1).focus} resize-none`}
-                      />
-                    </label>
-                    <label className="space-y-1 block">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase">Niveau</span>
-                      <input
-                        placeholder="Niveau"
-                        value={editCourseForm.level}
-                        onChange={(e) => setEditCourseForm((prev) => ({ ...prev, level: e.target.value }))}
-                        className={`${curriculumUi.input} ${getStepTheme(1).focus}`}
-                      />
-                    </label>
-                    <label className="space-y-1 block">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase">Temps de formation (ex: 20 heures)</span>
-                      <input
-                        placeholder="Durée"
-                        value={editCourseForm.duration}
-                        onChange={(e) => setEditCourseForm((prev) => ({ ...prev, duration: e.target.value }))}
-                        className={`${curriculumUi.input} ${getStepTheme(1).focus}`}
-                      />
-                    </label>
-                    <label className="space-y-1 block">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase">{creditsLabel()}</span>
-                      <input
-                        type="number"
-                        min="0"
-                        placeholder={creditsLabel()}
-                        value={editCourseForm.credits}
+                    </button>
+
+                    {isEditOptionalSectionOpen && (
+                      <div className="space-y-4 p-4 pt-2 border-t border-slate-800/60">
+                        <label className="block space-y-1.5">
+                          <span className={curriculumUi.label}>
+                            Description pédagogique <span className="text-slate-400 font-normal text-xs text-transform-none">(facultatif)</span>
+                          </span>
+                          <textarea
+                            rows={3}
+                            placeholder="Description"
+                            value={editCourseForm.description}
+                            onChange={(e) => setEditCourseForm((prev) => ({ ...prev, description: e.target.value }))}
+                            className={`${inputFocus} resize-none`}
+                          />
+                        </label>
+
+                        <CourseImageField
+                          file={editCourseImageFile}
+                          currentImageUrl={editingCourse.imageUrl}
+                          status={editCourseImageStatus}
+                          onFileChange={setEditCourseImageFile}
+                        />
+
+                        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                          <div className="space-y-1.5">
+                            <span className={curriculumUi.label}>{creditsLabel()}</span>
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder={creditsLabel()}
+                              value={editCourseForm.credits}
+                              onChange={(e) =>
+                                setEditCourseForm((prev) => ({
+                                  ...prev,
+                                  credits: normalizeNumericInputValue(e.target.value),
+                                }))
+                              }
+                              className={inputFocus}
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <span className={curriculumUi.label}>Temps de formation estimé</span>
+                            <input
+                              placeholder="ex: 20 heures"
+                              value={editCourseForm.duration}
+                              onChange={(e) => setEditCourseForm((prev) => ({ ...prev, duration: e.target.value }))}
+                              className={inputFocus}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 items-start">
+                    <label className="block space-y-1.5">
+                      <span className={curriculumUi.label}>Discipline</span>
+                      <select
+                        value={editCourseForm.disciplineId}
                         onChange={(e) =>
-                          setEditCourseForm((prev) => ({
-                            ...prev,
-                            credits: normalizeNumericInputValue(e.target.value),
-                          }))
+                          setEditCourseForm((prev) => ({ ...prev, disciplineId: parseInt(e.target.value) }))
                         }
-                        className={`${curriculumUi.input} ${getStepTheme(1).focus}`}
-                      />
+                        className={`${inputFocus} text-slate-700`}
+                      >
+                        {allDisciplines.map((d) => (
+                          <option key={d.id} value={d.id}>
+                            {d.name}
+                          </option>
+                        ))}
+                      </select>
                     </label>
-                    <div className="space-y-2 block">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase">Tarif du module</span>
+
+                    <div className="block space-y-2">
+                      <span className={curriculumUi.label}>Tarif du module</span>
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           type="button"
@@ -483,64 +524,51 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                       </div>
                       {!editCourseForm.isFree && (
                         <>
-                          <input
-                            type="number"
-                            min={MIN_PAID_COURSE_PRICE}
-                            step={COURSE_PRICE_STEP}
-                            placeholder={`min. ${formatMad(MIN_PAID_COURSE_PRICE)}`}
-                            value={editCourseForm.price}
-                            onChange={(e) =>
-                              setEditCourseForm((prev) => ({
-                                ...prev,
-                                price: normalizeNumericInputValue(e.target.value),
-                              }))
-                            }
-                            onBlur={() =>
-                              setEditCourseForm((prev) => ({
-                                ...prev,
-                                price: paidCoursePriceInputValue(prev.price),
-                              }))
-                            }
-                            className={`${curriculumUi.input} ${getStepTheme(1).focus}`}
-                          />
+                          <div className="relative">
+                            <span className="absolute left-3 top-3 text-xs font-bold text-slate-400">DH</span>
+                            <input
+                              type="number"
+                              min={MIN_PAID_COURSE_PRICE}
+                              step={COURSE_PRICE_STEP}
+                              placeholder={`min. ${formatMad(MIN_PAID_COURSE_PRICE)}`}
+                              value={editCourseForm.price}
+                              onChange={(e) =>
+                                setEditCourseForm((prev) => ({
+                                  ...prev,
+                                  price: normalizeNumericInputValue(e.target.value),
+                                }))
+                              }
+                              onBlur={() =>
+                                setEditCourseForm((prev) => ({
+                                  ...prev,
+                                  price: paidCoursePriceInputValue(prev.price),
+                                }))
+                              }
+                              className={`${curriculumUi.inputIcon} pl-8 ${getStepTheme(1).focus}`}
+                            />
+                          </div>
                           <p className="text-[10px] font-semibold leading-relaxed text-slate-500">
                             Payant : minimum {formatMad(MIN_PAID_COURSE_PRICE)}.
                           </p>
                         </>
                       )}
                     </div>
-                    {editCourseForm.isFree && (
-                      <div className="md:col-span-2">
-                        <FreeAccessWindowFields
-                          startsAt={editCourseForm.freeAccessStartsAt}
-                          endsAt={editCourseForm.freeAccessEndsAt}
-                          onStartsAtChange={(value) =>
-                            setEditCourseForm((prev) => ({ ...prev, freeAccessStartsAt: value }))
-                          }
-                          onEndsAtChange={(value) =>
-                            setEditCourseForm((prev) => ({ ...prev, freeAccessEndsAt: value }))
-                          }
-                          inputClassName={`${curriculumUi.input} ${getStepTheme(1).focus}`}
-                        />
-                      </div>
-                    )}
-                    <label className="md:col-span-2 space-y-1 block">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase">Discipline</span>
-                      <select
-                        value={editCourseForm.disciplineId}
-                        onChange={(e) =>
-                          setEditCourseForm((prev) => ({ ...prev, disciplineId: parseInt(e.target.value) }))
-                        }
-                        className={`${curriculumUi.input} ${getStepTheme(1).focus} text-slate-700`}
-                      >
-                        {allDisciplines.map((d) => (
-                          <option key={d.id} value={d.id}>
-                            {d.name}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
                   </div>
+
+                  {editCourseForm.isFree && (
+                    <FreeAccessWindowFields
+                      startsAt={editCourseForm.freeAccessStartsAt}
+                      endsAt={editCourseForm.freeAccessEndsAt}
+                      onStartsAtChange={(value) =>
+                        setEditCourseForm((prev) => ({ ...prev, freeAccessStartsAt: value }))
+                      }
+                      onEndsAtChange={(value) =>
+                        setEditCourseForm((prev) => ({ ...prev, freeAccessEndsAt: value }))
+                      }
+                      inputClassName={`${curriculumUi.input} ${getStepTheme(1).focus}`}
+                    />
+                  )}
+
                   <div className="flex gap-2 pt-1">
                     <button
                       type="submit"
