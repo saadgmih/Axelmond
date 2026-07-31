@@ -766,36 +766,36 @@ export default function StudentCourseView({
                 {/* CASE C: INTERACTIVE QUIZ */}
                 {!selectedLessonContent && selectedModule.type === "quiz" && (
                   <div className="space-y-6">
-                    <div className="relative overflow-hidden rounded-3xl border border-teal-500/25 bg-slate-950 p-6 text-white shadow-md">
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.28),transparent_34%),linear-gradient(135deg,rgba(76,29,149,0.58),rgba(15,23,42,0.92)_45%,rgba(6,78,59,0.32))]" />
+                    <div className="relative overflow-hidden rounded-3xl border border-emerald-500/30 bg-[#0b241f] p-6 text-white shadow-xl shadow-black/30">
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.35),transparent_40%),linear-gradient(135deg,rgba(6,78,59,0.85),rgba(15,23,42,0.95)_60%,rgba(4,47,46,0.5))]" />
                       <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="space-y-2">
-                          <span className="inline-flex items-center gap-2 rounded-full border border-teal-400/30 bg-teal-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-teal-200">
-                            <Sigma className="h-3.5 w-3.5" />
-                            Quiz scientifique avec LaTeX
+                          <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-950/80 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-300 shadow-sm">
+                            <Sigma className="h-3.5 w-3.5 text-emerald-400" />
+                            Quiz scientifique
                           </span>
-                          <h2 className="text-xl font-black">Évaluation de fin de module</h2>
+                          <h2 className="text-xl font-black text-white">Évaluation de fin de module</h2>
                           <p className="max-w-lg text-xs leading-relaxed text-slate-300">
                             Les formules, matrices, suites, intégrales et fonctions sont affichées en notation
                             académique.
                           </p>
                         </div>
 
-                        <div className="grid min-w-[170px] grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-white/5 p-2 text-center backdrop-blur">
-                          <div className="rounded-xl bg-slate-950/70 px-3 py-2">
+                        <div className="grid min-w-[170px] grid-cols-2 gap-2 rounded-2xl border border-emerald-500/20 bg-slate-950/60 p-2 text-center backdrop-blur">
+                          <div className="rounded-xl bg-slate-950/80 px-3 py-2 border border-slate-800">
                             <p className="text-[9px] font-black uppercase text-slate-400">Questions</p>
                             <p className="mt-1 text-lg font-black text-white">{quizQuestions?.length ?? 0}</p>
                           </div>
-                          <div className="rounded-xl bg-slate-950/70 px-3 py-2">
+                          <div className="rounded-xl bg-slate-950/80 px-3 py-2 border border-slate-800">
                             <p className="text-[9px] font-black uppercase text-slate-400">Répondues</p>
-                            <p className="mt-1 text-lg font-black text-teal-200">{answeredQuizCount}</p>
+                            <p className="mt-1 text-lg font-black text-emerald-400">{answeredQuizCount}</p>
                           </div>
                         </div>
                       </div>
 
                       {selectedModule.completed && selectedModule.score && (
-                        <div className="relative mt-4 w-fit min-w-[120px] rounded-xl border border-white/20 bg-white/10 p-3 text-center">
-                          <p className="text-[10px] text-emerald-200 leading-none uppercase font-bold">Dernière Note</p>
+                        <div className="relative mt-4 w-fit min-w-[120px] rounded-xl border border-emerald-500/30 bg-emerald-950/60 p-3 text-center">
+                          <p className="text-[10px] text-emerald-300 leading-none uppercase font-bold">Dernière Note</p>
                           <p className="text-3xl font-black text-white mt-1">{selectedModule.score}</p>
                         </div>
                       )}
