@@ -159,7 +159,7 @@ export const courseSchema = z
     title: z.string().min(2, "Le titre est requis").max(200).trim(),
     level: z.string().min(2).max(50).trim().optional().default(DEFAULT_MODULE_CLASSIFICATION),
     credits: z.number().int().min(0),
-    duration: z.string().min(2).max(50).trim(),
+    duration: z.string().max(50).trim().optional().default("20 heures"),
     category: z.string().max(100).trim().optional().nullable(),
     disciplineId: z.number().int().positive(),
     price: z
@@ -170,8 +170,17 @@ export const courseSchema = z
     freeAccessEndsAt: freeAccessEndsAtField,
     freeAccessDurationDays: freeAccessDurationDaysField,
     instructor: z.string().max(100).trim().optional().nullable(),
-    description: z.string().min(5, "La description est requise").max(2000).trim(),
+    description: z.string().max(2000).trim().optional().default(""),
     published: z.boolean().default(false),
+  })
+  .transform((data) => {
+    if (data.price <= 0) {
+      const now = new Date();
+      const defaultEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      data.freeAccessStartsAt = data.freeAccessStartsAt ?? now;
+      data.freeAccessEndsAt = data.freeAccessEndsAt ?? defaultEnd;
+    }
+    return data;
   })
   .superRefine((data, ctx) => {
     if (data.price > 0 && data.freeAccessDurationDays != null) {
@@ -193,13 +202,6 @@ export const courseSchema = z
         code: "custom",
         path: ["freeAccessEndsAt"],
         message: "La date de fin de gratuité s'applique uniquement aux modules gratuits.",
-      });
-    }
-    if (data.price <= 0 && (!data.freeAccessStartsAt || !data.freeAccessEndsAt)) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["freeAccessEndsAt"],
-        message: "La date de début et de fin de gratuité sont obligatoires pour un module gratuit.",
       });
     }
     if (

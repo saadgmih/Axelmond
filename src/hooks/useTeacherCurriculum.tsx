@@ -320,17 +320,21 @@ export function useTeacherCurriculum({
     try {
       const course = await api.createCourse({
         title: newCourseTitle,
-        level: newCourseLevel,
+        level: newCourseLevel || "Licence 1",
         credits: integerFromNumericInput(newCourseCredits, 0),
-        duration: newCourseDuration,
+        duration: newCourseDuration.trim() || "20 heures",
         category: discipline.name,
         disciplineId: discipline.id,
         price: normalizeCoursePriceForSave(
           newCourseIsFree,
           numberFromNumericInput(newCoursePrice, MIN_PAID_COURSE_PRICE),
         ),
-        freeAccessStartsAt: newCourseIsFree ? datetimeLocalToIso(newCourseFreeAccessStartsAt) : null,
-        freeAccessEndsAt: newCourseIsFree ? datetimeLocalToIso(newCourseFreeAccessEndsAt) : null,
+        freeAccessStartsAt: newCourseIsFree
+          ? (datetimeLocalToIso(newCourseFreeAccessStartsAt) ?? new Date().toISOString())
+          : null,
+        freeAccessEndsAt: newCourseIsFree
+          ? (datetimeLocalToIso(newCourseFreeAccessEndsAt) ?? new Date(Date.now() + 30 * 86400000).toISOString())
+          : null,
         freeAccessDurationDays: newCourseIsFree
           ? normalizeFreeAccessDurationDays(newCourseFreeAccessDurationDays)
           : null,
