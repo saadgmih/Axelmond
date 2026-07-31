@@ -572,7 +572,7 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                   <div className="flex gap-2 pt-1">
                     <button
                       type="submit"
-                      className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-black transition-colors ${getStepTheme(1).button}`}
+                      className={`${curriculumUi.createBtn} flex-1`}
                     >
                       <Save className="h-4 w-4" /> Enregistrer
                     </button>
@@ -582,7 +582,7 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                         setEditCourseImageFile(null);
                         setEditingCourse(null);
                       }}
-                      className={curriculumUi.ghostBtn}
+                      className="inline-flex items-center justify-center gap-1 rounded-xl border border-slate-700 bg-slate-900/60 px-4 py-3 text-xs font-black text-slate-300 transition-colors hover:bg-slate-800"
                     >
                       Annuler
                     </button>
