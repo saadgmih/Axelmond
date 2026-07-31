@@ -231,7 +231,7 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 items-start">
             <div className="block space-y-1.5">
               <label htmlFor="new-course-duration-input" className={`block ${curriculumUi.label}`}>
-                Durée estimée
+                Temps de formation estimé
               </label>
               <div className="relative">
                 <Clock className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
@@ -397,7 +397,7 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                       />
                     </label>
                     <label className="space-y-1 block">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase">Durée (ex: 20 heures)</span>
+                      <span className="text-[9px] font-bold text-slate-400 uppercase">Temps de formation (ex: 20 heures)</span>
                       <input
                         placeholder="Durée"
                         value={editCourseForm.duration}

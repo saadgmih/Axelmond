@@ -24,5 +24,5 @@ export function formatCredits(credits: number): string {
 }
 
 export function creditsLabel(): string {
-  return PLATFORM_CREDITS_ABBREV;
+  return "Points de complétion (PA)";
 }
