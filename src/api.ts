@@ -772,6 +772,11 @@ export const api = {
     ),
   updateAcademicProfile: (data: {
     fullName?: string;
+    phone?: string;
+    birthDate?: string;
+    country?: string;
+    city?: string;
+    preferredLanguage?: string;
     title?: string;
     department?: string;
     lab?: string;

@@ -126,8 +126,6 @@ export function UserProfileDetails({
           <UserRound className="h-4 w-4" aria-hidden="true" /> Informations du profil
         </h3>
         <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <InfoCard icon={UserRound} label="Prénom" value={profile.user.firstName} />
-          <InfoCard icon={UserRound} label="Nom" value={profile.user.lastName} />
           <InfoCard icon={Phone} label="Téléphone" value={profile.user.phone} />
           <InfoCard icon={CalendarDays} label="Date de naissance" value={formatBirthDate(profile.user.birthDate)} />
           <InfoCard icon={Globe2} label="Pays" value={profile.user.country} />
@@ -165,20 +163,6 @@ export function UserProfileDetails({
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <Field
-          label="Prénom"
-          value={form.firstName}
-          required
-          placeholder="Écrire le prénom"
-          onChange={(value) => update("firstName", value)}
-        />
-        <Field
-          label="Nom"
-          value={form.lastName}
-          required
-          placeholder="Écrire le nom"
-          onChange={(value) => update("lastName", value)}
-        />
         <Field
           label="Numéro de téléphone"
           type="tel"

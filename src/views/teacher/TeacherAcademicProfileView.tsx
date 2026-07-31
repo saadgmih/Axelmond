@@ -9,6 +9,11 @@ import { getProfileRoleTheme, profileUi } from "./academic-profile-theme";
 
 type AcademicProfileFormState = {
   fullName: string;
+  phone: string;
+  birthDate: string;
+  country: string;
+  city: string;
+  preferredLanguage: string;
   title: string;
   department: string;
   lab: string;
@@ -187,6 +192,71 @@ export default function TeacherAcademicProfileView({
                     placeholder="Biographie courte"
                     value={academicProfileForm.bio}
                     onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, bio: e.target.value }))}
+                    className={inputFocus}
+                  />
+                </label>
+              </div>
+            </section>
+
+            <section className={profileUi.card}>
+              <div className={profileUi.cardHeader}>
+                <h2 className={profileUi.cardTitle}>
+                  <User className={`${profileUi.sectionIcon} ${theme.sectionIcon}`} />
+                  Coordonnées & Informations personnelles
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 p-5 sm:p-6 md:grid-cols-2 md:p-8">
+                <label className="block space-y-1.5">
+                  <span className={profileUi.label}>Numéro de téléphone</span>
+                  <input
+                    type="tel"
+                    placeholder="Écrire le numéro"
+                    value={academicProfileForm.phone}
+                    onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, phone: e.target.value }))}
+                    className={inputFocus}
+                  />
+                </label>
+
+                <label className="block space-y-1.5">
+                  <span className={profileUi.label}>Date de naissance</span>
+                  <input
+                    type="date"
+                    value={academicProfileForm.birthDate}
+                    onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, birthDate: e.target.value }))}
+                    className={inputFocus}
+                  />
+                </label>
+
+                <label className="block space-y-1.5">
+                  <span className={profileUi.label}>Pays</span>
+                  <input
+                    type="text"
+                    placeholder="Écrire le pays"
+                    value={academicProfileForm.country}
+                    onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, country: e.target.value }))}
+                    className={inputFocus}
+                  />
+                </label>
+
+                <label className="block space-y-1.5">
+                  <span className={profileUi.label}>Ville</span>
+                  <input
+                    type="text"
+                    placeholder="Écrire la ville"
+                    value={academicProfileForm.city}
+                    onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, city: e.target.value }))}
+                    className={inputFocus}
+                  />
+                </label>
+
+                <label className="block space-y-1.5 md:col-span-2">
+                  <span className={profileUi.label}>Langue préférée</span>
+                  <input
+                    type="text"
+                    placeholder="Écrire la langue"
+                    value={academicProfileForm.preferredLanguage}
+                    onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, preferredLanguage: e.target.value }))}
                     className={inputFocus}
                   />
                 </label>

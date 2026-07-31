@@ -13,6 +13,11 @@ export interface UseAcademicProfileOptions {
 
 const emptyAcademicProfileForm = {
   fullName: "",
+  phone: "",
+  birthDate: "",
+  country: "",
+  city: "",
+  preferredLanguage: "",
   title: "",
   department: "",
   lab: "",
@@ -36,8 +41,14 @@ export function useAcademicProfile({ role, teacherView, currentUser }: UseAcadem
 
   const hydrateAcademicProfileForm = (payload: AcademicProfilePayload) => {
     const profile = payload.profile;
+    const user = payload.user as Record<string, any>;
     setAcademicProfileForm({
-      fullName: payload.user.fullName || currentUser?.fullName || "",
+      fullName: user?.fullName || currentUser?.fullName || "",
+      phone: user?.phone || currentUser?.phone || "",
+      birthDate: user?.birthDate || currentUser?.birthDate || "",
+      country: user?.country || currentUser?.country || "",
+      city: user?.city || currentUser?.city || "",
+      preferredLanguage: user?.preferredLanguage || currentUser?.preferredLanguage || "",
       title: profile.title || "",
       department: profile.department || "",
       lab: profile.lab || "",
@@ -95,6 +106,11 @@ export function useAcademicProfile({ role, teacherView, currentUser }: UseAcadem
     try {
       const payload = await api.updateAcademicProfile({
         fullName: academicProfileForm.fullName,
+        phone: academicProfileForm.phone,
+        birthDate: academicProfileForm.birthDate,
+        country: academicProfileForm.country,
+        city: academicProfileForm.city,
+        preferredLanguage: academicProfileForm.preferredLanguage,
         title: academicProfileForm.title,
         department: academicProfileForm.department,
         lab: academicProfileForm.lab,

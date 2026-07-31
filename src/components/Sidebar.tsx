@@ -323,13 +323,24 @@ export default function Sidebar({
     );
   };
 
+  const handleOpenProfile = () => {
+    if (role === "teacher") {
+      setTeacherView("academic-profile");
+    } else {
+      navigateTo("profile");
+    }
+    if (isDrawer && isMobileMenuOpen) {
+      setIsMobileMenuOpen(false);
+    }
+  };
+
   const renderUserFooter = () => (
     <div className="sidebar-glass-section border-t border-white/10 p-4" data-onboarding="sidebar-profile">
-      <UserProfileTrigger
-        userId={currentUser?.id}
-        userName={currentUser?.fullName || "Performance Académique"}
-        dataOnboarding="profile-menu"
-        className="kbd-nav-focus group flex w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-xl px-1 py-1 text-left transition-colors hover:bg-white/5"
+      <button
+        type="button"
+        onClick={handleOpenProfile}
+        data-onboarding="profile-menu"
+        className="kbd-nav-focus group flex w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-xl px-1 py-1 text-left transition-colors hover:bg-white/5 cursor-pointer"
       >
         <div className="min-w-0 flex-1">
           <span className="block truncate text-[9px] font-bold uppercase tracking-[0.16em] text-teal-300/80">
@@ -356,7 +367,7 @@ export default function Sidebar({
           )}
           <span className="sidebar-current-user-online" aria-hidden="true" />
         </div>
-      </UserProfileTrigger>
+      </button>
       <button
         type="button"
         onClick={(event) => {

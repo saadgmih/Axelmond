@@ -142,6 +142,11 @@ export async function getAcademicProfileResponse(authUser: AppUser) {
       email: dbUser.email,
       role: dbUser.role,
       avatarUrl: dbUser.avatarUrl || undefined,
+      phone: dbUser.phone || undefined,
+      birthDate: dbUser.birthDate ? dbUser.birthDate.toISOString().slice(0, 10) : undefined,
+      country: dbUser.country || undefined,
+      city: dbUser.city || undefined,
+      preferredLanguage: dbUser.preferredLanguage || undefined,
     },
     // User.avatarUrl is the canonical source used by the authenticated session.
     // Keeping the profile response aligned prevents an old AcademicProfile value

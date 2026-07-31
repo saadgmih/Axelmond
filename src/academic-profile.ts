@@ -12,6 +12,11 @@ export interface AcademicLinks {
 
 export interface AcademicProfileInput {
   fullName?: string | null;
+  phone?: string | null;
+  birthDate?: string | null;
+  country?: string | null;
+  city?: string | null;
+  preferredLanguage?: string | null;
   title?: string | null;
   department?: string | null;
   lab?: string | null;
@@ -63,6 +68,11 @@ export function sanitizeAcademicProfileInput(value: unknown): AcademicProfileInp
   const source = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
   return {
     fullName: cleanText(source.fullName, 120),
+    phone: cleanText(source.phone, 30),
+    birthDate: cleanText(source.birthDate, 20),
+    country: cleanText(source.country, 80),
+    city: cleanText(source.city, 80),
+    preferredLanguage: cleanText(source.preferredLanguage, 40),
     title: cleanText(source.title, 120),
     department: cleanText(source.department, 160),
     lab: cleanText(source.lab, 160),
