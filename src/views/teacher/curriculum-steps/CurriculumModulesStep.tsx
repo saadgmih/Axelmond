@@ -291,8 +291,8 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                   onFileChange={setNewCourseImageFile}
                 />
 
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2 items-end">
-                  <label className="block space-y-1.5">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <div className="space-y-1.5">
                     <span className={curriculumUi.label}>{creditsLabel()}</span>
                     <input
                       type="number"
@@ -302,12 +302,10 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                       onChange={(e) => setNewCourseCredits(normalizeNumericInputValue(e.target.value))}
                       className={inputFocus}
                     />
-                  </label>
+                  </div>
 
-                  <div className="block space-y-1.5">
-                    <label htmlFor="new-course-duration-input" className={`block ${curriculumUi.label}`}>
-                      Temps de formation estimé
-                    </label>
+                  <div className="space-y-1.5">
+                    <span className={curriculumUi.label}>Temps de formation estimé</span>
                     <div className="relative">
                       <Clock className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
                       <input
