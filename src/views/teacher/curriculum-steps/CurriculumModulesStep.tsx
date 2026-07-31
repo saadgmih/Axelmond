@@ -228,19 +228,22 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
             </label>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            <label className="block space-y-1.5">
-              <span className={curriculumUi.label}>Durée estimée</span>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 items-start">
+            <div className="block space-y-1.5">
+              <label htmlFor="new-course-duration-input" className={`block ${curriculumUi.label}`}>
+                Durée estimée
+              </label>
               <div className="relative">
                 <Clock className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
                 <input
+                  id="new-course-duration-input"
                   placeholder="ex: 20 heures"
                   value={newCourseDuration}
                   onChange={(e) => setNewCourseDuration(e.target.value)}
                   className={`${curriculumUi.inputIcon} ${getStepTheme(1).focus}`}
                 />
               </div>
-            </label>
+            </div>
 
             <div className="block space-y-2">
               <span className={curriculumUi.label}>Tarif du module</span>
