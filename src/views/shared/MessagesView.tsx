@@ -357,17 +357,26 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
     [conversations, selectedId],
   );
 
-  const handleSelectConversation = useCallback((conversationId: string) => {
-    setDraft("");
-    setPeerTyping(false);
+  const openNewConversation = useCallback(() => {
+    setShowNewChat(true);
+    setSelectedId(null);
+    setSearchUsers("");
+    setUserResults([]);
     setError("");
-    setSelectedId(conversationId);
   }, []);
 
   const closeNewConversation = useCallback(() => {
     setShowNewChat(false);
     setSearchUsers("");
     setUserResults([]);
+  }, []);
+
+  const handleSelectConversation = useCallback((conversationId: string) => {
+    setDraft("");
+    setPeerTyping(false);
+    setError("");
+    setShowNewChat(false);
+    setSelectedId(conversationId);
   }, []);
 
   const loadConversations = useCallback(async () => {
@@ -706,7 +715,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
               </p>
             </div>
           </div>
-          <button type="button" className={scheduleUi.addBtn} onClick={() => setShowNewChat(true)}>
+          <button type="button" className={scheduleUi.addBtn} onClick={openNewConversation}>
             <Plus className="h-4 w-4" /> Nouvelle conversation
           </button>
         </div>
@@ -723,7 +732,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
         className="grid h-[clamp(600px,72vh,820px)] grid-cols-1 overflow-hidden rounded-2xl border border-emerald-300/[0.12] bg-[#061f1a] shadow-2xl shadow-black/35 sm:rounded-3xl lg:grid-cols-[320px_1fr] xl:grid-cols-[350px_1fr]"
       >
         <aside
-          className={`border-b border-white/[0.07] bg-[#08231e] lg:border-b-0 lg:border-r ${selectedId ? "hidden lg:flex" : "flex"} flex-col`}
+          className={`border-b border-white/[0.07] bg-[#08231e] lg:border-b-0 lg:border-r ${selectedId || showNewChat ? "hidden lg:flex" : "flex"} flex-col`}
         >
           <div className="border-b border-white/[0.07] p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
@@ -735,7 +744,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
               </div>
               <button
                 type="button"
-                onClick={() => setShowNewChat(true)}
+                onClick={openNewConversation}
                 aria-label="Nouvelle conversation"
                 className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-300/15 bg-emerald-500/10 text-emerald-200 transition hover:bg-emerald-500/20"
               >
@@ -800,7 +809,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
                 renderItem={(conversation) => (
                   <ConversationListItem
                     conversation={conversation}
-                    active={conversation.id === selectedId}
+                    active={conversation.id === selectedId && !showNewChat}
                     onSelect={handleSelectConversation}
                   />
                 )}
@@ -809,8 +818,105 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
           </div>
         </aside>
 
-        <section className={`${selectedId ? "flex" : "hidden lg:flex"} min-h-0 flex-col bg-[#031512]/70`}>
-          {!selectedConversation ? (
+        <section
+          className={`${selectedId || showNewChat ? "flex" : "hidden lg:flex"} min-h-0 flex-col bg-[#031512]/70`}
+        >
+          {showNewChat ? (
+            <div className="flex flex-1 flex-col overflow-hidden">
+              <header className="flex min-h-[72px] items-center justify-between gap-3 border-b border-white/[0.07] bg-[#08231e]/85 px-4 py-3 backdrop-blur-xl sm:px-6">
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    className="rounded-lg p-2 transition hover:bg-white/10 lg:hidden"
+                    onClick={closeNewConversation}
+                    aria-label="Retour"
+                  >
+                    <ArrowLeft className="h-5 w-5 text-white" />
+                  </button>
+                  <div>
+                    <h2 className="text-base font-black text-white sm:text-lg">Nouvelle conversation</h2>
+                    <p className="text-xs text-slate-400">Choisissez un contact académique pour échanger.</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={closeNewConversation}
+                  aria-label="Fermer"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-400 transition hover:bg-white/10 hover:text-white"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </header>
+
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 max-w-2xl mx-auto w-full">
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-wider text-emerald-300 block">
+                    Rechercher un utilisateur
+                  </label>
+                  <div className="relative">
+                    <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <input
+                      autoFocus
+                      type="search"
+                      value={searchUsers}
+                      onChange={(event) => setSearchUsers(event.target.value)}
+                      className="w-full rounded-xl border border-emerald-500/20 bg-[#031512] py-3 pl-10 pr-4 text-xs font-semibold text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-emerald-400/50 focus:ring-2 focus:ring-emerald-500/20"
+                      placeholder="Nom ou email (min. 2 caractères)"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-2">
+                  {userResults.map((user) => (
+                    <button
+                      key={user.id}
+                      type="button"
+                      onClick={() => startConversation(user.id)}
+                      disabled={Boolean(startingConversationId)}
+                      className="flex w-full items-center gap-3.5 rounded-2xl border border-white/[0.08] bg-[#08231e]/80 p-3.5 text-left transition hover:border-emerald-500/40 hover:bg-emerald-950/40 disabled:opacity-60 group"
+                    >
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-emerald-300/20 bg-[#12352e] text-xs font-black text-emerald-100 shadow-md">
+                        {startingConversationId === user.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin text-emerald-300" />
+                        ) : (
+                          peerInitials(user.fullName)
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="truncate text-sm font-bold text-white group-hover:text-emerald-200 transition-colors">
+                            {user.fullName}
+                          </p>
+                          <span className="shrink-0 rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-slate-400">
+                            {getPeerRoleLabel(user.role)}
+                          </span>
+                        </div>
+                        <p className="truncate text-xs text-slate-400 mt-0.5">{user.email}</p>
+                      </div>
+                    </button>
+                  ))}
+
+                  {searchUsers.trim().length < 2 && (
+                    <div className="rounded-2xl border border-dashed border-white/10 bg-slate-950/30 p-8 text-center space-y-2">
+                      <Search className="h-8 w-8 text-slate-600 mx-auto" />
+                      <p className="text-xs font-medium text-slate-400">
+                        Saisissez au moins 2 caractères pour rechercher un membre.
+                      </p>
+                    </div>
+                  )}
+
+                  {searchUsers.trim().length >= 2 && userResults.length === 0 && !startingConversationId && (
+                    <div className="rounded-2xl border border-dashed border-white/10 bg-slate-950/30 p-8 text-center space-y-2">
+                      <Inbox className="h-8 w-8 text-slate-600 mx-auto" />
+                      <p className="text-xs font-medium text-slate-400">
+                        Aucun contact trouvé pour cette recherche.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : !selectedConversation ? (
             <div className="flex flex-1 flex-col items-center justify-center p-8 text-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-emerald-300/10 bg-emerald-500/[0.07] text-emerald-300/60">
                 <MessageCircleMore className="h-8 w-8" />
@@ -1047,84 +1153,6 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
           )}
         </section>
       </div>
-
-      {showNewChat && (
-        <div
-          className={scheduleUi.modalOverlay}
-          onMouseDown={(event) => event.target === event.currentTarget && closeNewConversation()}
-        >
-          <div
-            className={scheduleUi.modalPanel}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="new-conversation-title"
-          >
-            <div className={`${scheduleUi.modalHeader} flex items-center justify-between`}>
-              <div>
-                <h2 id="new-conversation-title" className={scheduleUi.modalTitle}>
-                  Nouvelle conversation
-                </h2>
-                <p className="mt-1 text-xs text-slate-500">Choisissez un contact académique.</p>
-              </div>
-              <button
-                type="button"
-                onClick={closeNewConversation}
-                aria-label="Fermer"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-xl transition hover:bg-white/[0.06]"
-              >
-                <X className="h-5 w-5 text-slate-400" />
-              </button>
-            </div>
-            <div className={scheduleUi.modalBody}>
-              <label className={scheduleUi.label}>Rechercher un utilisateur</label>
-              <input
-                autoFocus
-                type="search"
-                value={searchUsers}
-                onChange={(event) => setSearchUsers(event.target.value)}
-                className={scheduleUi.input}
-                placeholder="Nom ou email (min. 2 caractères)"
-              />
-              <div className="space-y-2">
-                {userResults.map((user) => (
-                  <button
-                    key={user.id}
-                    type="button"
-                    onClick={() => startConversation(user.id)}
-                    disabled={Boolean(startingConversationId)}
-                    className="flex w-full items-center gap-3 rounded-xl border border-white/[0.08] bg-[#031512]/70 px-3 py-3 text-left transition hover:border-emerald-500/30 hover:bg-emerald-500/[0.04] disabled:opacity-60"
-                  >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-[#12352e] text-xs font-bold text-emerald-100">
-                      {startingConversationId === user.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        peerInitials(user.fullName)
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-bold text-white">{user.fullName}</p>
-                      <p className="truncate text-xs text-slate-400">{user.email}</p>
-                    </div>
-                    <span className="text-[9px] font-black uppercase tracking-wider text-slate-500">
-                      {getPeerRoleLabel(user.role)}
-                    </span>
-                  </button>
-                ))}
-                {searchUsers.trim().length < 2 && (
-                  <p className="rounded-xl border border-dashed border-white/[0.08] px-4 py-6 text-center text-xs text-slate-500">
-                    Saisissez au moins 2 caractères pour rechercher.
-                  </p>
-                )}
-                {searchUsers.trim().length >= 2 && userResults.length === 0 && !startingConversationId && (
-                  <p className="rounded-xl border border-dashed border-white/[0.08] px-4 py-6 text-center text-xs text-slate-500">
-                    Aucun contact trouvé.
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
