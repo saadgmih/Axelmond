@@ -1,4 +1,3 @@
-import { Calendar, CalendarClock, Clock } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import {
   compareDatetimeLocalValues,
@@ -32,9 +31,6 @@ type DatetimeFieldProps = {
   inputClassName: string;
   onChange: (value: string) => void;
 };
-
-const pickerBtnClass =
-  "inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl border border-slate-600 bg-slate-800 text-emerald-300 transition-colors hover:border-emerald-400 hover:bg-slate-700 hover:text-emerald-200";
 
 function FreeAccessDatetimeField({
   idPrefix,
@@ -195,25 +191,6 @@ function FreeAccessDatetimeField({
           }}
           className="pointer-events-none absolute h-0 w-0 opacity-0"
         />
-
-        <button
-          type="button"
-          title="Choisir la date"
-          aria-label="Choisir la date"
-          onClick={() => datePickerRef.current?.showPicker?.() ?? datePickerRef.current?.click()}
-          className={pickerBtnClass}
-        >
-          <Calendar className="h-4 w-4" />
-        </button>
-        <button
-          type="button"
-          title="Choisir l'heure"
-          aria-label="Choisir l'heure"
-          onClick={() => timePickerRef.current?.showPicker?.() ?? timePickerRef.current?.click()}
-          className={pickerBtnClass}
-        >
-          <Clock className="h-4 w-4" />
-        </button>
       </div>
     </div>
   );
@@ -229,17 +206,6 @@ export default function FreeAccessWindowFields({
 }: FreeAccessWindowFieldsProps) {
   return (
     <div className="space-y-3 rounded-xl border border-emerald-500/30 bg-emerald-950/40 p-4">
-      <div className="flex items-start gap-2">
-        <CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
-        <p className="text-xs font-medium leading-relaxed text-slate-200">
-          Saisissez la <span className="font-semibold text-white">date</span> (
-          <span className="font-mono text-emerald-300">09/07/2026</span>) et l&apos;
-          <span className="font-semibold text-white">heure</span> (
-          <span className="font-mono text-emerald-300">14:30</span>) au clavier, ou utilisez les boutons calendrier /
-          horloge — tout se synchronise automatiquement.
-        </p>
-      </div>
-
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <FreeAccessDatetimeField
           idPrefix="free-access-starts-at"
