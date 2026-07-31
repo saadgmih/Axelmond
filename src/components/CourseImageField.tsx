@@ -73,7 +73,7 @@ export default function CourseImageField({ file, currentImageUrl, status = "", o
             }}
           />
           <p className="text-[10px] leading-relaxed text-slate-500">
-            JPEG, PNG ou WebP, 8 Mo maximum. L'image sera cadrée en carré sur la carte.
+            JPEG, PNG ou WebP, 8 Mo maximum.
           </p>
         </div>
       </div>
