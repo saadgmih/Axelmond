@@ -11,6 +11,7 @@ export interface AcademicLinks {
 }
 
 export interface AcademicProfileInput {
+  fullName?: string | null;
   title?: string | null;
   department?: string | null;
   lab?: string | null;
@@ -61,6 +62,7 @@ export function isAvatarUrlFieldInvalid(value: unknown): boolean {
 export function sanitizeAcademicProfileInput(value: unknown): AcademicProfileInput {
   const source = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
   return {
+    fullName: cleanText(source.fullName, 120),
     title: cleanText(source.title, 120),
     department: cleanText(source.department, 160),
     lab: cleanText(source.lab, 160),

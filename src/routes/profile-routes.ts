@@ -173,11 +173,13 @@ export function registerProfileRoutes(app: Express, ctx: RouteContext): void {
       },
     });
 
-    if ("avatarUrl" in rawBody) {
+    if ("avatarUrl" in rawBody || input.fullName) {
+      const userUpdateData: { avatarUrl?: string | null; fullName?: string } = {};
+      if ("avatarUrl" in rawBody) userUpdateData.avatarUrl = input.avatarUrl ?? null;
+      if (input.fullName) userUpdateData.fullName = input.fullName;
       await api.prisma.user.update({
         where: { id: authUser.id },
-
-        data: { avatarUrl: input.avatarUrl ?? null },
+        data: userUpdateData,
       });
       api.invalidateAuthUserCache(authUser.id);
     }

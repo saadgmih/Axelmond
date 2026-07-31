@@ -8,6 +8,7 @@ import type { AcademicProfilePayload } from "../../types";
 import { getProfileRoleTheme, profileUi } from "./academic-profile-theme";
 
 type AcademicProfileFormState = {
+  fullName: string;
   title: string;
   department: string;
   lab: string;
@@ -57,7 +58,7 @@ export default function TeacherAcademicProfileView({
   const role = (academicProfileData?.user.role || currentUser.role) as UserRole;
   const theme = useMemo(() => getProfileRoleTheme(role), [role]);
   const RoleIcon = theme.icon;
-  const displayName = academicProfileData?.user.fullName || currentUser.fullName;
+  const displayName = academicProfileForm.fullName || academicProfileData?.user.fullName || currentUser.fullName;
   const displayEmail = academicProfileData?.user.email || currentUser.email;
   const roleLabel = getRoleLabel(role);
   const inputFocus = `${profileUi.input} ${theme.focusRing}`;
@@ -146,31 +147,6 @@ export default function TeacherAcademicProfileView({
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_380px] 2xl:gap-8">
         {/* Main column */}
         <div className="space-y-6">
-          <section className={profileUi.card}>
-            <div className={profileUi.cardHeader}>
-              <h2 className={profileUi.cardTitle}>
-                <User className={`${profileUi.sectionIcon} ${theme.sectionIcon}`} />
-                Identité du compte
-              </h2>
-              <p className={profileUi.cardSubtitle}>
-                Informations verrouillées — modifiables par l&apos;administration
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-3 sm:p-6 md:p-8">
-              {[
-                { label: "Nom complet", value: displayName },
-                { label: "Email", value: displayEmail },
-                { label: "Rôle", value: roleLabel },
-              ].map((field) => (
-                <label key={field.label} className="space-y-1.5">
-                  <span className={profileUi.label}>{field.label}</span>
-                  <input value={field.value} readOnly className={profileUi.inputReadonly} />
-                </label>
-              ))}
-            </div>
-          </section>
-
           <form onSubmit={handleUpdateAcademicProfile} className="space-y-6">
             <section className={profileUi.card}>
               <div className={profileUi.cardHeader}>
@@ -180,43 +156,40 @@ export default function TeacherAcademicProfileView({
                 </h2>
               </div>
 
-              <div className="grid grid-cols-1 gap-4 p-5 sm:p-6 md:grid-cols-2 md:p-8">
-                {[
-                  { key: "title" as const, placeholder: "Titre académique (ex. Professeur associé)" },
-                  { key: "department" as const, placeholder: "Département" },
-                  { key: "lab" as const, placeholder: "Chaire / laboratoire" },
-                  { key: "speciality" as const, placeholder: "Spécialité" },
-                ].map((field) => (
+              <div className="space-y-4 p-5 sm:p-6 md:p-8">
+                <label className="block space-y-1.5">
+                  <span className={profileUi.label}>Nom complet</span>
                   <input
-                    key={field.key}
-                    placeholder={field.placeholder}
-                    value={academicProfileForm[field.key]}
-                    onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                    type="text"
+                    required
+                    placeholder="Nom complet (Prénom Nom)"
+                    value={academicProfileForm.fullName}
+                    onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, fullName: e.target.value }))}
                     className={inputFocus}
                   />
-                ))}
+                </label>
 
-                <textarea
-                  rows={3}
-                  placeholder="Domaines d'enseignement (séparés par des virgules)"
-                  value={academicProfileForm.teachingDomains}
-                  onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, teachingDomains: e.target.value }))}
-                  className={inputFocus}
-                />
-                <textarea
-                  rows={3}
-                  placeholder="Domaines académiques (séparés par des virgules)"
-                  value={academicProfileForm.researchDomains}
-                  onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, researchDomains: e.target.value }))}
-                  className={inputFocus}
-                />
-                <textarea
-                  rows={4}
-                  placeholder="Biographie courte"
-                  value={academicProfileForm.bio}
-                  onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, bio: e.target.value }))}
-                  className={`md:col-span-2 ${inputFocus}`}
-                />
+                <label className="block space-y-1.5">
+                  <span className={profileUi.label}>Domaines d'enseignement</span>
+                  <textarea
+                    rows={3}
+                    placeholder="Domaines d'enseignement (séparés par des virgules)"
+                    value={academicProfileForm.teachingDomains}
+                    onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, teachingDomains: e.target.value }))}
+                    className={inputFocus}
+                  />
+                </label>
+
+                <label className="block space-y-1.5">
+                  <span className={profileUi.label}>Biographie</span>
+                  <textarea
+                    rows={4}
+                    placeholder="Biographie courte"
+                    value={academicProfileForm.bio}
+                    onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, bio: e.target.value }))}
+                    className={inputFocus}
+                  />
+                </label>
               </div>
             </section>
 

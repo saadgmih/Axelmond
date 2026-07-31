@@ -12,6 +12,7 @@ export interface UseAcademicProfileOptions {
 }
 
 const emptyAcademicProfileForm = {
+  fullName: "",
   title: "",
   department: "",
   lab: "",
@@ -36,6 +37,7 @@ export function useAcademicProfile({ role, teacherView, currentUser }: UseAcadem
   const hydrateAcademicProfileForm = (payload: AcademicProfilePayload) => {
     const profile = payload.profile;
     setAcademicProfileForm({
+      fullName: payload.user.fullName || currentUser?.fullName || "",
       title: profile.title || "",
       department: profile.department || "",
       lab: profile.lab || "",
@@ -92,6 +94,7 @@ export function useAcademicProfile({ role, teacherView, currentUser }: UseAcadem
     setAcademicProfileErrorMsg("");
     try {
       const payload = await api.updateAcademicProfile({
+        fullName: academicProfileForm.fullName,
         title: academicProfileForm.title,
         department: academicProfileForm.department,
         lab: academicProfileForm.lab,
