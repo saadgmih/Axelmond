@@ -3,6 +3,37 @@ import { getAuthUser } from "../server/route-types";
 import type { RouteContext } from "../server/route-context";
 import * as api from "../server/route-deps";
 
+function parseBirthDateInput(raw: unknown): Date | null {
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    const d = new Date(`${trimmed}T00:00:00.000Z`);
+    if (!isNaN(d.getTime())) return d;
+  }
+
+  const parts = trimmed.split(/[\/\.\-]/);
+  if (parts.length === 3) {
+    if (parts[2].length === 4) {
+      const day = parts[0].padStart(2, "0");
+      const month = parts[1].padStart(2, "0");
+      const year = parts[2];
+      const d = new Date(`${year}-${month}-${day}T00:00:00.000Z`);
+      if (!isNaN(d.getTime())) return d;
+    } else if (parts[0].length === 4) {
+      const year = parts[0];
+      const month = parts[1].padStart(2, "0");
+      const day = parts[2].padStart(2, "0");
+      const d = new Date(`${year}-${month}-${day}T00:00:00.000Z`);
+      if (!isNaN(d.getTime())) return d;
+    }
+  }
+
+  const fallback = new Date(trimmed);
+  return isNaN(fallback.getTime()) ? null : fallback;
+}
+
 export function registerProfileRoutes(app: Express, ctx: RouteContext): void {
   const { requireAuth, requireRbac, validateBody } = ctx.middleware;
 
@@ -49,7 +80,7 @@ export function registerProfileRoutes(app: Express, ctx: RouteContext): void {
           firstName: input.firstName,
           lastName: input.lastName,
           phone: input.phone || null,
-          birthDate: input.birthDate ? new Date(`${input.birthDate}T00:00:00.000Z`) : null,
+          birthDate: parseBirthDateInput(input.birthDate),
           country: input.country || null,
           city: input.city || null,
           preferredLanguage: input.preferredLanguage || null,
@@ -186,7 +217,7 @@ export function registerProfileRoutes(app: Express, ctx: RouteContext): void {
       if ("avatarUrl" in rawBody) userUpdateData.avatarUrl = input.avatarUrl ?? null;
       if (input.fullName) userUpdateData.fullName = input.fullName;
       if ("phone" in rawBody) userUpdateData.phone = input.phone ?? null;
-      if ("birthDate" in rawBody) userUpdateData.birthDate = input.birthDate ? new Date(`${input.birthDate}T00:00:00.000Z`) : null;
+      if ("birthDate" in rawBody) userUpdateData.birthDate = parseBirthDateInput(input.birthDate);
       if ("country" in rawBody) userUpdateData.country = input.country ?? null;
       if ("city" in rawBody) userUpdateData.city = input.city ?? null;
       if ("preferredLanguage" in rawBody) userUpdateData.preferredLanguage = input.preferredLanguage ?? null;

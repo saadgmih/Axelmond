@@ -172,9 +172,9 @@ export function UserProfileDetails({
         />
         <Field
           label="Date de naissance"
-          type="date"
+          type="text"
           value={form.birthDate}
-          placeholder="AAAA-MM-JJ"
+          placeholder="Écrire la date (ex. JJ/MM/AAAA)"
           onChange={(value) => update("birthDate", value)}
         />
         <Field

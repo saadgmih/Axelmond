@@ -256,7 +256,8 @@ export default function TeacherAcademicProfileView({
                   <label className="block space-y-1.5">
                     <span className={profileUi.label}>Date de naissance</span>
                     <input
-                      type="date"
+                      type="text"
+                      placeholder="Écrire la date de naissance (ex. JJ/MM/AAAA)"
                       value={academicProfileForm.birthDate}
                       onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, birthDate: e.target.value }))}
                       className={inputFocus}
