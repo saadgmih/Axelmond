@@ -184,14 +184,14 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
               onClick={() => setIsOptionalSectionOpen((prev) => !prev)}
               className="flex w-full items-center justify-between p-3.5 text-left transition hover:bg-slate-900/60"
             >
-              <div className="flex items-center gap-2">
+              <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 gap-y-0.5 pr-2">
                 <span className={curriculumUi.label}>Options & Détails du module</span>
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
                   (Description, Image, PA, Temps)
                 </span>
               </div>
               <ChevronDown
-                className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${
+                className={`h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200 ${
                   isOptionalSectionOpen ? "rotate-180" : ""
                 }`}
               />
@@ -403,14 +403,14 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                       onClick={() => setIsEditOptionalSectionOpen((prev) => !prev)}
                       className="flex w-full items-center justify-between p-3.5 text-left transition hover:bg-slate-900/60"
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 gap-y-0.5 pr-2">
                         <span className={curriculumUi.label}>Options & Détails du module</span>
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
                           (Description, Image, PA, Temps)
                         </span>
                       </div>
                       <ChevronDown
-                        className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${
+                        className={`h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200 ${
                           isEditOptionalSectionOpen ? "rotate-180" : ""
                         }`}
                       />
