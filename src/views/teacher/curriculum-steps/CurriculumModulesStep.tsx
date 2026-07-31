@@ -177,100 +177,28 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
             </div>
           </label>
 
-          <label className="block space-y-1.5">
-            <span className={curriculumUi.label}>Discipline</span>
-            <select
-              value={hasDisciplineOptions ? newCourseDisciplineId : 0}
-              required
-              disabled={!hasDisciplineOptions}
-              onChange={(e) => setNewCourseDisciplineId(parseInt(e.target.value))}
-              className={`${inputFocus} text-slate-700 ${hasDisciplineOptions ? "" : "cursor-not-allowed opacity-60"}`}
-            >
-              {!hasDisciplineOptions && <option value={0}>Aucun sous-domaine disponible</option>}
-              {domains.map((domain) => (
-                <optgroup key={domain.id} label={domain.name} className="text-slate-800 font-bold">
-                  {domain.disciplines.map((discipline) => (
-                    <option key={discipline.id} value={discipline.id} className="text-slate-700 font-medium">
-                      {discipline.name}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
-          </label>
-
-          <div className="rounded-xl border border-slate-800/80 bg-slate-950/40 overflow-hidden">
-            <button
-              type="button"
-              onClick={() => setIsOptionalSectionOpen((prev) => !prev)}
-              className="flex w-full items-center justify-between p-3.5 text-left transition hover:bg-slate-900/60"
-            >
-              <div className="flex items-center gap-2">
-                <span className={curriculumUi.label}>Options & Détails du module</span>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
-                  (Description, Image, PA, Temps)
-                </span>
-              </div>
-              <ChevronDown
-                className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${
-                  isOptionalSectionOpen ? "rotate-180" : ""
-                }`}
-              />
-            </button>
-
-            {isOptionalSectionOpen && (
-              <div className="space-y-4 p-4 pt-2 border-t border-slate-800/60">
-                <label className="block space-y-1.5">
-                  <span className={curriculumUi.label}>
-                    Description pédagogique <span className="text-slate-400 font-normal text-xs text-transform-none">(facultatif)</span>
-                  </span>
-                  <textarea
-                    rows={3}
-                    placeholder="Objectifs, compétences visées et compétences acquises..."
-                    value={newCourseDescription}
-                    onChange={(e) => setNewCourseDescription(e.target.value)}
-                    className={`${inputFocus} resize-none`}
-                  />
-                </label>
-
-                <CourseImageField
-                  file={newCourseImageFile}
-                  status={newCourseImageStatus}
-                  onFileChange={setNewCourseImageFile}
-                />
-
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  <label className="block space-y-1.5">
-                    <span className={curriculumUi.label}>{creditsLabel()}</span>
-                    <input
-                      type="number"
-                      min="0"
-                      placeholder="ex: 3"
-                      value={newCourseCredits}
-                      onChange={(e) => setNewCourseCredits(normalizeNumericInputValue(e.target.value))}
-                      className={inputFocus}
-                    />
-                  </label>
-
-                  <div className="block space-y-1.5">
-                    <label htmlFor="new-course-duration-input" className={`block ${curriculumUi.label}`}>
-                      Temps de formation estimé
-                    </label>
-                    <div className="relative">
-                      <Clock className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
-                      <input
-                        id="new-course-duration-input"
-                        placeholder="ex: 20 heures"
-                        value={newCourseDuration}
-                        onChange={(e) => setNewCourseDuration(e.target.value)}
-                        className={`${curriculumUi.inputIcon} ${getStepTheme(1).focus}`}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+          <div className="grid grid-cols-2 gap-3 items-start">
+            <label className="block space-y-1.5">
+              <span className={curriculumUi.label}>Discipline</span>
+              <select
+                value={hasDisciplineOptions ? newCourseDisciplineId : 0}
+                required
+                disabled={!hasDisciplineOptions}
+                onChange={(e) => setNewCourseDisciplineId(parseInt(e.target.value))}
+                className={`${inputFocus} text-slate-700 ${hasDisciplineOptions ? "" : "cursor-not-allowed opacity-60"}`}
+              >
+                {!hasDisciplineOptions && <option value={0}>Aucun sous-domaine disponible</option>}
+                {domains.map((domain) => (
+                  <optgroup key={domain.id} label={domain.name} className="text-slate-800 font-bold">
+                    {domain.disciplines.map((discipline) => (
+                      <option key={discipline.id} value={discipline.id} className="text-slate-700 font-medium">
+                        {discipline.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </label>
 
             <div className="block space-y-2">
               <span className={curriculumUi.label}>Tarif du module</span>
@@ -321,6 +249,80 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                 </>
               )}
             </div>
+          </div>
+
+          <div className="rounded-xl border border-slate-800/80 bg-slate-950/40 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setIsOptionalSectionOpen((prev) => !prev)}
+              className="flex w-full items-center justify-between p-3.5 text-left transition hover:bg-slate-900/60"
+            >
+              <div className="flex items-center gap-2">
+                <span className={curriculumUi.label}>Options & Détails du module</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                  (Description, Image, PA, Temps)
+                </span>
+              </div>
+              <ChevronDown
+                className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${
+                  isOptionalSectionOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            {isOptionalSectionOpen && (
+              <div className="space-y-4 p-4 pt-2 border-t border-slate-800/60">
+                <label className="block space-y-1.5">
+                  <span className={curriculumUi.label}>
+                    Description pédagogique <span className="text-slate-400 font-normal text-xs text-transform-none">(facultatif)</span>
+                  </span>
+                  <textarea
+                    rows={3}
+                    placeholder="Objectifs, compétences visées et compétences acquises..."
+                    value={newCourseDescription}
+                    onChange={(e) => setNewCourseDescription(e.target.value)}
+                    className={`${inputFocus} resize-none`}
+                  />
+                </label>
+
+                <CourseImageField
+                  file={newCourseImageFile}
+                  status={newCourseImageStatus}
+                  onFileChange={setNewCourseImageFile}
+                />
+
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2 items-end">
+                  <label className="block space-y-1.5">
+                    <span className={curriculumUi.label}>{creditsLabel()}</span>
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="ex: 3"
+                      value={newCourseCredits}
+                      onChange={(e) => setNewCourseCredits(normalizeNumericInputValue(e.target.value))}
+                      className={inputFocus}
+                    />
+                  </label>
+
+                  <div className="block space-y-1.5">
+                    <label htmlFor="new-course-duration-input" className={`block ${curriculumUi.label}`}>
+                      Temps de formation estimé
+                    </label>
+                    <div className="relative">
+                      <Clock className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
+                      <input
+                        id="new-course-duration-input"
+                        placeholder="ex: 20 heures"
+                        value={newCourseDuration}
+                        onChange={(e) => setNewCourseDuration(e.target.value)}
+                        className={`${curriculumUi.inputIcon} ${getStepTheme(1).focus}`}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
 
           {newCourseIsFree && (
             <FreeAccessWindowFields
