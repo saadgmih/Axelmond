@@ -271,28 +271,28 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                   Payant
                 </button>
               </div>
-              <div className="relative">
-                <span className="absolute left-3 top-3 text-xs font-bold text-slate-400">DH</span>
-                <input
-                  type="number"
-                  min={MIN_PAID_COURSE_PRICE}
-                  step={COURSE_PRICE_STEP}
-                  placeholder={`min. ${formatMad(MIN_PAID_COURSE_PRICE)}`}
-                  value={newCourseIsFree ? numericInputFromNumber(FREE_COURSE_PRICE) : newCoursePrice}
-                  disabled={newCourseIsFree}
-                  onChange={(e) => setNewCoursePrice(normalizeNumericInputValue(e.target.value))}
-                  onBlur={() => {
-                    if (!newCourseIsFree) setNewCoursePrice(paidCoursePriceInputValue(newCoursePrice));
-                  }}
-                  className={priceInputClass(
-                    newCourseIsFree,
-                    `${curriculumUi.inputIcon} pl-8 ${getStepTheme(1).focus}`,
-                  )}
-                />
-              </div>
-              <p className="text-[10px] font-semibold leading-relaxed text-slate-500">
-                Payant : minimum {formatMad(MIN_PAID_COURSE_PRICE)}. Gratuit : période fixe au calendrier.
-              </p>
+              {!newCourseIsFree && (
+                <>
+                  <div className="relative">
+                    <span className="absolute left-3 top-3 text-xs font-bold text-slate-400">DH</span>
+                    <input
+                      type="number"
+                      min={MIN_PAID_COURSE_PRICE}
+                      step={COURSE_PRICE_STEP}
+                      placeholder={`min. ${formatMad(MIN_PAID_COURSE_PRICE)}`}
+                      value={newCoursePrice}
+                      onChange={(e) => setNewCoursePrice(normalizeNumericInputValue(e.target.value))}
+                      onBlur={() => {
+                        setNewCoursePrice(paidCoursePriceInputValue(newCoursePrice));
+                      }}
+                      className={`${curriculumUi.inputIcon} pl-8 ${getStepTheme(1).focus}`}
+                    />
+                  </div>
+                  <p className="text-[10px] font-semibold leading-relaxed text-slate-500">
+                    Payant : minimum {formatMad(MIN_PAID_COURSE_PRICE)}.
+                  </p>
+                </>
+              )}
             </div>
           </div>
 
@@ -455,32 +455,33 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                           Payant
                         </button>
                       </div>
-                      <input
-                        type="number"
-                        min={MIN_PAID_COURSE_PRICE}
-                        step={COURSE_PRICE_STEP}
-                        placeholder={`min. ${formatMad(MIN_PAID_COURSE_PRICE)}`}
-                        value={editCourseForm.isFree ? numericInputFromNumber(FREE_COURSE_PRICE) : editCourseForm.price}
-                        disabled={editCourseForm.isFree}
-                        onChange={(e) =>
-                          setEditCourseForm((prev) => ({
-                            ...prev,
-                            price: normalizeNumericInputValue(e.target.value),
-                          }))
-                        }
-                        onBlur={() =>
-                          setEditCourseForm((prev) =>
-                            prev.isFree ? prev : { ...prev, price: paidCoursePriceInputValue(prev.price) },
-                          )
-                        }
-                        className={priceInputClass(
-                          editCourseForm.isFree,
-                          `${curriculumUi.input} ${getStepTheme(1).focus}`,
-                        )}
-                      />
-                      <p className="text-[10px] font-semibold leading-relaxed text-slate-500">
-                        Payant : minimum {formatMad(MIN_PAID_COURSE_PRICE)}. Gratuit : période fixe au calendrier.
-                      </p>
+                      {!editCourseForm.isFree && (
+                        <>
+                          <input
+                            type="number"
+                            min={MIN_PAID_COURSE_PRICE}
+                            step={COURSE_PRICE_STEP}
+                            placeholder={`min. ${formatMad(MIN_PAID_COURSE_PRICE)}`}
+                            value={editCourseForm.price}
+                            onChange={(e) =>
+                              setEditCourseForm((prev) => ({
+                                ...prev,
+                                price: normalizeNumericInputValue(e.target.value),
+                              }))
+                            }
+                            onBlur={() =>
+                              setEditCourseForm((prev) => ({
+                                ...prev,
+                                price: paidCoursePriceInputValue(prev.price),
+                              }))
+                            }
+                            className={`${curriculumUi.input} ${getStepTheme(1).focus}`}
+                          />
+                          <p className="text-[10px] font-semibold leading-relaxed text-slate-500">
+                            Payant : minimum {formatMad(MIN_PAID_COURSE_PRICE)}.
+                          </p>
+                        </>
+                      )}
                     </div>
                     {editCourseForm.isFree && (
                       <div className="md:col-span-2">
