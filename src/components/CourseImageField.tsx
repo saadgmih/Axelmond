@@ -28,7 +28,9 @@ export default function CourseImageField({ file, currentImageUrl, status = "", o
 
   return (
     <div className="space-y-2">
-      <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">Image du module</span>
+      <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
+        Image du module <span className="font-normal text-slate-500 text-transform-none">(facultatif)</span>
+      </span>
       <div className="flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-950/60 p-3">
         <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-700 bg-slate-900">
           {previewUrl ? (
