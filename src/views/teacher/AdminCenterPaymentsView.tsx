@@ -238,24 +238,24 @@ export default function AdminCenterPaymentsView() {
             className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2.5 text-sm text-white"
           />
         </label>
-        <label className="rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-xs text-slate-400">
+        <label className="grid grid-cols-[auto_1fr] items-center gap-2 text-xs font-bold text-slate-400">
           Depuis
           <input
             type="text"
             value={from}
             onChange={(event) => setFrom(event.target.value)}
             placeholder="JJ/MM/AAAA"
-            className="mt-1 block w-full bg-transparent text-sm text-slate-100 placeholder-slate-500 outline-none"
+            className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-emerald-400/50"
           />
         </label>
-        <label className="rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-xs text-slate-400">
+        <label className="grid grid-cols-[auto_1fr] items-center gap-2 text-xs font-bold text-slate-400">
           Jusqu’au
           <input
             type="text"
             value={to}
             onChange={(event) => setTo(event.target.value)}
             placeholder="JJ/MM/AAAA"
-            className="mt-1 block w-full bg-transparent text-sm text-slate-100 placeholder-slate-500 outline-none"
+            className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-emerald-400/50"
           />
         </label>
         <button
