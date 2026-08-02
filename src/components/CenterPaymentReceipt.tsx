@@ -15,7 +15,7 @@ export default function CenterPaymentReceipt({ receipt }: { receipt: Receipt }) 
       <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">Reçu de paiement</p>
-          <h3 className="mt-1 text-xl font-black">{receipt.centerName}</h3>
+          <h3 className="mt-1 text-xl font-black text-slate-900">{receipt.centerName}</h3>
           <p className="mt-1 font-mono text-sm font-bold text-slate-600">{receipt.receiptNumber}</p>
         </div>
         <span className="rounded-lg bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-800">
@@ -53,7 +53,7 @@ function ReceiptLine({ label, value, mono = false }: { label: string; value: str
   return (
     <div>
       <dt className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{label}</dt>
-      <dd className={`mt-0.5 font-semibold ${mono ? "font-mono" : ""}`}>{value}</dd>
+      <dd className={`mt-0.5 font-semibold text-slate-900 ${mono ? "font-mono" : ""}`}>{value}</dd>
     </div>
   );
 }

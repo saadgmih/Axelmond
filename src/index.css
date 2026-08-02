@@ -1423,19 +1423,81 @@ html.force-desktop-mode #root {
 }
 
 @media print {
+  @page {
+    size: auto;
+    margin: 15mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  #root,
+  main,
+  div,
+  aside,
+  header,
+  footer,
+  nav,
+  section {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
   body * {
-    visibility: hidden;
+    visibility: hidden !important;
   }
 
   .center-payment-receipt,
   .center-payment-receipt * {
-    visibility: visible;
+    visibility: visible !important;
   }
 
   .center-payment-receipt {
-    position: absolute;
-    inset: 0;
-    width: 100%;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    right: 0 !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 650px !important;
+    padding: 28px !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border: 2px solid #e2e8f0 !important;
+    border-radius: 16px !important;
+    box-shadow: none !important;
+    z-index: 999999 !important;
+    box-sizing: border-box !important;
+  }
+
+  .center-payment-receipt dt {
+    color: #475569 !important;
+  }
+
+  .center-payment-receipt dd,
+  .center-payment-receipt h3,
+  .center-payment-receipt p,
+  .center-payment-receipt span {
+    color: #0f172a !important;
+  }
+
+  .center-payment-receipt button,
+  .center-payment-receipt .print\:hidden {
+    display: none !important;
   }
 }
 
