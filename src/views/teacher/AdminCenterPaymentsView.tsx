@@ -8,6 +8,7 @@ import type {
   CenterPaymentStatus,
 } from "../../center-payment-types";
 import CenterPaymentReceipt from "../../components/CenterPaymentReceipt";
+import { parseDateDisplayInput } from "../../utils/free-access-datetime";
 
 const STATUS_LABELS: Record<CenterPaymentStatus, string> = {
   PENDING_PAYMENT: "En attente",
@@ -47,18 +48,22 @@ export default function AdminCenterPaymentsView() {
   const [internalNote, setInternalNote] = useState("");
   const [publicReason, setPublicReason] = useState("");
 
-  const filters = useMemo(
-    () => ({
+  const filters = useMemo(() => {
+    const rawFrom = parseDateDisplayInput(from) || (from.trim() ? from.trim() : null);
+    const fromDate = rawFrom ? new Date(`${rawFrom}T00:00:00`) : null;
+    const rawTo = parseDateDisplayInput(to) || (to.trim() ? to.trim() : null);
+    const toDate = rawTo ? new Date(`${rawTo}T23:59:59.999`) : null;
+
+    return {
       ...(query.trim() ? { q: query.trim() } : {}),
       ...(status ? { status } : {}),
       ...(amount && Number.isFinite(Number(amount)) ? { amount: Number(amount) } : {}),
       ...(courseId && Number.isInteger(Number(courseId)) ? { courseId: Number(courseId) } : {}),
       ...(validatedBy.trim() ? { validatedBy: validatedBy.trim() } : {}),
-      ...(from ? { from: new Date(`${from}T00:00:00`).toISOString() } : {}),
-      ...(to ? { to: new Date(`${to}T23:59:59.999`).toISOString() } : {}),
-    }),
-    [amount, courseId, from, query, status, to, validatedBy],
-  );
+      ...(fromDate && !Number.isNaN(fromDate.getTime()) ? { from: fromDate.toISOString() } : {}),
+      ...(toDate && !Number.isNaN(toDate.getTime()) ? { to: toDate.toISOString() } : {}),
+    };
+  }, [amount, courseId, from, query, status, to, validatedBy]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -202,19 +207,21 @@ export default function AdminCenterPaymentsView() {
         <label className="grid grid-cols-[auto_1fr] items-center gap-2 text-xs font-bold text-slate-400">
           Depuis
           <input
-            type="date"
+            type="text"
             value={from}
             onChange={(event) => setFrom(event.target.value)}
-            className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2.5 text-sm text-white"
+            placeholder="JJ/MM/AAAA"
+            className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-emerald-400/50"
           />
         </label>
         <label className="grid grid-cols-[auto_1fr] items-center gap-2 text-xs font-bold text-slate-400">
           Jusqu’au
           <input
-            type="date"
+            type="text"
             value={to}
             onChange={(event) => setTo(event.target.value)}
-            className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2.5 text-sm text-white"
+            placeholder="JJ/MM/AAAA"
+            className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-emerald-400/50"
           />
         </label>
         <button

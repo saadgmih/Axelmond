@@ -54,5 +54,5 @@ rulesTest("secure center payment workflow", () => {
   assert.match(adminView, /randomUUID/);
   assert.match(adminView, /ID du module/);
   assert.match(adminView, /ID du validateur/);
-  assert.match(adminView, /type="date"/);
+  assert.match(adminView, /parseDateDisplayInput/);
 });
