@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AlertCircle, Building2, CalendarClock, CheckCircle2, Clock3, RefreshCw, XCircle } from "lucide-react";
 import { api } from "../../api";
 import { getClientErrorMessage } from "../../client-errors";
@@ -36,9 +36,24 @@ export default function StudentCenterPaymentsView() {
     }
   }, []);
 
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const detailSectionRef = useRef<HTMLElement | null>(null);
+
+  const handleSelectRequest = useCallback(async (request: CenterPaymentRequestView) => {
+    setSelected(request);
+    setError("");
+
+    if (typeof window !== "undefined" && window.innerWidth < 1024) {
+      detailSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    try {
+      const detail = await api.getMyCenterPaymentRequest(request.reference);
+      setSelected(detail);
+      setRequests((current) => current.map((item) => (item.reference === request.reference ? detail : item)));
+    } catch {
+      // Keep summary request if detail fetch fails
+    }
+  }, []);
 
   const cancel = async (request: CenterPaymentRequestView) => {
     if (!window.confirm(`Annuler la demande ${request.reference} ?`)) return;
@@ -97,7 +112,8 @@ export default function StudentCenterPaymentsView() {
                 <button
                   key={request.reference}
                   type="button"
-                  onClick={() => setSelected(request)}
+                  onClick={() => void handleSelectRequest(request)}
+                  aria-selected={selected?.reference === request.reference}
                   className={`w-full rounded-2xl border p-4 text-left transition ${
                     selected?.reference === request.reference
                       ? "border-emerald-400/40 bg-emerald-500/10"
@@ -124,7 +140,7 @@ export default function StudentCenterPaymentsView() {
           </div>
 
           {selected && (
-            <section className="space-y-4 rounded-2xl border border-white/10 bg-slate-950/35 p-5">
+            <section ref={detailSectionRef} className="space-y-4 rounded-2xl border border-white/10 bg-slate-950/35 p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="font-mono text-lg font-black text-emerald-200">{selected.reference}</p>

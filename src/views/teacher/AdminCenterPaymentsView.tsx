@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AlertCircle, CheckCircle2, RefreshCw, Search, ShieldCheck, WalletCards } from "lucide-react";
 import { api } from "../../api";
 import { getClientErrorMessage } from "../../client-errors";
@@ -90,6 +90,25 @@ export default function AdminCenterPaymentsView() {
     setInternalNote(selected.adminNote || "");
     setPublicReason(selected.publicReason || "");
   }, [selected?.reference]);
+
+  const detailSectionRef = useRef<HTMLElement | null>(null);
+
+  const handleSelectRow = useCallback(async (row: AdminCenterPaymentRequestView) => {
+    setSelected(row);
+    setError("");
+
+    if (typeof window !== "undefined" && window.innerWidth < 1280) {
+      detailSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    try {
+      const detail = await api.getAdminCenterPaymentRequest(row.reference);
+      setSelected(detail);
+      setRows((current) => current.map((item) => (item.reference === row.reference ? detail : item)));
+    } catch {
+      // Keep summary row if detail fetch fails
+    }
+  }, []);
 
   const refreshSelected = async (reference: string) => {
     const detail = await api.getAdminCenterPaymentRequest(reference);
@@ -262,8 +281,13 @@ export default function AdminCenterPaymentsView() {
               <button
                 key={row.reference}
                 type="button"
-                onClick={() => setSelected(row)}
-                className={`w-full p-4 text-left transition ${selected?.reference === row.reference ? "bg-emerald-500/10" : "hover:bg-white/[0.03]"}`}
+                onClick={() => void handleSelectRow(row)}
+                aria-selected={selected?.reference === row.reference}
+                className={`w-full border-l-4 p-4 text-left transition ${
+                  selected?.reference === row.reference
+                    ? "border-l-emerald-400 bg-emerald-500/15"
+                    : "border-l-transparent hover:bg-white/[0.03]"
+                }`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -287,7 +311,7 @@ export default function AdminCenterPaymentsView() {
         </section>
 
         {selected ? (
-          <section className="space-y-5 rounded-2xl border border-white/10 bg-slate-950/25 p-5">
+          <section ref={detailSectionRef} className="space-y-5 rounded-2xl border border-white/10 bg-slate-950/25 p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="font-mono text-lg font-black text-emerald-200">{selected.reference}</p>
