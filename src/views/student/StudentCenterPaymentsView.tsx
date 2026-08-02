@@ -22,13 +22,20 @@ export default function StudentCenterPaymentsView() {
   const [busyReference, setBusyReference] = useState("");
   const [error, setError] = useState("");
 
+  const isInitialLoadRef = useRef(true);
+
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
       const rows = await api.getMyCenterPaymentRequests();
       setRequests(rows);
-      setSelected((current) => rows.find((row) => row.reference === current?.reference) || current || rows[0] || null);
+      if (isInitialLoadRef.current) {
+        isInitialLoadRef.current = false;
+        setSelected(rows[0] || null);
+      } else {
+        setSelected((current) => (current ? rows.find((row) => row.reference === current.reference) || null : null));
+      }
     } catch (loadError) {
       setError(getClientErrorMessage(loadError, "Impossible de charger vos demandes."));
     } finally {
@@ -38,22 +45,30 @@ export default function StudentCenterPaymentsView() {
 
   const detailSectionRef = useRef<HTMLElement | null>(null);
 
-  const handleSelectRequest = useCallback(async (request: CenterPaymentRequestView) => {
-    setSelected(request);
-    setError("");
+  const handleSelectRequest = useCallback(
+    async (request: CenterPaymentRequestView) => {
+      if (selected?.reference === request.reference) {
+        setSelected(null);
+        return;
+      }
 
-    if (typeof window !== "undefined" && window.innerWidth < 1024) {
-      detailSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+      setSelected(request);
+      setError("");
 
-    try {
-      const detail = await api.getMyCenterPaymentRequest(request.reference);
-      setSelected(detail);
-      setRequests((current) => current.map((item) => (item.reference === request.reference ? detail : item)));
-    } catch {
-      // Keep summary request if detail fetch fails
-    }
-  }, []);
+      if (typeof window !== "undefined" && window.innerWidth < 1024) {
+        detailSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      try {
+        const detail = await api.getMyCenterPaymentRequest(request.reference);
+        setSelected(detail);
+        setRequests((current) => current.map((item) => (item.reference === request.reference ? detail : item)));
+      } catch {
+        // Keep summary request if detail fetch fails
+      }
+    },
+    [selected?.reference],
+  );
 
   const cancel = async (request: CenterPaymentRequestView) => {
     if (!window.confirm(`Annuler la demande ${request.reference} ?`)) return;

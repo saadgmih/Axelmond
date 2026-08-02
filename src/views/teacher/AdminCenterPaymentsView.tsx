@@ -65,13 +65,20 @@ export default function AdminCenterPaymentsView() {
     };
   }, [amount, courseId, from, query, status, to, validatedBy]);
 
+  const isInitialLoadRef = useRef(true);
+
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
       const result = await api.getAdminCenterPaymentRequests(filters);
       setRows(result);
-      setSelected((current) => result.find((row) => row.reference === current?.reference) || result[0] || null);
+      if (isInitialLoadRef.current) {
+        isInitialLoadRef.current = false;
+        setSelected(result[0] || null);
+      } else {
+        setSelected((current) => (current ? result.find((row) => row.reference === current.reference) || null : null));
+      }
     } catch (loadError) {
       setError(getClientErrorMessage(loadError, "Chargement des paiements impossible."));
     } finally {
@@ -93,22 +100,30 @@ export default function AdminCenterPaymentsView() {
 
   const detailSectionRef = useRef<HTMLElement | null>(null);
 
-  const handleSelectRow = useCallback(async (row: AdminCenterPaymentRequestView) => {
-    setSelected(row);
-    setError("");
+  const handleSelectRow = useCallback(
+    async (row: AdminCenterPaymentRequestView) => {
+      if (selected?.reference === row.reference) {
+        setSelected(null);
+        return;
+      }
 
-    if (typeof window !== "undefined" && window.innerWidth < 1280) {
-      detailSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+      setSelected(row);
+      setError("");
 
-    try {
-      const detail = await api.getAdminCenterPaymentRequest(row.reference);
-      setSelected(detail);
-      setRows((current) => current.map((item) => (item.reference === row.reference ? detail : item)));
-    } catch {
-      // Keep summary row if detail fetch fails
-    }
-  }, []);
+      if (typeof window !== "undefined" && window.innerWidth < 1280) {
+        detailSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      try {
+        const detail = await api.getAdminCenterPaymentRequest(row.reference);
+        setSelected(detail);
+        setRows((current) => current.map((item) => (item.reference === row.reference ? detail : item)));
+      } catch {
+        // Keep summary row if detail fetch fails
+      }
+    },
+    [selected?.reference],
+  );
 
   const refreshSelected = async (reference: string) => {
     const detail = await api.getAdminCenterPaymentRequest(reference);
