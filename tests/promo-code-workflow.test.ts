@@ -116,8 +116,8 @@ describe("complete promo code workflow wiring", () => {
     expect(adminView).toContain("Désactiver maintenant");
     expect(adminView).toContain("Filtrer par module");
     expect(adminView).toContain("Filtrer par créateur");
-    expect(adminView).toContain("Début à partir du");
-    expect(adminView).toContain("Fin au plus tard le");
+    expect(adminView).toContain("Depuis");
+    expect(adminView).toContain("Jusqu’au");
     expect(adminView).toContain("Créé le");
     expect(adminView).toContain("Historique immuable");
     expect(adminView).toContain("Utilisations réelles");
