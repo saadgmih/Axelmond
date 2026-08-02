@@ -131,6 +131,13 @@ export function UserProfileDetails({
           <InfoCard icon={Globe2} label="Pays" value={profile.user.country} />
           <InfoCard icon={MapPin} label="Ville" value={profile.user.city} />
           <InfoCard icon={Languages} label="Langue préférée" value={profile.user.preferredLanguage} />
+          {!isStudent && (
+            <InfoCard
+              icon={BookOpen}
+              label="Domaines d’enseignement"
+              value={profile.academic?.teachingDomains?.length ? profile.academic.teachingDomains.join(", ") : null}
+            />
+          )}
         </div>
 
         {isStudent && (
