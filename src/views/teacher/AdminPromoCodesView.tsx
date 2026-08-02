@@ -27,6 +27,7 @@ import type {
   PromoStatus,
 } from "../../promo-code-types";
 import { formatMad } from "../../utils/morocco-locale";
+import { parseDateDisplayInput } from "../../utils/free-access-datetime";
 
 type Options = Awaited<ReturnType<typeof api.getAdminPromoOptions>>;
 type DateMode = "PRECISE" | "RELATIVE";
@@ -147,6 +148,9 @@ export default function AdminPromoCodesView() {
     setLoading(true);
     setError("");
     try {
+      const parsedStartsFrom = parseDateDisplayInput(startsFrom) || (startsFrom.trim() ? startsFrom.trim() : undefined);
+      const parsedEndsBefore = parseDateDisplayInput(endsBefore) || (endsBefore.trim() ? endsBefore.trim() : undefined);
+
       const [list, adminOptions] = await Promise.all([
         api.getAdminPromoCodes({
           q,
@@ -155,8 +159,8 @@ export default function AdminPromoCodesView() {
           usage,
           courseId: courseId ? Number(courseId) : undefined,
           creatorId,
-          startsFrom: startsFrom ? `${startsFrom}T00:00:00` : undefined,
-          endsBefore: endsBefore ? `${endsBefore}T23:59:59` : undefined,
+          startsFrom: parsedStartsFrom ? `${parsedStartsFrom}T00:00:00` : undefined,
+          endsBefore: parsedEndsBefore ? `${parsedEndsBefore}T23:59:59` : undefined,
           includeArchived,
           page,
           pageSize: 25,
@@ -439,25 +443,27 @@ export default function AdminPromoCodesView() {
           <label className="rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-xs text-slate-400">
             Début à partir du
             <input
-              type="date"
+              type="text"
               value={startsFrom}
               onChange={(event) => {
                 setStartsFrom(event.target.value);
                 setPage(1);
               }}
-              className="mt-1 block w-full bg-transparent text-sm text-slate-100"
+              placeholder="JJ/MM/AAAA"
+              className="mt-1 block w-full bg-transparent text-sm text-slate-100 placeholder-slate-500 outline-none"
             />
           </label>
           <label className="rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-xs text-slate-400">
             Fin au plus tard le
             <input
-              type="date"
+              type="text"
               value={endsBefore}
               onChange={(event) => {
                 setEndsBefore(event.target.value);
                 setPage(1);
               }}
-              className="mt-1 block w-full bg-transparent text-sm text-slate-100"
+              placeholder="JJ/MM/AAAA"
+              className="mt-1 block w-full bg-transparent text-sm text-slate-100 placeholder-slate-500 outline-none"
             />
           </label>
           <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2.5 text-sm">
