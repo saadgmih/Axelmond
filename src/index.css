@@ -1447,10 +1447,13 @@ body.printing-receipt .center-payment-receipt-print-wrapper {
   padding: 28px !important;
   background: #ffffff !important;
   color: #0f172a !important;
-  border: 2px solid #e2e8f0 !important;
+  border: 2px solid #cbd5e1 !important;
   border-radius: 16px !important;
   box-shadow: none !important;
   box-sizing: border-box !important;
+  opacity: 1 !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
 }
 
 @media print {
@@ -1489,14 +1492,17 @@ body.printing-receipt .center-payment-receipt-print-wrapper {
     padding: 28px !important;
     background: #ffffff !important;
     color: #0f172a !important;
-    border: 2px solid #e2e8f0 !important;
+    border: 2px solid #cbd5e1 !important;
     border-radius: 16px !important;
     box-shadow: none !important;
     box-sizing: border-box !important;
+    opacity: 1 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .center-payment-receipt-print-wrapper dt {
-    color: #475569 !important;
+    color: #64748b !important;
   }
 
   .center-payment-receipt-print-wrapper dd,
@@ -1504,6 +1510,7 @@ body.printing-receipt .center-payment-receipt-print-wrapper {
   .center-payment-receipt-print-wrapper p,
   .center-payment-receipt-print-wrapper span {
     color: #0f172a !important;
+    opacity: 1 !important;
   }
 }
 

@@ -58,14 +58,23 @@ function ReceiptContent({
   isPrintMode?: boolean;
 }) {
   return (
-    <div className="receipt-card-body">
+    <div className="receipt-card-body rounded-2xl bg-white p-6 text-slate-900">
       <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">Reçu de paiement</p>
-          <h3 className="mt-1 text-xl font-black text-slate-900">{receipt.centerName}</h3>
-          <p className="mt-1 font-mono text-sm font-bold text-slate-600">{receipt.receiptNumber}</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-emerald-800" style={{ color: "#065f46" }}>
+            Reçu de paiement
+          </p>
+          <h3 className="mt-1 text-xl font-black text-slate-900" style={{ color: "#0f172a" }}>
+            {receipt.centerName}
+          </h3>
+          <p className="mt-1 font-mono text-sm font-bold text-slate-700" style={{ color: "#334155" }}>
+            {receipt.receiptNumber}
+          </p>
         </div>
-        <span className="rounded-lg bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-800">
+        <span
+          className="rounded-lg border border-emerald-300 bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-900"
+          style={{ backgroundColor: "#d1fae5", color: "#064e3b", borderColor: "#6ee7b7" }}
+        >
           {receipt.status}
         </span>
       </div>
@@ -101,8 +110,12 @@ function ReceiptContent({
 function ReceiptLine({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
   return (
     <div>
-      <dt className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{label}</dt>
-      <dd className={`mt-0.5 font-semibold text-slate-900 ${mono ? "font-mono" : ""}`}>{value}</dd>
+      <dt className="text-[10px] font-bold uppercase tracking-widest text-slate-500" style={{ color: "#64748b" }}>
+        {label}
+      </dt>
+      <dd className={`mt-0.5 font-bold text-slate-900 ${mono ? "font-mono" : ""}`} style={{ color: "#0f172a" }}>
+        {value}
+      </dd>
     </div>
   );
 }
