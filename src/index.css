@@ -1422,10 +1422,41 @@ html.force-desktop-mode #root {
   box-shadow: 0 0 0 3px rgb(16 185 129 / 0.12);
 }
 
+.center-payment-receipt-print-wrapper {
+  display: none;
+}
+
+body.printing-receipt {
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+
+body.printing-receipt > *:not(.center-payment-receipt-print-wrapper) {
+  display: none !important;
+}
+
+body.printing-receipt .center-payment-receipt-print-wrapper {
+  display: block !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: 0 !important;
+  right: 0 !important;
+  margin: 20px auto !important;
+  width: 100% !important;
+  max-width: 650px !important;
+  padding: 28px !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 2px solid #e2e8f0 !important;
+  border-radius: 16px !important;
+  box-shadow: none !important;
+  box-sizing: border-box !important;
+}
+
 @media print {
   @page {
-    size: auto;
-    margin: 15mm;
+    size: portrait;
+    margin: 12mm;
   }
 
   html,
@@ -1436,68 +1467,43 @@ html.force-desktop-mode #root {
     padding: 0 !important;
     width: 100% !important;
     height: auto !important;
-    min-height: auto !important;
+    min-height: 0 !important;
     overflow: visible !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  #root,
-  main,
-  div,
-  aside,
-  header,
-  footer,
-  nav,
-  section {
-    background: transparent !important;
-    box-shadow: none !important;
-    border: none !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
+  body > *:not(.center-payment-receipt-print-wrapper) {
+    display: none !important;
   }
 
-  body * {
-    visibility: hidden !important;
-  }
-
-  .center-payment-receipt,
-  .center-payment-receipt * {
-    visibility: visible !important;
-  }
-
-  .center-payment-receipt {
+  .center-payment-receipt-print-wrapper {
+    display: block !important;
     position: absolute !important;
     left: 0 !important;
     top: 0 !important;
     right: 0 !important;
-    margin: 0 auto !important;
+    margin: 20px auto !important;
     width: 100% !important;
     max-width: 650px !important;
     padding: 28px !important;
-    background-color: #ffffff !important;
+    background: #ffffff !important;
     color: #0f172a !important;
     border: 2px solid #e2e8f0 !important;
     border-radius: 16px !important;
     box-shadow: none !important;
-    z-index: 999999 !important;
     box-sizing: border-box !important;
   }
 
-  .center-payment-receipt dt {
+  .center-payment-receipt-print-wrapper dt {
     color: #475569 !important;
   }
 
-  .center-payment-receipt dd,
-  .center-payment-receipt h3,
-  .center-payment-receipt p,
-  .center-payment-receipt span {
+  .center-payment-receipt-print-wrapper dd,
+  .center-payment-receipt-print-wrapper h3,
+  .center-payment-receipt-print-wrapper p,
+  .center-payment-receipt-print-wrapper span {
     color: #0f172a !important;
-  }
-
-  .center-payment-receipt button,
-  .center-payment-receipt .print\:hidden {
-    display: none !important;
   }
 }
 

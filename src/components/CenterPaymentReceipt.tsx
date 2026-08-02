@@ -1,3 +1,5 @@
+import { useCallback, useState } from "react";
+import { createPortal } from "react-dom";
 import { Printer } from "lucide-react";
 import type { CenterPaymentReceipt as Receipt } from "../center-payment-types";
 
@@ -10,8 +12,53 @@ const METHOD_LABELS: Record<Receipt["paymentMethod"], string> = {
 };
 
 export default function CenterPaymentReceipt({ receipt }: { receipt: Receipt }) {
+  const [isPrinting, setIsPrinting] = useState(false);
+
+  const handlePrint = useCallback(() => {
+    setIsPrinting(true);
+    document.body.classList.add("printing-receipt");
+
+    const cleanup = () => {
+      document.body.classList.remove("printing-receipt");
+      setIsPrinting(false);
+      window.removeEventListener("afterprint", cleanup);
+    };
+
+    window.addEventListener("afterprint", cleanup);
+
+    requestAnimationFrame(() => {
+      window.print();
+      setTimeout(cleanup, 1000);
+    });
+  }, []);
+
   return (
-    <section className="center-payment-receipt rounded-2xl border border-emerald-400/20 bg-white p-5 text-slate-900 shadow-xl print:border-0 print:shadow-none">
+    <>
+      <section className="center-payment-receipt rounded-2xl border border-emerald-400/20 bg-white p-5 text-slate-900 shadow-xl print:border-0 print:shadow-none">
+        <ReceiptContent receipt={receipt} onPrint={handlePrint} />
+      </section>
+
+      {createPortal(
+        <div className="center-payment-receipt-print-wrapper">
+          <ReceiptContent receipt={receipt} isPrintMode />
+        </div>,
+        document.body,
+      )}
+    </>
+  );
+}
+
+function ReceiptContent({
+  receipt,
+  onPrint,
+  isPrintMode = false,
+}: {
+  receipt: Receipt;
+  onPrint?: () => void;
+  isPrintMode?: boolean;
+}) {
+  return (
+    <div className="receipt-card-body">
       <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">Reçu de paiement</p>
@@ -37,15 +84,17 @@ export default function CenterPaymentReceipt({ receipt }: { receipt: Receipt }) 
           value={receipt.accessEndsAt ? new Date(receipt.accessEndsAt).toLocaleDateString("fr-MA") : "—"}
         />
       </dl>
-      <button
-        type="button"
-        onClick={() => window.print()}
-        className="mt-5 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white print:hidden"
-      >
-        <Printer className="h-4 w-4" />
-        Imprimer le reçu
-      </button>
-    </section>
+      {!isPrintMode && onPrint && (
+        <button
+          type="button"
+          onClick={onPrint}
+          className="mt-5 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800 print:hidden"
+        >
+          <Printer className="h-4 w-4" />
+          Imprimer le reçu
+        </button>
+      )}
+    </div>
   );
 }
 
