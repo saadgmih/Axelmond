@@ -3,6 +3,8 @@ import {
   Archive,
   BadgePercent,
   CalendarClock,
+  ChevronLeft,
+  ChevronRight,
   Copy,
   Eye,
   Pause,
@@ -28,6 +30,7 @@ import type {
 } from "../../promo-code-types";
 import { formatMad } from "../../utils/morocco-locale";
 import { parseDateDisplayInput } from "../../utils/free-access-datetime";
+import { curriculumUi } from "./curriculum-theme";
 
 type Options = Awaited<ReturnType<typeof api.getAdminPromoOptions>>;
 type DateMode = "PRECISE" | "RELATIVE";
@@ -479,19 +482,32 @@ export default function AdminPromoCodesView() {
           </label>
         </section>
 
-        <section className="overflow-hidden rounded-2xl border border-white/10 bg-slate-950/25">
+        <section className={`overflow-hidden ${curriculumUi.card}`}>
+          <div className="flex items-center justify-between gap-3 border-b border-slate-700/60 px-5 py-5 sm:px-7">
+            <h2 className={`${curriculumUi.panelTitle} gap-3`}>
+              <BadgePercent className="h-5 w-5 text-emerald-400" />
+              Registre des codes promotionnels
+            </h2>
+            <span className="rounded-lg bg-slate-800/80 px-3 py-2 text-xs font-semibold tabular-nums text-slate-300">
+              {items.length} sur cette page
+            </span>
+          </div>
+
           {loading ? (
-            <div role="status" className="flex items-center justify-center gap-3 p-12 text-slate-400">
-              <RefreshCw className="h-5 w-5 animate-spin" /> Chargement…
+            <div role="status" className="flex min-h-52 items-center justify-center gap-3 text-sm font-semibold text-slate-400">
+              <RefreshCw className="h-5 w-5 animate-spin text-emerald-400" /> Chargement des codes…
             </div>
           ) : items.length === 0 ? (
-            <p className="p-12 text-center text-slate-400">Aucun code ne correspond aux filtres.</p>
+            <div className="flex min-h-52 flex-col items-center justify-center gap-3 px-5 text-center">
+              <BadgePercent className="h-7 w-7 text-slate-600" />
+              <p className="text-sm font-bold text-slate-300">Aucun code ne correspond aux filtres.</p>
+            </div>
           ) : (
-            <div className="divide-y divide-white/10">
+            <div className="divide-y divide-slate-700/60">
               {items.map((promo) => (
                 <article
                   key={promo.id}
-                  className="grid gap-4 p-4 sm:p-5 xl:grid-cols-[1.15fr_1fr_1fr_auto] xl:items-center"
+                  className="grid gap-4 p-4 transition-colors hover:bg-white/[0.025] sm:p-5 xl:grid-cols-[1.15fr_1fr_1fr_auto] xl:items-center"
                 >
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -560,26 +576,33 @@ export default function AdminPromoCodesView() {
               ))}
             </div>
           )}
-          <div className="flex items-center justify-between border-t border-white/10 p-4 text-sm">
+        </section>
+
+        {totalPages > 0 && (
+          <nav className="flex items-center justify-center gap-4 pt-1" aria-label="Pagination des codes promotionnels">
             <button
+              type="button"
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
               disabled={page <= 1}
-              onClick={() => setPage((value) => value - 1)}
-              className="rounded-lg border border-white/10 px-3 py-2 disabled:opacity-40"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-800 hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-30"
+              aria-label="Page précédente"
             >
-              Précédent
+              <ChevronLeft className="h-5 w-5" />
             </button>
-            <span>
+            <span className="inline-flex h-11 min-w-11 items-center justify-center rounded-lg bg-green-700 px-3 text-sm font-black tabular-nums text-white shadow-md shadow-green-900/30">
               Page {page} / {totalPages}
             </span>
             <button
+              type="button"
+              onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
               disabled={page >= totalPages}
-              onClick={() => setPage((value) => value + 1)}
-              className="rounded-lg border border-white/10 px-3 py-2 disabled:opacity-40"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-800 hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-30"
+              aria-label="Page suivante"
             >
-              Suivant
+              <ChevronRight className="h-5 w-5" />
             </button>
-          </div>
-        </section>
+          </nav>
+        )}
       </div>
 
       {editorOpen && options && (
