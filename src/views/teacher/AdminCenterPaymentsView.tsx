@@ -142,12 +142,12 @@ export default function AdminCenterPaymentsView() {
 
       <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 md:grid-cols-2 xl:grid-cols-4">
         <label className="relative">
-          <span className="sr-only">Rechercher une référence, un étudiant ou un module</span>
+          <span className="sr-only">Rechercher par référence</span>
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Référence, étudiant, e-mail, module…"
+            placeholder="Référence (ex: PC-2026-001135)…"
             className="w-full rounded-xl border border-white/10 bg-slate-950/60 py-2.5 pl-10 pr-3 text-sm text-white outline-none focus:border-emerald-400/50"
           />
         </label>

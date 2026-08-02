@@ -466,12 +466,7 @@ export async function listAdminCenterPaymentRequests(filters: {
       : {}),
     ...(query
       ? {
-          OR: [
-            { publicReference: { contains: query, mode: "insensitive" } },
-            { user: { fullName: { contains: query, mode: "insensitive" } } },
-            { user: { email: { contains: query, mode: "insensitive" } } },
-            { moduleTitleSnapshot: { contains: query, mode: "insensitive" } },
-          ],
+          publicReference: { contains: query, mode: "insensitive" },
         }
       : {}),
   };
