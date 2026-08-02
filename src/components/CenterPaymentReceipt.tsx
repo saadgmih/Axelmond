@@ -67,9 +67,6 @@ function ReceiptContent({
           <h3 className="mt-1 text-xl font-black text-slate-900" style={{ color: "#0f172a" }}>
             {receipt.centerName}
           </h3>
-          <p className="mt-1 font-mono text-sm font-bold text-slate-700" style={{ color: "#334155" }}>
-            {receipt.receiptNumber}
-          </p>
         </div>
         <span
           className="rounded-lg border border-emerald-300 bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-900"
