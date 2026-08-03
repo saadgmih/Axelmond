@@ -112,7 +112,7 @@ const RBAC_EXEMPT_AUTH_PATHS = new Set([
   "/api/auth/reset-password",
 ]);
 
-const RBAC_EXEMPT_PREFIXES = ["/api/uploadthing", "/api/paypal/webhook", "/api/admin/", "/api/auth/mfa"];
+const RBAC_EXEMPT_PREFIXES = ["/api/uploadthing", "/api/paypal/webhook", "/api/auth/mfa"];
 
 export function isRbacExemptRoute(method: string, path: string): boolean {
   const verb = method.toUpperCase();
@@ -313,7 +313,7 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
     return true;
   }
 
-  if (verb === "GET" && cleanPath === "/api/admin/academic-profiles") {
+  if (cleanPath.startsWith("/api/admin/")) {
     return normalized === "ADMIN";
   }
 
