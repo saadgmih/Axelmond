@@ -179,6 +179,7 @@ export function registerPasswordRoutes(app: Express, ctx: RouteContext): void {
           passwordHash,
 
           failedLoginAttempts: 0,
+          lockoutUntil: null,
         },
       });
     });

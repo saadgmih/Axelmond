@@ -2,6 +2,7 @@ import type { Express } from "express";
 import type { RouteContext } from "../../server/route-context";
 import * as api from "../../server/route-deps";
 import { getClientIp } from "../../client-ip";
+import { getAuthMaxAttempts, getAuthLockoutWindowMs } from "../../security-hardening";
 
 export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): void {
   const { validateBody } = ctx.middleware;
@@ -216,6 +217,19 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
       return;
     }
 
+    if (user.lockoutUntil && user.lockoutUntil > new Date()) {
+      const remainingSeconds = Math.ceil((user.lockoutUntil.getTime() - Date.now()) / 1000);
+      api.logSecurity("WARN", "Login attempt on locked out account", { userId: user.id, remainingSeconds });
+
+      res.status(429).json({
+        error: `Compte temporairement verrouillé suite à de trop nombreuses tentatives. Réessayez dans ${remainingSeconds} seconde(s).`,
+        code: "ACCOUNT_LOCKED",
+        remainingSeconds,
+      });
+
+      return;
+    }
+
     if (!api.canLoginToRequestedRole(user.role, requestedRole)) {
       api.logSecurity("WARN", "Login sector mismatch", { userId: user.id, requestedRole, actualRole: user.role });
 
@@ -228,14 +242,36 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
 
     if (!isValidPassword) {
       const failedLoginAttempts = user.failedLoginAttempts + 1;
+      const maxAttempts = getAuthMaxAttempts();
+      const lockoutWindowMs = getAuthLockoutWindowMs();
+      const isLocked = failedLoginAttempts >= maxAttempts;
+      const lockoutUntil = isLocked ? new Date(Date.now() + lockoutWindowMs) : null;
 
       await api.prisma.user.update({
         where: { id: user.id },
 
         data: {
           failedLoginAttempts,
+          ...(isLocked ? { lockoutUntil } : {}),
         },
       });
+
+      if (isLocked) {
+        api.logSecurity("ERROR", `SECURITY ALERT: Account locked out due to ${failedLoginAttempts} failed attempts`, {
+          userId: user.id,
+          email: user.email,
+          ip: getClientIp(req),
+          lockoutUntil,
+        });
+
+        res.status(429).json({
+          error: `Compte temporairement verrouillé suite à de trop nombreuses tentatives (${failedLoginAttempts}). Réessayez dans ${Math.ceil(lockoutWindowMs / 1000)} secondes.`,
+          code: "ACCOUNT_LOCKED",
+          remainingSeconds: Math.ceil(lockoutWindowMs / 1000),
+        });
+
+        return;
+      }
 
       api.alertFailedLogins(user.email, getClientIp(req), failedLoginAttempts);
 
@@ -258,13 +294,14 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
       return;
     }
 
-    // Connexion réussie : Réinitialiser le compteur d'erreurs
+    // Connexion réussie : Réinitialiser le compteur d'erreurs et le verrouillage
 
     await api.prisma.user.update({
       where: { id: user.id },
 
       data: {
         failedLoginAttempts: 0,
+        lockoutUntil: null,
       },
     });
 

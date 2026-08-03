@@ -33,3 +33,13 @@ const PRODUCTION_DATABASE_SSL_PATTERN = /sslmode=(require|verify-full|verify-ca)
 export function isProductionDatabaseUrlSecure(databaseUrl: string): boolean {
   return PRODUCTION_DATABASE_SSL_PATTERN.test(databaseUrl);
 }
+
+export function getAuthMaxAttempts(env: NodeJS.ProcessEnv = process.env): number {
+  const parsed = Number(env.AUTH_MAX_ATTEMPTS);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : 20;
+}
+
+export function getAuthLockoutWindowMs(env: NodeJS.ProcessEnv = process.env): number {
+  const parsed = Number(env.AUTH_LOCKOUT_WINDOW_MS);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : 60_000;
+}
