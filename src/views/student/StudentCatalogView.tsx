@@ -236,7 +236,7 @@ export default function StudentCatalogView({
   } = useVoiceSearch({ onTranscript: setSearchQuery });
 
   const catalogCrumbClass =
-    "inline-flex h-8 items-center justify-center whitespace-nowrap shrink-0 px-4 rounded-full text-xs font-bold leading-none border text-center transition-all";
+    "inline-flex h-9 items-center justify-center whitespace-nowrap shrink-0 px-4 rounded-xl text-xs font-bold leading-none border transition-all box-border cursor-pointer";
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 animate-in fade-in duration-200">
@@ -303,7 +303,7 @@ export default function StudentCatalogView({
       </div>
 
       {(selectedDomain || selectedDiscipline) && (
-        <div className="flex flex-wrap items-center gap-2 overflow-x-auto pt-2 pb-1">
+        <div className="flex flex-wrap items-center gap-2 overflow-x-auto pt-2 pb-1 scrollbar-none">
           <button
             type="button"
             data-tv-focusable
@@ -334,12 +334,12 @@ export default function StudentCatalogView({
             </button>
           )}
           {selectedDiscipline && (
-            <span
-              aria-current="page"
+            <button
+              type="button"
               className={`${catalogCrumbClass} bg-emerald-600 text-white border-emerald-500 shadow-sm`}
             >
               {selectedDiscipline.name}
-            </span>
+            </button>
           )}
         </div>
       )}
