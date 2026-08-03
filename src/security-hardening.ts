@@ -2,12 +2,12 @@ import crypto from "node:crypto";
 
 /** SHA-256 hash for refresh tokens stored at rest (never store raw tokens in DB). */
 export function hashRefreshToken(token: string): string {
-  return crypto.createHash("sha256").update(String(token).trim()).digest("hex");
+  return crypto.createHash("sha256").update(String(token)).digest("hex");
 }
 
 /** SHA-256 hash for CSRF tokens bound to refresh sessions (mobile native clients). */
 export function hashCsrfToken(token: string): string {
-  return crypto.createHash("sha256").update(String(token).trim()).digest("hex");
+  return crypto.createHash("sha256").update(String(token)).digest("hex");
 }
 
 export const JSON_BODY_LIMIT = "256kb";

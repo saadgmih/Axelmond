@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readApiRouteSources } from "./helpers/api-route-sources.ts";
 import fs from "node:fs";
-import { hashRefreshToken } from "../src/security-hardening.ts";
+import { hashRefreshToken, hashCsrfToken } from "../src/security-hardening.ts";
 import { canAccessApiRoute } from "../src/rbac.ts";
 import { rulesTest } from "./helpers/rulesTest.ts";
 
@@ -11,6 +11,13 @@ rulesTest("security-hardening", () => {
 
   assert.equal(hashRefreshToken("test-token-a"), hashRefreshToken("test-token-a"));
   assert.notEqual(hashRefreshToken("test-token-a"), hashRefreshToken("test-token-b"));
+  assert.notEqual(hashRefreshToken("abc"), hashRefreshToken(" abc "));
+  assert.notEqual(hashRefreshToken("abc"), hashRefreshToken("abc "));
+
+  assert.equal(hashCsrfToken("test-csrf-a"), hashCsrfToken("test-csrf-a"));
+  assert.notEqual(hashCsrfToken("test-csrf-a"), hashCsrfToken("test-csrf-b"));
+  assert.notEqual(hashCsrfToken("abc"), hashCsrfToken(" abc "));
+  assert.notEqual(hashCsrfToken("abc"), hashCsrfToken("abc "));
 
   assert.match(authTokenSource, /hashRefreshToken\(token\)/);
   assert.match(authTokenSource, /findValidRefreshToken/);
