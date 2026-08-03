@@ -219,8 +219,6 @@ export default function AxelCalendarShell({
             >
               {cell.date.getDate()}
             </span>
-              {cell.date.getDate()}
-            </span>
             {cell.inCurrentMonth && daySessions.length > 0 && (
               <div className="mt-1 space-y-0.5">
                 {daySessions.slice(0, large ? 2 : 1).map((session) => (
