@@ -102,6 +102,9 @@ export default function AxelCalendarShell({
   const accentSoft = "text-emerald-200/90";
   const viewSwitcherIconActive = "text-emerald-200";
 
+  const weekendHeaderText = "text-amber-400 font-extrabold";
+  const weekendDayText = "text-amber-300/95 font-bold";
+
   const year = focusDate.getFullYear();
   const monthIndex = focusDate.getMonth();
   const weekStart = startOfWeekMonday(focusDate);
@@ -144,7 +147,7 @@ export default function AxelCalendarShell({
           {WEEKDAY_HEADERS.map((label, index) => (
             <span
               key={`${month}-head-${label}-${index}`}
-              className={`text-center text-[8px] font-bold ${index >= 5 ? accentSoft : "text-slate-500"}`}
+              className={`text-center text-[8px] ${index >= 5 ? weekendHeaderText : "font-bold text-slate-500"}`}
             >
               {label}
             </span>
@@ -161,7 +164,7 @@ export default function AxelCalendarShell({
                     : cell.isToday
                       ? `${accentBg} text-white`
                       : cell.isWeekend
-                        ? accentSoft
+                        ? weekendDayText
                         : "text-slate-300"
                 }`}
               >
@@ -182,8 +185,8 @@ export default function AxelCalendarShell({
       {WEEKDAY_HEADERS.map((label, index) => (
         <div
           key={`header-${label}-${index}`}
-          className={`py-1 text-center text-[10px] font-black uppercase tracking-wider sm:text-xs ${
-            index >= 5 ? accentText : "text-slate-500"
+          className={`py-1 text-center text-[10px] uppercase tracking-wider sm:text-xs ${
+            index >= 5 ? weekendHeaderText : "font-black text-slate-500"
           }`}
         >
           {label}
@@ -211,9 +214,11 @@ export default function AxelCalendarShell({
           >
             <span
               className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold sm:h-7 sm:w-7 ${
-                cell.isToday ? `${accentBg} text-white` : cell.isWeekend ? accentSoft : "text-slate-200"
+                cell.isToday ? `${accentBg} text-white` : cell.isWeekend ? weekendDayText : "text-slate-200"
               }`}
             >
+              {cell.date.getDate()}
+            </span>
               {cell.date.getDate()}
             </span>
             {cell.inCurrentMonth && daySessions.length > 0 && (
@@ -322,7 +327,7 @@ export default function AxelCalendarShell({
                       : "border-white/[0.08] bg-[#031512]/60 hover:border-white/15"
                   }`}
                 >
-                  <p className={`text-xs font-black ${scheduleDay >= 5 ? accentText : "text-white"}`}>
+                  <p className={`text-xs ${scheduleDay >= 5 ? weekendHeaderText : "font-black text-white"}`}>
                     {WEEKDAY_HEADERS[scheduleDay]} {date.getDate()}
                   </p>
                   <div className="mt-2 space-y-2">
