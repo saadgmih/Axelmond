@@ -342,7 +342,6 @@ export default function Sidebar({
         title={`Consulter le profil de ${currentUser?.fullName || "Performance Académique"}`}
         aria-label={`Consulter le profil de ${currentUser?.fullName || "Performance Académique"}`}
         data-onboarding="profile-menu"
-        dataOnboarding="profile-menu"
         className="kbd-nav-focus group flex w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-xl px-1 py-1 text-left transition-colors hover:bg-white/5 cursor-pointer"
       >
         <div className="min-w-0 flex-1">
