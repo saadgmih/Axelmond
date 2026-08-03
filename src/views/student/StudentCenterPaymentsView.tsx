@@ -43,6 +43,10 @@ export default function StudentCenterPaymentsView() {
     }
   }, []);
 
+  useEffect(() => {
+    void load();
+  }, [load]);
+
   const detailSectionRef = useRef<HTMLElement | null>(null);
 
   const handleSelectRequest = useCallback(
