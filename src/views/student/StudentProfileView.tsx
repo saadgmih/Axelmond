@@ -1,11 +1,10 @@
 import { useMemo } from "react";
-import { ArrowRight, Award, BookOpen, CheckCircle2, CreditCard, GraduationCap, ShieldCheck } from "lucide-react";
+import { Award, BookOpen, CheckCircle2, GraduationCap, ShieldCheck } from "lucide-react";
 import ProfileAvatarUpload from "../../components/ProfileAvatarUpload";
 import type { AppUser } from "../../components/AuthScreen";
 import type { Course, Invoice } from "../../types";
 import { DEFAULT_STUDENT_LABEL } from "../../types";
-import { formatCredits, formatMad, creditsLabel } from "../../utils/morocco-locale";
-import { formatInvoiceReference } from "../../utils/user-facing-labels";
+import { formatCredits, creditsLabel } from "../../utils/morocco-locale";
 
 interface StudentProfileViewProps {
   currentUser: AppUser | null;
@@ -181,7 +180,7 @@ export default function StudentProfileView({
       <div className="space-y-6">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-stretch">
           {/* Progression */}
-          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:col-span-12">
+          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:col-span-8">
             <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5 md:px-8">
               <div>
                 <h2 className="text-lg font-black text-slate-900">Progression académique</h2>
@@ -225,96 +224,6 @@ export default function StudentProfileView({
                 </div>
               )}
             </div>
-          </section>
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-stretch">
-          {/* Invoices */}
-          <section className="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:col-span-8">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-5 md:px-8">
-              <div>
-                <h2 className="text-lg font-black text-slate-900">Historique des paiements</h2>
-                <p className="mt-0.5 text-xs text-slate-500">Reçus et transactions de vos inscriptions</p>
-              </div>
-              <div className="flex items-center gap-3">
-                {onNavigateToPayments && (
-                  <button
-                    type="button"
-                    onClick={onNavigateToPayments}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/20 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100"
-                  >
-                    Espace Mes Paiements <ArrowRight className="h-3.5 w-3.5" />
-                  </button>
-                )}
-                <div className="rounded-xl bg-emerald-50 p-2.5 text-emerald-600">
-                  <CreditCard className="h-5 w-5" />
-                </div>
-              </div>
-            </div>
-
-            {invoices.length > 0 ? (
-              <>
-                <div className="hidden flex-1 overflow-x-auto md:block">
-                  <table className="w-full border-collapse text-left text-xs text-slate-600">
-                    <thead>
-                      <tr className="border-b border-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-400">
-                        <th className="px-6 py-4">Référence</th>
-                        <th className="px-4 py-4">Date</th>
-                        <th className="px-4 py-4">Module</th>
-                        <th className="px-4 py-4 text-right">Montant</th>
-                        <th className="px-6 py-4 text-center">État</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {invoices.map((inv) => (
-                        <tr
-                          key={inv.id}
-                          className="border-b border-slate-50 transition-colors last:border-none hover:bg-slate-50/80"
-                        >
-                          <td className="px-6 py-4 font-semibold text-slate-800">{formatInvoiceReference(inv.id)}</td>
-                          <td className="px-4 py-4">{inv.date}</td>
-                          <td className="px-4 py-4 font-semibold text-slate-900">{inv.courseTitle}</td>
-                          <td className="px-4 py-4 text-right font-mono font-bold text-emerald-700">
-                            {formatMad(inv.amount)}
-                          </td>
-                          <td className="px-6 py-4 text-center">
-                            <span className="rounded-lg border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-emerald-700">
-                              {inv.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                <div className="flex-1 space-y-3 p-4 md:hidden">
-                  {invoices.map((inv) => (
-                    <div key={inv.id} className="rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="text-sm font-bold text-slate-900">{inv.courseTitle}</p>
-                          <p className="mt-0.5 text-[10px] text-slate-400">{formatInvoiceReference(inv.id)}</p>
-                        </div>
-                        <span className="rounded-lg border border-emerald-100 bg-emerald-50 px-2 py-0.5 text-[9px] font-bold uppercase text-emerald-700">
-                          {inv.status}
-                        </span>
-                      </div>
-                      <div className="mt-3 flex items-center justify-between text-xs">
-                        <span className="text-slate-500">{inv.date}</span>
-                        <span className="font-mono font-black text-emerald-700">{formatMad(inv.amount)}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div className="flex flex-1 flex-col items-center justify-center px-6 py-12 text-center md:px-8">
-                <CreditCard className="mx-auto h-10 w-10 text-slate-300" />
-                <p className="mt-3 text-sm font-bold text-slate-600">Aucun paiement enregistré</p>
-                <p className="mt-1 text-xs text-slate-400">Vos reçus apparaîtront ici après inscription.</p>
-              </div>
-            )}
           </section>
 
           {/* Academic status */}
