@@ -246,7 +246,7 @@ export {
   getLiveKitConfig,
   getLiveKitParticipantIdentity,
 } from "../livekit";
-export { normalizeProfessorInviteCode, generateProfessorInviteCode, parseProfessorInviteCodes } from "../invitations";
+export { normalizeProfessorInviteCode, generateProfessorInviteCode, parseProfessorInviteCodes, isValidProfessorInviteCodeFormat } from "../invitations";
 export {
   ProfessorInviteConsumeError,
   attachProfessorInviteUsage,

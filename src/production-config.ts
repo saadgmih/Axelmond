@@ -159,6 +159,13 @@ export function validateProductionConfiguration(env: NodeJS.ProcessEnv = process
     issues.push("EMAIL_VERIFICATION_URL must be a public HTTPS URL in production");
   }
 
+  const profInviteCodes = readEnv(env, "PROFESSOR_INVITE_CODES");
+  if (profInviteCodes) {
+    if (/PROF-INVITE-/i.test(profInviteCodes) || hasPlaceholderValue(profInviteCodes)) {
+      issues.push("PROFESSOR_INVITE_CODES must use unpredictable random codes in production");
+    }
+  }
+
   return issues;
 }
 
