@@ -102,8 +102,8 @@ export default function AxelCalendarShell({
   const accentSoft = "text-emerald-200/90";
   const viewSwitcherIconActive = "text-emerald-200";
 
-  const weekendHeaderText = "text-amber-400 font-extrabold";
-  const weekendDayText = "text-amber-300/95 font-bold";
+  const weekendHeaderText = "text-amber-300 font-black";
+  const weekendDayText = "text-amber-300 font-bold";
 
   const year = focusDate.getFullYear();
   const monthIndex = focusDate.getMonth();
