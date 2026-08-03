@@ -236,7 +236,7 @@ export default function StudentCatalogView({
   } = useVoiceSearch({ onTranscript: setSearchQuery });
 
   const catalogCrumbClass =
-    "inline-flex items-center justify-center max-w-full px-4 py-2 rounded-full text-xs font-bold leading-snug border text-center transition-all";
+    "inline-flex h-8 items-center justify-center whitespace-nowrap shrink-0 px-4 rounded-full text-xs font-bold leading-none border text-center transition-all";
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 animate-in fade-in duration-200">
@@ -303,7 +303,7 @@ export default function StudentCatalogView({
       </div>
 
       {(selectedDomain || selectedDiscipline) && (
-        <div className="flex flex-wrap items-center gap-2 pt-2">
+        <div className="flex flex-wrap items-center gap-2 overflow-x-auto pt-2 pb-1">
           <button
             type="button"
             data-tv-focusable
@@ -313,7 +313,7 @@ export default function StudentCatalogView({
               setSelectedDisciplineId(null);
               setSearchQuery("");
             }}
-            className={`${catalogCrumbClass} kbd-nav-focus bg-white text-slate-600 border-slate-200 hover:bg-slate-50`}
+            className={`${catalogCrumbClass} kbd-nav-focus bg-slate-900/60 text-slate-300 border-white/10 hover:bg-slate-800 hover:text-white sm:bg-white sm:text-slate-600 sm:border-slate-200 sm:hover:bg-slate-50`}
           >
             Domaines
           </button>
@@ -326,8 +326,8 @@ export default function StudentCatalogView({
               }}
               className={`${catalogCrumbClass} ${
                 selectedDiscipline
-                  ? "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                  : "bg-emerald-600 text-white border-emerald-700 shadow-sm"
+                  ? "bg-slate-900/60 text-slate-300 border-white/10 hover:bg-slate-800 hover:text-white sm:bg-white sm:text-slate-600 sm:border-slate-200 sm:hover:bg-slate-50"
+                  : "bg-emerald-600 text-white border-emerald-500 shadow-sm"
               }`}
             >
               {selectedDomain.name}
@@ -336,7 +336,7 @@ export default function StudentCatalogView({
           {selectedDiscipline && (
             <span
               aria-current="page"
-              className={`${catalogCrumbClass} bg-emerald-600 text-white border-emerald-700 shadow-sm`}
+              className={`${catalogCrumbClass} bg-emerald-600 text-white border-emerald-500 shadow-sm`}
             >
               {selectedDiscipline.name}
             </span>
