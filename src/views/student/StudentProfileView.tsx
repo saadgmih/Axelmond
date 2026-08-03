@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Award, BookOpen, CheckCircle2, CreditCard, GraduationCap, ShieldCheck } from "lucide-react";
+import { ArrowRight, Award, BookOpen, CheckCircle2, CreditCard, GraduationCap, ShieldCheck } from "lucide-react";
 import ProfileAvatarUpload from "../../components/ProfileAvatarUpload";
 import type { AppUser } from "../../components/AuthScreen";
 import type { Course, Invoice } from "../../types";
@@ -15,6 +15,7 @@ interface StudentProfileViewProps {
   avatarStatusMsg: string;
   handleUploadAvatarFile: (file: File) => void | Promise<void>;
   handleDeleteAvatar: () => void | Promise<void>;
+  onNavigateToPayments?: () => void;
 }
 
 function getInitials(name: string) {
@@ -32,6 +33,7 @@ export default function StudentProfileView({
   avatarStatusMsg,
   handleUploadAvatarFile,
   handleDeleteAvatar,
+  onNavigateToPayments,
 }: StudentProfileViewProps) {
   const enrolledList = useMemo(
     () => courses.filter((course) => enrolledCourses.includes(course.id)),
@@ -229,13 +231,24 @@ export default function StudentProfileView({
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-stretch">
           {/* Invoices */}
           <section className="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:col-span-8">
-            <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5 md:px-8">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-5 md:px-8">
               <div>
                 <h2 className="text-lg font-black text-slate-900">Historique des paiements</h2>
                 <p className="mt-0.5 text-xs text-slate-500">Reçus et transactions de vos inscriptions</p>
               </div>
-              <div className="rounded-xl bg-emerald-50 p-2.5 text-emerald-600">
-                <CreditCard className="h-5 w-5" />
+              <div className="flex items-center gap-3">
+                {onNavigateToPayments && (
+                  <button
+                    type="button"
+                    onClick={onNavigateToPayments}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/20 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100"
+                  >
+                    Espace Mes Paiements <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
+                )}
+                <div className="rounded-xl bg-emerald-50 p-2.5 text-emerald-600">
+                  <CreditCard className="h-5 w-5" />
+                </div>
               </div>
             </div>
 

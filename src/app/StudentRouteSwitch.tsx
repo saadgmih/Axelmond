@@ -145,6 +145,7 @@ export function StudentRouteSwitch() {
             avatarStatusMsg={avatarStatusMsg}
             handleUploadAvatarFile={handleUploadAvatarFile}
             handleDeleteAvatar={handleDeleteAvatar}
+            onNavigateToPayments={() => navigateTo("payments")}
           />
         </Suspense>
       )}
@@ -173,7 +174,7 @@ export function StudentRouteSwitch() {
       )}
       {currentView === "payments" && (
         <Suspense fallback={<RouteChunkFallback label="Chargement de vos paiements…" />}>
-          <LazyStudentCenterPaymentsView />
+          <LazyStudentCenterPaymentsView invoices={invoices} />
         </Suspense>
       )}
       {currentView === "live" && !activeLiveCourse && (
