@@ -294,17 +294,6 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
       return;
     }
 
-    // Connexion réussie : Réinitialiser le compteur d'erreurs et le verrouillage
-
-    await api.prisma.user.update({
-      where: { id: user.id },
-
-      data: {
-        failedLoginAttempts: 0,
-        lockoutUntil: null,
-      },
-    });
-
     const { maybeRequireTotpAfterPassword } = await import("./mfa-routes");
     const { issueAuthenticatedSession } = await import("../../auth-session");
 
