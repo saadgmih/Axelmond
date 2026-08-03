@@ -3,7 +3,7 @@ export const PRODUCTION_CONTENT_SECURITY_POLICY = [
   "script-src 'self' https://www.paypal.com https://www.sandbox.paypal.com https://www.paypalobjects.com",
   "script-src-attr 'none'",
   "style-src 'self'",
-  "style-src-attr 'unsafe-inline'",
+  "style-src-attr 'none'",
   "font-src 'self' data:",
   "img-src 'self' data: blob: https://www.paypal.com https://www.sandbox.paypal.com https://www.paypalobjects.com https://uploadthing.com https://*.uploadthing.com https://ufs.sh https://*.ufs.sh https://utfs.io https://*.utfs.io",
   "media-src 'self' https://uploadthing.com https://*.uploadthing.com https://ufs.sh https://*.ufs.sh https://utfs.io https://*.utfs.io",

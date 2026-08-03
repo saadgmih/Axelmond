@@ -87,6 +87,9 @@ rulesTest("security", () => {
   // 6d. CSP durcie en production (pas de unsafe-eval)
   assert.match(serverSource, /PRODUCTION_CONTENT_SECURITY_POLICY/);
   assert.match(serverSource, /res\.setHeader\("Content-Security-Policy", PRODUCTION_CONTENT_SECURITY_POLICY\)/);
+  const cspSource = fs.readFileSync("src/server/production-csp.ts", "utf8");
+  assert.doesNotMatch(cspSource, /style-src-attr 'unsafe-inline'/);
+  assert.match(cspSource, /style-src-attr 'none'/);
   assert.match(startServerSource, /\.setHeader\("Cache-Control", "no-cache, must-revalidate, no-transform"\)/);
   assert.match(serverSource, /scriptSrcAttr:\s*\["'none'"\]/);
   assert.match(serverSource, /objectSrc:\s*\["'none'"\]/);
