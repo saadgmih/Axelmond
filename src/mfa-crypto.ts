@@ -1,19 +1,34 @@
 import crypto from "node:crypto";
 import { getAuthTokenSecret } from "./auth-token";
+import { logSecurity } from "./security-logger";
 
 const ALGORITHM = "aes-256-gcm";
 const IV_BYTES = 12;
 
-function getMfaEncryptionKey(env: NodeJS.ProcessEnv = process.env): Buffer {
+export function getMfaEncryptionKey(env: NodeJS.ProcessEnv = process.env): Buffer {
   const dedicated = env.MFA_ENCRYPTION_KEY?.trim();
   if (dedicated) {
-    const buf = Buffer.from(dedicated, dedicated.length === 64 && /^[0-9a-f]+$/i.test(dedicated) ? "hex" : "base64");
+    let buf: Buffer;
+    if (dedicated.length === 64 && /^[0-9a-f]+$/i.test(dedicated)) {
+      buf = Buffer.from(dedicated, "hex");
+    } else {
+      buf = Buffer.from(dedicated, "utf8");
+      if (buf.length < 32) {
+        const b64 = Buffer.from(dedicated, "base64");
+        if (b64.length >= 32) buf = b64;
+      }
+    }
     if (buf.length < 32) {
       throw new Error("MFA_ENCRYPTION_KEY must decode to at least 32 bytes");
     }
     return buf.subarray(0, 32);
   }
 
+  if (env.NODE_ENV === "production") {
+    throw new Error("MFA_ENCRYPTION_KEY must be set in production");
+  }
+
+  logSecurity("WARN", "MFA_ENCRYPTION_KEY is missing — falling back to derived JWT secret in dev mode");
   return crypto.createHmac("sha256", getAuthTokenSecret(env)).update("axelmond-mfa-v1").digest();
 }
 

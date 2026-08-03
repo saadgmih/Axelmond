@@ -26,9 +26,18 @@ rulesTest("production-config", () => {
     VAPID_PUBLIC_KEY: "vapid-public-key",
     VAPID_PRIVATE_KEY: "vapid-private-key-32-characters-minimum",
     MOBILE_CLIENT_SECRET: "mobile-client-secret-32-characters-minimum",
+    MFA_ENCRYPTION_KEY: "mfa-encryption-key-32-characters-minimum-val",
   };
 
   assert.deepEqual(validateProductionConfiguration(validProductionEnv), []);
+
+  assert.match(
+    validateProductionConfiguration({
+      ...validProductionEnv,
+      MFA_ENCRYPTION_KEY: "",
+    }).join("\n"),
+    /MFA_ENCRYPTION_KEY is required in production/,
+  );
 
   assert.match(
     validateProductionConfiguration({
