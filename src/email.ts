@@ -131,16 +131,19 @@ function escapeHtml(value: string) {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-export function getVerificationUrl(env: NodeJS.ProcessEnv = process.env) {
+export function getVerificationUrl(env: NodeJS.ProcessEnv = process.env, email?: string, code?: string) {
   const url = env.EMAIL_VERIFICATION_URL || env.APP_URL;
   if (!url || url.includes("ton-projet")) return undefined;
   try {
-    const hostname = new URL(url).hostname;
-    if (["localhost", "127.0.0.1", "::1"].includes(hostname)) return undefined;
+    const urlObj = new URL(url);
+    if (["localhost", "127.0.0.1", "::1"].includes(urlObj.hostname)) return undefined;
+    urlObj.searchParams.set("action", "verify");
+    if (email) urlObj.searchParams.set("email", email);
+    if (code) urlObj.searchParams.set("code", code);
+    return urlObj.toString();
   } catch {
     return undefined;
   }
-  return url;
 }
 
 export function getEmailErrorDetails(err: any) {
@@ -644,7 +647,7 @@ export async function sendVerificationEmail(input: VerificationEmailInput, env: 
     fullName: input.fullName,
     code: input.code,
     expiresInMinutes: input.expiresInMinutes,
-    verifyUrl: getVerificationUrl(env),
+    verifyUrl: getVerificationUrl(env, input.to, input.code),
   });
 
   const delivery = await sendMailWithDiagnostics(

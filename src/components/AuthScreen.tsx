@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { getClientErrorMessage } from "../client-errors";
 import { User, ShieldAlert, Mail, Lock, LogIn, UserPlus, KeyRound } from "lucide-react";
 import { api, setSessionToken } from "../api";
@@ -38,6 +38,28 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
     email: string;
     passkeysAvailable?: boolean;
   } | null>(null);
+
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const actionParam = params.get("action");
+      const emailParam = params.get("email");
+      const codeParam = params.get("code");
+
+      if (actionParam === "verify" || emailParam || codeParam) {
+        if (emailParam) {
+          const cleanEmail = emailParam.trim().toLowerCase();
+          setVerificationEmail(cleanEmail);
+          setEmail(cleanEmail);
+        }
+        if (codeParam) {
+          setVerificationCode(codeParam.replace(/\D/g, "").slice(0, 6));
+        }
+      }
+    } catch {
+      // Ignore URL parsing errors
+    }
+  }, []);
 
   const finishAuthSuccess = (user: AppUser) => {
     setSessionToken(user.token, user.csrfToken);
