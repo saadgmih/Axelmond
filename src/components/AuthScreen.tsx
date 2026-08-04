@@ -12,6 +12,7 @@ import LogoSymbol from "./LogoSymbol";
 import SkipLink from "./SkipLink";
 import { useAccessibilityPreferences } from "../hooks/useAccessibilityPreferences";
 import AccessibilityControls from "./AccessibilityControls";
+import Background3D from "./Background3D";
 
 interface AuthScreenProps {
   onLoginSuccess: (user: AppUser) => void;
@@ -236,15 +237,20 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex flex-col justify-center items-center p-4 py-8 md:py-12 relative overflow-y-auto font-sans">
+    <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center p-4 py-8 md:py-12 relative overflow-hidden font-sans">
       <SkipLink href="#auth-main" />
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none"></div>
 
-      <div className="w-full max-w-xl relative flex flex-col gap-6">
+      {/* 3D Animated Interactive Background */}
+      <Background3D reducedMotion={preferences.reduceMotion} />
+
+      {/* Ambient Lighting Glow Overlays */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
+
+      <div className="w-full max-w-xl relative z-10 flex flex-col gap-6">
         <div className="flex flex-col items-center gap-4 text-center pb-2">
           {/* Logo icône seule - Centré, net et sans cadre blanc */}
-          <LogoSymbol className="w-24 h-24 text-emerald-400 flex-shrink-0 animate-in zoom-in duration-300" />
+          <LogoSymbol className="w-24 h-24 text-emerald-400 flex-shrink-0 animate-in zoom-in duration-300 drop-shadow-[0_0_25px_rgba(52,211,153,0.3)]" />
           <div>
             <h1 className="text-2xl font-black text-white tracking-tight select-none">
               Performance <span className="text-emerald-400">Académique</span>
@@ -256,7 +262,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
         </div>
 
         <div
-          className={`bg-slate-950/80 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-xl ${
+          className={`bg-slate-950/85 border border-slate-800/80 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-2xl shadow-emerald-950/20 ${
             preferences.reduceMotion ? "" : "animate-in fade-in slide-in-from-bottom-4 duration-300"
           }`}
         >
