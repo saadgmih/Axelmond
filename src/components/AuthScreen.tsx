@@ -659,32 +659,25 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                     {authMode === "register" && <PasswordStrengthMeter password={password} isDark={true} />}
                   </div>
 
-                  {authMode === "register" && (
+                  {authMode === "register" && activeSector === "teacher" && (
                     <div className="space-y-1.5 animate-in slide-in-from-top-1 duration-200">
                       <label
-                        htmlFor={activeSector === "student" ? "auth-filiere" : "auth-access-key"}
+                        htmlFor="auth-access-key"
                         className="text-[10px] uppercase font-black tracking-widest text-slate-400 block"
                       >
-                        {activeSector === "student" ? "Filière (Facultatif)" : "Clé d'accès"}
+                        Clé d'accès
                       </label>
                       <input
-                        id={activeSector === "student" ? "auth-filiere" : "auth-access-key"}
-                        name={activeSector === "student" ? "filiere" : "professorInviteCode"}
+                        id="auth-access-key"
+                        name="professorInviteCode"
                         type="text"
-                        autoComplete={activeSector === "student" ? "organization-title" : "off"}
+                        autoComplete="off"
                         aria-invalid={Boolean(errorMsg)}
                         aria-describedby={errorMsg ? "auth-error-msg" : undefined}
-                        required={activeSector === "teacher"}
-                        placeholder={
-                          activeSector === "student"
-                            ? "ex: Informatique, Mathématiques, Physique..."
-                            : "Clé fournie par l'administrateur"
-                        }
-                        value={activeSector === "student" ? filiere : professorInviteCode}
-                        onChange={(e) => {
-                          if (activeSector === "student") setFiliere(e.target.value);
-                          else setProfessorInviteCode(e.target.value);
-                        }}
+                        required
+                        placeholder="Clé fournie par l'administrateur"
+                        value={professorInviteCode}
+                        onChange={(e) => setProfessorInviteCode(e.target.value)}
                         className="w-full bg-slate-900 border border-slate-800 focus:border-slate-700 px-4 py-3 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-700 transition-all"
                       />
                     </div>
