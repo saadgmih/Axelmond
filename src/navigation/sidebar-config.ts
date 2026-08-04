@@ -93,7 +93,7 @@ function studentItems(): SidebarNavItem[] {
     },
     {
       id: "nav-center-payments",
-      label: "Mes paiements",
+      label: "Paiements",
       icon: WalletCards,
       iconClassName: "text-emerald-300",
       prefetch: () => prefetchStudentView("payments"),

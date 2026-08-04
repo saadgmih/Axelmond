@@ -224,7 +224,7 @@ export default function StudentCenterPaymentsView({ invoices = [] }: StudentCent
               Espace Étudiant
             </span>
             <h1 id="payments-dashboard-title" className="mt-3 text-2xl font-black tracking-tight text-white md:text-3xl">
-              Mes paiements & Mes demandes de paiement
+              Paiements & Mes demandes de paiement
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-emerald-200/90">
               Consultez l’historique unifié de vos transactions, vos reçus d’inscriptions en ligne (PayPal) et le suivi
