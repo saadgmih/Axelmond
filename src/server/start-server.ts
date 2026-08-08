@@ -300,6 +300,14 @@ export async function startAxelmondServer() {
       } else {
         console.log(`Performance Académique server running on ${isPipe ? "pipe" : "port"} ${PORT}`);
       }
+      // Always log startup diagnostics to simplify Hostinger production debugging.
+      const listenAddr = isPipe ? String(PORT) : `0.0.0.0:${PORT}`;
+      const appUrlDisplay = process.env.APP_URL?.trim() || "(APP_URL not set)";
+      console.log(
+        `[startup] pid=${process.pid} listen=${listenAddr} NODE_ENV=${process.env.NODE_ENV || "development"}`,
+      );
+      console.log(`[startup] APP_URL=${appUrlDisplay} corsOrigins=${allowedOrigins.size}`);
+      console.log(`[startup] www-redirect=disabled (handle via Hostinger hPanel if needed)`);
       resolve();
     };
 

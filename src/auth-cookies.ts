@@ -18,10 +18,32 @@ function isSecureCookieEnv(): boolean {
   return process.env.NODE_ENV === "production";
 }
 
+/**
+ * Returns the apex domain with a leading dot so cookies are shared across
+ * axelmond.com AND www.axelmond.com (e.g. ".axelmond.com").
+ * Returns undefined outside production so local dev is unaffected.
+ */
+function cookieDomain(): string | undefined {
+  if (process.env.NODE_ENV !== "production") return undefined;
+  const appUrl = process.env.APP_URL?.trim();
+  if (!appUrl) return undefined;
+  try {
+    // Remove any leading "www." so the domain cookie covers the apex + all subdomains.
+    const hostname = new URL(appUrl).hostname.toLowerCase().replace(/^www\./, "");
+    return `.${hostname}`;
+  } catch {
+    return undefined;
+  }
+}
+
 function baseCookieOptions(): CookieOptions {
+  const prod = isSecureCookieEnv();
   return {
-    secure: isSecureCookieEnv(),
-    sameSite: "strict",
+    secure: prod,
+    // Use "lax" in production so cookies are sent during top-level navigations
+    // between axelmond.com and www.axelmond.com ("strict" would block them).
+    sameSite: prod ? "lax" : "strict",
+    domain: cookieDomain(),
   };
 }
 

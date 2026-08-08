@@ -45,13 +45,10 @@ function normalizeOriginUrl(value: string): string {
   return value.trim().replace(/\/+$/, "");
 }
 
-function canonicalSiteHostname(appUrl: string): string | null {
-  try {
-    return new URL(appUrl).hostname.toLowerCase();
-  } catch {
-    return null;
-  }
-}
+// NOTE: www → apex redirect is intentionally handled at the Hostinger hPanel / DNS level,
+// NOT in Node.js. A Node.js 301 redirect through Hostinger's reverse proxy causes a
+// ~120-second timeout (the proxy waits for the TCP connection to close before forwarding
+// the redirect response, then returns HTTP 500). Configure the redirect in hPanel instead.
 
 function addOriginPair(origins: Set<string>, origin: string) {
   const normalized = normalizeOriginUrl(origin);
@@ -136,24 +133,9 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     throw new Error("Production CORS allowlist is empty — set APP_URL and/or ALLOWED_ORIGINS");
   }
   const cspFrameSrc = buildCspFrameSrc();
-  if (isProduction && process.env.APP_URL?.trim()) {
-    const canonicalHost = canonicalSiteHostname(process.env.APP_URL);
-    app.use((req, res, next) => {
-      if (!canonicalHost) {
-        next();
-        return;
-      }
-      const host = String(req.headers.host || "")
-        .split(":")[0]
-        .toLowerCase();
-      if (host === `www.${canonicalHost}`) {
-        const target = `${process.env.APP_URL!.trim().replace(/\/+$/, "")}${req.originalUrl}`;
-        res.redirect(301, target);
-        return;
-      }
-      next();
-    });
-  }
+  // www → apex redirect is intentionally omitted from Node.js.
+  // See the comment near canonicalSiteHostname for the full rationale.
+  // Configure the redirect in Hostinger hPanel (Redirects section) if needed.
 
   app.use(
     helmet({
