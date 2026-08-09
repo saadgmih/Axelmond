@@ -89,7 +89,11 @@ export async function processFreeCourseEnrollment(params: {
     : `free-enroll-${params.userId}-${params.courseId}`;
   const now = new Date();
   const freeAccessWindow = resolveCourseFreeAccessWindow(course);
-  const enrollmentEndDate = promoReservation ? buildEnrollmentEndDate(now) : resolveFreeEnrollmentEndDate(course, now);
+  const enrollmentEndDate = promoReservation?.promo?.endsAt
+    ? new Date(promoReservation.promo.endsAt)
+    : promoReservation
+      ? buildEnrollmentEndDate(now)
+      : resolveFreeEnrollmentEndDate(course, now);
 
   if (!promoReservation) {
     if (!freeAccessWindow) {

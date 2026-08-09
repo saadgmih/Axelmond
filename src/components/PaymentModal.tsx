@@ -14,6 +14,7 @@ import {
   Sparkles,
   Tag,
   X,
+  Zap,
 } from "lucide-react";
 import { Course } from "../types";
 import type { AppUser } from "./AuthScreen";
@@ -44,8 +45,6 @@ type PayPalConfig = {
 
 const PAYPAL_MAD_TO_USD_RATE = 0.1;
 
-const scrollAreaClass = "payment-modal-scroll-area min-h-0 overflow-y-auto overscroll-contain";
-
 export default function PaymentModal({ course, onClose, onSuccess }: PaymentModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const hostedReturnHandledRef = useRef(false);
@@ -60,11 +59,12 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
   const [paypalConfig, setPaypalConfig] = useState<PayPalConfig | null>(null);
   const [configError, setConfigError] = useState("");
   const [orderPreviewAmount, setOrderPreviewAmount] = useState<string | null>(null);
-  const [paymentMode, setPaymentMode] = useState<"PAYPAL" | "CENTER" | "CODE">("PAYPAL");
+
   const [centerConfig, setCenterConfig] = useState<CenterPaymentConfig | null>(null);
   const [centerConfigError, setCenterConfigError] = useState("");
   const [centerRequest, setCenterRequest] = useState<CenterPaymentRequestView | null>(null);
   const [studentNote, setStudentNote] = useState("");
+
   // ── Access Code state ──────────────────────────────────────────────────────
   const [accessCode, setAccessCode] = useState("");
   const [accessCodeError, setAccessCodeError] = useState("");
@@ -78,7 +78,6 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
   const savings = originalPrice - modulePriceAfterPromo;
 
   useEffect(() => {
-    setPaymentMode("PAYPAL");
     setCenterRequest(null);
     setStudentNote("");
     setPromoCode("");
@@ -220,7 +219,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
       const quote = await api.validatePromoCode(course.id, code);
       setAppliedPromo(quote);
       setPromoCode(quote.code);
-      setPromoSuccess("Code validé par le serveur. Il sera revérifié lors du paiement.");
+      setPromoSuccess("Code validé ! Réduction appliquée sur les tarifs.");
     } catch (error: unknown) {
       setAppliedPromo(null);
       setPromoError(getClientErrorMessage(error, "Ce code promotionnel n’est pas valide."));
@@ -235,26 +234,6 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
     setPromoError("");
     setPromoSuccess("");
     void api.removePromoCode(course.id).catch(() => undefined);
-  };
-
-  const handleFreeEnroll = async () => {
-    setStep("loading");
-    setIsProcessing(true);
-    setPaymentError("");
-
-    try {
-      const result = await api.freeEnrollCourse(course.id, appliedPromo?.code);
-      if (!result.user) {
-        throw new Error("Inscription non confirmée par le serveur. Contactez le support.");
-      }
-      await onSuccess(course.id, 0, result.user);
-      setStep("success");
-    } catch (err: unknown) {
-      setPaymentError(getClientErrorMessage(err, "Impossible de finaliser l'inscription gratuite."));
-      setStep("form");
-    } finally {
-      setIsProcessing(false);
-    }
   };
 
   const handleCreatePayPalOrder = async () => {
@@ -351,7 +330,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
   return (
     <div
       ref={dialogRef}
-      className="fixed inset-0 z-[100] flex items-end justify-center bg-slate-950/80 p-0 backdrop-blur-md sm:items-center sm:p-4"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/85 p-3 sm:p-6 backdrop-blur-xl overflow-y-auto"
       onClick={(event) => {
         if (event.target === event.currentTarget && step === "form" && !isProcessing) onClose();
       }}
@@ -359,59 +338,140 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
       aria-modal="true"
       aria-labelledby="payment-modal-title"
     >
-      <div className="w-full max-w-[520px] animate-in fade-in slide-in-from-bottom-4 duration-300 sm:zoom-in-95 sm:slide-in-from-bottom-0">
-        <div className="flex max-h-[min(820px,96dvh)] flex-col overflow-hidden rounded-t-[24px] border border-white/10 bg-[#0b1220] shadow-[0_24px_80px_-12px_rgba(0,0,0,0.65)] sm:rounded-[24px]">
+      <div className="w-full max-w-6xl my-auto animate-in fade-in zoom-in-95 duration-300">
+        <div className="relative flex flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#090d16] shadow-[0_32px_96px_-16px_rgba(0,0,0,0.85)]">
           {step === "form" && (
             <>
-              {/* Header */}
-              <div className="relative shrink-0 border-b border-white/[0.06] px-5 pb-4 pt-5 sm:px-6">
-                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-400/40 to-transparent" />
+              {/* Header section */}
+              <div className="relative shrink-0 border-b border-white/[0.08] px-6 py-6 sm:px-8 bg-gradient-to-r from-slate-900/80 via-slate-900/40 to-slate-900/80">
+                <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-sky-500 via-emerald-400 to-violet-500" />
 
-                <div className="mb-4 flex items-start justify-between gap-3">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-200">
-                    <ShieldCheck className="h-3 w-3" />
-                    Paiement sécurisé
-                  </span>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap mb-2">
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/25 bg-emerald-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-emerald-300">
+                        <ShieldCheck className="h-3.5 w-3.5" />
+                        Abonnement &amp; Activation
+                      </span>
+                      <span className="inline-flex items-center gap-1 rounded-lg bg-black/40 px-2.5 py-1 text-xs font-semibold text-slate-300">
+                        <BookOpen className="h-3.5 w-3.5 text-emerald-400" />
+                        {formatCredits(course.credits)}
+                      </span>
+                      <span className="inline-flex items-center gap-1 rounded-lg bg-black/40 px-2.5 py-1 text-xs font-semibold text-slate-300">
+                        <Clock className="h-3.5 w-3.5 text-emerald-400" />
+                        {course.duration}
+                      </span>
+                    </div>
+
+                    <h2 id="payment-modal-title" className="text-2xl font-black tracking-tight text-white sm:text-3xl">
+                      Choisissez votre mode d&apos;activation
+                    </h2>
+                    <p className="mt-1 text-sm text-slate-400">
+                      Module : <span className="font-semibold text-slate-200">{course.title}</span>
+                    </p>
+                  </div>
+
                   <button
                     id="close-payment-modal"
                     type="button"
                     onClick={onClose}
-                    className="kbd-nav-focus group -mr-1 flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-slate-400 transition-all hover:bg-white/10 hover:text-white"
-                    aria-label="Fermer la fenêtre de paiement (Esc)"
+                    className="kbd-nav-focus group flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-400 transition-all hover:bg-white/15 hover:text-white"
+                    aria-label="Fermer la fenêtre (Esc)"
                   >
                     <X className="h-4 w-4 transition-transform group-hover:scale-110" />
                   </button>
                 </div>
 
-                <h2 id="payment-modal-title" className="text-xl font-bold tracking-tight text-white sm:text-[1.35rem]">
-                  Activer votre abonnement
-                </h2>
-                <p className="mt-1.5 line-clamp-2 text-sm leading-snug text-slate-400">
-                  Module <span className="font-semibold text-slate-200">{course.title}</span>
-                </p>
+                {/* Promo Code Top Strip */}
+                <div className="mt-4 pt-4 border-t border-white/[0.06] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <Tag className="h-4 w-4 text-emerald-400 shrink-0" />
+                    <span className="text-xs font-semibold text-slate-300">
+                      Vous avez un code promo ?
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 min-w-0 sm:w-80">
+                    <input
+                      type="text"
+                      placeholder="Ex: PERFORMANCE20"
+                      value={promoCode}
+                      onChange={(e) => {
+                        setPromoCode(e.target.value);
+                        setAppliedPromo(null);
+                        setPromoSuccess("");
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") void handleApplyPromo();
+                      }}
+                      className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 font-mono text-xs uppercase text-white placeholder:text-slate-600 focus:border-emerald-400/50 focus:outline-none"
+                    />
+                    {appliedPromo ? (
+                      <button
+                        type="button"
+                        onClick={handleRemovePromo}
+                        className="shrink-0 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-bold text-red-300 hover:bg-red-500/20"
+                      >
+                        Retirer
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => void handleApplyPromo()}
+                        disabled={isApplyingPromo || !promoCode.trim()}
+                        className="shrink-0 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
+                      >
+                        {isApplyingPromo ? "..." : "Appliquer"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {promoError && <p className="mt-2 text-xs font-medium text-red-400">{promoError}</p>}
+                {promoSuccess && (
+                  <p className="mt-2 text-xs font-semibold text-emerald-300 flex items-center gap-1">
+                    <Sparkles className="h-3.5 w-3.5" /> {promoSuccess}
+                    {appliedPromo && (
+                      <span className="ml-1 text-slate-400">
+                        (Réduction : -{formatMad(savings)})
+                      </span>
+                    )}
+                  </p>
+                )}
               </div>
 
-              {/* Body */}
-              <div className={`flex-1 px-5 py-4 sm:px-6 ${scrollAreaClass}`}>
-                <div className="space-y-4">
-                  {/* Price card */}
-                  <div className="relative overflow-hidden rounded-2xl border border-emerald-400/15 bg-gradient-to-br from-emerald-500/[0.12] via-slate-900/40 to-teal-500/[0.08] p-4 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
-                    <div className="flex items-end justify-between gap-3">
-                      <div className="min-w-0 space-y-1">
-                        <p className="text-[11px] font-bold uppercase tracking-widest text-emerald-300/80">
-                          Abonnement mensuel
-                        </p>
-                        <p className="text-xs text-slate-400">Résiliable en 1 clic</p>
+              {/* 3 COLUMNS PRICING GRID LAYOUT (OpenAI Pricing Style) */}
+              <div className="p-6 sm:p-8 overflow-y-auto max-h-[calc(90vh-180px)]">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+                  
+                  {/* ───────────────────────────────────────────────────────────
+                      CARD 1: Paiement par Carte / PayPal (Instant en ligne)
+                     ─────────────────────────────────────────────────────────── */}
+                  <div className="relative flex flex-col justify-between rounded-2xl border border-sky-400/30 bg-gradient-to-b from-sky-500/[0.08] via-slate-900/60 to-slate-950/80 p-6 shadow-xl transition-all duration-300 hover:border-sky-400/50">
+                    <div>
+                      {/* Top Badge */}
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="inline-flex items-center gap-1 rounded-full border border-sky-400/30 bg-sky-500/15 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-sky-300">
+                          <Zap className="h-3 w-3 text-sky-400" /> Activation Immédiate
+                        </span>
                       </div>
-                      <div className="shrink-0 text-right">
+
+                      {/* Title & Subtitle */}
+                      <h3 className="text-xl font-bold text-white">Carte / PayPal</h3>
+                      <p className="mt-1 text-xs text-slate-400 leading-relaxed">
+                        Paiement sécurisé en ligne. Votre accès est débloqué automatiquement dès la validation.
+                      </p>
+
+                      {/* Pricing */}
+                      <div className="mt-5 pb-5 border-b border-white/[0.08]">
                         {appliedPromo && (
                           <p className="text-xs font-medium text-slate-500 line-through">{formatMad(originalPrice)}</p>
                         )}
-                        <div className="flex items-baseline justify-end gap-1">
-                          <span className="text-[2rem] font-black leading-none tracking-tight text-white">
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-3xl font-black tracking-tight text-white">
                             {formatMad(finalPrice)}
                           </span>
-                          <span className="text-[10px] font-bold uppercase text-slate-500">/mois</span>
+                          <span className="text-xs font-bold uppercase text-slate-500">/mois</span>
                         </div>
                         {appliedPromo && (
                           <span className="mt-1 inline-flex rounded-md bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
@@ -419,454 +479,334 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                           </span>
                         )}
                       </div>
+
+                      {/* Features Bullet List */}
+                      <ul className="mt-5 space-y-3 text-xs text-slate-300">
+                        <li className="flex items-start gap-2">
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-sky-400 mt-0.5" />
+                          <span>Accès instantané à tous les contenus du module</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-sky-400 mt-0.5" />
+                          <span>Paiement chiffré et sécurisé par PayPal Checkout</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-sky-400 mt-0.5" />
+                          <span>Facture numérique téléchargeable</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-sky-400 mt-0.5" />
+                          <span>Sans engagement &bull; Résiliable en 1 clic</span>
+                        </li>
+                      </ul>
                     </div>
 
-                    <div className="mt-3 flex flex-wrap gap-2 border-t border-white/[0.06] pt-3">
-                      <span className="inline-flex items-center gap-1 rounded-lg bg-black/20 px-2 py-1 text-[10px] font-semibold text-slate-300">
-                        <BookOpen className="h-3 w-3 text-emerald-300" />
-                        {formatCredits(course.credits)}
-                      </span>
-                      <span className="inline-flex items-center gap-1 rounded-lg bg-black/20 px-2 py-1 text-[10px] font-semibold text-slate-300">
-                        <Clock className="h-3 w-3 text-emerald-300" />
-                        {course.duration}
-                      </span>
-                    </div>
-                  </div>
+                    {/* Bottom Action Area */}
+                    <div className="mt-6 pt-4 border-t border-white/[0.06]">
+                      {configError && (
+                        <p className="mb-2 text-xs text-red-400 font-medium">{configError}</p>
+                      )}
 
-                  {/* Promo */}
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="promo-code"
-                      className="text-[10px] font-bold uppercase tracking-widest text-slate-500"
-                    >
-                      Code promo
-                    </label>
-                    <div className="relative">
-                      <Tag className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
-                      <input
-                        id="promo-code"
-                        type="text"
-                        placeholder="PERFORMANCE20"
-                        value={promoCode}
-                        onChange={(e) => {
-                          setPromoCode(e.target.value);
-                          setAppliedPromo(null);
-                          setPromoSuccess("");
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") void handleApplyPromo();
-                        }}
-                        className="w-full rounded-xl border border-white/10 bg-white/[0.04] py-2.5 pl-10 pr-[5.5rem] font-mono text-sm uppercase text-white placeholder:text-slate-600 focus:border-emerald-400/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => void handleApplyPromo()}
-                        disabled={isApplyingPromo || !promoCode.trim()}
-                        className="absolute right-1 top-1 bottom-1 rounded-lg bg-emerald-600 px-3 text-[11px] font-bold text-white transition-colors hover:bg-emerald-500"
-                      >
-                        {isApplyingPromo ? "Vérification…" : "Appliquer"}
-                      </button>
-                    </div>
-                    {promoError && <p className="text-xs font-medium text-red-400">{promoError}</p>}
-                    {promoSuccess && (
-                      <div className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 p-3 text-xs text-emerald-100">
-                        <p className="inline-flex items-center gap-1 font-semibold text-emerald-300">
-                          <Sparkles className="h-3.5 w-3.5" /> {promoSuccess}
-                        </p>
-                        {appliedPromo && (
-                          <dl className="mt-2 grid grid-cols-2 gap-1">
-                            <dt>Code</dt>
-                            <dd className="text-right font-mono font-bold">{appliedPromo.code}</dd>
-                            <dt>Prix initial</dt>
-                            <dd className="text-right">{formatMad(appliedPromo.originalAmount)}</dd>
-                            <dt>Réduction</dt>
-                            <dd className="text-right text-emerald-300">−{formatMad(appliedPromo.discountAmount)}</dd>
-                            <dt>Prix final</dt>
-                            <dd className="text-right font-bold">{formatMad(appliedPromo.finalAmount)}</dd>
-                          </dl>
-                        )}
-                        <button
-                          type="button"
-                          onClick={handleRemovePromo}
-                          className="mt-2 font-bold text-white underline"
-                        >
-                          Retirer le code
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                      {!paypalConfig && !configError && (
+                        <div className="flex items-center justify-center gap-2 py-3">
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-sky-400 border-t-transparent" />
+                          <span className="text-xs text-slate-400">Chargement PayPal…</span>
+                        </div>
+                      )}
 
-                  {/* Paiement ou inscription gratuite */}
-                  <div className="space-y-2.5">
-                    {isFreeCheckout ? (
-                      <>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Accès gratuit</p>
-                        <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/10 p-4">
-                          <p className="text-sm leading-relaxed text-emerald-100/90">
-                            Ce module est gratuit. Confirmez votre inscription pour y accéder immédiatement.
-                          </p>
+                      {paypalConfig && (
+                        <div>
+                          {paypalConfig.currency !== PLATFORM_CURRENCY_CODE && (
+                            <p className="mb-2 text-[10px] text-slate-400">
+                              Conversion : {displayedCheckoutAmount ?? `${finalPrice} MAD`}
+                            </p>
+                          )}
                           <button
                             type="button"
-                            onClick={() => void handleFreeEnroll()}
+                            onClick={() => void handleHostedPayPalCheckout()}
                             disabled={isProcessing}
-                            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-emerald-500 disabled:opacity-60"
+                            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#0070ba] px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-sky-950/30 transition-all hover:bg-[#005ea6] disabled:opacity-60"
                           >
-                            {originalPrice <= 0 ? "S'inscrire gratuitement" : "Activer gratuitement"}
+                            {isProcessing ? (
+                              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                            ) : (
+                              <CreditCard className="h-4 w-4" />
+                            )}
+                            Payer par carte ou PayPal
+                            <ArrowRight className="h-4 w-4 ml-auto" />
                           </button>
                         </div>
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                          Choisir le mode de paiement
-                        </p>
-                        <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Mode de paiement">
-                          <button
-                            type="button"
-                            role="radio"
-                            aria-checked={paymentMode === "PAYPAL"}
-                            onClick={() => setPaymentMode("PAYPAL")}
-                            className={`rounded-xl border p-3 text-left transition ${
-                              paymentMode === "PAYPAL"
-                                ? "border-sky-400/50 bg-sky-500/10"
-                                : "border-white/10 bg-white/[0.03] hover:border-white/20"
-                            }`}
-                          >
-                            <span className="flex items-center gap-2 text-sm font-bold text-white">
-                              <CreditCard className="h-4 w-4 text-sky-300" /> Payer avec PayPal
-                            </span>
-                            <span className="mt-1 block text-[10px] leading-relaxed text-slate-400">
-                              Paiement en ligne et activation automatique.
-                            </span>
-                          </button>
-                          <button
-                            type="button"
-                            role="radio"
-                            aria-checked={paymentMode === "CENTER"}
-                            onClick={() => setPaymentMode("CENTER")}
-                            className={`rounded-xl border p-3 text-left transition ${
-                              paymentMode === "CENTER"
-                                ? "border-emerald-400/50 bg-emerald-500/10"
-                                : "border-white/10 bg-white/[0.03] hover:border-white/20"
-                            }`}
-                          >
-                            <span className="flex items-center gap-2 text-sm font-bold text-white">
-                              <Building2 className="h-4 w-4 text-emerald-300" /> Payer au centre
-                            </span>
-                            <span className="mt-1 block text-[10px] leading-relaxed text-slate-400">
-                              Réservez en ligne, payez au centre, accès après validation.
-                            </span>
-                          </button>
-                          <button
-                            type="button"
-                            role="radio"
-                            aria-checked={paymentMode === "CODE"}
-                            onClick={() => setPaymentMode("CODE")}
-                            className={`rounded-xl border p-3 text-left transition ${
-                              paymentMode === "CODE"
-                                ? "border-violet-400/50 bg-violet-500/10"
-                                : "border-white/10 bg-white/[0.03] hover:border-white/20"
-                            }`}
-                          >
-                            <span className="flex items-center gap-2 text-sm font-bold text-white">
-                              <KeyRound className="h-4 w-4 text-violet-300" /> Code d'accès
-                            </span>
-                            <span className="mt-1 block text-[10px] leading-relaxed text-slate-400">
-                              Code fourni par l'administration.
-                            </span>
-                          </button>
-                        </div>
-
-                        {paymentMode === "PAYPAL" && (
-                          <>
-                            {configError && (
-                              <p className="rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2.5 text-xs font-medium text-red-300">
-                                {configError}
-                              </p>
-                            )}
-
-                            {!paypalConfig && !configError && (
-                              <div className="flex items-center justify-center gap-2.5 rounded-2xl border border-white/[0.06] bg-white/[0.02] py-7">
-                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-400/80 border-t-transparent" />
-                                <span className="text-xs font-medium text-slate-400">Initialisation PayPal…</span>
-                              </div>
-                            )}
-
-                            {paypalConfig && (
-                              <div className="axelmond-paypal-shell relative w-full min-w-0 overflow-visible rounded-2xl border border-emerald-400/15 bg-gradient-to-br from-emerald-500/[0.1] via-slate-900/50 to-teal-500/[0.08] p-3 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
-                                {paypalConfig.currency !== PLATFORM_CURRENCY_CODE && (
-                                  <div className="mb-3 flex items-start gap-2.5 rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-3 py-2.5">
-                                    <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-300" />
-                                    <p className="text-[11px] leading-relaxed text-emerald-100/90">
-                                      Tarif affiché en{" "}
-                                      <span className="font-semibold text-white">{PLATFORM_CURRENCY_CODE}</span>.
-                                      Encaissement sécurisé en{" "}
-                                      <span className="font-semibold text-emerald-200">{paypalConfig.currency}</span>
-                                      {displayedCheckoutAmount ? ` (~${displayedCheckoutAmount})` : ""}.
-                                    </p>
-                                  </div>
-                                )}
-
-                                <button
-                                  type="button"
-                                  data-testid="paypal-hosted-card-checkout"
-                                  onClick={() => void handleHostedPayPalCheckout()}
-                                  disabled={isProcessing}
-                                  className="flex w-full items-center justify-center gap-3 rounded-xl bg-[#0070ba] px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-sky-950/20 transition-colors hover:bg-[#005ea6] disabled:cursor-wait disabled:opacity-60"
-                                >
-                                  {isProcessing ? (
-                                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                                  ) : (
-                                    <CreditCard className="h-5 w-5 shrink-0" />
-                                  )}
-                                  <span className="text-left">
-                                    <span className="block">Payer par carte bancaire ou PayPal</span>
-                                    <span className="block text-[10px] font-medium text-white/75">
-                                      Ouverture du formulaire sécurisé PayPal
-                                    </span>
-                                  </span>
-                                  <ArrowRight className="h-4 w-4 shrink-0" />
-                                </button>
-
-                                <p className="mt-3 flex items-center justify-center gap-1.5 text-[10px] font-medium text-slate-500">
-                                  <CreditCard className="h-3 w-3 text-emerald-400/80" />
-                                  Carte ou compte PayPal — traitement chiffré sur PayPal
-                                </p>
-                              </div>
-                            )}
-                          </>
-                        )}
-
-                        {paymentMode === "CENTER" && (
-                          <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/[0.07] p-4">
-                            {centerConfigError ? (
-                              <p className="text-sm font-medium text-red-300">{centerConfigError}</p>
-                            ) : !centerConfig ? (
-                              <p className="text-sm text-slate-400" role="status">
-                                Chargement des informations du centre…
-                              </p>
-                            ) : centerRequest ? (
-                              <div className="text-center">
-                                <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-300" />
-                                <h3 className="mt-3 text-lg font-black text-white">Demande créée</h3>
-                                <p className="mt-2 text-xs text-slate-400">Présentez cette référence au centre :</p>
-                                <p className="mt-2 rounded-xl bg-slate-950/60 px-4 py-3 font-mono text-xl font-black tracking-wider text-emerald-200">
-                                  {centerRequest.reference}
-                                </p>
-                                <p className="mt-3 text-xs leading-relaxed text-amber-100/80">
-                                  Le module reste verrouillé jusqu’à la validation réelle du paiement par
-                                  l’administration.
-                                </p>
-                                <p className="mt-2 text-xs text-slate-400">
-                                  À payer avant le {new Date(centerRequest.expiresAt).toLocaleString("fr-MA")}.
-                                </p>
-                              </div>
-                            ) : (
-                              <div className="space-y-3">
-                                <div className="space-y-2 text-xs text-slate-300">
-                                  <p className="font-bold text-white">{course.title}</p>
-                                  <p className="line-clamp-2 text-slate-400">{course.description}</p>
-                                  <div className="grid gap-2 sm:grid-cols-2">
-                                    <span className="rounded-lg bg-black/20 p-2 font-bold text-emerald-200">
-                                      {formatMad(finalPrice)} · {centerConfig.currency}
-                                    </span>
-                                    <span className="flex items-center gap-1 rounded-lg bg-black/20 p-2">
-                                      <CalendarDays className="h-3.5 w-3.5 text-emerald-300" />
-                                      {centerConfig.accessDurationDays} jours après validation
-                                    </span>
-                                  </div>
-                                  <p>
-                                    <strong className="text-white">Adresse :</strong> {centerConfig.address}
-                                  </p>
-                                  <p>
-                                    <strong className="text-white">Horaires :</strong> {centerConfig.openingHours}
-                                  </p>
-                                  <p>
-                                    <strong className="text-white">Délai :</strong> {centerConfig.expirationDays} jours
-                                  </p>
-                                </div>
-                                <label className="block text-xs font-bold text-slate-300">
-                                  Note facultative
-                                  <textarea
-                                    value={studentNote}
-                                    onChange={(event) => setStudentNote(event.target.value)}
-                                    maxLength={500}
-                                    rows={2}
-                                    className="mt-1.5 w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-sm font-normal text-white outline-none focus:border-emerald-400/50"
-                                  />
-                                </label>
-                                <p className="rounded-xl border border-amber-400/20 bg-amber-500/10 p-3 text-xs leading-relaxed text-amber-100">
-                                  Cette demande n’active pas immédiatement le module. L’accès commence uniquement à la
-                                  date de validation du paiement.
-                                </p>
-                                <button
-                                  type="button"
-                                  onClick={() => void handleCenterPaymentRequest()}
-                                  disabled={isProcessing}
-                                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white hover:bg-emerald-500 disabled:opacity-60"
-                                >
-                                  {isProcessing ? "Création de la demande…" : "Confirmer ma demande"}
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {paymentMode === "CODE" && (
-                          <div className="rounded-2xl border border-violet-400/20 bg-violet-500/[0.07] p-4">
-                            {accessCodeValidated ? (
-                              <div className="space-y-3 text-center">
-                                <div className="flex h-12 w-12 mx-auto items-center justify-center rounded-full bg-violet-500/15 ring-1 ring-violet-400/30">
-                                  <KeyRound className="h-6 w-6 text-violet-300" />
-                                </div>
-                                <p className="text-sm font-bold text-white">Code validé ✓</p>
-                                <p className="rounded-xl bg-slate-950/60 px-4 py-2 font-mono text-base font-black tracking-widest text-violet-200">
-                                  {accessCode}
-                                </p>
-                                <p className="text-xs text-slate-400">
-                                  Ce code vous donne accès gratuit au module pendant 30 jours.
-                                </p>
-                                <button
-                                  id="activate-with-code-btn"
-                                  type="button"
-                                  onClick={() => void handleActivateWithCode()}
-                                  disabled={isProcessing}
-                                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-violet-500 disabled:opacity-60"
-                                >
-                                  {isProcessing ? (
-                                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                                  ) : (
-                                    <KeyRound className="h-4 w-4" />
-                                  )}
-                                  {isProcessing ? "Activation en cours…" : "Activer mon accès"}
-                                  {!isProcessing && <ArrowRight className="h-4 w-4" />}
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => { setAccessCode(""); setAccessCodeValidated(false); setAccessCodeError(""); }}
-                                  className="text-xs text-slate-500 underline hover:text-slate-300"
-                                >
-                                  Changer de code
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="space-y-3">
-                                <p className="text-xs leading-relaxed text-slate-300">
-                                  Saisissez le code d'accès fourni par votre administration pour activer
-                                  immédiatement ce module pendant <strong className="text-white">30 jours</strong>.
-                                </p>
-                                <div className="relative">
-                                  <KeyRound className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-violet-400/70" />
-                                  <input
-                                    id="access-code-input"
-                                    type="text"
-                                    placeholder="EX: ACCES-ABCD-1234"
-                                    value={accessCode}
-                                    autoComplete="off"
-                                    onChange={(e) => {
-                                      setAccessCode(e.target.value.toUpperCase());
-                                      setAccessCodeError("");
-                                      setAccessCodeValidated(false);
-                                    }}
-                                    onKeyDown={(e) => { if (e.key === "Enter") void handleValidateAccessCode(); }}
-                                    className="w-full rounded-xl border border-white/10 bg-white/[0.04] py-2.5 pl-10 pr-[5.5rem] font-mono text-sm uppercase text-white placeholder:text-slate-600 focus:border-violet-400/40 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => void handleValidateAccessCode()}
-                                    disabled={isValidatingCode || !accessCode.trim()}
-                                    className="absolute right-1 top-1 bottom-1 rounded-lg bg-violet-600 px-3 text-[11px] font-bold text-white transition-colors hover:bg-violet-500 disabled:opacity-50"
-                                  >
-                                    {isValidatingCode ? "Vérification…" : "Valider"}
-                                  </button>
-                                </div>
-                                {accessCodeError && (
-                                  <p className="text-xs font-medium text-red-400">{accessCodeError}</p>
-                                )}
-                                <p className="rounded-xl border border-violet-400/15 bg-violet-500/5 p-3 text-[10px] leading-relaxed text-violet-100/70">
-                                  Le code d'accès est à usage unique. Obtenez-le auprès de votre centre de formation.
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </>
-                    )}
-
-                    {paymentError && (
-                      <p className="rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2.5 text-xs font-medium text-red-300">
-                        {paymentError}
-                      </p>
-                    )}
+                      )}
+                    </div>
                   </div>
+
+
+                  {/* ───────────────────────────────────────────────────────────
+                      CARD 2: Paiement au Centre de Formation (Physique)
+                     ─────────────────────────────────────────────────────────── */}
+                  <div className="relative flex flex-col justify-between rounded-2xl border border-emerald-400/30 bg-gradient-to-b from-emerald-500/[0.08] via-slate-900/60 to-slate-950/80 p-6 shadow-xl transition-all duration-300 hover:border-emerald-400/50">
+                    <div>
+                      {/* Top Badge */}
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-500/15 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-300">
+                          <Building2 className="h-3 w-3 text-emerald-400" /> Règlement sur Place
+                        </span>
+                      </div>
+
+                      {/* Title & Subtitle */}
+                      <h3 className="text-xl font-bold text-white">Paiement au Centre</h3>
+                      <p className="mt-1 text-xs text-slate-400 leading-relaxed">
+                        Réservez en ligne, payez sur place au centre de formation. Accès validé à la réception.
+                      </p>
+
+                      {/* Pricing */}
+                      <div className="mt-5 pb-5 border-b border-white/[0.08]">
+                        {appliedPromo && (
+                          <p className="text-xs font-medium text-slate-500 line-through">{formatMad(originalPrice)}</p>
+                        )}
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-3xl font-black tracking-tight text-white">
+                            {formatMad(finalPrice)}
+                          </span>
+                          <span className="text-xs font-bold uppercase text-slate-500">/mois</span>
+                        </div>
+                        {appliedPromo && (
+                          <span className="mt-1 inline-flex rounded-md bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+                            Économie {formatMad(savings)}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Features Bullet List */}
+                      <ul className="mt-5 space-y-3 text-xs text-slate-300">
+                        <li className="flex items-start gap-2">
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400 mt-0.5" />
+                          <span>Réservation en ligne instantanée sans frais</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400 mt-0.5" />
+                          <span>Règlement par Espèces, Carte ou Virement</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400 mt-0.5" />
+                          <span>Référence de paiement unique générée</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400 mt-0.5" />
+                          <span>Accès activé dès validation par l&apos;administration</span>
+                        </li>
+                      </ul>
+                    </div>
+
+                    {/* Bottom Action Area */}
+                    <div className="mt-6 pt-4 border-t border-white/[0.06]">
+                      {centerConfigError ? (
+                        <p className="text-xs text-red-400">{centerConfigError}</p>
+                      ) : centerRequest ? (
+                        <div className="text-center space-y-2">
+                          <span className="text-xs text-emerald-300 font-bold">✓ Demande créée</span>
+                          <div className="rounded-xl bg-black/60 p-2 font-mono text-base font-black text-emerald-200">
+                            {centerRequest.reference}
+                          </div>
+                          <p className="text-[10px] text-slate-400">Présentez ce code au centre</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <input
+                            type="text"
+                            placeholder="Note ou remarque (Optionnel)"
+                            value={studentNote}
+                            onChange={(e) => setStudentNote(e.target.value)}
+                            maxLength={300}
+                            className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-xs text-white placeholder:text-slate-600 outline-none focus:border-emerald-400/50"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => void handleCenterPaymentRequest()}
+                            disabled={isProcessing}
+                            className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3.5 text-sm font-bold text-white transition-all hover:bg-emerald-500 disabled:opacity-60"
+                          >
+                            {isProcessing ? (
+                              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                            ) : (
+                              <Building2 className="h-4 w-4" />
+                            )}
+                            Confirmer ma demande au centre
+                            <ArrowRight className="h-4 w-4 ml-auto" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+
+                  {/* ───────────────────────────────────────────────────────────
+                      CARD 3: Code d'Accès Administrateur (Code fourni par le centre)
+                     ─────────────────────────────────────────────────────────── */}
+                  <div className="relative flex flex-col justify-between rounded-2xl border border-violet-400/30 bg-gradient-to-b from-violet-500/[0.08] via-slate-900/60 to-slate-950/80 p-6 shadow-xl transition-all duration-300 hover:border-violet-400/50">
+                    <div>
+                      {/* Top Badge */}
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="inline-flex items-center gap-1 rounded-full border border-violet-400/30 bg-violet-500/15 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-violet-300">
+                          <KeyRound className="h-3 w-3 text-violet-400" /> Code d&apos;Accès
+                        </span>
+                      </div>
+
+                      {/* Title & Subtitle */}
+                      <h3 className="text-xl font-bold text-white">Code Administrateur</h3>
+                      <p className="mt-1 text-xs text-slate-400 leading-relaxed">
+                        Code d&apos;accès fourni par l&apos;administration. Débloque le module sur sa période attribuée.
+                      </p>
+
+                      {/* Pricing */}
+                      <div className="mt-5 pb-5 border-b border-white/[0.08]">
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-3xl font-black tracking-tight text-violet-200">
+                            Accès Offert
+                          </span>
+                        </div>
+                        <span className="mt-1 inline-flex rounded-md bg-violet-500/15 px-2 py-0.5 text-[10px] font-bold text-violet-300">
+                          Sans frais en ligne
+                        </span>
+                      </div>
+
+                      {/* Features Bullet List */}
+                      <ul className="mt-5 space-y-3 text-xs text-slate-300">
+                        <li className="flex items-start gap-2">
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-violet-400 mt-0.5" />
+                          <span>Code à usage unique attribué par le centre</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-violet-400 mt-0.5" />
+                          <span>Dates de début et de fin fixées par l&apos;administration</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-violet-400 mt-0.5" />
+                          <span>Activation instantanée dès la saisie</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-violet-400 mt-0.5" />
+                          <span>Accès complet pendant toute la période définie</span>
+                        </li>
+                      </ul>
+                    </div>
+
+                    {/* Bottom Action Area */}
+                    <div className="mt-6 pt-4 border-t border-white/[0.06]">
+                      {accessCodeValidated ? (
+                        <div className="space-y-3 text-center">
+                          <div className="flex items-center justify-center gap-1.5 text-xs text-violet-300 font-bold">
+                            <CheckCircle2 className="h-4 w-4" /> Code validé ✓
+                          </div>
+                          <div className="rounded-xl bg-black/60 p-2 font-mono text-sm font-black text-violet-200 tracking-wider">
+                            {accessCode}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => void handleActivateWithCode()}
+                            disabled={isProcessing}
+                            className="flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-3.5 text-sm font-bold text-white transition-all hover:bg-violet-500 disabled:opacity-60"
+                          >
+                            {isProcessing ? (
+                              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                            ) : (
+                              <KeyRound className="h-4 w-4" />
+                            )}
+                            Activer mon accès
+                            <ArrowRight className="h-4 w-4 ml-auto" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <div className="relative">
+                            <KeyRound className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-violet-400" />
+                            <input
+                              type="text"
+                              placeholder="EX: ACCES-ABCD-1234"
+                              value={accessCode}
+                              onChange={(e) => {
+                                setAccessCode(e.target.value.toUpperCase());
+                                setAccessCodeError("");
+                                setAccessCodeValidated(false);
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") void handleValidateAccessCode();
+                              }}
+                              className="w-full rounded-xl border border-white/10 bg-black/40 pl-9 pr-20 py-2.5 font-mono text-xs uppercase text-white placeholder:text-slate-600 outline-none focus:border-violet-400/50"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => void handleValidateAccessCode()}
+                              disabled={isValidatingCode || !accessCode.trim()}
+                              className="absolute right-1 top-1 bottom-1 rounded-lg bg-violet-600 px-3 text-[11px] font-bold text-white transition-colors hover:bg-violet-500 disabled:opacity-50"
+                            >
+                              {isValidatingCode ? "..." : "Valider"}
+                            </button>
+                          </div>
+
+                          {accessCodeError && (
+                            <p className="text-xs font-medium text-red-400">{accessCodeError}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                 </div>
               </div>
 
-              {/* Footer */}
-              <div className="shrink-0 space-y-3 border-t border-white/[0.06] px-5 py-4 sm:px-6">
+              {/* General Payment Error display */}
+              {paymentError && (
+                <div className="mx-6 mb-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-300">
+                  {paymentError}
+                </div>
+              )}
+
+              {/* Footer strip */}
+              <div className="shrink-0 border-t border-white/[0.08] px-6 py-4 bg-black/40 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+                <p className="flex items-center gap-1.5">
+                  <Lock className="h-3.5 w-3.5 text-emerald-400" />
+                  Transaction &amp; activation sécurisées sur la plateforme Performance Académique.
+                </p>
                 <button
                   type="button"
                   onClick={onClose}
-                  className="w-full py-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-300"
+                  className="text-slate-400 hover:text-white font-medium"
                 >
-                  Annuler
+                  Fermer
                 </button>
-                <p className="flex items-center justify-center gap-1.5 text-[10px] text-slate-600">
-                  <Lock className="h-3 w-3" />
-                  {isFreeCheckout
-                    ? "Inscription sécurisée sur la plateforme"
-                    : paymentMode === "CENTER"
-                      ? "Activation uniquement après validation par l'administration"
-                      : paymentMode === "CODE"
-                        ? "Accès activé instantanément après validation du code"
-                        : "Paiement chiffré via PayPal Checkout"}
-                </p>
               </div>
             </>
           )}
 
           {step === "loading" && (
-            <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
-              <div className="relative h-14 w-14">
+            <div className="flex flex-col items-center justify-center px-6 py-20 text-center">
+              <div className="relative h-16 w-16">
                 <div className="absolute inset-0 rounded-full border-2 border-white/10" />
                 <div className="absolute inset-0 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent" />
               </div>
-              <h3 className="mt-5 text-lg font-bold text-white">Validation en cours</h3>
-              <p className="mt-1.5 max-w-[260px] text-sm text-slate-400">
-                {isFreeCheckout
-                  ? "Activation de votre accès gratuit. Ne fermez pas cette fenêtre."
-                  : "Capture sécurisée de votre paiement. Ne fermez pas cette fenêtre."}
+              <h3 className="mt-6 text-xl font-bold text-white">Validation de votre accès</h3>
+              <p className="mt-2 max-w-sm text-sm text-slate-400">
+                Activation sécurisée de votre module. Veuillez patienter sans fermer la page.
               </p>
             </div>
           )}
 
           {step === "success" && (
-            <div className="flex flex-col items-center px-6 py-12 text-center animate-in zoom-in-95 duration-300">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-400/25">
-                <CheckCircle2 className="h-8 w-8" />
+            <div className="flex flex-col items-center px-6 py-16 text-center animate-in zoom-in-95 duration-300">
+              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-400/30">
+                <CheckCircle2 className="h-10 w-10" />
               </div>
-              <h3 className="mt-5 text-xl font-bold text-white">
-                {isFreeCheckout ? "Inscription confirmée" : "Paiement confirmé"}
-              </h3>
-              <p className="mt-2 max-w-xs text-sm leading-relaxed text-slate-400">
-                {isFreeCheckout ? (
-                  <>
-                    Votre accès gratuit au module <span className="font-semibold text-slate-200">{course.title}</span>{" "}
-                    est maintenant actif.
-                  </>
-                ) : (
-                  <>
-                    Votre accès au module <span className="font-semibold text-slate-200">{course.title}</span> est
-                    maintenant actif.
-                  </>
-                )}
+              <h3 className="mt-6 text-2xl font-bold text-white">Félicitations ! Accès Activé</h3>
+              <p className="mt-2 max-w-md text-sm leading-relaxed text-slate-300">
+                Votre accès au module <span className="font-semibold text-emerald-300">{course.title}</span> est maintenant débloqué. Vous pouvez démarrer vos cours immédiatement.
               </p>
               <button
                 type="button"
                 onClick={onClose}
-                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 transition-all hover:bg-emerald-500"
+                className="mt-8 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-600/25 transition-all hover:bg-emerald-500"
               >
-                Accéder au module
+                Accéder à mes cours
                 <ArrowRight className="h-4 w-4" />
               </button>
             </div>

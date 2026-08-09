@@ -1,4 +1,4 @@
-﻿import type { Express, Request, Response } from "express";
+import type { Express, Request, Response } from "express";
 import type { RouteContext } from "../server/route-context";
 import { getAuthUser } from "../server/route-types";
 import {
@@ -31,7 +31,9 @@ export function registerEnrollmentCodeRoutes(app: Express, ctx: RouteContext): v
       if (!courseId) return void res.status(400).json({ error: "Identifiant de module invalide" });
 
       const result = await generateEnrollmentAccessCode(admin.id, courseId, {
-        expiresInDays: Number(req.body?.expiresInDays) || 30,
+        startsAt: req.body?.startsAt ? new Date(String(req.body.startsAt)) : undefined,
+        endsAt: req.body?.endsAt ? new Date(String(req.body.endsAt)) : undefined,
+        expiresInDays: Number(req.body?.expiresInDays) || undefined,
         maxUses: Number(req.body?.maxUses) || 1,
         label: req.body?.label ? String(req.body.label).slice(0, 100) : undefined,
       });

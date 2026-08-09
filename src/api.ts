@@ -646,7 +646,7 @@ export const api = {
   /** Admin: generate a single-use 100% access code for a specific module. */
   generateAccessCode: (
     courseId: number,
-    options: { expiresInDays?: number; maxUses?: number; label?: string } = {},
+    options: { startsAt?: string; endsAt?: string; expiresInDays?: number; maxUses?: number; label?: string } = {},
   ) =>
     request<{
       code: string;

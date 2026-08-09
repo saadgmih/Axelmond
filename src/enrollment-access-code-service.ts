@@ -34,9 +34,28 @@ export interface GeneratedAccessCode {
 export async function generateEnrollmentAccessCode(
   adminId: string,
   courseId: number,
-  options: { expiresInDays?: number; maxUses?: number; label?: string } = {},
+  options: {
+    startsAt?: Date | string;
+    endsAt?: Date | string;
+    expiresInDays?: number;
+    maxUses?: number;
+    label?: string;
+  } = {},
 ): Promise<GeneratedAccessCode> {
-  const { expiresInDays = 30, maxUses = 1, label } = options;
+  const { maxUses = 1, label } = options;
+
+  const now = new Date();
+  const startsAtDate = options.startsAt
+    ? (options.startsAt instanceof Date ? options.startsAt : new Date(options.startsAt))
+    : now;
+
+  let endsAtDate: Date;
+  if (options.endsAt) {
+    endsAtDate = options.endsAt instanceof Date ? options.endsAt : new Date(options.endsAt);
+  } else {
+    const days = options.expiresInDays && options.expiresInDays > 0 ? options.expiresInDays : 30;
+    endsAtDate = new Date(startsAtDate.getTime() + days * 24 * 60 * 60 * 1000);
+  }
 
   const course = await prisma.course.findUnique({
     where: { id: courseId },
@@ -50,12 +69,10 @@ export async function generateEnrollmentAccessCode(
   }
 
   const code = await generateUniquePromoCode();
-  const now = new Date();
-  const expiresAt = new Date(now.getTime() + expiresInDays * 24 * 60 * 60 * 1000);
 
   const internalName = label
     ? "[Code acces] " + label
-    : "[Code acces] " + course.title + " - " + now.toISOString().slice(0, 10);
+    : "[Code acces] " + course.title + " - " + startsAtDate.toISOString().slice(0, 10);
 
   const publicDescription = "Code d'acces au module " + course.title;
 
@@ -69,8 +86,8 @@ export async function generateEnrollmentAccessCode(
         discountType: "PERCENTAGE",
         discountValue: 100,
         currency: "MAD",
-        startsAt: now,
-        endsAt: expiresAt,
+        startsAt: startsAtDate,
+        endsAt: endsAtDate,
         administrativeStatus: "ACTIVE",
         appliesToAllModules: false,
         eligibilityScope: "ALL_STUDENTS",
@@ -91,7 +108,7 @@ export async function generateEnrollmentAccessCode(
     promoCodeId: promoCode.id,
     courseId,
     courseTitle: course.title,
-    expiresAt,
+    expiresAt: endsAtDate,
     maxUses,
   };
 }

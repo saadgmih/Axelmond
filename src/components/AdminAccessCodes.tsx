@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "../api";
 import { getClientErrorMessage } from "../client-errors";
-import { CheckCircle2, Copy, KeyRound, Loader2, RefreshCw } from "lucide-react";
+import { Calendar, CheckCircle2, Copy, KeyRound, Loader2, RefreshCw } from "lucide-react";
 
 interface AccessCode {
   id: string;
@@ -44,8 +44,14 @@ export function AdminAccessCodes({ courseId, courseTitle }: AdminAccessCodesProp
   const [error, setError] = useState("");
   const [lastGenerated, setLastGenerated] = useState<string | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
-  const [expiresInDays, setExpiresInDays] = useState(30);
+  
+  const todayDate = new Date().toISOString().slice(0, 10);
+  const in30DaysDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+  const [startsAt, setStartsAt] = useState(todayDate);
+  const [endsAt, setEndsAt] = useState(in30DaysDate);
   const [maxUses, setMaxUses] = useState(1);
+  const [label, setLabel] = useState("");
 
   const load = async () => {
     setLoading(true);
@@ -65,12 +71,23 @@ export function AdminAccessCodes({ courseId, courseTitle }: AdminAccessCodesProp
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId]);
 
+  const applyPreset = (days: number) => {
+    const start = startsAt ? new Date(startsAt) : new Date();
+    const end = new Date(start.getTime() + days * 24 * 60 * 60 * 1000);
+    setEndsAt(end.toISOString().slice(0, 10));
+  };
+
   const handleGenerate = async () => {
     setGenerating(true);
     setError("");
     setLastGenerated(null);
     try {
-      const result = await api.generateAccessCode(courseId, { expiresInDays, maxUses });
+      const result = await api.generateAccessCode(courseId, {
+        startsAt: startsAt ? new Date(`${startsAt}T00:00:00`).toISOString() : undefined,
+        endsAt: endsAt ? new Date(`${endsAt}T23:59:59`).toISOString() : undefined,
+        maxUses,
+        label: label.trim() || undefined,
+      });
       setLastGenerated(result.code);
       await load();
     } catch (err) {
@@ -112,32 +129,85 @@ export function AdminAccessCodes({ courseId, courseTitle }: AdminAccessCodesProp
       {/* Generate section */}
       <div className="rounded-xl border border-violet-400/20 bg-violet-500/[0.06] p-4 space-y-3">
         <p className="text-xs font-bold uppercase tracking-widest text-violet-300">
-          Générer un nouveau code
+          Générer un code avec dates de début et fin d&apos;accès
         </p>
-        <div className="grid grid-cols-2 gap-3">
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <label className="block text-xs text-slate-400">
-            Validité (jours)
+            <span className="flex items-center gap-1 font-semibold text-slate-300 mb-1">
+              <Calendar className="h-3.5 w-3.5 text-violet-300" /> Date de début d&apos;accès
+            </span>
             <input
-              type="number"
-              min={1}
-              max={365}
-              value={expiresInDays}
-              onChange={(e) => setExpiresInDays(Math.max(1, Number(e.target.value)))}
-              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/60 px-3 py-1.5 text-sm text-white outline-none focus:border-violet-400/50"
+              type="date"
+              value={startsAt}
+              onChange={(e) => setStartsAt(e.target.value)}
+              className="w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white outline-none focus:border-violet-400/50"
             />
           </label>
+
+          <label className="block text-xs text-slate-400">
+            <span className="flex items-center gap-1 font-semibold text-slate-300 mb-1">
+              <Calendar className="h-3.5 w-3.5 text-violet-300" /> Date de fin d&apos;accès
+            </span>
+            <input
+              type="date"
+              value={endsAt}
+              onChange={(e) => setEndsAt(e.target.value)}
+              className="w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white outline-none focus:border-violet-400/50"
+            />
+          </label>
+        </div>
+
+        {/* Quick Presets */}
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          <span className="text-[10px] uppercase font-bold text-slate-500">Raccourcis :</span>
+          <button
+            type="button"
+            onClick={() => applyPreset(30)}
+            className="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-[11px] font-medium text-slate-300 hover:bg-white/10"
+          >
+            +30 jours
+          </button>
+          <button
+            type="button"
+            onClick={() => applyPreset(60)}
+            className="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-[11px] font-medium text-slate-300 hover:bg-white/10"
+          >
+            +60 jours
+          </button>
+          <button
+            type="button"
+            onClick={() => applyPreset(90)}
+            className="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-[11px] font-medium text-slate-300 hover:bg-white/10"
+          >
+            +90 jours (3 mois)
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
           <label className="block text-xs text-slate-400">
             Utilisations max
             <input
               type="number"
               min={1}
-              max={50}
+              max={500}
               value={maxUses}
               onChange={(e) => setMaxUses(Math.max(1, Number(e.target.value)))}
               className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/60 px-3 py-1.5 text-sm text-white outline-none focus:border-violet-400/50"
             />
           </label>
+          <label className="block text-xs text-slate-400">
+            Note / Libellé (Optionnel)
+            <input
+              type="text"
+              placeholder="Ex: Étudiant Groupe A"
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/60 px-3 py-1.5 text-sm text-white outline-none focus:border-violet-400/50"
+            />
+          </label>
         </div>
+
         <button
           type="button"
           onClick={() => void handleGenerate()}
@@ -149,15 +219,18 @@ export function AdminAccessCodes({ courseId, courseTitle }: AdminAccessCodesProp
           ) : (
             <KeyRound className="h-4 w-4" />
           )}
-          {generating ? "Génération en cours…" : "Générer un code d'accès"}
+          {generating ? "Génération en cours…" : "Générer le code d'accès"}
         </button>
 
         {lastGenerated && (
           <div className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 p-3 flex items-center justify-between gap-3">
             <div>
-              <p className="text-[10px] text-emerald-300 font-bold uppercase">Code généré</p>
+              <p className="text-[10px] text-emerald-300 font-bold uppercase">Code généré avec succès</p>
               <p className="font-mono text-lg font-black tracking-widest text-emerald-200">
                 {lastGenerated}
+              </p>
+              <p className="text-[10px] text-emerald-300/80 mt-0.5">
+                Période d&apos;accès : {startsAt} ➔ {endsAt}
               </p>
             </div>
             <button
@@ -216,8 +289,8 @@ export function AdminAccessCodes({ courseId, courseTitle }: AdminAccessCodesProp
                         </span>
                       )}
                     </div>
-                    <p className="mt-0.5 text-[10px] text-slate-500">
-                      Expire le {new Date(c.endsAt).toLocaleDateString("fr-MA")}
+                    <p className="mt-0.5 text-[10px] text-slate-400">
+                      Période : {new Date(c.startsAt).toLocaleDateString("fr-MA")} ➔ {new Date(c.endsAt).toLocaleDateString("fr-MA")}
                       {" · "}
                       {used}/{maxTotal} utilisation{maxTotal > 1 ? "s" : ""}
                     </p>
