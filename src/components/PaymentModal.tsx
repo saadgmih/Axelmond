@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Clock,
   CreditCard,
+  KeyRound,
   Lock,
   ShieldCheck,
   Sparkles,
@@ -59,11 +60,16 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
   const [paypalConfig, setPaypalConfig] = useState<PayPalConfig | null>(null);
   const [configError, setConfigError] = useState("");
   const [orderPreviewAmount, setOrderPreviewAmount] = useState<string | null>(null);
-  const [paymentMode, setPaymentMode] = useState<"PAYPAL" | "CENTER">("PAYPAL");
+  const [paymentMode, setPaymentMode] = useState<"PAYPAL" | "CENTER" | "CODE">("PAYPAL");
   const [centerConfig, setCenterConfig] = useState<CenterPaymentConfig | null>(null);
   const [centerConfigError, setCenterConfigError] = useState("");
   const [centerRequest, setCenterRequest] = useState<CenterPaymentRequestView | null>(null);
   const [studentNote, setStudentNote] = useState("");
+  // ── Access Code state ──────────────────────────────────────────────────────
+  const [accessCode, setAccessCode] = useState("");
+  const [accessCodeError, setAccessCodeError] = useState("");
+  const [accessCodeValidated, setAccessCodeValidated] = useState(false);
+  const [isValidatingCode, setIsValidatingCode] = useState(false);
 
   const originalPrice = course?.price ?? 0;
   const modulePriceAfterPromo = appliedPromo?.finalAmount ?? originalPrice;
@@ -79,6 +85,9 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
     setAppliedPromo(null);
     setPromoError("");
     setPromoSuccess("");
+    setAccessCode("");
+    setAccessCodeError("");
+    setAccessCodeValidated(false);
   }, [course?.id]);
 
   useEffect(() => {
@@ -296,6 +305,43 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
     }
   };
 
+  const handleValidateAccessCode = async () => {
+    const code = accessCode.trim().toUpperCase();
+    if (!code) return;
+    setIsValidatingCode(true);
+    setAccessCodeError("");
+    setAccessCodeValidated(false);
+    try {
+      await api.validateAccessCode(course.id, code);
+      setAccessCode(code);
+      setAccessCodeValidated(true);
+    } catch (err: unknown) {
+      setAccessCodeError(getClientErrorMessage(err, "Code d'accès invalide ou expiré."));
+    } finally {
+      setIsValidatingCode(false);
+    }
+  };
+
+  const handleActivateWithCode = async () => {
+    if (!accessCodeValidated || isProcessing) return;
+    setStep("loading");
+    setIsProcessing(true);
+    setPaymentError("");
+    try {
+      const result = await api.freeEnrollCourse(course.id, accessCode.trim().toUpperCase());
+      if (!result.user) {
+        throw new Error("Inscription non confirmée par le serveur. Contactez le support.");
+      }
+      await onSuccess(course.id, 0, result.user);
+      setStep("success");
+    } catch (err: unknown) {
+      setPaymentError(getClientErrorMessage(err, "Impossible d'activer votre accès avec ce code."));
+      setStep("form");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const checkoutEquivalent =
     paypalConfig && paypalConfig.currency !== PLATFORM_CURRENCY_CODE
       ? `${(finalPrice * PAYPAL_MAD_TO_USD_RATE).toFixed(2)} ${paypalConfig.currency}`
@@ -474,7 +520,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
                           Choisir le mode de paiement
                         </p>
-                        <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Mode de paiement">
+                        <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Mode de paiement">
                           <button
                             type="button"
                             role="radio"
@@ -509,6 +555,24 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                             </span>
                             <span className="mt-1 block text-[10px] leading-relaxed text-slate-400">
                               Réservez en ligne, payez au centre, accès après validation.
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            role="radio"
+                            aria-checked={paymentMode === "CODE"}
+                            onClick={() => setPaymentMode("CODE")}
+                            className={`rounded-xl border p-3 text-left transition ${
+                              paymentMode === "CODE"
+                                ? "border-violet-400/50 bg-violet-500/10"
+                                : "border-white/10 bg-white/[0.03] hover:border-white/20"
+                            }`}
+                          >
+                            <span className="flex items-center gap-2 text-sm font-bold text-white">
+                              <KeyRound className="h-4 w-4 text-violet-300" /> Code d'accès
+                            </span>
+                            <span className="mt-1 block text-[10px] leading-relaxed text-slate-400">
+                              Code fourni par l'administration.
                             </span>
                           </button>
                         </div>
@@ -647,6 +711,85 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                             )}
                           </div>
                         )}
+
+                        {paymentMode === "CODE" && (
+                          <div className="rounded-2xl border border-violet-400/20 bg-violet-500/[0.07] p-4">
+                            {accessCodeValidated ? (
+                              <div className="space-y-3 text-center">
+                                <div className="flex h-12 w-12 mx-auto items-center justify-center rounded-full bg-violet-500/15 ring-1 ring-violet-400/30">
+                                  <KeyRound className="h-6 w-6 text-violet-300" />
+                                </div>
+                                <p className="text-sm font-bold text-white">Code validé ✓</p>
+                                <p className="rounded-xl bg-slate-950/60 px-4 py-2 font-mono text-base font-black tracking-widest text-violet-200">
+                                  {accessCode}
+                                </p>
+                                <p className="text-xs text-slate-400">
+                                  Ce code vous donne accès gratuit au module pendant 30 jours.
+                                </p>
+                                <button
+                                  id="activate-with-code-btn"
+                                  type="button"
+                                  onClick={() => void handleActivateWithCode()}
+                                  disabled={isProcessing}
+                                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-violet-500 disabled:opacity-60"
+                                >
+                                  {isProcessing ? (
+                                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                                  ) : (
+                                    <KeyRound className="h-4 w-4" />
+                                  )}
+                                  {isProcessing ? "Activation en cours…" : "Activer mon accès"}
+                                  {!isProcessing && <ArrowRight className="h-4 w-4" />}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => { setAccessCode(""); setAccessCodeValidated(false); setAccessCodeError(""); }}
+                                  className="text-xs text-slate-500 underline hover:text-slate-300"
+                                >
+                                  Changer de code
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="space-y-3">
+                                <p className="text-xs leading-relaxed text-slate-300">
+                                  Saisissez le code d'accès fourni par votre administration pour activer
+                                  immédiatement ce module pendant <strong className="text-white">30 jours</strong>.
+                                </p>
+                                <div className="relative">
+                                  <KeyRound className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-violet-400/70" />
+                                  <input
+                                    id="access-code-input"
+                                    type="text"
+                                    placeholder="EX: ACCES-ABCD-1234"
+                                    value={accessCode}
+                                    autoComplete="off"
+                                    onChange={(e) => {
+                                      setAccessCode(e.target.value.toUpperCase());
+                                      setAccessCodeError("");
+                                      setAccessCodeValidated(false);
+                                    }}
+                                    onKeyDown={(e) => { if (e.key === "Enter") void handleValidateAccessCode(); }}
+                                    className="w-full rounded-xl border border-white/10 bg-white/[0.04] py-2.5 pl-10 pr-[5.5rem] font-mono text-sm uppercase text-white placeholder:text-slate-600 focus:border-violet-400/40 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => void handleValidateAccessCode()}
+                                    disabled={isValidatingCode || !accessCode.trim()}
+                                    className="absolute right-1 top-1 bottom-1 rounded-lg bg-violet-600 px-3 text-[11px] font-bold text-white transition-colors hover:bg-violet-500 disabled:opacity-50"
+                                  >
+                                    {isValidatingCode ? "Vérification…" : "Valider"}
+                                  </button>
+                                </div>
+                                {accessCodeError && (
+                                  <p className="text-xs font-medium text-red-400">{accessCodeError}</p>
+                                )}
+                                <p className="rounded-xl border border-violet-400/15 bg-violet-500/5 p-3 text-[10px] leading-relaxed text-violet-100/70">
+                                  Le code d'accès est à usage unique. Obtenez-le auprès de votre centre de formation.
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </>
                     )}
 
@@ -673,8 +816,10 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                   {isFreeCheckout
                     ? "Inscription sécurisée sur la plateforme"
                     : paymentMode === "CENTER"
-                      ? "Activation uniquement après validation par l’administration"
-                      : "Paiement chiffré via PayPal Checkout"}
+                      ? "Activation uniquement après validation par l'administration"
+                      : paymentMode === "CODE"
+                        ? "Accès activé instantanément après validation du code"
+                        : "Paiement chiffré via PayPal Checkout"}
                 </p>
               </div>
             </>

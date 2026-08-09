@@ -70,6 +70,7 @@ const TEACHER_VIEW_CHUNKS: Record<string, () => Promise<unknown>> = {
   notifications: () => import("../views/shared/NotificationsView"),
   "center-payments": () => import("../views/teacher/AdminCenterPaymentsView"),
   "promo-codes": () => import("../views/teacher/AdminPromoCodesView"),
+  "access-codes": () => import("../views/teacher/AdminAccessCodesView"),
 };
 
 const INSTITUTIONAL_VIEW_CHUNKS: Record<string, () => Promise<unknown>> = {

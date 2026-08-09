@@ -226,6 +226,15 @@ function teacherItems(role?: UserRole): SidebarNavItem[] {
       isActive: ({ teacherView }) => teacherView === "promo-codes",
       onSelect: ({ setTeacherView }) => setTeacherView("promo-codes"),
     });
+    items.splice(5, 0, {
+      id: "nav-access-codes",
+      label: "Codes d'accès modules",
+      icon: KeyRound,
+      iconClassName: "text-violet-300",
+      prefetch: () => prefetchTeacherView("access-codes"),
+      isActive: ({ teacherView }) => teacherView === "access-codes",
+      onSelect: ({ setTeacherView }) => setTeacherView("access-codes"),
+    });
   }
 
   return items;
@@ -286,7 +295,12 @@ export function getSidebarNavGroups(role: "student" | "teacher", userRole?: User
       id: "administration",
       label: "Administration",
       icon: ShieldAlert,
-      items: selectItems(items, ["nav-professor-access-keys", "nav-center-payments", "nav-promo-codes"]),
+      items: selectItems(items, [
+        "nav-professor-access-keys",
+        "nav-center-payments",
+        "nav-promo-codes",
+        "nav-access-codes",
+      ]),
     });
   }
 
