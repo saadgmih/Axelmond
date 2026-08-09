@@ -4,7 +4,6 @@ import {
   ArrowRight,
   BookOpen,
   Building2,
-  CalendarDays,
   CheckCircle2,
   Clock,
   CreditCard,
@@ -70,6 +69,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
   const [accessCodeError, setAccessCodeError] = useState("");
   const [accessCodeValidated, setAccessCodeValidated] = useState(false);
   const [isValidatingCode, setIsValidatingCode] = useState(false);
+  const [showCodeInFreeMode, setShowCodeInFreeMode] = useState(false);
 
   const originalPrice = course?.price ?? 0;
   const modulePriceAfterPromo = appliedPromo?.finalAmount ?? originalPrice;
@@ -87,6 +87,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
     setAccessCode("");
     setAccessCodeError("");
     setAccessCodeValidated(false);
+    setShowCodeInFreeMode(false);
   }, [course?.id]);
 
   useEffect(() => {
@@ -96,13 +97,23 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
       return;
     }
     let active = true;
+    setPaypalConfig(null);
+    setConfigError("");
     api
       .getPayPalConfig()
       .then((config) => {
-        if (active) setPaypalConfig(config);
+        if (active) {
+          setPaypalConfig(config);
+          setConfigError("");
+        }
       })
       .catch((err: any) => {
-        if (active) setConfigError(getClientErrorMessage(err, "PayPal indisponible pour le moment."));
+        if (active) {
+          setPaypalConfig(null);
+          setConfigError(
+            getClientErrorMessage(err, "Paiement en ligne temporairement indisponible. Veuillez utiliser le paiement au centre ou un code d'accès."),
+          );
+        }
       });
     return () => {
       active = false;
@@ -236,6 +247,26 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
     void api.removePromoCode(course.id).catch(() => undefined);
   };
 
+  const handleFreeEnroll = async () => {
+    setStep("loading");
+    setIsProcessing(true);
+    setPaymentError("");
+
+    try {
+      const result = await api.freeEnrollCourse(course.id, appliedPromo?.code);
+      if (!result.user) {
+        throw new Error("Inscription non confirmée par le serveur. Contactez le support.");
+      }
+      await onSuccess(course.id, 0, result.user);
+      setStep("success");
+    } catch (err: unknown) {
+      setPaymentError(getClientErrorMessage(err, "Impossible de finaliser l'inscription gratuite."));
+      setStep("form");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const handleCreatePayPalOrder = async () => {
     setPaymentError("");
     const token = await getFreshSessionToken();
@@ -338,7 +369,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
       aria-modal="true"
       aria-labelledby="payment-modal-title"
     >
-      <div className="w-full max-w-6xl my-auto animate-in fade-in zoom-in-95 duration-300">
+      <div className={`w-full ${isFreeCheckout ? "max-w-2xl" : "max-w-6xl"} my-auto animate-in fade-in zoom-in-95 duration-300`}>
         <div className="relative flex flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#090d16] shadow-[0_32px_96px_-16px_rgba(0,0,0,0.85)]">
           {step === "form" && (
             <>
@@ -351,7 +382,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                     <div className="flex items-center gap-2 flex-wrap mb-2">
                       <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/25 bg-emerald-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-emerald-300">
                         <ShieldCheck className="h-3.5 w-3.5" />
-                        Abonnement &amp; Activation
+                        {isFreeCheckout ? "Accès Offert" : "Abonnement & Activation"}
                       </span>
                       <span className="inline-flex items-center gap-1 rounded-lg bg-black/40 px-2.5 py-1 text-xs font-semibold text-slate-300">
                         <BookOpen className="h-3.5 w-3.5 text-emerald-400" />
@@ -364,7 +395,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                     </div>
 
                     <h2 id="payment-modal-title" className="text-2xl font-black tracking-tight text-white sm:text-3xl">
-                      Choisissez votre mode d&apos;activation
+                      {isFreeCheckout ? "Activation de votre module gratuit" : "Choisissez votre mode d'activation"}
                     </h2>
                     <p className="mt-1 text-sm text-slate-400">
                       Module : <span className="font-semibold text-slate-200">{course.title}</span>
@@ -382,50 +413,52 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                   </button>
                 </div>
 
-                {/* Promo Code Top Strip */}
-                <div className="mt-4 pt-4 border-t border-white/[0.06] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <Tag className="h-4 w-4 text-emerald-400 shrink-0" />
-                    <span className="text-xs font-semibold text-slate-300">
-                      Vous avez un code promo ?
-                    </span>
-                  </div>
+                {/* Promo Code Strip (Only for paid courses) */}
+                {!isFreeCheckout && (
+                  <div className="mt-4 pt-4 border-t border-white/[0.06] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <Tag className="h-4 w-4 text-emerald-400 shrink-0" />
+                      <span className="text-xs font-semibold text-slate-300">
+                        Vous avez un code promo ?
+                      </span>
+                    </div>
 
-                  <div className="flex items-center gap-2 min-w-0 sm:w-80">
-                    <input
-                      type="text"
-                      placeholder="Ex: PERFORMANCE20"
-                      value={promoCode}
-                      onChange={(e) => {
-                        setPromoCode(e.target.value);
-                        setAppliedPromo(null);
-                        setPromoSuccess("");
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") void handleApplyPromo();
-                      }}
-                      className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 font-mono text-xs uppercase text-white placeholder:text-slate-600 focus:border-emerald-400/50 focus:outline-none"
-                    />
-                    {appliedPromo ? (
-                      <button
-                        type="button"
-                        onClick={handleRemovePromo}
-                        className="shrink-0 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-bold text-red-300 hover:bg-red-500/20"
-                      >
-                        Retirer
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => void handleApplyPromo()}
-                        disabled={isApplyingPromo || !promoCode.trim()}
-                        className="shrink-0 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
-                      >
-                        {isApplyingPromo ? "..." : "Appliquer"}
-                      </button>
-                    )}
+                    <div className="flex items-center gap-2 min-w-0 sm:w-80">
+                      <input
+                        type="text"
+                        placeholder="Ex: PERFORMANCE20"
+                        value={promoCode}
+                        onChange={(e) => {
+                          setPromoCode(e.target.value);
+                          setAppliedPromo(null);
+                          setPromoSuccess("");
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") void handleApplyPromo();
+                        }}
+                        className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 font-mono text-xs uppercase text-white placeholder:text-slate-600 focus:border-emerald-400/50 focus:outline-none"
+                      />
+                      {appliedPromo ? (
+                        <button
+                          type="button"
+                          onClick={handleRemovePromo}
+                          className="shrink-0 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-bold text-red-300 hover:bg-red-500/20"
+                        >
+                          Retirer
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => void handleApplyPromo()}
+                          disabled={isApplyingPromo || !promoCode.trim()}
+                          className="shrink-0 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
+                        >
+                          {isApplyingPromo ? "..." : "Appliquer"}
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {promoError && <p className="mt-2 text-xs font-medium text-red-400">{promoError}</p>}
                 {promoSuccess && (
@@ -440,320 +473,423 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                 )}
               </div>
 
-              {/* 3 COLUMNS PRICING GRID LAYOUT (OpenAI Pricing Style) */}
-              <div className="p-6 sm:p-8 overflow-y-auto max-h-[calc(90vh-180px)]">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-                  
-                  {/* ───────────────────────────────────────────────────────────
-                      CARD 1: Paiement par Carte / PayPal (Instant en ligne)
-                     ─────────────────────────────────────────────────────────── */}
-                  <div className="relative flex flex-col justify-between rounded-2xl border border-sky-400/30 bg-gradient-to-b from-sky-500/[0.08] via-slate-900/60 to-slate-950/80 p-6 shadow-xl transition-all duration-300 hover:border-sky-400/50">
+              {/* ─────────────────────────────────────────────────────────────
+                  BODY AREA: FREE COURSE vs PAID 3-COLUMN GRID
+                 ───────────────────────────────────────────────────────────── */}
+              {isFreeCheckout ? (
+                /* SINGLE FREE ENROLLMENT CARD FOR 0 DH COURSES */
+                <div className="p-6 sm:p-10 flex flex-col items-center justify-center text-center">
+                  <div className="w-full rounded-3xl border border-emerald-400/30 bg-gradient-to-b from-emerald-500/10 via-slate-900/80 to-slate-950/90 p-8 shadow-2xl space-y-6">
+                    <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/15 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-emerald-300">
+                      <Sparkles className="h-4 w-4 text-emerald-400" /> Module Gratuit (0 DH)
+                    </div>
+
                     <div>
-                      {/* Top Badge */}
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="inline-flex items-center gap-1 rounded-full border border-sky-400/30 bg-sky-500/15 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-sky-300">
-                          <Zap className="h-3 w-3 text-sky-400" /> Activation Immédiate
-                        </span>
-                      </div>
-
-                      {/* Title & Subtitle */}
-                      <h3 className="text-xl font-bold text-white">Carte / PayPal</h3>
-                      <p className="mt-1 text-xs text-slate-400 leading-relaxed">
-                        Paiement sécurisé en ligne. Votre accès est débloqué automatiquement dès la validation.
+                      <h3 className="text-2xl font-black text-white sm:text-3xl">Accès Offert au Module</h3>
+                      <p className="mt-2 text-sm text-slate-300 leading-relaxed">
+                        Ce module est mis à votre disposition gratuitement. Aucun paiement ni carte bancaire n&apos;est requis.
                       </p>
-
-                      {/* Pricing */}
-                      <div className="mt-5 pb-5 border-b border-white/[0.08]">
-                        {appliedPromo && (
-                          <p className="text-xs font-medium text-slate-500 line-through">{formatMad(originalPrice)}</p>
-                        )}
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-3xl font-black tracking-tight text-white">
-                            {formatMad(finalPrice)}
-                          </span>
-                          <span className="text-xs font-bold uppercase text-slate-500">/mois</span>
-                        </div>
-                        {appliedPromo && (
-                          <span className="mt-1 inline-flex rounded-md bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
-                            Économie {formatMad(savings)}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Features Bullet List */}
-                      <ul className="mt-5 space-y-3 text-xs text-slate-300">
-                        <li className="flex items-start gap-2">
-                          <CheckCircle2 className="h-4 w-4 shrink-0 text-sky-400 mt-0.5" />
-                          <span>Accès instantané à tous les contenus du module</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <CheckCircle2 className="h-4 w-4 shrink-0 text-sky-400 mt-0.5" />
-                          <span>Paiement chiffré et sécurisé par PayPal Checkout</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <CheckCircle2 className="h-4 w-4 shrink-0 text-sky-400 mt-0.5" />
-                          <span>Facture numérique téléchargeable</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <CheckCircle2 className="h-4 w-4 shrink-0 text-sky-400 mt-0.5" />
-                          <span>Sans engagement &bull; Résiliable en 1 clic</span>
-                        </li>
-                      </ul>
                     </div>
 
-                    {/* Bottom Action Area */}
-                    <div className="mt-6 pt-4 border-t border-white/[0.06]">
-                      {configError && (
-                        <p className="mb-2 text-xs text-red-400 font-medium">{configError}</p>
-                      )}
-
-                      {!paypalConfig && !configError && (
-                        <div className="flex items-center justify-center gap-2 py-3">
-                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-sky-400 border-t-transparent" />
-                          <span className="text-xs text-slate-400">Chargement PayPal…</span>
-                        </div>
-                      )}
-
-                      {paypalConfig && (
-                        <div>
-                          {paypalConfig.currency !== PLATFORM_CURRENCY_CODE && (
-                            <p className="mb-2 text-[10px] text-slate-400">
-                              Conversion : {displayedCheckoutAmount ?? `${finalPrice} MAD`}
-                            </p>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => void handleHostedPayPalCheckout()}
-                            disabled={isProcessing}
-                            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#0070ba] px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-sky-950/30 transition-all hover:bg-[#005ea6] disabled:opacity-60"
-                          >
-                            {isProcessing ? (
-                              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                            ) : (
-                              <CreditCard className="h-4 w-4" />
-                            )}
-                            Payer par carte ou PayPal
-                            <ArrowRight className="h-4 w-4 ml-auto" />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-
-                  {/* ───────────────────────────────────────────────────────────
-                      CARD 2: Paiement au Centre de Formation (Physique)
-                     ─────────────────────────────────────────────────────────── */}
-                  <div className="relative flex flex-col justify-between rounded-2xl border border-emerald-400/30 bg-gradient-to-b from-emerald-500/[0.08] via-slate-900/60 to-slate-950/80 p-6 shadow-xl transition-all duration-300 hover:border-emerald-400/50">
-                    <div>
-                      {/* Top Badge */}
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-500/15 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-300">
-                          <Building2 className="h-3 w-3 text-emerald-400" /> Règlement sur Place
-                        </span>
+                    <div className="rounded-2xl border border-white/10 bg-black/40 p-4 space-y-3 text-left text-xs text-slate-300">
+                      <div className="flex items-center gap-2.5">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                        <span>Accès immédiat à l&apos;ensemble des leçons et ressources</span>
                       </div>
-
-                      {/* Title & Subtitle */}
-                      <h3 className="text-xl font-bold text-white">Paiement au Centre</h3>
-                      <p className="mt-1 text-xs text-slate-400 leading-relaxed">
-                        Réservez en ligne, payez sur place au centre de formation. Accès validé à la réception.
-                      </p>
-
-                      {/* Pricing */}
-                      <div className="mt-5 pb-5 border-b border-white/[0.08]">
-                        {appliedPromo && (
-                          <p className="text-xs font-medium text-slate-500 line-through">{formatMad(originalPrice)}</p>
-                        )}
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-3xl font-black tracking-tight text-white">
-                            {formatMad(finalPrice)}
-                          </span>
-                          <span className="text-xs font-bold uppercase text-slate-500">/mois</span>
-                        </div>
-                        {appliedPromo && (
-                          <span className="mt-1 inline-flex rounded-md bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
-                            Économie {formatMad(savings)}
-                          </span>
-                        )}
+                      <div className="flex items-center gap-2.5">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                        <span>Suivi de progression et quiz d&apos;évaluation inclus</span>
                       </div>
-
-                      {/* Features Bullet List */}
-                      <ul className="mt-5 space-y-3 text-xs text-slate-300">
-                        <li className="flex items-start gap-2">
-                          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400 mt-0.5" />
-                          <span>Réservation en ligne instantanée sans frais</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400 mt-0.5" />
-                          <span>Règlement par Espèces, Carte ou Virement</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400 mt-0.5" />
-                          <span>Référence de paiement unique générée</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400 mt-0.5" />
-                          <span>Accès activé dès validation par l&apos;administration</span>
-                        </li>
-                      </ul>
+                      <div className="flex items-center gap-2.5">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                        <span>Inscription simple en un clic</span>
+                      </div>
                     </div>
 
-                    {/* Bottom Action Area */}
-                    <div className="mt-6 pt-4 border-t border-white/[0.06]">
-                      {centerConfigError ? (
-                        <p className="text-xs text-red-400">{centerConfigError}</p>
-                      ) : centerRequest ? (
-                        <div className="text-center space-y-2">
-                          <span className="text-xs text-emerald-300 font-bold">✓ Demande créée</span>
-                          <div className="rounded-xl bg-black/60 p-2 font-mono text-base font-black text-emerald-200">
-                            {centerRequest.reference}
-                          </div>
-                          <p className="text-[10px] text-slate-400">Présentez ce code au centre</p>
-                        </div>
+                    <button
+                      type="button"
+                      onClick={() => void handleFreeEnroll()}
+                      disabled={isProcessing}
+                      className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-6 py-4 text-base font-black text-white shadow-xl shadow-emerald-950/40 transition-all hover:bg-emerald-500 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60"
+                    >
+                      {isProcessing ? (
+                        <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
                       ) : (
-                        <div className="space-y-3">
+                        <Sparkles className="h-5 w-5" />
+                      )}
+                      {isProcessing ? "Activation en cours…" : "S'inscrire gratuitement"}
+                      {!isProcessing && <ArrowRight className="h-5 w-5 ml-auto" />}
+                    </button>
+
+                    <div className="pt-2 border-t border-white/10">
+                      <button
+                        type="button"
+                        onClick={() => setShowCodeInFreeMode(!showCodeInFreeMode)}
+                        className="text-xs text-slate-400 hover:text-white underline"
+                      >
+                        {showCodeInFreeMode ? "Masquer la saisie de code" : "Vous avez un code d'accès administrateur ?"}
+                      </button>
+                    </div>
+
+                    {showCodeInFreeMode && (
+                      <div className="pt-3 text-left space-y-3">
+                        <div className="relative">
+                          <KeyRound className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-violet-400" />
                           <input
                             type="text"
-                            placeholder="Note ou remarque (Optionnel)"
-                            value={studentNote}
-                            onChange={(e) => setStudentNote(e.target.value)}
-                            maxLength={300}
-                            className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-xs text-white placeholder:text-slate-600 outline-none focus:border-emerald-400/50"
+                            placeholder="EX: ACCES-ABCD-1234"
+                            value={accessCode}
+                            onChange={(e) => {
+                              setAccessCode(e.target.value.toUpperCase());
+                              setAccessCodeError("");
+                              setAccessCodeValidated(false);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") void handleValidateAccessCode();
+                            }}
+                            className="w-full rounded-xl border border-white/10 bg-black/60 pl-10 pr-24 py-2.5 font-mono text-xs uppercase text-white outline-none focus:border-violet-400/50"
                           />
                           <button
                             type="button"
-                            onClick={() => void handleCenterPaymentRequest()}
-                            disabled={isProcessing}
-                            className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3.5 text-sm font-bold text-white transition-all hover:bg-emerald-500 disabled:opacity-60"
+                            onClick={() => void handleValidateAccessCode()}
+                            disabled={isValidatingCode || !accessCode.trim()}
+                            className="absolute right-1 top-1 bottom-1 rounded-lg bg-violet-600 px-3 text-xs font-bold text-white transition-colors hover:bg-violet-500 disabled:opacity-50"
                           >
-                            {isProcessing ? (
-                              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                            ) : (
-                              <Building2 className="h-4 w-4" />
-                            )}
-                            Confirmer ma demande au centre
-                            <ArrowRight className="h-4 w-4 ml-auto" />
+                            {isValidatingCode ? "..." : "Valider"}
                           </button>
                         </div>
-                      )}
-                    </div>
-                  </div>
-
-
-                  {/* ───────────────────────────────────────────────────────────
-                      CARD 3: Code d'Accès Administrateur (Code fourni par le centre)
-                     ─────────────────────────────────────────────────────────── */}
-                  <div className="relative flex flex-col justify-between rounded-2xl border border-violet-400/30 bg-gradient-to-b from-violet-500/[0.08] via-slate-900/60 to-slate-950/80 p-6 shadow-xl transition-all duration-300 hover:border-violet-400/50">
-                    <div>
-                      {/* Top Badge */}
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="inline-flex items-center gap-1 rounded-full border border-violet-400/30 bg-violet-500/15 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-violet-300">
-                          <KeyRound className="h-3 w-3 text-violet-400" /> Code d&apos;Accès
-                        </span>
-                      </div>
-
-                      {/* Title & Subtitle */}
-                      <h3 className="text-xl font-bold text-white">Code Administrateur</h3>
-                      <p className="mt-1 text-xs text-slate-400 leading-relaxed">
-                        Code d&apos;accès fourni par l&apos;administration. Débloque le module sur sa période attribuée.
-                      </p>
-
-                      {/* Pricing */}
-                      <div className="mt-5 pb-5 border-b border-white/[0.08]">
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-3xl font-black tracking-tight text-violet-200">
-                            Accès Offert
-                          </span>
-                        </div>
-                        <span className="mt-1 inline-flex rounded-md bg-violet-500/15 px-2 py-0.5 text-[10px] font-bold text-violet-300">
-                          Sans frais en ligne
-                        </span>
-                      </div>
-
-                      {/* Features Bullet List */}
-                      <ul className="mt-5 space-y-3 text-xs text-slate-300">
-                        <li className="flex items-start gap-2">
-                          <CheckCircle2 className="h-4 w-4 shrink-0 text-violet-400 mt-0.5" />
-                          <span>Code à usage unique attribué par le centre</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <CheckCircle2 className="h-4 w-4 shrink-0 text-violet-400 mt-0.5" />
-                          <span>Dates de début et de fin fixées par l&apos;administration</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <CheckCircle2 className="h-4 w-4 shrink-0 text-violet-400 mt-0.5" />
-                          <span>Activation instantanée dès la saisie</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <CheckCircle2 className="h-4 w-4 shrink-0 text-violet-400 mt-0.5" />
-                          <span>Accès complet pendant toute la période définie</span>
-                        </li>
-                      </ul>
-                    </div>
-
-                    {/* Bottom Action Area */}
-                    <div className="mt-6 pt-4 border-t border-white/[0.06]">
-                      {accessCodeValidated ? (
-                        <div className="space-y-3 text-center">
-                          <div className="flex items-center justify-center gap-1.5 text-xs text-violet-300 font-bold">
-                            <CheckCircle2 className="h-4 w-4" /> Code validé ✓
-                          </div>
-                          <div className="rounded-xl bg-black/60 p-2 font-mono text-sm font-black text-violet-200 tracking-wider">
-                            {accessCode}
-                          </div>
+                        {accessCodeError && <p className="text-xs text-red-400 font-medium">{accessCodeError}</p>}
+                        {accessCodeValidated && (
                           <button
                             type="button"
                             onClick={() => void handleActivateWithCode()}
                             disabled={isProcessing}
-                            className="flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-3.5 text-sm font-bold text-white transition-all hover:bg-violet-500 disabled:opacity-60"
+                            className="w-full rounded-xl bg-violet-600 py-3 text-xs font-bold text-white hover:bg-violet-500"
                           >
-                            {isProcessing ? (
-                              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                            ) : (
-                              <KeyRound className="h-4 w-4" />
-                            )}
-                            Activer mon accès
-                            <ArrowRight className="h-4 w-4 ml-auto" />
+                            Activer avec le code {accessCode}
                           </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                /* 3 COLUMNS PRICING GRID LAYOUT FOR PAID COURSES */
+                <div className="p-6 sm:p-8 overflow-y-auto max-h-[calc(90vh-180px)]">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+                    
+                    {/* ───────────────────────────────────────────────────────────
+                        CARD 1: Paiement par Carte / PayPal (Instant en ligne)
+                       ─────────────────────────────────────────────────────────── */}
+                    <div className="relative flex flex-col justify-between rounded-2xl border border-sky-400/30 bg-gradient-to-b from-sky-500/[0.08] via-slate-900/60 to-slate-950/80 p-6 shadow-xl transition-all duration-300 hover:border-sky-400/50">
+                      <div>
+                        {/* Top Badge */}
+                        <div className="flex items-center justify-between mb-4">
+                          <span className="inline-flex items-center gap-1 rounded-full border border-sky-400/30 bg-sky-500/15 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-sky-300">
+                            <Zap className="h-3 w-3 text-sky-400" /> Activation Immédiate
+                          </span>
                         </div>
-                      ) : (
-                        <div className="space-y-3">
-                          <div className="relative">
-                            <KeyRound className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-violet-400" />
+
+                        {/* Title & Subtitle */}
+                        <h3 className="text-xl font-bold text-white">Carte / PayPal</h3>
+                        <p className="mt-1 text-xs text-slate-400 leading-relaxed">
+                          Paiement sécurisé en ligne. Votre accès est débloqué automatiquement dès la validation.
+                        </p>
+
+                        {/* Pricing */}
+                        <div className="mt-5 pb-5 border-b border-white/[0.08]">
+                          {appliedPromo && (
+                            <p className="text-xs font-medium text-slate-500 line-through">{formatMad(originalPrice)}</p>
+                          )}
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-3xl font-black tracking-tight text-white">
+                              {formatMad(finalPrice)}
+                            </span>
+                            <span className="text-xs font-bold uppercase text-slate-500">/mois</span>
+                          </div>
+                          {appliedPromo && (
+                            <span className="mt-1 inline-flex rounded-md bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+                              Économie {formatMad(savings)}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Features Bullet List */}
+                        <ul className="mt-5 space-y-3 text-xs text-slate-300">
+                          <li className="flex items-start gap-2">
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-sky-400 mt-0.5" />
+                            <span>Accès instantané à tous les contenus du module</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-sky-400 mt-0.5" />
+                            <span>Paiement chiffré et sécurisé par PayPal Checkout</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-sky-400 mt-0.5" />
+                            <span>Facture numérique téléchargeable</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-sky-400 mt-0.5" />
+                            <span>Sans engagement &bull; Résiliable en 1 clic</span>
+                          </li>
+                        </ul>
+                      </div>
+
+                      {/* Bottom Action Area */}
+                      <div className="mt-6 pt-4 border-t border-white/[0.06]">
+                        {configError ? (
+                          <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200 space-y-1">
+                            <p className="font-bold text-amber-300">Paiement en ligne indisponible</p>
+                            <p className="text-[11px] leading-relaxed text-amber-200/80">
+                              Utilisez le paiement au centre ou un code d&apos;accès administrateur.
+                            </p>
+                          </div>
+                        ) : !paypalConfig ? (
+                          <div className="flex items-center justify-center gap-2 py-3">
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-sky-400 border-t-transparent" />
+                            <span className="text-xs text-slate-400">Chargement PayPal…</span>
+                          </div>
+                        ) : (
+                          <div>
+                            {paypalConfig.currency !== PLATFORM_CURRENCY_CODE && (
+                              <p className="mb-2 text-[10px] text-slate-400">
+                                Conversion : {displayedCheckoutAmount ?? `${finalPrice} MAD`}
+                              </p>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => void handleHostedPayPalCheckout()}
+                              disabled={isProcessing}
+                              className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#0070ba] px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-sky-950/30 transition-all hover:bg-[#005ea6] disabled:opacity-60"
+                            >
+                              {isProcessing ? (
+                                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                              ) : (
+                                <CreditCard className="h-4 w-4" />
+                              )}
+                              Payer par carte ou PayPal
+                              <ArrowRight className="h-4 w-4 ml-auto" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+
+                    {/* ───────────────────────────────────────────────────────────
+                        CARD 2: Paiement au Centre de Formation (Physique)
+                       ─────────────────────────────────────────────────────────── */}
+                    <div className="relative flex flex-col justify-between rounded-2xl border border-emerald-400/30 bg-gradient-to-b from-emerald-500/[0.08] via-slate-900/60 to-slate-950/80 p-6 shadow-xl transition-all duration-300 hover:border-emerald-400/50">
+                      <div>
+                        {/* Top Badge */}
+                        <div className="flex items-center justify-between mb-4">
+                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-500/15 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-300">
+                            <Building2 className="h-3 w-3 text-emerald-400" /> Règlement sur Place
+                          </span>
+                        </div>
+
+                        {/* Title & Subtitle */}
+                        <h3 className="text-xl font-bold text-white">Paiement au Centre</h3>
+                        <p className="mt-1 text-xs text-slate-400 leading-relaxed">
+                          Réservez en ligne, payez sur place au centre de formation. Accès validé à la réception.
+                        </p>
+
+                        {/* Pricing */}
+                        <div className="mt-5 pb-5 border-b border-white/[0.08]">
+                          {appliedPromo && (
+                            <p className="text-xs font-medium text-slate-500 line-through">{formatMad(originalPrice)}</p>
+                          )}
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-3xl font-black tracking-tight text-white">
+                              {formatMad(finalPrice)}
+                            </span>
+                            <span className="text-xs font-bold uppercase text-slate-500">/mois</span>
+                          </div>
+                          {appliedPromo && (
+                            <span className="mt-1 inline-flex rounded-md bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+                              Économie {formatMad(savings)}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Features Bullet List */}
+                        <ul className="mt-5 space-y-3 text-xs text-slate-300">
+                          <li className="flex items-start gap-2">
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400 mt-0.5" />
+                            <span>Réservation en ligne instantanée sans frais</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400 mt-0.5" />
+                            <span>Règlement par Espèces, Carte ou Virement</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400 mt-0.5" />
+                            <span>Référence de paiement unique générée</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400 mt-0.5" />
+                            <span>Accès activé dès validation par l&apos;administration</span>
+                          </li>
+                        </ul>
+                      </div>
+
+                      {/* Bottom Action Area */}
+                      <div className="mt-6 pt-4 border-t border-white/[0.06]">
+                        {centerConfigError ? (
+                          <p className="text-xs text-red-400">{centerConfigError}</p>
+                        ) : centerRequest ? (
+                          <div className="text-center space-y-2">
+                            <span className="text-xs text-emerald-300 font-bold">✓ Demande créée</span>
+                            <div className="rounded-xl bg-black/60 p-2 font-mono text-base font-black text-emerald-200">
+                              {centerRequest.reference}
+                            </div>
+                            <p className="text-[10px] text-slate-400">Présentez ce code au centre</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
                             <input
                               type="text"
-                              placeholder="EX: ACCES-ABCD-1234"
-                              value={accessCode}
-                              onChange={(e) => {
-                                setAccessCode(e.target.value.toUpperCase());
-                                setAccessCodeError("");
-                                setAccessCodeValidated(false);
-                              }}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") void handleValidateAccessCode();
-                              }}
-                              className="w-full rounded-xl border border-white/10 bg-black/40 pl-9 pr-20 py-2.5 font-mono text-xs uppercase text-white placeholder:text-slate-600 outline-none focus:border-violet-400/50"
+                              placeholder="Note ou remarque (Optionnel)"
+                              value={studentNote}
+                              onChange={(e) => setStudentNote(e.target.value)}
+                              maxLength={300}
+                              className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-xs text-white placeholder:text-slate-600 outline-none focus:border-emerald-400/50"
                             />
                             <button
                               type="button"
-                              onClick={() => void handleValidateAccessCode()}
-                              disabled={isValidatingCode || !accessCode.trim()}
-                              className="absolute right-1 top-1 bottom-1 rounded-lg bg-violet-600 px-3 text-[11px] font-bold text-white transition-colors hover:bg-violet-500 disabled:opacity-50"
+                              onClick={() => void handleCenterPaymentRequest()}
+                              disabled={isProcessing}
+                              className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3.5 text-sm font-bold text-white transition-all hover:bg-emerald-500 disabled:opacity-60"
                             >
-                              {isValidatingCode ? "..." : "Valider"}
+                              {isProcessing ? (
+                                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                              ) : (
+                                <Building2 className="h-4 w-4" />
+                              )}
+                              Confirmer ma demande au centre
+                              <ArrowRight className="h-4 w-4 ml-auto" />
                             </button>
                           </div>
-
-                          {accessCodeError && (
-                            <p className="text-xs font-medium text-red-400">{accessCodeError}</p>
-                          )}
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
-                  </div>
 
+
+                    {/* ───────────────────────────────────────────────────────────
+                        CARD 3: Code d'Accès Administrateur (Code fourni par le centre)
+                       ─────────────────────────────────────────────────────────── */}
+                    <div className="relative flex flex-col justify-between rounded-2xl border border-violet-400/30 bg-gradient-to-b from-violet-500/[0.08] via-slate-900/60 to-slate-950/80 p-6 shadow-xl transition-all duration-300 hover:border-violet-400/50">
+                      <div>
+                        {/* Top Badge */}
+                        <div className="flex items-center justify-between mb-4">
+                          <span className="inline-flex items-center gap-1 rounded-full border border-violet-400/30 bg-violet-500/15 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-violet-300">
+                            <KeyRound className="h-3 w-3 text-violet-400" /> Code d&apos;Accès
+                          </span>
+                        </div>
+
+                        {/* Title & Subtitle */}
+                        <h3 className="text-xl font-bold text-white">Code Administrateur</h3>
+                        <p className="mt-1 text-xs text-slate-400 leading-relaxed">
+                          Code d&apos;accès fourni par l&apos;administration. Débloque le module sur sa période attribuée.
+                        </p>
+
+                        {/* Pricing */}
+                        <div className="mt-5 pb-5 border-b border-white/[0.08]">
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-3xl font-black tracking-tight text-violet-200">
+                              Accès Offert
+                            </span>
+                          </div>
+                          <span className="mt-1 inline-flex rounded-md bg-violet-500/15 px-2 py-0.5 text-[10px] font-bold text-violet-300">
+                            Sans frais en ligne
+                          </span>
+                        </div>
+
+                        {/* Features Bullet List */}
+                        <ul className="mt-5 space-y-3 text-xs text-slate-300">
+                          <li className="flex items-start gap-2">
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-violet-400 mt-0.5" />
+                            <span>Code à usage unique attribué par le centre</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-violet-400 mt-0.5" />
+                            <span>Dates de début et de fin fixées par l&apos;administration</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-violet-400 mt-0.5" />
+                            <span>Activation instantanée dès la saisie</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-violet-400 mt-0.5" />
+                            <span>Accès complet pendant toute la période définie</span>
+                          </li>
+                        </ul>
+                      </div>
+
+                      {/* Bottom Action Area */}
+                      <div className="mt-6 pt-4 border-t border-white/[0.06]">
+                        {accessCodeValidated ? (
+                          <div className="space-y-3 text-center">
+                            <div className="flex items-center justify-center gap-1.5 text-xs text-violet-300 font-bold">
+                              <CheckCircle2 className="h-4 w-4" /> Code validé ✓
+                            </div>
+                            <div className="rounded-xl bg-black/60 p-2 font-mono text-sm font-black text-violet-200 tracking-wider">
+                              {accessCode}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => void handleActivateWithCode()}
+                              disabled={isProcessing}
+                              className="flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-3.5 text-sm font-bold text-white transition-all hover:bg-violet-500 disabled:opacity-60"
+                            >
+                              {isProcessing ? (
+                                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                              ) : (
+                                <KeyRound className="h-4 w-4" />
+                              )}
+                              Activer mon accès
+                              <ArrowRight className="h-4 w-4 ml-auto" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            <div className="relative">
+                              <KeyRound className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-violet-400" />
+                              <input
+                                type="text"
+                                placeholder="EX: ACCES-ABCD-1234"
+                                value={accessCode}
+                                onChange={(e) => {
+                                  setAccessCode(e.target.value.toUpperCase());
+                                  setAccessCodeError("");
+                                  setAccessCodeValidated(false);
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") void handleValidateAccessCode();
+                                }}
+                                className="w-full rounded-xl border border-white/10 bg-black/40 pl-9 pr-20 py-2.5 font-mono text-xs uppercase text-white placeholder:text-slate-600 outline-none focus:border-violet-400/50"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => void handleValidateAccessCode()}
+                                disabled={isValidatingCode || !accessCode.trim()}
+                                className="absolute right-1 top-1 bottom-1 rounded-lg bg-violet-600 px-3 text-[11px] font-bold text-white transition-colors hover:bg-violet-500 disabled:opacity-50"
+                              >
+                                {isValidatingCode ? "..." : "Valider"}
+                              </button>
+                            </div>
+
+                            {accessCodeError && (
+                              <p className="text-xs font-medium text-red-400">{accessCodeError}</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* General Payment Error display */}
               {paymentError && (
