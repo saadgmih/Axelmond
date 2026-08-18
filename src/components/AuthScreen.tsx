@@ -8,7 +8,7 @@ import { getTeacherLoginSectorLabel, getTeacherLoginTabLabel } from "../rbac";
 import type { AppUser } from "../shared/app-user";
 
 export type { AppUser };
-import LogoSymbol from "./LogoSymbol";
+import Interactive3DLogo from "./Interactive3DLogo";
 import SkipLink from "./SkipLink";
 import { useAccessibilityPreferences } from "../hooks/useAccessibilityPreferences";
 import AccessibilityControls from "./AccessibilityControls";
@@ -271,8 +271,12 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
 
       <div className="w-full max-w-xl relative z-10 flex flex-col gap-6">
         <div className="flex flex-col items-center gap-4 text-center pb-2">
-          {/* Logo icône seule - Centré, net et sans cadre blanc */}
-          <LogoSymbol className="w-24 h-24 text-emerald-400 flex-shrink-0 animate-in zoom-in duration-300 drop-shadow-[0_0_25px_rgba(52,211,153,0.3)]" />
+          {/* Logo 3D Interactif maniputable à 360° */}
+          <Interactive3DLogo
+            size={140}
+            reducedMotion={preferences.reduceMotion}
+            className="flex-shrink-0 animate-in zoom-in duration-300"
+          />
           <div>
             <h1 className="text-2xl font-black text-white tracking-tight select-none">
               Performance <span className="text-emerald-400">Académique</span>
