@@ -10,7 +10,7 @@ interface Interactive3DLogoProps {
 
 export default function Interactive3DLogo({
   className = "",
-  size = 140,
+  size = 130,
   reducedMotion = false,
 }: Interactive3DLogoProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -26,7 +26,7 @@ export default function Interactive3DLogo({
     prevY: 0,
     velX: 0,
     velY: 0,
-    rotX: 0.1,
+    rotX: 0,
     rotY: 0,
     rotZ: 0,
     targetParallaxX: 0,
@@ -71,120 +71,127 @@ export default function Interactive3DLogo({
     renderer.setPixelRatio(pixelRatio);
     renderer.setSize(size, size);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.3;
+    renderer.toneMappingExposure = 1.25;
 
     // 1. Scene & Camera
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
-    camera.position.set(0, 0, 4.2);
+    const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+    camera.position.set(0, 0, 3.8);
 
     // 2. Lights
-    const ambientLight = new THREE.AmbientLight(0xd1fae5, 1.2);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
     scene.add(ambientLight);
 
-    const dirLightTop = new THREE.DirectionalLight(0xffffff, 2.6);
-    dirLightTop.position.set(3, 4, 4);
+    const dirLightTop = new THREE.DirectionalLight(0xffffff, 2.8);
+    dirLightTop.position.set(2, 4, 4);
     scene.add(dirLightTop);
 
-    const dirLightEmerald = new THREE.DirectionalLight(0x10b981, 3.2);
-    dirLightEmerald.position.set(-4, -2, -3);
-    scene.add(dirLightEmerald);
+    const dirLightBottom = new THREE.DirectionalLight(0x10b981, 2.5);
+    dirLightBottom.position.set(-3, -3, 2);
+    scene.add(dirLightBottom);
 
-    const pointLightCyan = new THREE.PointLight(0x06b6d4, 3.5, 8);
-    pointLightCyan.position.set(2, -2, 2);
-    scene.add(pointLightCyan);
+    const pointLightGlow1 = new THREE.PointLight(0x34d399, 3.5, 6);
+    pointLightGlow1.position.set(1.8, 1.8, 1.5);
+    scene.add(pointLightGlow1);
 
-    const pointLightEmerald = new THREE.PointLight(0x34d399, 4.0, 8);
-    pointLightEmerald.position.set(-2, 2, 2);
-    scene.add(pointLightEmerald);
+    const pointLightGlow2 = new THREE.PointLight(0x06b6d4, 3.0, 6);
+    pointLightGlow2.position.set(-1.8, -1.5, 1.5);
+    scene.add(pointLightGlow2);
 
-    // 3. 3D Root Group (contains everything for manipulation)
+    // 3. 3D Root Group (contains the volumetric extruded logo)
     const rootGroup = new THREE.Group();
     scene.add(rootGroup);
 
-    // 4. Medallion Geometry & Materials
-    const radius = 1.15;
-    const thickness = 0.22;
-    const segments = 64;
-
-    // Load Logo Texture
+    // 4. Load High-Resolution Logo Texture
     const textureLoader = new THREE.TextureLoader();
-    const logoTexture = textureLoader.load("/performance-logo-003a24a4-192.png", (tex) => {
-      tex.colorSpace = THREE.SRGBColorSpace;
-      tex.minFilter = THREE.LinearMipmapLinearFilter;
-      tex.magFilter = THREE.LinearFilter;
-      tex.generateMipmaps = true;
-    });
+    const logoTexture = textureLoader.load(
+      "/performance-logo-symbol.png",
+      (tex) => {
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.minFilter = THREE.LinearMipmapLinearFilter;
+        tex.magFilter = THREE.LinearFilter;
+        tex.generateMipmaps = true;
+      },
+      undefined,
+      () => {
+        // Fallback to smaller symbol if 1024 fails
+        textureLoader.load("/performance-logo-003a24a4-192.png", (fallbackTex) => {
+          fallbackTex.colorSpace = THREE.SRGBColorSpace;
+        });
+      }
+    );
 
-    // Medallion Side Material (Glossy Emerald/Titanium)
-    const rimMaterial = new THREE.MeshStandardMaterial({
-      color: 0x064e3b,
-      roughness: 0.18,
-      metalness: 0.9,
-      emissive: 0x059669,
-      emissiveIntensity: 0.22,
-    });
+    // 5. Volumetric 3D Extrusion using layered micro-slices
+    // This creates an authentic 3D solid metallic emblem with thickness and beveled depth
+    const sliceCount = 24;
+    const depth = 0.16; // 3D thickness
+    const planeSize = 2.1;
+    const planeGeo = new THREE.PlaneGeometry(planeSize, planeSize);
 
-    // Medallion Front/Back Material with Logo Texture
-    const faceMaterial = new THREE.MeshStandardMaterial({
+    // Front Face Material
+    const frontMat = new THREE.MeshStandardMaterial({
       map: logoTexture,
       transparent: true,
+      alphaTest: 0.08,
       roughness: 0.15,
-      metalness: 0.4,
+      metalness: 0.35,
       emissive: 0x10b981,
-      emissiveIntensity: 0.18,
+      emissiveIntensity: 0.08,
+      side: THREE.FrontSide,
+      depthWrite: true,
     });
 
-    // Materials array: [side, top (front face), bottom (back face)]
-    const materials = [rimMaterial, faceMaterial, faceMaterial];
+    // Back Face Material (mirrored so it reads correctly from back)
+    const backTexture = logoTexture.clone();
+    backTexture.wrapS = THREE.RepeatWrapping;
+    backTexture.repeat.x = -1;
+    backTexture.offset.x = 1;
 
-    const cylinderGeo = new THREE.CylinderGeometry(radius, radius, thickness, segments);
-    // Orient cylinder so circular face faces Z axis (front)
-    cylinderGeo.rotateX(Math.PI / 2);
-
-    const medallionMesh = new THREE.Mesh(cylinderGeo, materials);
-    rootGroup.add(medallionMesh);
-
-    // Beveled Glow Edge Ring
-    const torusGeo = new THREE.TorusGeometry(radius * 1.01, 0.035, 16, 64);
-    const torusMat = new THREE.MeshStandardMaterial({
-      color: 0x34d399,
-      emissive: 0x34d399,
-      emissiveIntensity: 0.9,
-      roughness: 0.2,
-      metalness: 0.9,
-    });
-    const edgeRing = new THREE.Mesh(torusGeo, torusMat);
-    rootGroup.add(edgeRing);
-
-    // 5. Gyro Orbital Rings
-    const orbitalRing1Geo = new THREE.TorusGeometry(radius * 1.35, 0.015, 12, 64);
-    const orbitalRing1Mat = new THREE.MeshStandardMaterial({
-      color: 0x06b6d4,
-      emissive: 0x06b6d4,
-      emissiveIntensity: 0.7,
+    const backMat = new THREE.MeshStandardMaterial({
+      map: backTexture,
       transparent: true,
-      opacity: 0.55,
-    });
-    const orbitalRing1 = new THREE.Mesh(orbitalRing1Geo, orbitalRing1Mat);
-    orbitalRing1.rotation.x = Math.PI / 3;
-    rootGroup.add(orbitalRing1);
-
-    const orbitalRing2Geo = new THREE.TorusGeometry(radius * 1.5, 0.012, 12, 64);
-    const orbitalRing2Mat = new THREE.MeshStandardMaterial({
-      color: 0x34d399,
+      alphaTest: 0.08,
+      roughness: 0.15,
+      metalness: 0.35,
       emissive: 0x10b981,
-      emissiveIntensity: 0.6,
-      transparent: true,
-      opacity: 0.4,
+      emissiveIntensity: 0.08,
+      side: THREE.BackSide,
+      depthWrite: true,
     });
-    const orbitalRing2 = new THREE.Mesh(orbitalRing2Geo, orbitalRing2Mat);
-    orbitalRing2.rotation.y = Math.PI / 4;
-    orbitalRing2.rotation.x = -Math.PI / 6;
-    rootGroup.add(orbitalRing2);
 
-    // 6. Floating Energy Spark Particles
-    const particleCount = 28;
+    // Intermediate Depth Slice Material (Metallic Deep Emerald Rim)
+    const edgeMat = new THREE.MeshStandardMaterial({
+      map: logoTexture,
+      transparent: true,
+      alphaTest: 0.12,
+      color: 0x059669,
+      roughness: 0.25,
+      metalness: 0.85,
+      emissive: 0x047857,
+      emissiveIntensity: 0.15,
+      side: THREE.DoubleSide,
+      depthWrite: true,
+    });
+
+    // Build the extruded 3D stack
+    const halfDepth = depth / 2;
+    for (let i = 0; i < sliceCount; i++) {
+      const zPos = -halfDepth + (i / (sliceCount - 1)) * depth;
+      let mat: THREE.Material = edgeMat;
+
+      if (i === sliceCount - 1) {
+        mat = frontMat; // Top front face
+      } else if (i === 0) {
+        mat = backMat; // Back face
+      }
+
+      const sliceMesh = new THREE.Mesh(planeGeo, mat);
+      sliceMesh.position.z = zPos;
+      rootGroup.add(sliceMesh);
+    }
+
+    // 6. Subtle Floating Ambient Energy Particles (Orbiting Sparks)
+    const particleCount = 20;
     const particleGeo = new THREE.BufferGeometry();
     const particlePositions = new Float32Array(particleCount * 3);
     const particleAngles = new Float32Array(particleCount);
@@ -193,10 +200,10 @@ export default function Interactive3DLogo({
     const particleYOffsets = new Float32Array(particleCount);
 
     for (let i = 0; i < particleCount; i++) {
-      particleAngles[i] = (i / particleCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
-      particleSpeeds[i] = 0.01 + Math.random() * 0.015;
-      particleRadii[i] = radius * 1.25 + Math.random() * 0.55;
-      particleYOffsets[i] = (Math.random() - 0.5) * 0.8;
+      particleAngles[i] = (i / particleCount) * Math.PI * 2;
+      particleSpeeds[i] = 0.008 + Math.random() * 0.012;
+      particleRadii[i] = 1.35 + Math.random() * 0.45;
+      particleYOffsets[i] = (Math.random() - 0.5) * 0.9;
 
       particlePositions[i * 3] = Math.cos(particleAngles[i]) * particleRadii[i];
       particlePositions[i * 3 + 1] = particleYOffsets[i];
@@ -205,12 +212,11 @@ export default function Interactive3DLogo({
 
     particleGeo.setAttribute("position", new THREE.BufferAttribute(particlePositions, 3));
 
-    // Particle Material
     const particleMat = new THREE.PointsMaterial({
       color: 0x6ee7b7,
-      size: 0.06,
+      size: 0.045,
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.75,
       blending: THREE.AdditiveBlending,
     });
     const particles = new THREE.Points(particleGeo, particleMat);
@@ -239,8 +245,8 @@ export default function Interactive3DLogo({
         const dx = clientX - state.prevX;
         const dy = clientY - state.prevY;
 
-        state.velY = dx * 0.009;
-        state.velX = dy * 0.009;
+        state.velY = dx * 0.008;
+        state.velX = dy * 0.008;
 
         state.rotY += state.velY;
         state.rotX += state.velX;
@@ -249,12 +255,12 @@ export default function Interactive3DLogo({
         state.prevY = clientY;
         state.idleTime = 0;
       } else {
-        // Hover parallax
+        // Subtle hover parallax
         const rect = container.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
-        state.targetParallaxX = ((clientX - centerX) / (rect.width / 2)) * 0.35;
-        state.targetParallaxY = ((clientY - centerY) / (rect.height / 2)) * 0.35;
+        state.targetParallaxX = ((clientX - centerX) / (rect.width / 2)) * 0.25;
+        state.targetParallaxY = ((clientY - centerY) / (rect.height / 2)) * 0.25;
       }
     };
 
@@ -273,7 +279,7 @@ export default function Interactive3DLogo({
       state.targetParallaxY = 0;
     };
 
-    // Attach DOM events to container
+    // Attach DOM events
     container.addEventListener("mousedown", onPointerDown);
     window.addEventListener("mousemove", onPointerMove);
     window.addEventListener("mouseup", onPointerUp);
@@ -294,12 +300,12 @@ export default function Interactive3DLogo({
       const elapsedTime = clock.getElapsedTime();
 
       // Smooth parallax interpolation
-      state.currentParallaxX += (state.targetParallaxX - state.currentParallaxX) * 0.1;
-      state.currentParallaxY += (state.targetParallaxY - state.currentParallaxY) * 0.1;
+      state.currentParallaxX += (state.targetParallaxX - state.currentParallaxX) * 0.08;
+      state.currentParallaxY += (state.targetParallaxY - state.currentParallaxY) * 0.08;
 
       if (state.resetting) {
         // Smooth return to front
-        state.rotX += (0.1 - state.rotX) * 0.15;
+        state.rotX += (0 - state.rotX) * 0.15;
         state.rotY += (0 - state.rotY) * 0.15;
         state.rotZ += (0 - state.rotZ) * 0.15;
       } else if (!state.isDragging) {
@@ -314,7 +320,8 @@ export default function Interactive3DLogo({
         if (Math.abs(state.velX) < 0.0005 && Math.abs(state.velY) < 0.0005) {
           state.idleTime += delta;
           if (!reducedMotion) {
-            state.rotY += 0.008;
+            // Very subtle and gentle idle breathing rotation
+            state.rotY += 0.006;
           }
         }
       }
@@ -326,13 +333,7 @@ export default function Interactive3DLogo({
 
       // Gentle floating bobbing
       if (!reducedMotion) {
-        rootGroup.position.y = Math.sin(elapsedTime * 1.8) * 0.08;
-      }
-
-      // Rotate orbital rings
-      if (!reducedMotion) {
-        orbitalRing1.rotation.z += 0.012;
-        orbitalRing2.rotation.z -= 0.009;
+        rootGroup.position.y = Math.sin(elapsedTime * 1.5) * 0.05;
       }
 
       // Animate Particles
@@ -345,16 +346,16 @@ export default function Interactive3DLogo({
         }
         posArray[i * 3] = Math.cos(particleAngles[i]) * particleRadii[i];
         posArray[i * 3 + 1] =
-          particleYOffsets[i] + Math.sin(elapsedTime * 2 + i) * 0.08;
+          particleYOffsets[i] + Math.sin(elapsedTime * 1.6 + i) * 0.05;
         posArray[i * 3 + 2] = Math.sin(particleAngles[i]) * particleRadii[i];
       }
       posAttr.needsUpdate = true;
 
-      // Orbiting light effect
-      pointLightEmerald.position.x = Math.sin(elapsedTime * 1.5) * 2.5;
-      pointLightEmerald.position.y = Math.cos(elapsedTime * 1.5) * 2.5;
-      pointLightCyan.position.x = -Math.sin(elapsedTime * 1.2) * 2.8;
-      pointLightCyan.position.z = Math.cos(elapsedTime * 1.2) * 2.8;
+      // Orbiting specular point lights for rich reflections on 3D edges
+      pointLightGlow1.position.x = Math.sin(elapsedTime * 1.2) * 2.2;
+      pointLightGlow1.position.y = Math.cos(elapsedTime * 1.2) * 2.2;
+      pointLightGlow2.position.x = -Math.sin(elapsedTime * 0.9) * 2.5;
+      pointLightGlow2.position.z = Math.cos(elapsedTime * 0.9) * 2.5;
 
       renderer.render(scene, camera);
       animId = requestAnimationFrame(animate);
@@ -375,29 +376,25 @@ export default function Interactive3DLogo({
       container.removeEventListener("mouseleave", onMouseLeave);
 
       renderer.dispose();
-      cylinderGeo.dispose();
-      torusGeo.dispose();
-      orbitalRing1Geo.dispose();
-      orbitalRing2Geo.dispose();
+      planeGeo.dispose();
       particleGeo.dispose();
-      rimMaterial.dispose();
-      faceMaterial.dispose();
-      torusMat.dispose();
-      orbitalRing1Mat.dispose();
-      orbitalRing2Mat.dispose();
+      frontMat.dispose();
+      backMat.dispose();
+      edgeMat.dispose();
       particleMat.dispose();
       logoTexture.dispose();
+      backTexture.dispose();
     };
   }, [size, reducedMotion]);
 
   if (!webglSupported) {
-    // Elegant CSS 3D fallback if WebGL is unavailable
+    // Accessible CSS fallback
     return (
       <div className={`relative flex items-center justify-center ${className}`}>
         <img
-          src="/assets/performance-logo-003a24a4-192.png"
+          src="/performance-logo-symbol.png"
           alt="Performance Académique"
-          className="w-24 h-24 object-contain select-none animate-pulse"
+          className="w-24 h-24 object-contain select-none drop-shadow-[0_0_25px_rgba(52,211,153,0.4)]"
           width={192}
           height={192}
         />
@@ -420,12 +417,12 @@ export default function Interactive3DLogo({
         ref={canvasRef}
         width={size}
         height={size}
-        className="w-full h-full block filter drop-shadow-[0_0_25px_rgba(52,211,153,0.4)] transition-transform duration-300 group-hover:scale-105"
+        className="w-full h-full block filter drop-shadow-[0_0_28px_rgba(52,211,153,0.35)] transition-transform duration-300 group-hover:scale-105"
       />
 
       {/* Interactive Micro-hint / Action badge */}
       <div
-        className={`absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-900/90 border border-emerald-500/40 text-[9px] font-bold text-emerald-300 shadow-lg shadow-emerald-950/60 backdrop-blur-md transition-all duration-300 pointer-events-none whitespace-nowrap ${
+        className={`absolute -bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-900/90 border border-emerald-500/40 text-[9px] font-bold text-emerald-300 shadow-lg shadow-emerald-950/60 backdrop-blur-md transition-all duration-300 pointer-events-none whitespace-nowrap ${
           isHovered || !hasInteracted
             ? "opacity-100 translate-y-0"
             : "opacity-0 translate-y-1"
