@@ -10,7 +10,7 @@ interface Interactive3DLogoProps {
 
 export default function Interactive3DLogo({
   className = "",
-  size = 130,
+  size = 140,
   reducedMotion = false,
 }: Interactive3DLogoProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -61,128 +61,143 @@ export default function Interactive3DLogo({
         alpha: true,
         antialias: true,
         powerPreference: "high-performance",
+        precision: "highp",
+        stencil: false,
+        depth: true,
       });
     } catch {
       setWebglSupported(false);
       return;
     }
 
-    const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
-    renderer.setPixelRatio(pixelRatio);
-    renderer.setSize(size, size);
+    // Ultra-High Resolution Rendering for Retina/4K & browser zoom clarity
+    const updateResolution = () => {
+      // Support up to 3.5x supersampling so zooming in remains crystal clear (4K quality)
+      const dpr = Math.min(Math.max(window.devicePixelRatio || 1, 2.5), 4);
+      renderer.setPixelRatio(dpr);
+      renderer.setSize(size, size, false);
+    };
+
+    updateResolution();
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.25;
+    renderer.toneMappingExposure = 1.35;
 
     // 1. Scene & Camera
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
-    camera.position.set(0, 0, 3.8);
+    const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+    camera.position.set(0, 0, 3.9);
 
-    // 2. Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
+    // 2. Dynamic Realistic Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
     scene.add(ambientLight);
 
-    const dirLightTop = new THREE.DirectionalLight(0xffffff, 2.8);
-    dirLightTop.position.set(2, 4, 4);
-    scene.add(dirLightTop);
+    const dirLightKey = new THREE.DirectionalLight(0xffffff, 3.2);
+    dirLightKey.position.set(3, 4, 4);
+    scene.add(dirLightKey);
 
-    const dirLightBottom = new THREE.DirectionalLight(0x10b981, 2.5);
-    dirLightBottom.position.set(-3, -3, 2);
-    scene.add(dirLightBottom);
+    const dirLightRim = new THREE.DirectionalLight(0x34d399, 2.8);
+    dirLightRim.position.set(-3, -3, 2.5);
+    scene.add(dirLightRim);
 
-    const pointLightGlow1 = new THREE.PointLight(0x34d399, 3.5, 6);
-    pointLightGlow1.position.set(1.8, 1.8, 1.5);
-    scene.add(pointLightGlow1);
+    const pointLightEmerald = new THREE.PointLight(0x10b981, 4.0, 7);
+    pointLightEmerald.position.set(1.6, 1.6, 1.6);
+    scene.add(pointLightEmerald);
 
-    const pointLightGlow2 = new THREE.PointLight(0x06b6d4, 3.0, 6);
-    pointLightGlow2.position.set(-1.8, -1.5, 1.5);
-    scene.add(pointLightGlow2);
+    const pointLightCyan = new THREE.PointLight(0x06b6d4, 3.5, 7);
+    pointLightCyan.position.set(-1.6, -1.4, 1.6);
+    scene.add(pointLightCyan);
 
-    // 3. 3D Root Group (contains the volumetric extruded logo)
+    // 3. 3D Root Group (contains the volumetric logo)
     const rootGroup = new THREE.Group();
     scene.add(rootGroup);
 
-    // 4. Load High-Resolution Logo Texture
+    // 4. Load Ultra-High Definition Logo Texture (1024x1024)
+    const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
     const textureLoader = new THREE.TextureLoader();
+
+    const configureHighResTexture = (tex: THREE.Texture) => {
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.generateMipmaps = true;
+      tex.minFilter = THREE.LinearMipmapLinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      tex.anisotropy = maxAnisotropy;
+      tex.needsUpdate = true;
+    };
+
     const logoTexture = textureLoader.load(
       "/performance-logo-symbol.png",
-      (tex) => {
-        tex.colorSpace = THREE.SRGBColorSpace;
-        tex.minFilter = THREE.LinearMipmapLinearFilter;
-        tex.magFilter = THREE.LinearFilter;
-        tex.generateMipmaps = true;
-      },
+      (tex) => configureHighResTexture(tex),
       undefined,
       () => {
-        // Fallback to smaller symbol if 1024 fails
+        // Fallback if 1024 is missing
         textureLoader.load("/performance-logo-003a24a4-192.png", (fallbackTex) => {
-          fallbackTex.colorSpace = THREE.SRGBColorSpace;
+          configureHighResTexture(fallbackTex);
         });
       }
     );
 
-    // 5. Volumetric 3D Extrusion using layered micro-slices
-    // This creates an authentic 3D solid metallic emblem with thickness and beveled depth
-    const sliceCount = 24;
-    const depth = 0.16; // 3D thickness
-    const planeSize = 2.1;
-    const planeGeo = new THREE.PlaneGeometry(planeSize, planeSize);
-
-    // Front Face Material
-    const frontMat = new THREE.MeshStandardMaterial({
-      map: logoTexture,
-      transparent: true,
-      alphaTest: 0.08,
-      roughness: 0.15,
-      metalness: 0.35,
-      emissive: 0x10b981,
-      emissiveIntensity: 0.08,
-      side: THREE.FrontSide,
-      depthWrite: true,
-    });
-
-    // Back Face Material (mirrored so it reads correctly from back)
+    // Mirrored texture for the back face
     const backTexture = logoTexture.clone();
     backTexture.wrapS = THREE.RepeatWrapping;
     backTexture.repeat.x = -1;
     backTexture.offset.x = 1;
 
+    // 5. High-Fidelity 3D Layered Extrusion (Volumetric Solid Feel)
+    const sliceCount = 28;
+    const depth = 0.18; // Physical 3D thickness
+    const planeSize = 2.15;
+    const planeGeo = new THREE.PlaneGeometry(planeSize, planeSize, 1, 1);
+
+    // Front Face (Crystal clear, ultra-sharp, anti-aliased alpha)
+    const frontMat = new THREE.MeshStandardMaterial({
+      map: logoTexture,
+      transparent: true,
+      alphaTest: 0.01,
+      roughness: 0.12,
+      metalness: 0.3,
+      emissive: 0x10b981,
+      emissiveIntensity: 0.06,
+      side: THREE.FrontSide,
+      depthWrite: true,
+    });
+
+    // Back Face
     const backMat = new THREE.MeshStandardMaterial({
       map: backTexture,
       transparent: true,
-      alphaTest: 0.08,
-      roughness: 0.15,
-      metalness: 0.35,
+      alphaTest: 0.01,
+      roughness: 0.12,
+      metalness: 0.3,
       emissive: 0x10b981,
-      emissiveIntensity: 0.08,
+      emissiveIntensity: 0.06,
       side: THREE.BackSide,
       depthWrite: true,
     });
 
-    // Intermediate Depth Slice Material (Metallic Deep Emerald Rim)
+    // Metallic Emerald Extruded Edge Profile
     const edgeMat = new THREE.MeshStandardMaterial({
       map: logoTexture,
       transparent: true,
-      alphaTest: 0.12,
-      color: 0x059669,
-      roughness: 0.25,
-      metalness: 0.85,
-      emissive: 0x047857,
-      emissiveIntensity: 0.15,
+      alphaTest: 0.03,
+      color: 0x047857,
+      roughness: 0.22,
+      metalness: 0.88,
+      emissive: 0x065f46,
+      emissiveIntensity: 0.18,
       side: THREE.DoubleSide,
       depthWrite: true,
     });
 
-    // Build the extruded 3D stack
+    // Build the micro-slice extrusion stack
     const halfDepth = depth / 2;
     for (let i = 0; i < sliceCount; i++) {
       const zPos = -halfDepth + (i / (sliceCount - 1)) * depth;
       let mat: THREE.Material = edgeMat;
 
       if (i === sliceCount - 1) {
-        mat = frontMat; // Top front face
+        mat = frontMat;
       } else if (i === 0) {
-        mat = backMat; // Back face
+        mat = backMat;
       }
 
       const sliceMesh = new THREE.Mesh(planeGeo, mat);
@@ -190,8 +205,8 @@ export default function Interactive3DLogo({
       rootGroup.add(sliceMesh);
     }
 
-    // 6. Subtle Floating Ambient Energy Particles (Orbiting Sparks)
-    const particleCount = 20;
+    // 6. Floating Spark Particles (High Quality Point Sprites)
+    const particleCount = 24;
     const particleGeo = new THREE.BufferGeometry();
     const particlePositions = new Float32Array(particleCount * 3);
     const particleAngles = new Float32Array(particleCount);
@@ -201,9 +216,9 @@ export default function Interactive3DLogo({
 
     for (let i = 0; i < particleCount; i++) {
       particleAngles[i] = (i / particleCount) * Math.PI * 2;
-      particleSpeeds[i] = 0.008 + Math.random() * 0.012;
-      particleRadii[i] = 1.35 + Math.random() * 0.45;
-      particleYOffsets[i] = (Math.random() - 0.5) * 0.9;
+      particleSpeeds[i] = 0.007 + Math.random() * 0.01;
+      particleRadii[i] = 1.38 + Math.random() * 0.4;
+      particleYOffsets[i] = (Math.random() - 0.5) * 0.8;
 
       particlePositions[i * 3] = Math.cos(particleAngles[i]) * particleRadii[i];
       particlePositions[i * 3 + 1] = particleYOffsets[i];
@@ -214,9 +229,9 @@ export default function Interactive3DLogo({
 
     const particleMat = new THREE.PointsMaterial({
       color: 0x6ee7b7,
-      size: 0.045,
+      size: 0.042,
       transparent: true,
-      opacity: 0.75,
+      opacity: 0.8,
       blending: THREE.AdditiveBlending,
     });
     const particles = new THREE.Points(particleGeo, particleMat);
@@ -245,8 +260,8 @@ export default function Interactive3DLogo({
         const dx = clientX - state.prevX;
         const dy = clientY - state.prevY;
 
-        state.velY = dx * 0.008;
-        state.velX = dy * 0.008;
+        state.velY = dx * 0.0075;
+        state.velX = dy * 0.0075;
 
         state.rotY += state.velY;
         state.rotX += state.velX;
@@ -259,8 +274,8 @@ export default function Interactive3DLogo({
         const rect = container.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
-        state.targetParallaxX = ((clientX - centerX) / (rect.width / 2)) * 0.25;
-        state.targetParallaxY = ((clientY - centerY) / (rect.height / 2)) * 0.25;
+        state.targetParallaxX = ((clientX - centerX) / (rect.width / 2)) * 0.22;
+        state.targetParallaxY = ((clientY - centerY) / (rect.height / 2)) * 0.22;
       }
     };
 
@@ -291,6 +306,11 @@ export default function Interactive3DLogo({
     container.addEventListener("mouseenter", onMouseEnter);
     container.addEventListener("mouseleave", onMouseLeave);
 
+    const onWindowResize = () => {
+      updateResolution();
+    };
+    window.addEventListener("resize", onWindowResize);
+
     // 8. Animation Loop
     let animId: number;
     const clock = new THREE.Clock();
@@ -320,8 +340,7 @@ export default function Interactive3DLogo({
         if (Math.abs(state.velX) < 0.0005 && Math.abs(state.velY) < 0.0005) {
           state.idleTime += delta;
           if (!reducedMotion) {
-            // Very subtle and gentle idle breathing rotation
-            state.rotY += 0.006;
+            state.rotY += 0.005;
           }
         }
       }
@@ -333,7 +352,7 @@ export default function Interactive3DLogo({
 
       // Gentle floating bobbing
       if (!reducedMotion) {
-        rootGroup.position.y = Math.sin(elapsedTime * 1.5) * 0.05;
+        rootGroup.position.y = Math.sin(elapsedTime * 1.4) * 0.04;
       }
 
       // Animate Particles
@@ -346,16 +365,16 @@ export default function Interactive3DLogo({
         }
         posArray[i * 3] = Math.cos(particleAngles[i]) * particleRadii[i];
         posArray[i * 3 + 1] =
-          particleYOffsets[i] + Math.sin(elapsedTime * 1.6 + i) * 0.05;
+          particleYOffsets[i] + Math.sin(elapsedTime * 1.5 + i) * 0.04;
         posArray[i * 3 + 2] = Math.sin(particleAngles[i]) * particleRadii[i];
       }
       posAttr.needsUpdate = true;
 
       // Orbiting specular point lights for rich reflections on 3D edges
-      pointLightGlow1.position.x = Math.sin(elapsedTime * 1.2) * 2.2;
-      pointLightGlow1.position.y = Math.cos(elapsedTime * 1.2) * 2.2;
-      pointLightGlow2.position.x = -Math.sin(elapsedTime * 0.9) * 2.5;
-      pointLightGlow2.position.z = Math.cos(elapsedTime * 0.9) * 2.5;
+      pointLightEmerald.position.x = Math.sin(elapsedTime * 1.1) * 2.1;
+      pointLightEmerald.position.y = Math.cos(elapsedTime * 1.1) * 2.1;
+      pointLightCyan.position.x = -Math.sin(elapsedTime * 0.85) * 2.3;
+      pointLightCyan.position.z = Math.cos(elapsedTime * 0.85) * 2.3;
 
       renderer.render(scene, camera);
       animId = requestAnimationFrame(animate);
@@ -374,6 +393,7 @@ export default function Interactive3DLogo({
       window.removeEventListener("touchend", onPointerUp);
       container.removeEventListener("mouseenter", onMouseEnter);
       container.removeEventListener("mouseleave", onMouseLeave);
+      window.removeEventListener("resize", onWindowResize);
 
       renderer.dispose();
       planeGeo.dispose();
@@ -412,12 +432,11 @@ export default function Interactive3DLogo({
       role="img"
       aria-label="Logo 3D interactif - Faites glisser pour tourner"
     >
-      {/* 3D WebGL Canvas */}
+      {/* 3D WebGL Canvas with Ultra-HD Retina/4K sharp display */}
       <canvas
         ref={canvasRef}
-        width={size}
-        height={size}
-        className="w-full h-full block filter drop-shadow-[0_0_28px_rgba(52,211,153,0.35)] transition-transform duration-300 group-hover:scale-105"
+        style={{ width: size, height: size }}
+        className="block filter drop-shadow-[0_0_28px_rgba(52,211,153,0.35)] transition-transform duration-300 group-hover:scale-105"
       />
 
       {/* Interactive Micro-hint / Action badge */}
