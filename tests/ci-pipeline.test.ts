@@ -11,8 +11,9 @@ rulesTest("ci-pipeline", () => {
 
   assert.match(workflow, /actions\/checkout@v5/);
   assert.match(workflow, /actions\/setup-node@v5/);
-  assert.match(workflow, /runs-on:\s*windows-latest/);
-  assert.doesNotMatch(workflow, /runs-on:\s*\[self-hosted/);
+  // CI sur le runner self-hosted (même machine que le déploiement Hostinger).
+  assert.match(workflow, /runs-on:\s*\[self-hosted, Windows, X64\]/);
+  assert.match(workflow, /CI_POSTGRES_PORT:\s*"5433"/);
   assert.match(workflow, /package-manager-cache:\s*false/);
   assert.doesNotMatch(workflow, /^\s*cache:\s*npm/m);
   assert.match(workflow, /npm ci/);
@@ -50,7 +51,8 @@ rulesTest("ci-pipeline", () => {
   assert.match(postgresRunner, /CI_PREFLIGHT_\$\{name\}/);
   assert.match(postgresLauncher, /persistent: true/);
   assert.match(workflow, /Clean CI PostgreSQL[\s\S]*if:\s*always\(\)/);
-  assert.match(workflow, /127\.0\.0\.1:5432[^\s]*sslmode=disable/);
+  // PostgreSQL CI sur 5433 pour éviter tout conflit avec un dev local 5432.
+  assert.match(workflow, /127\.0\.0\.1:5433[^\s]*sslmode=disable/);
 
   const installIndex = workflow.indexOf("Install dependencies");
   const generateIndex = workflow.indexOf("Generate Prisma client");
