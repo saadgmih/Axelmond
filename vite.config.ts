@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import { readFileSync } from "node:fs";
 import path from "path";
 import { defineConfig } from "vite";
+import { visualizer } from "rollup-plugin-visualizer";
 
 const REACT_VENDOR_PACKAGES = /\/node_modules\/(?:react|react-dom|react-router|react-router-dom|scheduler)\//;
 const HASHED_PUBLIC_IMAGES = [
@@ -18,6 +19,11 @@ export default defineConfig(() => {
     plugins: [
       react(),
       tailwindcss(),
+      // ANALYZE=true npm run build → dist/bundle-stats.html (carte des chunks,
+      // tailles gzip). Inactif par défaut pour ne pas ralentir les builds CI.
+      ...(process.env.ANALYZE === "true"
+        ? [visualizer({ filename: "dist/bundle-stats.html", gzipSize: true, template: "list" })]
+        : []),
       {
         name: "emit-hashed-public-images",
         apply: "build",

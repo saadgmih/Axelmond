@@ -60,7 +60,8 @@
     "trailer:build": "node scripts/trailer/build-trailer.mjs",
     "trailer:simple": "node scripts/trailer/build-simple.mjs",
     "trailer:versions": "node scripts/trailer/build-all-versions.mjs",
-    "trailer": "npm run trailer:capture && npm run trailer:build"
+    "trailer": "npm run trailer:capture && npm run trailer:build",
+    "analyze": "cross-env ANALYZE=true vite build"
   },
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
@@ -87,7 +88,6 @@
     "livekit-server-sdk": "^2.15.4",
     "lucide-react": "^0.546.0",
     "nodemailer": "^9.0.1",
-    "openai": "^6.42.0",
     "otplib": "^13.4.1",
     "pdfjs-dist": "5.4.296",
     "pg": "^8.16.3",
@@ -131,13 +131,15 @@
     "pm2": "^7.0.1",
     "prettier": "^3.6.2",
     "prisma": "^6.19.3",
+    "rollup-plugin-visualizer": "^7.1.1",
     "supertest": "^7.2.2",
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
     "typescript-eslint": "^8.46.4",
     "vite": "^8.0.16",
-    "vitest": "^3.2.6"
+    "vitest": "^3.2.6",
+    "openai": "^6.42.0"
   },
   "overrides": {
     "effect": "^3.21.0",
