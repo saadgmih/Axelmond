@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { lazy, Suspense, useState, useEffect } from "react";
 import { getClientErrorMessage } from "../client-errors";
 import { User, ShieldAlert, Mail, Lock, LogIn, UserPlus, KeyRound } from "lucide-react";
 import { api, setSessionToken } from "../api";
@@ -8,7 +8,17 @@ import { getTeacherLoginSectorLabel, getTeacherLoginTabLabel } from "../rbac";
 import type { AppUser } from "../shared/app-user";
 
 export type { AppUser };
-import Interactive3DLogo from "./Interactive3DLogo";
+
+// Logo 3D (three.js ≈ 138 KiB gzip) chargé à la demande pour ne pas
+// alourdir la route visiteur — voir scripts/check-performance-budget.mjs.
+const Interactive3DLogo = lazy(() => import("./Interactive3DLogo"));
+const Logo3DPlaceholder = () => (
+  <div
+    aria-hidden="true"
+    style={{ width: 140, height: 140 }}
+    className="flex-shrink-0 animate-in zoom-in duration-300 rounded-full bg-gradient-to-br from-emerald-500/40 to-cyan-500/30 blur-[2px]"
+  />
+);
 import SkipLink from "./SkipLink";
 import { useAccessibilityPreferences } from "../hooks/useAccessibilityPreferences";
 import AccessibilityControls from "./AccessibilityControls";
@@ -272,11 +282,13 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
       <div className="w-full max-w-xl relative z-10 flex flex-col gap-6">
         <div className="flex flex-col items-center gap-4 text-center pb-2">
           {/* Logo 3D Interactif maniputable à 360° */}
-          <Interactive3DLogo
-            size={140}
-            reducedMotion={preferences.reduceMotion}
-            className="flex-shrink-0 animate-in zoom-in duration-300"
-          />
+          <Suspense fallback={<Logo3DPlaceholder />}>
+            <Interactive3DLogo
+              size={140}
+              reducedMotion={preferences.reduceMotion}
+              className="flex-shrink-0 animate-in zoom-in duration-300"
+            />
+          </Suspense>
           <div>
             <h1 className="text-2xl font-black text-white tracking-tight select-none">
               Performance <span className="text-emerald-400">Académique</span>
