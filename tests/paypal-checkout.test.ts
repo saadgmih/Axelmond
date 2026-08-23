@@ -16,11 +16,11 @@ rulesTest("paypal-checkout", () => {
   assert.match(apiSource, /"\/api\/paypal\/create-order"/);
   assert.match(apiSource, /"\/api\/paypal\/capture-order"/);
   assert.doesNotMatch(paymentModalSource, /PayPalButtons|PayPalScriptProvider/);
-  assert.match(paymentModalSource, /max-w-\[520px\]/);
-  assert.match(paymentModalSource, /max-h-\[min\(820px,96dvh\)\]/);
-  assert.match(paymentModalSource, /payment-modal-scroll-area min-h-0 overflow-y-auto/);
-  assert.match(paymentModalSource, /data-testid="paypal-hosted-card-checkout"/);
-  assert.match(paymentModalSource, /Payer par carte bancaire ou PayPal/);
+  // Grille tarifaire 3 colonnes (e2da623) : largeur conditionnelle + zone scroll dédiée.
+  assert.match(paymentModalSource, /isFreeCheckout \? "max-w-2xl" : "max-w-6xl"/);
+  assert.match(paymentModalSource, /overflow-y-auto max-h-\[calc\(90vh-180px\)\]/);
+  assert.match(paymentModalSource, /handleHostedPayPalCheckout/);
+  assert.match(paymentModalSource, /Payer par carte ou PayPal/);
   assert.doesNotMatch(paymentModalSource, /axelmond-paypal-buttons/);
   assert.match(paymentModalSource, /buildPayPalHostedCheckoutUrl/);
   assert.match(paymentModalSource, /storePendingPayPalCheckout/);

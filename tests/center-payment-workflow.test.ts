@@ -45,7 +45,7 @@ rulesTest("secure center payment workflow", () => {
   assert.match(routes, /\/api\/me\/center-payment-requests/);
   assert.match(routes, /\/api\/admin\/center-payment-requests/);
   assert.match(rbac, /center-payment-requests/);
-  assert.match(paymentModal, /Payer au centre/);
+  assert.match(paymentModal, /Paiement au Centre/);
   assert.match(paymentModal, /Confirmer ma demande/);
   assert.match(studentView, /Mes demandes de paiement/);
   assert.match(studentView, /Votre accès sera activé uniquement après validation administrative/);

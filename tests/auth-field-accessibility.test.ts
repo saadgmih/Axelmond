@@ -4,6 +4,7 @@ import { rulesTest } from "./helpers/rulesTest";
 
 rulesTest("authentication fields expose complete accessible identities", () => {
   const source = readFileSync("src/components/AuthScreen.tsx", "utf8");
+  // La filière optionnelle a été retirée du formulaire d'inscription (52052d0).
   const requiredFieldIds = [
     "auth-verification-code",
     "auth-email",
@@ -13,7 +14,6 @@ rulesTest("authentication fields expose complete accessible identities", () => {
     "auth-full-name",
     "auth-email-login",
     "auth-password",
-    "auth-filiere",
     "auth-access-key",
   ];
 
@@ -22,7 +22,7 @@ rulesTest("authentication fields expose complete accessible identities", () => {
   }
   assert.match(source, /name="resetCode"[\s\S]*?autoComplete="one-time-code"/);
   assert.match(source, /name="newPassword"[\s\S]*?autoComplete="new-password"/);
-  assert.match(source, /name=\{activeSector === "student" \? "filiere" : "professorInviteCode"\}/);
+  assert.match(source, /name="professorInviteCode"/);
   assert.match(source, /aria-describedby=\{errorMsg \? "auth-error-msg" : undefined\}/);
   assert.match(source, /id="auth-error-msg"[\s\S]*?role="alert"/);
 });

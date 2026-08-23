@@ -931,14 +931,14 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
               <h3 className="mt-6 text-2xl font-bold text-white">Félicitations ! Accès Activé</h3>
               <p className="mt-2 max-w-md text-sm leading-relaxed text-slate-300">
                 Votre accès au module <span className="font-semibold text-emerald-300">{course.title}</span> est
-                maintenant débloqué. Vous pouvez démarrer vos cours immédiatement.
+                maintenant débloqué. Vous pouvez démarrer le module immédiatement.
               </p>
               <button
                 type="button"
                 onClick={onClose}
                 className="mt-8 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-600/25 transition-all hover:bg-emerald-500"
               >
-                Accéder à mes cours
+                Accéder à mes modules
                 <ArrowRight className="h-4 w-4" />
               </button>
             </div>

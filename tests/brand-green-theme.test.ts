@@ -18,6 +18,13 @@ const sha256 = (filePath: string) => crypto.createHash("sha256").update(fs.readF
 
 rulesTest("brand-green-theme", () => {
   const cssSource = fs.readFileSync("src/index.css", "utf8");
+  // Les styles d'impression des reçus (4a4b9f7 fix(print)) utilisent légitimement
+  // du texte sombre (#0f172a…) sur papier blanc — hors périmètre de la charte écran.
+  const printStart = cssSource.indexOf(".center-payment-receipt-print-wrapper");
+  const printEnd = cssSource.indexOf("/* ─── Success Coach Responsive Layout");
+  const cssWithoutPrintStyles =
+    printStart >= 0 && printEnd > printStart ? cssSource.slice(0, printStart) + cssSource.slice(printEnd) : cssSource;
+
   assert.match(cssSource, /--pa-brand-500:\s*#05c2a5/i);
   assert.match(cssSource, /--color-indigo-500:\s*var\(--pa-brand-500\)/);
   assert.match(cssSource, /--color-violet-500:\s*var\(--pa-brand-500\)/);
@@ -40,7 +47,7 @@ rulesTest("brand-green-theme", () => {
   assert.match(cssSource, /--color-yellow-500:\s*var\(--pa-mint-500\)/);
   assert.match(cssSource, /--color-fuchsia-500:\s*var\(--pa-jade-500\)/);
   assert.doesNotMatch(
-    cssSource,
+    cssWithoutPrintStyles,
     /rgba\(139, 92, 246|rgba\(99, 102, 241|rgba\(236, 72, 153|rgba\(168, 85, 247|#818cf8|#a5b4fc|#fde047|#fbbf24|#0f172a|#020617|#1e293b/i,
   );
 

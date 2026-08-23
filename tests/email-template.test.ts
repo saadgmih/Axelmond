@@ -68,6 +68,6 @@ rulesTest("email-template", () => {
   assert.equal(getVerificationUrl({ EMAIL_VERIFICATION_URL: "http://localhost:3000" } as NodeJS.ProcessEnv), undefined);
   assert.equal(
     getVerificationUrl({ EMAIL_VERIFICATION_URL: "https://axelmond.com/verify" } as NodeJS.ProcessEnv),
-    "https://axelmond.com/verify",
+    "https://axelmond.com/verify?action=verify",
   );
 });

@@ -9,31 +9,29 @@ import {
 } from "../src/views/teacher/curriculum-theme";
 
 describe("curriculum step sequence", () => {
-  it("uses four teacher steps without a separate structure step", () => {
+  it("uses three teacher steps with merged chapters & medias", () => {
     expect(CURRICULUM_STEPS.map(({ step, label }) => ({ step, label }))).toEqual([
       { step: 1, label: "Modules" },
-      { step: 2, label: "Chapitres" },
-      { step: 3, label: "Médias" },
-      { step: 4, label: "Quiz" },
+      { step: 2, label: "Chapitres & Médias" },
+      { step: 3, label: "Quiz" },
     ]);
     expect(CURRICULUM_STEPS.some(({ label }) => label === "Structure" || label === "Syllabus")).toBe(false);
   });
 
-  it("uses six administrator steps and manages chapters without subdivisions", () => {
+  it("uses five administrator steps and manages chapters without subdivisions", () => {
     expect(ADMIN_CURRICULUM_STEPS.map(({ step, label }) => ({ step, label }))).toEqual([
       { step: 1, label: "Domaines" },
       { step: 2, label: "Sous-domaines" },
       { step: 3, label: "Modules" },
-      { step: 4, label: "Chapitres" },
-      { step: 5, label: "Médias" },
-      { step: 6, label: "Quiz" },
+      { step: 4, label: "Chapitres & Médias" },
+      { step: 5, label: "Quiz" },
     ]);
     expect(getChaptersStep(true)).toBe(4);
-    expect(getMediaStep(true)).toBe(5);
-    expect(getQuizStep(true)).toBe(6);
+    expect(getMediaStep(true)).toBe(4);
+    expect(getQuizStep(true)).toBe(5);
     expect(getChaptersStep(false)).toBe(2);
-    expect(getMediaStep(false)).toBe(3);
-    expect(getQuizStep(false)).toBe(4);
+    expect(getMediaStep(false)).toBe(2);
+    expect(getQuizStep(false)).toBe(3);
   });
 
   it("keeps content management limited to modules and chapters", () => {

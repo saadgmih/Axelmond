@@ -26,6 +26,7 @@ describe("sidebar navigation categories", () => {
       "nav-professor-access-keys",
       "nav-center-payments",
       "nav-promo-codes",
+      "nav-access-codes",
     ]);
   });
 });

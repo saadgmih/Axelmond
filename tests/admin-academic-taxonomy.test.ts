@@ -72,14 +72,14 @@ rulesTest("admin-academic-taxonomy", () => {
   assert.doesNotMatch(taxonomyView, /from-emerald-500/);
   assert.match(curriculumTheme, /label:\s*"Domaines"/);
   assert.match(curriculumTheme, /label:\s*"Sous-domaines"/);
-  assert.match(curriculumTheme, /label:\s*"Chapitres"/);
+  assert.match(curriculumTheme, /label:\s*"Chapitres & Médias"/);
   assert.doesNotMatch(curriculumTheme, /label:\s*"Syllabus"/);
   assert.doesNotMatch(curriculumTheme, /label:\s*"Structure"/);
   assert.match(curriculumTheme, /return canManageAcademicTaxonomy \? 3 : 1/);
-  assert.match(curriculumTheme, /return canManageAcademicTaxonomy \? 6 : 4/);
+  assert.match(curriculumTheme, /return canManageAcademicTaxonomy \? 5 : 3/);
   assert.match(curriculumStepper, /getCurriculumSteps\(canManageAcademicTaxonomy\)/);
-  assert.match(curriculumStepper, /xl:grid-cols-6/);
-  assert.match(curriculumStepper, /Parcourez les 6 étapes/);
+  assert.match(curriculumStepper, /xl:grid-cols-5/);
+  assert.match(curriculumStepper, /Parcourez les 5 étapes/);
   assert.match(curriculumStepper, /s\.step <= moduleStep/);
   assert.doesNotMatch(curriculumStepper, /Progression · étape/);
   assert.doesNotMatch(curriculumStepper, /progressTrack/);
@@ -90,7 +90,7 @@ rulesTest("admin-academic-taxonomy", () => {
   assert.match(curriculumView, /activeCurriculumStep === chaptersStep && <CurriculumChaptersStep \{\.\.\.props\} \/>/);
   assert.doesNotMatch(curriculumView, /CurriculumOutlineStep/);
   assert.doesNotMatch(curriculumModulesStep, /AdminAcademicTaxonomyView/);
-  assert.match(teacherCurriculumHook, /currentUser\?\.role === "ADMIN" \? 6 : 4/);
+  assert.match(teacherCurriculumHook, /currentUser\?\.role === "ADMIN" \? 5 : 3/);
   assert.match(teacherRouteSwitch, /teacherView === "curriculum"/);
   assert.match(teacherRouteSwitch, /canManageAcademicTaxonomy=\{currentUser\.role === "ADMIN"\}/);
   assert.match(teacherRouteSwitch, /\{\.\.\.teacherDashboardBindings\}/);

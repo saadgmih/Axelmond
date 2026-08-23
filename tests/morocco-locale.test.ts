@@ -10,7 +10,8 @@ import { rulesTest } from "./helpers/rulesTest.ts";
 rulesTest("morocco-locale", () => {
   assert.equal(PLATFORM_CREDITS_ABBREV, "PA");
   assert.equal(PLATFORM_CREDITS_NAME, "Performance Académique");
-  assert.equal(creditsLabel(), "PA");
+  // Libellé complet depuis 2154041 (style curriculum : field labels).
+  assert.equal(creditsLabel(), "Points de complétion (PA)");
   assert.equal(formatCredits(1), "1 PA");
   assert.equal(formatCredits(23), "23 PA");
 });

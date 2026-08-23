@@ -22,7 +22,8 @@ rulesTest("quiz-latex-rendering", () => {
   assert.match(teacherQuizSource, /value=\{opt\}/);
   assert.match(teacherQuizSource, /value=\{newQuestionExplanation\}/);
 
-  assert.match(studentCourseSource, /Quiz scientifique avec LaTeX/);
+  // Badge allégé en 8e61829 (style quiz) — le rendu KaTeX reste vérifié plus bas.
+  assert.match(studentCourseSource, /Quiz scientifique/);
   assert.match(studentCourseSource, /value=\{q\.question\}/);
   assert.match(studentCourseSource, /value=\{option\}/);
   assert.match(studentCourseSource, /value=\{q\.explanation\}/);

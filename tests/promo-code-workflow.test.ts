@@ -101,11 +101,10 @@ describe("complete promo code workflow wiring", () => {
 
   it("shows a server preview and a remove action to students", () => {
     expect(modal).toMatch(/api\.validatePromoCode/);
-    expect(modal).toContain("Prix initial");
-    expect(modal).toContain("Réduction");
-    expect(modal).toContain("Prix final");
-    expect(modal).toContain("Retirer le code");
-    expect(modal).toContain("revérifié lors du paiement");
+    // Grille tarifaire redesignée (e2da623) : prix barré + Économie + action Retirer.
+    expect(modal).toContain("line-through");
+    expect(modal).toContain("Économie");
+    expect(modal).toContain("Retirer");
   });
 
   it("provides responsive administration, precise and relative dates, filters, statistics and history", () => {

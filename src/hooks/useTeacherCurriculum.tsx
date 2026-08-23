@@ -155,7 +155,7 @@ export function useTeacherCurriculum({
   const [newQuestionExplanation, setNewQuestionExplanation] = useState("");
   const [quizManagerMsg, setQuizManagerMsg] = useState("");
   const [quizManagerError, setQuizManagerError] = useState("");
-  const quizStep = currentUser?.role === "ADMIN" ? 6 : 4;
+  const quizStep = currentUser?.role === "ADMIN" ? 5 : 3;
 
   const { startRequest } = useAsyncEffectGuard();
   const scheduleClear = useAutoClearTimeout();

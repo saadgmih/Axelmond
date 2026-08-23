@@ -24,7 +24,9 @@ rulesTest("auth-cookies-csrf", async () => {
   assert.equal(REFRESH_COOKIE_PATH, "/api/auth");
 
   assert.match(authCookiesSource, /httpOnly:\s*true/);
-  assert.match(authCookiesSource, /sameSite:\s*"strict"/);
+  // Prod passe en sameSite "lax" (compatibilité navigation intersite Hostinger/PayPal),
+  // dev reste "strict" — voir commit f5ef6ba fix(hostinger).
+  assert.match(authCookiesSource, /sameSite:\s*prod \? "lax" : "strict"/);
   assert.match(authCookiesSource, /path:\s*REFRESH_COOKIE_PATH/);
   assert.match(authCookiesSource, /httpOnly:\s*false/);
 
