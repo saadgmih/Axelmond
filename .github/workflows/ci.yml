@@ -71,6 +71,7 @@ jobs:
           CI_PREFLIGHT_NODE_ENV: production
           CI_PREFLIGHT_APP_URL: https://axelmond.com
           CI_PREFLIGHT_DATABASE_URL: postgresql://ci:ci@db.example.com:5432/axelmond?sslmode=require
+          CI_PREFLIGHT_MFA_ENCRYPTION_KEY: 1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
           CI_PREFLIGHT_MOBILE_CLIENT_SECRET: ci-mobile-secret-32-characters-minimum-value
           CI_PREFLIGHT_PAYPAL_CLIENT_ID: x
           CI_PREFLIGHT_PAYPAL_CLIENT_SECRET: y

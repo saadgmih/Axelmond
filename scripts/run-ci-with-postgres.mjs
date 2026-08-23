@@ -13,6 +13,7 @@ const preflightEnvironmentNames = [
   "NODE_ENV",
   "APP_URL",
   "DATABASE_URL",
+  "MFA_ENCRYPTION_KEY",
   "MOBILE_CLIENT_SECRET",
   "PAYPAL_CLIENT_ID",
   "PAYPAL_CLIENT_SECRET",
