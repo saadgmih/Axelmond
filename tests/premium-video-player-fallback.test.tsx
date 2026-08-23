@@ -70,12 +70,21 @@ describe("PremiumVideoPlayer resilient source fallback", () => {
     const video = container.querySelector("video")!;
     expect(video).toHaveClass("opacity-0");
 
-    Object.defineProperty(video, "currentTime", { configurable: true, value: 5.1 });
-    fireEvent.timeUpdate(video);
-
-    await waitFor(() => expect(screen.queryByTestId("branded-video-intro")).not.toBeInTheDocument(), {
-      timeout: 3000,
-    });
-    expect(video).toHaveClass("opacity-100");
+    // Le hook écoute l'événement natif "timeupdate" (addEventListener) et la
+    // balise <video> est remontée quand resolvedSrc arrive : selon le
+    // scheduling React, le listener peut ne pas encore être rattaché au
+    // nouvel élément lors d'un dispatch unique. On re-déclenche donc
+    // l'événement dans la boucle d'attente : dès que le listener est actif,
+    // l'état avance et l'overlay démonte — plus de course (ex-flaky CI).
+    await waitFor(
+      () => {
+        const currentVideo = container.querySelector("video")!;
+        Object.defineProperty(currentVideo, "currentTime", { configurable: true, value: 5.1 });
+        fireEvent.timeUpdate(currentVideo);
+        expect(screen.queryByTestId("branded-video-intro")).not.toBeInTheDocument();
+      },
+      { timeout: 5000 },
+    );
+    expect(container.querySelector("video")).toHaveClass("opacity-100");
   });
 });
