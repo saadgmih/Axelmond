@@ -29,9 +29,10 @@ interface ScenarioResult {
   route: string;
   rps: number;
   p50: number;
-  p95: number;
+  p90: number;
   p99: number;
   errors: number;
+  statusBreakdown: { s2xx: number; s3xx: number; s4xx: number; s5xx: number };
   totalRequests: number;
   duration: number;
   throughputKbps: number;
@@ -63,9 +64,10 @@ async function runScenario(connections: number, route: string): Promise<Scenario
             route,
             rps: 0,
             p50: 0,
-            p95: 0,
+            p90: 0,
             p99: 0,
             errors: connections,
+            statusBreakdown: { s2xx: 0, s3xx: 0, s4xx: 0, s5xx: 0 },
             totalRequests: 0,
             duration: DURATION_SECONDS,
             throughputKbps: 0,
@@ -77,23 +79,43 @@ async function runScenario(connections: number, route: string): Promise<Scenario
 
         const rps = Math.round(result.requests.average);
         const p50 = result.latency.p50 ?? result.latency.average;
-        const p95 = result.latency.p97_5 ?? result.latency.p90;
+        // autocannon n'expose pas p95 nativement : p90 pour la lecture basse,
+        // p97_5 (>= p95) pour le SLO — conservateur.
+        const p90 = result.latency.p90 ?? result.latency.p50 ?? result.latency.average;
+        const p95 = result.latency.p97_5 ?? result.latency.p90 ?? result.latency.average;
         const p99 = result.latency.p99 ?? result.latency.max;
-        const errors = (result.errors || 0) + (result["2xx"] ? 0 : result.requests.total);
+        const statusBreakdown = {
+          s2xx: result["2xx"] || 0,
+          s3xx: result["3xx"] || 0,
+          s4xx: result["4xx"] || 0,
+          s5xx: result["5xx"] || 0,
+        };
+        // Erreurs réelles : échecs transport/timeout + réponses non-2xx.
+        // (L'ancienne formule comptait 100% d'erreurs dès que result["2xx"]
+        // était falsy — un simple compteur non défini faussait tout le rapport.)
+        const errors = (result.errors || 0) + (result.non2xx || 0);
         const totalRequests = result.requests.total;
         const throughputKbps = Math.round((result.throughput.average || 0) / 1024);
 
         const issues: string[] = [];
         const totalErrorRate = totalRequests > 0 ? (errors / totalRequests) * 100 : 0;
 
-        if (totalErrorRate > SLO.errorRatePct) {
+        if (statusBreakdown.s4xx > 0 && statusBreakdown.s4xx === statusBreakdown.s4xx + statusBreakdown.s5xx) {
+          const rateLimited = statusBreakdown.s4xx;
+          if (rateLimited / Math.max(totalRequests, 1) > 0.01) {
+            issues.push(
+              `${rateLimited} réponses 4xx détectées — le rate limiting n'est probablement pas neutralisé (démarrez le serveur avec LOAD_TEST_MODE=1)`,
+            );
+          }
+        }
+        if (totalErrorRate > SLO.errorRatePct && !issues.length) {
           issues.push(`Taux d'erreur ${totalErrorRate.toFixed(1)}% > ${SLO.errorRatePct}%`);
         }
         if (p99 > SLO.p99LatencyMs) {
           issues.push(`p99 latence ${p99}ms > ${SLO.p99LatencyMs}ms`);
         }
         if (p95 > SLO.p95LatencyMs) {
-          issues.push(`p95 latence ${p95}ms > ${SLO.p95LatencyMs}ms`);
+          issues.push(`p95+ latence ${p95}ms > ${SLO.p95LatencyMs}ms`);
         }
 
         const minRps =
@@ -106,16 +128,19 @@ async function runScenario(connections: number, route: string): Promise<Scenario
         const status: ScenarioResult["status"] =
           issues.length === 0 ? "✅ OK" : issues.length <= 1 ? "⚠️ DEGRADED" : "❌ FAILED";
 
-        console.log(`    ${status}  RPS=${rps}  p50=${p50}ms  p95=${p95}ms  p99=${p99}ms  erreurs=${errors}`);
+        console.log(
+          `    ${status}  RPS=${rps}  p50=${p50}ms  p90=${p90}ms  p99=${p99}ms  erreurs=${errors} (2xx:${statusBreakdown.s2xx} 3xx:${statusBreakdown.s3xx} 4xx:${statusBreakdown.s4xx} 5xx:${statusBreakdown.s5xx})`,
+        );
 
         resolve({
           connections,
           route,
           rps,
           p50,
-          p95,
+          p90,
           p99,
           errors,
+          statusBreakdown,
           totalRequests,
           duration: DURATION_SECONDS,
           throughputKbps,
@@ -139,7 +164,7 @@ function buildMarkdownReport(results: ScenarioResult[]): string {
   const rows = results
     .map(
       (r) =>
-        `| ${r.connections} | \`${r.route}\` | ${r.rps} | ${r.p50}ms | ${r.p95}ms | ${r.p99}ms | ${r.errors} | ${r.throughputKbps} KB/s | ${r.status} |`,
+        `| ${r.connections} | \`${r.route}\` | ${r.rps} | ${r.p50}ms | ${r.p90}ms | ${r.p99}ms | ${r.errors} | 2xx:${r.statusBreakdown.s2xx} · 3xx:${r.statusBreakdown.s3xx} · 4xx:${r.statusBreakdown.s4xx} · 5xx:${r.statusBreakdown.s5xx} | ${r.throughputKbps} KB/s | ${r.status} |`,
     )
     .join("\n");
 
@@ -161,9 +186,9 @@ function buildMarkdownReport(results: ScenarioResult[]): string {
 
 | Métrique | Seuil |
 |----------|-------|
-| Latence p95 | < ${SLO.p95LatencyMs}ms |
+| Latence p95+ (p97.5 mesuré) | < ${SLO.p95LatencyMs}ms |
 | Latence p99 | < ${SLO.p99LatencyMs}ms |
-| Taux d'erreur | < ${SLO.errorRatePct}% |
+| Taux d'erreur (transport + non-2xx) | < ${SLO.errorRatePct}% |
 | Débit min (100 users) | ≥ ${SLO.minRpsFor100} req/s |
 | Débit min (500 users) | ≥ ${SLO.minRpsFor500} req/s |
 | Débit min (1000 users) | ≥ ${SLO.minRpsFor1000} req/s |
@@ -172,8 +197,8 @@ function buildMarkdownReport(results: ScenarioResult[]): string {
 
 ## Résultats par Scénario
 
-| Utilisateurs | Route | RPS | p50 | p95 | p99 | Erreurs | Débit | Statut |
-|---|---|---|---|---|---|---|---|---|
+| Utilisateurs | Route | RPS | p50 | p90 | p99 | Erreurs | Codes HTTP | Débit | Statut |
+|---|---|---|---|---|---|---|---|---|---|
 ${rows}
 
 ---
@@ -188,10 +213,13 @@ ${issues || "\n✅ Aucun problème détecté — tous les SLO sont respectés.\n
 \`\`\`
 Performance Académique — Protections actives :
   ✅ Compression gzip            (réduction ~70% de la taille des réponses JSON)
-  ✅ Rate limiting global        (100 req / 15min / IP — configurable via RATE_LIMIT_MAX_REQUESTS)
-  ✅ Rate limiting auth strict   (10 req / 15min / IP — protection brute-force)
-  ✅ Cache LRU mémoire (60s)     (GET /api/domains + GET /api/courses pour visiteurs anonymes)
-  ✅ Pool Prisma optimisé        (Neon serverless avec connection_limit dans DATABASE_URL)
+  ✅ Rate limiting global        (500 req / 15min / IP par défaut — configurable via RATE_LIMIT_MAX_REQUESTS)
+  ✅ Rate limiting auth strict   (10 req / 30s par email+IP — protection brute-force)
+  ✅ Cache catalogue partagé     (Redis si REDIS_URL, sinon LRU mémoire — 60s+ configurable)
+  ✅ Rate limits partagés        (store Redis commun aux workers PM2 si REDIS_URL, fail-open)
+  ✅ Pagination opt-in           (GET /api/courses?page=1&pageSize=50 → { items, total, totalPages })
+  ✅ ETag + 304                  (GET /api/courses et /api/courses anonymes — Cache-Control public)
+  ✅ Pool Prisma optimisé        (connection_limit dans DATABASE_URL)
   ✅ Logs de performance         (p95/p99 par route, CPU/RAM toutes les 30s)
   ✅ Alerte requêtes lentes      (log [perf] WARN si réponse > 1s)
   ✅ Alerte mémoire              (log [perf] WARN si heap > 80% ou RAM système < 10%)
@@ -203,21 +231,18 @@ Performance Académique — Protections actives :
 
 ---
 
-## Commandes de Scalabilité
+## Protocole de Test
 
 \`\`\`bash
-# Lancer en mode cluster PM2 (production)
-npm run build
-npm run start:cluster
+# 1. Démarrer le serveur en mode test de charge (neutralise le rate limit global,
+#    hors production uniquement — refusé si NODE_ENV=production) :
+LOAD_TEST_MODE=1 npm run dev
 
-# Recharger sans downtime (zero-downtime reload)
-npm run reload:cluster
+# 2. (Optionnel, recommandé en cluster) Redis partagé :
+#    définir REDIS_URL dans .env → cache + compteurs de rate limit partagés
 
-# Relancer ce rapport
+# 3. Lancer ce rapport :
 npm run load-test
-
-# Monitoring PM2 en temps réel
-node_modules/.bin/pm2 monit
 \`\`\`
 `;
 }
@@ -228,15 +253,36 @@ async function main() {
   console.log(`Durée par scénario : ${DURATION_SECONDS}s`);
   console.log(`Scénarios : 100 / 500 / 1000 utilisateurs simultanés\n`);
 
-  // Vérification que le serveur est accessible
+  // ── Preflight protocole ─────────────────────────────────────────────────
+  // Un test de charge lancé depuis une seule IP déclenche le rate limiter
+  // global au bout de RATE_LIMIT_MAX_REQUESTS requêtes : le rapport mesurerait
+  // alors le limiter, pas l'application. On vérifie donc que le serveur tourne
+  // bien avec LOAD_TEST_MODE=1 avant toute mesure.
   try {
     const response = await fetch(`${BASE_URL}/api/health`);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    console.log(`✅ Serveur accessible : ${BASE_URL}/api/health\n`);
+    const health = (await response.json()) as {
+      status?: string;
+      diagnostics?: { loadTestMode?: boolean; cacheBackend?: string; sharedRateLimitStore?: boolean };
+    };
+    console.log(`✅ Serveur accessible : ${BASE_URL}/api/health`);
+    if (health.diagnostics) {
+      console.log(
+        `   Cache backend : ${health.diagnostics.cacheBackend ?? "?"} · Store RL partagé : ${health.diagnostics.sharedRateLimitStore ? "Redis" : "mémoire (par worker)"}`,
+      );
+      if (!health.diagnostics.loadTestMode && process.env.LOAD_TEST_SKIP_PREFLIGHT !== "1") {
+        console.error(`\n❌ Protocole invalide : le serveur n'est PAS démarré avec LOAD_TEST_MODE=1.`);
+        console.error(`   Le rate limiter global (500 req/15min/IP) fausserait tous les scénarios 429.`);
+        console.error(`   → Arrêtez le serveur et relancez : LOAD_TEST_MODE=1 npm run dev`);
+        console.error(`   (contourner volontairement : LOAD_TEST_SKIP_PREFLIGHT=1 npm run load-test)\n`);
+        process.exit(2);
+      }
+    }
+    console.log("");
   } catch (err: any) {
     console.error(`❌ Serveur inaccessible sur ${BASE_URL}`);
     console.error(`   Erreur : ${err.message}`);
-    console.error(`   Lancez le serveur avec : npm run dev\n`);
+    console.error(`   Lancez le serveur avec : LOAD_TEST_MODE=1 npm run dev\n`);
     process.exit(1);
   }
 

@@ -12,6 +12,7 @@ import { verifyDatabaseConnection } from "../db";
 import { getPayPalRuntimeEnv } from "../paypal-server";
 import { startPerformanceMonitor } from "../performance";
 import { initCache, startCachePruner, stopCachePruner, disconnectCache } from "../cache";
+import { shutdownRateLimitStore } from "../rate-limit-redis";
 import { startAuditLogRetention, stopAuditLogRetention } from "../audit-log-service";
 import { startRefreshTokenCleanup, stopRefreshTokenCleanup } from "../auth-token-cleanup";
 import { verifySmtpConnection, readSmtpBanner, getSmtpStartupSummary } from "../email";
@@ -504,6 +505,11 @@ function registerGracefulShutdown(httpServer: ReturnType<typeof createServer>, i
               await disconnectCache();
             } catch (err) {
               logDb("WARN", "Cache disconnect failed during shutdown", { error: String(err) });
+            }
+            try {
+              await shutdownRateLimitStore();
+            } catch (err) {
+              logDb("WARN", "Rate limit store disconnect failed during shutdown", { error: String(err) });
             }
             try {
               const { disconnectDatabase } = await import("../db");

@@ -27,7 +27,7 @@ rulesTest("security-score-guards", () => {
     {
       id: "catalog-timeout",
       weight: 5,
-      ok: /CATALOG_QUERY_TIMEOUT_MS/.test(fs.readFileSync("src/routes/courses-routes.ts", "utf8")),
+      ok: /CATALOG_QUERY_TIMEOUT_MS/.test(fs.readFileSync("src/routes/catalog-query.ts", "utf8")),
     },
     {
       id: "deploy-preflight",

@@ -2,6 +2,7 @@ import type { Express } from "express";
 import type { RouteContext } from "../server/route-context";
 import { buildCatalogCourseVisibilityWhere } from "../catalog-visibility";
 import { getActiveEnrolledCourseIds } from "../enrollment-access";
+import { sendPublicJsonWithEtag } from "../server/http-cache";
 import * as api from "../server/route-deps";
 
 export function registerCatalogRoutes(app: Express, ctx: RouteContext): void {
@@ -20,7 +21,11 @@ export function registerCatalogRoutes(app: Express, ctx: RouteContext): void {
       const cached = await api.cacheGet(cacheKey);
 
       if (cached) {
-        res.json(JSON.parse(cached));
+        if (cacheKey === "api:domains:public") {
+          sendPublicJsonWithEtag(req, res, cached);
+        } else {
+          res.json(JSON.parse(cached));
+        }
         return;
       }
     }
@@ -71,8 +76,16 @@ export function registerCatalogRoutes(app: Express, ctx: RouteContext): void {
 
     api.logDb("INFO", "Academic domains listed", { userId: authUser?.id, domains: payload.length });
 
-    if (cacheKey) await api.cacheSet(cacheKey, JSON.stringify(payload), Number(process.env.CACHE_TTL_SECONDS) || 60);
+    const responseBody = JSON.stringify(payload);
 
-    res.json(payload);
+    if (cacheKey) {
+      await api.cacheSet(cacheKey, responseBody, Number(process.env.CACHE_TTL_SECONDS) || 60);
+    }
+
+    if (cacheKey === "api:domains:public") {
+      sendPublicJsonWithEtag(req, res, responseBody);
+    } else {
+      res.json(payload);
+    }
   });
 }

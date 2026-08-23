@@ -5,11 +5,12 @@ import type { RouteContext } from "../server/route-context";
 import { getActiveEnrolledCourseIds } from "../enrollment-access";
 import { buildCatalogCourseVisibilityWhere } from "../catalog-visibility";
 import { resolveFreeAccessWindowForSave } from "../course-free-access-window";
+import { sendPublicJsonWithEtag } from "../server/http-cache";
+import { parseCatalogPagination, catalogPaginationCachePart, buildCatalogResponseBody } from "./catalog-pagination";
+import { withCatalogTimeout, resolveCourseCatalogWhere } from "./catalog-query";
 import * as api from "../server/route-deps";
 
 // Academic events delivered to students: NEW_COURSE, NEW_MODULE, COURSE_UPDATED, LIVE_STARTED, LIVE_FINISHED.
-
-const CATALOG_QUERY_TIMEOUT_MS = Number(process.env.CATALOG_QUERY_TIMEOUT_MS) || 15000;
 
 function resolveFreeAccessWindow(price: number, startsAt?: Date | string | null, endsAt?: Date | string | null) {
   if (price > 0) return { freeAccessStartsAt: null, freeAccessEndsAt: null, freeAccessDurationDays: null };
@@ -38,26 +39,10 @@ function patchTouchesPricing(body: Record<string, unknown>) {
   );
 }
 
-async function withCatalogTimeout<T>(promise: Promise<T>, label: string): Promise<T> {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  try {
-    return await Promise.race([
-      promise,
-      new Promise<T>((_, reject) => {
-        timer = setTimeout(() => {
-          reject(new Error(`${label} timed out after ${CATALOG_QUERY_TIMEOUT_MS}ms`));
-        }, CATALOG_QUERY_TIMEOUT_MS);
-      }),
-    ]);
-  } finally {
-    if (timer) clearTimeout(timer);
-  }
-}
-
 export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
   const { requireAuth, requireRbac, validateBody } = ctx.middleware;
 
-  // GET /api/courses
+  // GET /api/courses — pagination opt-in : ?page=1&pageSize=50 (voir catalog-pagination.ts)
 
   app.get("/api/courses", async (req, res, next) => {
     try {
@@ -69,13 +54,16 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
       const disciplineId = Number(req.query.disciplineId) || 0;
       const bypassCache = req.query.fresh === "1";
 
+      const pagination = parseCatalogPagination(req.query as Record<string, unknown>);
+
       const isStudent = authUser?.role === "STUDENT";
       let cacheKey: string | null = null;
       if (!bypassCache) {
+        const paginationPart = catalogPaginationCachePart(pagination);
         if (!authUser) {
-          cacheKey = `api:courses:public:d=${domainId}:dis=${disciplineId}`;
+          cacheKey = `api:courses:public:d=${domainId}:dis=${disciplineId}${paginationPart}`;
         } else if (isStudent) {
-          cacheKey = `api:courses:student:${authUser.id}:d=${domainId}:dis=${disciplineId}`;
+          cacheKey = `api:courses:student:${authUser.id}:d=${domainId}:dis=${disciplineId}${paginationPart}`;
         }
       }
 
@@ -83,7 +71,11 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
         const cached = await api.cacheGet(cacheKey);
 
         if (cached) {
-          res.json(JSON.parse(cached));
+          if (!authUser) {
+            sendPublicJsonWithEtag(req, res, cached);
+          } else {
+            res.json(JSON.parse(cached));
+          }
           return;
         }
       }
@@ -97,30 +89,21 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
         studentEnrolledIds,
       });
 
-      const where: any = { ...visibilityWhere };
+      const where = await resolveCourseCatalogWhere(visibilityWhere, domainId, disciplineId);
 
-      if (Number.isInteger(disciplineId) && disciplineId > 0) {
-        where.disciplineId = disciplineId;
-      } else if (Number.isInteger(domainId) && domainId > 0) {
-        const disciplineIds = await withCatalogTimeout(
-          api.prisma.discipline.findMany({
-            where: { domainId },
-            select: { id: true },
-          }),
-          "discipline lookup",
-        );
+      const coursesQuery = {
+        where,
+        include: api.courseListResponseInclude,
+        orderBy: { id: "asc" as const },
+        ...(pagination.isPaginated
+          ? { skip: (pagination.page - 1) * pagination.pageSize, take: pagination.pageSize }
+          : {}),
+      };
 
-        where.disciplineId = { in: disciplineIds.map((discipline) => discipline.id) };
-      }
-
-      const courses = await withCatalogTimeout(
-        api.prisma.course.findMany({
-          where,
-          include: api.courseListResponseInclude,
-          orderBy: { id: "asc" },
-        }),
-        "course catalog query",
-      );
+      const [courses, totalForPagination] = await Promise.all([
+        withCatalogTimeout(api.prisma.course.findMany(coursesQuery), "course catalog query"),
+        pagination.isPaginated ? withCatalogTimeout(api.prisma.course.count({ where }), "course catalog count") : null,
+      ]);
 
       let payload;
       if (authUser?.role === "STUDENT" && dbUser) {
@@ -152,14 +135,25 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
         count: payload.length,
       });
 
+      const finalBody = buildCatalogResponseBody(
+        payload,
+        pagination,
+        totalForPagination === null ? null : Number(totalForPagination),
+      );
+
       if (cacheKey) {
         const ttl = isStudent
           ? Number(process.env.STUDENT_CATALOG_CACHE_SECONDS) || Number(process.env.CACHE_TTL_SECONDS) || 60
           : Number(process.env.CACHE_TTL_SECONDS) || 60;
-        await api.cacheSet(cacheKey, JSON.stringify(payload), ttl);
+        await api.cacheSet(cacheKey, finalBody, ttl);
       }
 
-      res.json(payload);
+      if (!authUser) {
+        sendPublicJsonWithEtag(req, res, finalBody);
+      } else {
+        res.setHeader("Content-Type", "application/json; charset=utf-8");
+        res.send(finalBody);
+      }
     } catch (err) {
       api.logDb("ERROR", "Academic modules listing failed", {
         error: String(err),

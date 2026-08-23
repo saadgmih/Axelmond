@@ -27,6 +27,7 @@ import { liveKitRateLimitKey } from "../livekit-rate-limit";
 import { adminRateLimitKey } from "../admin-rate-limit";
 import { PAYPAL_CSP_SCRIPT_SRC, PAYPAL_CSP_IMG_SRC, PAYPAL_CSP_FORM_ACTION, buildCspFrameSrc } from "../paypal-csp";
 import { parseTrustProxySetting, rateLimitIpKey } from "../client-ip";
+import { createSharedRateLimitStore } from "../rate-limit-redis";
 import { isDatabaseDisconnected } from "../db";
 import { shutdownGuardMiddleware } from "./shutdown-coordination";
 import { startupLifecycle } from "./startup-lifecycle";
@@ -245,11 +246,26 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     next();
   });
   const routeCtx = createRouteContext(routeDeps);
+
+  // Store de compteurs partagé entre workers quand REDIS_URL est configuré.
+  // passOnStoreError : si Redis tombe, les requêtes passent (fail-open).
+  const sharedRateLimitStore = createSharedRateLimitStore();
+  const sharedRateLimitOptions = sharedRateLimitStore
+    ? { store: sharedRateLimitStore, passOnStoreError: true as const }
+    : {};
+
+  // Mode protocole de test de charge (refusé en production) : neutralise le
+  // rate limiter global que le test mon-IP déclencherait sinon immédiatement.
+  const isLoadTestMode = !isProduction && process.env.LOAD_TEST_MODE === "1";
+  if (isLoadTestMode)
+    console.warn("[create-app] LOAD_TEST_MODE actif : rate limit global neutralisé (test de charge).");
+
   const paypalWebhookRateLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: isSecurityRuntimeTest ? 9999 : Number(process.env.PAYPAL_WEBHOOK_RATE_LIMIT_MAX) || 120,
     standardHeaders: true,
     legacyHeaders: false,
+    ...sharedRateLimitOptions,
     keyGenerator: (req) => rateLimitIpKey(req),
     message: {
       error: "Trop de requêtes webhook PayPal. Veuillez patienter 15 minutes.",
@@ -270,9 +286,10 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
 
   const globalRateLimiter = rateLimit({
     windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-    max: Number(process.env.RATE_LIMIT_MAX_REQUESTS) || 500,
+    max: isLoadTestMode ? 99_999_999 : Number(process.env.RATE_LIMIT_MAX_REQUESTS) || 500,
     standardHeaders: true,
     legacyHeaders: false,
+    ...sharedRateLimitOptions,
     message: { error: "Trop de requêtes. Veuillez réessayer dans quelques minutes.", code: "RATE_LIMIT_EXCEEDED" },
     skip: (req) => req.path === "/health" || req.path === "/live" || req.path === "/paypal/webhook",
   });
@@ -281,6 +298,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     max: AUTH_RATE_LIMIT_MAX,
     standardHeaders: true,
     legacyHeaders: false,
+    ...sharedRateLimitOptions,
     keyGenerator: (req) => {
       const email = req.body?.email;
       return email ? String(email).trim().toLowerCase() : rateLimitIpKey(req);
@@ -295,6 +313,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     max: 5,
     standardHeaders: true,
     legacyHeaders: false,
+    ...sharedRateLimitOptions,
     keyGenerator: emailRateLimitKey,
     message: {
       error: "Trop de demandes de vérification. Veuillez patienter 15 minutes.",
@@ -306,6 +325,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     max: 10,
     standardHeaders: true,
     legacyHeaders: false,
+    ...sharedRateLimitOptions,
     keyGenerator: emailRateLimitKey,
     message: {
       error: "Trop de demandes de vérification. Veuillez patienter 15 minutes.",
@@ -317,6 +337,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     max: 5,
     standardHeaders: true,
     legacyHeaders: false,
+    ...sharedRateLimitOptions,
     keyGenerator: emailRateLimitKey,
     message: {
       error: "Trop de demandes de vérification. Veuillez patienter 15 minutes.",
@@ -329,6 +350,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     max: 10,
     standardHeaders: true,
     legacyHeaders: false,
+    ...sharedRateLimitOptions,
     keyGenerator: emailRateLimitKey,
     message: {
       error: "Trop de demandes de vérification. Veuillez patienter 15 minutes.",
@@ -343,6 +365,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
       : Number(process.env.UPLOAD_RATE_LIMIT_MAX) || 30,
     standardHeaders: true,
     legacyHeaders: false,
+    ...sharedRateLimitOptions,
     message: { error: "Trop d'envois de fichiers. Veuillez patienter 15 minutes.", code: "UPLOAD_RATE_LIMIT_EXCEEDED" },
   });
 
@@ -351,6 +374,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     max: Number(process.env.LIVEKIT_RATE_LIMIT_MAX) || 100,
     standardHeaders: true,
     legacyHeaders: false,
+    ...sharedRateLimitOptions,
     message: {
       error: "Trop de demandes de connexions live. Veuillez patienter 15 minutes.",
       code: "LIVEKIT_RATE_LIMIT_EXCEEDED",
@@ -364,6 +388,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
       : Number(process.env.LIVEKIT_MODERATION_RATE_LIMIT_MAX) || 30,
     standardHeaders: true,
     legacyHeaders: false,
+    ...sharedRateLimitOptions,
     keyGenerator: liveKitRateLimitKey,
     message: {
       error: "Trop d'actions de modération live. Veuillez patienter 15 minutes.",
@@ -378,6 +403,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
       : Number(process.env.ADMIN_READ_RATE_LIMIT_MAX) || 300,
     standardHeaders: true,
     legacyHeaders: false,
+    ...sharedRateLimitOptions,
     keyGenerator: adminRateLimitKey,
     message: {
       error: "Trop de lectures admin. Veuillez patienter 15 minutes.",
@@ -392,6 +418,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
       : Number(process.env.ADMIN_MUTATION_RATE_LIMIT_MAX) || 60,
     standardHeaders: true,
     legacyHeaders: false,
+    ...sharedRateLimitOptions,
     keyGenerator: adminRateLimitKey,
     message: {
       error: "Trop d'actions admin. Veuillez patienter 15 minutes.",
@@ -406,6 +433,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
       : Number(process.env.ADMIN_DIAGNOSTIC_RATE_LIMIT_MAX) || 10,
     standardHeaders: true,
     legacyHeaders: false,
+    ...sharedRateLimitOptions,
     keyGenerator: adminRateLimitKey,
     message: {
       error: "Trop de diagnostics email. Veuillez patienter 15 minutes.",
@@ -431,6 +459,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     max: isSecurityRuntimeTest ? 9999 : Number(process.env.PAYPAL_RATE_LIMIT_MAX) || 10,
     standardHeaders: true,
     legacyHeaders: false,
+    ...sharedRateLimitOptions,
     keyGenerator: liveKitRateLimitKey,
     message: { error: "Trop de demandes PayPal. Veuillez patienter 15 minutes.", code: "PAYPAL_RATE_LIMIT_EXCEEDED" },
   });
@@ -440,6 +469,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     max: Number(process.env.LIVEKIT_MESSAGES_RATE_LIMIT_MAX) || 60,
     standardHeaders: true,
     legacyHeaders: false,
+    ...sharedRateLimitOptions,
     keyGenerator: liveKitRateLimitKey,
     message: {
       error: "Trop de messages live. Veuillez patienter 15 minutes.",
@@ -452,6 +482,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     max: Number(process.env.LIVEKIT_EVENTS_RATE_LIMIT_MAX) || 60,
     standardHeaders: true,
     legacyHeaders: false,
+    ...sharedRateLimitOptions,
     keyGenerator: liveKitRateLimitKey,
     message: {
       error: "Trop d'événements live. Veuillez patienter 15 minutes.",
@@ -464,6 +495,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     max: Number(process.env.MESSAGING_RATE_LIMIT_MAX) || 60,
     standardHeaders: true,
     legacyHeaders: false,
+    ...sharedRateLimitOptions,
     keyGenerator: liveKitRateLimitKey,
     message: { error: "Trop de messages. Veuillez patienter 15 minutes.", code: "MESSAGING_RATE_LIMIT_EXCEEDED" },
   });
@@ -473,6 +505,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     max: Number(process.env.CONTACT_SUPPORT_RATE_LIMIT_MAX) || 5,
     standardHeaders: true,
     legacyHeaders: false,
+    ...sharedRateLimitOptions,
     keyGenerator: liveKitRateLimitKey,
     message: {
       error: "Trop de demandes contact/support. Veuillez patienter 1 heure.",
@@ -485,6 +518,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     max: Number(process.env.LIVEKIT_SYNC_RATE_LIMIT_MAX) || 120,
     standardHeaders: true,
     legacyHeaders: false,
+    ...sharedRateLimitOptions,
     keyGenerator: liveKitRateLimitKey,
     message: {
       error: "Trop de synchronisations live. Veuillez patienter 15 minutes.",
@@ -497,6 +531,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
     max: REFRESH_RATE_LIMIT_MAX,
     standardHeaders: true,
     legacyHeaders: false,
+    ...sharedRateLimitOptions,
     keyGenerator: (req) => {
       const refreshToken = readRefreshTokenFromRequest(req);
       if (refreshToken) {

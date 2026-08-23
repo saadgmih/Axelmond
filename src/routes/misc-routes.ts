@@ -3,6 +3,7 @@ import { getAuthUser } from "../server/route-types";
 import rateLimit from "express-rate-limit";
 import type { RouteContext } from "../server/route-context";
 import { startupState } from "../server/startup-state";
+import { getCacheBackendKind } from "../cache";
 import * as api from "../server/route-deps";
 
 export function registerMiscRoutes(app: Express, ctx: RouteContext): void {
@@ -224,6 +225,17 @@ export function registerMiscRoutes(app: Express, ctx: RouteContext): void {
 
       timestamp: new Date().toISOString(),
     };
+
+    // Diagnostics de protocole (hors production) : permettent au runner de test
+    // de charge (tests/load-report.ts) de vérifier que le serveur est bien
+    // démarré avec LOAD_TEST_MODE=1 avant de mesurer quoi que ce soit.
+    if (process.env.NODE_ENV !== "production") {
+      payload.diagnostics = {
+        loadTestMode: process.env.LOAD_TEST_MODE === "1",
+        cacheBackend: getCacheBackendKind(),
+        sharedRateLimitStore: Boolean(process.env.REDIS_URL?.trim()),
+      };
+    }
 
     const authHeader = req.headers["x-health-token"];
 
