@@ -13,21 +13,40 @@
 | `/api/courses` renvoie tout le catalogue            | Payload complet à chaque demande                                                                                                                                   | Pagination opt-in : `?page=1&pageSize=50` (max 100) → `{ items, page, pageSize, total, totalPages }`. Sans paramètres, réponse identique à avant (rétrocompatible)                           |
 | Pas de cache HTTP navigateur/CDN sur l'API publique | Middleware global `no-store` sur `/api`                                                                                                                            | `src/server/http-cache.ts` : ETag fort + `If-None-Match` → **304** sans corps + `Cache-Control: public, max-age=30, stale-while-revalidate=60` sur les GET catalogue **anonymes** uniquement |
 
-## Activer Redis (recommandé dès le cluster PM2)
+## Redis — quand (et comment) l'activer
+
+### Hébergement actuel : Hostinger Node.js Web App (mutualisé) — PAS BESOIN de Redis
+
+L'offre Web App n'exécute qu'**un seul process Node** (PM2/cluster interdits,
+`HOSTINGER_WEBAPP=1`). Or le cache mémoire et les compteurs de rate limit
+n'étaient incohérents qu'**entre plusieurs workers** : avec un seul process,
+ils sont déjà exacts et cohérents. Sans `REDIS_URL`, l'application utilise
+automatiquement ce mode mono-process — c'est la configuration recommandée
+pour l'hébergement actuel.
+
+À noter : le mutualisé Hostinger n'offre ni shell ni services personnalisés —
+**impossible d'y installer un Redis local**. Si Redis devient souhaité sur
+cette offre, la seule option est un **Redis hébergé** (Upstash tier gratuit,
+Redis Cloud, Aiven…) avec une URL TLS :
 
 ```bash
-# .env (production Hostinger via build-hostinger-env — la clé passe automatiquement)
-REDIS_URL="redis://localhost:6379"
-# Optionnels :
+# Exemple Upstash (rediss:// = TLS) — à définir dans hPanel → Environment variables
+REDIS_URL="rediss://default:***@xxx.upstash.io:6379"
+```
+
+### Migration future vers VPS / cluster PM2 — Redis devient recommandé
+
+Dès qu'il y a plusieurs workers, définissez `REDIS_URL` (Redis local ou hébergé) :
+
+1. **Cache catalogue partagé** — tous les workers servent la même entrée (TTL 60 s par défaut).
+2. **Rate limits globaux** — les 20 limiteurs comptent dans Redis : une limite de 500 req/15min/IP devient réellement 500, pas 500 × workers.
+3. **Résilience** — si Redis tombe : le cache retombe en mémoire, les limiteurs **laissent passer** les requêtes (`passOnStoreError: true`) — on préfère un emballement temporaire à un blocage total.
+
+```bash
+# Optionnels (local ou hébergé) :
 # REDIS_KEY_PREFIX="axelmond:cache:"      # préfixe du cache applicatif
 # REDIS_RATE_LIMIT_PREFIX="axelmond:rl:"  # préfixe des compteurs de rate limit
 ```
-
-Effets :
-
-1. **Cache catalogue partagé** — tous les workers servent la même entrée Redis (TTL 60 s par défaut).
-2. **Rate limits globaux** — les 20 limiteurs (global, auth, PayPal, LiveKit, admin, messaging…) comptent dans Redis : une limite de 500 req/15min/IP devient réellement 500, pas 500 × workers.
-3. **Résilience** — si Redis tombe en cours de route : le cache retombe en mémoire (au pire par worker), les limiteurs **laissent passer** les requêtes (`passOnStoreError: true`) — on préfère un emballement temporaire à un blocage total des utilisateurs.
 
 ## Protocole de test de charge (corrigé)
 
