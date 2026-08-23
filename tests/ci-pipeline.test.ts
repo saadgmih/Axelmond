@@ -18,6 +18,7 @@ rulesTest("ci-pipeline", () => {
   assert.doesNotMatch(workflow, /^\s*cache:\s*npm/m);
   assert.match(workflow, /npm ci/);
   assert.match(workflow, /SKIP_PRISMA_POSTINSTALL:\s*"1"/);
+  assert.match(pipeline, /"Build", "npm", \["run", "build"\], \{ NODE_ENV: "production" \}/);
   assert.match(pipeline, /"lint"/);
   assert.match(pipeline, /"lint:strict"/);
   assert.match(pipeline, /"lint:eslint"/);

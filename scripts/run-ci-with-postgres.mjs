@@ -50,7 +50,9 @@ const checks = [
   ["Mobile runtime tests", "npm", ["run", "test:mobile-runtime"]],
   ["Measured coverage", "npm", ["run", "test:coverage"]],
   ["Test suite summary", "npm", ["run", "test:summary"]],
-  ["Build", "npm", ["run", "build"]],
+  // Mesurer le bundle réellement déployé : vite inline process.env.NODE_ENV,
+  // et NODE_ENV=test embarque ~60 KiB gzip de branches dev dans l'entry.
+  ["Build", "npm", ["run", "build"], { NODE_ENV: "production" }],
   ["Security preflight", "npx", ["tsx", "scripts/security-preflight.ts"], securityPreflightEnv],
   ["npm audit (high+)", "npm", ["audit", "--audit-level=high"]],
   ["Secret scan", "npm", ["run", "ci:secrets"]],
