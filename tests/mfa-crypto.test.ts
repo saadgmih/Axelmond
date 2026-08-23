@@ -13,10 +13,7 @@ rulesTest("mfa-crypto", () => {
   assert.equal(keyBuffer.length, 32);
   assert.deepEqual(keyBuffer, Buffer.from(dedicatedKey, "utf8").subarray(0, 32));
 
-  assert.throws(
-    () => getMfaEncryptionKey({ NODE_ENV: "production" }),
-    /MFA_ENCRYPTION_KEY must be set in production/,
-  );
+  assert.throws(() => getMfaEncryptionKey({ NODE_ENV: "production" }), /MFA_ENCRYPTION_KEY must be set in production/);
 
   const devEnv: NodeJS.ProcessEnv = {
     NODE_ENV: "development",

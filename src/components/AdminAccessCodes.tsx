@@ -44,7 +44,7 @@ export function AdminAccessCodes({ courseId, courseTitle }: AdminAccessCodesProp
   const [error, setError] = useState("");
   const [lastGenerated, setLastGenerated] = useState<string | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
-  
+
   const todayDate = new Date().toISOString().slice(0, 10);
   const in30DaysDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
@@ -68,7 +68,6 @@ export function AdminAccessCodes({ courseId, courseTitle }: AdminAccessCodesProp
 
   useEffect(() => {
     void load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId]);
 
   const applyPreset = (days: number) => {
@@ -214,11 +213,7 @@ export function AdminAccessCodes({ courseId, courseTitle }: AdminAccessCodesProp
           disabled={generating}
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-violet-500 disabled:opacity-60"
         >
-          {generating ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <KeyRound className="h-4 w-4" />
-          )}
+          {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
           {generating ? "Génération en cours…" : "Générer le code d'accès"}
         </button>
 
@@ -226,9 +221,7 @@ export function AdminAccessCodes({ courseId, courseTitle }: AdminAccessCodesProp
           <div className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 p-3 flex items-center justify-between gap-3">
             <div>
               <p className="text-[10px] text-emerald-300 font-bold uppercase">Code généré avec succès</p>
-              <p className="font-mono text-lg font-black tracking-widest text-emerald-200">
-                {lastGenerated}
-              </p>
+              <p className="font-mono text-lg font-black tracking-widest text-emerald-200">{lastGenerated}</p>
               <p className="text-[10px] text-emerald-300/80 mt-0.5">
                 Période d&apos;accès : {startsAt} ➔ {endsAt}
               </p>
@@ -261,9 +254,7 @@ export function AdminAccessCodes({ courseId, courseTitle }: AdminAccessCodesProp
             <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
           </div>
         ) : codes.length === 0 ? (
-          <p className="py-4 text-center text-xs text-slate-500">
-            Aucun code généré pour ce module.
-          </p>
+          <p className="py-4 text-center text-xs text-slate-500">Aucun code généré pour ce module.</p>
         ) : (
           <div className="space-y-2">
             {codes.map((c) => {
@@ -290,7 +281,8 @@ export function AdminAccessCodes({ courseId, courseTitle }: AdminAccessCodesProp
                       )}
                     </div>
                     <p className="mt-0.5 text-[10px] text-slate-400">
-                      Période : {new Date(c.startsAt).toLocaleDateString("fr-MA")} ➔ {new Date(c.endsAt).toLocaleDateString("fr-MA")}
+                      Période : {new Date(c.startsAt).toLocaleDateString("fr-MA")} ➔{" "}
+                      {new Date(c.endsAt).toLocaleDateString("fr-MA")}
                       {" · "}
                       {used}/{maxTotal} utilisation{maxTotal > 1 ? "s" : ""}
                     </p>

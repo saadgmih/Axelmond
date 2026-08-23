@@ -133,7 +133,7 @@ export default function Interactive3DLogo({
         textureLoader.load("/performance-logo-003a24a4-192.png", (fallbackTex) => {
           configureHighResTexture(fallbackTex);
         });
-      }
+      },
     );
 
     // Mirrored texture for the back face
@@ -364,8 +364,7 @@ export default function Interactive3DLogo({
           particleAngles[i] += particleSpeeds[i];
         }
         posArray[i * 3] = Math.cos(particleAngles[i]) * particleRadii[i];
-        posArray[i * 3 + 1] =
-          particleYOffsets[i] + Math.sin(elapsedTime * 1.5 + i) * 0.04;
+        posArray[i * 3 + 1] = particleYOffsets[i] + Math.sin(elapsedTime * 1.5 + i) * 0.04;
         posArray[i * 3 + 2] = Math.sin(particleAngles[i]) * particleRadii[i];
       }
       posAttr.needsUpdate = true;
@@ -442,9 +441,7 @@ export default function Interactive3DLogo({
       {/* Interactive Micro-hint / Action badge */}
       <div
         className={`absolute -bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-900/90 border border-emerald-500/40 text-[9px] font-bold text-emerald-300 shadow-lg shadow-emerald-950/60 backdrop-blur-md transition-all duration-300 pointer-events-none whitespace-nowrap ${
-          isHovered || !hasInteracted
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-1"
+          isHovered || !hasInteracted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"
         }`}
       >
         <Sparkles className="w-2.5 h-2.5 text-emerald-400 animate-spin" style={{ animationDuration: "6s" }} />

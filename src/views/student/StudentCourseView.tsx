@@ -827,8 +827,14 @@ export default function StudentCourseView({
                       {quizQuestions && quizQuestions.length > 0 ? (
                         <div className="space-y-4 sm:space-y-5">
                           {quizQuestions.map((q, idx) => {
-                            const correctAnswers = q.answer ? q.answer.split(",").map((a) => a.trim()).filter(Boolean) : [];
-                            const isCorrect = correctAnswers.includes((quizAnswers[idx] || "").trim()) || quizAnswers[idx] === q.answer;
+                            const correctAnswers = q.answer
+                              ? q.answer
+                                  .split(",")
+                                  .map((a) => a.trim())
+                                  .filter(Boolean)
+                              : [];
+                            const isCorrect =
+                              correctAnswers.includes((quizAnswers[idx] || "").trim()) || quizAnswers[idx] === q.answer;
                             return (
                               <div
                                 key={idx}
@@ -847,7 +853,8 @@ export default function StudentCourseView({
                                 <div className="grid grid-cols-1 gap-3 bg-[#061c18]/70 p-4 sm:p-5 lg:grid-cols-2">
                                   {q.options.map((option, oIdx) => {
                                     const isSelected = quizAnswers[idx] === option;
-                                    const isOptionCorrect = correctAnswers.includes(option.trim()) || option.trim() === q.answer?.trim();
+                                    const isOptionCorrect =
+                                      correctAnswers.includes(option.trim()) || option.trim() === q.answer?.trim();
                                     return (
                                       <button
                                         key={oIdx}

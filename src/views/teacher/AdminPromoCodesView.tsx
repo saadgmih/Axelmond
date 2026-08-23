@@ -494,7 +494,10 @@ export default function AdminPromoCodesView() {
           </div>
 
           {loading ? (
-            <div role="status" className="flex min-h-52 items-center justify-center gap-3 text-sm font-semibold text-slate-400">
+            <div
+              role="status"
+              className="flex min-h-52 items-center justify-center gap-3 text-sm font-semibold text-slate-400"
+            >
               <RefreshCw className="h-5 w-5 animate-spin text-emerald-400" /> Chargement des codes…
             </div>
           ) : items.length === 0 ? (

@@ -13,7 +13,7 @@ function parseBirthDateInput(raw: unknown): Date | null {
     if (!isNaN(d.getTime())) return d;
   }
 
-  const parts = trimmed.split(/[\/\.\-]/);
+  const parts = trimmed.split(/[/.-]/);
   if (parts.length === 3) {
     if (parts[2].length === 4) {
       const day = parts[0].padStart(2, "0");

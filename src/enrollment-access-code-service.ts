@@ -1,9 +1,5 @@
 import { prisma } from "./db";
-import {
-  generateUniquePromoCode,
-  validatePromoCodeEligibility,
-  PromoCodeError,
-} from "./promo-code-service";
+import { generateUniquePromoCode, validatePromoCodeEligibility, PromoCodeError } from "./promo-code-service";
 
 // ─── Error ───────────────────────────────────────────────────────────────────
 
@@ -46,7 +42,9 @@ export async function generateEnrollmentAccessCode(
 
   const now = new Date();
   const startsAtDate = options.startsAt
-    ? (options.startsAt instanceof Date ? options.startsAt : new Date(options.startsAt))
+    ? options.startsAt instanceof Date
+      ? options.startsAt
+      : new Date(options.startsAt)
     : now;
 
   let endsAtDate: Date;

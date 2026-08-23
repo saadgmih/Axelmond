@@ -69,10 +69,10 @@ export default function Background3D({ reducedMotion = false }: Background3DProp
     const nodes: Node3D[] = [];
 
     const emeraldColors = [
-      "rgba(52, 211, 153, ",  // emerald-400
-      "rgba(16, 185, 129, ",  // emerald-500
-      "rgba(6, 182, 212, ",   // cyan-500
-      "rgba(110, 231, 183, "  // emerald-300
+      "rgba(52, 211, 153, ", // emerald-400
+      "rgba(16, 185, 129, ", // emerald-500
+      "rgba(6, 182, 212, ", // cyan-500
+      "rgba(110, 231, 183, ", // emerald-300
     ];
 
     for (let i = 0; i < nodeCount; i++) {
@@ -89,12 +89,23 @@ export default function Background3D({ reducedMotion = false }: Background3DProp
     }
 
     // Helper: Build a 3D Icosahedron
-    const createIcosahedron = (size: number): { vertices: { x: number; y: number; z: number }[]; edges: [number, number][] } => {
+    const createIcosahedron = (
+      size: number,
+    ): { vertices: { x: number; y: number; z: number }[]; edges: [number, number][] } => {
       const t = (1.0 + Math.sqrt(5.0)) / 2.0;
       const vRaw = [
-        [-1, t, 0], [1, t, 0], [-1, -t, 0], [1, -t, 0],
-        [0, -1, t], [0, 1, t], [0, -1, -t], [0, 1, -t],
-        [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1]
+        [-1, t, 0],
+        [1, t, 0],
+        [-1, -t, 0],
+        [1, -t, 0],
+        [0, -1, t],
+        [0, 1, t],
+        [0, -1, -t],
+        [0, 1, -t],
+        [t, 0, -1],
+        [t, 0, 1],
+        [-t, 0, -1],
+        [-t, 0, 1],
       ];
 
       const vertices = vRaw.map(([x, y, z]) => {
@@ -107,12 +118,36 @@ export default function Background3D({ reducedMotion = false }: Background3DProp
       });
 
       const edges: [number, number][] = [
-        [0, 11], [0, 5], [0, 1], [0, 7], [0, 10],
-        [1, 5], [1, 7], [1, 8], [1, 9], [2, 11],
-        [2, 10], [2, 4], [2, 3], [3, 9], [3, 4],
-        [3, 8], [4, 5], [4, 9], [4, 11], [5, 11],
-        [6, 7], [6, 8], [6, 10], [6, 2], [6, 3],
-        [7, 8], [7, 10], [8, 9], [9, 3], [10, 11]
+        [0, 11],
+        [0, 5],
+        [0, 1],
+        [0, 7],
+        [0, 10],
+        [1, 5],
+        [1, 7],
+        [1, 8],
+        [1, 9],
+        [2, 11],
+        [2, 10],
+        [2, 4],
+        [2, 3],
+        [3, 9],
+        [3, 4],
+        [3, 8],
+        [4, 5],
+        [4, 9],
+        [4, 11],
+        [5, 11],
+        [6, 7],
+        [6, 8],
+        [6, 10],
+        [6, 2],
+        [6, 3],
+        [7, 8],
+        [7, 10],
+        [8, 9],
+        [9, 3],
+        [10, 11],
       ];
 
       return { vertices, edges };
@@ -180,10 +215,10 @@ export default function Background3D({ reducedMotion = false }: Background3DProp
         // Transform vertices
         const projected = poly.vertices.map((v) => {
           // Local 3D rotation
-          let x1 = v.x * cosY - v.z * sinY;
-          let z1 = v.z * cosY + v.x * sinY;
-          let y1 = v.y * cosX - z1 * sinX;
-          let z2 = z1 * cosX + v.y * sinX;
+          const x1 = v.x * cosY - v.z * sinY;
+          const z1 = v.z * cosY + v.x * sinY;
+          const y1 = v.y * cosX - z1 * sinX;
+          const z2 = z1 * cosX + v.y * sinX;
 
           // World position + Mouse Parallax
           const wx = x1 + poly.x + mouseX * 40;
@@ -239,10 +274,10 @@ export default function Background3D({ reducedMotion = false }: Background3DProp
         }
 
         // Apply global 3D scene rotation
-        let rx1 = node.x * cosGY - node.z * sinGY;
-        let rz1 = node.z * cosGY + node.x * sinGY;
-        let ry1 = node.y * cosGX - rz1 * sinGX;
-        let rz2 = rz1 * cosGX + node.y * sinGX;
+        const rx1 = node.x * cosGY - node.z * sinGY;
+        const rz1 = node.z * cosGY + node.x * sinGY;
+        const ry1 = node.y * cosGX - rz1 * sinGX;
+        const rz2 = rz1 * cosGX + node.y * sinGX;
 
         const scale = fov / (fov + rz2 + 400);
         const px = cx + rx1 * scale;

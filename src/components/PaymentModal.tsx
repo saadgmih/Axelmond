@@ -111,7 +111,10 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
         if (active) {
           setPaypalConfig(null);
           setConfigError(
-            getClientErrorMessage(err, "Paiement en ligne temporairement indisponible. Veuillez utiliser le paiement au centre ou un code d'accès."),
+            getClientErrorMessage(
+              err,
+              "Paiement en ligne temporairement indisponible. Veuillez utiliser le paiement au centre ou un code d'accès.",
+            ),
           );
         }
       });
@@ -369,7 +372,9 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
       aria-modal="true"
       aria-labelledby="payment-modal-title"
     >
-      <div className={`w-full ${isFreeCheckout ? "max-w-2xl" : "max-w-6xl"} my-auto animate-in fade-in zoom-in-95 duration-300`}>
+      <div
+        className={`w-full ${isFreeCheckout ? "max-w-2xl" : "max-w-6xl"} my-auto animate-in fade-in zoom-in-95 duration-300`}
+      >
         <div className="relative flex flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#090d16] shadow-[0_32px_96px_-16px_rgba(0,0,0,0.85)]">
           {step === "form" && (
             <>
@@ -418,9 +423,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                   <div className="mt-4 pt-4 border-t border-white/[0.06] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <Tag className="h-4 w-4 text-emerald-400 shrink-0" />
-                      <span className="text-xs font-semibold text-slate-300">
-                        Vous avez un code promo ?
-                      </span>
+                      <span className="text-xs font-semibold text-slate-300">Vous avez un code promo ?</span>
                     </div>
 
                     <div className="flex items-center gap-2 min-w-0 sm:w-80">
@@ -464,11 +467,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                 {promoSuccess && (
                   <p className="mt-2 text-xs font-semibold text-emerald-300 flex items-center gap-1">
                     <Sparkles className="h-3.5 w-3.5" /> {promoSuccess}
-                    {appliedPromo && (
-                      <span className="ml-1 text-slate-400">
-                        (Réduction : -{formatMad(savings)})
-                      </span>
-                    )}
+                    {appliedPromo && <span className="ml-1 text-slate-400">(Réduction : -{formatMad(savings)})</span>}
                   </p>
                 )}
               </div>
@@ -487,7 +486,8 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                     <div>
                       <h3 className="text-2xl font-black text-white sm:text-3xl">Accès Offert au Module</h3>
                       <p className="mt-2 text-sm text-slate-300 leading-relaxed">
-                        Ce module est mis à votre disposition gratuitement. Aucun paiement ni carte bancaire n&apos;est requis.
+                        Ce module est mis à votre disposition gratuitement. Aucun paiement ni carte bancaire n&apos;est
+                        requis.
                       </p>
                     </div>
 
@@ -527,7 +527,9 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                         onClick={() => setShowCodeInFreeMode(!showCodeInFreeMode)}
                         className="text-xs text-slate-400 hover:text-white underline"
                       >
-                        {showCodeInFreeMode ? "Masquer la saisie de code" : "Vous avez un code d'accès administrateur ?"}
+                        {showCodeInFreeMode
+                          ? "Masquer la saisie de code"
+                          : "Vous avez un code d'accès administrateur ?"}
                       </button>
                     </div>
 
@@ -577,7 +579,6 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                 /* 3 COLUMNS PRICING GRID LAYOUT FOR PAID COURSES */
                 <div className="p-6 sm:p-8 overflow-y-auto max-h-[calc(90vh-180px)]">
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-                    
                     {/* ───────────────────────────────────────────────────────────
                         CARD 1: Paiement par Carte / PayPal (Instant en ligne)
                        ─────────────────────────────────────────────────────────── */}
@@ -599,7 +600,9 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                         {/* Pricing */}
                         <div className="mt-5 pb-5 border-b border-white/[0.08]">
                           {appliedPromo && (
-                            <p className="text-xs font-medium text-slate-500 line-through">{formatMad(originalPrice)}</p>
+                            <p className="text-xs font-medium text-slate-500 line-through">
+                              {formatMad(originalPrice)}
+                            </p>
                           )}
                           <div className="flex items-baseline gap-1">
                             <span className="text-3xl font-black tracking-tight text-white">
@@ -675,7 +678,6 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                       </div>
                     </div>
 
-
                     {/* ───────────────────────────────────────────────────────────
                         CARD 2: Paiement au Centre de Formation (Physique)
                        ─────────────────────────────────────────────────────────── */}
@@ -697,7 +699,9 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                         {/* Pricing */}
                         <div className="mt-5 pb-5 border-b border-white/[0.08]">
                           {appliedPromo && (
-                            <p className="text-xs font-medium text-slate-500 line-through">{formatMad(originalPrice)}</p>
+                            <p className="text-xs font-medium text-slate-500 line-through">
+                              {formatMad(originalPrice)}
+                            </p>
                           )}
                           <div className="flex items-baseline gap-1">
                             <span className="text-3xl font-black tracking-tight text-white">
@@ -774,7 +778,6 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                       </div>
                     </div>
 
-
                     {/* ───────────────────────────────────────────────────────────
                         CARD 3: Code d'Accès Administrateur (Code fourni par le centre)
                        ─────────────────────────────────────────────────────────── */}
@@ -790,15 +793,14 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                         {/* Title & Subtitle */}
                         <h3 className="text-xl font-bold text-white">Code Administrateur</h3>
                         <p className="mt-1 text-xs text-slate-400 leading-relaxed">
-                          Code d&apos;accès fourni par l&apos;administration. Débloque le module sur sa période attribuée.
+                          Code d&apos;accès fourni par l&apos;administration. Débloque le module sur sa période
+                          attribuée.
                         </p>
 
                         {/* Pricing */}
                         <div className="mt-5 pb-5 border-b border-white/[0.08]">
                           <div className="flex items-baseline gap-1">
-                            <span className="text-3xl font-black tracking-tight text-violet-200">
-                              Accès Offert
-                            </span>
+                            <span className="text-3xl font-black tracking-tight text-violet-200">Accès Offert</span>
                           </div>
                           <span className="mt-1 inline-flex rounded-md bg-violet-500/15 px-2 py-0.5 text-[10px] font-bold text-violet-300">
                             Sans frais en ligne
@@ -879,14 +881,11 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                               </button>
                             </div>
 
-                            {accessCodeError && (
-                              <p className="text-xs font-medium text-red-400">{accessCodeError}</p>
-                            )}
+                            {accessCodeError && <p className="text-xs font-medium text-red-400">{accessCodeError}</p>}
                           </div>
                         )}
                       </div>
                     </div>
-
                   </div>
                 </div>
               )}
@@ -904,11 +903,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                   <Lock className="h-3.5 w-3.5 text-emerald-400" />
                   Transaction &amp; activation sécurisées sur la plateforme Performance Académique.
                 </p>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="text-slate-400 hover:text-white font-medium"
-                >
+                <button type="button" onClick={onClose} className="text-slate-400 hover:text-white font-medium">
                   Fermer
                 </button>
               </div>
@@ -935,7 +930,8 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
               </div>
               <h3 className="mt-6 text-2xl font-bold text-white">Félicitations ! Accès Activé</h3>
               <p className="mt-2 max-w-md text-sm leading-relaxed text-slate-300">
-                Votre accès au module <span className="font-semibold text-emerald-300">{course.title}</span> est maintenant débloqué. Vous pouvez démarrer vos cours immédiatement.
+                Votre accès au module <span className="font-semibold text-emerald-300">{course.title}</span> est
+                maintenant débloqué. Vous pouvez démarrer vos cours immédiatement.
               </p>
               <button
                 type="button"

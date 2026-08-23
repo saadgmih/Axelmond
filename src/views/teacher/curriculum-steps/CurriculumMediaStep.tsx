@@ -36,7 +36,7 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
     setNewSectionTitle: _setNewSectionTitle,
     newSectionPublished: _newSectionPublished,
     setNewSectionPublished: _setNewSectionPublished,
-    uploadSectionId,
+    uploadSectionId: _uploadSectionId,
     setUploadSectionId: _setUploadSectionId,
     uploadTitle,
     setUploadTitle,
@@ -76,7 +76,7 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
     chapterSections,
     selectedManagedContents,
     managedLiveReplays,
-    handleSetUploadSectionId,
+    handleSetUploadSectionId: _handleSetUploadSectionId,
     showCurriculumSuccess,
     showCurriculumError,
     handleCreateCourse: _handleCreateCourse,
@@ -329,9 +329,7 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
             {selectedManagedContents.length === 0 ? (
               <div className={curriculumUi.empty}>
                 <FileText className="mx-auto mb-2 h-8 w-8 text-lime-300" />
-                <p className="text-xs font-semibold text-slate-500">
-                  Aucun média dans ce module.
-                </p>
+                <p className="text-xs font-semibold text-slate-500">Aucun média dans ce module.</p>
               </div>
             ) : (
               selectedManagedContents.map((content) => {

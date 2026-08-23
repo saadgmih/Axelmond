@@ -1,4 +1,4 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Response } from "express";
 import type { RouteContext } from "../server/route-context";
 import { getAuthUser } from "../server/route-types";
 import {

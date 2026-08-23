@@ -6,9 +6,7 @@ import {
   CheckCircle2,
   Clock3,
   CreditCard,
-  Download,
   FileText,
-  Filter,
   Globe,
   Printer,
   RefreshCw,
@@ -30,9 +28,21 @@ export interface StudentCenterPaymentsViewProps {
 }
 
 const CENTER_STATUS: Record<CenterPaymentStatus, { label: string; className: string; icon: typeof Clock3 }> = {
-  PENDING_PAYMENT: { label: "En attente de paiement", className: "bg-amber-500/15 text-amber-200 border-amber-500/30", icon: Clock3 },
-  UNDER_REVIEW: { label: "En vérification", className: "bg-sky-500/15 text-sky-200 border-sky-500/30", icon: RefreshCw },
-  PAID: { label: "Payé — accès actif", className: "bg-emerald-500/15 text-emerald-200 border-emerald-500/30", icon: CheckCircle2 },
+  PENDING_PAYMENT: {
+    label: "En attente de paiement",
+    className: "bg-amber-500/15 text-amber-200 border-amber-500/30",
+    icon: Clock3,
+  },
+  UNDER_REVIEW: {
+    label: "En vérification",
+    className: "bg-sky-500/15 text-sky-200 border-sky-500/30",
+    icon: RefreshCw,
+  },
+  PAID: {
+    label: "Payé — accès actif",
+    className: "bg-emerald-500/15 text-emerald-200 border-emerald-500/30",
+    icon: CheckCircle2,
+  },
   REJECTED: { label: "Rejeté", className: "bg-red-500/15 text-red-200 border-red-500/30", icon: XCircle },
   EXPIRED: { label: "Expiré", className: "bg-slate-500/15 text-slate-300 border-slate-500/30", icon: CalendarClock },
   CANCELLED: { label: "Annulé", className: "bg-slate-500/15 text-slate-300 border-slate-500/30", icon: XCircle },
@@ -79,7 +89,9 @@ export default function StudentCenterPaymentsView({ invoices = [] }: StudentCent
         isInitialLoadRef.current = false;
         setSelectedCenterRequest(rows[0] || null);
       } else {
-        setSelectedCenterRequest((current) => (current ? rows.find((row) => row.reference === current.reference) || null : null));
+        setSelectedCenterRequest((current) =>
+          current ? rows.find((row) => row.reference === current.reference) || null : null,
+        );
       }
     } catch (loadError) {
       setError(getClientErrorMessage(loadError, "Impossible de charger vos demandes au centre."));
@@ -196,9 +208,7 @@ export default function StudentCenterPaymentsView({ invoices = [] }: StudentCent
   // Statistiques globales
   const stats = useMemo(() => {
     const onlineTotal = invoices.reduce((sum, inv) => sum + inv.amount, 0);
-    const centerPaidTotal = requests
-      .filter((r) => r.status === "PAID")
-      .reduce((sum, r) => sum + r.amount, 0);
+    const centerPaidTotal = requests.filter((r) => r.status === "PAID").reduce((sum, r) => sum + r.amount, 0);
 
     const pendingCenterCount = requests.filter(
       (r) => r.status === "PENDING_PAYMENT" || r.status === "UNDER_REVIEW",
@@ -223,7 +233,10 @@ export default function StudentCenterPaymentsView({ invoices = [] }: StudentCent
               <CreditCard className="h-3 w-3" />
               Espace Étudiant
             </span>
-            <h1 id="payments-dashboard-title" className="mt-3 text-2xl font-black tracking-tight text-white md:text-3xl">
+            <h1
+              id="payments-dashboard-title"
+              className="mt-3 text-2xl font-black tracking-tight text-white md:text-3xl"
+            >
               Mes paiements & Mes demandes de paiement
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-emerald-200/90">
@@ -356,7 +369,9 @@ export default function StudentCenterPaymentsView({ invoices = [] }: StudentCent
           <div className="rounded-2xl border border-dashed border-white/15 p-12 text-center">
             <Building2 className="mx-auto h-10 w-10 text-emerald-300" />
             <h2 className="mt-3 text-base font-bold text-white">Aucune demande au centre</h2>
-            <p className="mt-1 text-xs text-slate-400">Choisissez un module dans le catalogue pour créer une demande d’inscription sur place.</p>
+            <p className="mt-1 text-xs text-slate-400">
+              Choisissez un module dans le catalogue pour créer une demande d’inscription sur place.
+            </p>
           </div>
         ) : (
           <div className="grid gap-5 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
@@ -396,19 +411,27 @@ export default function StudentCenterPaymentsView({ invoices = [] }: StudentCent
             </div>
 
             {selectedCenterRequest && (
-              <section ref={detailSectionRef} className="space-y-4 rounded-2xl border border-white/10 bg-slate-950/35 p-5">
+              <section
+                ref={detailSectionRef}
+                className="space-y-4 rounded-2xl border border-white/10 bg-slate-950/35 p-5"
+              >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="font-mono text-lg font-black text-emerald-200">{selectedCenterRequest.reference}</p>
                     <h2 className="mt-1 text-xl font-bold text-white">{selectedCenterRequest.module.title}</h2>
                   </div>
-                  <span className={`rounded-lg border px-3 py-1.5 text-xs font-bold ${CENTER_STATUS[selectedCenterRequest.status].className}`}>
+                  <span
+                    className={`rounded-lg border px-3 py-1.5 text-xs font-bold ${CENTER_STATUS[selectedCenterRequest.status].className}`}
+                  >
                     {CENTER_STATUS[selectedCenterRequest.status].label}
                   </span>
                 </div>
 
                 <dl className="grid gap-3 rounded-xl bg-white/[0.03] p-4 text-sm sm:grid-cols-2">
-                  <Detail label="Montant" value={`${selectedCenterRequest.amount.toFixed(2)} ${selectedCenterRequest.currency}`} />
+                  <Detail
+                    label="Montant"
+                    value={`${selectedCenterRequest.amount.toFixed(2)} ${selectedCenterRequest.currency}`}
+                  />
                   {selectedCenterRequest.promotion && (
                     <Detail
                       label={`Promotion ${selectedCenterRequest.promotion.code}`}
@@ -416,8 +439,14 @@ export default function StudentCenterPaymentsView({ invoices = [] }: StudentCent
                     />
                   )}
                   <Detail label="Créée le" value={new Date(selectedCenterRequest.createdAt).toLocaleString("fr-MA")} />
-                  <Detail label="À payer avant" value={new Date(selectedCenterRequest.expiresAt).toLocaleString("fr-MA")} />
-                  <Detail label="Durée d’accès" value={`${selectedCenterRequest.accessDurationDays} jours après validation`} />
+                  <Detail
+                    label="À payer avant"
+                    value={new Date(selectedCenterRequest.expiresAt).toLocaleString("fr-MA")}
+                  />
+                  <Detail
+                    label="Durée d’accès"
+                    value={`${selectedCenterRequest.accessDurationDays} jours après validation`}
+                  />
                   {selectedCenterRequest.accessEndsAt && (
                     <Detail
                       label="Accès valable jusqu’au"
@@ -477,7 +506,9 @@ export default function StudentCenterPaymentsView({ invoices = [] }: StudentCent
           <div className="rounded-2xl border border-dashed border-white/15 p-12 text-center">
             <Globe className="mx-auto h-10 w-10 text-emerald-300" />
             <h2 className="mt-3 text-base font-bold text-white">Aucune facture en ligne</h2>
-            <p className="mt-1 text-xs text-slate-400">Vos inscriptions effectuées directement sur le site apparaîtront ici.</p>
+            <p className="mt-1 text-xs text-slate-400">
+              Vos inscriptions effectuées directement sur le site apparaîtront ici.
+            </p>
           </div>
         ) : (
           <div className="overflow-hidden rounded-2xl border border-white/10 bg-slate-900/60 shadow-sm">
@@ -496,7 +527,9 @@ export default function StudentCenterPaymentsView({ invoices = [] }: StudentCent
                 <tbody className="divide-y divide-white/5">
                   {invoices.map((inv) => (
                     <tr key={inv.id} className="transition hover:bg-white/[0.02]">
-                      <td className="px-6 py-4 font-mono font-bold text-emerald-300">{formatInvoiceReference(inv.id)}</td>
+                      <td className="px-6 py-4 font-mono font-bold text-emerald-300">
+                        {formatInvoiceReference(inv.id)}
+                      </td>
                       <td className="px-4 py-4">{inv.date}</td>
                       <td className="px-4 py-4 font-bold text-white">{inv.courseTitle}</td>
                       <td className="px-4 py-4 text-right font-mono font-black text-emerald-300">
@@ -523,76 +556,76 @@ export default function StudentCenterPaymentsView({ invoices = [] }: StudentCent
             </div>
           </div>
         )
+      ) : /* VUE TOUTES LES TRANSACTIONS UNIFIÉES */
+      filteredTransactions.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-white/15 p-12 text-center">
+          <CreditCard className="mx-auto h-10 w-10 text-slate-500" />
+          <h2 className="mt-3 text-base font-bold text-white">Aucune transaction trouvée</h2>
+          <p className="mt-1 text-xs text-slate-400">Aucun paiement ou demande ne correspond à votre recherche.</p>
+        </div>
       ) : (
-        /* VUE TOUTES LES TRANSACTIONS UNIFIÉES */
-        filteredTransactions.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-white/15 p-12 text-center">
-            <CreditCard className="mx-auto h-10 w-10 text-slate-500" />
-            <h2 className="mt-3 text-base font-bold text-white">Aucune transaction trouvée</h2>
-            <p className="mt-1 text-xs text-slate-400">Aucun paiement ou demande ne correspond à votre recherche.</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {filteredTransactions.map((tx) => (
-              <div
-                key={tx.id}
-                className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-slate-900/60 p-4 transition hover:border-white/20 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="flex items-start gap-3 min-w-0">
-                  <div
-                    className={`mt-1 rounded-xl p-2.5 ${
-                      tx.source === "center" ? "bg-teal-500/15 text-teal-300" : "bg-sky-500/15 text-sky-300"
-                    }`}
-                  >
-                    {tx.source === "center" ? <Building2 className="h-4 w-4" /> : <Globe className="h-4 w-4" />}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-mono text-xs font-black text-emerald-300">{tx.reference}</span>
-                      <span className="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[9px] font-bold text-slate-300">
-                        {tx.source === "center" ? "Paiement au centre" : "Paiement en ligne (PayPal)"}
-                      </span>
-                    </div>
-                    <p className="mt-1 truncate text-sm font-bold text-white">{tx.title}</p>
-                    <p className="text-[11px] text-slate-400">{tx.date}</p>
-                  </div>
+        <div className="space-y-3">
+          {filteredTransactions.map((tx) => (
+            <div
+              key={tx.id}
+              className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-slate-900/60 p-4 transition hover:border-white/20 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div className="flex items-start gap-3 min-w-0">
+                <div
+                  className={`mt-1 rounded-xl p-2.5 ${
+                    tx.source === "center" ? "bg-teal-500/15 text-teal-300" : "bg-sky-500/15 text-sky-300"
+                  }`}
+                >
+                  {tx.source === "center" ? <Building2 className="h-4 w-4" /> : <Globe className="h-4 w-4" />}
                 </div>
-
-                <div className="flex items-center justify-between gap-4 border-t border-white/5 pt-3 sm:border-none sm:pt-0 sm:justify-end">
-                  <div className="text-left sm:text-right">
-                    <p className="font-mono text-sm font-black text-emerald-200">
-                      {tx.amount.toFixed(2)} {tx.currency}
-                    </p>
-                    <span className={`inline-block rounded-md border px-2 py-0.5 text-[9px] font-bold mt-1 ${tx.statusBadgeClass}`}>
-                      {tx.status}
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-mono text-xs font-black text-emerald-300">{tx.reference}</span>
+                    <span className="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[9px] font-bold text-slate-300">
+                      {tx.source === "center" ? "Paiement au centre" : "Paiement en ligne (PayPal)"}
                     </span>
                   </div>
-
-                  {tx.source === "center" && tx.centerRequest ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveTab("center");
-                        void handleSelectCenterRequest(tx.centerRequest!);
-                      }}
-                      className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-bold text-slate-200 transition hover:bg-white/10"
-                    >
-                      Détails
-                    </button>
-                  ) : tx.invoice ? (
-                    <button
-                      type="button"
-                      onClick={() => setSelectedInvoice(tx.invoice!)}
-                      className="inline-flex items-center gap-1 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs font-bold text-emerald-200 transition hover:bg-emerald-500/20"
-                    >
-                      <FileText className="h-3.5 w-3.5" /> Reçu
-                    </button>
-                  ) : null}
+                  <p className="mt-1 truncate text-sm font-bold text-white">{tx.title}</p>
+                  <p className="text-[11px] text-slate-400">{tx.date}</p>
                 </div>
               </div>
-            ))}
-          </div>
-        )
+
+              <div className="flex items-center justify-between gap-4 border-t border-white/5 pt-3 sm:border-none sm:pt-0 sm:justify-end">
+                <div className="text-left sm:text-right">
+                  <p className="font-mono text-sm font-black text-emerald-200">
+                    {tx.amount.toFixed(2)} {tx.currency}
+                  </p>
+                  <span
+                    className={`inline-block rounded-md border px-2 py-0.5 text-[9px] font-bold mt-1 ${tx.statusBadgeClass}`}
+                  >
+                    {tx.status}
+                  </span>
+                </div>
+
+                {tx.source === "center" && tx.centerRequest ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab("center");
+                      void handleSelectCenterRequest(tx.centerRequest!);
+                    }}
+                    className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-bold text-slate-200 transition hover:bg-white/10"
+                  >
+                    Détails
+                  </button>
+                ) : tx.invoice ? (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedInvoice(tx.invoice!)}
+                    className="inline-flex items-center gap-1 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs font-bold text-emerald-200 transition hover:bg-emerald-500/20"
+                  >
+                    <FileText className="h-3.5 w-3.5" /> Reçu
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          ))}
+        </div>
       )}
 
       {/* MODAL DE REÇU D'INSCRIPTION EN LIGNE */}
@@ -618,7 +651,9 @@ export default function StudentCenterPaymentsView({ invoices = [] }: StudentCent
             <div className="mt-5 space-y-4 text-xs">
               <div className="flex items-center justify-between rounded-xl bg-white/[0.03] p-3.5">
                 <span className="text-slate-400 font-semibold">Référence transaction</span>
-                <span className="font-mono font-bold text-emerald-300">{formatInvoiceReference(selectedInvoice.id)}</span>
+                <span className="font-mono font-bold text-emerald-300">
+                  {formatInvoiceReference(selectedInvoice.id)}
+                </span>
               </div>
               <div className="flex items-center justify-between rounded-xl bg-white/[0.03] p-3.5">
                 <span className="text-slate-400 font-semibold">Date de paiement</span>
@@ -626,7 +661,9 @@ export default function StudentCenterPaymentsView({ invoices = [] }: StudentCent
               </div>
               <div className="flex items-center justify-between rounded-xl bg-white/[0.03] p-3.5">
                 <span className="text-slate-400 font-semibold">Module débloqué</span>
-                <span className="font-bold text-white text-right max-w-[200px] truncate">{selectedInvoice.courseTitle}</span>
+                <span className="font-bold text-white text-right max-w-[200px] truncate">
+                  {selectedInvoice.courseTitle}
+                </span>
               </div>
               <div className="flex items-center justify-between rounded-xl bg-white/[0.03] p-3.5">
                 <span className="text-slate-400 font-semibold">Méthode de paiement</span>
@@ -636,7 +673,9 @@ export default function StudentCenterPaymentsView({ invoices = [] }: StudentCent
               </div>
               <div className="flex items-center justify-between rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-4">
                 <span className="text-sm font-bold text-emerald-200">Montant réglé</span>
-                <span className="font-mono text-lg font-black text-emerald-300">{formatMad(selectedInvoice.amount)}</span>
+                <span className="font-mono text-lg font-black text-emerald-300">
+                  {formatMad(selectedInvoice.amount)}
+                </span>
               </div>
             </div>
 

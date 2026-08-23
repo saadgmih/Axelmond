@@ -72,9 +72,7 @@ export default function CourseImageField({ file, currentImageUrl, status = "", o
               event.currentTarget.value = "";
             }}
           />
-          <p className="text-[10px] leading-relaxed text-slate-500">
-            JPEG, PNG ou WebP, 8 Mo maximum.
-          </p>
+          <p className="text-[10px] leading-relaxed text-slate-500">JPEG, PNG ou WebP, 8 Mo maximum.</p>
         </div>
       </div>
       {status && (

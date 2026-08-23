@@ -99,7 +99,7 @@ export default function AxelCalendarShell({
   const accentText = "text-emerald-300";
   const accentBg = "bg-emerald-500";
   const accentRing = "ring-emerald-400/40";
-  const accentSoft = "text-emerald-200/90";
+  const _accentSoft = "text-emerald-200/90";
   const viewSwitcherIconActive = "text-emerald-200";
 
   const weekendHeaderText = "text-amber-300 font-black";

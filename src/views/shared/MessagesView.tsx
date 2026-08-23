@@ -921,9 +921,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
                   {searchUsers.trim().length >= 2 && userResults.length === 0 && !startingConversationId && (
                     <div className="rounded-2xl border border-dashed border-white/10 bg-slate-950/30 p-8 text-center space-y-2">
                       <Inbox className="h-8 w-8 text-slate-600 mx-auto" />
-                      <p className="text-xs font-medium text-slate-400">
-                        Aucun contact trouvé pour cette recherche.
-                      </p>
+                      <p className="text-xs font-medium text-slate-400">Aucun contact trouvé pour cette recherche.</p>
                     </div>
                   )}
                 </div>

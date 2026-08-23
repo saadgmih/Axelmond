@@ -28,11 +28,9 @@ export default function StudentProfileView({
   currentUser,
   enrolledCourses,
   courses,
-  invoices,
   avatarStatusMsg,
   handleUploadAvatarFile,
   handleDeleteAvatar,
-  onNavigateToPayments,
 }: StudentProfileViewProps) {
   const enrolledList = useMemo(
     () => courses.filter((course) => enrolledCourses.includes(course.id)),

@@ -26,7 +26,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [filiere, setFiliere] = useState("");
+  const [filiere, _setFiliere] = useState("");
   const [professorInviteCode, setProfessorInviteCode] = useState("");
   const [verificationEmail, setVerificationEmail] = useState("");
   const [verificationCode, setVerificationCode] = useState("");

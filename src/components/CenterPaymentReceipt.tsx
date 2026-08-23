@@ -12,7 +12,7 @@ const METHOD_LABELS: Record<Receipt["paymentMethod"], string> = {
 };
 
 export default function CenterPaymentReceipt({ receipt }: { receipt: Receipt }) {
-  const [isPrinting, setIsPrinting] = useState(false);
+  const [_isPrinting, setIsPrinting] = useState(false);
 
   const handlePrint = useCallback(() => {
     setIsPrinting(true);

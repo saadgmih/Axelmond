@@ -105,7 +105,10 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
 
   // Parse comma-separated list of selected correct options to support multiple correct answers per QCM
   const selectedCorrectOptions = newQuestionAnswer
-    ? newQuestionAnswer.split(",").map((a) => a.trim()).filter(Boolean)
+    ? newQuestionAnswer
+        .split(",")
+        .map((a) => a.trim())
+        .filter(Boolean)
     : [];
 
   const toggleCorrectOption = (opt: string) => {
@@ -146,8 +149,9 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
 
         {(quizManagerMsg || quizManagerError) && (
           <div
-            className={`p-3 border text-xs font-semibold rounded-xl animate-in fade-in duration-200 ${quizManagerError ? curriculumUi.alertError : curriculumUi.alertSuccess
-              }`}
+            className={`p-3 border text-xs font-semibold rounded-xl animate-in fade-in duration-200 ${
+              quizManagerError ? curriculumUi.alertError : curriculumUi.alertSuccess
+            }`}
           >
             {quizManagerError || quizManagerMsg}
           </div>
@@ -158,9 +162,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
           {teacherQuizzes.length === 0 ? (
             <div className={`${curriculumUi.empty} p-8 text-center space-y-3`}>
               <HelpCircle className="h-10 w-10 text-slate-500 mx-auto" />
-              <p className="text-xs text-slate-400 font-semibold">
-                Aucun quiz n'a encore été créé dans ce module.
-              </p>
+              <p className="text-xs text-slate-400 font-semibold">Aucun quiz n'a encore été créé dans ce module.</p>
               <button
                 type="button"
                 onClick={() => handleCreateQuiz()}
@@ -195,8 +197,9 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                           handleCancelEditQuestion?.();
                         }
                       }}
-                      className={`cursor-pointer p-4 flex items-center justify-between gap-4 select-none transition-colors ${isQuizOpen ? "bg-slate-900/95" : "bg-slate-950/70 hover:bg-slate-900/80"
-                        }`}
+                      className={`cursor-pointer p-4 flex items-center justify-between gap-4 select-none transition-colors ${
+                        isQuizOpen ? "bg-slate-900/95" : "bg-slate-950/70 hover:bg-slate-900/80"
+                      }`}
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <span className="p-1.5 rounded-lg border border-teal-500/30 bg-teal-950/60 text-teal-300 shrink-0">
@@ -274,9 +277,7 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                           <div className="rounded-2xl border border-teal-500/50 bg-slate-900/95 p-5 space-y-5 shadow-xl ring-1 ring-teal-500/20 animate-in fade-in duration-200">
                             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                               <h4 className="text-xs font-black uppercase tracking-wider text-teal-300">
-                                {editingQuestionId
-                                  ? "Modifier la question QCM"
-                                  : "Nouvelle question QCM"}
+                                {editingQuestionId ? "Modifier la question QCM" : "Nouvelle question QCM"}
                               </h4>
                               <button
                                 type="button"
@@ -371,11 +372,14 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                                                 setNewQuestionAnswer(updatedCorrect.join(", "));
                                               }
                                             }}
-                                            className={`rounded-lg p-1.5 transition-all border ${canDelete
+                                            className={`rounded-lg p-1.5 transition-all border ${
+                                              canDelete
                                                 ? "border-slate-800 text-slate-400 hover:bg-red-950/60 hover:text-red-400 hover:border-red-900/50 cursor-pointer"
                                                 : "border-slate-800/40 text-slate-600 cursor-not-allowed opacity-40"
-                                              }`}
-                                            title={canDelete ? "Supprimer ce choix" : "Impossible : 2 choix minimum requis"}
+                                            }`}
+                                            title={
+                                              canDelete ? "Supprimer ce choix" : "Impossible : 2 choix minimum requis"
+                                            }
                                           >
                                             <Trash2 className="w-3.5 h-3.5" />
                                           </button>
@@ -422,8 +426,9 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                                   >
                                     <div className="flex items-center gap-2.5 min-w-0">
                                       <ChevronDown
-                                        className={`h-4 w-4 text-teal-400 shrink-0 transition-transform duration-200 ${isCorrectChoicesOpen ? "rotate-180" : ""
-                                          }`}
+                                        className={`h-4 w-4 text-teal-400 shrink-0 transition-transform duration-200 ${
+                                          isCorrectChoicesOpen ? "rotate-180" : ""
+                                        }`}
                                       />
                                       <div className="min-w-0">
                                         <span className="text-[11px] font-black uppercase tracking-wider text-teal-300 block truncate">
@@ -453,10 +458,11 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                                           return (
                                             <label
                                               key={idx}
-                                              className={`w-full flex items-center justify-between gap-2.5 p-3 transition-all cursor-pointer select-none ${isCorrect
+                                              className={`w-full flex items-center justify-between gap-2.5 p-3 transition-all cursor-pointer select-none ${
+                                                isCorrect
                                                   ? "bg-emerald-950/60 text-emerald-200"
                                                   : "bg-slate-950/70 text-slate-300 hover:bg-slate-900/90"
-                                                }`}
+                                              }`}
                                             >
                                               <div className="min-w-0 flex-1 flex items-center gap-2.5">
                                                 <input
@@ -563,10 +569,11 @@ export default function CurriculumQuizStep(props: TeacherCurriculumViewProps) {
                               return (
                                 <div
                                   key={q.id}
-                                  className={`rounded-xl border transition-all ${isEditingThisQcm
+                                  className={`rounded-xl border transition-all ${
+                                    isEditingThisQcm
                                       ? "border-teal-500/60 bg-teal-950/40 shadow-sm"
                                       : "border-slate-800/90 bg-slate-950/60 hover:border-slate-700 hover:bg-slate-900/80"
-                                    }`}
+                                  }`}
                                 >
                                   <div
                                     onClick={() => {

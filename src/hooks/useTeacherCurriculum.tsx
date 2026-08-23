@@ -499,9 +499,8 @@ export function useTeacherCurriculum({
     if (e && typeof e === "object" && "preventDefault" in e) {
       e.preventDefault();
     }
-    const autoTitle = typeof e === "string" && e.trim()
-      ? e.trim()
-      : newQuizTitle.trim() || `Quiz ${teacherQuizzes.length + 1}`;
+    const autoTitle =
+      typeof e === "string" && e.trim() ? e.trim() : newQuizTitle.trim() || `Quiz ${teacherQuizzes.length + 1}`;
     const resolvedSectionId = quizChapterId || null;
     try {
       setQuizManagerError("");
@@ -570,10 +569,7 @@ export function useTeacherCurriculum({
       .split(",")
       .map((a) => a.trim())
       .filter(Boolean);
-    if (
-      selectedAnswerList.length === 0 ||
-      !selectedAnswerList.every((ans) => filledOptions.includes(ans))
-    ) {
+    if (selectedAnswerList.length === 0 || !selectedAnswerList.every((ans) => filledOptions.includes(ans))) {
       setQuizManagerError("Chaque bonne réponse doit correspondre à l'une des options renseignées.");
       return;
     }
@@ -643,7 +639,8 @@ export function useTeacherCurriculum({
   const handleStartEditQuestion = (q: any) => {
     setEditingQuestionId(q.id);
     setNewQuestionText(q.question || "");
-    const options = Array.isArray(q.options) && q.options.length > 0 ? q.options : ["Choix 1", "Choix 2", "Choix 3", "Choix 4"];
+    const options =
+      Array.isArray(q.options) && q.options.length > 0 ? q.options : ["Choix 1", "Choix 2", "Choix 3", "Choix 4"];
     setNewQuestionOptions(options);
     setNewQuestionAnswer(q.answer || "");
     setNewQuestionExplanation(q.explanation || "");
@@ -875,7 +872,7 @@ export function useTeacherCurriculum({
   const managedCourse = managedCourses.find((course) => course.id === newSectionCourseId) || managedCourses[0] || null;
   const managedSections = flattenSectionsFn(courseContent.courseContentSections);
   const chapterSections = managedSections.filter((section) => !section.parentId);
-  const selectedManagedSection = chapterSections.find((section) => section.id === uploadSectionId) || null;
+  const _selectedManagedSection = chapterSections.find((section) => section.id === uploadSectionId) || null;
 
   const handleSetUploadSectionId = (sectionId: string) => {
     if (!sectionId) {
@@ -895,10 +892,9 @@ export function useTeacherCurriculum({
     ...courseContent.moduleRootContents,
     ...allChapterContents.filter((cc) => !courseContent.moduleRootContents.some((rc) => rc.id === cc.id)),
   ];
-  const managedLiveReplays = [
-    ...courseContent.moduleRootContents,
-    ...allChapterContents,
-  ].filter((content) => content.type === "VIDEO" && !content.published && isLiveReplayContent(content.body));
+  const managedLiveReplays = [...courseContent.moduleRootContents, ...allChapterContents].filter(
+    (content) => content.type === "VIDEO" && !content.published && isLiveReplayContent(content.body),
+  );
 
   return {
     newSectionCourseId,

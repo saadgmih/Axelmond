@@ -145,7 +145,7 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
         ? "border-green-600 bg-green-700/30 text-white"
         : "border-slate-700 bg-slate-950/70 text-slate-400 hover:border-slate-500 hover:text-white"
     }`;
-  const priceInputClass = (isDisabled: boolean, className: string) =>
+  const _priceInputClass = (isDisabled: boolean, className: string) =>
     `${className} ${isDisabled ? "cursor-not-allowed opacity-60" : ""}`;
   const hasDisciplineOptions = allDisciplines.length > 0;
 
@@ -201,7 +201,8 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
               <div className="space-y-4 p-4 pt-2 border-t border-slate-800/60">
                 <label className="block space-y-1.5">
                   <span className={curriculumUi.label}>
-                    Description pédagogique <span className="text-slate-400 font-normal text-xs text-transform-none">(facultatif)</span>
+                    Description pédagogique{" "}
+                    <span className="text-slate-400 font-normal text-xs text-transform-none">(facultatif)</span>
                   </span>
                   <textarea
                     rows={3}
@@ -420,7 +421,8 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                       <div className="space-y-4 p-4 pt-2 border-t border-slate-800/60">
                         <label className="block space-y-1.5">
                           <span className={curriculumUi.label}>
-                            Description pédagogique <span className="text-slate-400 font-normal text-xs text-transform-none">(facultatif)</span>
+                            Description pédagogique{" "}
+                            <span className="text-slate-400 font-normal text-xs text-transform-none">(facultatif)</span>
                           </span>
                           <textarea
                             rows={3}
@@ -562,18 +564,13 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
                       onStartsAtChange={(value) =>
                         setEditCourseForm((prev) => ({ ...prev, freeAccessStartsAt: value }))
                       }
-                      onEndsAtChange={(value) =>
-                        setEditCourseForm((prev) => ({ ...prev, freeAccessEndsAt: value }))
-                      }
+                      onEndsAtChange={(value) => setEditCourseForm((prev) => ({ ...prev, freeAccessEndsAt: value }))}
                       inputClassName={`${curriculumUi.input} ${getStepTheme(1).focus}`}
                     />
                   )}
 
                   <div className="flex gap-2 pt-1">
-                    <button
-                      type="submit"
-                      className={`${curriculumUi.createBtn} flex-1`}
-                    >
+                    <button type="submit" className={`${curriculumUi.createBtn} flex-1`}>
                       <Save className="h-4 w-4" /> Enregistrer
                     </button>
                     <button

@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { BookOpen, FolderTree, HelpCircle, Layers, Video } from "lucide-react";
+import { BookOpen, FolderTree, HelpCircle, Layers } from "lucide-react";
 
 export type CurriculumStepId = 1 | 2 | 3 | 4 | 5 | 6;
 

@@ -127,7 +127,9 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
 
             <form onSubmit={handleCreateChapter} className={`space-y-4 pt-3 ${curriculumUi.divider}`}>
               <label className="block space-y-1">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Titre du chapitre</span>
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                  Titre du chapitre
+                </span>
                 <input
                   type="text"
                   required
@@ -194,7 +196,9 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
                       <div className="flex items-start justify-between gap-3">
                         <div className="space-y-1 min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">Chapitre</span>
+                            <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">
+                              Chapitre
+                            </span>
                             {isSelected && (
                               <span className="inline-flex items-center gap-1 text-[9px] font-black text-teal-400 bg-teal-950 px-2 py-0.5 rounded-full border border-teal-500/40">
                                 <CheckCircle2 className="w-2.5 h-2.5" /> Actif
@@ -246,9 +250,7 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
                           type="button"
                           onClick={() => handleSetUploadSectionId(section.id)}
                           className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[10px] font-black transition-colors ${
-                            isSelected
-                              ? "bg-teal-500 text-white"
-                              : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                            isSelected ? "bg-teal-500 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                           }`}
                         >
                           <Video className="w-3 h-3" />
@@ -343,8 +345,8 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
                             uploadType === "VIDEO"
                               ? "video/mp4,video/webm"
                               : uploadType === "PDF"
-                              ? "application/pdf"
-                              : RASTER_IMAGE_ACCEPT
+                                ? "application/pdf"
+                                : RASTER_IMAGE_ACCEPT
                           }
                           onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
                           className="hidden"
@@ -368,8 +370,8 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
                           uploadStatusKind === "error"
                             ? curriculumUi.alertError
                             : uploadStatusKind === "success"
-                            ? curriculumUi.alertSuccess
-                            : "bg-teal-950/60 border border-teal-500/30 text-teal-200"
+                              ? curriculumUi.alertSuccess
+                              : "bg-teal-950/60 border border-teal-500/30 text-teal-200"
                         }`}
                       >
                         {isUploadingLessonAsset && <Loader2 className="inline h-4 w-4 animate-spin mr-2" />}
@@ -401,7 +403,9 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
                         <div key={content.id} className={`${curriculumUi.card} space-y-3`}>
                           <div className="flex flex-wrap items-start justify-between gap-3">
                             <div className="space-y-1">
-                              <span className={`rounded px-2 py-0.5 text-[8px] font-black uppercase ${curriculumUi.mediaVideo}`}>
+                              <span
+                                className={`rounded px-2 py-0.5 text-[8px] font-black uppercase ${curriculumUi.mediaVideo}`}
+                              >
                                 Rediffusion live
                               </span>
                               <h4 className="text-sm font-black text-white">{content.title}</h4>
@@ -442,9 +446,7 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
               {/* Media Contents List */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className={curriculumUi.sectionTitle}>
-                    Médias du chapitre ({selectedManagedContents.length})
-                  </h3>
+                  <h3 className={curriculumUi.sectionTitle}>Médias du chapitre ({selectedManagedContents.length})</h3>
                   <span className={curriculumUi.countBadge}>
                     {selectedManagedContents.length} ressource{selectedManagedContents.length !== 1 ? "s" : ""}
                   </span>
@@ -455,7 +457,8 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
                     <div className={curriculumUi.empty}>
                       <Video className="w-8 h-8 text-slate-400 mx-auto mb-2" />
                       <p className="text-xs text-slate-400 font-semibold">
-                        Aucun média dans ce chapitre. Utilisez le formulaire ci-dessus pour téléverser une vidéo, un PDF ou une image.
+                        Aucun média dans ce chapitre. Utilisez le formulaire ci-dessus pour téléverser une vidéo, un PDF
+                        ou une image.
                       </p>
                     </div>
                   ) : (
@@ -475,8 +478,8 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
                                     content.type === "VIDEO"
                                       ? curriculumUi.mediaVideo
                                       : content.type === "PDF"
-                                      ? curriculumUi.mediaPdf
-                                      : curriculumUi.mediaImage
+                                        ? curriculumUi.mediaPdf
+                                        : curriculumUi.mediaImage
                                   }`}
                                 >
                                   {formatLessonContentTypeLabel(content.type)}
@@ -536,7 +539,9 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
                           )}
 
                           {/* Actions */}
-                          <div className={`flex flex-wrap items-center justify-between gap-2 pt-3 ${curriculumUi.divider}`}>
+                          <div
+                            className={`flex flex-wrap items-center justify-between gap-2 pt-3 ${curriculumUi.divider}`}
+                          >
                             <button
                               type="button"
                               onClick={() => handleToggleContentPublished(content)}
@@ -568,7 +573,8 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
               <Layers className="w-10 h-10 text-slate-400 mx-auto mb-3" />
               <h3 className="text-base font-black text-white mb-1">Créez d&apos;abord un chapitre</h3>
               <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
-                Utilisez le panneau à gauche pour ajouter un chapitre. Vous pourrez ensuite y verser des vidéos, des documents PDF ou des images.
+                Utilisez le panneau à gauche pour ajouter un chapitre. Vous pourrez ensuite y verser des vidéos, des
+                documents PDF ou des images.
               </p>
             </div>
           )}

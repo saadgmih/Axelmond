@@ -292,7 +292,9 @@ export default function TeacherAcademicProfileView({
                       type="text"
                       placeholder="Écrire la langue"
                       value={academicProfileForm.preferredLanguage}
-                      onChange={(e) => setAcademicProfileForm((prev) => ({ ...prev, preferredLanguage: e.target.value }))}
+                      onChange={(e) =>
+                        setAcademicProfileForm((prev) => ({ ...prev, preferredLanguage: e.target.value }))
+                      }
                       className={inputFocus}
                     />
                   </label>
