@@ -5,6 +5,10 @@
 // Cluster mode activates when REDIS_URL is set (shared cache across workers).
 // Hostinger Node.js Web App manages its own process — do not run PM2 there.
 
+try {
+  require("dotenv").config();
+} catch {}
+
 if (process.env.HOSTINGER_WEBAPP === "1") {
   console.error(
     "[ecosystem.config.cjs] HOSTINGER_WEBAPP=1 — PM2 is forbidden on Hostinger Node.js Web App. Use npm run hostinger:build + npm start.",
