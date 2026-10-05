@@ -135,7 +135,7 @@ export default function TermsView() {
             <strong className="text-teal-300">Acceptation :</strong> La création d'un compte ou la simple navigation sur
             les pages protégées de la plateforme vaut acceptation pleine et entière des présentes conditions
             d'utilisation. En cas de désaccord, veuillez cesser toute utilisation de la plateforme et contacter{" "}
-            <strong className="text-white">contact@axelmond.com</strong>.
+            <strong className="text-white">contact@perfacademy.ma</strong>.
           </p>
         </div>
       </InstitutionalHero>
@@ -193,7 +193,7 @@ export default function TermsView() {
                   items={[
                     "Vous êtes entièrement responsable de la confidentialité de vos identifiants de connexion (email et mot de passe).",
                     "Le partage de votre compte avec un tiers est strictement interdit, quelle qu'en soit la raison.",
-                    "Toute utilisation non autorisée de votre compte doit être signalée immédiatement à support@axelmond.com.",
+                    "Toute utilisation non autorisée de votre compte doit être signalée immédiatement à support@perfacademy.ma.",
                     "Vous êtes responsable de toutes les actions effectuées depuis votre compte, même si elles ont été réalisées à votre insu.",
                     "Choisissez un mot de passe fort (minimum 12 caractères, combinaison lettres, chiffres, caractères spéciaux).",
                     "Déconnectez-vous après chaque session sur un appareil partagé ou public.",
@@ -216,7 +216,7 @@ export default function TermsView() {
                   <div className="text-[10px] uppercase tracking-widest text-lime-600 font-bold mb-1">
                     Contact sécurité
                   </div>
-                  <div className="text-white text-xs font-bold">support@axelmond.com</div>
+                  <div className="text-white text-xs font-bold">support@perfacademy.ma</div>
                 </div>
               </div>
             </div>
@@ -465,7 +465,7 @@ export default function TermsView() {
                 <p className="text-[12px] text-slate-400">
                   <strong className="text-white">Procédure de contestation :</strong> Tout utilisateur sanctionné peut
                   contester la décision dans un délai de <strong className="text-white">14 jours</strong> en écrivant à{" "}
-                  <strong className="text-emerald-300">legal@axelmond.com</strong>. Une réponse motivée sera apportée
+                  <strong className="text-emerald-300">legal@perfacademy.ma</strong>. Une réponse motivée sera apportée
                   sous 10 jours ouvrables.
                 </p>
               </div>
@@ -674,7 +674,7 @@ export default function TermsView() {
                 <Mail className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
                 <p className="text-[12px] text-slate-400 leading-relaxed">
                   Pour toute question juridique relative à ces conditions ou pour exercer vos droits, écrivez à{" "}
-                  <strong className="text-white">legal@axelmond.com</strong> avec pour objet{" "}
+                  <strong className="text-white">legal@perfacademy.ma</strong> avec pour objet{" "}
                   <em className="text-emerald-300">«&nbsp;Question juridique — CGU&nbsp;»</em>. Délai de réponse : 10
                   jours ouvrables.
                 </p>

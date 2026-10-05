@@ -565,7 +565,7 @@ export default function PrivacyView() {
             <div className="bg-slate-950/60 border border-slate-800 rounded-2xl px-5 py-4 space-y-2">
               <div className="text-white text-sm font-bold">Comment exercer vos droits ?</div>
               <p className="text-[12px] text-slate-400 leading-relaxed">
-                Envoyez votre demande par e-mail à <strong className="text-emerald-300">privacy@axelmond.com</strong>{" "}
+                Envoyez votre demande par e-mail à <strong className="text-emerald-300">privacy@perfacademy.ma</strong>{" "}
                 avec pour objet «&nbsp;Exercice de droits — loi 09-08 — [Votre nom]&nbsp;». Nous nous engageons à vous
                 répondre dans un délai de <strong className="text-white">30 jours calendaires</strong> conformément à la
                 loi n° 09-08. Une pièce d'identité peut être demandée pour vérifier votre identité avant traitement.
@@ -687,12 +687,12 @@ export default function PrivacyView() {
               />
               <InstitutionalInfoRow
                 label="Contact DPO / Confidentialité"
-                value="privacy@axelmond.com"
+                value="privacy@perfacademy.ma"
                 icon={<Mail className="w-3.5 h-3.5" />}
               />
               <InstitutionalInfoRow
                 label="Domaine officiel"
-                value="axelmond.com"
+                value="perfacademy.ma"
                 icon={<Globe className="w-3.5 h-3.5" />}
               />
               <InstitutionalInfoRow

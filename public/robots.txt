@@ -6,4 +6,4 @@ Disallow: /teacher/
 Disallow: /professor/
 Disallow: /admin/
 
-Sitemap: https://axelmond.com/sitemap.xml
+Sitemap: https://perfacademy.ma/sitemap.xml

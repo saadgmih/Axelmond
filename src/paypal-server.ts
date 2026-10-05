@@ -165,7 +165,7 @@ export function formatPayPalAmount(value: number): string {
 }
 
 function getPayPalApplicationContext() {
-  const appUrl = (process.env.APP_URL || "https://axelmond.com").replace(/\/$/, "");
+  const appUrl = (process.env.APP_URL || "https://perfacademy.ma").replace(/\/$/, "");
   return {
     brand_name: "Performance Académique",
     user_action: "PAY_NOW" as const,

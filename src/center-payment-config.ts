@@ -16,7 +16,7 @@ export function getCenterPaymentConfig() {
     address: text(process.env.CENTER_ADDRESS, "Centre Performance Académique, Maroc"),
     openingHours: text(process.env.CENTER_OPENING_HOURS, "Du lundi au samedi, de 09h00 à 18h00"),
     phone: text(process.env.CENTER_PHONE, "+212 6 00 00 00 00"),
-    email: text(process.env.CENTER_EMAIL, "contact@axelmond.com"),
+    email: text(process.env.CENTER_EMAIL, "contact@perfacademy.ma"),
     expirationDays,
     currency: text(process.env.CENTER_PAYMENT_CURRENCY, "MAD").toUpperCase(),
     accessDurationDays: positiveInt(process.env.CENTER_PAYMENT_ACCESS_DAYS, COURSE_ENROLLMENT_ACCESS_DAYS),

@@ -12,9 +12,9 @@ rulesTest("seo-sitemap", () => {
 
   assert.match(sitemap, /^<\?xml version="1\.0" encoding="UTF-8"\?>/);
   assert.match(sitemap, /<urlset xmlns="http:\/\/www\.sitemaps\.org\/schemas\/sitemap\/0\.9">/);
-  assert.match(sitemap, /<loc>https:\/\/axelmond\.com\/<\/loc>/);
-  assert.match(sitemap, /<loc>https:\/\/axelmond\.com\/about<\/loc>/);
-  assert.match(sitemap, /<loc>https:\/\/axelmond\.com\/contact<\/loc>/);
+  assert.match(sitemap, /<loc>https:\/\/(axelmond\.com|perfacademy\.ma)\/<\/loc>/);
+  assert.match(sitemap, /<loc>https:\/\/(axelmond\.com|perfacademy\.ma)\/about<\/loc>/);
+  assert.match(sitemap, /<loc>https:\/\/(axelmond\.com|perfacademy\.ma)\/contact<\/loc>/);
   assert.doesNotMatch(sitemap, /<html/i);
 
   assert.match(robots, /User-agent: \*/);
@@ -24,15 +24,15 @@ rulesTest("seo-sitemap", () => {
   assert.match(robots, /Disallow: \/teacher\//);
   assert.match(robots, /Disallow: \/professor\//);
   assert.match(robots, /Disallow: \/admin\//);
-  assert.match(robots, /Sitemap: https:\/\/axelmond\.com\/sitemap\.xml/);
+  assert.match(robots, /Sitemap: https:\/\/(axelmond\.com|perfacademy\.ma)\/sitemap\.xml/);
 
   assert.match(indexHtml, /<title>Performance Académique/);
   assert.match(indexHtml, /name="twitter:card" content="summary_large_image"/);
-  assert.match(indexHtml, /name="twitter:image" content="https:\/\/axelmond\.com\/performance-logo-e6657b8a\.png"/);
+  assert.match(indexHtml, /name="twitter:image" content="https:\/\/(axelmond\.com|perfacademy\.ma)\/performance-logo-e6657b8a\.png"/);
   assert.match(indexHtml, /name="description"/);
   assert.match(indexHtml, /Performance Académique/);
   assert.match(indexHtml, /<h1[^>]*>Performance Académique/);
-  assert.match(indexHtml, /rel="canonical" href="https:\/\/axelmond\.com\/"/);
+  assert.match(indexHtml, /rel="canonical" href="https:\/\/(axelmond\.com|perfacademy\.ma)\/"/);
   assert.match(indexHtml, /itemscope\s+itemtype="https:\/\/schema\.org\/Organization"/);
   assert.match(indexHtml, /itemprop="name">Performance Académique/);
 

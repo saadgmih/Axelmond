@@ -26,10 +26,11 @@ const FORBIDDEN_HOSTINGER_KEYS = new Set([
 const HETZNER_OVERRIDES = {
   NODE_ENV: "production",
   PORT: "3000",
-  APP_URL: "https://axelmond.com",
-  EMAIL_VERIFICATION_URL: "https://axelmond.com",
-  ALLOWED_ORIGINS: "https://www.axelmond.com,https://axelmond.com",
+  APP_URL: "https://perfacademy.ma",
+  EMAIL_VERIFICATION_URL: "https://perfacademy.ma",
+  ALLOWED_ORIGINS: "https://www.perfacademy.ma,https://perfacademy.ma,https://www.axelmond.com,https://axelmond.com",
   TRUST_PROXY: "1",
+  SMTP_PORT: "587",
 
   // Redis local & PM2 Cluster 4 workers
   REDIS_URL: "redis://127.0.0.1:6379",

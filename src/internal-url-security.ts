@@ -47,7 +47,7 @@ export function sanitizeInternalAppPathForOrigin(
 }
 
 export function buildAbsoluteAppUrl(path: unknown, env: NodeJS.ProcessEnv = process.env): string {
-  const base = (env.APP_URL || "https://axelmond.com").trim().replace(/\/+$/, "");
+  const base = (env.APP_URL || "https://perfacademy.ma").trim().replace(/\/+$/, "");
   const safePath = sanitizeInternalAppPath(path);
   return `${base}${safePath}`;
 }

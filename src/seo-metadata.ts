@@ -10,7 +10,10 @@ export interface RouteMetadata {
   jsonLd?: ReadonlyArray<Record<string, unknown>>;
 }
 
-const SITE_ORIGIN = "https://axelmond.com";
+const SITE_ORIGIN =
+  typeof process !== "undefined" && process.env.APP_URL
+    ? process.env.APP_URL.trim().replace(/\/+$/, "")
+    : "https://perfacademy.ma";
 const SITE_NAME = "Performance Académique";
 const SITE_LOGO = `${SITE_ORIGIN}/performance-logo-e6657b8a.png`;
 const DEFAULT_DESCRIPTION =

@@ -365,22 +365,22 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
                 <div>
                   <p className="font-bold text-slate-300">Adresses Electroniques</p>
                   <p className="text-xs text-slate-450 hover:text-emerald-400 transition-colors">
-                    <a href="mailto:contact@axelmond.com">contact@axelmond.com</a> (Contact général)
+                    <a href="mailto:contact@perfacademy.ma">contact@perfacademy.ma</a> <span className="text-[10px] text-slate-500">(contact@axelmond.com)</span>
                   </p>
                   <p className="text-xs text-slate-450 hover:text-emerald-400 transition-colors mt-0.5">
-                    <a href="mailto:support@axelmond.com">support@axelmond.com</a> (Support technique)
+                    <a href="mailto:support@perfacademy.ma">support@perfacademy.ma</a> <span className="text-[10px] text-slate-500">(support@axelmond.com)</span>
                   </p>
                   <p className="text-xs text-slate-450 hover:text-emerald-400 transition-colors mt-0.5">
-                    <a href="mailto:admissions@axelmond.com">admissions@axelmond.com</a> (Inscriptions)
+                    <a href="mailto:admissions@perfacademy.ma">admissions@perfacademy.ma</a> <span className="text-[10px] text-slate-500">(admissions@axelmond.com)</span>
                   </p>
                   <p className="text-xs text-slate-450 hover:text-emerald-400 transition-colors mt-0.5">
-                    <a href="mailto:billing@axelmond.com">billing@axelmond.com</a> (Facturation)
+                    <a href="mailto:billing@perfacademy.ma">billing@perfacademy.ma</a> <span className="text-[10px] text-slate-500">(billing@axelmond.com)</span>
                   </p>
                   <p className="text-xs text-slate-450 hover:text-emerald-400 transition-colors mt-0.5">
-                    <a href="mailto:privacy@axelmond.com">privacy@axelmond.com</a> (Données personnelles)
+                    <a href="mailto:privacy@perfacademy.ma">privacy@perfacademy.ma</a> <span className="text-[10px] text-slate-500">(privacy@axelmond.com)</span>
                   </p>
                   <p className="text-xs text-slate-450 hover:text-emerald-400 transition-colors mt-0.5">
-                    <a href="mailto:legal@axelmond.com">legal@axelmond.com</a> (Juridique)
+                    <a href="mailto:legal@perfacademy.ma">legal@perfacademy.ma</a> <span className="text-[10px] text-slate-500">(legal@axelmond.com)</span>
                   </p>
                 </div>
               </div>
@@ -391,8 +391,8 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
                 <div>
                   <p className="font-bold text-slate-300">Portail Universitaire</p>
                   <p className="text-xs text-slate-450 hover:text-emerald-400 transition-colors">
-                    <a href="https://www.axelmond.com" target="_blank" rel="noopener noreferrer">
-                      www.axelmond.com
+                    <a href="https://www.perfacademy.ma" target="_blank" rel="noopener noreferrer">
+                      www.perfacademy.ma
                     </a>
                   </p>
                 </div>

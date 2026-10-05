@@ -20,11 +20,16 @@ function isSecureCookieEnv(): boolean {
 
 /**
  * Returns the apex domain with a leading dot so cookies are shared across
- * axelmond.com AND www.axelmond.com (e.g. ".axelmond.com").
+ * perfacademy.ma AND www.perfacademy.ma (or axelmond.com AND www.axelmond.com).
  * Returns undefined outside production so local dev is unaffected.
  */
-function cookieDomain(): string | undefined {
+function cookieDomain(res?: Response): string | undefined {
   if (process.env.NODE_ENV !== "production") return undefined;
+  const reqHost = res?.req?.hostname?.toLowerCase().replace(/^www\./, "");
+  if (reqHost && (reqHost.endsWith("perfacademy.ma") || reqHost.endsWith("axelmond.com"))) {
+    return `.${reqHost}`;
+  }
+
   const appUrl = process.env.APP_URL?.trim();
   if (!appUrl) return undefined;
   try {
@@ -36,20 +41,19 @@ function cookieDomain(): string | undefined {
   }
 }
 
-function baseCookieOptions(): CookieOptions {
+function baseCookieOptions(res?: Response): CookieOptions {
   const prod = isSecureCookieEnv();
   return {
     secure: prod,
     // Use "lax" in production so cookies are sent during top-level navigations
-    // between axelmond.com and www.axelmond.com ("strict" would block them).
     sameSite: prod ? "lax" : "strict",
-    domain: cookieDomain(),
+    domain: cookieDomain(res),
   };
 }
 
 export function setRefreshTokenCookie(res: Response, rawToken: string): void {
   res.cookie(REFRESH_COOKIE_NAME, rawToken, {
-    ...baseCookieOptions(),
+    ...baseCookieOptions(res),
     httpOnly: true,
     path: REFRESH_COOKIE_PATH,
     maxAge: REFRESH_TOKEN_TTL_MS,
@@ -58,7 +62,7 @@ export function setRefreshTokenCookie(res: Response, rawToken: string): void {
 
 export function setCsrfTokenCookie(res: Response, csrfToken: string): void {
   res.cookie(CSRF_COOKIE_NAME, csrfToken, {
-    ...baseCookieOptions(),
+    ...baseCookieOptions(res),
     httpOnly: false,
     path: CSRF_COOKIE_PATH,
     maxAge: REFRESH_TOKEN_TTL_MS,
@@ -67,12 +71,12 @@ export function setCsrfTokenCookie(res: Response, csrfToken: string): void {
 
 export function clearAuthCookies(res: Response): void {
   res.clearCookie(REFRESH_COOKIE_NAME, {
-    ...baseCookieOptions(),
+    ...baseCookieOptions(res),
     httpOnly: true,
     path: REFRESH_COOKIE_PATH,
   });
   res.clearCookie(CSRF_COOKIE_NAME, {
-    ...baseCookieOptions(),
+    ...baseCookieOptions(res),
     httpOnly: false,
     path: CSRF_COOKIE_PATH,
   });

@@ -431,7 +431,7 @@ export default function CookiesView() {
                     },
                     {
                       label: "Accessible par",
-                      value: "Uniquement axelmond.com (domaine propriétaire)",
+                      value: "Uniquement perfacademy.ma (domaine propriétaire)",
                       icon: <Lock className="w-3.5 h-3.5 text-slate-500" />,
                     },
                     {
@@ -773,7 +773,7 @@ export default function CookiesView() {
                     Pour toute question relative aux cookies, à vos préférences ou à l'exercice de vos droits prévus par
                     la loi n° 09-08, notre équipe vous répond dans un délai de 10 jours ouvrables.
                   </p>
-                  <span className="text-[10px] font-black text-emerald-300">privacy@axelmond.com</span>
+                  <span className="text-[10px] font-black text-emerald-300">privacy@perfacademy.ma</span>
                 </div>
               </div>
 
