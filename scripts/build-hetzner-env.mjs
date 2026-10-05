@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 
 const root = process.cwd();
 const sourcePath = fs.existsSync(path.join(root, ".hostinger-import.env"))
@@ -75,6 +76,10 @@ function parseEnv(filePath) {
 
 const sourceEnv = parseEnv(sourcePath);
 const merged = { ...sourceEnv, ...HETZNER_OVERRIDES };
+
+if (!merged.MFA_ENCRYPTION_KEY || merged.MFA_ENCRYPTION_KEY.length < 32) {
+  merged.MFA_ENCRYPTION_KEY = crypto.randomBytes(32).toString("hex");
+}
 
 for (const key of FORBIDDEN_HOSTINGER_KEYS) {
   delete merged[key];

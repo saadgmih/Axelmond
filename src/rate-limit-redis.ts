@@ -46,7 +46,7 @@ async function getSharedClient(): Promise<import("ioredis").default | null> {
       maxRetriesPerRequest: 1,
       connectTimeout: REDIS_CONNECT_TIMEOUT_MS,
       commandTimeout: REDIS_COMMAND_TIMEOUT_MS,
-      enableOfflineQueue: false,
+      enableOfflineQueue: true,
       retryStrategy: (times) => (times > 5 ? null : Math.min(times * 500, 5000)),
     });
     client.on("error", (err: unknown) => {
@@ -71,11 +71,11 @@ async function getSharedClient(): Promise<import("ioredis").default | null> {
  * REDIS_URL n'est pas configuré (l'app garde alors le store mémoire par défaut).
  * Toutes les instances partagent une seule connexion ioredis.
  */
-export function createSharedRateLimitStore(): Store | null {
+export function createSharedRateLimitStore(subPrefix: string = "default"): Store | null {
   const redisUrl = process.env.REDIS_URL?.trim();
   if (!redisUrl) return null;
 
-  const prefixed = (key: string) => `${REDIS_KEY_PREFIX}${key.replace(/[\s]/g, "_")}`;
+  const prefixed = (key: string) => `${REDIS_KEY_PREFIX}${subPrefix}:${key.replace(/[\s]/g, "_")}`;
 
   const store: Store = {
     // Store partagé entre workers : les clés NE sont PAS locales.

@@ -177,6 +177,8 @@ async function createRedisBackend(redisUrl: string): Promise<CacheBackend> {
     logCache("WARN", "Redis connection error", { error: String(err) });
   });
 
+  await client.connect();
+
   const prefixed = (key: string) => `${REDIS_KEY_PREFIX}${key}`;
 
   return {
