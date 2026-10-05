@@ -4,6 +4,7 @@ import rateLimit from "express-rate-limit";
 import type { RouteContext } from "../server/route-context";
 import { startupState } from "../server/startup-state";
 import { getCacheBackendKind } from "../cache";
+import { apiErrorStatus as sharedApiErrorStatus } from "../server/api-errors";
 import * as api from "../server/route-deps";
 
 export function registerMiscRoutes(app: Express, ctx: RouteContext): void {
@@ -133,41 +134,7 @@ export function registerMiscRoutes(app: Express, ctx: RouteContext): void {
 
   // ─── Vite / Static Setup ────────────────────────────────────────────────────
 
-  function apiErrorStatus(err: any) {
-    const dbUnavailableCodes = new Set(["P1000", "P1001", "P1002", "P1003", "P1008", "P1017", "P2021", "P2022"]);
-
-    if (dbUnavailableCodes.has(err?.code)) return 503;
-
-    if (err?.code === "P2002") return 409;
-
-    if (err?.code === "P2025") return 404;
-
-    if (err instanceof api.Prisma.PrismaClientValidationError) return 400;
-
-    return Number.isInteger(err?.status) ? err.status : 500;
-  }
-
-  function _apiErrorMessage(err: any) {
-    const dbUnavailableCodes = new Set(["P1000", "P1001", "P1002", "P1003", "P1008", "P1017", "P2021", "P2022"]);
-
-    if (dbUnavailableCodes.has(err?.code)) {
-      return "Service temporairement indisponible. Réessayez dans quelques minutes.";
-    }
-
-    if (err?.code === "P2002") return "Cette action entre en conflit avec une donnée existante";
-
-    if (err?.code === "P2025") return "Ressource introuvable";
-
-    if (err instanceof api.Prisma.PrismaClientValidationError) return "Requête invalide";
-
-    const status = apiErrorStatus(err);
-
-    if (status >= 500) {
-      return "Une erreur interne est survenue";
-    }
-
-    return "Erreur serveur";
-  }
+  const apiErrorStatus = sharedApiErrorStatus;
 
   // ─── GET /api/health — healthcheck léger ────────────────────────────────────
 
@@ -220,7 +187,7 @@ export function registerMiscRoutes(app: Express, ctx: RouteContext): void {
       dbStatus = "UNHEALTHY";
     }
 
-    const payload: any = {
+    const payload: Record<string, unknown> = {
       status: dbStatus === "HEALTHY" ? "UP" : "DOWN",
 
       timestamp: new Date().toISOString(),

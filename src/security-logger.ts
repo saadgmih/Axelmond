@@ -1,24 +1,8 @@
 import { prisma } from "./db";
+import { platformLog, type PlatformLogLevel } from "./server/logger";
 
-function isInfoIgnoredInProduction(level: string, message: string): boolean {
-  if (process.env.NODE_ENV !== "production" || level !== "INFO") {
-    return false;
-  }
-  const msg = message.toLowerCase();
-  return !(
-    msg.includes("loaded") ||
-    msg.includes("running") ||
-    msg.includes("shutdown") ||
-    msg.includes("verified") ||
-    msg.includes("started") ||
-    msg.includes("listening")
-  );
-}
-
-export function logSecurity(level: "INFO" | "WARN" | "ERROR", message: string, data?: unknown) {
-  if (isInfoIgnoredInProduction(level, message)) return;
-  const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] [${level}] [security] ${message}${data ? " " + JSON.stringify(data) : ""}`);
+export function logSecurity(level: PlatformLogLevel, message: string, data?: unknown) {
+  platformLog(level, "security", message, data);
 }
 
 export async function logAudit(

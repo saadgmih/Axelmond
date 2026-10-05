@@ -26,6 +26,7 @@ import { stopPerformanceMonitor } from "../performance";
 import { isVerboseStartup } from "./startup-logging";
 import { drainDatabaseForShutdown, isExpectedShutdownCancellation, startupLifecycle } from "./startup-lifecycle";
 import { getActiveHttpRequestCount, waitForActiveHttpRequests } from "./shutdown-coordination";
+import { attachSentryExpressErrorHandler, captureSentryException, initSentry } from "./sentry";
 import { isKnownPlatformPath } from "../navigation/platformPaths";
 import { renderPlatformHtml } from "./html-document";
 import { getStaticCacheControl } from "./static-cache-policy";
@@ -220,7 +221,10 @@ export async function startAxelmondServer() {
     assertProductionConfiguration(process.env);
   }
 
+  await initSentry();
+
   const { app, allowedOrigins, isProduction, isSecurityRuntimeTest: securityTest } = createAxelmondApp();
+  await attachSentryExpressErrorHandler(app);
   patchExpressAsyncRoutes(app);
   patchAsyncRouteHandlers(app);
 
@@ -232,11 +236,13 @@ export async function startAxelmondServer() {
 
   process.on("uncaughtException", (err) => {
     logDb("ERROR", "Uncaught exception — process staying alive", { error: String(err), stack: err?.stack });
+    void captureSentryException(err);
   });
 
   process.on("unhandledRejection", (reason) => {
     if (isExpectedShutdownCancellation(reason)) return;
     logDb("ERROR", "Unhandled promise rejection — process staying alive", { reason: String(reason) });
+    void captureSentryException(reason);
   });
 
   logEnvironmentStatus(allowedOrigins, isProduction);

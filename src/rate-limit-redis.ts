@@ -31,12 +31,9 @@ let sharedClient: import("ioredis").default | null = null;
 let sharedClientPromise: Promise<import("ioredis").default | null> | null = null;
 
 function logRateLimitStore(level: "INFO" | "WARN", message: string, data?: unknown) {
-  const line = `[${new Date().toISOString()}] [${level}] [rate-limit-store] ${message}${data ? " " + JSON.stringify(data) : ""}`;
-  if (level === "WARN" && process.env.NODE_ENV === "production") {
-    // En production, éviter le spam : Redis en panne loggerait à chaque incrément.
-    return;
-  }
-  console.log(line);
+  // En production, éviter le spam : Redis en panne loggerait à chaque incrément.
+  if (level === "WARN" && process.env.NODE_ENV === "production") return;
+  void import("./server/logger").then(({ platformLog }) => platformLog(level, "rate-limit-store", message, data));
 }
 
 async function getSharedClient(): Promise<import("ioredis").default | null> {

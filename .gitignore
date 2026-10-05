@@ -8,6 +8,7 @@ coverage/
 .env*
 !.env.example
 .hostinger-import.env
+.hetzner.env
 .actions-runner/
 scripts/trailer/raw/
 scripts/trailer/work/
