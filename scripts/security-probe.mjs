@@ -50,7 +50,7 @@ export function validateContentSecurityPolicy(value) {
 }
 
 export async function runSecurityProbe(options = {}) {
-  const baseUrl = (options.baseUrl || "https://axelmond.com").replace(/\/+$/, "");
+  const baseUrl = (options.baseUrl || "https://perfacademy.ma").replace(/\/+$/, "");
   const fetchImpl = options.fetchImpl || fetch;
   const log = options.log || console.log;
 

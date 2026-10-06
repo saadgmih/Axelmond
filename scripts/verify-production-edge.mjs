@@ -3,7 +3,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const DEFAULT_BASE_URL = "https://axelmond.com";
+const DEFAULT_BASE_URL = "https://perfacademy.ma";
 const DEFAULT_ROUNDS = 5;
 const DEFAULT_DELAY_MS = 15_000;
 const DEFAULT_TIMEOUT_MS = 20_000;

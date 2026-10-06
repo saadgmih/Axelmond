@@ -48,12 +48,7 @@ export function isInfoIgnoredInProduction(level: PlatformLogLevel, message: stri
  * Point d'entrée unique : platformLog("WARN", "db", "Message", { …data }).
  * Les helpers métier (logDb, logEmail…) délèguent tous ici.
  */
-export function platformLog(
-  level: PlatformLogLevel,
-  component: string,
-  message: string,
-  data?: unknown,
-): void {
+export function platformLog(level: PlatformLogLevel, component: string, message: string, data?: unknown): void {
   if (isInfoIgnoredInProduction(level, message)) return;
   const sink = level === "INFO" ? "info" : level === "WARN" ? "warn" : "error";
   platformLogger[sink]({ component, ...(data !== undefined ? { data } : {}) }, message);

@@ -65,7 +65,7 @@ cat << 'EOF' > /etc/nginx/sites-available/axelmond
 server {
     listen 80;
     listen [::]:80;
-    server_name axelmond.com www.axelmond.com;
+    server_name perfacademy.ma www.perfacademy.ma axelmond.com www.axelmond.com 167.233.62.125 _;
 
     client_max_body_size 64M;
 
@@ -125,5 +125,5 @@ echo "1. Cloner le repo dans /var/www/axelmond"
 echo "2. Créer le fichier .env (sans HOSTINGER_WEBAPP, avec REDIS_URL=redis://127.0.0.1:6379)"
 echo "3. Exécuter: npm ci && npx prisma migrate deploy && npm run build"
 echo "4. Lancer PM2: pm2 start ecosystem.config.cjs && pm2 save && pm2 startup"
-echo "5. Activer le SSL: certbot --nginx -d axelmond.com -d www.axelmond.com"
+echo "5. Activer le SSL: certbot --nginx -d perfacademy.ma -d www.perfacademy.ma -d axelmond.com -d www.axelmond.com"
 echo "=========================================================="

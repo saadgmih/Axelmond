@@ -160,7 +160,7 @@ export function getEmailErrorDetails(err: any) {
 // ─── Shared Email Design System ───────────────────────────────────────────────
 
 const PERFORMANCE_LOGO_URL = process.env.APP_URL
-  ? `${process.env.APP_URL.replace(/\/+$/, '')}/assets/performance-logo-003a24a4-192.png`
+  ? `${process.env.APP_URL.replace(/\/+$/, "")}/assets/performance-logo-003a24a4-192.png`
   : "https://perfacademy.ma/assets/performance-logo-003a24a4-192.png";
 
 /**

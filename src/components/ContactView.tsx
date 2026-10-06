@@ -365,22 +365,28 @@ export default function ContactView({ currentUser, navigateTo }: ContactViewProp
                 <div>
                   <p className="font-bold text-slate-300">Adresses Electroniques</p>
                   <p className="text-xs text-slate-450 hover:text-emerald-400 transition-colors">
-                    <a href="mailto:contact@perfacademy.ma">contact@perfacademy.ma</a> <span className="text-[10px] text-slate-500">(contact@axelmond.com)</span>
+                    <a href="mailto:contact@perfacademy.ma">contact@perfacademy.ma</a>{" "}
+                    <span className="text-[10px] text-slate-500">(contact@axelmond.com)</span>
                   </p>
                   <p className="text-xs text-slate-450 hover:text-emerald-400 transition-colors mt-0.5">
-                    <a href="mailto:support@perfacademy.ma">support@perfacademy.ma</a> <span className="text-[10px] text-slate-500">(support@axelmond.com)</span>
+                    <a href="mailto:support@perfacademy.ma">support@perfacademy.ma</a>{" "}
+                    <span className="text-[10px] text-slate-500">(support@axelmond.com)</span>
                   </p>
                   <p className="text-xs text-slate-450 hover:text-emerald-400 transition-colors mt-0.5">
-                    <a href="mailto:admissions@perfacademy.ma">admissions@perfacademy.ma</a> <span className="text-[10px] text-slate-500">(admissions@axelmond.com)</span>
+                    <a href="mailto:admissions@perfacademy.ma">admissions@perfacademy.ma</a>{" "}
+                    <span className="text-[10px] text-slate-500">(admissions@axelmond.com)</span>
                   </p>
                   <p className="text-xs text-slate-450 hover:text-emerald-400 transition-colors mt-0.5">
-                    <a href="mailto:billing@perfacademy.ma">billing@perfacademy.ma</a> <span className="text-[10px] text-slate-500">(billing@axelmond.com)</span>
+                    <a href="mailto:billing@perfacademy.ma">billing@perfacademy.ma</a>{" "}
+                    <span className="text-[10px] text-slate-500">(billing@axelmond.com)</span>
                   </p>
                   <p className="text-xs text-slate-450 hover:text-emerald-400 transition-colors mt-0.5">
-                    <a href="mailto:privacy@perfacademy.ma">privacy@perfacademy.ma</a> <span className="text-[10px] text-slate-500">(privacy@axelmond.com)</span>
+                    <a href="mailto:privacy@perfacademy.ma">privacy@perfacademy.ma</a>{" "}
+                    <span className="text-[10px] text-slate-500">(privacy@axelmond.com)</span>
                   </p>
                   <p className="text-xs text-slate-450 hover:text-emerald-400 transition-colors mt-0.5">
-                    <a href="mailto:legal@perfacademy.ma">legal@perfacademy.ma</a> <span className="text-[10px] text-slate-500">(legal@axelmond.com)</span>
+                    <a href="mailto:legal@perfacademy.ma">legal@perfacademy.ma</a>{" "}
+                    <span className="text-[10px] text-slate-500">(legal@axelmond.com)</span>
                   </p>
                 </div>
               </div>

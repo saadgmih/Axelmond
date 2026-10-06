@@ -28,7 +28,10 @@ rulesTest("seo-sitemap", () => {
 
   assert.match(indexHtml, /<title>Performance Académique/);
   assert.match(indexHtml, /name="twitter:card" content="summary_large_image"/);
-  assert.match(indexHtml, /name="twitter:image" content="https:\/\/(axelmond\.com|perfacademy\.ma)\/performance-logo-e6657b8a\.png"/);
+  assert.match(
+    indexHtml,
+    /name="twitter:image" content="https:\/\/(axelmond\.com|perfacademy\.ma)\/performance-logo-e6657b8a\.png"/,
+  );
   assert.match(indexHtml, /name="description"/);
   assert.match(indexHtml, /Performance Académique/);
   assert.match(indexHtml, /<h1[^>]*>Performance Académique/);

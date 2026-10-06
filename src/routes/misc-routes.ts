@@ -4,7 +4,6 @@ import rateLimit from "express-rate-limit";
 import type { RouteContext } from "../server/route-context";
 import { startupState } from "../server/startup-state";
 import { getCacheBackendKind } from "../cache";
-import { apiErrorStatus as sharedApiErrorStatus } from "../server/api-errors";
 import * as api from "../server/route-deps";
 
 export function registerMiscRoutes(app: Express, ctx: RouteContext): void {
@@ -133,8 +132,6 @@ export function registerMiscRoutes(app: Express, ctx: RouteContext): void {
   });
 
   // ─── Vite / Static Setup ────────────────────────────────────────────────────
-
-  const apiErrorStatus = sharedApiErrorStatus;
 
   // ─── GET /api/health — healthcheck léger ────────────────────────────────────
 
