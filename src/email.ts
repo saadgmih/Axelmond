@@ -111,12 +111,19 @@ function createSmtpTransporter(env: NodeJS.ProcessEnv = process.env) {
   });
 }
 
+function parseEmailAddress(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  const match = raw.match(/<([^>]+)>/);
+  return match ? match[1].trim() : raw.trim();
+}
+
 async function sendMailWithDiagnostics(mail: any, env: NodeJS.ProcessEnv = process.env) {
   const transporter = createSmtpTransporter(env);
+  const senderEmail = parseEmailAddress(mail?.from) || parseEmailAddress(env.EMAIL_FROM) || env.SMTP_USER;
   const info = await transporter.sendMail({
     ...mail,
     envelope: {
-      from: env.SMTP_USER,
+      from: senderEmail,
       to: normalizeRecipients(mail.to),
     },
   });

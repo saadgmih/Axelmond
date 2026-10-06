@@ -68,6 +68,10 @@ export function useEnrolledCoursesHydration(
       setIsEnrolledCatalogSyncing(false);
       return;
     }
+    if (courses.length === 0) {
+      setIsEnrolledCatalogSyncing(false);
+      return;
+    }
     if (missingEnrolledCourseIds.length === 0) {
       setIsEnrolledCatalogSyncing(false);
       return;

@@ -9,7 +9,7 @@ import {
   prefetchTeacherWorkspace,
 } from "../../utils/prefetch";
 
-const INITIAL_VIEW_PRELOAD_TIMEOUT_MS = 12_000;
+const INITIAL_VIEW_PRELOAD_TIMEOUT_MS = 2_500;
 
 export function useInitialViewPreload(currentUser: AppUser | null, currentView: string, teacherView: string) {
   const [isLoading, setIsLoading] = useState(false);

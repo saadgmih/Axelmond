@@ -277,8 +277,9 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
   app.use(csrfProtection);
   app.use(
     compression({
+      threshold: 1024,
       filter(req, res) {
-        if (req.path.startsWith("/api")) return false;
+        if (req.headers["x-no-compression"]) return false;
         return compression.filter(req, res);
       },
     }),

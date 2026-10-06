@@ -429,7 +429,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                     <div className="flex items-center gap-2 min-w-0 sm:w-80">
                       <input
                         type="text"
-                        placeholder="Ex: PERFORMANCE20"
+                        placeholder="Code promotionnel"
                         value={promoCode}
                         onChange={(e) => {
                           setPromoCode(e.target.value);
