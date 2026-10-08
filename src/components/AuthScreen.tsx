@@ -477,7 +477,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                       htmlFor="auth-email"
                       className="text-[10px] uppercase font-black tracking-widest text-slate-400 block"
                     >
-                      Adresse e-mail universitaire
+                      Adresse e-mail
                     </label>
                     <div className="relative">
                       <input
@@ -517,7 +517,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                       htmlFor="auth-reset-email"
                       className="text-[10px] uppercase font-black tracking-widest text-slate-400 block"
                     >
-                      Adresse e-mail universitaire
+                      Adresse e-mail
                     </label>
                     <div className="relative">
                       <input
@@ -634,7 +634,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                       htmlFor="auth-email-login"
                       className="text-[10px] uppercase font-black tracking-widest text-slate-400 block"
                     >
-                      Adresse e-mail universitaire
+                      Adresse e-mail
                     </label>
                     <div className="relative">
                       <input
