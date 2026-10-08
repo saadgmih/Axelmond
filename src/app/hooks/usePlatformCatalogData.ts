@@ -113,7 +113,10 @@ export function usePlatformCatalogData(
     async (options?: { silent?: boolean }) => {
       // The public authentication screen does not consume catalog data. Waiting
       // for a real session removes two database-backed requests from first paint.
-      if (!isAuthReady || !currentUser) return;
+      if (!isAuthReady || !currentUser) {
+        setIsLoading(false);
+        return;
+      }
       const request = startRequest();
       if (!options?.silent) {
         setCatalogError(null);

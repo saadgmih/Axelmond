@@ -21,7 +21,6 @@ export function useInitialViewPreload(currentUser: AppUser | null, currentView: 
     }
 
     let cancelled = false;
-    setIsLoading(true);
     const preload = INSTITUTIONAL_VIEWS.has(currentView)
       ? prefetchInstitutionalView(currentView)
       : isStudentRole(currentUser.role)

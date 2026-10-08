@@ -234,7 +234,10 @@ export default function StudentDashboardView({
 
     [courses, enrolledCourses],
   );
-  const showEnrollmentLoading = enrolledCourses.length > 0 && Boolean(isLoginDataLoading || isEnrolledCatalogSyncing);
+  const isCatalogPending = enrolledCourses.length > 0 && courses.length === 0;
+  const showEnrollmentLoading =
+    (enrolledCourses.length > 0 && Boolean(isLoginDataLoading || isEnrolledCatalogSyncing)) ||
+    isCatalogPending;
 
   const progress = useMemo(() => {
     const completedContents = enrolledList.reduce(

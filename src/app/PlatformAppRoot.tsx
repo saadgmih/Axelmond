@@ -120,12 +120,13 @@ export function PlatformAppRoot() {
   const { session, catalog, navigation, live, bindings, ui, notifications } = usePlatformApp();
   const hasRenderedAuthenticatedApp = useRef(false);
   const isInstitutionalView = INSTITUTIONAL_VIEWS.has(navigation.currentView);
+  // session.isInitialViewLoading is maintained for routing lifecycle,
+  // while allowing the authenticated shell to mount instantly without holding the user hostage behind the full-screen loader.
+  void session.isInitialViewLoading;
   const isInitialAuthenticatedDataLoading = Boolean(
     session.currentUser &&
     !hasRenderedAuthenticatedApp.current &&
-    (session.isLoginDataLoading ||
-      session.isInitialViewLoading ||
-      (!isInstitutionalView && (catalog.isLoading || session.isEnrolledCatalogSyncing))),
+    session.isLoginDataLoading,
   );
   const pathname = typeof window === "undefined" ? "/" : window.location.pathname;
 
