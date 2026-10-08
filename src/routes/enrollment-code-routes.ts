@@ -135,6 +135,49 @@ export function registerEnrollmentCodeRoutes(app: Express, ctx: RouteContext): v
   });
 
   /**
+   * DELETE /api/admin/access-codes/:id
+   * Admin: delete/revoke an access code and its associations.
+   */
+  app.delete("/api/admin/access-codes/:id", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const admin = getAuthUser(req);
+      const codeId = String(req.params.id || "").trim();
+      if (!codeId) return void res.status(400).json({ error: "Identifiant de code requis" });
+
+      const promo = await ctx.deps.prisma.promoCode.findUnique({
+        where: { id: codeId },
+        select: { id: true, code: true, internalName: true },
+      });
+
+      if (!promo) {
+        return void res.status(404).json({ error: "Code d'accès introuvable" });
+      }
+
+      await ctx.deps.prisma.$transaction([
+        ctx.deps.prisma.promoCodeUsage.deleteMany({ where: { promoCodeId: promo.id } }),
+        ctx.deps.prisma.promoCodeModule.deleteMany({ where: { promoCodeId: promo.id } }),
+        ctx.deps.prisma.promoCode.delete({ where: { id: promo.id } }),
+      ]);
+
+      await ctx.deps
+        .logAudit(
+          admin.id,
+          admin.email,
+          "ACCESS_CODE_DELETED",
+          "PromoCode",
+          promo.code,
+          { codeId: promo.id, code: promo.code, internalName: promo.internalName },
+          req.ip,
+        )
+        .catch(() => undefined);
+
+      res.json({ ok: true, deletedCode: promo.code });
+    } catch (error) {
+      handleAccessCodeError(error, res);
+    }
+  });
+
+  /**
    * POST /api/admin/modules/:courseId/access-codes/generate
    * Admin: generate a single-use 100% access code for a module.
    */

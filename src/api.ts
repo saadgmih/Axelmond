@@ -712,6 +712,9 @@ export const api = {
         }>;
       }>
     >("GET", courseId ? `/api/admin/modules/${courseId}/access-codes` : `/api/admin/access-codes`),
+  /** Admin: delete/revoke an access code and its associations. */
+  deleteAccessCode: (codeId: string) =>
+    request<{ ok: boolean; deletedCode: string }>("DELETE", `/api/admin/access-codes/${encodeURIComponent(codeId)}`),
   /** Student: validate an access code (must give 100% access) before free-enrolling. */
   validateAccessCode: (courseId: number, code: string) =>
     request<{

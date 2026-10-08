@@ -17,6 +17,7 @@ import {
   UserCheck,
   ShieldCheck,
   Filter,
+  Trash2,
 } from "lucide-react";
 
 interface CourseOption {
@@ -121,6 +122,7 @@ export function AdminAccessCodes({
     singleStudentOnly: boolean;
   } | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [deletingCodeId, setDeletingCodeId] = useState<string | null>(null);
 
   // Load courses if not provided
   useEffect(() => {
@@ -250,6 +252,24 @@ export function AdminAccessCodes({
       setTimeout(() => setCopiedCode(null), 2000);
     } catch {
       // ignore
+    }
+  };
+
+  const handleDeleteCode = async (codeId: string, codeStr: string) => {
+    const confirmed = window.confirm(
+      `Êtes-vous sûr de vouloir supprimer définitivement le code d'accès "${codeStr}" ? Cette action est irréversible.`
+    );
+    if (!confirmed) return;
+
+    setDeletingCodeId(codeId);
+    setError("");
+    try {
+      await api.deleteAccessCode(codeId);
+      setCodes((prev) => prev.filter((c) => c.id !== codeId));
+    } catch (err) {
+      setError(getClientErrorMessage(err, "Impossible de supprimer le code d'accès."));
+    } finally {
+      setDeletingCodeId(null);
     }
   };
 
@@ -717,25 +737,42 @@ export function AdminAccessCodes({
                       ) : null}
                     </div>
 
-                    {/* Copy action */}
-                    <button
-                      type="button"
-                      onClick={() => void handleCopy(c.code)}
-                      className="self-start sm:self-auto inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-300 hover:border-white/20 hover:text-white transition-colors"
-                      title="Copier le code"
-                    >
-                      {copiedCode === c.code ? (
-                        <>
-                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" />
-                          <span className="text-emerald-300 text-[11px]">Copié</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="h-3.5 w-3.5" />
-                          <span className="text-[11px]">Copier</span>
-                        </>
-                      )}
-                    </button>
+                    {/* Actions: Copy & Delete */}
+                    <div className="flex items-center gap-1.5 self-start sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={() => void handleCopy(c.code)}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-300 hover:border-white/20 hover:text-white transition-colors"
+                        title="Copier le code"
+                      >
+                        {copiedCode === c.code ? (
+                          <>
+                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" />
+                            <span className="text-emerald-300 text-[11px]">Copié</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-3.5 w-3.5" />
+                            <span className="text-[11px]">Copier</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => void handleDeleteCode(c.id, c.code)}
+                        disabled={deletingCodeId === c.id}
+                        className="inline-flex items-center gap-1 rounded-lg border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-xs text-red-300 hover:bg-red-500/20 hover:border-red-400/40 hover:text-red-200 transition-colors disabled:opacity-50"
+                        title="Supprimer définitivement ce code d'accès"
+                      >
+                        {deletingCodeId === c.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin text-red-300" />
+                        ) : (
+                          <Trash2 className="h-3.5 w-3.5" />
+                        )}
+                        <span className="text-[11px]">Supprimer</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Modules detail if multi-module */}
