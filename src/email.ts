@@ -119,8 +119,9 @@ function parseEmailAddress(raw: string | undefined): string | undefined {
 
 async function sendMailWithDiagnostics(mail: any, env: NodeJS.ProcessEnv = process.env) {
   const transporter = createSmtpTransporter(env);
-  const senderEmail = parseEmailAddress(mail?.from) || parseEmailAddress(env.EMAIL_FROM) || env.SMTP_USER;
-  const replyTo = mail?.replyTo || env.EMAIL_REPLY_TO || "contact@perfacademy.ma";
+  const defaultFrom = env.EMAIL_FROM || "Performance Académique <verification@perfacademy.ma>";
+  const senderEmail = parseEmailAddress(mail?.from) || parseEmailAddress(defaultFrom) || "verification@perfacademy.ma";
+  const replyTo = mail?.replyTo || env.EMAIL_REPLY_TO || "verification@perfacademy.ma";
   const info = await transporter.sendMail({
     ...mail,
     replyTo,
@@ -663,7 +664,8 @@ export async function sendVerificationEmail(input: VerificationEmailInput, env: 
 
   const delivery = await sendMailWithDiagnostics(
     {
-      from: env.EMAIL_FROM,
+      from: env.EMAIL_VERIFICATION_FROM || env.EMAIL_FROM || "Performance Académique <verification@perfacademy.ma>",
+      replyTo: env.EMAIL_VERIFICATION_REPLY_TO || env.EMAIL_REPLY_TO || "verification@perfacademy.ma",
       to: input.to,
       subject: "Code de vérification de votre compte — Performance Académique",
       text: content.text,
