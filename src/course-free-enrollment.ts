@@ -40,7 +40,7 @@ export async function processFreeCourseEnrollment(params: {
   reqIp?: string;
   persistCoursePaymentEnrollment: PersistEnrollment;
 }): Promise<FreeCourseEnrollmentResult> {
-  if (!isStudentRole(params.role)) {
+  if (!isStudentRole(params.role) && params.role !== "ADMIN") {
     return {
       ok: false,
       status: 403,

@@ -291,7 +291,7 @@ async function assertPromoEligibility(
     throw new PromoCodeError("PROMO_MINIMUM_NOT_REACHED", 409, PROMO_PUBLIC_ERRORS.PROMO_MINIMUM_NOT_REACHED);
   }
   const user = await tx.user.findUnique({ where: { id: input.userId }, select: { filiere: true, role: true } });
-  if (!user || user.role !== "STUDENT") {
+  if (!user || (user.role !== "STUDENT" && user.role !== "ADMIN")) {
     throw new PromoCodeError("PROMO_USER_NOT_ELIGIBLE", 403, PROMO_PUBLIC_ERRORS.PROMO_USER_NOT_ELIGIBLE);
   }
   const priorPayments = await tx.payment.count({ where: { userId: input.userId, status: "COMPLETED" } });

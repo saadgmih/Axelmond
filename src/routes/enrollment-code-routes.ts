@@ -238,8 +238,8 @@ export function registerEnrollmentCodeRoutes(app: Express, ctx: RouteContext): v
   app.post("/api/modules/:courseId/access-code/validate", requireAuth, async (req, res) => {
     try {
       const user = getAuthUser(req);
-      if (user.role !== "STUDENT") {
-        return void res.status(403).json({ error: "Cette action est reservee aux etudiants.", code: "STUDENT_ONLY" });
+      if (user.role !== "STUDENT" && user.role !== "ADMIN") {
+        return void res.status(403).json({ error: "Cette action est réservée aux étudiants.", code: "STUDENT_ONLY" });
       }
       const courseId = api.parsePositiveInt(req.params.courseId);
       if (!courseId) return void res.status(400).json({ error: "Identifiant de module invalide" });

@@ -392,7 +392,11 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
   }
 
   if (verb === "POST" && /^\/api\/courses\/\d+\/free-enroll$/.test(cleanPath)) {
-    return normalized === "STUDENT";
+    return normalized === "STUDENT" || normalized === "ADMIN";
+  }
+
+  if (verb === "POST" && /^\/api\/modules\/\d+\/access-code\/validate$/.test(cleanPath)) {
+    return normalized === "STUDENT" || normalized === "ADMIN";
   }
 
   if (verb === "POST" && /^\/api\/courses\/\d+\/center-payment-requests$/.test(cleanPath)) {
@@ -400,7 +404,7 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
   }
 
   if (
-    normalized === "STUDENT" &&
+    (normalized === "STUDENT" || normalized === "ADMIN") &&
     ((verb === "POST" && /^\/api\/modules\/\d+\/promo-code\/validate$/.test(cleanPath)) ||
       (verb === "DELETE" && /^\/api\/modules\/\d+\/promo-code$/.test(cleanPath)))
   ) {
