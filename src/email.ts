@@ -129,6 +129,13 @@ async function sendMailWithDiagnostics(mail: any, env: NodeJS.ProcessEnv = proce
       from: senderEmail,
       to: normalizeRecipients(mail.to),
     },
+    headers: {
+      "X-Entity-Ref-ID": `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+      "Auto-Submitted": "auto-generated",
+      "X-Auto-Response-Suppress": "All",
+      "X-Report-Abuse-To": "verification@perfacademy.ma",
+      ...(mail?.headers || {}),
+    },
   });
   return buildMailDeliveryDetails(info, getTransporterPublicOptions(transporter, env), mail);
 }
