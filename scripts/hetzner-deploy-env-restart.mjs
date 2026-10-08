@@ -53,6 +53,13 @@ conn
       // 1. Upload .env
       await uploadFile(sftp, '/var/www/axelmond/.env', envContent);
 
+      // 1.5. Git pull and build
+      console.log('\n📦 Mise à jour du code et build sur le serveur...');
+      await executeCommand(
+        conn,
+        'cd /var/www/axelmond && git fetch origin main && git reset --hard origin/main && npm run build',
+      );
+
       // 2. Restart PM2 cluster
       console.log('\n🚀 Redémarrage PM2 Cluster...');
       await executeCommand(
