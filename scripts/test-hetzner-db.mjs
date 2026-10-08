@@ -1,24 +1,13 @@
-import pg from "pg";
-
-const url = process.env.DATABASE_URL;
-console.log("Testing connection from:", process.pid, "to URL:", url?.replace(/:[^:@]+@/, ":***@"));
-
-const pool = new pg.Pool({
-  connectionString: url,
-  max: 2,
-  connectionTimeoutMillis: 10000,
-});
+import { prisma } from "../src/db.ts";
 
 async function main() {
+  console.log("Testing prisma.user.findFirst()...");
   const t0 = Date.now();
-  console.log("Connecting...");
-  const client = await pool.connect();
+  const user = await prisma.user.findFirst({ select: { id: true, email: true } });
   const t1 = Date.now();
-  console.log(`Connected in ${t1 - t0}ms!`);
-  const res = await client.query('SELECT current_database(), current_schema()');
-  console.log("Query result in", Date.now() - t1, "ms:", res.rows);
-  client.release();
-  await pool.end();
+  console.log(`Prisma query took ${t1 - t0}ms!`, user);
 }
 
-main().catch(console.error);
+main()
+  .catch(console.error)
+  .finally(() => prisma.$disconnect());
