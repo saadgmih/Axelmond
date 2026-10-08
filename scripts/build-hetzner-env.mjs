@@ -36,7 +36,7 @@ const HETZNER_OVERRIDES = {
   SMTP_PORT: process.env.SMTP_PORT || "587",
   SMTP_USER: process.env.SMTP_USER || "resend",
   SMTP_PASS: process.env.RESEND_API_KEY || process.env.SMTP_PASS || "",
-  EMAIL_FROM: process.env.EMAIL_FROM || "Performance Académique <onboarding@resend.dev>",
+  EMAIL_FROM: process.env.EMAIL_FROM || "Performance Académique <contact@perfacademy.ma>",
 
   // Redis local & PM2 Cluster 4 workers
   REDIS_URL: "redis://127.0.0.1:6379",
