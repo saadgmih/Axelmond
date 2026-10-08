@@ -43,9 +43,9 @@ const HETZNER_OVERRIDES = {
   REDIS_URL: "redis://127.0.0.1:6379",
   PM2_INSTANCES: "max",
 
-  // Pool PostgreSQL augmenté pour 8 Go de RAM et multi-workers
-  DATABASE_POOL_MAX: "20",
-  STARTUP_DB_TIMEOUT_MS: "10000",
+  // Pool PostgreSQL optimisé pour PgBouncer et multi-workers
+  DATABASE_POOL_MAX: "5",
+  STARTUP_DB_TIMEOUT_MS: "15000",
   CATALOG_QUERY_TIMEOUT_MS: "10000",
 
   // Caches applicatifs
@@ -84,6 +84,11 @@ function parseEnv(filePath) {
 
 const sourceEnv = parseEnv(sourcePath);
 const merged = { ...sourceEnv, ...HETZNER_OVERRIDES };
+
+// Toujours utiliser le PgBouncer Pooler Neon pour éviter les timeouts et la latence
+if (merged.DATABASE_URL && merged.DATABASE_URL.includes(".neon.tech") && !merged.DATABASE_URL.includes("-pooler")) {
+  merged.DATABASE_URL = merged.DATABASE_URL.replace(/@([^.]+)(\.[^/]*neon\.tech)/, (m, ep, rest) => `@${ep}-pooler${rest}`);
+}
 
 if (!merged.MFA_ENCRYPTION_KEY || merged.MFA_ENCRYPTION_KEY.length < 32) {
   merged.MFA_ENCRYPTION_KEY = crypto.randomBytes(32).toString("hex");

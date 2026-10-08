@@ -12,8 +12,13 @@ export function registerEmailVerificationRoutes(app: Express, ctx: RouteContext)
 
     const user = await api.prisma.user.findUnique({
       where: { email },
-
-      include: api.APP_USER_BILLING_INCLUDE,
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        role: true,
+        emailVerified: true,
+      },
     });
 
     if (!user) {
@@ -95,7 +100,11 @@ export function registerEmailVerificationRoutes(app: Express, ctx: RouteContext)
       return tx.user.update({
         where: { id: user.id },
 
-        data: { emailVerified: true },
+        data: {
+          emailVerified: true,
+          failedLoginAttempts: 0,
+          lockoutUntil: null,
+        },
 
         include: api.APP_USER_BILLING_INCLUDE,
       });

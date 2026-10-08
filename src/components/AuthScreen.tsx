@@ -272,8 +272,10 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
     <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center p-4 py-8 md:py-12 relative overflow-hidden font-sans">
       <SkipLink href="#auth-main" />
 
-      {/* 3D Animated Interactive Background */}
-      <Background3D reducedMotion={preferences.reduceMotion} />
+      {/* 3D Animated Interactive Background (desktop/tablet only to keep mobile responsive) */}
+      <div className="hidden md:block pointer-events-none">
+        <Background3D reducedMotion={preferences.reduceMotion} />
+      </div>
 
       {/* Ambient Lighting Glow Overlays */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none z-0"></div>

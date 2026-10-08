@@ -70,10 +70,11 @@ export default function Interactive3DLogo({
       return;
     }
 
-    // Ultra-High Resolution Rendering for Retina/4K & browser zoom clarity
+    // Adaptive Resolution Rendering: fast & lightweight on mobile, crisp on desktop
     const updateResolution = () => {
-      // Support up to 3.5x supersampling so zooming in remains crystal clear (4K quality)
-      const dpr = Math.min(Math.max(window.devicePixelRatio || 1, 2.5), 4);
+      const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+      const maxDpr = isMobile ? 1.5 : 2.5;
+      const dpr = Math.min(Math.max(window.devicePixelRatio || 1, 1), maxDpr);
       renderer.setPixelRatio(dpr);
       renderer.setSize(size, size, false);
     };

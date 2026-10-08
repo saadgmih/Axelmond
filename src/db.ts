@@ -97,7 +97,9 @@ function createPgPool(fixedDatabaseUrl: string, schema: string): Pool {
     connectionString: fixedDatabaseUrl,
     max: Number(process.env.DATABASE_POOL_MAX) || defaultPoolMax,
     idleTimeoutMillis: isHostinger ? 10_000 : 30_000,
-    connectionTimeoutMillis: isHostinger ? 5_000 : 10_000,
+    connectionTimeoutMillis: isHostinger ? 5_000 : 15_000,
+    keepAlive: true,
+    keepAliveInitialDelayMillis: 10_000,
     options: `-c search_path=${quotePgIdentifier(schema)}`,
   });
 
