@@ -64,6 +64,8 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
           cacheKey = `api:courses:public:d=${domainId}:dis=${disciplineId}${paginationPart}`;
         } else if (isStudent) {
           cacheKey = `api:courses:student:${authUser.id}:d=${domainId}:dis=${disciplineId}${paginationPart}`;
+        } else if (authUser?.role === "ADMIN") {
+          cacheKey = `api:courses:admin:d=${domainId}:dis=${disciplineId}${paginationPart}`;
         }
       }
 
