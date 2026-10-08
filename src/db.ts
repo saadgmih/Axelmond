@@ -92,6 +92,7 @@ function ensureFixedDatabaseConfig(): { url: string; schema: string } {
 
 function createPgPool(fixedDatabaseUrl: string, schema: string): Pool {
   const isHostinger = process.env.HOSTINGER_WEBAPP === "1";
+  const isPooler = fixedDatabaseUrl.includes("-pooler") || Boolean(process.env.DATABASE_URL?.includes("-pooler"));
   const defaultPoolMax = isHostinger ? 2 : 5;
   const pool = new Pool({
     connectionString: fixedDatabaseUrl,
@@ -100,11 +101,11 @@ function createPgPool(fixedDatabaseUrl: string, schema: string): Pool {
     connectionTimeoutMillis: isHostinger ? 5_000 : 15_000,
     keepAlive: true,
     keepAliveInitialDelayMillis: 10_000,
-    options: `-c search_path=${quotePgIdentifier(schema)}`,
+    ...(isPooler ? {} : { options: `-c search_path=${quotePgIdentifier(schema)}` }),
   });
 
   if (isVerboseStartup()) {
-    console.info(`[db] PostgreSQL active schema: ${schema} (search_path=${schema})`);
+    console.info(`[db] PostgreSQL active schema: ${schema} (search_path=${schema}, pooler=${isPooler})`);
   }
   return pool;
 }
