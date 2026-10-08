@@ -13,9 +13,17 @@ export function registerCatalogRoutes(app: Express, ctx: RouteContext): void {
     const dbUser = authUser ? await api.getOptionalAuthDbUser(req) : null;
     const bypassCache = req.query.fresh === "1";
 
-    // Cache uniquement pour les visiteurs anonymes/étudiants (données publiées)
-
-    const cacheKey = authUser && authUser.role !== "STUDENT" ? null : "api:domains:public";
+    // Cache pour visiteurs anonymes, étudiants, admins et enseignants
+    let cacheKey: string | null = null;
+    if (!bypassCache) {
+      if (!authUser || authUser.role === "STUDENT") {
+        cacheKey = "api:domains:public";
+      } else if (authUser.role === "ADMIN") {
+        cacheKey = "api:domains:admin";
+      } else {
+        cacheKey = `api:domains:teacher:${authUser.id}`;
+      }
+    }
 
     if (cacheKey && !bypassCache) {
       const cached = await api.cacheGet(cacheKey);
@@ -24,7 +32,8 @@ export function registerCatalogRoutes(app: Express, ctx: RouteContext): void {
         if (cacheKey === "api:domains:public") {
           sendPublicJsonWithEtag(req, res, cached);
         } else {
-          res.json(JSON.parse(cached));
+          res.setHeader("Content-Type", "application/json; charset=utf-8");
+          res.send(cached);
         }
         return;
       }
@@ -79,13 +88,14 @@ export function registerCatalogRoutes(app: Express, ctx: RouteContext): void {
     const responseBody = JSON.stringify(payload);
 
     if (cacheKey) {
-      await api.cacheSet(cacheKey, responseBody, Number(process.env.CACHE_TTL_SECONDS) || 60);
+      await api.cacheSet(cacheKey, responseBody, Number(process.env.DOMAINS_CACHE_SECONDS) || 3600);
     }
 
     if (cacheKey === "api:domains:public") {
       sendPublicJsonWithEtag(req, res, responseBody);
     } else {
-      res.json(payload);
+      res.setHeader("Content-Type", "application/json; charset=utf-8");
+      res.send(responseBody);
     }
   });
 }

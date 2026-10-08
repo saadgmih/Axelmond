@@ -66,6 +66,8 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
           cacheKey = `api:courses:student:${authUser.id}:d=${domainId}:dis=${disciplineId}${paginationPart}`;
         } else if (authUser?.role === "ADMIN") {
           cacheKey = `api:courses:admin:d=${domainId}:dis=${disciplineId}${paginationPart}`;
+        } else if (authUser?.role === "PROFESSOR" || authUser?.role === "RESEARCHER") {
+          cacheKey = `api:courses:teacher:${authUser.id}:d=${domainId}:dis=${disciplineId}${paginationPart}`;
         }
       }
 
@@ -76,7 +78,8 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
           if (!authUser) {
             sendPublicJsonWithEtag(req, res, cached);
           } else {
-            res.json(JSON.parse(cached));
+            res.setHeader("Content-Type", "application/json; charset=utf-8");
+            res.send(cached);
           }
           return;
         }
@@ -145,8 +148,8 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
 
       if (cacheKey) {
         const ttl = isStudent
-          ? Number(process.env.STUDENT_CATALOG_CACHE_SECONDS) || Number(process.env.CACHE_TTL_SECONDS) || 60
-          : Number(process.env.CACHE_TTL_SECONDS) || 60;
+          ? Number(process.env.STUDENT_CATALOG_CACHE_SECONDS) || 900
+          : Number(process.env.CATALOG_CACHE_SECONDS) || Number(process.env.CACHE_TTL_SECONDS) || 900;
         await api.cacheSet(cacheKey, finalBody, ttl);
       }
 

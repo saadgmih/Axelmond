@@ -53,7 +53,10 @@ export async function invalidateStudentCatalogCache(userId?: string): Promise<vo
 
 export async function invalidatePublicCatalogCache(): Promise<void> {
   await cacheDel("api:domains:public");
+  await cacheDel("api:domains:admin");
+  await cacheDelByPrefix("api:domains:teacher:");
   await cacheDelByPrefix("api:courses:public:");
   await cacheDelByPrefix("api:courses:admin:");
+  await cacheDelByPrefix("api:courses:teacher:");
   await invalidateStudentCatalogCache();
 }

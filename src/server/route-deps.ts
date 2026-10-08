@@ -71,7 +71,7 @@ export const requireAuth: express.RequestHandler = async (req, res, next) => {
         userId: session.userId,
         authTokenVersion: session.authTokenVersion,
       },
-      { forceRefresh: req.method === "GET" && req.path === "/api/auth/me" },
+      { forceRefresh: req.method === "GET" && req.path === "/api/auth/me" && req.query.fresh === "1" },
     );
   } catch (err) {
     logSecurity("WARN", "Auth database lookup failed", { userId: session.userId, error: String(err) });

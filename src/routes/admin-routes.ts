@@ -524,6 +524,13 @@ export function registerAdminRoutes(app: Express, ctx: RouteContext): void {
   });
 
   app.get("/api/admin/email-delivery-summary", requireAuth, requireAdmin, async (_req, res) => {
+    const cached = await api.cacheGet("api:admin:email-delivery-summary");
+    if (cached) {
+      res.setHeader("Content-Type", "application/json; charset=utf-8");
+      res.send(cached);
+      return;
+    }
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -540,15 +547,18 @@ export function registerAdminRoutes(app: Express, ctx: RouteContext): void {
     });
 
     api.logEmail("INFO", "Admin listed email delivery summary", { emailsSentToday });
-    res.json({
+    const payload = {
       smtpConfigured: summary.smtpConfigured,
       lastEmailSent: summary.lastEmailSent ? api.emailDeliveryLogSnapshot(summary.lastEmailSent) : null,
       emailsSentToday,
       lastSmtpError: summary.lastSmtpError ? api.emailDeliveryLogSnapshot(summary.lastSmtpError) : null,
-    });
+    };
+    await api.cacheSet("api:admin:email-delivery-summary", JSON.stringify(payload), 60);
+    res.json(payload);
   });
 
   app.post("/api/test-email", requireAuth, requireAdmin, async (req, res) => {
+    await api.cacheDel("api:admin:email-delivery-summary");
     const authUser = getAuthUser(req);
     const to = String(req.body?.to || "")
       .trim()
