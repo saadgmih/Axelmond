@@ -31,11 +31,11 @@ const HETZNER_OVERRIDES = {
   ALLOWED_ORIGINS: "https://www.perfacademy.ma,https://perfacademy.ma,https://www.axelmond.com,https://axelmond.com",
   TRUST_PROXY: "1",
 
-  // Resend Transactional Email (Remplace définitivement Hostinger)
-  SMTP_HOST: process.env.SMTP_HOST || "smtp.resend.com",
-  SMTP_PORT: process.env.SMTP_PORT || "587",
-  SMTP_USER: process.env.SMTP_USER || "resend",
-  SMTP_PASS: process.env.RESEND_API_KEY || process.env.SMTP_PASS || "",
+  // Google Gmail / Workspace SMTP (Remplace définitivement Resend & Hostinger)
+  SMTP_HOST: process.env.SMTP_HOST || "smtp.gmail.com",
+  SMTP_PORT: process.env.SMTP_PORT || "465",
+  SMTP_USER: process.env.SMTP_USER || "saadgmih2004@gmail.com",
+  SMTP_PASS: process.env.SMTP_PASS || "dgeuyjlhqfaqujsl",
   EMAIL_FROM: process.env.EMAIL_FROM || "Performance Académique <contact@perfacademy.ma>",
 
   // Redis local & PM2 Cluster 4 workers
