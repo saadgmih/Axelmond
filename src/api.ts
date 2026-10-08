@@ -643,21 +643,52 @@ export const api = {
     request<PromoQuote>("POST", `/api/modules/${courseId}/promo-code/validate`, { code }),
   removePromoCode: (courseId: number) => request<{ removed: boolean }>("DELETE", `/api/modules/${courseId}/promo-code`),
   // ── Enrollment Access Codes ────────────────────────────────────────────────
-  /** Admin: generate a single-use 100% access code for a specific module. */
+  /** Admin: generate a 100% access code for one or multiple modules (or all modules), for a single student. */
   generateAccessCode: (
-    courseId: number,
-    options: { startsAt?: string; endsAt?: string; expiresInDays?: number; maxUses?: number; label?: string } = {},
-  ) =>
-    request<{
+    target: number | { courseIds?: number[]; allModules?: boolean; courseId?: number },
+    options: {
+      startsAt?: string;
+      endsAt?: string;
+      expiresInDays?: number;
+      maxUses?: number;
+      label?: string;
+      singleStudentOnly?: boolean;
+    } = {},
+  ) => {
+    if (typeof target === "number") {
+      return request<{
+        code: string;
+        promoCodeId: string;
+        courseId: number;
+        courseTitle: string;
+        courseIds?: number[];
+        courseTitles?: string[];
+        allModules?: boolean;
+        singleStudentOnly?: boolean;
+        expiresAt: string;
+        maxUses: number;
+      }>("POST", `/api/admin/modules/${target}/access-codes/generate`, options);
+    }
+    return request<{
       code: string;
       promoCodeId: string;
       courseId: number;
       courseTitle: string;
+      courseIds: number[];
+      courseTitles: string[];
+      allModules: boolean;
+      singleStudentOnly: boolean;
       expiresAt: string;
       maxUses: number;
-    }>("POST", `/api/admin/modules/${courseId}/access-codes/generate`, options),
-  /** Admin: list generated access codes for a module. */
-  listAccessCodes: (courseId: number) =>
+    }>("POST", `/api/admin/access-codes/generate`, {
+      ...options,
+      courseIds: target.courseIds,
+      allModules: target.allModules,
+      courseId: target.courseId,
+    });
+  },
+  /** Admin: list generated access codes (either all or for a specific module). */
+  listAccessCodes: (courseId?: number | null) =>
     request<
       Array<{
         id: string;
@@ -669,16 +700,29 @@ export const api = {
         maxTotalUses: number | null;
         totalConfirmedUses: number;
         totalReservedUses: number;
+        appliesToAllModules?: boolean;
         createdAt: string;
+        modules?: Array<{ course: { id: number; title: string } }>;
+        usages?: Array<{
+          id: string;
+          userId: string;
+          createdAt: string;
+          user: { id: string; fullName: string; email: string };
+          course: { id: number; title: string };
+        }>;
       }>
-    >("GET", `/api/admin/modules/${courseId}/access-codes`),
+    >("GET", courseId ? `/api/admin/modules/${courseId}/access-codes` : `/api/admin/access-codes`),
   /** Student: validate an access code (must give 100% access) before free-enrolling. */
   validateAccessCode: (courseId: number, code: string) =>
-    request<{ valid: boolean; code: string; finalAmount: number }>(
-      "POST",
-      `/api/modules/${courseId}/access-code/validate`,
-      { code },
-    ),
+    request<{
+      valid: boolean;
+      code: string;
+      finalAmount: number;
+      modules?: Array<{ id: number; title: string }>;
+      isMultiModule?: boolean;
+      appliesToAllModules?: boolean;
+      singleStudentOnly?: boolean;
+    }>("POST", `/api/modules/${courseId}/access-code/validate`, { code }),
 
   getAdminPromoOptions: () =>
     request<{

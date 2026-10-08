@@ -1,4 +1,9 @@
-import { buildCourseInvoiceId, serializeInvoiceRecord, type CoursePaymentEnrollmentInput } from "./course-payments";
+import {
+  buildCourseInvoiceId,
+  serializeInvoiceRecord,
+  type CoursePaymentEnrollmentInput,
+  APP_USER_BILLING_INCLUDE,
+} from "./course-payments";
 import {
   isAfterFreeAccessWindow,
   isBeforeFreeAccessWindow,
@@ -139,12 +144,64 @@ export async function processFreeCourseEnrollment(params: {
       promoUsageId: promoReservation?.usage.id,
     });
 
+    // If the access code covers multiple modules, auto-enroll in all sibling modules for this student
+    let siblingSuccessCount = 0;
+    if (promoReservation?.promo?.internalName.startsWith("[Code acces]")) {
+      const siblingCourses = promoReservation.promo.appliesToAllModules
+        ? await prisma.course.findMany({
+            where: { published: true, id: { not: params.courseId } },
+            select: { id: true, title: true },
+          })
+        : promoReservation.promo.modules
+            .filter((m) => m.course.id !== params.courseId)
+            .map((m) => ({ id: m.course.id, title: m.course.title }));
+
+      for (const sibling of siblingCourses) {
+        try {
+          const siblingInvoiceId = buildCourseInvoiceId("FREE");
+          const siblingExternalId = `free-promo-${promoReservation.usage.publicReference}-${sibling.id}`;
+          await params.persistCoursePaymentEnrollment({
+            userId: params.userId,
+            courseId: sibling.id,
+            courseTitle: sibling.title,
+            coursePrice: 0,
+            invoiceId: siblingInvoiceId,
+            provider: "MOCK",
+            externalId: siblingExternalId,
+            auditAction: "ENROLL_FREE",
+            reqIp: params.reqIp,
+            enrollmentEndDate,
+          });
+          siblingSuccessCount++;
+        } catch (siblingErr) {
+          console.warn(`[access-code] Auto-enrollment sibling course ${sibling.id} failed:`, siblingErr);
+        }
+      }
+    }
+
+    let finalUser = result.user;
+    if (siblingSuccessCount > 0) {
+      const refreshed = await prisma.user.findUnique({
+        where: { id: params.userId },
+        include: APP_USER_BILLING_INCLUDE,
+      });
+      if (refreshed) {
+        finalUser = refreshed;
+      }
+    }
+
+    const message = result.duplicate
+      ? "Vous êtes déjà inscrit à ce module."
+      : siblingSuccessCount > 0
+        ? `Code validé ! Vos ${siblingSuccessCount + 1} modules ont été débloqués avec succès.`
+        : "Inscription gratuite confirmée.";
+
     return {
       ok: true,
       duplicate: result.duplicate,
-      user: toAppUser(result.user),
+      user: toAppUser(finalUser),
       invoice: (result.invoice as ReturnType<typeof serializeInvoiceRecord> | null) ?? null,
-      message: result.duplicate ? "Vous êtes déjà inscrit à ce module." : "Inscription gratuite confirmée.",
+      message,
     };
   } catch (err: unknown) {
     if (promoReservation) await releasePromoCodeReservationById(promoReservation.usage.id, true).catch(() => undefined);

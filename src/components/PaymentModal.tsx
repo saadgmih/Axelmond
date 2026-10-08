@@ -68,6 +68,12 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
   const [accessCode, setAccessCode] = useState("");
   const [accessCodeError, setAccessCodeError] = useState("");
   const [accessCodeValidated, setAccessCodeValidated] = useState(false);
+  const [accessCodeValidation, setAccessCodeValidation] = useState<{
+    modules?: Array<{ id: number; title: string }>;
+    isMultiModule?: boolean;
+    appliesToAllModules?: boolean;
+    singleStudentOnly?: boolean;
+  } | null>(null);
   const [isValidatingCode, setIsValidatingCode] = useState(false);
   const [showCodeInFreeMode, setShowCodeInFreeMode] = useState(false);
 
@@ -87,6 +93,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
     setAccessCode("");
     setAccessCodeError("");
     setAccessCodeValidated(false);
+    setAccessCodeValidation(null);
     setShowCodeInFreeMode(false);
   }, [course?.id]);
 
@@ -324,10 +331,12 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
     setIsValidatingCode(true);
     setAccessCodeError("");
     setAccessCodeValidated(false);
+    setAccessCodeValidation(null);
     try {
-      await api.validateAccessCode(course.id, code);
+      const res = await api.validateAccessCode(course.id, code);
       setAccessCode(code);
       setAccessCodeValidated(true);
+      setAccessCodeValidation(res);
     } catch (err: unknown) {
       setAccessCodeError(getClientErrorMessage(err, "Code d'accès invalide ou expiré."));
     } finally {
@@ -832,24 +841,62 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                       <div className="mt-6 pt-4 border-t border-white/[0.06]">
                         {accessCodeValidated ? (
                           <div className="space-y-3 text-center">
-                            <div className="flex items-center justify-center gap-1.5 text-xs text-violet-300 font-bold">
-                              <CheckCircle2 className="h-4 w-4" /> Code validé ✓
+                            <div className="flex items-center justify-center gap-1.5 text-xs text-emerald-300 font-bold">
+                              <CheckCircle2 className="h-4 w-4" /> Code d&apos;accès validé ✓
                             </div>
-                            <div className="rounded-xl bg-black/60 p-2 font-mono text-sm font-black text-violet-200 tracking-wider">
+                            <div className="rounded-xl border border-emerald-500/30 bg-black/60 p-2 font-mono text-sm font-black text-emerald-200 tracking-wider">
                               {accessCode}
                             </div>
+
+                            {accessCodeValidation?.isMultiModule && (
+                              <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-2.5 text-left text-xs space-y-1.5">
+                                <p className="font-bold text-emerald-200 flex items-center gap-1.5">
+                                  <Sparkles className="h-3.5 w-3.5 text-emerald-300" />
+                                  <span>Code multi-modules (Usage exclusif)</span>
+                                </p>
+                                {accessCodeValidation.appliesToAllModules ? (
+                                  <p className="text-[11px] text-emerald-100">
+                                    🌟 Ce code débloque automatiquement <strong>tous les modules</strong> de la plateforme pour votre compte !
+                                  </p>
+                                ) : accessCodeValidation.modules && accessCodeValidation.modules.length > 0 ? (
+                                  <div className="space-y-1">
+                                    <p className="text-[11px] text-emerald-300/90 font-medium">
+                                      Débloque vos {accessCodeValidation.modules.length} modules en une seule activation :
+                                    </p>
+                                    <div className="flex flex-wrap gap-1">
+                                      {accessCodeValidation.modules.map((m) => (
+                                        <span
+                                          key={m.id}
+                                          className={`rounded-md px-2 py-0.5 text-[10px] font-semibold border ${
+                                            m.id === course.id
+                                              ? "border-emerald-400/50 bg-emerald-500/25 text-emerald-100 ring-1 ring-emerald-400/40"
+                                              : "border-white/10 bg-slate-900/60 text-slate-300"
+                                          }`}
+                                        >
+                                          {m.title} {m.id === course.id ? "(Ce module)" : ""}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ) : null}
+                                <p className="text-[10px] text-slate-300/80 pt-0.5">
+                                  👤 <em>Ce code est strictement réservé à votre compte étudiant.</em>
+                                </p>
+                              </div>
+                            )}
+
                             <button
                               type="button"
                               onClick={() => void handleActivateWithCode()}
                               disabled={isProcessing}
-                              className="flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-3.5 text-sm font-bold text-white transition-all hover:bg-violet-500 disabled:opacity-60"
+                              className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3.5 text-sm font-bold text-white transition-all hover:bg-emerald-500 disabled:opacity-60 shadow-lg shadow-emerald-950/40"
                             >
                               {isProcessing ? (
                                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
                               ) : (
                                 <KeyRound className="h-4 w-4" />
                               )}
-                              Activer mon accès
+                              Activer mon accès {accessCodeValidation?.isMultiModule ? "complet" : ""}
                               <ArrowRight className="h-4 w-4 ml-auto" />
                             </button>
                           </div>
@@ -865,6 +912,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                                   setAccessCode(e.target.value.toUpperCase());
                                   setAccessCodeError("");
                                   setAccessCodeValidated(false);
+                                  setAccessCodeValidation(null);
                                 }}
                                 onKeyDown={(e) => {
                                   if (e.key === "Enter") void handleValidateAccessCode();
