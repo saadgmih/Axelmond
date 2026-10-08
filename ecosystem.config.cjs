@@ -5,8 +5,10 @@
 // Cluster mode activates when REDIS_URL is set (shared cache across workers).
 // Hostinger Node.js Web App manages its own process — do not run PM2 there.
 
+let parsedDotenv = {};
 try {
-  require("dotenv").config();
+  const result = require("dotenv").config();
+  if (result.parsed) parsedDotenv = result.parsed;
 } catch {}
 
 if (process.env.HOSTINGER_WEBAPP === "1") {
@@ -34,6 +36,7 @@ module.exports = {
       exec_mode: useCluster ? "cluster" : "fork",
       node_args: "--max-old-space-size=1024",
       env: {
+        ...parsedDotenv,
         NODE_ENV: "production",
         PORT: 3000,
       },

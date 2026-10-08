@@ -33,7 +33,7 @@ const HETZNER_OVERRIDES = {
 
   // Google Gmail / Workspace SMTP (Remplace définitivement Resend & Hostinger)
   SMTP_HOST: process.env.SMTP_HOST || "smtp.gmail.com",
-  SMTP_PORT: process.env.SMTP_PORT || "465",
+  SMTP_PORT: process.env.SMTP_PORT || "587",
   SMTP_USER: process.env.SMTP_USER || "saadgmih2004@gmail.com",
   SMTP_PASS: process.env.SMTP_PASS || "dgeuyjlhqfaqujsl",
   EMAIL_FROM: process.env.EMAIL_FROM || "Performance Académique <contact@perfacademy.ma>",
