@@ -120,8 +120,10 @@ function parseEmailAddress(raw: string | undefined): string | undefined {
 async function sendMailWithDiagnostics(mail: any, env: NodeJS.ProcessEnv = process.env) {
   const transporter = createSmtpTransporter(env);
   const senderEmail = parseEmailAddress(mail?.from) || parseEmailAddress(env.EMAIL_FROM) || env.SMTP_USER;
+  const replyTo = mail?.replyTo || env.EMAIL_REPLY_TO || "contact@perfacademy.ma";
   const info = await transporter.sendMail({
     ...mail,
+    replyTo,
     envelope: {
       from: senderEmail,
       to: normalizeRecipients(mail.to),
