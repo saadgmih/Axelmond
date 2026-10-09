@@ -19,7 +19,13 @@ export function isQuizModuleLink(sectionId: string | null | undefined): boolean 
   return Boolean(sectionId?.startsWith(QUIZ_MODULE_LINK_PREFIX));
 }
 
-export function lessonContentIdFromModule(sectionId: string | null | undefined): string | null {
+export function lessonContentIdFromModule(sectionIdOrModule: string | { sectionId?: string | null } | null | undefined): string | null {
+  const sectionId =
+    typeof sectionIdOrModule === "string"
+      ? sectionIdOrModule
+      : typeof sectionIdOrModule === "object" && sectionIdOrModule !== null && "sectionId" in sectionIdOrModule
+        ? sectionIdOrModule.sectionId
+        : null;
   if (!sectionId?.startsWith(LESSON_MODULE_LINK_PREFIX)) return null;
   const contentId = sectionId.slice(LESSON_MODULE_LINK_PREFIX.length);
   return contentId.length > 0 ? contentId : null;
