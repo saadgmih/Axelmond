@@ -683,6 +683,7 @@ export default function StudentCourseView({
 
                     <Suspense fallback={<CourseMediaFallback label="Chargement du document…" />}>
                       <PdfLessonViewer
+                        contentId={lessonContentIdFromModule(selectedModule) || undefined}
                         documentUrl={selectedModule.attachmentUrl}
                         title={selectedModule.title}
                         downloadFileName={selectedModule.attachmentName || undefined}
