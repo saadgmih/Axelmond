@@ -36,6 +36,11 @@ rulesTest("student-course-live-pdf", () => {
   assert.match(pdfViewerSource, /reader\.readAsArrayBuffer\(blob\)/);
   assert.match(pdfViewerSource, /setPdfFile\(validatedPdfData \? \{ data: validatedPdfData \} : null\)/);
   assert.match(pdfViewerSource, /file=\{pdfFile\}/);
+  const docStart = pdfViewerSource.indexOf("<Document");
+  const docEnd = pdfViewerSource.indexOf("</Document>");
+  const asideStart = pdfViewerSource.indexOf("<aside");
+  const asideEnd = pdfViewerSource.indexOf("</aside>");
+  assert.ok(asideStart > docStart && asideEnd < docEnd, "Miniatures sidebar must be nested within Document to avoid React-PDF invariant crash");
   assert.doesNotMatch(pdfViewerSource, /downloadUrl/);
   assert.doesNotMatch(pdfViewerSource, /Ouvrir le PDF/);
   assert.match(pdfViewerSource, /mediaType === "IMAGE"/);
