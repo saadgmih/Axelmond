@@ -18,6 +18,8 @@ export interface VideoInfo {
   duration: number;
   hasAudio: boolean;
   sizeBytes: number;
+  codec?: string;
+  pixFmt?: string;
 }
 
 const MAX_BRANDING_LONG_EDGE = 1280;
@@ -34,7 +36,7 @@ const LOW_MEMORY_VIDEO_ENCODING_ARGS = [
   "-preset",
   "veryfast",
   "-threads",
-  "1",
+  "0",
   "-crf",
   "23",
   "-pix_fmt",
@@ -110,8 +112,10 @@ export async function probeVideo(filePath: string, signal?: AbortSignal): Promis
   const duration = parseFloat(data.format?.duration || videoStream.duration || "0");
   const sizeBytes = parseInt(data.format?.size || "0", 10);
   const hasAudio = !!audioStream;
+  const codec = String(videoStream.codec_name || "").toLowerCase();
+  const pixFmt = String(videoStream.pix_fmt || "").toLowerCase();
 
-  return { width, height, duration, hasAudio, sizeBytes };
+  return { width, height, duration, hasAudio, sizeBytes, codec, pixFmt };
 }
 
 async function resolveIntroFile(urlOrPath: string, filename: string): Promise<string> {
@@ -294,10 +298,14 @@ export async function processVideoJob(jobId: string, signal?: AbortSignal): Prom
       throw new Error("La durée de la vidéo dépasse la limite autorisée de 8 heures.");
     }
 
-    // For large videos (> 200MB or > 15 min), re-encoding on CPU takes hours and can crash the server.
-    // The player already provides brand intro overlays dynamically.
-    // Mark large videos as READY directly for instant high-performance playback.
-    if (info.sizeBytes > 200 * 1024 * 1024 || info.duration > 15 * 60) {
+    // For large videos (> 200MB or > 15 min), check if codec is already universal web H.264.
+    // If it's already standard H.264 with 4:2:0 subsampling, direct playback is fast and safe.
+    // However, if the video is HEVC/H.265 (common with iPhones/iPads) or ProRes/VP9,
+    // Windows web browsers CANNOT decode the video stream and will show a black screen!
+    // Therefore, non-H.264 videos MUST be transcoded regardless of size.
+    const isUniversalWebCodec =
+      info.codec === "h264" && (!info.pixFmt || info.pixFmt.startsWith("yuv420") || info.pixFmt.startsWith("yuvj420"));
+    if (isUniversalWebCodec && (info.sizeBytes > 200 * 1024 * 1024 || info.duration > 15 * 60)) {
       console.log(
         `[branding-service] Video ${jobId} is large (${Math.round(info.sizeBytes / (1024 * 1024))}MB, ${Math.round(info.duration / 60)}min). Preserving direct high-speed playback.`,
       );
