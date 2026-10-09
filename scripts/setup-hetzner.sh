@@ -58,6 +58,7 @@ pm2 set pm2-logrotate:retain 7
 # 6. Installation et configuration de Nginx
 echo "🌐 6/7 Installation et configuration de Nginx..."
 apt install -y nginx
+sed -i 's/application\/javascript[[:space:]]*js;/application\/javascript js mjs;/' /etc/nginx/mime.types || true
 systemctl enable nginx
 
 # Configuration du reverse proxy Nginx pour Axelmond

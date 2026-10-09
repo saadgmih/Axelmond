@@ -234,7 +234,10 @@ export default function PdfLessonViewer({
     setViewerState("READY");
   }
 
-  function handleDocumentLoadError() {
+  function handleDocumentLoadError(err?: Error) {
+    if (err) {
+      console.error("[PdfLessonViewer] Document parse error:", err);
+    }
     clearParseRetryTimeout();
     if (parseRetryCountRef.current < PDF_PARSE_MAX_AUTOMATIC_RETRIES) {
       const attempt = parseRetryCountRef.current;

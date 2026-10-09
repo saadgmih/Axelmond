@@ -506,7 +506,12 @@ export default function StudentCourseView({
 
                         {selectedLessonContent.type === "PDF" && (
                           <Suspense fallback={<CourseMediaFallback label="Chargement du document…" />}>
-                            <PdfLessonViewer contentId={selectedLessonContent.id} title={selectedLessonContent.title} />
+                            <PdfLessonViewer
+                              contentId={selectedLessonContent.id}
+                              title={selectedLessonContent.title}
+                              documentUrl={safeAttachmentUrl || undefined}
+                              downloadFileName={selectedLessonContent.attachments[0]?.fileName}
+                            />
                           </Suspense>
                         )}
 
@@ -522,6 +527,8 @@ export default function StudentCourseView({
                               contentId={selectedLessonContent.id}
                               title={selectedLessonContent.title}
                               mediaType="IMAGE"
+                              documentUrl={safeAttachmentUrl || undefined}
+                              downloadFileName={selectedLessonContent.attachments[0]?.fileName}
                             />
                           </Suspense>
                         )}
