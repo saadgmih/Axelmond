@@ -141,7 +141,7 @@ export async function loadProtectedResource(options: LoadProtectedResourceOption
     try {
       const response = await fetchImpl(url, {
         method: "GET",
-        credentials: "include",
+        credentials: requiresSession ? "include" : "omit",
         cache: "no-store",
         headers: {
           Accept: kind === "PDF" ? "application/pdf" : "image/*",

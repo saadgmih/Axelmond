@@ -509,7 +509,6 @@ export default function StudentCourseView({
                             <PdfLessonViewer
                               contentId={selectedLessonContent.id}
                               title={selectedLessonContent.title}
-                              documentUrl={safeAttachmentUrl || undefined}
                               downloadFileName={selectedLessonContent.attachments[0]?.fileName}
                             />
                           </Suspense>
