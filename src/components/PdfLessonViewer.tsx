@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import {
+  BookOpen,
   Camera,
   ChevronLeft,
   ChevronRight,
@@ -10,8 +11,13 @@ import {
   Maximize2,
   Minimize2,
   MoveHorizontal,
+  PanelLeft,
+  PanelLeftClose,
   RefreshCw,
   RotateCcw,
+  RotateCw,
+  ScrollText,
+  ShieldCheck,
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
@@ -99,6 +105,9 @@ export default function PdfLessonViewer({
 
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState(1);
+  const [rotation, setRotation] = useState(0);
+  const [scrollMode, setScrollMode] = useState<"continuous" | "single">("continuous");
+  const [showSidebar, setShowSidebar] = useState(false);
 
   const [scale, setScale] = useState(1.0);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -151,6 +160,18 @@ export default function PdfLessonViewer({
     observer.observe(containerRef.current);
     return () => observer.disconnect();
   }, [viewerState, blobUrl, mediaType]);
+
+  // Anti-download keyboard shortcuts interceptor for student protection
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && ["s", "p", "u", "S", "P", "U"].includes(e.key)) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Handle Fullscreen changes
   useEffect(() => {
@@ -243,13 +264,21 @@ export default function PdfLessonViewer({
     return clearParseRetryTimeout;
   }, [clearParseRetryTimeout, contentId, documentUrl, mediaType]);
 
+  function goToPage(targetPage: number) {
+    const page = Math.max(1, Math.min(targetPage, numPages || 1));
+    setPageNumber(page);
+    if (scrollMode === "continuous" && containerRef.current) {
+      const pageEl = containerRef.current.querySelector(`[data-page-number="${page}"]`);
+      if (pageEl) {
+        pageEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+  }
+
   function changePage(offset: number) {
-    setPageNumber((prevPageNumber) => {
-      const next = prevPageNumber + offset;
-      if (next < 1) return 1;
-      if (numPages && next > numPages) return numPages;
-      return next;
-    });
+    const next = pageNumber + offset;
+    if (next < 1 || (numPages && next > numPages)) return;
+    goToPage(next);
   }
 
   function handleZoomIn() {
@@ -258,6 +287,10 @@ export default function PdfLessonViewer({
 
   function handleZoomOut() {
     setScale((prev) => Math.max(prev - 0.25, mediaType === "IMAGE" ? 0.25 : 0.5));
+  }
+
+  function rotateClockwise() {
+    setRotation((prev) => (prev + 90) % 360);
   }
 
   function centerImageStage() {
@@ -304,9 +337,8 @@ export default function PdfLessonViewer({
 
   function handleImagePointerMove(event: ReactPointerEvent<HTMLDivElement>) {
     const drag = imageDragRef.current;
-    const stage = imageStageRef.current;
-    if (!drag.active || !stage) return;
-    event.preventDefault();
+    if (!drag.active || drag.pointerId !== event.pointerId) return;
+    const stage = event.currentTarget;
     stage.scrollLeft = drag.scrollLeft - (event.clientX - drag.startX);
     stage.scrollTop = drag.scrollTop - (event.clientY - drag.startY);
   }
@@ -320,6 +352,30 @@ export default function PdfLessonViewer({
     imageDragRef.current.active = false;
     setIsImagePanning(false);
   }
+
+  // Scroll listener in continuous mode to track currently visible page
+  const handleContainerScroll = useCallback(() => {
+    if (scrollMode !== "continuous" || !containerRef.current || !numPages) return;
+    const container = containerRef.current;
+    const pageEls = container.querySelectorAll("[data-page-number]");
+    const targetMiddle = container.scrollTop + container.clientHeight / 3;
+
+    let closest = 1;
+    let minDiff = Infinity;
+    pageEls.forEach((el) => {
+      const htmlEl = el as HTMLElement;
+      const pNum = Number(htmlEl.getAttribute("data-page-number") || 1);
+      const diff = Math.abs(htmlEl.offsetTop - targetMiddle);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closest = pNum;
+      }
+    });
+
+    if (closest !== pageNumber) {
+      setPageNumber(closest);
+    }
+  }, [scrollMode, numPages, pageNumber]);
 
   useEffect(() => {
     let active = true;
@@ -389,7 +445,7 @@ export default function PdfLessonViewer({
   useEffect(() => {
     if (mediaType !== "IMAGE" || !imageRenderWidth || !imageRenderHeight) return;
     centerImageStage();
-  }, [mediaType, imageRenderWidth, imageRenderHeight, isExpandedView]);
+  }, [imageRenderHeight, imageRenderWidth, imageViewMode, mediaType]);
 
   if (
     viewerState === "RETRYING_DOCUMENT" ||
@@ -599,68 +655,166 @@ export default function PdfLessonViewer({
   return (
     <div
       ref={wrapperRef}
-      className={`flex flex-col overflow-hidden rounded-[24px] border border-[#202838] bg-slate-950 shadow-lg select-none transition-all ${isExpandedView ? "fixed inset-0 z-[120] h-[100dvh] w-full rounded-none border-none" : "h-[75vh]"}`}
+      className={`flex flex-col overflow-hidden rounded-[24px] border border-[#202838] bg-slate-950 shadow-2xl select-none transition-all ${isExpandedView ? "fixed inset-0 z-[120] h-[100dvh] w-full rounded-none border-none" : "h-[80vh]"}`}
+      onContextMenu={(event) => event.preventDefault()}
     >
+      {/* Top Header Banner: Executive Performance Académique White-label */}
+      <div className="flex items-center justify-between border-b border-[#1c2433] bg-[#070b12] px-4 py-2 text-xs text-slate-400">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="flex h-5 w-5 items-center justify-center rounded-md bg-emerald-500/10 text-emerald-400">
+            <BookOpen className="h-3.5 w-3.5" />
+          </span>
+          <span className="truncate font-semibold text-slate-200">{title}</span>
+          <span className="hidden sm:inline-block text-[#324058]">•</span>
+          <span className="hidden sm:inline-block text-[11px] text-slate-400 font-medium">Performance Académique • Support officiel</span>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-950/60 px-2 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-800/40">
+            <ShieldCheck className="h-3 w-3" />
+            Lecture sécurisée
+          </span>
+        </div>
+      </div>
+
+      {/* Main Office/Acrobat-tier Toolbar */}
       <div
         className={viewerToolbarClass}
         onPointerDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
       >
-        {viewerState === "READY" && numPages ? (
-          <div className={toolbarPillClass}>
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap sm:flex-nowrap">
+          {/* Sidebar Toggle for Page Thumbnails */}
+          <button
+            type="button"
+            onClick={() => setShowSidebar((prev) => !prev)}
+            className={`${toolbarButtonClass} ${showSidebar ? "border-emerald-500/60 bg-emerald-500/10 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]" : ""}`}
+            title="Miniatures des pages (volet latéral)"
+            aria-label="Miniatures des pages (volet latéral)"
+          >
+            <PanelLeft className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+          </button>
+
+          {/* Continuous Scroll vs Single Page Toggle */}
+          <button
+            type="button"
+            onClick={() => setScrollMode((prev) => (prev === "continuous" ? "single" : "continuous"))}
+            className={`${toolbarButtonClass} ${scrollMode === "continuous" ? "border-emerald-500/60 bg-emerald-500/10 text-emerald-400" : ""}`}
+            title={scrollMode === "continuous" ? "Mode défilement continu (actif)" : "Passer en défilement continu"}
+            aria-label={scrollMode === "continuous" ? "Mode défilement continu (actif)" : "Passer en défilement continu"}
+          >
+            <ScrollText className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+          </button>
+
+          {/* Page Indicator Pill with Navigation Buttons */}
+          {viewerState === "READY" && numPages ? (
+            <div className={toolbarPillClass}>
+              <button
+                type="button"
+                onClick={() => changePage(-1)}
+                disabled={pageNumber <= 1}
+                className={toolbarPillButtonClass}
+                title="Page précédente"
+                aria-label="Page précédente"
+              >
+                <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+              </button>
+              <span className="min-w-[4.5rem] px-1 text-center text-base font-bold tabular-nums text-slate-100 sm:min-w-[5rem] sm:px-1.5 sm:text-lg">
+                {pageNumber} <span className="mx-1 font-medium text-slate-500">/</span> {numPages}
+              </span>
+              <button
+                type="button"
+                onClick={() => changePage(1)}
+                disabled={!numPages || pageNumber >= numPages}
+                className={toolbarPillButtonClass}
+                title="Page suivante"
+                aria-label="Page suivante"
+              >
+                <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+              </button>
+            </div>
+          ) : (
+            <div className={`${toolbarPillClass} gap-3 px-4 text-sm font-semibold text-slate-300`} role="status">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent" />
+              Chargement du document…
+            </div>
+          )}
+        </div>
+
+        {/* Right Controls: Zoom, Rotate, Fullscreen, Download (if allowed) */}
+        <div className="ml-auto flex items-center gap-1.5 sm:gap-2.5">
+          <div className="flex items-center gap-1">
             <button
               type="button"
-              onClick={() => changePage(-1)}
-              disabled={pageNumber <= 1}
-              className={toolbarPillButtonClass}
-              title="Page précédente"
-              aria-label="Page précédente"
+              onClick={handleZoomOut}
+              className={toolbarButtonClass}
+              title="Zoom arrière"
+              aria-label="Zoom arrière"
             >
-              <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+              <ZoomOut className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
             </button>
-            <span className="min-w-[4.5rem] px-1 text-center text-base font-bold tabular-nums text-slate-100 sm:min-w-[5rem] sm:px-1.5 sm:text-lg">
-              {pageNumber} <span className="mx-1 font-medium text-slate-500">/</span> {numPages}
+            <span className="min-w-[3.2rem] px-1 text-center text-xs font-bold tabular-nums text-slate-300 sm:text-sm">
+              {Math.round(scale * 100)}%
             </span>
             <button
               type="button"
-              onClick={() => changePage(1)}
-              disabled={!numPages || pageNumber >= numPages}
-              className={toolbarPillButtonClass}
-              title="Page suivante"
-              aria-label="Page suivante"
+              onClick={handleZoomIn}
+              className={toolbarButtonClass}
+              title="Zoom avant"
+              aria-label="Zoom avant"
             >
-              <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+              <ZoomIn className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
             </button>
           </div>
-        ) : (
-          <div className={`${toolbarPillClass} gap-3 px-4 text-sm font-semibold text-slate-300`} role="status">
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent" />
-            Chargement du document…
-          </div>
-        )}
 
-        <div className="ml-auto flex items-center gap-2 sm:gap-3">
+          <span className={toolbarDividerClass} aria-hidden="true" />
+
+          {/* Fit Width */}
           <button
             type="button"
-            onClick={handleZoomOut}
+            onClick={handleImageFitWidth}
             className={toolbarButtonClass}
-            title="Zoom arrière"
-            aria-label="Zoom arrière"
+            title="Ajuster à la largeur"
+            aria-label="Ajuster à la largeur"
           >
-            <ZoomOut className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+            <MoveHorizontal className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
           </button>
+
+          {/* Fit Screen */}
           <button
             type="button"
-            onClick={handleZoomIn}
+            onClick={handleImageFitScreen}
             className={toolbarButtonClass}
-            title="Zoom avant"
-            aria-label="Zoom avant"
+            title="Ajuster à l'écran"
+            aria-label="Ajuster à l'écran"
           >
-            <ZoomIn className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+            <Maximize2 className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+          </button>
+
+          {/* Reset Zoom */}
+          <button
+            type="button"
+            onClick={handleImageResetZoom}
+            className={toolbarButtonClass}
+            title="Réinitialiser le zoom à 100%"
+            aria-label="Réinitialiser le zoom à 100%"
+          >
+            <RotateCcw className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+          </button>
+
+          {/* 90 degree clockwise rotation */}
+          <button
+            type="button"
+            onClick={rotateClockwise}
+            className={toolbarButtonClass}
+            title="Pivoter de 90°"
+            aria-label="Pivoter de 90°"
+          >
+            <RotateCw className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
           </button>
 
           <span className={toolbarDividerClass} aria-hidden="true" />
 
+          {/* Immersive Fullscreen Mode */}
           <button
             type="button"
             onClick={toggleFullscreen}
@@ -675,6 +829,7 @@ export default function PdfLessonViewer({
             )}
           </button>
 
+          {/* Download Button ONLY if explicitly permitted (e.g. Legal Documents) */}
           {allowDownload ? (
             <a
               href={blobUrl}
@@ -689,12 +844,67 @@ export default function PdfLessonViewer({
         </div>
       </div>
 
-      <div
-        ref={containerRef}
-        className="flex-1 overflow-auto bg-slate-900/95 p-4 [-webkit-overflow-scrolling:touch]"
-        onContextMenu={(event) => event.preventDefault()}
-      >
-        <div className="relative mx-auto w-fit shadow-2xl ring-1 ring-white/10 transition-transform duration-200">
+      {/* Main Reading Workspace with Collapsible Thumbnails Sidebar */}
+      <div className="flex flex-1 overflow-hidden bg-[#090d14] relative">
+        {/* Left Thumbnails Sidebar (Acrobat/WPS Style) */}
+        {showSidebar && viewerState === "READY" && numPages ? (
+          <aside
+            className="w-48 sm:w-56 shrink-0 border-r border-[#1c2433] bg-[#0c121e] overflow-y-auto flex flex-col p-3 gap-3 select-none [scrollbar-width:thin] z-20 shadow-2xl transition-all"
+            aria-label="Volet des miniatures des pages"
+          >
+            <div className="flex items-center justify-between pb-2 border-b border-[#202838]">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
+                Miniatures ({numPages})
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowSidebar(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg transition-colors"
+                title="Fermer le volet"
+                aria-label="Fermer le volet"
+              >
+                <PanelLeftClose className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="flex flex-col gap-3">
+              {Array.from({ length: numPages }, (_, i) => {
+                const p = i + 1;
+                const isCurrent = p === pageNumber;
+                return (
+                  <button
+                    key={`thumb-${p}`}
+                    type="button"
+                    onClick={() => goToPage(p)}
+                    className={`group flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all border ${
+                      isCurrent
+                        ? "bg-emerald-500/10 border-emerald-500/70 shadow-[0_0_12px_rgba(16,185,129,0.25)] text-emerald-400 font-bold"
+                        : "bg-[#121827] border-[#1e2738] hover:border-emerald-500/40 text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    <div className="w-28 overflow-hidden rounded bg-white shadow-md pointer-events-none">
+                      <Page
+                        pageNumber={p}
+                        width={112}
+                        rotate={rotation}
+                        renderTextLayer={false}
+                        renderAnnotationLayer={false}
+                      />
+                    </div>
+                    <span className="text-[11px]">Page {p}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </aside>
+        ) : null}
+
+        {/* Central PDF Stage with Smooth Scrolling and Text Layer */}
+        <div
+          ref={containerRef}
+          onScroll={handleContainerScroll}
+          className="flex-1 overflow-auto p-4 sm:p-6 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]"
+          onContextMenu={(event) => event.preventDefault()}
+        >
           <Document
             file={pdfFile}
             onLoadSuccess={onDocumentLoadSuccess}
@@ -706,16 +916,49 @@ export default function PdfLessonViewer({
             }
             error={null}
           >
-            <Page
-              key={`${pageNumber}-${renderWidth}`}
-              pageNumber={pageNumber}
-              width={renderWidth}
-              className="bg-white"
-              renderTextLayer={false}
-              renderAnnotationLayer={false}
-            />
+            {scrollMode === "continuous" && numPages ? (
+              /* Continuous Scroll View (WPS / Word / Acrobat style) */
+              <div className="flex flex-col items-center gap-6 py-4 min-h-full">
+                {Array.from({ length: numPages }, (_, index) => {
+                  const p = index + 1;
+                  return (
+                    <div
+                      key={`continuous-page-${p}`}
+                      data-page-number={p}
+                      className="relative mx-auto shadow-[0_20px_50px_rgba(0,0,0,0.65)] ring-1 ring-white/10 transition-transform duration-200 rounded-sm bg-white"
+                    >
+                      <Page
+                        key={`page-${p}-${renderWidth}-${rotation}`}
+                        pageNumber={p}
+                        width={renderWidth}
+                        rotate={rotation}
+                        className="bg-white"
+                        renderTextLayer={true}
+                        renderAnnotationLayer={true}
+                      />
+                      <div className="pointer-events-none absolute inset-0 z-10" aria-hidden="true" />
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              /* Single Page View */
+              <div className="flex min-h-full items-center justify-center">
+                <div className="relative mx-auto w-fit shadow-[0_20px_50px_rgba(0,0,0,0.65)] ring-1 ring-white/10 transition-transform duration-200 rounded-sm bg-white">
+                  <Page
+                    key={`${pageNumber}-${renderWidth}-${rotation}`}
+                    pageNumber={pageNumber}
+                    width={renderWidth}
+                    rotate={rotation}
+                    className="bg-white"
+                    renderTextLayer={true}
+                    renderAnnotationLayer={true}
+                  />
+                  <div className="pointer-events-none absolute inset-0 z-10" aria-hidden="true" />
+                </div>
+              </div>
+            )}
           </Document>
-          <div className="pointer-events-none absolute inset-0 z-10" aria-hidden="true" />
         </div>
       </div>
     </div>
