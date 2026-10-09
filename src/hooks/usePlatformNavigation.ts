@@ -98,11 +98,15 @@ export function usePlatformNavigation({
       if (parsed.studentView === "course") {
         const enrolled = courses.filter((course) => studentCourseIds.includes(course.id));
         if (enrolled.length > 0) {
-          setSelectedCourse((current) => current ?? enrolled[0] ?? null);
-          setSelectedModule((current) => {
-            if (current) return current;
-            const course = enrolled[0];
-            return course?.modules?.[0] ?? null;
+          setSelectedCourse((currentCourse) => {
+            const activeCourse =
+              currentCourse && enrolled.some((c) => c.id === currentCourse.id) ? currentCourse : enrolled[0] ?? null;
+            setSelectedModule((currentModule) => {
+              const belongs = activeCourse?.modules?.some((m) => m.id === currentModule?.id);
+              if (currentModule && belongs) return currentModule;
+              return activeCourse?.modules?.[0] ?? null;
+            });
+            return activeCourse;
           });
         } else {
           setCurrentView("dashboard");

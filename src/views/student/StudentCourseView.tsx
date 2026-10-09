@@ -648,8 +648,68 @@ export default function StudentCourseView({
                     );
                   })()}
 
-                {/* CASE B: DOCUMENT PDF TEXT */}
-                {!selectedLessonContent && selectedModule.type === "pdf" && selectedModule.contentMarkdown && (
+                {/* CASE B1: DOCUMENT PDF VIEWER (Direct module attachment) */}
+                {!selectedLessonContent && selectedModule.type === "pdf" && selectedModule.attachmentUrl && (
+                  <div className="space-y-6">
+                    {/* Header banner */}
+                    <div className="bg-slate-900 rounded-2xl p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm border border-slate-950">
+                      <div className="flex items-center gap-3">
+                        <div className="p-3 bg-teal-500/10 text-teal-400 rounded-xl border border-teal-500/20">
+                          <FileText className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-teal-300 uppercase tracking-widest leading-none">
+                            Document du module
+                          </p>
+                          <h4 className="text-sm font-bold text-white mt-1">{selectedModule.title}</h4>
+                          <p className="text-[11px] text-slate-400">
+                            {selectedModule.attachmentName || "Document PDF"} •{" "}
+                            <UserProfileTrigger
+                              userId={selectedCourse.instructorProfile?.id || selectedCourse.createdById}
+                              userName={selectedCourse.instructorProfile?.fullName || selectedCourse.instructor}
+                              showAvatar={false}
+                              className="inline-flex text-slate-400 hover:text-emerald-300"
+                            />
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Suspense fallback={<CourseMediaFallback label="Chargement du document…" />}>
+                      <PdfLessonViewer
+                        documentUrl={selectedModule.attachmentUrl}
+                        title={selectedModule.title}
+                        downloadFileName={selectedModule.attachmentName || undefined}
+                      />
+                    </Suspense>
+
+                    {/* Validation box */}
+                    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="space-y-0.5">
+                        <h4 className="font-extrabold text-sm text-slate-800">Avez-vous fini de consulter ce document ?</h4>
+                        <p className="text-xs text-slate-500">Marquer comme lu pour faire grimper votre pourcentage.</p>
+                      </div>
+
+                      {selectedModule.completed ? (
+                        <div className="flex items-center gap-1.5 text-emerald-600 bg-white border border-emerald-200 px-4 py-2.5 rounded-xl text-xs font-bold">
+                          <CheckCircle className="w-4 h-4" /> Document validé
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={isModuleProgressPending}
+                          onClick={() => markModuleCompleted(selectedModule.id)}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {isModuleProgressPending ? "Enregistrement…" : "Marquer ce document comme lu"}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* CASE B2: DOCUMENT PDF TEXT */}
+                {!selectedLessonContent && selectedModule.type === "pdf" && !selectedModule.attachmentUrl && selectedModule.contentMarkdown && (
                   <div className="space-y-6">
                     {/* Download and Header banner */}
                     <div className="bg-slate-900 rounded-2xl p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm border border-slate-950">
@@ -1002,7 +1062,7 @@ export default function StudentCourseView({
 
                 {!selectedLessonContent &&
                   selectedModule.type !== "video" &&
-                  !(selectedModule.type === "pdf" && selectedModule.contentMarkdown) &&
+                  !(selectedModule.type === "pdf" && (selectedModule.contentMarkdown || selectedModule.attachmentUrl)) &&
                   selectedModule.type !== "quiz" && (
                     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-8 sm:p-10 text-center space-y-4">
                       <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500 border border-emerald-100">
