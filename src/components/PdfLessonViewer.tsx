@@ -849,75 +849,76 @@ export default function PdfLessonViewer({
 
       {/* Main Reading Workspace with Collapsible Thumbnails Sidebar */}
       <div className="flex flex-1 overflow-hidden bg-[#090d14] relative">
-        {/* Left Thumbnails Sidebar (Acrobat/WPS Style) */}
-        {showSidebar && viewerState === "READY" && numPages ? (
-          <aside
-            className="w-48 sm:w-56 shrink-0 border-r border-[#1c2433] bg-[#0c121e] overflow-y-auto flex flex-col p-3 gap-3 select-none [scrollbar-width:thin] z-20 shadow-2xl transition-all"
-            aria-label="Volet des miniatures des pages"
-          >
-            <div className="flex items-center justify-between pb-2 border-b border-[#202838]">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
-                Miniatures ({numPages})
-              </span>
-              <button
-                type="button"
-                onClick={() => setShowSidebar(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg transition-colors"
-                title="Fermer le volet"
-                aria-label="Fermer le volet"
-              >
-                <PanelLeftClose className="h-4 w-4" />
-              </button>
+        <Document
+          file={pdfFile}
+          onLoadSuccess={onDocumentLoadSuccess}
+          onLoadError={handleDocumentLoadError}
+          loading={
+            <div className="flex h-[50vh] w-full items-center justify-center">
+              <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
             </div>
-            <div className="flex flex-col gap-3">
-              {Array.from({ length: numPages }, (_, i) => {
-                const p = i + 1;
-                const isCurrent = p === pageNumber;
-                return (
-                  <button
-                    key={`thumb-${p}`}
-                    type="button"
-                    onClick={() => goToPage(p)}
-                    className={`group flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all border ${
-                      isCurrent
-                        ? "bg-emerald-500/10 border-emerald-500/70 shadow-[0_0_12px_rgba(16,185,129,0.25)] text-emerald-400 font-bold"
-                        : "bg-[#121827] border-[#1e2738] hover:border-emerald-500/40 text-slate-400 hover:text-slate-200"
-                    }`}
-                  >
-                    <div className="w-28 overflow-hidden rounded bg-white shadow-md pointer-events-none">
-                      <Page
-                        pageNumber={p}
-                        width={112}
-                        rotate={rotation}
-                        renderTextLayer={false}
-                        renderAnnotationLayer={false}
-                      />
-                    </div>
-                    <span className="text-[11px]">Page {p}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </aside>
-        ) : null}
-
-        {/* Central PDF Stage with Smooth Scrolling and Text Layer */}
-        <div
-          ref={containerRef}
-          onScroll={handleContainerScroll}
-          className="flex-1 overflow-auto p-4 sm:p-6 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]"
-          onContextMenu={(event) => event.preventDefault()}
+          }
+          error={null}
+          className="flex flex-1 overflow-hidden w-full h-full"
         >
-          <Document
-            file={pdfFile}
-            onLoadSuccess={onDocumentLoadSuccess}
-            onLoadError={handleDocumentLoadError}
-            loading={
-              <div className="flex h-[50vh] w-full items-center justify-center">
-                <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
+          {/* Left Thumbnails Sidebar (Acrobat/WPS Style) */}
+          {showSidebar && viewerState === "READY" && numPages ? (
+            <aside
+              className="w-48 sm:w-56 shrink-0 border-r border-[#1c2433] bg-[#0c121e] overflow-y-auto flex flex-col p-3 gap-3 select-none [scrollbar-width:thin] z-20 shadow-2xl transition-all"
+              aria-label="Volet des miniatures des pages"
+            >
+              <div className="flex items-center justify-between pb-2 border-b border-[#202838]">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
+                  Miniatures ({numPages})
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowSidebar(false)}
+                  className="text-slate-400 hover:text-white p-1 rounded-lg transition-colors"
+                  title="Fermer le volet"
+                  aria-label="Fermer le volet"
+                >
+                  <PanelLeftClose className="h-4 w-4" />
+                </button>
               </div>
-            }
-            error={null}
+              <div className="flex flex-col gap-3">
+                {Array.from({ length: numPages }, (_, i) => {
+                  const p = i + 1;
+                  const isCurrent = p === pageNumber;
+                  return (
+                    <button
+                      key={`thumb-${p}`}
+                      type="button"
+                      onClick={() => goToPage(p)}
+                      className={`group flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all border ${
+                        isCurrent
+                          ? "bg-emerald-500/10 border-emerald-500/70 shadow-[0_0_12px_rgba(16,185,129,0.25)] text-emerald-400 font-bold"
+                          : "bg-[#121827] border-[#1e2738] hover:border-emerald-500/40 text-slate-400 hover:text-slate-200"
+                      }`}
+                    >
+                      <div className="w-28 overflow-hidden rounded bg-white shadow-md pointer-events-none">
+                        <Page
+                          pageNumber={p}
+                          width={112}
+                          rotate={rotation}
+                          renderTextLayer={false}
+                          renderAnnotationLayer={false}
+                        />
+                      </div>
+                      <span className="text-[11px]">Page {p}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </aside>
+          ) : null}
+
+          {/* Central PDF Stage with Smooth Scrolling and Text Layer */}
+          <div
+            ref={containerRef}
+            onScroll={handleContainerScroll}
+            className="flex-1 overflow-auto p-4 sm:p-6 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]"
+            onContextMenu={(event) => event.preventDefault()}
           >
             {scrollMode === "continuous" && numPages ? (
               /* Continuous Scroll View (WPS / Word / Acrobat style) */
@@ -961,8 +962,8 @@ export default function PdfLessonViewer({
                 </div>
               </div>
             )}
-          </Document>
-        </div>
+          </div>
+        </Document>
       </div>
     </div>
   );
