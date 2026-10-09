@@ -432,7 +432,7 @@ export default function PremiumVideoPlayer({
           <span className="course-video-duration"> / {formatTime(duration)}</span>
         </span>
 
-        <div className="course-video-progress flex min-w-0 flex-1 items-center">
+        <div className="course-video-progress flex min-w-0 flex-1 items-center px-1">
           <input
             type="range"
             min="0"
@@ -440,7 +440,11 @@ export default function PremiumVideoPlayer({
             step="0.1"
             value={progressPercent}
             onChange={handleSeek}
-            className={`w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer outline-none ${themeAccentClass}`}
+            aria-label="Progression de la vidéo"
+            style={{
+              background: `linear-gradient(to right, #10b981 0%, #10b981 ${progressPercent}%, rgba(255, 255, 255, 0.35) ${progressPercent}%, rgba(255, 255, 255, 0.35) 100%)`,
+            }}
+            className={`course-video-progress-slider w-full h-2 rounded-full appearance-none cursor-pointer outline-none transition-all hover:h-2.5 ${themeAccentClass}`}
           />
         </div>
 
