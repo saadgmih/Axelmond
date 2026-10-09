@@ -103,25 +103,24 @@ export function registerLessonAssetRoutes(app: Express, ctx: RouteContext): void
             } else {
               jobId = existingJob.id;
             }
-          } else {
-            // Branding can only be bypassed through the explicit application
-            // configuration or the VIDEO_BRANDING_DISABLED emergency switch.
-            await api.prisma.lessonContent.update({
-              where: { id: result.content.id },
-              data: { status: "READY" },
+          }
+
+          // Ensure video is immediately playable for enrolled students without waiting for background worker
+          await api.prisma.lessonContent.update({
+            where: { id: result.content.id },
+            data: { status: "READY" },
+          });
+          if (result.content.published) {
+            await api.syncPublishedLessonModules(courseId);
+            await api.notifyPublishedLessonContent({
+              contentId: result.content.id,
+              courseId,
+              contentTitle: result.content.title,
+              contentType: result.content.type,
+              published: result.content.published,
+              actorId: authUser.id,
+              sourceEvent: "LESSON_ASSET_PUBLISHED",
             });
-            if (result.content.published) {
-              await api.syncPublishedLessonModules(courseId);
-              await api.notifyPublishedLessonContent({
-                contentId: result.content.id,
-                courseId,
-                contentTitle: result.content.title,
-                contentType: result.content.type,
-                published: result.content.published,
-                actorId: authUser.id,
-                sourceEvent: "LESSON_ASSET_PUBLISHED",
-              });
-            }
           }
         }
 

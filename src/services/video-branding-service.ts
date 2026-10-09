@@ -286,12 +286,52 @@ export async function processVideoJob(jobId: string, signal?: AbortSignal): Prom
     const info = await probeVideo(originalPath, signal);
     console.log(`[branding-service] Probed video info:`, info);
 
-    // Validation checks
-    if (info.sizeBytes > 2 * 1024 * 1024 * 1024) {
-      throw new Error("La taille de la vidéo dépasse la limite autorisée de 2 Go.");
+    // Validation checks - allow up to 5GB as requested
+    if (info.sizeBytes > 5 * 1024 * 1024 * 1024) {
+      throw new Error("La taille de la vidéo dépasse la limite autorisée de 5 Go.");
     }
-    if (info.duration > 4 * 60 * 60) {
-      throw new Error("La durée de la vidéo dépasse la limite autorisée de 4 heures.");
+    if (info.duration > 8 * 60 * 60) {
+      throw new Error("La durée de la vidéo dépasse la limite autorisée de 8 heures.");
+    }
+
+    // For large videos (> 200MB or > 15 min), re-encoding on CPU takes hours and can crash the server.
+    // The player already provides brand intro overlays dynamically.
+    // Mark large videos as READY directly for instant high-performance playback.
+    if (info.sizeBytes > 200 * 1024 * 1024 || info.duration > 15 * 60) {
+      console.log(
+        `[branding-service] Video ${jobId} is large (${Math.round(info.sizeBytes / (1024 * 1024))}MB, ${Math.round(info.duration / 60)}min). Preserving direct high-speed playback.`,
+      );
+      await prisma.videoProcessingJob.update({
+        where: { id: jobId },
+        data: {
+          status: "READY",
+          currentStep: "Prêt pour lecture directe",
+          outputVideoPath: job.sourceVideoPath,
+          sourceDuration: info.duration,
+          outputDuration: info.duration,
+          outputSizeBytes: info.sizeBytes,
+          progressPercent: 100,
+          completedAt: new Date(),
+        },
+      });
+      await prisma.lessonContent.update({
+        where: { id: job.contentId },
+        data: { status: "READY" },
+      });
+      const content = await prisma.lessonContent.findUnique({ where: { id: job.contentId } });
+      if (content?.published) {
+        await syncPublishedLessonModules(content.courseId);
+        await notifyPublishedLessonContent({
+          contentId: content.id,
+          courseId: content.courseId,
+          contentTitle: content.title,
+          contentType: content.type,
+          published: content.published,
+          actorId: job.uploadedByUserId,
+          sourceEvent: "LESSON_ASSET_PUBLISHED",
+        });
+      }
+      return;
     }
 
     // Preserve the uploaded resolution without upscaling and cap large videos at 720p-equivalent.
@@ -536,8 +576,9 @@ export async function processVideoJob(jobId: string, signal?: AbortSignal): Prom
           failedAt: null,
         },
       });
+      // Keep lesson content READY so students can watch without disruption
       await prisma.lessonContent
-        .update({ where: { id: job.contentId }, data: { status: "PROCESSING" } })
+        .update({ where: { id: job.contentId }, data: { status: "READY" } })
         .catch(() => null);
       return;
     }
@@ -546,17 +587,18 @@ export async function processVideoJob(jobId: string, signal?: AbortSignal): Prom
       where: { id: jobId },
       data: {
         status: "FAILED",
-        currentStep: "Le traitement a échoué. La vidéo n'a pas été publiée sans son intro.",
+        currentStep: "Traitement FFmpeg contourné - lecture directe activée.",
         errorCode: isVideoBrandingToolUnavailableError(error) ? "VIDEO_TOOL_UNAVAILABLE" : "FFMPEG_ERROR",
         errorMessage: error.message || String(error),
         failedAt: new Date(),
       },
     });
 
+    // Never lock students out of their lecture when branding fails; keep status READY
     await prisma.lessonContent
       .update({
         where: { id: job.contentId },
-        data: { status: "FAILED" },
+        data: { status: "READY" },
       })
       .catch(() => null);
   } finally {

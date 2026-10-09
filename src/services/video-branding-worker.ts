@@ -229,6 +229,10 @@ async function pollAndProcessJobs() {
 export async function startVideoBrandingWorker() {
   if (workerInterval) return;
 
+  if (process.env.NODE_APP_INSTANCE && process.env.NODE_APP_INSTANCE !== "0") {
+    return;
+  }
+
   const config = await getBrandingConfig();
   if (!shouldQueueVideoBranding(config)) {
     console.log("[video-branding-worker] Disabled by configuration.");
