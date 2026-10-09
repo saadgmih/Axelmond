@@ -285,7 +285,7 @@ export const uploadRouter = {
     {
       image: { maxFileSize: "8MB", maxFileCount: 1 },
       pdf: { maxFileSize: "32MB", maxFileCount: 1 },
-      video: { maxFileSize: "512MB", maxFileCount: 1 },
+      video: { maxFileSize: "8GB", maxFileCount: 1 },
     },
     { awaitServerData: true },
   )
@@ -299,10 +299,11 @@ export const uploadRouter = {
         uploadFile.name.trim().length > 512 ||
         isDangerousFile(uploadFile.name) ||
         !isValidMimeType(input.contentType, uploadFile.type) ||
-        (input.contentType === "IMAGE" && !isAllowedRasterImageUpload(uploadFile.name, uploadFile.type || null))
+        (input.contentType === "IMAGE" && !isAllowedRasterImageUpload(uploadFile.name, uploadFile.type || null)) ||
+        (input.contentType === "VIDEO" && uploadFile.size > 5 * 1024 * 1024 * 1024)
       ) {
         alertSuspectUpload(user.id, uploadFile?.name || "unknown", uploadFile?.type || "unknown");
-        throw new UploadThingError("Type de fichier suspect ou invalide refusé.");
+        throw new UploadThingError("Type de fichier suspect ou taille supérieure à 5 Go refusée.");
       }
       const course = await prisma.course.findFirst({
         where: {
@@ -392,7 +393,7 @@ export const uploadRouter = {
 
   liveReplay: f(
     {
-      video: { maxFileSize: "512MB", maxFileCount: 1 },
+      video: { maxFileSize: "8GB", maxFileCount: 1 },
     },
     { awaitServerData: true },
   )

@@ -328,13 +328,22 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
                         <Download className="h-7 w-7 text-teal-400 transition-colors group-hover:text-teal-300" />
                         <div className="text-xs text-slate-400">
                           {uploadFile ? (
-                            <span className="font-bold text-white">{uploadFile.name}</span>
+                            <span className="font-bold text-white">
+                              {uploadFile.name}{" "}
+                              <span className="text-[11px] font-normal text-teal-300">
+                                (
+                                {uploadFile.size >= 1024 * 1024 * 1024
+                                  ? `${(uploadFile.size / (1024 * 1024 * 1024)).toFixed(2)} Go`
+                                  : `${(uploadFile.size / (1024 * 1024)).toFixed(1)} Mo`}
+                                )
+                              </span>
+                            </span>
                           ) : (
                             <span>Cliquez ou glissez un fichier ici</span>
                           )}
                         </div>
                         <p className="text-[10px] text-slate-500">
-                          {uploadType === "VIDEO" && "MP4, WebM (max 500 Mo)"}
+                          {uploadType === "VIDEO" && "MP4, WebM (max 5 Go)"}
                           {uploadType === "PDF" && "PDF (max 50 Mo)"}
                           {uploadType === "IMAGE" && "PNG, JPG, WebP (max 10 Mo)"}
                         </p>

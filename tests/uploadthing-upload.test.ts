@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { readApiRouteSources } from "./helpers/api-route-sources.ts";
 import { readAppSources } from "./helpers/app-sources.ts";
+import { validateUploadFile } from "../src/uploadthing-client.ts";
 
 import { rulesTest } from "./helpers/rulesTest.ts";
 
@@ -75,6 +76,23 @@ rulesTest("uploadthing-upload", () => {
 
   assert.match(supportSource, /getUploadedFileUrl/);
   assert.match(supportSource, /getUploadErrorMessage/);
+
+  assert.match(clientSource, /if \(type === "VIDEO" && sizeMb > 5120\) return "La vidéo ne doit pas dépasser 5 Go\.";/);
+  assert.match(uploadthingSource, /video:\s*\{\s*maxFileSize:\s*["']8GB["'],\s*maxFileCount:\s*1\s*\}/);
+
+  const okVideoFile = {
+    name: "lecture-hd.mp4",
+    type: "video/mp4",
+    size: 4.8 * 1024 * 1024 * 1024,
+  } as unknown as File;
+  assert.equal(validateUploadFile(okVideoFile, "VIDEO"), "");
+
+  const oversizedVideoFile = {
+    name: "lecture-huge.mp4",
+    type: "video/mp4",
+    size: 5.2 * 1024 * 1024 * 1024,
+  } as unknown as File;
+  assert.equal(validateUploadFile(oversizedVideoFile, "VIDEO"), "La vidéo ne doit pas dépasser 5 Go.");
 
   console.log("UploadThing upload rules passed");
 });

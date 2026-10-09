@@ -123,9 +123,7 @@ export function PlatformAppRoot() {
   void (!isInstitutionalView && (catalog.isLoading || session.isEnrolledCatalogSyncing));
   void session.isInitialViewLoading;
   const isInitialAuthenticatedDataLoading = Boolean(
-    session.currentUser &&
-    !hasRenderedAuthenticatedApp.current &&
-    session.isLoginDataLoading,
+    session.currentUser && !hasRenderedAuthenticatedApp.current && session.isLoginDataLoading,
   );
   const pathname = typeof window === "undefined" ? "/" : window.location.pathname;
 

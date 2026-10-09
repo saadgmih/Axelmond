@@ -180,9 +180,7 @@ export function AdminAccessCodes({
   }, [courses, moduleSearch]);
 
   const toggleCourseSelection = (id: number) => {
-    setSelectedCourseIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
-    );
+    setSelectedCourseIds((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
   };
 
   const selectAllCourses = () => {
@@ -211,9 +209,7 @@ export function AdminAccessCodes({
           throw new Error("Veuillez sélectionner au moins un module dans la liste.");
         }
         target = { courseIds: selectedCourseIds };
-        const selectedTitles = courses
-          .filter((c) => selectedCourseIds.includes(c.id))
-          .map((c) => c.title);
+        const selectedTitles = courses.filter((c) => selectedCourseIds.includes(c.id)).map((c) => c.title);
         scopeDescription = `${selectedCourseIds.length} modules (${selectedTitles.join(", ")})`;
       } else {
         if (!singleCourseId) {
@@ -257,7 +253,7 @@ export function AdminAccessCodes({
 
   const handleDeleteCode = async (codeId: string, codeStr: string) => {
     const confirmed = window.confirm(
-      `Êtes-vous sûr de vouloir supprimer définitivement le code d'accès "${codeStr}" ? Cette action est irréversible.`
+      `Êtes-vous sûr de vouloir supprimer définitivement le code d'accès "${codeStr}" ? Cette action est irréversible.`,
     );
     if (!confirmed) return;
 
@@ -461,9 +457,7 @@ export function AdminAccessCodes({
           <UserCheck className="h-5 w-5 text-sky-400 shrink-0 mt-0.5" />
           <div className="space-y-1.5 flex-1">
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <span className="text-xs font-bold text-sky-200">
-                👤 Règle d&apos;usage exclusif : 1 seul étudiant
-              </span>
+              <span className="text-xs font-bold text-sky-200">👤 Règle d&apos;usage exclusif : 1 seul étudiant</span>
               <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-emerald-300">
                 <input
                   type="checkbox"
@@ -475,10 +469,10 @@ export function AdminAccessCodes({
               </label>
             </div>
             <p className="text-[11px] text-slate-300 leading-relaxed">
-              Ce code peut couvrir plusieurs modules, mais il est réservé à <strong>un unique étudiant</strong>.
-              Dès sa première saisie par l&apos;étudiant, le code est définitivement lié à son compte :{" "}
-              <strong>aucun autre compte ne pourra l&apos;activer</strong>, et tous les modules sélectionnés lui
-              seront immédiatement débloqués.
+              Ce code peut couvrir plusieurs modules, mais il est réservé à <strong>un unique étudiant</strong>. Dès sa
+              première saisie par l&apos;étudiant, le code est définitivement lié à son compte :{" "}
+              <strong>aucun autre compte ne pourra l&apos;activer</strong>, et tous les modules sélectionnés lui seront
+              immédiatement débloqués.
             </p>
           </div>
         </div>
@@ -586,9 +580,7 @@ export function AdminAccessCodes({
               <p className="text-[10px] text-emerald-300 font-bold uppercase tracking-wider">
                 ✓ Code d&apos;accès généré avec succès
               </p>
-              <p className="font-mono text-2xl font-black tracking-widest text-white">
-                {lastGenerated.code}
-              </p>
+              <p className="font-mono text-2xl font-black tracking-widest text-white">{lastGenerated.code}</p>
               <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-emerald-200">
                 <span className="rounded-md bg-emerald-950/60 px-2 py-0.5 font-medium border border-emerald-400/30">
                   {lastGenerated.scopeText}
@@ -636,9 +628,7 @@ export function AdminAccessCodes({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <KeyRound className="h-4 w-4 text-emerald-400" />
-            <h3 className="text-sm font-bold text-white">
-              Codes existants ({codes.length})
-            </h3>
+            <h3 className="text-sm font-bold text-white">Codes existants ({codes.length})</h3>
           </div>
 
           <div className="flex items-center gap-2">
@@ -647,9 +637,7 @@ export function AdminAccessCodes({
               <Filter className="h-3.5 w-3.5" />
               <select
                 value={filterCourseId}
-                onChange={(e) =>
-                  setFilterCourseId(e.target.value === "all" ? "all" : Number(e.target.value))
-                }
+                onChange={(e) => setFilterCourseId(e.target.value === "all" ? "all" : Number(e.target.value))}
                 className="rounded-lg border border-white/10 bg-slate-900 px-2 py-1 text-xs text-white outline-none focus:border-emerald-400/50"
               >
                 <option value="all">Tous les modules (Tout afficher)</option>
@@ -706,9 +694,7 @@ export function AdminAccessCodes({
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     {/* Code & Badges */}
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono text-base font-black text-white tracking-wider">
-                        {c.code}
-                      </span>
+                      <span className="font-mono text-base font-black text-white tracking-wider">{c.code}</span>
                       <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${colorClass}`}>
                         {labelText}
                       </span>
@@ -799,9 +785,7 @@ export function AdminAccessCodes({
                           {new Date(primaryUsage.createdAt).toLocaleDateString("fr-MA")})
                         </span>
                       ) : (
-                        <span className="text-slate-500">
-                          ⏳ Non encore activé (en attente de l&apos;étudiant)
-                        </span>
+                        <span className="text-slate-500">⏳ Non encore activé (en attente de l&apos;étudiant)</span>
                       )}
                     </div>
                     <div>

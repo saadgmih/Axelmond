@@ -35,8 +35,8 @@ export default function AdminAccessCodesView() {
           Codes d&apos;accès aux modules
         </h1>
         <p className="mt-2 text-sm text-slate-300 max-w-3xl leading-relaxed">
-          Générez des codes à usage unique permettant à un étudiant d&apos;accéder à un ou plusieurs modules pendant
-          une période définie, sans paiement. Un même code peut couvrir plusieurs modules tout en étant réservé à{" "}
+          Générez des codes à usage unique permettant à un étudiant d&apos;accéder à un ou plusieurs modules pendant une
+          période définie, sans paiement. Un même code peut couvrir plusieurs modules tout en étant réservé à{" "}
           <strong>un seul étudiant</strong>.
         </p>
       </header>

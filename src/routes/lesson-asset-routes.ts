@@ -23,7 +23,7 @@ const confirmLessonAssetSchema = z.object({
     .number()
     .int()
     .positive()
-    .max(512 * 1024 * 1024),
+    .max(5 * 1024 * 1024 * 1024),
 });
 
 export function registerLessonAssetRoutes(app: Express, ctx: RouteContext): void {

@@ -249,7 +249,11 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
                   <div className="text-xs text-slate-400">
                     {uploadFile ? (
                       <p className="max-w-[280px] truncate font-mono text-[11px] font-bold text-lime-300">
-                        {uploadFile.name} ({(uploadFile.size / (1024 * 1024)).toFixed(2)} Mo)
+                        {uploadFile.name} (
+                        {uploadFile.size >= 1024 * 1024 * 1024
+                          ? `${(uploadFile.size / (1024 * 1024 * 1024)).toFixed(2)} Go`
+                          : `${(uploadFile.size / (1024 * 1024)).toFixed(2)} Mo`}
+                        )
                       </p>
                     ) : (
                       <>

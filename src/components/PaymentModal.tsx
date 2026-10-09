@@ -856,12 +856,14 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                                 </p>
                                 {accessCodeValidation.appliesToAllModules ? (
                                   <p className="text-[11px] text-emerald-100">
-                                    🌟 Ce code débloque automatiquement <strong>tous les modules</strong> de la plateforme pour votre compte !
+                                    🌟 Ce code débloque automatiquement <strong>tous les modules</strong> de la
+                                    plateforme pour votre compte !
                                   </p>
                                 ) : accessCodeValidation.modules && accessCodeValidation.modules.length > 0 ? (
                                   <div className="space-y-1">
                                     <p className="text-[11px] text-emerald-300/90 font-medium">
-                                      Débloque vos {accessCodeValidation.modules.length} modules en une seule activation :
+                                      Débloque vos {accessCodeValidation.modules.length} modules en une seule activation
+                                      :
                                     </p>
                                     <div className="flex flex-wrap gap-1">
                                       {accessCodeValidation.modules.map((m) => (

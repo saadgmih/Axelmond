@@ -107,9 +107,7 @@ export async function generateEnrollmentAccessCode(
   const code = await generateUniquePromoCode();
 
   // If single student: allow that student to activate each covered module
-  const maxUsesCount = singleStudentOnly
-    ? (allModules ? 999 : courses.length)
-    : (Number(options.maxUses) || 1);
+  const maxUsesCount = singleStudentOnly ? (allModules ? 999 : courses.length) : Number(options.maxUses) || 1;
 
   const studentTag = singleStudentOnly ? " [1 etudiant]" : "";
   const internalName = options.label
