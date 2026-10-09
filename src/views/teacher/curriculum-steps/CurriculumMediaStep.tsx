@@ -96,6 +96,7 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
     handleDeleteSection: _handleDeleteSection,
     handleToggleContentPublished,
     handleDeleteLessonContent,
+    handleUpdateLessonContentTitle,
   } = props;
 
   const stepTheme = getStepTheme(3);
@@ -433,6 +434,14 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
                           Ouvrir le fichier
                         </a>
                       )}
+                      <button
+                        disabled={content.status === "PROCESSING"}
+                        onClick={() => handleUpdateLessonContentTitle?.(content)}
+                        className={curriculumUi.ghostBtn}
+                        title="Renommer ce média"
+                      >
+                        Renommer
+                      </button>
                       <button
                         disabled={content.status === "PROCESSING"}
                         onClick={() => handleToggleContentPublished(content)}

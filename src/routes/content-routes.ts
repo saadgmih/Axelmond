@@ -692,7 +692,7 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
         select: { published: true },
       });
 
-      const { title, body, published } = req.body;
+      const { title, body, published, order } = req.body;
 
       const data: any = {};
 
@@ -701,6 +701,8 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
       if (typeof body === "string" || body === null) data.body = body?.trim() || null;
 
       if (typeof published === "boolean") data.published = published;
+
+      if (typeof order === "number") data.order = order;
 
       const content = await api.prisma.lessonContent
         .update({
@@ -765,7 +767,7 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
         select: { published: true },
       });
 
-      const { title, body, published } = req.body;
+      const { title, body, published, order } = req.body;
 
       const data: any = {};
 
@@ -774,6 +776,8 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
       if (typeof body === "string" || body === null) data.body = body?.trim() || null;
 
       if (typeof published === "boolean") data.published = published;
+
+      if (typeof order === "number") data.order = order;
 
       const content = await api.prisma.lessonContent
         .update({
@@ -814,6 +818,40 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
       }
 
       res.json(api.toLessonContent(content));
+    },
+  );
+
+  // POST /api/courses/:courseId/reorder-contents
+  app.post(
+    "/api/courses/:courseId/reorder-contents",
+    requireAuth,
+    requireRbac,
+    validateBody(api.reorderLessonContentsSchema),
+    async (req, res) => {
+      const authUser = getAuthUser(req);
+      const courseId = parseInt(req.params.courseId);
+
+      if (!(await api.verifyCourseAccess(authUser, courseId))) {
+        res.status(403).json({ error: "Accès refusé pour modifier ce cours" });
+        return;
+      }
+
+      const { contentIds } = req.body as { contentIds: string[] };
+
+      await api.prisma.$transaction(
+        contentIds.map((id, index) =>
+          api.prisma.lessonContent.update({
+            where: { id },
+            data: { order: index },
+          })
+        )
+      );
+
+      api.logDb("INFO", "Lesson contents reordered", { courseId, count: contentIds.length });
+
+      await refreshStudentCourseModules(courseId);
+
+      res.json({ success: true, count: contentIds.length });
     },
   );
 

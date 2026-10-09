@@ -47,8 +47,19 @@ export async function syncPublishedLessonModules(
     },
     include: {
       attachments: { orderBy: { createdAt: "asc" }, take: 1 },
+      section: { select: { order: true } },
     },
-    orderBy: [{ createdAt: "asc" }],
+    orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+  });
+
+  publishedContents.sort((a, b) => {
+    const sectionOrderA = a.section?.order ?? 0;
+    const sectionOrderB = b.section?.order ?? 0;
+    if (sectionOrderA !== sectionOrderB) return sectionOrderA - sectionOrderB;
+    const orderA = a.order ?? 0;
+    const orderB = b.order ?? 0;
+    if (orderA !== orderB) return orderA - orderB;
+    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
   });
 
   const linkedModules = await client.courseModule.findMany({

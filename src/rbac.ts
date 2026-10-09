@@ -225,6 +225,14 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
     return teacherSpaceRoles.includes(normalized);
   }
 
+  if (verb === "POST" && /^\/api\/courses\/\d+\/reorder-contents$/.test(cleanPath)) {
+    return teacherSpaceRoles.includes(normalized);
+  }
+
+  if (verb === "PUT" && cleanPath === "/api/lesson-contents/reorder") {
+    return teacherSpaceRoles.includes(normalized);
+  }
+
   if ((verb === "GET" || verb === "PUT") && cleanPath === "/api/me/profile") {
     return teacherSpaceRoles.includes(normalized);
   }

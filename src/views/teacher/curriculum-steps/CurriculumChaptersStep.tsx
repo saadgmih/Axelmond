@@ -10,6 +10,8 @@ import {
   AlertTriangle,
   CheckCircle2,
   ChevronRight,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 
 import { RASTER_IMAGE_ACCEPT } from "../../../avatar-security";
@@ -53,6 +55,8 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
     handleDeleteSection,
     handleToggleContentPublished,
     handleDeleteLessonContent,
+    handleUpdateLessonContentTitle,
+    handleReorderLessonContents,
   } = props;
 
   const stepTheme = getStepTheme(2);
@@ -66,6 +70,20 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
   }, [chapterSections, uploadSectionId, handleSetUploadSectionId]);
 
   const activeChapter = chapterSections.find((s) => s.id === uploadSectionId) || chapterSections[0] || null;
+  const activeChapterContents = activeChapter?.contents?.length ? activeChapter.contents : selectedManagedContents;
+
+  const handleMoveContent = async (index: number, direction: -1 | 1) => {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= activeChapterContents.length) return;
+    const newOrder = [...activeChapterContents];
+    const item = newOrder[index];
+    newOrder[index] = newOrder[targetIndex];
+    newOrder[targetIndex] = item;
+    const contentIds = newOrder.map((c) => c.id);
+    if (handleReorderLessonContents) {
+      await handleReorderLessonContents(contentIds);
+    }
+  };
 
   // Video processing status polling
   const processingVideos = selectedManagedContents.filter((c) => c.type === "VIDEO" && c.status === "PROCESSING");
@@ -455,14 +473,14 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
               {/* Media Contents List */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className={curriculumUi.sectionTitle}>Médias du chapitre ({selectedManagedContents.length})</h3>
+                  <h3 className={curriculumUi.sectionTitle}>Médias du chapitre ({activeChapterContents.length})</h3>
                   <span className={curriculumUi.countBadge}>
-                    {selectedManagedContents.length} ressource{selectedManagedContents.length !== 1 ? "s" : ""}
+                    {activeChapterContents.length} ressource{activeChapterContents.length !== 1 ? "s" : ""}
                   </span>
                 </div>
 
                 <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
-                  {selectedManagedContents.length === 0 ? (
+                  {activeChapterContents.length === 0 ? (
                     <div className={curriculumUi.empty}>
                       <Video className="w-8 h-8 text-slate-400 mx-auto mb-2" />
                       <p className="text-xs text-slate-400 font-semibold">
@@ -471,7 +489,7 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
                       </p>
                     </div>
                   ) : (
-                    selectedManagedContents.map((content) => {
+                    activeChapterContents.map((content, index) => {
                       const attachment = content.attachments?.[0];
                       const isVideo = content.type === "VIDEO";
                       const isProcessing = isVideo && content.status === "PROCESSING";
@@ -482,6 +500,9 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
                           <div className="flex flex-wrap items-start justify-between gap-3">
                             <div className="space-y-1 min-w-0 flex-1">
                               <div className="flex items-center gap-2">
+                                <span className="rounded px-2 py-0.5 text-[9px] font-black tracking-wider bg-teal-950 text-teal-300 border border-teal-500/40">
+                                  #{index + 1}
+                                </span>
                                 <span
                                   className={`rounded px-2 py-0.5 text-[8px] font-black uppercase ${
                                     content.type === "VIDEO"
@@ -547,28 +568,63 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
                             </button>
                           )}
 
-                          {/* Actions */}
+                          {/* Actions: Reordering, Renaming, Publishing, Deletion */}
                           <div
                             className={`flex flex-wrap items-center justify-between gap-2 pt-3 ${curriculumUi.divider}`}
                           >
-                            <button
-                              type="button"
-                              onClick={() => handleToggleContentPublished(content)}
-                              className={
-                                content.published
-                                  ? curriculumUi.unpublishBtn
-                                  : `${curriculumUi.ghostBtn} border-teal-500/30 text-teal-300`
-                              }
-                            >
-                              {content.published ? "Dépublier" : "Publier"}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteLessonContent(content)}
-                              className={curriculumUi.dangerBtn}
-                            >
-                              Supprimer
-                            </button>
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleMoveContent(index, -1)}
+                                disabled={index === 0}
+                                className="inline-flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-900/80 px-2 py-1 text-[11px] font-bold text-slate-300 transition-colors hover:border-teal-500/40 hover:text-white disabled:opacity-25 disabled:cursor-not-allowed"
+                                title="Monter ce média (s'affichera avant pour l'étudiant)"
+                                aria-label="Monter ce média"
+                              >
+                                <ArrowUp className="h-3.5 w-3.5 text-teal-400" />
+                                Monter
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleMoveContent(index, 1)}
+                                disabled={index === activeChapterContents.length - 1}
+                                className="inline-flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-900/80 px-2 py-1 text-[11px] font-bold text-slate-300 transition-colors hover:border-teal-500/40 hover:text-white disabled:opacity-25 disabled:cursor-not-allowed"
+                                title="Descendre ce média (s'affichera après pour l'étudiant)"
+                                aria-label="Descendre ce média"
+                              >
+                                <ArrowDown className="h-3.5 w-3.5 text-teal-400" />
+                                Descendre
+                              </button>
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateLessonContentTitle?.(content)}
+                                className={curriculumUi.ghostBtn}
+                                title="Renommer ce média"
+                              >
+                                Renommer
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleToggleContentPublished(content)}
+                                className={
+                                  content.published
+                                    ? curriculumUi.unpublishBtn
+                                    : `${curriculumUi.ghostBtn} border-teal-500/30 text-teal-300`
+                                }
+                              >
+                                {content.published ? "Dépublier" : "Publier"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteLessonContent(content)}
+                                className={curriculumUi.dangerBtn}
+                              >
+                                Supprimer
+                              </button>
+                            </div>
                           </div>
                         </div>
                       );

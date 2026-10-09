@@ -491,11 +491,12 @@ export const api = {
     sectionId: string,
     data: { title?: string; description?: string | null; published?: boolean },
   ) => request<any>("PATCH", `/api/content-sections/${sectionId}`, data),
-  deleteContentSection: (sectionId: string) => request<any>("DELETE", `/api/content-sections/${sectionId}`),
-  putLessonContent: (contentId: string, data: { title?: string; body?: string | null; published?: boolean }) =>
+  putLessonContent: (contentId: string, data: { title?: string; body?: string | null; published?: boolean; order?: number }) =>
     request<any>("PUT", `/api/lesson-contents/${contentId}`, data),
-  updateLessonContent: (contentId: string, data: { title?: string; body?: string | null; published?: boolean }) =>
+  updateLessonContent: (contentId: string, data: { title?: string; body?: string | null; published?: boolean; order?: number }) =>
     request<any>("PATCH", `/api/lesson-contents/${contentId}`, data),
+  reorderLessonContents: (courseId: number, contentIds: string[]) =>
+    request<{ success: boolean; count: number }>("POST", `/api/courses/${courseId}/reorder-contents`, { contentIds }),
   deleteLessonContent: (contentId: string) => request<any>("DELETE", `/api/lesson-contents/${contentId}`),
   getLessonContentMediaSource: (contentId: string) =>
     request<{ sourceUrl: string; proxySourceUrl?: string; mimeType: string; brandedIntroDuration?: number }>(

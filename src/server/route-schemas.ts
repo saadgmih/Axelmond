@@ -303,9 +303,14 @@ export const textContentSchema = z.object({
 });
 
 export const textContentPatchSchema = z.object({
-  title: z.string().min(2).max(200).trim().optional(),
+  title: z.string().min(1).max(200).trim().optional(),
   body: z.string().max(20000).trim().optional().nullable(),
   published: z.boolean().optional(),
+  order: z.number().int().min(0).optional(),
+});
+
+export const reorderLessonContentsSchema = z.object({
+  contentIds: z.array(z.string().min(1)).min(1),
 });
 
 export const quizSchema = z.object({

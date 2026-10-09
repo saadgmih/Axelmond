@@ -869,6 +869,32 @@ export function useTeacherCurriculum({
     }
   };
 
+  const handleUpdateLessonContentTitle = async (content: LessonContent, explicitTitle?: string) => {
+    const updatedTitle =
+      typeof explicitTitle === "string"
+        ? explicitTitle.trim()
+        : window.prompt("Nouveau titre du média :", content.title)?.trim();
+    if (!updatedTitle || updatedTitle === content.title) return;
+    try {
+      await api.updateLessonContent(content.id, { title: updatedTitle });
+      await refreshCourseContent(content.courseId);
+      showCurriculumSuccess(`Média renommé en « ${updatedTitle} »`);
+    } catch (err: any) {
+      showCurriculumError(getClientErrorMessage(err, "Modification du titre impossible."));
+    }
+  };
+
+  const handleReorderLessonContents = async (contentIds: string[]) => {
+    if (!managedCourse || contentIds.length === 0) return;
+    try {
+      await api.reorderLessonContents(managedCourse.id, contentIds);
+      await refreshCourseContent(managedCourse.id);
+      showCurriculumSuccess("Ordre des médias mis à jour.");
+    } catch (err: any) {
+      showCurriculumError(getClientErrorMessage(err, "Impossible de réorganiser les médias."));
+    }
+  };
+
   const managedCourse = managedCourses.find((course) => course.id === newSectionCourseId) || managedCourses[0] || null;
   const managedSections = flattenSectionsFn(courseContent.courseContentSections);
   const chapterSections = managedSections.filter((section) => !section.parentId);
@@ -888,10 +914,13 @@ export function useTeacherCurriculum({
   };
 
   const allChapterContents = managedSections.flatMap((section) => section.contents || []);
-  const selectedManagedContents = [
-    ...courseContent.moduleRootContents,
-    ...allChapterContents.filter((cc) => !courseContent.moduleRootContents.some((rc) => rc.id === cc.id)),
-  ];
+  const activeChapterForContent = chapterSections.find((section) => section.id === uploadSectionId) || chapterSections[0] || null;
+  const selectedManagedContents = activeChapterForContent?.contents?.length
+    ? activeChapterForContent.contents
+    : [
+        ...courseContent.moduleRootContents,
+        ...allChapterContents.filter((cc) => !courseContent.moduleRootContents.some((rc) => rc.id === cc.id)),
+      ];
   const managedLiveReplays = [...courseContent.moduleRootContents, ...allChapterContents].filter(
     (content) => content.type === "VIDEO" && !content.published && isLiveReplayContent(content.body),
   );
@@ -1000,5 +1029,7 @@ export function useTeacherCurriculum({
     handleDeleteSection,
     handleToggleContentPublished,
     handleDeleteLessonContent,
+    handleUpdateLessonContentTitle,
+    handleReorderLessonContents,
   };
 }

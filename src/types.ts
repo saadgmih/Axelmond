@@ -173,6 +173,7 @@ export interface LessonContent {
   type: LessonContentType;
   title: string;
   body?: string;
+  order?: number;
   published: boolean;
   status?: string;
   jobId?: string;

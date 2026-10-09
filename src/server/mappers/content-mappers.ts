@@ -20,7 +20,9 @@ export function toLessonContent(content: any) {
     type: content.type,
     title: content.title,
     body: content.body || undefined,
+    order: typeof content.order === "number" ? content.order : 0,
     published: content.published,
+    status: content.status || undefined,
     attachments: Array.isArray(content.attachments) ? content.attachments.map(toAttachment) : [],
   };
 }
@@ -51,7 +53,7 @@ export function buildContentTree(sections: any[]) {
 
   const sortNode = (node: any) => {
     node.children.sort((a: any, b: any) => a.order - b.order || a.title.localeCompare(b.title));
-    node.contents.sort((a: any, b: any) => a.title.localeCompare(b.title));
+    node.contents.sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0) || a.title.localeCompare(b.title));
     node.children.forEach(sortNode);
   };
 
@@ -70,6 +72,7 @@ export async function getCourseContentTree(courseId: number, includeDrafts: bool
       contents: {
         where: includeDrafts ? {} : { published: true },
         include: { attachments: true },
+        orderBy: [{ order: "asc" }, { createdAt: "asc" }],
       },
     },
     orderBy: [{ order: "asc" }, { createdAt: "asc" }],
