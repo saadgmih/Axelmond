@@ -131,18 +131,19 @@ export function registerLessonAssetRoutes(app: Express, ctx: RouteContext): void
             where: { id: result.content.id },
             data: { status: "READY" },
           });
-          if (result.content.published) {
-            await api.syncPublishedLessonModules(courseId);
-            await api.notifyPublishedLessonContent({
-              contentId: result.content.id,
-              courseId,
-              contentTitle: result.content.title,
-              contentType: result.content.type,
-              published: result.content.published,
-              actorId: authUser.id,
-              sourceEvent: "LESSON_ASSET_PUBLISHED",
-            });
-          }
+        }
+
+        if (result.content.published) {
+          await api.syncPublishedLessonModules(courseId);
+          await api.notifyPublishedLessonContent({
+            contentId: result.content.id,
+            courseId,
+            contentTitle: result.content.title,
+            contentType: result.content.type,
+            published: result.content.published,
+            actorId: authUser.id,
+            sourceEvent: "LESSON_ASSET_PUBLISHED",
+          });
         }
 
         await api.logAudit(

@@ -272,20 +272,24 @@ export default function StudentCourseView({
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <p className="truncate leading-tight">{mod.title}</p>
+                  <p className="truncate leading-tight font-bold">{mod.title}</p>
                   <span
-                    className={`text-[10px] block mt-1 uppercase font-semibold ${
+                    className={`text-[10px] block mt-1 uppercase font-semibold truncate ${
                       isCurrent ? "text-emerald-300" : "text-slate-400"
                     }`}
                   >
                     {mod.type === "video"
                       ? "Module Vidéo"
                       : mod.type === "pdf"
-                        ? "Document Manuel"
+                        ? "Document PDF"
                         : mod.type === "image"
                           ? "Illustration"
-                          : "Évaluation interactive"}{" "}
-                    • {mod.duration}
+                          : "Évaluation interactive"}
+                    {mod.attachmentName && mod.title !== mod.attachmentName
+                      ? ` • ${mod.attachmentName}`
+                      : mod.duration && mod.duration !== "—"
+                        ? ` • ${mod.duration}`
+                        : ""}
                   </span>
                 </div>
               </button>
