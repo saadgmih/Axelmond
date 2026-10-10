@@ -8,6 +8,7 @@ import {
   ExternalLink,
   FileText,
   Fullscreen,
+  Hand,
   Maximize2,
   Minimize2,
   MoveHorizontal,
@@ -117,11 +118,24 @@ export default function PdfLessonViewer({
   const [imageNaturalSize, setImageNaturalSize] = useState({ width: 0, height: 0 });
   const [isImagePanning, setIsImagePanning] = useState(false);
 
+  const [touchZoomEnabled, setTouchZoomEnabled] = useState(false);
+  const [touchFeedbackMsg, setTouchFeedbackMsg] = useState<string | null>(null);
+  const [isPinching, setIsPinching] = useState(false);
+  const [pinchFactor, setPinchFactor] = useState(1);
+  const [pinchCenter, setPinchCenter] = useState({ x: 0, y: 0 });
+
   const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const imageStageRef = useRef<HTMLDivElement>(null);
   const parseRetryCountRef = useRef(0);
   const parseRetryTimeoutRef = useRef<number | null>(null);
+  const pinchStateRef = useRef({
+    isPinching: false,
+    startDistance: 0,
+    startScale: 1,
+    midpoint: { x: 0, y: 0 },
+    currentFactor: 1,
+  });
   const imageDragRef = useRef({
     active: false,
     pointerId: 0,
@@ -357,6 +371,114 @@ export default function PdfLessonViewer({
     setIsImagePanning(false);
   }
 
+  useEffect(() => {
+    if (!touchFeedbackMsg) return;
+    const timer = window.setTimeout(() => {
+      setTouchFeedbackMsg(null);
+    }, 2800);
+    return () => window.clearTimeout(timer);
+  }, [touchFeedbackMsg]);
+
+  function toggleTouchZoomMode() {
+    setTouchZoomEnabled((prev) => {
+      const next = !prev;
+      setTouchFeedbackMsg(
+        next
+          ? "Mode Zoom Document activé : pincez l'écran pour zoomer dans le document"
+          : "Mode Zoom Site activé : le zoom tactile s'applique au navigateur",
+      );
+      return next;
+    });
+  }
+
+  // Intercept pinch gestures to zoom inside document rather than zooming the whole webpage
+  useEffect(() => {
+    const target = mediaType === "IMAGE" ? imageStageRef.current : containerRef.current;
+    if (!target || !touchZoomEnabled) return;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const t1 = e.touches[0];
+        const t2 = e.touches[1];
+        const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+        const rect = target.getBoundingClientRect();
+        const midX = (t1.clientX + t2.clientX) / 2 - rect.left;
+        const midY = (t1.clientY + t2.clientY) / 2 - rect.top;
+
+        pinchStateRef.current = {
+          isPinching: true,
+          startDistance: dist,
+          startScale: scale,
+          midpoint: { x: midX, y: midY },
+          currentFactor: 1,
+        };
+
+        setIsPinching(true);
+        setPinchFactor(1);
+        setPinchCenter({ x: midX, y: midY });
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!pinchStateRef.current.isPinching || e.touches.length < 2) return;
+      e.preventDefault();
+
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      const startDist = pinchStateRef.current.startDistance || 1;
+      const factor = dist / startDist;
+
+      pinchStateRef.current.currentFactor = factor;
+      setPinchFactor(factor);
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (!pinchStateRef.current.isPinching) return;
+
+      if (e.touches.length < 2) {
+        const factor = pinchStateRef.current.currentFactor;
+        const prevScale = pinchStateRef.current.startScale;
+        const minScale = mediaType === "IMAGE" ? 0.25 : 0.5;
+        const maxScale = mediaType === "IMAGE" ? 6.0 : 4.0;
+        const targetScale = Math.min(Math.max(Number((prevScale * factor).toFixed(2)), minScale), maxScale);
+
+        const focalX = pinchStateRef.current.midpoint.x;
+        const focalY = pinchStateRef.current.midpoint.y;
+        const scaleRatio = targetScale / prevScale;
+
+        pinchStateRef.current.isPinching = false;
+        setIsPinching(false);
+        setPinchFactor(1);
+
+        if (Math.abs(targetScale - scale) > 0.02) {
+          setScale(targetScale);
+
+          const newScrollLeft = (target.scrollLeft + focalX) * scaleRatio - focalX;
+          const newScrollTop = (target.scrollTop + focalY) * scaleRatio - focalY;
+
+          window.requestAnimationFrame(() => {
+            target.scrollLeft = Math.max(0, newScrollLeft);
+            target.scrollTop = Math.max(0, newScrollTop);
+          });
+        }
+      }
+    };
+
+    target.addEventListener("touchstart", handleTouchStart, { passive: false });
+    target.addEventListener("touchmove", handleTouchMove, { passive: false });
+    target.addEventListener("touchend", handleTouchEnd, { passive: false });
+    target.addEventListener("touchcancel", handleTouchEnd, { passive: false });
+
+    return () => {
+      target.removeEventListener("touchstart", handleTouchStart);
+      target.removeEventListener("touchmove", handleTouchMove);
+      target.removeEventListener("touchend", handleTouchEnd);
+      target.removeEventListener("touchcancel", handleTouchEnd);
+    };
+  }, [touchZoomEnabled, scale, mediaType]);
+
   // Scroll listener in continuous mode to track currently visible page
   const handleContainerScroll = useCallback(() => {
     if (scrollMode !== "continuous" || !containerRef.current || !numPages) return;
@@ -514,8 +636,15 @@ export default function PdfLessonViewer({
     return (
       <div
         ref={wrapperRef}
-        className={`flex flex-col overflow-hidden rounded-[24px] border border-[#202838] bg-slate-950 shadow-lg select-none transition-all ${isExpandedView ? "fixed inset-0 z-[120] h-[100dvh] w-full rounded-none border-none" : "h-[75vh]"}`}
+        className={`flex flex-col overflow-hidden rounded-[24px] border border-[#202838] bg-slate-950 shadow-lg select-none transition-all relative ${isExpandedView ? "fixed inset-0 z-[120] h-[100dvh] w-full rounded-none border-none" : "h-[75vh]"}`}
       >
+        {touchFeedbackMsg && (
+          <div className="absolute top-16 left-1/2 -translate-x-1/2 z-40 px-3.5 py-1.5 rounded-full bg-slate-900/95 border border-emerald-500/40 text-emerald-300 text-[11px] font-bold shadow-2xl backdrop-blur-md pointer-events-none animate-in fade-in slide-in-from-top-2 duration-200 flex items-center gap-2 max-w-[90%] text-center">
+            <Hand className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
+            <span className="truncate">{touchFeedbackMsg}</span>
+          </div>
+        )}
+
         <div
           className={viewerToolbarClass}
           onPointerDown={(event) => event.stopPropagation()}
@@ -544,6 +673,30 @@ export default function PdfLessonViewer({
               aria-label="Zoom avant"
             >
               <ZoomIn className={toolbarIconClass} strokeWidth={1.8} />
+            </button>
+
+            {/* Bouton Zoom tactile */}
+            <button
+              type="button"
+              onClick={toggleTouchZoomMode}
+              className={`${toolbarButtonClass} ${
+                touchZoomEnabled
+                  ? "border-emerald-500/80 bg-emerald-500/20 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.35)] ring-1 ring-emerald-500/50"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+              title={
+                touchZoomEnabled
+                  ? "Zoom tactile activé (pincez avec 2 doigts pour zoomer directement dans l'image)"
+                  : "Zoom tactile désactivé (cliquez pour zoomer dans l'image avec les doigts plutôt que sur le site)"
+              }
+              aria-label={
+                touchZoomEnabled
+                  ? "Désactiver le zoom tactile de l'image"
+                  : "Activer le zoom tactile de l'image"
+              }
+              aria-pressed={touchZoomEnabled}
+            >
+              <Hand className={toolbarIconClass} strokeWidth={1.8} />
             </button>
 
             <span className={toolbarDividerClass} aria-hidden="true" />
@@ -614,6 +767,9 @@ export default function PdfLessonViewer({
         >
           <div
             ref={imageStageRef}
+            style={{
+              touchAction: touchZoomEnabled ? "pan-x pan-y" : "auto",
+            }}
             className={`h-full w-full overflow-auto scroll-smooth p-4 ${
               imageCanPan ? (isImagePanning ? "cursor-grabbing" : "cursor-grab") : "cursor-default"
             }`}
@@ -622,7 +778,19 @@ export default function PdfLessonViewer({
             onPointerUp={stopImagePan}
             onPointerCancel={stopImagePan}
           >
-            <div className="flex min-h-full min-w-full items-center justify-center">
+            <div
+              style={
+                isPinching
+                  ? {
+                      transform: `scale(${pinchFactor})`,
+                      transformOrigin: `${pinchCenter.x}px ${pinchCenter.y}px`,
+                      willChange: "transform",
+                      transition: "none",
+                    }
+                  : undefined
+              }
+              className="flex min-h-full min-w-full items-center justify-center"
+            >
               <img
                 src={blobUrl}
                 alt={title}
@@ -659,9 +827,17 @@ export default function PdfLessonViewer({
   return (
     <div
       ref={wrapperRef}
-      className={`flex flex-col overflow-hidden rounded-[24px] border border-[#202838] bg-slate-950 shadow-2xl select-none transition-all ${isExpandedView ? "fixed inset-0 z-[120] h-[100dvh] w-full rounded-none border-none" : "h-[80vh]"}`}
+      className={`flex flex-col overflow-hidden rounded-[24px] border border-[#202838] bg-slate-950 shadow-2xl select-none transition-all relative ${isExpandedView ? "fixed inset-0 z-[120] h-[100dvh] w-full rounded-none border-none" : "h-[80vh]"}`}
       onContextMenu={(event) => event.preventDefault()}
     >
+      {/* Toast de confirmation du mode de zoom tactile */}
+      {touchFeedbackMsg && (
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-40 px-3.5 py-1.5 rounded-full bg-slate-900/95 border border-emerald-500/40 text-emerald-300 text-[11px] font-bold shadow-2xl backdrop-blur-md pointer-events-none animate-in fade-in slide-in-from-top-2 duration-200 flex items-center gap-2 max-w-[90%] text-center">
+          <Hand className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
+          <span className="truncate">{touchFeedbackMsg}</span>
+        </div>
+      )}
+
       {/* Top Header Banner: Executive Performance Académique White-label */}
       <div className="flex items-center justify-between border-b border-[#1c2433] bg-[#070b12] px-3 py-1.5 sm:px-4 sm:py-2 text-xs text-slate-400">
         <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
@@ -769,6 +945,30 @@ export default function PdfLessonViewer({
               <ZoomIn className={toolbarIconClass} strokeWidth={1.8} />
             </button>
           </div>
+
+          {/* Bouton Zoom tactile PDF */}
+          <button
+            type="button"
+            onClick={toggleTouchZoomMode}
+            className={`${toolbarButtonClass} ${
+              touchZoomEnabled
+                ? "border-emerald-500/80 bg-emerald-500/20 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.35)] ring-1 ring-emerald-500/50"
+                : "text-slate-400 hover:text-slate-200"
+            }`}
+            title={
+              touchZoomEnabled
+                ? "Zoom tactile PDF activé (pincez l'écran pour zoomer directement dans le document)"
+                : "Zoom tactile PDF désactivé (cliquez pour zoomer dans le document plutôt que sur le site)"
+            }
+            aria-label={
+              touchZoomEnabled
+                ? "Désactiver le zoom tactile PDF"
+                : "Activer le zoom tactile PDF"
+            }
+            aria-pressed={touchZoomEnabled}
+          >
+            <Hand className={toolbarIconClass} strokeWidth={1.8} />
+          </button>
 
           <span className={toolbarDividerClass} aria-hidden="true" />
 
@@ -918,12 +1118,27 @@ export default function PdfLessonViewer({
           <div
             ref={containerRef}
             onScroll={handleContainerScroll}
+            style={{
+              touchAction: touchZoomEnabled ? "pan-x pan-y" : "auto",
+            }}
             className="flex-1 overflow-auto p-4 sm:p-6 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]"
             onContextMenu={(event) => event.preventDefault()}
           >
             {scrollMode === "continuous" && numPages ? (
               /* Continuous Scroll View (WPS / Word / Acrobat style) */
-              <div className="flex flex-col items-center gap-6 py-4 min-h-full">
+              <div
+                style={
+                  isPinching
+                    ? {
+                        transform: `scale(${pinchFactor})`,
+                        transformOrigin: `${pinchCenter.x}px ${pinchCenter.y}px`,
+                        willChange: "transform",
+                        transition: "none",
+                      }
+                    : undefined
+                }
+                className="flex flex-col items-center gap-6 py-4 min-h-full"
+              >
                 {Array.from({ length: numPages }, (_, index) => {
                   const p = index + 1;
                   return (
@@ -948,7 +1163,19 @@ export default function PdfLessonViewer({
               </div>
             ) : (
               /* Single Page View */
-              <div className="flex min-h-full items-center justify-center">
+              <div
+                style={
+                  isPinching
+                    ? {
+                        transform: `scale(${pinchFactor})`,
+                        transformOrigin: `${pinchCenter.x}px ${pinchCenter.y}px`,
+                        willChange: "transform",
+                        transition: "none",
+                      }
+                    : undefined
+                }
+                className="flex min-h-full items-center justify-center"
+              >
                 <div className="relative mx-auto w-fit shadow-[0_20px_50px_rgba(0,0,0,0.65)] ring-1 ring-white/10 transition-transform duration-200 rounded-sm bg-white">
                   <Page
                     key={`${pageNumber}-${renderWidth}-${rotation}`}
