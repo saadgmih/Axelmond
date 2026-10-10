@@ -1,9 +1,11 @@
-import { useEffect } from "react";
-import { FileText, Download, Loader2, RotateCcw, AlertTriangle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { FileText, Download, Loader2, RotateCcw, AlertTriangle, Copy } from "lucide-react";
 import { RASTER_IMAGE_ACCEPT } from "../../../avatar-security";
 import PremiumVideoPlayer from "../../../components/PremiumVideoPlayer";
 import { formatLessonContentTypeLabel } from "../../../utils/user-facing-labels";
 import { api } from "../../../api";
+import TeacherMediaLibraryPicker from "../../../components/teacher/TeacherMediaLibraryPicker";
+import TeacherCopyMediaModal from "../../../components/teacher/TeacherCopyMediaModal";
 
 import { curriculumUi, getStepTheme, publishedBadge, publishedLabel } from "../curriculum-theme";
 import type { TeacherCurriculumViewProps } from "../curriculum-types";
@@ -98,6 +100,9 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
     handleDeleteLessonContent,
     handleUpdateLessonContentTitle,
   } = props;
+
+  const [mediaSourceTab, setMediaSourceTab] = useState<"upload" | "library">("upload");
+  const [copyingContent, setCopyingContent] = useState<any>(null);
 
   const stepTheme = getStepTheme(3);
   const inputFocus = `${curriculumUi.input} ${stepTheme.focus}`;
@@ -210,112 +215,152 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
               <FileText className="h-5 w-5 text-lime-400" />
               Ajouter des médias
             </h3>
-            <p className={curriculumUi.panelSubtitle}>Uploadez vidéos, PDF ou images dans le chapitre choisi.</p>
+            <p className={curriculumUi.panelSubtitle}>
+              Uploadez vidéos, PDF ou images, ou réutilisez un média existant sans téléversement.
+            </p>
           </div>
 
-          <form onSubmit={handleUploadLessonAsset} className={`space-y-4 pt-3 ${curriculumUi.divider}`}>
-            <fieldset disabled={isUploadingLessonAsset} className="space-y-4 disabled:opacity-70">
-              <div className="grid grid-cols-2 gap-3">
-                <label className="block space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Type de média</span>
-                  <select
-                    value={uploadType}
-                    onChange={(e) => setUploadType(e.target.value as any)}
-                    className={`w-full rounded-xl border border-slate-700 bg-[#031512] px-3 py-3 text-xs font-semibold text-slate-100 focus:bg-slate-950 focus:outline-none focus:ring-4 ${stepTheme.focus}`}
-                  >
-                    <option value="VIDEO">Vidéo (.mp4, WebM)</option>
-                    <option value="PDF">Document PDF</option>
-                    <option value="IMAGE">Image (PNG, JPG, WebP)</option>
-                  </select>
-                </label>
+          <div className="flex rounded-xl bg-slate-900/90 p-1 border border-slate-800">
+            <button
+              type="button"
+              onClick={() => setMediaSourceTab("upload")}
+              className={`flex-1 inline-flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold transition-all ${
+                mediaSourceTab === "upload"
+                  ? "bg-lime-500 text-slate-950 font-black shadow-sm"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              <Download className="w-3.5 h-3.5" />
+              Téléverser un nouveau fichier
+            </button>
+            <button
+              type="button"
+              onClick={() => setMediaSourceTab("library")}
+              className={`flex-1 inline-flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold transition-all ${
+                mediaSourceTab === "library"
+                  ? "bg-lime-500 text-slate-950 font-black shadow-sm"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              <Copy className="w-3.5 h-3.5" />
+              Bibliothèque (Réutiliser un média)
+            </button>
+          </div>
 
-                <label className="block space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Titre visible</span>
-                  <input
-                    type="text"
-                    required
-                    placeholder="ex: Tutoriel de programmation"
-                    value={uploadTitle}
-                    onChange={(e) => setUploadTitle(e.target.value)}
-                    className={inputFocus}
-                  />
-                </label>
-              </div>
+          {mediaSourceTab === "library" ? (
+            <TeacherMediaLibraryPicker
+              currentCourseId={managedCourse?.id || 0}
+              currentSectionId={null}
+              chapterTitle={managedCourse?.title}
+              onSuccess={showCurriculumSuccess}
+              onError={showCurriculumError}
+              refreshCourseContent={handleSelectManagedCourse}
+            />
+          ) : (
+            <form onSubmit={handleUploadLessonAsset} className={`space-y-4 pt-3 ${curriculumUi.divider}`}>
+              <fieldset disabled={isUploadingLessonAsset} className="space-y-4 disabled:opacity-70">
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="block space-y-1">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Type de média</span>
+                    <select
+                      value={uploadType}
+                      onChange={(e) => setUploadType(e.target.value as any)}
+                      className={`w-full rounded-xl border border-slate-700 bg-[#031512] px-3 py-3 text-xs font-semibold text-slate-100 focus:bg-slate-950 focus:outline-none focus:ring-4 ${stepTheme.focus}`}
+                    >
+                      <option value="VIDEO">Vidéo (.mp4, WebM)</option>
+                      <option value="PDF">Document PDF</option>
+                      <option value="IMAGE">Image (PNG, JPG, WebP)</option>
+                    </select>
+                  </label>
 
-              {/* Styled File Input Container */}
-              <label className="block space-y-1 cursor-pointer">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Fichier média</span>
-                <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-lime-500/30 bg-lime-950/20 p-4 text-center transition-colors hover:bg-lime-950/30 group">
-                  <Download className="h-8 w-8 text-lime-400 transition-colors group-hover:text-lime-300" />
-                  <div className="text-xs text-slate-400">
-                    {uploadFile ? (
-                      <p className="max-w-[280px] truncate font-mono text-[11px] font-bold text-lime-300">
-                        {uploadFile.name} (
-                        {uploadFile.size >= 1024 * 1024 * 1024
-                          ? `${(uploadFile.size / (1024 * 1024 * 1024)).toFixed(2)} Go`
-                          : `${(uploadFile.size / (1024 * 1024)).toFixed(2)} Mo`}
-                        )
-                      </p>
-                    ) : (
-                      <>
-                        <p className="font-bold text-slate-300">Sélectionnez ou glissez un fichier</p>
-                        <p className="text-[10px] text-slate-500 mt-1">PDF, MP4 ou images uniquement</p>
-                      </>
-                    )}
-                  </div>
-                  <input
-                    type="file"
-                    required
-                    accept={
-                      uploadType === "VIDEO"
-                        ? "video/*"
-                        : uploadType === "PDF"
-                          ? "application/pdf"
-                          : RASTER_IMAGE_ACCEPT
-                    }
-                    onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
-                    className="hidden"
-                  />
+                  <label className="block space-y-1">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Titre visible</span>
+                    <input
+                      type="text"
+                      required
+                      placeholder="ex: Tutoriel de programmation"
+                      value={uploadTitle}
+                      onChange={(e) => setUploadTitle(e.target.value)}
+                      className={inputFocus}
+                    />
+                  </label>
                 </div>
-              </label>
 
-              <label className={curriculumUi.checkbox}>
-                <input
-                  type="checkbox"
-                  checked={uploadPublished}
-                  onChange={(e) => setUploadPublished(e.target.checked)}
-                  className={`h-4 w-4 cursor-pointer accent-emerald-600`}
-                />
-                Publier le média après l'upload
-              </label>
+                {/* Styled File Input Container */}
+                <label className="block space-y-1 cursor-pointer">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Fichier média</span>
+                  <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-lime-500/30 bg-lime-950/20 p-4 text-center transition-colors hover:bg-lime-950/30 group">
+                    <Download className="h-8 w-8 text-lime-400 transition-colors group-hover:text-lime-300" />
+                    <div className="text-xs text-slate-400">
+                      {uploadFile ? (
+                        <p className="max-w-[280px] truncate font-mono text-[11px] font-bold text-lime-300">
+                          {uploadFile.name} (
+                          {uploadFile.size >= 1024 * 1024 * 1024
+                            ? `${(uploadFile.size / (1024 * 1024 * 1024)).toFixed(2)} Go`
+                            : `${(uploadFile.size / (1024 * 1024)).toFixed(2)} Mo`}
+                          )
+                        </p>
+                      ) : (
+                        <>
+                          <p className="font-bold text-slate-300">Sélectionnez ou glissez un fichier</p>
+                          <p className="text-[10px] text-slate-500 mt-1">PDF, MP4 ou images uniquement</p>
+                        </>
+                      )}
+                    </div>
+                    <input
+                      type="file"
+                      required
+                      accept={
+                        uploadType === "VIDEO"
+                          ? "video/*"
+                          : uploadType === "PDF"
+                            ? "application/pdf"
+                            : RASTER_IMAGE_ACCEPT
+                      }
+                      onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+                      className="hidden"
+                    />
+                  </div>
+                </label>
 
-              <button
-                type="submit"
-                className={`w-full rounded-xl py-3 text-xs font-black shadow-sm transition-colors active:scale-[0.98] disabled:cursor-wait ${stepTheme.button}`}
-              >
-                {isUploadingLessonAsset ? "Enregistrement en cours..." : "Téléverser et enregistrer le média"}
-              </button>
-            </fieldset>
+                <label className={curriculumUi.checkbox}>
+                  <input
+                    type="checkbox"
+                    checked={uploadPublished}
+                    onChange={(e) => setUploadPublished(e.target.checked)}
+                    className={`h-4 w-4 cursor-pointer accent-emerald-600`}
+                  />
+                  Publier le média après l'upload
+                </label>
 
-            {uploadStatusMsg && (
-              <div
-                role={uploadStatusKind === "error" ? "alert" : "status"}
-                aria-live="polite"
-                className={`flex items-center justify-center gap-2 rounded-xl border p-3 text-center text-xs font-bold ${
-                  uploadStatusKind === "error"
-                    ? "border-red-500/30 bg-red-950/40 text-red-300"
-                    : "border-lime-500/30 bg-lime-950/40 text-lime-300"
-                }`}
-              >
-                <span
-                  className={`h-2.5 w-2.5 shrink-0 rounded-full ${
-                    uploadStatusKind === "error" ? "bg-red-400" : "bg-lime-400"
-                  } ${isUploadingLessonAsset ? "animate-pulse" : ""}`}
-                />
-                {uploadStatusMsg}
-              </div>
-            )}
-          </form>
+                <button
+                  type="submit"
+                  className={`w-full rounded-xl py-3 text-xs font-black shadow-sm transition-colors active:scale-[0.98] disabled:cursor-wait ${stepTheme.button}`}
+                >
+                  {isUploadingLessonAsset ? "Enregistrement en cours..." : "Téléverser et enregistrer le média"}
+                </button>
+              </fieldset>
+
+              {uploadStatusMsg && (
+                <div
+                  role={uploadStatusKind === "error" ? "alert" : "status"}
+                  aria-live="polite"
+                  className={`flex items-center justify-center gap-2 rounded-xl border p-3 text-center text-xs font-bold ${
+                    uploadStatusKind === "error"
+                      ? "border-red-500/30 bg-red-950/40 text-red-300"
+                      : "border-lime-500/30 bg-lime-950/40 text-lime-300"
+                  }`}
+                >
+                  <span
+                    className={`h-2.5 w-2.5 shrink-0 rounded-full ${
+                      uploadStatusKind === "error" ? "bg-red-400" : "bg-lime-400"
+                    } ${isUploadingLessonAsset ? "animate-pulse" : ""}`}
+                  />
+                  {uploadStatusMsg}
+                </div>
+              )}
+            </form>
+          )}
         </div>
 
         {/* Right Panel: Chapter contents list */}
@@ -435,6 +480,16 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
                         </a>
                       )}
                       <button
+                        type="button"
+                        disabled={content.status === "PROCESSING"}
+                        onClick={() => setCopyingContent(content)}
+                        className={`${curriculumUi.ghostBtn} border-teal-500/30 text-teal-300 hover:text-white hover:bg-teal-950/40 disabled:opacity-50`}
+                        title="Copier ce média vers un autre cours sans avoir à le retéléverser"
+                      >
+                        <Copy className="h-3.5 w-3.5 mr-1 text-teal-400 inline" />
+                        Copier vers...
+                      </button>
+                      <button
                         disabled={content.status === "PROCESSING"}
                         onClick={() => handleUpdateLessonContentTitle?.(content)}
                         className={curriculumUi.ghostBtn}
@@ -464,6 +519,17 @@ export default function CurriculumMediaStep(props: TeacherCurriculumViewProps) {
           </div>
         </div>
       </div>
+
+      <TeacherCopyMediaModal
+        content={copyingContent}
+        currentCourseId={managedCourse?.id || 0}
+        currentCourseTitle={managedCourse?.title}
+        managedCourses={props.managedCourses || []}
+        isOpen={Boolean(copyingContent)}
+        onClose={() => setCopyingContent(null)}
+        onSuccess={showCurriculumSuccess}
+        onError={showCurriculumError}
+      />
     </div>
   );
 }

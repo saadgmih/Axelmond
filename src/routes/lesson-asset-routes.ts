@@ -5,7 +5,8 @@ import {
   resolveConfirmedLessonAsset,
   type LessonAssetIntent,
 } from "../lesson-asset-confirmation";
-import { persistLessonAsset } from "../lesson-asset-service";
+import { persistLessonAsset, reuseLessonAsset } from "../lesson-asset-service";
+import { sanitizeCourseAttachmentUrl } from "../external-url-security";
 import type { RouteContext } from "../server/route-context";
 import { getAuthUser } from "../server/route-types";
 import * as api from "../server/route-deps";
@@ -24,6 +25,26 @@ const confirmLessonAssetSchema = z.object({
     .int()
     .positive()
     .max(5 * 1024 * 1024 * 1024),
+});
+
+const reuseLessonAssetSchema = z.object({
+  fileKey: z.string().trim().min(1).max(255),
+  url: z.string().trim().min(1),
+  fileName: z.string().trim().min(1).max(512),
+  mimeType: z.string().trim().min(1).max(160).nullable().optional(),
+  size: z.number().int().positive().max(5 * 1024 * 1024 * 1024),
+  contentType: z.enum(["VIDEO", "PDF", "IMAGE"]),
+  title: z.string().trim().min(1).max(160),
+  sectionId: z.string().trim().min(1).max(160).nullable().optional(),
+  published: z.boolean().default(false),
+  sourceContentId: z.string().trim().min(1).optional(),
+});
+
+const copyLessonContentSchema = z.object({
+  targetCourseId: z.number().int().positive(),
+  targetSectionId: z.string().trim().min(1).max(160).nullable().optional(),
+  title: z.string().trim().min(1).max(160).optional(),
+  published: z.boolean().default(false),
 });
 
 export function registerLessonAssetRoutes(app: Express, ctx: RouteContext): void {
@@ -312,4 +333,272 @@ export function registerLessonAssetRoutes(app: Express, ctx: RouteContext): void
     const updated = await updateBrandingConfig(req.body);
     res.status(200).json(updated);
   });
+
+  // 6. GET /api/teacher/media-library
+  // Returns all media assets previously uploaded across the teacher's courses
+  app.get("/api/teacher/media-library", requireAuth, requireRbac, async (req, res) => {
+    const authUser = getAuthUser(req);
+    const typeFilter = typeof req.query.type === "string" ? req.query.type.toUpperCase() : undefined;
+    const searchFilter = typeof req.query.search === "string" ? req.query.search.trim().toLowerCase() : "";
+
+    let accessibleCourseIds: number[] | null = null;
+    if (authUser.role !== "ADMIN") {
+      const teacherCourses = await api.prisma.course.findMany({
+        where: {
+          OR: [{ createdById: authUser.id }, { instructor: authUser.fullName }],
+        },
+        select: { id: true },
+      });
+      accessibleCourseIds = teacherCourses.map((c) => c.id);
+    }
+
+    const whereClause: any = {
+      content: {
+        type:
+          typeFilter && ["VIDEO", "PDF", "IMAGE"].includes(typeFilter)
+            ? typeFilter
+            : { in: ["VIDEO", "PDF", "IMAGE"] },
+      },
+    };
+
+    if (accessibleCourseIds !== null) {
+      whereClause.OR = [
+        { createdById: authUser.id },
+        { courseId: { in: accessibleCourseIds } },
+      ];
+    }
+
+    const attachments = await api.prisma.attachment.findMany({
+      where: whereClause,
+      include: {
+        content: {
+          select: {
+            id: true,
+            title: true,
+            type: true,
+            status: true,
+            sectionId: true,
+            createdAt: true,
+            section: { select: { id: true, title: true } },
+          },
+        },
+        course: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 200,
+    });
+
+    const seenKeys = new Set<string>();
+    const libraryItems: any[] = [];
+
+    for (const att of attachments) {
+      const key = att.fileKey || att.url;
+      if (seenKeys.has(key)) continue;
+      seenKeys.add(key);
+
+      const safeUrl = sanitizeCourseAttachmentUrl(att.url);
+      if (!safeUrl) continue;
+
+      const item = {
+        id: att.id,
+        contentId: att.contentId,
+        title: att.content?.title || att.fileName,
+        type: att.type,
+        fileName: att.fileName,
+        fileKey: att.fileKey,
+        url: safeUrl,
+        mimeType: att.mimeType,
+        size: att.size,
+        courseId: att.courseId,
+        courseTitle: att.course?.title || "Module",
+        sectionId: att.content?.sectionId || null,
+        sectionTitle: att.content?.section?.title || null,
+        createdAt: att.createdAt.toISOString(),
+      };
+
+      if (searchFilter) {
+        const match =
+          item.title.toLowerCase().includes(searchFilter) ||
+          item.fileName.toLowerCase().includes(searchFilter) ||
+          item.courseTitle.toLowerCase().includes(searchFilter);
+        if (!match) continue;
+      }
+
+      libraryItems.push(item);
+    }
+
+    res.status(200).json(libraryItems);
+  });
+
+  // 7. POST /api/courses/:courseId/lesson-assets/reuse
+  // Attaches an existing uploaded media to another course/section without re-uploading
+  app.post(
+    "/api/courses/:courseId/lesson-assets/reuse",
+    requireAuth,
+    requireRbac,
+    validateBody(reuseLessonAssetSchema),
+    async (req, res) => {
+      const authUser = getAuthUser(req);
+      const courseId = api.parsePositiveInt(req.params.courseId);
+      if (!courseId) {
+        res.status(400).json({ error: "Identifiant de module invalide" });
+        return;
+      }
+      if (!(await api.verifyCourseAccess(authUser, courseId))) {
+        res.status(403).json({ error: "Accès refusé pour ajouter un média à ce module" });
+        return;
+      }
+
+      if (req.body.sectionId) {
+        const section = await api.prisma.contentSection.findFirst({
+          where: { id: req.body.sectionId, courseId },
+          select: { id: true },
+        });
+        if (!section) {
+          res.status(404).json({ error: "Section de module introuvable" });
+          return;
+        }
+      }
+
+      const safeUrl = sanitizeCourseAttachmentUrl(req.body.url);
+      if (!safeUrl) {
+        res.status(400).json({ error: "URL de média non autorisée" });
+        return;
+      }
+
+      if (authUser.role !== "ADMIN") {
+        const sourceAsset = await api.prisma.attachment.findFirst({
+          where: { fileKey: req.body.fileKey },
+          select: { createdById: true, courseId: true },
+        });
+        if (sourceAsset && sourceAsset.createdById !== authUser.id) {
+          const canAccessSource = await api.verifyCourseAccess(authUser, sourceAsset.courseId);
+          if (!canAccessSource) {
+            res.status(403).json({ error: "Accès refusé pour réutiliser ce média" });
+            return;
+          }
+        }
+      }
+
+      const newContent = await reuseLessonAsset({
+        targetCourseId: courseId,
+        targetSectionId: req.body.sectionId || null,
+        title: req.body.title.trim(),
+        contentType: req.body.contentType,
+        fileName: req.body.fileName,
+        fileKey: req.body.fileKey,
+        url: safeUrl,
+        mimeType: req.body.mimeType || null,
+        size: req.body.size,
+        published: req.body.published,
+        userId: authUser.id,
+        sourceContentId: req.body.sourceContentId,
+      });
+
+      await api.logAudit(
+        authUser.id,
+        authUser.email,
+        "REUSE_LESSON_ASSET",
+        "LessonContent",
+        newContent.id,
+        { courseId, sectionId: newContent.sectionId, fileKey: req.body.fileKey },
+        req.ip,
+      );
+
+      res.status(201).json(api.toLessonContent(newContent));
+    },
+  );
+
+  // 8. POST /api/courses/:courseId/lesson-contents/:contentId/copy-to
+  // Direct clone/copy of an existing lesson content to another course/section
+  app.post(
+    "/api/courses/:courseId/lesson-contents/:contentId/copy-to",
+    requireAuth,
+    requireRbac,
+    validateBody(copyLessonContentSchema),
+    async (req, res) => {
+      const authUser = getAuthUser(req);
+      const sourceCourseId = api.parsePositiveInt(req.params.courseId);
+      const { contentId } = req.params;
+      const { targetCourseId, targetSectionId, title, published } = req.body;
+
+      if (!sourceCourseId || !targetCourseId) {
+        res.status(400).json({ error: "Identifiant de module invalide" });
+        return;
+      }
+
+      if (!(await api.verifyCourseAccess(authUser, sourceCourseId))) {
+        res.status(403).json({ error: "Accès refusé au module source" });
+        return;
+      }
+      if (!(await api.verifyCourseAccess(authUser, targetCourseId))) {
+        res.status(403).json({ error: "Accès refusé au module de destination" });
+        return;
+      }
+
+      const sourceContent = await api.prisma.lessonContent.findFirst({
+        where: { id: contentId, courseId: sourceCourseId },
+        include: { attachments: true },
+      });
+      if (!sourceContent) {
+        res.status(404).json({ error: "Contenu source introuvable" });
+        return;
+      }
+
+      const sourceAttachment = sourceContent.attachments[0];
+      if (!sourceAttachment) {
+        res.status(400).json({ error: "Ce contenu ne possède aucun fichier média attaché" });
+        return;
+      }
+
+      if (targetSectionId) {
+        const section = await api.prisma.contentSection.findFirst({
+          where: { id: targetSectionId, courseId: targetCourseId },
+          select: { id: true },
+        });
+        if (!section) {
+          res.status(404).json({ error: "Section de destination introuvable" });
+          return;
+        }
+      }
+
+      const safeUrl = sanitizeCourseAttachmentUrl(sourceAttachment.url);
+      if (!safeUrl) {
+        res.status(400).json({ error: "URL de média non autorisée" });
+        return;
+      }
+
+      const newContent = await reuseLessonAsset({
+        targetCourseId,
+        targetSectionId: targetSectionId || null,
+        title: (title || sourceContent.title).trim(),
+        contentType: sourceContent.type,
+        fileName: sourceAttachment.fileName,
+        fileKey: sourceAttachment.fileKey,
+        url: safeUrl,
+        mimeType: sourceAttachment.mimeType,
+        size: sourceAttachment.size,
+        published: published,
+        userId: authUser.id,
+        sourceContentId: sourceContent.id,
+      });
+
+      await api.logAudit(
+        authUser.id,
+        authUser.email,
+        "COPY_LESSON_ASSET",
+        "LessonContent",
+        newContent.id,
+        { sourceCourseId, targetCourseId, fileKey: sourceAttachment.fileKey },
+        req.ip,
+      );
+
+      res.status(201).json(api.toLessonContent(newContent));
+    },
+  );
 }

@@ -197,6 +197,18 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
     return teacherSpaceRoles.includes(normalized);
   }
 
+  if (verb === "GET" && cleanPath === "/api/teacher/media-library") {
+    return teacherSpaceRoles.includes(normalized);
+  }
+
+  if (verb === "POST" && /^\/api\/courses\/\d+\/lesson-assets\/reuse$/.test(cleanPath)) {
+    return teacherSpaceRoles.includes(normalized);
+  }
+
+  if (verb === "POST" && /^\/api\/courses\/\d+\/lesson-contents\/[^/]+\/copy-to$/.test(cleanPath)) {
+    return teacherSpaceRoles.includes(normalized);
+  }
+
   if (verb === "POST" && /^\/api\/courses\/\d+\/chapters$/.test(cleanPath)) {
     return teacherSpaceRoles.includes(normalized);
   }

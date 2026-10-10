@@ -464,6 +464,55 @@ export const api = {
       size: number;
     },
   ) => request<any>("POST", `/api/courses/${courseId}/lesson-assets/confirm`, data),
+  getTeacherMediaLibrary: (params?: { type?: string; search?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.type) qs.set("type", params.type);
+    if (params?.search) qs.set("search", params.search);
+    const query = qs.toString() ? `?${qs.toString()}` : "";
+    return request<
+      Array<{
+        id: string;
+        contentId: string;
+        title: string;
+        type: "VIDEO" | "PDF" | "IMAGE";
+        fileName: string;
+        fileKey: string;
+        url: string;
+        mimeType: string | null;
+        size: number;
+        courseId: number;
+        courseTitle: string;
+        sectionId?: string | null;
+        sectionTitle?: string | null;
+        createdAt: string;
+      }>
+    >("GET", `/api/teacher/media-library${query}`);
+  },
+  reuseLessonAsset: (
+    courseId: number,
+    data: {
+      fileKey: string;
+      url: string;
+      fileName: string;
+      mimeType?: string | null;
+      size: number;
+      contentType: "VIDEO" | "PDF" | "IMAGE";
+      title: string;
+      sectionId?: string | null;
+      published?: boolean;
+      sourceContentId?: string;
+    },
+  ) => request<any>("POST", `/api/courses/${courseId}/lesson-assets/reuse`, data),
+  copyLessonContent: (
+    courseId: number,
+    contentId: string,
+    data: {
+      targetCourseId: number;
+      targetSectionId?: string | null;
+      title?: string;
+      published?: boolean;
+    },
+  ) => request<any>("POST", `/api/courses/${courseId}/lesson-contents/${contentId}/copy-to`, data),
   retryVideoJob: (jobId: string) => request<any>("POST", `/api/teacher/video-jobs/${jobId}/retry`),
   getVideoJobStatus: (jobId: string) => request<any>("GET", `/api/teacher/video-jobs/${jobId}`),
   deleteCourse: (courseId: number) => request<any>("DELETE", `/api/courses/${courseId}`),
