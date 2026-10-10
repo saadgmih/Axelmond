@@ -134,7 +134,15 @@ export default function PdfLessonViewer({
     startDistance: 0,
     startScale: 1,
     midpoint: { x: 0, y: 0 },
+    scrollStart: { left: 0, top: 0 },
     currentFactor: 1,
+  });
+  const touchPanRef = useRef({
+    active: false,
+    startX: 0,
+    startY: 0,
+    scrollLeft: 0,
+    scrollTop: 0,
   });
   const imageDragRef = useRef({
     active: false,
@@ -371,6 +379,65 @@ export default function PdfLessonViewer({
     setIsImagePanning(false);
   }
 
+  const scaleRef = useRef(scale);
+  useEffect(() => {
+    scaleRef.current = scale;
+  }, [scale]);
+
+  const [isPdfPanning, setIsPdfPanning] = useState(false);
+  const pdfMouseDragRef = useRef({
+    active: false,
+    startX: 0,
+    startY: 0,
+    scrollLeft: 0,
+    scrollTop: 0,
+  });
+
+  function handlePdfPointerDown(e: ReactPointerEvent<HTMLDivElement>) {
+    if (e.button !== 0 || !touchZoomEnabled) return;
+    if (e.pointerType === "touch") return; // Géré par les écouteurs tactiles natifs
+    const target = containerRef.current;
+    if (!target) return;
+
+    // Empêche la sélection de texte ou le glisser natif du navigateur
+    e.preventDefault();
+
+    pdfMouseDragRef.current = {
+      active: true,
+      startX: e.clientX,
+      startY: e.clientY,
+      scrollLeft: target.scrollLeft,
+      scrollTop: target.scrollTop,
+    };
+    try {
+      target.setPointerCapture(e.pointerId);
+    } catch {}
+    setIsPdfPanning(true);
+  }
+
+  function handlePdfPointerMove(e: ReactPointerEvent<HTMLDivElement>) {
+    if (!pdfMouseDragRef.current.active) return;
+    const target = containerRef.current;
+    if (!target) return;
+
+    e.preventDefault();
+    const dx = e.clientX - pdfMouseDragRef.current.startX;
+    const dy = e.clientY - pdfMouseDragRef.current.startY;
+    target.scrollLeft = pdfMouseDragRef.current.scrollLeft - dx;
+    target.scrollTop = pdfMouseDragRef.current.scrollTop - dy;
+  }
+
+  function stopPdfPointerPan(e: ReactPointerEvent<HTMLDivElement>) {
+    if (!pdfMouseDragRef.current.active) return;
+    if (containerRef.current?.hasPointerCapture(e.pointerId)) {
+      try {
+        containerRef.current.releasePointerCapture(e.pointerId);
+      } catch {}
+    }
+    pdfMouseDragRef.current.active = false;
+    setIsPdfPanning(false);
+  }
+
   useEffect(() => {
     if (!touchFeedbackMsg) return;
     const timer = window.setTimeout(() => {
@@ -384,21 +451,54 @@ export default function PdfLessonViewer({
       const next = !prev;
       setTouchFeedbackMsg(
         next
-          ? "Mode Zoom Document activé : pincez l'écran pour zoomer dans le document"
-          : "Mode Zoom Site activé : le zoom tactile s'applique au navigateur",
+          ? "Outil Main & Zoom actif : pincez ou glissez pour zoomer et déplacer le document"
+          : "Mode standard : le zoom s'applique au navigateur",
       );
       return next;
     });
   }
 
-  // Intercept pinch gestures to zoom inside document rather than zooming the whole webpage
+  // Interception du zoom trackpad / touchpad pinch et Ctrl + Molette
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (!wrapper || !touchZoomEnabled) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      // Les pavés tactiles (trackpads) de PC/Mac émettent un événement wheel avec e.ctrlKey === true lors d'un pincement
+      // Tout comme le zoom Ctrl + Molette de souris
+      if (e.ctrlKey) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const zoomDelta = -e.deltaY;
+        const factor = zoomDelta > 0 ? 1.08 : 0.92;
+        const current = scaleRef.current;
+        const minScale = mediaType === "IMAGE" ? 0.25 : 0.5;
+        const maxScale = mediaType === "IMAGE" ? 6.0 : 4.0;
+        const nextScale = Math.min(Math.max(Number((current * factor).toFixed(2)), minScale), maxScale);
+
+        if (Math.abs(nextScale - current) > 0.01) {
+          setScale(nextScale);
+        }
+      }
+    };
+
+    wrapper.addEventListener("wheel", handleWheel, { passive: false });
+    return () => {
+      wrapper.removeEventListener("wheel", handleWheel);
+    };
+  }, [touchZoomEnabled, mediaType]);
+
+  // Interception du pincement tactile à 2 doigts et glissement à 1 doigt sur écran tactile (smartphone / tablette)
   useEffect(() => {
     const target = mediaType === "IMAGE" ? imageStageRef.current : containerRef.current;
     if (!target || !touchZoomEnabled) return;
 
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 2) {
-        e.preventDefault();
+        if (e.cancelable) e.preventDefault();
+        touchPanRef.current.active = false;
+
         const t1 = e.touches[0];
         const t2 = e.touches[1];
         const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
@@ -409,35 +509,52 @@ export default function PdfLessonViewer({
         pinchStateRef.current = {
           isPinching: true,
           startDistance: dist,
-          startScale: scale,
+          startScale: scaleRef.current,
           midpoint: { x: midX, y: midY },
+          scrollStart: { left: target.scrollLeft, top: target.scrollTop },
           currentFactor: 1,
         };
 
         setIsPinching(true);
         setPinchFactor(1);
-        setPinchCenter({ x: midX, y: midY });
+        setPinchCenter({
+          x: midX + target.scrollLeft,
+          y: midY + target.scrollTop,
+        });
+      } else if (e.touches.length === 1 && !pinchStateRef.current.isPinching) {
+        touchPanRef.current = {
+          active: true,
+          startX: e.touches[0].clientX,
+          startY: e.touches[0].clientY,
+          scrollLeft: target.scrollLeft,
+          scrollTop: target.scrollTop,
+        };
       }
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (!pinchStateRef.current.isPinching || e.touches.length < 2) return;
-      e.preventDefault();
+      if (e.touches.length === 2 && pinchStateRef.current.isPinching) {
+        if (e.cancelable) e.preventDefault();
 
-      const t1 = e.touches[0];
-      const t2 = e.touches[1];
-      const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
-      const startDist = pinchStateRef.current.startDistance || 1;
-      const factor = dist / startDist;
+        const t1 = e.touches[0];
+        const t2 = e.touches[1];
+        const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+        const startDist = pinchStateRef.current.startDistance || 1;
+        const factor = Math.max(0.4, Math.min(dist / startDist, 4.0));
 
-      pinchStateRef.current.currentFactor = factor;
-      setPinchFactor(factor);
+        pinchStateRef.current.currentFactor = factor;
+        setPinchFactor(factor);
+      } else if (e.touches.length === 1 && touchPanRef.current.active) {
+        if (e.cancelable) e.preventDefault();
+        const dx = e.touches[0].clientX - touchPanRef.current.startX;
+        const dy = e.touches[0].clientY - touchPanRef.current.startY;
+        target.scrollLeft = touchPanRef.current.scrollLeft - dx;
+        target.scrollTop = touchPanRef.current.scrollTop - dy;
+      }
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
-      if (!pinchStateRef.current.isPinching) return;
-
-      if (e.touches.length < 2) {
+      if (pinchStateRef.current.isPinching && e.touches.length < 2) {
         const factor = pinchStateRef.current.currentFactor;
         const prevScale = pinchStateRef.current.startScale;
         const minScale = mediaType === "IMAGE" ? 0.25 : 0.5;
@@ -446,23 +563,27 @@ export default function PdfLessonViewer({
 
         const focalX = pinchStateRef.current.midpoint.x;
         const focalY = pinchStateRef.current.midpoint.y;
+        const startScroll = pinchStateRef.current.scrollStart;
         const scaleRatio = targetScale / prevScale;
 
         pinchStateRef.current.isPinching = false;
         setIsPinching(false);
         setPinchFactor(1);
 
-        if (Math.abs(targetScale - scale) > 0.02) {
+        if (Math.abs(targetScale - scaleRef.current) > 0.02) {
           setScale(targetScale);
 
-          const newScrollLeft = (target.scrollLeft + focalX) * scaleRatio - focalX;
-          const newScrollTop = (target.scrollTop + focalY) * scaleRatio - focalY;
+          const newScrollLeft = (startScroll.left + focalX) * scaleRatio - focalX;
+          const newScrollTop = (startScroll.top + focalY) * scaleRatio - focalY;
 
           window.requestAnimationFrame(() => {
             target.scrollLeft = Math.max(0, newScrollLeft);
             target.scrollTop = Math.max(0, newScrollTop);
           });
         }
+      }
+      if (e.touches.length === 0) {
+        touchPanRef.current.active = false;
       }
     };
 
@@ -477,7 +598,7 @@ export default function PdfLessonViewer({
       target.removeEventListener("touchend", handleTouchEnd);
       target.removeEventListener("touchcancel", handleTouchEnd);
     };
-  }, [touchZoomEnabled, scale, mediaType]);
+  }, [touchZoomEnabled, mediaType, viewerState]);
 
   // Scroll listener in continuous mode to track currently visible page
   const handleContainerScroll = useCallback(() => {
@@ -768,7 +889,7 @@ export default function PdfLessonViewer({
           <div
             ref={imageStageRef}
             style={{
-              touchAction: touchZoomEnabled ? "pan-x pan-y" : "auto",
+              touchAction: touchZoomEnabled ? "none" : "auto",
             }}
             className={`h-full w-full overflow-auto scroll-smooth p-4 ${
               imageCanPan ? (isImagePanning ? "cursor-grabbing" : "cursor-grab") : "cursor-default"
@@ -1114,14 +1235,24 @@ export default function PdfLessonViewer({
             </aside>
           ) : null}
 
-          {/* Central PDF Stage with Smooth Scrolling and Text Layer */}
+          {/* Central PDF Stage with Smooth Scrolling, Touch Action, and Hand Tool Drag */}
           <div
             ref={containerRef}
             onScroll={handleContainerScroll}
+            onPointerDown={touchZoomEnabled ? handlePdfPointerDown : undefined}
+            onPointerMove={touchZoomEnabled ? handlePdfPointerMove : undefined}
+            onPointerUp={touchZoomEnabled ? stopPdfPointerPan : undefined}
+            onPointerCancel={touchZoomEnabled ? stopPdfPointerPan : undefined}
             style={{
-              touchAction: touchZoomEnabled ? "pan-x pan-y" : "auto",
+              touchAction: touchZoomEnabled ? "none" : "auto",
             }}
-            className="flex-1 overflow-auto p-4 sm:p-6 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]"
+            className={`flex-1 overflow-auto p-4 sm:p-6 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin] ${
+              touchZoomEnabled
+                ? isPdfPanning
+                  ? "cursor-grabbing select-none"
+                  : "cursor-grab select-none"
+                : "cursor-default"
+            }`}
             onContextMenu={(event) => event.preventDefault()}
           >
             {scrollMode === "continuous" && numPages ? (
@@ -1156,7 +1287,12 @@ export default function PdfLessonViewer({
                         renderTextLayer={true}
                         renderAnnotationLayer={true}
                       />
-                      <div className="pointer-events-none absolute inset-0 z-10" aria-hidden="true" />
+                      <div
+                        className={`absolute inset-0 z-10 ${
+                          touchZoomEnabled ? "pointer-events-auto cursor-grab" : "pointer-events-none"
+                        }`}
+                        aria-hidden="true"
+                      />
                     </div>
                   );
                 })}
@@ -1186,7 +1322,12 @@ export default function PdfLessonViewer({
                     renderTextLayer={true}
                     renderAnnotationLayer={true}
                   />
-                  <div className="pointer-events-none absolute inset-0 z-10" aria-hidden="true" />
+                  <div
+                    className={`absolute inset-0 z-10 ${
+                      touchZoomEnabled ? "pointer-events-auto cursor-grab" : "pointer-events-none"
+                    }`}
+                    aria-hidden="true"
+                  />
                 </div>
               </div>
             )}
