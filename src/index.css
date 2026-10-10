@@ -1674,3 +1674,10 @@ body.printing-receipt .center-payment-receipt-print-wrapper {
     display: none;
   }
 }
+
+/* Masquer le message clignotant "Loading page..." lors du zoom PDF */
+.react-pdf__message,
+.react-pdf__message--loading {
+  display: none !important;
+}
+

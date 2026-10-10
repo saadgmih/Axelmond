@@ -1223,6 +1223,7 @@ export default function PdfLessonViewer({
                           pageNumber={p}
                           width={112}
                           rotate={rotation}
+                          loading=""
                           renderTextLayer={false}
                           renderAnnotationLayer={false}
                         />
@@ -1279,11 +1280,12 @@ export default function PdfLessonViewer({
                       className="relative mx-auto shadow-[0_20px_50px_rgba(0,0,0,0.65)] ring-1 ring-white/10 transition-transform duration-200 rounded-sm bg-white"
                     >
                       <Page
-                        key={`page-${p}-${renderWidth}-${rotation}`}
+                        key={`page-${p}`}
                         pageNumber={p}
                         width={renderWidth}
                         rotate={rotation}
                         className="bg-white"
+                        loading=""
                         renderTextLayer={true}
                         renderAnnotationLayer={true}
                       />
@@ -1314,11 +1316,12 @@ export default function PdfLessonViewer({
               >
                 <div className="relative mx-auto w-fit shadow-[0_20px_50px_rgba(0,0,0,0.65)] ring-1 ring-white/10 transition-transform duration-200 rounded-sm bg-white">
                   <Page
-                    key={`${pageNumber}-${renderWidth}-${rotation}`}
+                    key={`single-page-${pageNumber}`}
                     pageNumber={pageNumber}
                     width={renderWidth}
                     rotate={rotation}
                     className="bg-white"
+                    loading=""
                     renderTextLayer={true}
                     renderAnnotationLayer={true}
                   />
