@@ -56,14 +56,15 @@ const PDF_PARSE_MAX_AUTOMATIC_RETRIES = 2;
 const PDF_PARSE_RETRY_BASE_DELAY_MS = 600;
 
 const viewerToolbarClass =
-  "sticky top-0 z-30 flex min-h-[68px] flex-wrap items-center justify-between gap-3 border-b border-[#202838] bg-[#0b1019] px-3 py-2.5 text-slate-200 shadow-[0_12px_32px_rgba(2,6,23,0.28)] sm:min-h-[80px] sm:flex-nowrap sm:gap-4 sm:px-4 sm:py-3";
+  "sticky top-0 z-30 flex min-h-[52px] flex-wrap items-center justify-between gap-1.5 border-b border-[#202838] bg-[#0b1019] px-2 py-1.5 text-slate-200 shadow-[0_12px_32px_rgba(2,6,23,0.28)] sm:min-h-[80px] sm:flex-nowrap sm:gap-4 sm:px-4 sm:py-3";
 const toolbarPillClass =
-  "flex h-11 shrink-0 items-center rounded-[16px] border border-[#222c3d] bg-[#121827] px-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.025),0_8px_24px_rgba(2,6,23,0.2)] sm:h-14 sm:rounded-[18px]";
+  "flex h-[34px] shrink-0 items-center rounded-[11px] border border-[#222c3d] bg-[#121827] px-0.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.025),0_8px_24px_rgba(2,6,23,0.2)] sm:h-14 sm:rounded-[18px] sm:px-1";
 const toolbarButtonClass =
-  "touch-target inline-flex h-11 min-h-11 w-11 min-w-11 shrink-0 items-center justify-center rounded-[13px] border border-[#222c3d] bg-[#121827] text-[#8175ff] shadow-[inset_0_1px_0_rgba(255,255,255,0.025),0_8px_22px_rgba(2,6,23,0.2)] transition-colors hover:border-teal-500/50 hover:bg-[#171e2e] hover:text-teal-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/80 disabled:cursor-not-allowed disabled:opacity-30 sm:h-12 sm:min-h-12 sm:w-12 sm:min-w-12 sm:rounded-[14px]";
+  "inline-flex h-[34px] min-h-[34px] w-[34px] min-w-[34px] shrink-0 items-center justify-center rounded-[9px] border border-[#222c3d] bg-[#121827] text-[#8175ff] shadow-[inset_0_1px_0_rgba(255,255,255,0.025),0_8px_22px_rgba(2,6,23,0.2)] transition-colors hover:border-teal-500/50 hover:bg-[#171e2e] hover:text-teal-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/80 disabled:cursor-not-allowed disabled:opacity-30 sm:h-12 sm:min-h-12 sm:w-12 sm:min-w-12 sm:rounded-[14px]";
 const toolbarPillButtonClass =
-  "touch-target inline-flex h-10 min-h-10 w-10 min-w-10 items-center justify-center rounded-xl text-[#8175ff] transition-colors hover:bg-white/[0.04] hover:text-teal-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/80 disabled:cursor-not-allowed disabled:opacity-25 sm:h-12 sm:min-h-12 sm:w-12 sm:min-w-12";
-const toolbarDividerClass = "h-7 w-px shrink-0 bg-[#273043] sm:h-10";
+  "inline-flex h-7 min-h-[28px] w-7 min-w-[28px] items-center justify-center rounded-[7px] text-[#8175ff] transition-colors hover:bg-white/[0.04] hover:text-teal-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/80 disabled:cursor-not-allowed disabled:opacity-25 sm:h-12 sm:min-h-12 sm:w-12 sm:min-w-12 sm:rounded-xl";
+const toolbarDividerClass = "h-5 w-px shrink-0 bg-[#273043] mx-0.5 sm:h-10 sm:mx-1";
+const toolbarIconClass = "h-4 w-4 sm:h-6 sm:w-6";
 
 function imageModeButtonClass(active: boolean) {
   return `${toolbarButtonClass} ${active ? "border-teal-500/50 bg-teal-500/10 text-teal-300" : ""}`;
@@ -525,7 +526,7 @@ export default function PdfLessonViewer({
             <span className="truncate text-xs font-semibold text-slate-200 sm:text-sm">{title}</span>
           </div>
 
-          <div className="flex w-full min-w-0 items-center justify-end gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:w-auto sm:gap-3">
+          <div className="flex w-full min-w-0 items-center justify-start sm:justify-end gap-1 sm:gap-2.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden overscroll-x-contain py-0.5 sm:w-auto">
             <button
               type="button"
               onClick={handleZoomOut}
@@ -533,7 +534,7 @@ export default function PdfLessonViewer({
               title="Zoom arrière"
               aria-label="Zoom arrière"
             >
-              <ZoomOut className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+              <ZoomOut className={toolbarIconClass} strokeWidth={1.8} />
             </button>
             <button
               type="button"
@@ -542,7 +543,7 @@ export default function PdfLessonViewer({
               title="Zoom avant"
               aria-label="Zoom avant"
             >
-              <ZoomIn className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+              <ZoomIn className={toolbarIconClass} strokeWidth={1.8} />
             </button>
 
             <span className={toolbarDividerClass} aria-hidden="true" />
@@ -555,7 +556,7 @@ export default function PdfLessonViewer({
               title="Ajuster à la largeur"
               aria-label="Ajuster à la largeur"
             >
-              <MoveHorizontal className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+              <MoveHorizontal className={toolbarIconClass} strokeWidth={1.8} />
             </button>
             <button
               type="button"
@@ -565,7 +566,7 @@ export default function PdfLessonViewer({
               title="Ajuster à l'écran"
               aria-label="Ajuster à l'écran"
             >
-              <Maximize2 className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+              <Maximize2 className={toolbarIconClass} strokeWidth={1.8} />
             </button>
             <button
               type="button"
@@ -575,7 +576,7 @@ export default function PdfLessonViewer({
               title="Réinitialiser le zoom à 100%"
               aria-label="Réinitialiser le zoom à 100%"
             >
-              <RotateCcw className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+              <RotateCcw className={toolbarIconClass} strokeWidth={1.8} />
             </button>
 
             <span className={toolbarDividerClass} aria-hidden="true" />
@@ -588,9 +589,9 @@ export default function PdfLessonViewer({
               aria-label={isExpandedView ? "Quitter le plein écran" : "Plein écran"}
             >
               {isExpandedView ? (
-                <Minimize2 className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+                <Minimize2 className={toolbarIconClass} strokeWidth={1.8} />
               ) : (
-                <Fullscreen className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+                <Fullscreen className={toolbarIconClass} strokeWidth={1.8} />
               )}
             </button>
 
@@ -601,7 +602,7 @@ export default function PdfLessonViewer({
               title="Télécharger l'image"
               aria-label="Télécharger l'image"
             >
-              <Download className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+              <Download className={toolbarIconClass} strokeWidth={1.8} />
             </a>
           </div>
         </div>
@@ -662,16 +663,16 @@ export default function PdfLessonViewer({
       onContextMenu={(event) => event.preventDefault()}
     >
       {/* Top Header Banner: Executive Performance Académique White-label */}
-      <div className="flex items-center justify-between border-b border-[#1c2433] bg-[#070b12] px-4 py-2 text-xs text-slate-400">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="flex h-5 w-5 items-center justify-center rounded-md bg-emerald-500/10 text-emerald-400">
+      <div className="flex items-center justify-between border-b border-[#1c2433] bg-[#070b12] px-3 py-1.5 sm:px-4 sm:py-2 text-xs text-slate-400">
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-emerald-500/10 text-emerald-400">
             <BookOpen className="h-3.5 w-3.5" />
           </span>
-          <span className="truncate font-semibold text-slate-200">{title}</span>
+          <span className="truncate font-semibold text-slate-200 text-[11px] sm:text-xs">{title}</span>
           <span className="hidden sm:inline-block text-[#324058]">•</span>
           <span className="hidden sm:inline-block text-[11px] text-slate-400 font-medium">Performance Académique • Support officiel</span>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-2">
           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-950/60 px-2 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-800/40">
             <ShieldCheck className="h-3 w-3" />
             Lecture sécurisée
@@ -685,7 +686,7 @@ export default function PdfLessonViewer({
         onPointerDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-center gap-2 sm:gap-3 flex-wrap sm:flex-nowrap">
+        <div className="flex items-center gap-1 sm:gap-3 flex-wrap sm:flex-nowrap min-w-0">
           {/* Sidebar Toggle for Page Thumbnails */}
           <button
             type="button"
@@ -694,7 +695,7 @@ export default function PdfLessonViewer({
             title="Miniatures des pages (volet latéral)"
             aria-label="Miniatures des pages (volet latéral)"
           >
-            <PanelLeft className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+            <PanelLeft className={toolbarIconClass} strokeWidth={1.8} />
           </button>
 
           {/* Continuous Scroll vs Single Page Toggle */}
@@ -705,7 +706,7 @@ export default function PdfLessonViewer({
             title={scrollMode === "continuous" ? "Mode défilement continu (actif)" : "Passer en défilement continu"}
             aria-label={scrollMode === "continuous" ? "Mode défilement continu (actif)" : "Passer en défilement continu"}
           >
-            <ScrollText className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+            <ScrollText className={toolbarIconClass} strokeWidth={1.8} />
           </button>
 
           {/* Page Indicator Pill with Navigation Buttons */}
@@ -719,10 +720,10 @@ export default function PdfLessonViewer({
                 title="Page précédente"
                 aria-label="Page précédente"
               >
-                <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+                <ChevronLeft className={toolbarIconClass} strokeWidth={1.8} />
               </button>
-              <span className="min-w-[4.5rem] px-1 text-center text-base font-bold tabular-nums text-slate-100 sm:min-w-[5rem] sm:px-1.5 sm:text-lg">
-                {pageNumber} <span className="mx-1 font-medium text-slate-500">/</span> {numPages}
+              <span className="min-w-[3.6rem] px-1 text-center text-xs font-bold tabular-nums text-slate-100 sm:min-w-[5rem] sm:px-1.5 sm:text-lg">
+                {pageNumber} <span className="mx-0.5 font-medium text-slate-500">/</span> {numPages}
               </span>
               <button
                 type="button"
@@ -732,20 +733,20 @@ export default function PdfLessonViewer({
                 title="Page suivante"
                 aria-label="Page suivante"
               >
-                <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+                <ChevronRight className={toolbarIconClass} strokeWidth={1.8} />
               </button>
             </div>
           ) : (
-            <div className={`${toolbarPillClass} gap-3 px-4 text-sm font-semibold text-slate-300`} role="status">
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent" />
+            <div className={`${toolbarPillClass} gap-2 px-3 text-xs sm:gap-3 sm:px-4 sm:text-sm font-semibold text-slate-300`} role="status">
+              <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent sm:h-4 sm:w-4" />
               Chargement du document…
             </div>
           )}
         </div>
 
         {/* Right Controls: Zoom, Rotate, Fullscreen, Download (if allowed) */}
-        <div className="ml-auto flex items-center gap-1.5 sm:gap-2.5">
-          <div className="flex items-center gap-1">
+        <div className="w-full sm:w-auto min-w-0 flex items-center justify-start sm:justify-end gap-1 sm:gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden overscroll-x-contain py-0.5">
+          <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
             <button
               type="button"
               onClick={handleZoomOut}
@@ -753,9 +754,9 @@ export default function PdfLessonViewer({
               title="Zoom arrière"
               aria-label="Zoom arrière"
             >
-              <ZoomOut className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+              <ZoomOut className={toolbarIconClass} strokeWidth={1.8} />
             </button>
-            <span className="min-w-[3.2rem] px-1 text-center text-xs font-bold tabular-nums text-slate-300 sm:text-sm">
+            <span className="min-w-[2.4rem] px-0.5 text-center text-[11px] font-bold tabular-nums text-slate-300 sm:min-w-[3.2rem] sm:px-1 sm:text-sm">
               {Math.round(scale * 100)}%
             </span>
             <button
@@ -765,7 +766,7 @@ export default function PdfLessonViewer({
               title="Zoom avant"
               aria-label="Zoom avant"
             >
-              <ZoomIn className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+              <ZoomIn className={toolbarIconClass} strokeWidth={1.8} />
             </button>
           </div>
 
@@ -779,7 +780,7 @@ export default function PdfLessonViewer({
             title="Ajuster à la largeur"
             aria-label="Ajuster à la largeur"
           >
-            <MoveHorizontal className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+            <MoveHorizontal className={toolbarIconClass} strokeWidth={1.8} />
           </button>
 
           {/* Fit Screen */}
@@ -790,7 +791,7 @@ export default function PdfLessonViewer({
             title="Ajuster à l'écran"
             aria-label="Ajuster à l'écran"
           >
-            <Maximize2 className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+            <Maximize2 className={toolbarIconClass} strokeWidth={1.8} />
           </button>
 
           {/* Reset Zoom */}
@@ -801,7 +802,7 @@ export default function PdfLessonViewer({
             title="Réinitialiser le zoom à 100%"
             aria-label="Réinitialiser le zoom à 100%"
           >
-            <RotateCcw className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+            <RotateCcw className={toolbarIconClass} strokeWidth={1.8} />
           </button>
 
           {/* 90 degree clockwise rotation */}
@@ -812,7 +813,7 @@ export default function PdfLessonViewer({
             title="Pivoter de 90°"
             aria-label="Pivoter de 90°"
           >
-            <RotateCw className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+            <RotateCw className={toolbarIconClass} strokeWidth={1.8} />
           </button>
 
           <span className={toolbarDividerClass} aria-hidden="true" />
@@ -826,9 +827,9 @@ export default function PdfLessonViewer({
             aria-label={isExpandedView ? "Quitter le plein écran" : "Plein écran"}
           >
             {isExpandedView ? (
-              <Minimize2 className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+              <Minimize2 className={toolbarIconClass} strokeWidth={1.8} />
             ) : (
-              <Fullscreen className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+              <Fullscreen className={toolbarIconClass} strokeWidth={1.8} />
             )}
           </button>
 
@@ -841,7 +842,7 @@ export default function PdfLessonViewer({
               title="Télécharger le PDF"
               aria-label="Télécharger le PDF"
             >
-              <Download className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+              <Download className={toolbarIconClass} strokeWidth={1.8} />
             </a>
           ) : null}
         </div>
