@@ -142,7 +142,10 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
     setErrorMsg("");
     setSuccessMsg("");
 
-    if (!email || !password || !fullName) {
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanFullName = fullName.trim();
+
+    if (!cleanEmail || !password || !cleanFullName) {
       setErrorMsg("Veuillez renseigner un nom, un email et un mot de passe.");
       return;
     }
@@ -160,15 +163,15 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
     setIsLoading(true);
     try {
       const response = await api.register({
-        email,
+        email: cleanEmail,
         password,
-        fullName,
+        fullName: cleanFullName,
         role: activeSector === "student" ? "STUDENT" : "PROFESSOR",
         filiere: activeSector === "student" ? filiere.trim() || undefined : undefined,
         professorInviteCode: activeSector === "teacher" ? professorInviteCode.trim() : undefined,
       });
       setErrorMsg("");
-      setVerificationEmail(response.email || email.trim().toLowerCase());
+      setVerificationEmail(response.email || cleanEmail);
       setVerificationCode("");
       setSuccessMsg(response.message || "Code envoyé");
       setIsLoading(false);
@@ -183,15 +186,18 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
     setErrorMsg("");
     setSuccessMsg("");
 
-    if (!verificationEmail || verificationCode.trim().length < 6) {
+    const cleanEmail = (verificationEmail || email).trim().toLowerCase();
+    const cleanCode = verificationCode.trim();
+
+    if (!cleanEmail || cleanCode.length < 6) {
       setErrorMsg("Veuillez saisir le code à 6 chiffres reçu par e-mail.");
       return;
     }
 
     setIsLoading(true);
     try {
-      const user = await api.verifyEmail(verificationEmail, verificationCode);
-      if (handleMfaChallenge(user, verificationEmail)) return;
+      const user = await api.verifyEmail(cleanEmail, cleanCode);
+      if (handleMfaChallenge(user, cleanEmail)) return;
       setSessionToken(user.token, user.csrfToken);
       setSuccessMsg(user.message || "E-mail vérifié avec succès");
       setTimeout(() => onLoginSuccess(user), 800);
@@ -206,7 +212,8 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
     setSuccessMsg("");
     setIsLoading(true);
     try {
-      const response = await api.resendVerificationCode(verificationEmail || email);
+      const cleanEmail = (verificationEmail || email).trim().toLowerCase();
+      const response = await api.resendVerificationCode(cleanEmail);
       setSuccessMsg(response.message || "Code envoyé");
       setVerificationCode("");
       setIsLoading(false);
@@ -221,14 +228,15 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
     setErrorMsg("");
     setSuccessMsg("");
 
-    if (!email) {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail) {
       setErrorMsg("Veuillez saisir votre adresse e-mail.");
       return;
     }
 
     setIsLoading(true);
     try {
-      const response = await api.forgotPassword(email);
+      const response = await api.forgotPassword(cleanEmail);
       setSuccessMsg(response.message || "Code envoyé");
       setVerificationCode("");
       setAuthMode("reset");
@@ -244,7 +252,10 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
     setErrorMsg("");
     setSuccessMsg("");
 
-    if (!email || !verificationCode || !password) {
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanCode = verificationCode.trim();
+
+    if (!cleanEmail || !cleanCode || !password) {
       setErrorMsg("Veuillez remplir tous les champs.");
       return;
     }
@@ -256,7 +267,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
 
     setIsLoading(true);
     try {
-      const response = await api.resetPassword(email, verificationCode, password);
+      const response = await api.resetPassword(cleanEmail, cleanCode, password);
       setSuccessMsg(response.message || "Mot de passe réinitialisé.");
       setPassword("");
       setVerificationCode("");

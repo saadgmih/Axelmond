@@ -23,6 +23,7 @@ export type ApiResponseBody =
 export interface NormalizedApiError {
   message: string;
   code?: string;
+  details?: unknown[];
   isTransient: boolean;
   responseKind: ApiResponseBody["kind"];
   requestId?: string;
@@ -117,6 +118,7 @@ export function isDefinitiveRefreshFailure(response: Response, body: ApiResponse
 export function normalizeApiError(response: Response, body: ApiResponseBody): NormalizedApiError {
   const payload = body.kind === "json" && isRecord(body.payload) ? body.payload : null;
   const code = typeof payload?.code === "string" ? payload.code : undefined;
+  const details = Array.isArray(payload?.details) ? (payload.details as unknown[]) : undefined;
   const cdnLike = isCdnLikeResponse(response, body.kind);
   const isTransient = TEMPORARY_HTTP_STATUSES.has(response.status) || cdnLike;
   const applicationMessage = sanitizeApplicationMessage(payload?.error) || sanitizeApplicationMessage(payload?.message);
@@ -130,6 +132,7 @@ export function normalizeApiError(response: Response, body: ApiResponseBody): No
   return {
     message,
     code,
+    details,
     isTransient,
     responseKind: body.kind,
     requestId: response.headers.get("x-hcdn-request-id") || response.headers.get("cf-ray") || undefined,

@@ -266,8 +266,9 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
                             type="button"
                             onClick={() => handleDeleteSection(section)}
                             className={curriculumUi.dangerBtn}
+                            title="Supprimer ce chapitre et tous ses médias associés"
                           >
-                            Supprimer
+                            Supprimer chapitre
                           </button>
                         </div>
                         <button
@@ -674,8 +675,9 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
                                 type="button"
                                 onClick={() => handleDeleteLessonContent(content)}
                                 className={curriculumUi.dangerBtn}
+                                title="Supprimer uniquement ce média"
                               >
-                                Supprimer
+                                Supprimer média
                               </button>
                             </div>
                           </div>

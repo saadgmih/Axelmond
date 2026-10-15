@@ -32,7 +32,7 @@ export { utapi };
 const uploadInput = z.object({
   courseId: z.number().int().positive(),
   sectionId: z.string().trim().min(1).optional().nullable(),
-  title: z.string().trim().min(2).max(160),
+  title: z.string().trim().min(1).max(160),
   contentType: z.enum(["VIDEO", "PDF", "IMAGE"]),
   published: z.boolean().default(false),
 });
@@ -40,7 +40,7 @@ const uploadInput = z.object({
 const liveReplayInput = z.object({
   courseId: z.number().int().positive(),
   liveSessionId: z.string().min(1),
-  title: z.string().min(2).max(160).optional(),
+  title: z.string().min(1).max(160).optional(),
 });
 
 const courseImageInput = z.object({

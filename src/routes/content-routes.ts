@@ -12,6 +12,19 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
     await api.syncPublishedLessonModules(courseId);
   };
 
+  const deleteOrphanCloudFiles = async (fileKeys: string[]) => {
+    if (fileKeys.length === 0) return;
+    const remaining = await api.prisma.attachment.findMany({
+      where: { fileKey: { in: fileKeys } },
+      select: { fileKey: true },
+    });
+    const remainingSet = new Set(remaining.map((a: any) => a.fileKey));
+    const orphans = fileKeys.filter((k) => !remainingSet.has(k));
+    if (orphans.length > 0) {
+      await api.deleteCloudFiles(orphans);
+    }
+  };
+
   app.post(
     "/api/courses/:courseId/chapters",
     requireAuth,
@@ -328,10 +341,12 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
     });
 
     if (fileKeys.length > 0) {
-      await api.deleteCloudFiles(fileKeys);
+      await deleteOrphanCloudFiles(fileKeys);
     }
 
     api.logDb("INFO", "Chapter deleted", { chapterId: chapter.id, courseId: chapter.courseId });
+
+    await refreshStudentCourseModules(chapter.courseId);
 
     res.json({ ok: true, deletedId: chapter.id });
   });
@@ -589,10 +604,12 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
     });
 
     if (fileKeys.length > 0) {
-      await api.deleteCloudFiles(fileKeys);
+      await deleteOrphanCloudFiles(fileKeys);
     }
 
     api.logDb("INFO", "Content section deleted", { sectionId: section.id, descendants: result.sectionCount - 1 });
+
+    await refreshStudentCourseModules(section.courseId);
 
     res.json({ ok: true, deletedId: section.id });
   });
@@ -884,7 +901,7 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
     });
 
     if (fileKeys.length > 0) {
-      await api.deleteCloudFiles(fileKeys);
+      await deleteOrphanCloudFiles(fileKeys);
     }
 
     api.logDb("INFO", "Lesson content deleted", { contentId: content.id });

@@ -412,8 +412,18 @@ export function useTeacherCurriculum({
     e.preventDefault();
     if (isUploadingLessonAsset) return;
     const token = await getFreshSessionToken();
-    if (!uploadFile || !uploadTitle.trim()) {
-      setUploadStatusMsg("Sélectionnez un titre et un fichier.");
+    if (!uploadTitle.trim()) {
+      setUploadStatusMsg("Veuillez renseigner un titre pour le média.");
+      setUploadStatusKind("error");
+      return;
+    }
+    if (uploadTitle.trim().length > 160) {
+      setUploadStatusMsg("Le titre ne doit pas dépasser 160 caractères.");
+      setUploadStatusKind("error");
+      return;
+    }
+    if (!uploadFile) {
+      setUploadStatusMsg("Veuillez sélectionner un fichier à téléverser.");
       setUploadStatusKind("error");
       return;
     }
@@ -833,7 +843,12 @@ export function useTeacherCurriculum({
 
   const handleDeleteSection = async (section: ContentSection) => {
     if (section.parentId) return;
-    if (!window.confirm(`Supprimer "${section.title}" et tout son contenu ?`)) return;
+    const mediaCount = (section.contents || []).length;
+    const confirmMessage =
+      mediaCount > 0
+        ? `⚠️ ATTENTION : Le chapitre « ${section.title} » contient ${mediaCount} ressource${mediaCount > 1 ? "s" : ""} (vidéos / documents).\n\nSi vous supprimez ce chapitre, TOUTES les ${mediaCount} ressources associées seront DÉFINITIVEMENT supprimées !\n\nPour supprimer uniquement une seule vidéo, cliquez sur « Médias » du chapitre puis supprimez la vidéo dans la colonne de droite « Médias du chapitre ».\n\nConfirmez-vous la suppression COMPLÈTE du chapitre et de ses ${mediaCount} média(s) ?`
+        : `Supprimer le chapitre « ${section.title} » ?`;
+    if (!window.confirm(confirmMessage)) return;
     try {
       if (section.chapterId) {
         await api.deleteChapter(section.chapterId);
@@ -859,11 +874,11 @@ export function useTeacherCurriculum({
   };
 
   const handleDeleteLessonContent = async (content: LessonContent) => {
-    if (!window.confirm(`Supprimer le média "${content.title}" ?`)) return;
+    if (!window.confirm(`Supprimer le média « ${content.title} » ?`)) return;
     try {
       await api.deleteLessonContent(content.id);
       await refreshCourseContent(content.courseId);
-      showCurriculumSuccess("Média supprimé.");
+      showCurriculumSuccess(`Média « ${content.title} » supprimé.`);
     } catch (err: any) {
       showCurriculumError(getClientErrorMessage(err, "Suppression du média impossible."));
     }
@@ -914,7 +929,8 @@ export function useTeacherCurriculum({
   };
 
   const allChapterContents = managedSections.flatMap((section) => section.contents || []);
-  const activeChapterForContent = chapterSections.find((section) => section.id === uploadSectionId) || chapterSections[0] || null;
+  const activeChapterForContent =
+    chapterSections.find((section) => section.id === uploadSectionId) || chapterSections[0] || null;
   const selectedManagedContents = activeChapterForContent?.contents?.length
     ? activeChapterForContent.contents
     : [

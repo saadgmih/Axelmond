@@ -61,7 +61,7 @@ const viewerToolbarClass =
 const toolbarPillClass =
   "flex h-[34px] shrink-0 items-center rounded-[11px] border border-[#222c3d] bg-[#121827] px-0.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.025),0_8px_24px_rgba(2,6,23,0.2)] sm:h-14 sm:rounded-[18px] sm:px-1";
 const toolbarButtonClass =
-  "inline-flex h-[34px] min-h-[34px] w-[34px] min-w-[34px] shrink-0 items-center justify-center rounded-[9px] border border-[#222c3d] bg-[#121827] text-[#8175ff] shadow-[inset_0_1px_0_rgba(255,255,255,0.025),0_8px_22px_rgba(2,6,23,0.2)] transition-colors hover:border-teal-500/50 hover:bg-[#171e2e] hover:text-teal-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/80 disabled:cursor-not-allowed disabled:opacity-30 sm:h-12 sm:min-h-12 sm:w-12 sm:min-w-12 sm:rounded-[14px]";
+  "touch-target inline-flex h-[34px] min-h-[34px] w-[34px] min-w-[34px] shrink-0 items-center justify-center rounded-[9px] border border-[#222c3d] bg-[#121827] text-[#8175ff] shadow-[inset_0_1px_0_rgba(255,255,255,0.025),0_8px_22px_rgba(2,6,23,0.2)] transition-colors hover:border-teal-500/50 hover:bg-[#171e2e] hover:text-teal-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/80 disabled:cursor-not-allowed disabled:opacity-30 sm:h-12 sm:min-h-12 sm:w-12 sm:min-w-12 sm:rounded-[14px]";
 const toolbarPillButtonClass =
   "inline-flex h-7 min-h-[28px] w-7 min-w-[28px] items-center justify-center rounded-[7px] text-[#8175ff] transition-colors hover:bg-white/[0.04] hover:text-teal-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/80 disabled:cursor-not-allowed disabled:opacity-25 sm:h-12 sm:min-h-12 sm:w-12 sm:min-w-12 sm:rounded-xl";
 const toolbarDividerClass = "h-5 w-px shrink-0 bg-[#273043] mx-0.5 sm:h-10 sm:mx-1";
@@ -1290,8 +1290,8 @@ export default function PdfLessonViewer({
                         renderAnnotationLayer={true}
                       />
                       <div
-                        className={`absolute inset-0 z-10 ${
-                          touchZoomEnabled ? "pointer-events-auto cursor-grab" : "pointer-events-none"
+                        className={`pointer-events-none absolute inset-0 z-10 ${
+                          touchZoomEnabled ? "!pointer-events-auto cursor-grab" : ""
                         }`}
                         aria-hidden="true"
                       />
@@ -1326,8 +1326,8 @@ export default function PdfLessonViewer({
                     renderAnnotationLayer={true}
                   />
                   <div
-                    className={`absolute inset-0 z-10 ${
-                      touchZoomEnabled ? "pointer-events-auto cursor-grab" : "pointer-events-none"
+                    className={`pointer-events-none absolute inset-0 z-10 ${
+                      touchZoomEnabled ? "!pointer-events-auto cursor-grab" : ""
                     }`}
                     aria-hidden="true"
                   />

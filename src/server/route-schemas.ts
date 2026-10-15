@@ -10,8 +10,9 @@ export function validateBody(schema: z.ZodType<any>) {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const result = await schema.safeParseAsync(req.body);
     if (!result.success) {
+      const firstIssue = result.error.issues[0]?.message;
       res.status(400).json({
-        error: "Données d'entrée invalides",
+        error: firstIssue || "Données d'entrée invalides",
         details: result.error.issues.map((e) => ({ field: e.path.join("."), message: e.message })),
         code: "VALIDATION_ERROR",
       });
@@ -23,13 +24,13 @@ export function validateBody(schema: z.ZodType<any>) {
 }
 
 export const registerSchema = z.object({
-  email: z.string().email("Adresse email invalide").trim().toLowerCase().max(255),
+  email: z.string().trim().toLowerCase().email("Adresse email invalide").max(255),
   password: strongPasswordField,
-  fullName: z.string().min(2, "Le nom complet doit contenir au moins 2 caractères").max(100).trim(),
+  fullName: z.string().trim().min(2, "Le nom complet doit contenir au moins 2 caractères").max(100),
   role: z.enum(["STUDENT", "PROFESSOR", "RESEARCHER", "ADMIN"]),
-  levelOrTitle: z.string().max(100).trim().optional().nullable(),
-  filiere: z.string().max(100).trim().optional().nullable(),
-  professorInviteCode: z.string().max(50).trim().optional().nullable(),
+  levelOrTitle: z.string().trim().max(100).optional().nullable(),
+  filiere: z.string().trim().max(100).optional().nullable(),
+  professorInviteCode: z.string().trim().max(50).optional().nullable(),
 });
 
 const optionalProfileText = (maxLength: number) => z.string().trim().max(maxLength).optional().nullable();
@@ -59,7 +60,7 @@ export const userProfileDetailsSchema = z.object({
 });
 
 export const loginSchema = z.object({
-  email: z.string().email("Adresse email invalide").trim().toLowerCase(),
+  email: z.string().trim().toLowerCase().email("Adresse email invalide"),
   password: z.string().min(1, "Mot de passe requis"),
   role: z.enum(["STUDENT", "PROFESSOR", "RESEARCHER", "ADMIN"]),
 });
@@ -70,20 +71,20 @@ export const onboardingUpdateSchema = z.object({
 });
 
 export const verifyEmailSchema = z.object({
-  email: z.string().email("Adresse email invalide").trim().toLowerCase(),
+  email: z.string().trim().toLowerCase().email("Adresse email invalide"),
   code: z.string().length(6, "Le code doit contenir 6 chiffres").regex(/^\d+$/, "Le code doit être numérique"),
 });
 
 export const resendEmailSchema = z.object({
-  email: z.string().email("Adresse email invalide").trim().toLowerCase(),
+  email: z.string().trim().toLowerCase().email("Adresse email invalide"),
 });
 
 export const forgotPasswordSchema = z.object({
-  email: z.string().email("Adresse email invalide").trim().toLowerCase(),
+  email: z.string().trim().toLowerCase().email("Adresse email invalide"),
 });
 
 export const resetPasswordSchema = z.object({
-  email: z.string().email("Adresse email invalide").trim().toLowerCase(),
+  email: z.string().trim().toLowerCase().email("Adresse email invalide"),
   code: z.string().length(6, "Le code doit contenir 6 chiffres").regex(/^\d+$/, "Le code doit être numérique"),
   newPassword: strongPasswordField,
 });
@@ -256,11 +257,11 @@ export const academicDisciplinePatchSchema = academicDisciplineSchema
   .partial();
 
 export const contactSchema = z.object({
-  name: z.string().min(2, "Le nom doit contenir au moins 2 caractères").max(100).trim(),
-  email: z.string().email("Adresse email invalide").trim().toLowerCase(),
-  subject: z.string().min(3, "Le sujet doit contenir au moins 3 caractères").max(200).trim(),
-  category: z.string().min(2, "La catégorie est requise").max(100).trim(),
-  message: z.string().min(10, "Le message doit contenir au moins 10 caractères").max(5000).trim(),
+  name: z.string().trim().min(2, "Le nom doit contenir au moins 2 caractères").max(100),
+  email: z.string().trim().toLowerCase().email("Adresse email invalide"),
+  subject: z.string().trim().min(3, "Le sujet doit contenir au moins 3 caractères").max(200),
+  category: z.string().trim().min(2, "La catégorie est requise").max(100),
+  message: z.string().trim().min(10, "Le message doit contenir au moins 10 caractères").max(5000),
 });
 
 export const supportTicketSchema = z.object({

@@ -15,7 +15,7 @@ import { getBrandingConfig, shouldQueueVideoBranding, updateBrandingConfig } fro
 const confirmLessonAssetSchema = z.object({
   customId: z.string().trim().min(1).max(160),
   sectionId: z.string().trim().min(1).max(160).nullable(),
-  title: z.string().trim().min(2).max(160),
+  title: z.string().trim().min(1).max(160),
   contentType: z.enum(["VIDEO", "PDF", "IMAGE"]),
   published: z.boolean(),
   fileName: z.string().trim().min(1).max(512),
@@ -32,7 +32,11 @@ const reuseLessonAssetSchema = z.object({
   url: z.string().trim().min(1),
   fileName: z.string().trim().min(1).max(512),
   mimeType: z.string().trim().min(1).max(160).nullable().optional(),
-  size: z.number().int().positive().max(5 * 1024 * 1024 * 1024),
+  size: z
+    .number()
+    .int()
+    .positive()
+    .max(5 * 1024 * 1024 * 1024),
   contentType: z.enum(["VIDEO", "PDF", "IMAGE"]),
   title: z.string().trim().min(1).max(160),
   sectionId: z.string().trim().min(1).max(160).nullable().optional(),
@@ -356,17 +360,12 @@ export function registerLessonAssetRoutes(app: Express, ctx: RouteContext): void
     const whereClause: any = {
       content: {
         type:
-          typeFilter && ["VIDEO", "PDF", "IMAGE"].includes(typeFilter)
-            ? typeFilter
-            : { in: ["VIDEO", "PDF", "IMAGE"] },
+          typeFilter && ["VIDEO", "PDF", "IMAGE"].includes(typeFilter) ? typeFilter : { in: ["VIDEO", "PDF", "IMAGE"] },
       },
     };
 
     if (accessibleCourseIds !== null) {
-      whereClause.OR = [
-        { createdById: authUser.id },
-        { courseId: { in: accessibleCourseIds } },
-      ];
+      whereClause.OR = [{ createdById: authUser.id }, { courseId: { in: accessibleCourseIds } }];
     }
 
     const attachments = await api.prisma.attachment.findMany({
@@ -554,6 +553,11 @@ export function registerLessonAssetRoutes(app: Express, ctx: RouteContext): void
       const sourceAttachment = sourceContent.attachments[0];
       if (!sourceAttachment) {
         res.status(400).json({ error: "Ce contenu ne possède aucun fichier média attaché" });
+        return;
+      }
+
+      if (sourceContent.type === "TEXT") {
+        res.status(400).json({ error: "Les contenus textuels ne peuvent pas être copiés comme média" });
         return;
       }
 

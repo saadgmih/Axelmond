@@ -540,6 +540,7 @@ export const api = {
     sectionId: string,
     data: { title?: string; description?: string | null; published?: boolean },
   ) => request<any>("PATCH", `/api/content-sections/${sectionId}`, data),
+  deleteContentSection: (sectionId: string) => request<any>("DELETE", `/api/content-sections/${sectionId}`),
   putLessonContent: (contentId: string, data: { title?: string; body?: string | null; published?: boolean; order?: number }) =>
     request<any>("PUT", `/api/lesson-contents/${contentId}`, data),
   updateLessonContent: (contentId: string, data: { title?: string; body?: string | null; published?: boolean; order?: number }) =>

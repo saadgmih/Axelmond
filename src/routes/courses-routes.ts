@@ -893,7 +893,15 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
     });
 
     if (fileKeys.length > 0) {
-      await api.deleteCloudFiles(fileKeys);
+      const remaining = await api.prisma.attachment.findMany({
+        where: { fileKey: { in: fileKeys } },
+        select: { fileKey: true },
+      });
+      const remainingSet = new Set(remaining.map((a: any) => a.fileKey));
+      const orphans = fileKeys.filter((k: string) => !remainingSet.has(k));
+      if (orphans.length > 0) {
+        await api.deleteCloudFiles(orphans);
+      }
     }
 
     await api.logAudit(
@@ -947,6 +955,4 @@ export function registerCoursesRoutes(app: Express, ctx: RouteContext): void {
       res.status(500).json({ error: "Erreur lors de l'inscription gratuite" });
     }
   });
-
-  // PUT /api/content-sections/:id
 }

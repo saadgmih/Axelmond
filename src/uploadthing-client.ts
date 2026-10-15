@@ -87,6 +87,9 @@ export function getUploadErrorMessage(err: unknown): string {
   if (rawMessage.includes("Invalid file type") || rawMessage.includes("Type de fichier non autorisé")) {
     return "Type de fichier non autorisé pour la messagerie.";
   }
+  if (rawMessage.includes("Invalid input") || rawMessage.includes("invalid_type") || rawMessage.includes("too_small")) {
+    return "Données de téléversement invalides. Vérifiez le titre et les informations du fichier.";
+  }
   return sanitizeClientErrorMessage(rawMessage, "Upload impossible. Vérifiez le fichier et réessayez.");
 }
 
