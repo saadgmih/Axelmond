@@ -1675,8 +1675,7 @@ body.printing-receipt .center-payment-receipt-print-wrapper {
   }
 }
 
-/* Masquer le message clignotant "Loading page..." lors du zoom PDF */
-.react-pdf__message,
+/* Masquer le message texte clignotant standard "Loading page..." lors des re-rendus PDF */
 .react-pdf__message--loading {
   display: none !important;
 }

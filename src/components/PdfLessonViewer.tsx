@@ -28,10 +28,13 @@ import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
-// Bundle the PDF.js worker with the application using standard relative path
-// so Vite compiles it correctly as a separate asset.
-const BUNDLED_PDF_WORKER_SRC = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
-pdfjs.GlobalWorkerOptions.workerSrc = `${BUNDLED_PDF_WORKER_SRC}?v=5.4.296-v2`;
+// Bundle the legacy PDF.js worker so older Safari / WebKit and iOS devices
+// can run the worker without crashing on missing ES2023+ features.
+const BUNDLED_PDF_WORKER_SRC = new URL(
+  "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
+  import.meta.url
+).toString();
+pdfjs.GlobalWorkerOptions.workerSrc = `${BUNDLED_PDF_WORKER_SRC}?v=5.4.296-legacy-v1`;
 
 interface PdfLessonViewerProps {
   contentId?: string;
@@ -109,7 +112,12 @@ export default function PdfLessonViewer({
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [rotation, setRotation] = useState(0);
-  const [scrollMode, setScrollMode] = useState<"continuous" | "single">("continuous");
+  const [scrollMode, setScrollMode] = useState<"continuous" | "single">(() => {
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      return "single";
+    }
+    return "continuous";
+  });
   const [showSidebar, setShowSidebar] = useState(false);
 
   const [scale, setScale] = useState(1.0);
@@ -154,7 +162,14 @@ export default function PdfLessonViewer({
     scrollTop: 0,
   });
 
-  const [containerDimensions, setContainerDimensions] = useState({ width: 800, height: 600 });
+  const [containerDimensions, setContainerDimensions] = useState(() => {
+    if (typeof window !== "undefined") {
+      const w = Math.min(Math.max(window.innerWidth - 32, 280), 800);
+      const h = Math.min(Math.max(window.innerHeight * 0.75, 300), 700);
+      return { width: w, height: h };
+    }
+    return { width: 800, height: 600 };
+  });
 
   const mediaViewportWidth = Math.max(containerDimensions.width - 32, 280);
   const mediaViewportHeight = Math.max(containerDimensions.height - 32, 240);
@@ -174,10 +189,11 @@ export default function PdfLessonViewer({
   useEffect(() => {
     if (!containerRef.current) return;
     const observer = new ResizeObserver((entries) => {
-      if (entries[0]) {
+      const entry = entries[0];
+      if (entry && entry.contentRect.width > 0 && entry.contentRect.height > 0) {
         setContainerDimensions({
-          width: entries[0].contentRect.width,
-          height: entries[0].contentRect.height,
+          width: Math.round(entry.contentRect.width),
+          height: Math.round(entry.contentRect.height),
         });
       }
     });
@@ -942,6 +958,10 @@ export default function PdfLessonViewer({
 
   const baseReadingWidth = Math.max(containerDimensions.width - 32, 280);
   const renderWidth = Math.round(baseReadingWidth * scale);
+  const targetDevicePixelRatio = Math.min(
+    typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1,
+    1.5
+  );
   const resolvedDownloadFileName = downloadFileName || `${title}.pdf`;
 
   return (
@@ -1225,9 +1245,11 @@ export default function PdfLessonViewer({
                           pageNumber={p}
                           width={112}
                           rotate={rotation}
+                          devicePixelRatio={1}
                           loading=""
                           renderTextLayer={false}
                           renderAnnotationLayer={false}
+                          onRenderError={(err) => console.warn(`Thumb error p${p}:`, err)}
                         />
                       </div>
                       <span className="text-[11px]">Page {p}</span>
@@ -1286,10 +1308,40 @@ export default function PdfLessonViewer({
                         pageNumber={p}
                         width={renderWidth}
                         rotate={rotation}
+                        devicePixelRatio={targetDevicePixelRatio}
                         className="bg-white"
-                        loading=""
+                        loading={
+                          <div
+                            style={{
+                              width: renderWidth,
+                              minHeight: Math.min(Math.round(renderWidth * 1.35), 450),
+                            }}
+                            className="flex flex-col items-center justify-center bg-slate-900/60 rounded border border-white/5 p-6 text-center"
+                          >
+                            <div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent mb-2" />
+                            <span className="text-[11px] text-slate-400 font-medium">Chargement page {p}…</span>
+                          </div>
+                        }
+                        error={
+                          <div
+                            style={{ width: renderWidth, minHeight: 160 }}
+                            className="flex flex-col items-center justify-center bg-slate-900/90 border border-amber-500/30 rounded p-4 text-center text-xs text-amber-300"
+                          >
+                            <span>Impossible de charger la page {p}</span>
+                            <button
+                              type="button"
+                              onClick={() => setRetryKey((k) => k + 1)}
+                              className="mt-2 px-3 py-1 bg-emerald-700 hover:bg-emerald-600 text-white rounded text-xs font-semibold"
+                            >
+                              Réessayer
+                            </button>
+                          </div>
+                        }
                         renderTextLayer={true}
                         renderAnnotationLayer={true}
+                        onRenderError={(err) => console.error(`[PdfViewer] Render error p${p}:`, err)}
+                        onRenderTextLayerError={(err) => console.warn(`[PdfViewer] TextLayer error p${p}:`, err)}
+                        onRenderAnnotationLayerError={(err) => console.warn(`[PdfViewer] AnnotationLayer error p${p}:`, err)}
                       />
                       <div
                         className={`pointer-events-none absolute inset-0 z-10 ${
@@ -1322,10 +1374,40 @@ export default function PdfLessonViewer({
                     pageNumber={pageNumber}
                     width={renderWidth}
                     rotate={rotation}
+                    devicePixelRatio={targetDevicePixelRatio}
                     className="bg-white"
-                    loading=""
+                    loading={
+                      <div
+                        style={{
+                          width: renderWidth,
+                          minHeight: Math.min(Math.round(renderWidth * 1.35), 450),
+                        }}
+                        className="flex flex-col items-center justify-center bg-slate-900/60 rounded border border-white/5 p-6 text-center"
+                      >
+                        <div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent mb-2" />
+                        <span className="text-[11px] text-slate-400 font-medium">Chargement page {pageNumber}…</span>
+                      </div>
+                    }
+                    error={
+                      <div
+                        style={{ width: renderWidth, minHeight: 160 }}
+                        className="flex flex-col items-center justify-center bg-slate-900/90 border border-amber-500/30 rounded p-4 text-center text-xs text-amber-300"
+                      >
+                        <span>Impossible de charger la page {pageNumber}</span>
+                        <button
+                          type="button"
+                          onClick={() => setRetryKey((k) => k + 1)}
+                          className="mt-2 px-3 py-1 bg-emerald-700 hover:bg-emerald-600 text-white rounded text-xs font-semibold"
+                        >
+                          Réessayer
+                        </button>
+                      </div>
+                    }
                     renderTextLayer={true}
                     renderAnnotationLayer={true}
+                    onRenderError={(err) => console.error(`[PdfViewer] Render error p${pageNumber}:`, err)}
+                    onRenderTextLayerError={(err) => console.warn(`[PdfViewer] TextLayer error p${pageNumber}:`, err)}
+                    onRenderAnnotationLayerError={(err) => console.warn(`[PdfViewer] AnnotationLayer error p${pageNumber}:`, err)}
                   />
                   <div
                     className={`pointer-events-none absolute inset-0 z-10 ${

@@ -39,9 +39,16 @@ export default defineConfig(() => {
       },
     ],
     resolve: {
-      alias: {
-        "@": path.resolve(__dirname, "."),
-      },
+      alias: [
+        {
+          find: /^pdfjs-dist$/,
+          replacement: path.resolve(__dirname, "node_modules/pdfjs-dist/legacy/build/pdf.mjs"),
+        },
+        {
+          find: "@",
+          replacement: path.resolve(__dirname, "."),
+        },
+      ],
     },
     build: {
       manifest: true,

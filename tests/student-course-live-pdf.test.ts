@@ -28,7 +28,7 @@ rulesTest("student-course-live-pdf", () => {
   assert.match(pdfViewerSource, /TEMPORARY_ERROR/);
   assert.match(pdfViewerSource, /Réessayer/);
   assert.doesNotMatch(pdfViewerSource, /numPages \|\| "\?"/);
-  assert.match(pdfViewerSource, /new URL\(\s*"pdfjs-dist\/build\/pdf\.worker\.min\.mjs",\s*import\.meta\.url/);
+  assert.match(pdfViewerSource, /new URL\(\s*"pdfjs-dist\/(?:legacy\/)?build\/pdf\.worker\.min\.mjs",\s*import\.meta\.url/);
   assert.doesNotMatch(pdfViewerSource, /unpkg\.com\/pdfjs-dist/);
   assert.equal(applicationPdfJsVersion, reactPdfJsVersion, "React-PDF and its PDF.js worker must use one version");
   assert.equal(packageLock.packages["node_modules/react-pdf/node_modules/pdfjs-dist"], undefined);
