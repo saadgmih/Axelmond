@@ -22,6 +22,7 @@ import {
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
+import "../polyfills";
 import { loadProtectedResource, ProtectedResourceError } from "../protected-resource";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
@@ -811,9 +812,7 @@ export default function PdfLessonViewer({
                   : "Zoom tactile désactivé (cliquez pour zoomer dans l'image avec les doigts plutôt que sur le site)"
               }
               aria-label={
-                touchZoomEnabled
-                  ? "Désactiver le zoom tactile de l'image"
-                  : "Activer le zoom tactile de l'image"
+                touchZoomEnabled ? "Désactiver le zoom tactile de l'image" : "Activer le zoom tactile de l'image"
               }
               aria-pressed={touchZoomEnabled}
             >
@@ -967,7 +966,9 @@ export default function PdfLessonViewer({
           </span>
           <span className="truncate font-semibold text-slate-200 text-[11px] sm:text-xs">{title}</span>
           <span className="hidden sm:inline-block text-[#324058]">•</span>
-          <span className="hidden sm:inline-block text-[11px] text-slate-400 font-medium">Performance Académique • Support officiel</span>
+          <span className="hidden sm:inline-block text-[11px] text-slate-400 font-medium">
+            Performance Académique • Support officiel
+          </span>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-2">
           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-950/60 px-2 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-800/40">
@@ -1001,7 +1002,9 @@ export default function PdfLessonViewer({
             onClick={() => setScrollMode((prev) => (prev === "continuous" ? "single" : "continuous"))}
             className={`${toolbarButtonClass} ${scrollMode === "continuous" ? "border-emerald-500/60 bg-emerald-500/10 text-emerald-400" : ""}`}
             title={scrollMode === "continuous" ? "Mode défilement continu (actif)" : "Passer en défilement continu"}
-            aria-label={scrollMode === "continuous" ? "Mode défilement continu (actif)" : "Passer en défilement continu"}
+            aria-label={
+              scrollMode === "continuous" ? "Mode défilement continu (actif)" : "Passer en défilement continu"
+            }
           >
             <ScrollText className={toolbarIconClass} strokeWidth={1.8} />
           </button>
@@ -1034,7 +1037,10 @@ export default function PdfLessonViewer({
               </button>
             </div>
           ) : (
-            <div className={`${toolbarPillClass} gap-2 px-3 text-xs sm:gap-3 sm:px-4 sm:text-sm font-semibold text-slate-300`} role="status">
+            <div
+              className={`${toolbarPillClass} gap-2 px-3 text-xs sm:gap-3 sm:px-4 sm:text-sm font-semibold text-slate-300`}
+              role="status"
+            >
               <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent sm:h-4 sm:w-4" />
               Chargement du document…
             </div>
@@ -1081,11 +1087,7 @@ export default function PdfLessonViewer({
                 ? "Zoom tactile PDF activé (pincez l'écran pour zoomer directement dans le document)"
                 : "Zoom tactile PDF désactivé (cliquez pour zoomer dans le document plutôt que sur le site)"
             }
-            aria-label={
-              touchZoomEnabled
-                ? "Désactiver le zoom tactile PDF"
-                : "Activer le zoom tactile PDF"
-            }
+            aria-label={touchZoomEnabled ? "Désactiver le zoom tactile PDF" : "Activer le zoom tactile PDF"}
             aria-pressed={touchZoomEnabled}
           >
             <Hand className={toolbarIconClass} strokeWidth={1.8} />
