@@ -900,10 +900,29 @@ body {
   container-type: inline-size;
 }
 
-.course-video-player:fullscreen,
-.course-video-player:-webkit-full-screen,
-.course-video-player:-moz-full-screen,
-.course-video-player:-ms-fullscreen {
+.course-video-player:fullscreen {
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  aspect-ratio: auto !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background-color: #020617 !important;
+}
+
+.course-video-player:-webkit-full-screen {
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  aspect-ratio: auto !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background-color: #020617 !important;
+}
+
+.course-video-player[data-fullscreen="true"] {
   width: 100vw !important;
   height: 100vh !important;
   max-width: none !important;

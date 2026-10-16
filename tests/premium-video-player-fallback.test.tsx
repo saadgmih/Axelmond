@@ -87,4 +87,36 @@ describe("PremiumVideoPlayer resilient source fallback", () => {
     );
     expect(container.querySelector("video")).toHaveClass("opacity-100");
   });
+
+  it("keeps the play button accessible before playback even when buffering or stalling", async () => {
+    mediaSourceMock.get.mockResolvedValue({
+      sourceUrl: "https://app-id.ufs.sh/f/stall-test-video",
+      proxySourceUrl: "/api/lesson-contents/content-1/media",
+      mimeType: "video/mp4",
+    });
+
+    const { container } = render(
+      <PremiumVideoPlayer
+        contentId="content-1"
+        src="https://app-id.ufs.sh/f/stall-test-video"
+        title="Vidéo test"
+        instructor="Professeur"
+        activeSector="student"
+      />,
+    );
+
+    await waitFor(() =>
+      expect(container.querySelector("video")?.getAttribute("src")).toBe("https://app-id.ufs.sh/f/stall-test-video"),
+    );
+
+    const video = container.querySelector("video")!;
+    // Simulate mobile stalling / buffering before playback
+    fireEvent.waiting(video);
+    fireEvent.stalled(video);
+
+    // The play button must remain visible and clickable so mobile users are not trapped in a loader
+    const overlayPlayButton = container.querySelector(".course-video-overlay-button");
+    expect(overlayPlayButton).toBeInTheDocument();
+    expect(screen.queryByText("Mise en mémoire tampon…")).not.toBeInTheDocument();
+  });
 });

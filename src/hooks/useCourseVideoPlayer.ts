@@ -100,6 +100,32 @@ export function useCourseVideoPlayer(src: string, sourceVersion = 0) {
   }, [volume]);
 
   useEffect(() => {
+    const lockLandscapeOrientation = () => {
+      if (
+        typeof screen !== "undefined" &&
+        screen.orientation &&
+        typeof (screen.orientation as any).lock === "function"
+      ) {
+        try {
+          (screen.orientation as any).lock("landscape").catch(() => {
+            // Ignore lock rejection (unsupported/blocked or user preference)
+          });
+        } catch {
+          // Ignore orientation lock failures
+        }
+      }
+    };
+
+    const unlockScreenOrientation = () => {
+      if (typeof screen !== "undefined" && screen.orientation && typeof screen.orientation.unlock === "function") {
+        try {
+          screen.orientation.unlock();
+        } catch {
+          // Ignore orientation unlock failure
+        }
+      }
+    };
+
     const handleFullscreenChange = () => {
       const isFs =
         document.fullscreenElement === containerRef.current ||
@@ -109,17 +135,10 @@ export function useCourseVideoPlayer(src: string, sourceVersion = 0) {
 
       setIsFullscreen(isFs);
 
-      if (
-        !isFs &&
-        typeof screen !== "undefined" &&
-        screen.orientation &&
-        typeof screen.orientation.unlock === "function"
-      ) {
-        try {
-          screen.orientation.unlock();
-        } catch {
-          // Orientation unlock may fail if not locked or unsupported
-        }
+      if (isFs) {
+        lockLandscapeOrientation();
+      } else {
+        unlockScreenOrientation();
       }
     };
 
@@ -129,13 +148,7 @@ export function useCourseVideoPlayer(src: string, sourceVersion = 0) {
     };
     const handleWebkitEndFullscreen = () => {
       setIsFullscreen(false);
-      if (typeof screen !== "undefined" && screen.orientation && typeof screen.orientation.unlock === "function") {
-        try {
-          screen.orientation.unlock();
-        } catch {
-          // Ignore
-        }
-      }
+      unlockScreenOrientation();
     };
 
     document.addEventListener("fullscreenchange", handleFullscreenChange);
@@ -152,13 +165,7 @@ export function useCourseVideoPlayer(src: string, sourceVersion = 0) {
         video.removeEventListener("webkitbeginfullscreen", handleWebkitBeginFullscreen);
         video.removeEventListener("webkitendfullscreen", handleWebkitEndFullscreen);
       }
-      if (typeof screen !== "undefined" && screen.orientation && typeof screen.orientation.unlock === "function") {
-        try {
-          screen.orientation.unlock();
-        } catch {
-          // Ignore
-        }
-      }
+      unlockScreenOrientation();
     };
   }, []);
 
@@ -218,6 +225,30 @@ export function useCourseVideoPlayer(src: string, sourceVersion = 0) {
     const video = videoRef.current;
     if (!container) return;
 
+    const lockLandscapeOrientation = () => {
+      if (
+        typeof screen !== "undefined" &&
+        screen.orientation &&
+        typeof (screen.orientation as any).lock === "function"
+      ) {
+        try {
+          (screen.orientation as any).lock("landscape").catch(() => {});
+        } catch {
+          // Ignore
+        }
+      }
+    };
+
+    const unlockScreenOrientation = () => {
+      if (typeof screen !== "undefined" && screen.orientation && typeof screen.orientation.unlock === "function") {
+        try {
+          screen.orientation.unlock();
+        } catch {
+          // Ignore
+        }
+      }
+    };
+
     const isCurrentFullscreen =
       document.fullscreenElement === container ||
       (document as any).webkitFullscreenElement === container ||
@@ -225,25 +256,29 @@ export function useCourseVideoPlayer(src: string, sourceVersion = 0) {
       (document as any).msFullscreenElement === container;
 
     if (!isCurrentFullscreen) {
-      const enterFsPromise = container.requestFullscreen
-        ? container.requestFullscreen()
-        : (container as any).webkitRequestFullscreen
-          ? (container as any).webkitRequestFullscreen()
-          : null;
+      let enterFsPromise: Promise<void> | null = null;
+      try {
+        if (container.requestFullscreen) {
+          enterFsPromise = container.requestFullscreen();
+        } else if ((container as any).webkitRequestFullscreen) {
+          const res = (container as any).webkitRequestFullscreen();
+          enterFsPromise = res instanceof Promise ? res : Promise.resolve();
+        } else if ((container as any).mozRequestFullScreen) {
+          const res = (container as any).mozRequestFullScreen();
+          enterFsPromise = res instanceof Promise ? res : Promise.resolve();
+        } else if ((container as any).msRequestFullscreen) {
+          const res = (container as any).msRequestFullscreen();
+          enterFsPromise = res instanceof Promise ? res : Promise.resolve();
+        }
+      } catch (reqErr) {
+        enterFsPromise = Promise.reject(reqErr);
+      }
 
       if (enterFsPromise) {
         enterFsPromise
           .then(() => {
-            // Lock orientation to landscape on mobile (like YouTube)
-            if (
-              typeof screen !== "undefined" &&
-              screen.orientation &&
-              typeof (screen.orientation as any).lock === "function"
-            ) {
-              return (screen.orientation as any).lock("landscape").catch(() => {
-                // Ignore lock rejection (unsupported/blocked)
-              });
-            }
+            setIsFullscreen(true);
+            lockLandscapeOrientation();
           })
           .catch((err) => {
             // Fallback for iOS Safari which only allows webkitEnterFullscreen on the video element
@@ -279,13 +314,8 @@ export function useCourseVideoPlayer(src: string, sourceVersion = 0) {
         }
       }
 
-      if (typeof screen !== "undefined" && screen.orientation && typeof screen.orientation.unlock === "function") {
-        try {
-          screen.orientation.unlock();
-        } catch {
-          // Ignore
-        }
-      }
+      setIsFullscreen(false);
+      unlockScreenOrientation();
     }
   };
 

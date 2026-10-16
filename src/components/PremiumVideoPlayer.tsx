@@ -70,6 +70,7 @@ export default function PremiumVideoPlayer({
     playbackRate,
     volume,
     isMuted,
+    isFullscreen,
     progressPercent,
     togglePlay,
     handleSeek,
@@ -292,7 +293,7 @@ export default function PremiumVideoPlayer({
       retryVideoManually();
       return;
     }
-    if (videoLoadState === "LOADING" || videoLoadState === "BUFFERING") return;
+    if (isPlaying && (videoLoadState === "LOADING" || videoLoadState === "BUFFERING")) return;
     togglePlay();
   };
 
@@ -317,11 +318,14 @@ export default function PremiumVideoPlayer({
   return (
     <div
       ref={containerRef}
+      data-fullscreen={isFullscreen}
       onClick={handleSurfaceClick}
       onMouseEnter={() => revealControlsTemporarily()}
       onMouseMove={() => revealControlsTemporarily()}
       onTouchStart={() => revealControlsTemporarily()}
-      className="course-video-player group relative flex aspect-video w-full cursor-pointer select-none flex-col items-center justify-center overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 shadow-md"
+      className={`course-video-player group relative flex ${
+        isFullscreen ? "fixed inset-0 z-50 h-screen w-screen !aspect-auto !rounded-none" : "aspect-video w-full"
+      } cursor-pointer select-none flex-col items-center justify-center overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 shadow-md`}
     >
       <video
         key={`${resolvedSrc}-${sourceVersion}`}
@@ -391,13 +395,6 @@ export default function PremiumVideoPlayer({
               <RefreshCw className="h-4 w-4" /> Réessayer
             </button>
           </div>
-        ) : videoLoadState === "LOADING" || videoLoadState === "BUFFERING" ? (
-          <div className="flex flex-col items-center gap-3" role="status">
-            <LoaderCircle className="h-10 w-10 animate-spin text-emerald-300" />
-            <p className="text-xs font-bold text-white">
-              {videoLoadState === "BUFFERING" ? "Mise en mémoire tampon…" : "Chargement de la vidéo…"}
-            </p>
-          </div>
         ) : !isPlaying ? (
           <div
             className={`flex flex-col items-center gap-3 ${brandedIntroVisible && currentTime === 0 ? "pt-24 sm:pt-28" : ""}`}
@@ -414,6 +411,16 @@ export default function PremiumVideoPlayer({
                 {title} • {instructor} • {formatTime(duration)}
               </p>
             )}
+          </div>
+        ) : videoLoadState === "LOADING" || videoLoadState === "BUFFERING" ? (
+          <div
+            className={`flex flex-col items-center gap-3 ${brandedIntroVisible ? "pt-24 sm:pt-28" : ""}`}
+            role="status"
+          >
+            <LoaderCircle className="h-10 w-10 animate-spin text-emerald-300" />
+            <p className="text-xs font-bold text-white">
+              {videoLoadState === "BUFFERING" ? "Mise en mémoire tampon…" : "Chargement de la vidéo…"}
+            </p>
           </div>
         ) : (
           <button
