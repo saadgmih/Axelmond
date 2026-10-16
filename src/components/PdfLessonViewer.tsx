@@ -30,10 +30,7 @@ import "react-pdf/dist/Page/TextLayer.css";
 
 // Bundle the legacy PDF.js worker so older Safari / WebKit and iOS devices
 // can run the worker without crashing on missing ES2023+ features.
-const BUNDLED_PDF_WORKER_SRC = new URL(
-  "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
-  import.meta.url
-).toString();
+const BUNDLED_PDF_WORKER_SRC = new URL("pdfjs-dist/legacy/build/pdf.worker.min.mjs", import.meta.url).toString();
 pdfjs.GlobalWorkerOptions.workerSrc = `${BUNDLED_PDF_WORKER_SRC}?v=5.4.296-legacy-v1`;
 
 interface PdfLessonViewerProps {
@@ -959,8 +956,8 @@ export default function PdfLessonViewer({
   const baseReadingWidth = Math.max(containerDimensions.width - 32, 280);
   const renderWidth = Math.round(baseReadingWidth * scale);
   const targetDevicePixelRatio = Math.min(
-    typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1,
-    1.5
+    typeof window !== "undefined" ? Math.max(1, Math.round(window.devicePixelRatio || 1)) : 1,
+    2,
   );
   const resolvedDownloadFileName = downloadFileName || `${title}.pdf`;
 
@@ -1246,6 +1243,7 @@ export default function PdfLessonViewer({
                           width={112}
                           rotate={rotation}
                           devicePixelRatio={1}
+                          canvasBackground="rgb(255, 255, 255)"
                           loading=""
                           renderTextLayer={false}
                           renderAnnotationLayer={false}
@@ -1309,6 +1307,7 @@ export default function PdfLessonViewer({
                         width={renderWidth}
                         rotate={rotation}
                         devicePixelRatio={targetDevicePixelRatio}
+                        canvasBackground="rgb(255, 255, 255)"
                         className="bg-white"
                         loading={
                           <div
@@ -1341,7 +1340,9 @@ export default function PdfLessonViewer({
                         renderAnnotationLayer={true}
                         onRenderError={(err) => console.error(`[PdfViewer] Render error p${p}:`, err)}
                         onRenderTextLayerError={(err) => console.warn(`[PdfViewer] TextLayer error p${p}:`, err)}
-                        onRenderAnnotationLayerError={(err) => console.warn(`[PdfViewer] AnnotationLayer error p${p}:`, err)}
+                        onRenderAnnotationLayerError={(err) =>
+                          console.warn(`[PdfViewer] AnnotationLayer error p${p}:`, err)
+                        }
                       />
                       <div
                         className={`pointer-events-none absolute inset-0 z-10 ${
@@ -1375,6 +1376,7 @@ export default function PdfLessonViewer({
                     width={renderWidth}
                     rotate={rotation}
                     devicePixelRatio={targetDevicePixelRatio}
+                    canvasBackground="rgb(255, 255, 255)"
                     className="bg-white"
                     loading={
                       <div
@@ -1407,7 +1409,9 @@ export default function PdfLessonViewer({
                     renderAnnotationLayer={true}
                     onRenderError={(err) => console.error(`[PdfViewer] Render error p${pageNumber}:`, err)}
                     onRenderTextLayerError={(err) => console.warn(`[PdfViewer] TextLayer error p${pageNumber}:`, err)}
-                    onRenderAnnotationLayerError={(err) => console.warn(`[PdfViewer] AnnotationLayer error p${pageNumber}:`, err)}
+                    onRenderAnnotationLayerError={(err) =>
+                      console.warn(`[PdfViewer] AnnotationLayer error p${pageNumber}:`, err)
+                    }
                   />
                   <div
                     className={`pointer-events-none absolute inset-0 z-10 ${

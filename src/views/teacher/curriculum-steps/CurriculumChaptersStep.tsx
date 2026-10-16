@@ -405,7 +405,7 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
                             )}
                           </div>
                           <p className="text-[10px] text-slate-500">
-                            {uploadType === "VIDEO" && "MP4, WebM (max 5 Go)"}
+                            {uploadType === "VIDEO" && "MP4, WebM, MOV (max 5 Go)"}
                             {uploadType === "PDF" && "PDF (max 50 Mo)"}
                             {uploadType === "IMAGE" && "PNG, JPG, WebP (max 10 Mo)"}
                           </p>
@@ -414,7 +414,7 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
                             required
                             accept={
                               uploadType === "VIDEO"
-                                ? "video/mp4,video/webm"
+                                ? "video/*,.mp4,.webm,.mov,.m4v"
                                 : uploadType === "PDF"
                                   ? "application/pdf"
                                   : RASTER_IMAGE_ACCEPT
