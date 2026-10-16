@@ -900,6 +900,20 @@ body {
   container-type: inline-size;
 }
 
+.course-video-player:fullscreen,
+.course-video-player:-webkit-full-screen,
+.course-video-player:-moz-full-screen,
+.course-video-player:-ms-fullscreen {
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  aspect-ratio: auto !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background-color: #020617 !important;
+}
+
 @container course-video (max-width: 520px) {
   .course-video-controls {
     gap: 0.25rem;

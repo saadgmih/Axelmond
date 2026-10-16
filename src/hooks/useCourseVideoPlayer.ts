@@ -101,10 +101,65 @@ export function useCourseVideoPlayer(src: string, sourceVersion = 0) {
 
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(document.fullscreenElement === containerRef.current);
+      const isFs =
+        document.fullscreenElement === containerRef.current ||
+        (document as any).webkitFullscreenElement === containerRef.current ||
+        (document as any).mozFullScreenElement === containerRef.current ||
+        (document as any).msFullscreenElement === containerRef.current;
+
+      setIsFullscreen(isFs);
+
+      if (
+        !isFs &&
+        typeof screen !== "undefined" &&
+        screen.orientation &&
+        typeof screen.orientation.unlock === "function"
+      ) {
+        try {
+          screen.orientation.unlock();
+        } catch {
+          // Orientation unlock may fail if not locked or unsupported
+        }
+      }
     };
+
+    const video = videoRef.current;
+    const handleWebkitBeginFullscreen = () => {
+      setIsFullscreen(true);
+    };
+    const handleWebkitEndFullscreen = () => {
+      setIsFullscreen(false);
+      if (typeof screen !== "undefined" && screen.orientation && typeof screen.orientation.unlock === "function") {
+        try {
+          screen.orientation.unlock();
+        } catch {
+          // Ignore
+        }
+      }
+    };
+
     document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    if (video) {
+      video.addEventListener("webkitbeginfullscreen", handleWebkitBeginFullscreen);
+      video.addEventListener("webkitendfullscreen", handleWebkitEndFullscreen);
+    }
+
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
+      if (video) {
+        video.removeEventListener("webkitbeginfullscreen", handleWebkitBeginFullscreen);
+        video.removeEventListener("webkitendfullscreen", handleWebkitEndFullscreen);
+      }
+      if (typeof screen !== "undefined" && screen.orientation && typeof screen.orientation.unlock === "function") {
+        try {
+          screen.orientation.unlock();
+        } catch {
+          // Ignore
+        }
+      }
+    };
   }, []);
 
   const togglePlay = (e?: MouseEvent) => {
@@ -160,14 +215,77 @@ export function useCourseVideoPlayer(src: string, sourceVersion = 0) {
   const toggleFullscreen = (e: MouseEvent) => {
     e.stopPropagation();
     const container = containerRef.current;
+    const video = videoRef.current;
     if (!container) return;
 
-    if (!document.fullscreenElement) {
-      container.requestFullscreen().catch((err) => {
-        console.error("Error attempting to enable fullscreen:", err);
-      });
+    const isCurrentFullscreen =
+      document.fullscreenElement === container ||
+      (document as any).webkitFullscreenElement === container ||
+      (document as any).mozFullScreenElement === container ||
+      (document as any).msFullscreenElement === container;
+
+    if (!isCurrentFullscreen) {
+      const enterFsPromise = container.requestFullscreen
+        ? container.requestFullscreen()
+        : (container as any).webkitRequestFullscreen
+          ? (container as any).webkitRequestFullscreen()
+          : null;
+
+      if (enterFsPromise) {
+        enterFsPromise
+          .then(() => {
+            // Lock orientation to landscape on mobile (like YouTube)
+            if (
+              typeof screen !== "undefined" &&
+              screen.orientation &&
+              typeof (screen.orientation as any).lock === "function"
+            ) {
+              return (screen.orientation as any).lock("landscape").catch(() => {
+                // Ignore lock rejection (unsupported/blocked)
+              });
+            }
+          })
+          .catch((err) => {
+            // Fallback for iOS Safari which only allows webkitEnterFullscreen on the video element
+            if (video && typeof (video as any).webkitEnterFullscreen === "function") {
+              try {
+                (video as any).webkitEnterFullscreen();
+                setIsFullscreen(true);
+              } catch (iosErr) {
+                console.error("iOS fullscreen failed:", iosErr);
+              }
+            } else {
+              console.error("Error attempting to enable fullscreen:", err);
+            }
+          });
+      } else if (video && typeof (video as any).webkitEnterFullscreen === "function") {
+        try {
+          (video as any).webkitEnterFullscreen();
+          setIsFullscreen(true);
+        } catch (iosErr) {
+          console.error("iOS native video fullscreen failed:", iosErr);
+        }
+      }
     } else {
-      document.exitFullscreen();
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch((err) => console.error("Error exiting fullscreen:", err));
+      } else if ((document as any).webkitExitFullscreen) {
+        (document as any).webkitExitFullscreen();
+      } else if (video && typeof (video as any).webkitExitFullscreen === "function") {
+        try {
+          (video as any).webkitExitFullscreen();
+        } catch (err) {
+          console.error("iOS video exit fullscreen failed:", err);
+        }
+      }
+
+      if (typeof screen !== "undefined" && screen.orientation && typeof screen.orientation.unlock === "function") {
+        try {
+          screen.orientation.unlock();
+        } catch {
+          // Ignore
+        }
+      }
     }
   };
 

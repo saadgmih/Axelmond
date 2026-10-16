@@ -19,6 +19,7 @@ const VOLUME_CONTROL_CLOSE_DELAY_MS = 250;
 const VIDEO_MAX_AUTOMATIC_RETRIES = 2;
 const VIDEO_RETRY_BASE_DELAY_MS = 500;
 const MAX_BRANDED_INTRO_DURATION_SECONDS = 30;
+const DEFAULT_BRANDED_INTRO_DURATION_SECONDS = 1.75;
 
 type VideoLoadState = "LOADING" | "READY" | "BUFFERING" | "PLAYING" | "PAUSED" | "ERROR";
 type VideoSourceKind = "DIRECT" | "PROXY";
@@ -303,12 +304,13 @@ export default function PremiumVideoPlayer({
     videoLoadState === "BUFFERING" ||
     videoLoadState === "ERROR";
   const volumePercent = Math.round(volume * 100);
-  const brandedIntroVisible =
-    brandedIntroDuration > 0 && currentTime < brandedIntroDuration && videoLoadState !== "ERROR";
-  const introFadeInProgress = Math.min(1, Math.max(0, currentTime / 0.75));
-  const introFadeOutProgress = Math.min(1, Math.max(0, (brandedIntroDuration - currentTime) / 0.55));
-  const brandSignatureOpacity = Math.min(introFadeInProgress, introFadeOutProgress);
-  const brandSignatureScale = 0.96 + introFadeInProgress * 0.04;
+  const effectiveIntroDuration =
+    brandedIntroDuration > 0 ? brandedIntroDuration : DEFAULT_BRANDED_INTRO_DURATION_SECONDS;
+  const brandedIntroVisible = currentTime < effectiveIntroDuration && videoLoadState !== "ERROR";
+  const introFadeOutProgress = Math.min(1, Math.max(0, (effectiveIntroDuration - currentTime) / 0.55));
+  const brandSignatureOpacity = !isPlaying && currentTime === 0 ? 1 : introFadeOutProgress;
+  const brandSignatureScale =
+    !isPlaying && currentTime === 0 ? 1 : 0.96 + Math.min(1, Math.max(0, currentTime / 0.75)) * 0.04;
   const overlayButtonClass = showMetadata ? "h-20 w-20" : "h-14 w-14";
   const overlayIconClass = showMetadata ? "h-10 w-10" : "h-7 w-7";
 
@@ -353,16 +355,18 @@ export default function PremiumVideoPlayer({
           className="pointer-events-none absolute inset-0 z-[1] flex items-center justify-center bg-slate-950"
         >
           <div
-            className="flex flex-col items-center gap-5 transition-[opacity,transform] duration-200 ease-out"
+            className={`flex flex-col items-center gap-4 transition-[opacity,transform] duration-200 ease-out ${
+              !isPlaying && currentTime === 0 ? "pb-20 sm:pb-24" : ""
+            }`}
             style={{ opacity: brandSignatureOpacity, transform: `scale(${brandSignatureScale})` }}
           >
             <img
               src="/performance-logo-003a24a4-192.png"
               alt=""
-              className="h-auto w-28 drop-shadow-[0_10px_24px_rgba(16,185,129,0.14)] sm:w-32 lg:w-36"
+              className="h-auto w-24 drop-shadow-[0_10px_24px_rgba(16,185,129,0.18)] sm:w-28 lg:w-32"
               draggable={false}
             />
-            <p className="text-center text-sm font-black uppercase tracking-[0.035em] text-emerald-50 sm:text-base lg:text-lg">
+            <p className="text-center text-xs font-black uppercase tracking-[0.035em] text-emerald-50 sm:text-sm lg:text-base">
               Performance Académique
             </p>
           </div>
@@ -395,7 +399,9 @@ export default function PremiumVideoPlayer({
             </p>
           </div>
         ) : !isPlaying ? (
-          <div className="flex flex-col items-center gap-3">
+          <div
+            className={`flex flex-col items-center gap-3 ${brandedIntroVisible && currentTime === 0 ? "pt-24 sm:pt-28" : ""}`}
+          >
             <button
               type="button"
               onClick={togglePlay}
