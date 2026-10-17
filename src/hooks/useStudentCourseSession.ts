@@ -81,6 +81,23 @@ export function useStudentCourseSession({
   useEffect(() => {
     if (!currentUser || currentView !== "course" || !selectedCourse) return;
     refreshCourseContent(selectedCourse.id);
+    const courseId = selectedCourse.id;
+    api
+      .getCourse(courseId)
+      .then((freshCourse) => {
+        if (!freshCourse || !Array.isArray(freshCourse.modules)) return;
+        setSelectedCourse(freshCourse);
+        setCourses((prev) => prev.map((c) => (c.id === courseId ? freshCourse : c)));
+        setSelectedModule((currentMod) => {
+          if (currentMod && freshCourse.modules.some((m) => m.id === currentMod.id)) {
+            return currentMod;
+          }
+          return freshCourse.modules[0] ?? null;
+        });
+      })
+      .catch((err) => {
+        console.warn("[student-session] Failed to refresh active course modules", err);
+      });
   }, [currentUser?.id, currentView, selectedCourse?.id, refreshCourseContent]);
 
   useEffect(() => {
