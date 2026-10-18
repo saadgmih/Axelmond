@@ -47,7 +47,10 @@ export function useCourseVideoPlayer(src: string, sourceVersion = 0) {
   const [isMuted, setIsMuted] = useState(() => readStoredCourseVideoVolume() === 0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isPip, setIsPip] = useState(false);
-  const isPipSupported = typeof document !== "undefined" && Boolean(document.pictureInPictureEnabled);
+  const isPipSupported =
+    typeof document !== "undefined" &&
+    (Boolean(document.pictureInPictureEnabled) ||
+      (typeof HTMLVideoElement !== "undefined" && "requestPictureInPicture" in HTMLVideoElement.prototype));
   const lastAudibleVolumeRef = useRef(volume > 0 ? volume : DEFAULT_UNMUTED_VIDEO_VOLUME);
 
   useEffect(() => {
