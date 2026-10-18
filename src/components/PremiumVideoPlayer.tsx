@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AlertTriangle,
+  Check,
+  ChevronLeft,
+  ChevronRight,
   LoaderCircle,
   Maximize,
   PauseCircle,
   PlayCircle,
   RefreshCw,
+  Settings,
   Volume2,
   VolumeX,
 } from "lucide-react";
@@ -20,6 +24,32 @@ const VIDEO_MAX_AUTOMATIC_RETRIES = 2;
 const VIDEO_RETRY_BASE_DELAY_MS = 500;
 const MAX_BRANDED_INTRO_DURATION_SECONDS = 30;
 const DEFAULT_BRANDED_INTRO_DURATION_SECONDS = 1.75;
+
+export type VideoQuality = "auto" | "1080p" | "720p" | "480p" | "360p";
+export type SettingsView = "main" | "quality" | "speed";
+
+export const VIDEO_QUALITY_OPTIONS: Array<{ value: VideoQuality; label: string; isHd?: boolean }> = [
+  { value: "auto", label: "Auto" },
+  { value: "1080p", label: "1080p", isHd: true },
+  { value: "720p", label: "720p", isHd: true },
+  { value: "480p", label: "480p" },
+  { value: "360p", label: "360p" },
+];
+
+const VIDEO_QUALITY_STORAGE_KEY = "axelmond-video-quality";
+
+function readStoredVideoQuality(): VideoQuality {
+  if (typeof window === "undefined") return "auto";
+  try {
+    const stored = window.localStorage.getItem(VIDEO_QUALITY_STORAGE_KEY) as VideoQuality | null;
+    if (stored && ["auto", "1080p", "720p", "480p", "360p"].includes(stored)) {
+      return stored;
+    }
+  } catch {
+    // Ignore storage errors in restricted contexts
+  }
+  return "auto";
+}
 
 type VideoLoadState = "LOADING" | "READY" | "BUFFERING" | "PLAYING" | "PAUSED" | "ERROR";
 type VideoSourceKind = "DIRECT" | "PROXY";
@@ -77,9 +107,16 @@ export default function PremiumVideoPlayer({
     toggleMute,
     handleVolumeChange,
     handlePlaybackRateChange,
+    setPlaybackSpeed,
     toggleFullscreen,
     formatTime,
   } = useCourseVideoPlayer(resolvedSrc, sourceVersion);
+
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsView, setSettingsView] = useState<SettingsView>("main");
+  const [selectedQuality, setSelectedQuality] = useState<VideoQuality>(readStoredVideoQuality);
+  const [detectedResolution, setDetectedResolution] = useState<string | null>(null);
+  const settingsContainerRef = useRef<HTMLDivElement>(null);
 
   const isStudent = activeSector === "student";
   const themeAccentClass = isStudent ? "accent-emerald-500" : "accent-emerald-500";
@@ -93,6 +130,51 @@ export default function PremiumVideoPlayer({
   const hideVolumeControlTimeoutRef = useRef<number | null>(null);
   const volumeDraggingRef = useRef(false);
   const volumeHasFocusRef = useRef(false);
+
+  useEffect(() => {
+    if (!settingsOpen) return;
+
+    const handlePointerDown = (event: MouseEvent | TouchEvent) => {
+      if (settingsContainerRef.current && !settingsContainerRef.current.contains(event.target as Node)) {
+        setSettingsOpen(false);
+        setSettingsView("main");
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSettingsOpen(false);
+        setSettingsView("main");
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown as EventListener);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown as EventListener);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [settingsOpen]);
+
+  const handleSelectQuality = useCallback((quality: VideoQuality) => {
+    setSelectedQuality(quality);
+    try {
+      window.localStorage.setItem(VIDEO_QUALITY_STORAGE_KEY, quality);
+    } catch {
+      // Ignore storage errors
+    }
+    setSettingsOpen(false);
+    setSettingsView("main");
+  }, []);
+
+  const handleSelectSpeed = useCallback((speed: number) => {
+    setPlaybackSpeed(speed);
+    setSettingsOpen(false);
+    setSettingsView("main");
+  }, [setPlaybackSpeed]);
+
+  const currentQualityLabel = selectedQuality === "auto" ? (detectedResolution ? `Auto (${detectedResolution})` : "Auto") : selectedQuality;
+  const currentSpeedLabel = playbackRate === 1 ? "Normal" : `${playbackRate}x`;
 
   const clearAutomaticRetryTimeout = useCallback(() => {
     if (automaticRetryTimeoutRef.current !== null) {
@@ -289,6 +371,11 @@ export default function PremiumVideoPlayer({
 
   const handleSurfaceClick = () => {
     revealControlsTemporarily();
+    if (settingsOpen) {
+      setSettingsOpen(false);
+      setSettingsView("main");
+      return;
+    }
     if (videoLoadState === "ERROR") {
       retryVideoManually();
       return;
@@ -297,7 +384,7 @@ export default function PremiumVideoPlayer({
     togglePlay();
   };
 
-  const chromeVisible = !isPlaying || controlsVisible || volumeControlOpen || !showMetadata;
+  const chromeVisible = !isPlaying || controlsVisible || volumeControlOpen || settingsOpen || !showMetadata;
   const centerOverlayVisible =
     !isPlaying ||
     overlayVisible ||
@@ -340,6 +427,13 @@ export default function PremiumVideoPlayer({
         onLoadedMetadata={() => {
           automaticRetryCountRef.current = 0;
           setVideoLoadState("READY");
+          const video = videoRef.current;
+          if (video && video.videoHeight) {
+            if (video.videoHeight >= 1080) setDetectedResolution("1080p");
+            else if (video.videoHeight >= 720) setDetectedResolution("720p");
+            else if (video.videoHeight >= 480) setDetectedResolution("480p");
+            else setDetectedResolution("360p");
+          }
         }}
         onCanPlay={() => setVideoLoadState(isPlaying ? "PLAYING" : "READY")}
         onWaiting={() => setVideoLoadState("BUFFERING")}
@@ -395,6 +489,16 @@ export default function PremiumVideoPlayer({
               <RefreshCw className="h-4 w-4" /> Réessayer
             </button>
           </div>
+        ) : videoLoadState === "LOADING" || videoLoadState === "BUFFERING" ? (
+          <div
+            className={`flex flex-col items-center gap-3 ${brandedIntroVisible ? "pt-24 sm:pt-28" : ""}`}
+            role="status"
+          >
+            <LoaderCircle className="h-10 w-10 animate-spin text-emerald-300" />
+            <p className="text-xs font-bold text-white">
+              {videoLoadState === "BUFFERING" ? "Mise en mémoire tampon…" : "Chargement de la vidéo…"}
+            </p>
+          </div>
         ) : !isPlaying ? (
           <div
             className={`flex flex-col items-center gap-3 ${brandedIntroVisible && currentTime === 0 ? "pt-24 sm:pt-28" : ""}`}
@@ -411,16 +515,6 @@ export default function PremiumVideoPlayer({
                 {title} • {instructor} • {formatTime(duration)}
               </p>
             )}
-          </div>
-        ) : videoLoadState === "LOADING" || videoLoadState === "BUFFERING" ? (
-          <div
-            className={`flex flex-col items-center gap-3 ${brandedIntroVisible ? "pt-24 sm:pt-28" : ""}`}
-            role="status"
-          >
-            <LoaderCircle className="h-10 w-10 animate-spin text-emerald-300" />
-            <p className="text-xs font-bold text-white">
-              {videoLoadState === "BUFFERING" ? "Mise en mémoire tampon…" : "Chargement de la vidéo…"}
-            </p>
           </div>
         ) : (
           <button
@@ -515,7 +609,7 @@ export default function PremiumVideoPlayer({
           </div>
         </div>
 
-        <label className="course-video-speed flex shrink-0 items-center gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-300">
+        <label className="course-video-speed hidden sm:flex shrink-0 items-center gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-300">
           <span className="course-video-speed-label">Vitesse</span>
           <select
             value={playbackRate}
@@ -531,6 +625,160 @@ export default function PremiumVideoPlayer({
             ))}
           </select>
         </label>
+
+        {/* Settings button and popover (Quality & Speed) */}
+        <div
+          ref={settingsContainerRef}
+          className="group/settings relative flex shrink-0 items-center"
+          onMouseMove={() => revealControlsTemporarily()}
+          onTouchStart={() => revealControlsTemporarily()}
+        >
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSettingsOpen((prev) => !prev);
+              setSettingsView("main");
+              revealControlsTemporarily();
+            }}
+            className={`p-1.5 transition-colors cursor-pointer rounded-lg focus:outline-none focus:ring-2 ${
+              settingsOpen ? "text-emerald-400 bg-white/10" : "text-slate-300 hover:text-white"
+            } ${controlFocusClass}`}
+            title="Paramètres vidéo (Qualité & Vitesse)"
+            aria-label="Paramètres vidéo"
+            aria-expanded={settingsOpen}
+          >
+            <Settings className={`w-4 h-4 transition-transform duration-300 ${settingsOpen ? "rotate-45 text-emerald-400" : ""}`} />
+          </button>
+
+          {/* Settings Popover Card */}
+          {settingsOpen && (
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="absolute bottom-[calc(100%+0.65rem)] right-0 z-30 w-56 overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-1.5 text-slate-800 shadow-2xl backdrop-blur-md animate-in fade-in zoom-in-95 duration-150"
+            >
+              {settingsView === "main" && (
+                <div className="space-y-0.5">
+                  {/* Quality row */}
+                  <button
+                    type="button"
+                    onClick={() => setSettingsView("quality")}
+                    className="flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-left font-bold text-slate-800 hover:bg-slate-100/90 transition-colors group cursor-pointer"
+                  >
+                    <span className="text-[13px] font-bold text-slate-800 tracking-tight">Quality</span>
+                    <div className="flex items-center gap-1.5 text-slate-600 font-semibold text-xs">
+                      <span>{currentQualityLabel}</span>
+                      <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 transition-colors" />
+                    </div>
+                  </button>
+
+                  {/* Speed row */}
+                  <button
+                    type="button"
+                    onClick={() => setSettingsView("speed")}
+                    className="flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-left font-bold text-slate-800 hover:bg-slate-100/90 transition-colors group cursor-pointer"
+                  >
+                    <span className="text-[13px] font-bold text-slate-800 tracking-tight">Speed</span>
+                    <div className="flex items-center gap-1.5 text-slate-600 font-semibold text-xs">
+                      <span>{currentSpeedLabel}</span>
+                      <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 transition-colors" />
+                    </div>
+                  </button>
+                </div>
+              )}
+
+              {settingsView === "quality" && (
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1.5 border-b border-slate-100 pb-2 mb-1 px-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setSettingsView("main")}
+                      className="flex items-center gap-1.5 text-slate-700 hover:text-slate-900 font-bold text-xs cursor-pointer"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Quality</span>
+                    </button>
+                  </div>
+                  <div className="max-h-56 overflow-y-auto space-y-0.5">
+                    {VIDEO_QUALITY_OPTIONS.map((opt) => {
+                      const isSelected = selectedQuality === opt.value;
+                      return (
+                        <button
+                          type="button"
+                          key={opt.value}
+                          onClick={() => handleSelectQuality(opt.value)}
+                          className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-semibold transition-colors cursor-pointer ${
+                            isSelected
+                              ? "bg-emerald-50 text-emerald-800 font-bold"
+                              : "text-slate-700 hover:bg-slate-100"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            {isSelected ? (
+                              <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            ) : (
+                              <span className="w-3.5 shrink-0" />
+                            )}
+                            <span>{opt.label}</span>
+                            {opt.isHd && (
+                              <span className="rounded bg-slate-100 px-1 py-0.5 text-[9px] font-black uppercase text-slate-500">
+                                HD
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {settingsView === "speed" && (
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1.5 border-b border-slate-100 pb-2 mb-1 px-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setSettingsView("main")}
+                      className="flex items-center gap-1.5 text-slate-700 hover:text-slate-900 font-bold text-xs cursor-pointer"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Speed</span>
+                    </button>
+                  </div>
+                  <div
+                    className="max-h-56 overflow-y-auto space-y-0.5"
+                    aria-label="Vitesse de lecture"
+                  >
+                    {COURSE_VIDEO_PLAYBACK_RATES.map((rate) => {
+                      const isSelected = playbackRate === rate;
+                      return (
+                        <button
+                          type="button"
+                          key={rate}
+                          onClick={() => handleSelectSpeed(rate)}
+                          className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-semibold transition-colors cursor-pointer ${
+                            isSelected
+                              ? "bg-emerald-50 text-emerald-800 font-bold"
+                              : "text-slate-700 hover:bg-slate-100"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            {isSelected ? (
+                              <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            ) : (
+                              <span className="w-3.5 shrink-0" />
+                            )}
+                            <span>{rate === 1 ? "Normal" : `${rate}x`}</span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         <button
           type="button"

@@ -212,6 +212,11 @@ export function useCourseVideoPlayer(src: string, sourceVersion = 0) {
     setIsMuted(nextVolume === 0);
   };
 
+  const setPlaybackSpeed = (speed: number) => {
+    const nextRate = COURSE_VIDEO_PLAYBACK_RATES.find((rate) => rate === speed) ?? 1.0;
+    setPlaybackRate(nextRate);
+  };
+
   const handlePlaybackRateChange = (e: ChangeEvent<HTMLSelectElement>) => {
     e.stopPropagation();
     const requestedRate = Number(e.target.value);
@@ -337,6 +342,8 @@ export function useCourseVideoPlayer(src: string, sourceVersion = 0) {
     toggleMute,
     handleVolumeChange,
     handlePlaybackRateChange,
+    setPlaybackRate,
+    setPlaybackSpeed,
     toggleFullscreen,
     formatTime: formatCourseVideoTime,
   };
