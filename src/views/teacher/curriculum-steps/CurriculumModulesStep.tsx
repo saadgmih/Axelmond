@@ -14,6 +14,10 @@ import {
   ChevronDown,
   ChevronRight,
   Gift,
+  ExternalLink,
+  Search,
+  CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
 import { formatCredits, formatMad, creditsLabel } from "../../../utils/morocco-locale";
 import {
@@ -151,6 +155,34 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
 
   const [isOptionalSectionOpen, setIsOptionalSectionOpen] = useState(false);
   const [isEditOptionalSectionOpen, setIsEditOptionalSectionOpen] = useState(false);
+  const [moduleSearchQuery, setModuleSearchQuery] = useState("");
+  const [moduleStatusFilter, setModuleStatusFilter] = useState<"ALL" | "PUBLISHED" | "DRAFT">("ALL");
+
+  const filteredCourses = managedCourses.filter((course) => {
+    if (moduleSearchQuery.trim()) {
+      const q = moduleSearchQuery.toLowerCase();
+      const matchTitle = course.title?.toLowerCase().includes(q);
+      const matchCategory = course.category?.toLowerCase().includes(q);
+      const matchDiscipline = course.discipline?.name?.toLowerCase().includes(q);
+      if (!matchTitle && !matchCategory && !matchDiscipline) return false;
+    }
+    if (moduleStatusFilter === "PUBLISHED" && !course.published) return false;
+    if (moduleStatusFilter === "DRAFT" && course.published) return false;
+    return true;
+  });
+
+  const getCourseReadiness = (c: (typeof managedCourses)[0]) => {
+    let score = 0;
+    if (c.title?.trim() && c.description?.trim()) score += 40;
+    else if (c.title?.trim()) score += 20;
+    if (c.imageUrl) score += 20;
+    if (c.disciplineId || c.discipline) score += 20;
+    if (c.modules?.length > 0 || c.published) score += 20;
+    return {
+      score: Math.min(100, score),
+      isReady: score >= 60,
+    };
+  };
 
   return (
     <div className="grid grid-cols-1 gap-6 xl:grid-cols-12 xl:items-stretch animate-in fade-in slide-in-from-bottom-4 duration-300">
@@ -356,330 +388,426 @@ export default function CurriculumModulesStep(props: TeacherCurriculumViewProps)
       </div>
 
       <div className="flex min-h-0 flex-col gap-4 xl:col-span-7 xl:min-h-[calc(100dvh-18rem)]">
-        <div className="flex shrink-0 items-center justify-between">
-          <h3 className={curriculumUi.sectionTitle}>Vos modules ({managedCourses.length})</h3>
-          <span className={curriculumUi.countBadge}>
-            {managedCourses.length} module{managedCourses.length !== 1 ? "s" : ""}
-          </span>
+        <div className="space-y-3 shrink-0">
+          <div className="flex shrink-0 items-center justify-between">
+            <h3 className={curriculumUi.sectionTitle}>Vos modules ({managedCourses.length})</h3>
+            <span className={curriculumUi.countBadge}>
+              {filteredCourses.length !== managedCourses.length
+                ? `${filteredCourses.length} sur ${managedCourses.length}`
+                : `${managedCourses.length} module${managedCourses.length !== 1 ? "s" : ""}`}
+            </span>
+          </div>
+
+          {managedCourses.length > 0 && (
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Rechercher un module par titre ou discipline..."
+                  value={moduleSearchQuery}
+                  onChange={(e) => setModuleSearchQuery(e.target.value)}
+                  className="w-full rounded-xl border border-slate-800 bg-[#031512] pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500/50"
+                />
+              </div>
+              <div className="flex gap-1 bg-slate-950/70 p-1 rounded-xl border border-slate-800 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setModuleStatusFilter("ALL")}
+                  className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                    moduleStatusFilter === "ALL"
+                      ? "bg-emerald-600 text-white shadow-sm"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  Tous
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setModuleStatusFilter("PUBLISHED")}
+                  className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                    moduleStatusFilter === "PUBLISHED"
+                      ? "bg-emerald-600 text-white shadow-sm"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  Publiés
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setModuleStatusFilter("DRAFT")}
+                  className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                    moduleStatusFilter === "DRAFT"
+                      ? "bg-emerald-600 text-white shadow-sm"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  Brouillons
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="min-h-0 flex-1 space-y-4 overflow-y-auto rounded-3xl border border-slate-800 bg-slate-900/40 p-4 pr-2">
-          {managedCourses.length === 0 && (
+          {managedCourses.length === 0 ? (
             <div className={curriculumUi.empty}>
               <BookOpen className="mx-auto mb-2 h-8 w-8 text-slate-600" />
               <p className="text-xs font-semibold text-slate-500">
                 Aucun module lié à ce profil. Créez un module à gauche.
               </p>
             </div>
-          )}
-          {managedCourses.map((course) => (
-            <div
-              key={course.id}
-              className={`${curriculumUi.moduleCard} ${
-                newSectionCourseId === course.id ? curriculumUi.moduleCardActive : ""
-              }`}
-            >
-              {editingCourse?.id === course.id ? (
-                <form onSubmit={handleSaveEditCourse} className="space-y-4">
-                  <div className={`flex items-center justify-between ${curriculumUi.divider} pb-2`}>
-                    <p className="text-[10px] font-black uppercase tracking-wider text-emerald-400">
-                      Modifier le module
-                    </p>
-                  </div>
-
-                  <label className="block space-y-1.5">
-                    <span className={curriculumUi.label}>Titre du module</span>
-                    <input
-                      required
-                      placeholder="Titre du module"
-                      value={editCourseForm.title}
-                      onChange={(e) => setEditCourseForm((prev) => ({ ...prev, title: e.target.value }))}
-                      className={`${curriculumUi.input} ${getStepTheme(1).focus}`}
-                    />
-                  </label>
-
-                  <div className="rounded-xl border border-slate-800/80 bg-slate-950/40 overflow-hidden">
-                    <button
-                      type="button"
-                      onClick={() => setIsEditOptionalSectionOpen((prev) => !prev)}
-                      className="flex w-full items-center justify-between p-3.5 text-left transition hover:bg-slate-900/60"
-                    >
-                      <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 gap-y-0.5 pr-2">
-                        <span className={curriculumUi.label}>Options & Détails du module</span>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
-                          (Description, Image, PA, Temps)
-                        </span>
+          ) : filteredCourses.length === 0 ? (
+            <div className={`${curriculumUi.empty} text-center py-8 space-y-3`}>
+              <Search className="mx-auto h-8 w-8 text-slate-500" />
+              <p className="text-xs font-semibold text-slate-400">
+                Aucun module ne correspond à votre recherche.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setModuleSearchQuery("");
+                  setModuleStatusFilter("ALL");
+                }}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white transition-colors"
+              >
+                Réinitialiser les filtres
+              </button>
+            </div>
+          ) : (
+            filteredCourses.map((course) => {
+              const readiness = getCourseReadiness(course);
+              return (
+                <div
+                  key={course.id}
+                  className={`${curriculumUi.moduleCard} ${
+                    newSectionCourseId === course.id ? curriculumUi.moduleCardActive : ""
+                  }`}
+                >
+                  {editingCourse?.id === course.id ? (
+                    <form onSubmit={handleSaveEditCourse} className="space-y-4">
+                      <div className={`flex items-center justify-between ${curriculumUi.divider} pb-2`}>
+                        <p className="text-[10px] font-black uppercase tracking-wider text-emerald-400">
+                          Modifier le module
+                        </p>
                       </div>
-                      <ChevronDown
-                        className={`h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200 ${
-                          isEditOptionalSectionOpen ? "rotate-180" : ""
-                        }`}
-                      />
-                    </button>
 
-                    {isEditOptionalSectionOpen && (
-                      <div className="space-y-4 p-4 pt-2 border-t border-slate-800/60">
-                        <label className="block space-y-1.5">
-                          <span className={curriculumUi.label}>
-                            Description pédagogique{" "}
-                            <span className="text-slate-400 font-normal text-xs text-transform-none">(facultatif)</span>
-                          </span>
-                          <textarea
-                            rows={3}
-                            placeholder="Description"
-                            value={editCourseForm.description}
-                            onChange={(e) => setEditCourseForm((prev) => ({ ...prev, description: e.target.value }))}
-                            className={`${inputFocus} resize-none`}
+                      <label className="block space-y-1.5">
+                        <span className={curriculumUi.label}>Titre du module</span>
+                        <input
+                          required
+                          placeholder="Titre du module"
+                          value={editCourseForm.title}
+                          onChange={(e) => setEditCourseForm((prev) => ({ ...prev, title: e.target.value }))}
+                          className={`${curriculumUi.input} ${getStepTheme(1).focus}`}
+                        />
+                      </label>
+
+                      <div className="rounded-xl border border-slate-800/80 bg-slate-950/40 overflow-hidden">
+                        <button
+                          type="button"
+                          onClick={() => setIsEditOptionalSectionOpen((prev) => !prev)}
+                          className="flex w-full items-center justify-between p-3.5 text-left transition hover:bg-slate-900/60"
+                        >
+                          <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 gap-y-0.5 pr-2">
+                            <span className={curriculumUi.label}>Options & Détails du module</span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                              (Description, Image, PA, Temps)
+                            </span>
+                          </div>
+                          <ChevronDown
+                            className={`h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200 ${
+                              isEditOptionalSectionOpen ? "rotate-180" : ""
+                            }`}
                           />
+                        </button>
+
+                        {isEditOptionalSectionOpen && (
+                          <div className="space-y-4 p-4 pt-2 border-t border-slate-800/60">
+                            <label className="block space-y-1.5">
+                              <span className={curriculumUi.label}>
+                                Description pédagogique{" "}
+                                <span className="text-slate-400 font-normal text-xs text-transform-none">(facultatif)</span>
+                              </span>
+                              <textarea
+                                rows={3}
+                                placeholder="Description"
+                                value={editCourseForm.description}
+                                onChange={(e) => setEditCourseForm((prev) => ({ ...prev, description: e.target.value }))}
+                                className={`${inputFocus} resize-none`}
+                              />
+                            </label>
+
+                            <CourseImageField
+                              file={editCourseImageFile}
+                              currentImageUrl={editingCourse.imageUrl}
+                              status={editCourseImageStatus}
+                              onFileChange={setEditCourseImageFile}
+                            />
+
+                            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                              <div className="space-y-1.5">
+                                <span className={curriculumUi.label}>{creditsLabel()}</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  placeholder={creditsLabel()}
+                                  value={editCourseForm.credits}
+                                  onChange={(e) =>
+                                    setEditCourseForm((prev) => ({
+                                      ...prev,
+                                      credits: normalizeNumericInputValue(e.target.value),
+                                    }))
+                                  }
+                                  className={inputFocus}
+                                />
+                              </div>
+
+                              <div className="space-y-1.5">
+                                <span className={curriculumUi.label}>Temps de formation estimé</span>
+                                <input
+                                  placeholder="ex: 20 heures"
+                                  value={editCourseForm.duration}
+                                  onChange={(e) => setEditCourseForm((prev) => ({ ...prev, duration: e.target.value }))}
+                                  className={inputFocus}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 items-start">
+                        <label className="block space-y-1.5">
+                          <span className={curriculumUi.label}>Discipline</span>
+                          <select
+                            value={editCourseForm.disciplineId}
+                            onChange={(e) =>
+                              setEditCourseForm((prev) => ({ ...prev, disciplineId: parseInt(e.target.value) }))
+                            }
+                            className={`${inputFocus} text-slate-700`}
+                          >
+                            {allDisciplines.map((d) => (
+                              <option key={d.id} value={d.id}>
+                                {d.name}
+                              </option>
+                            ))}
+                          </select>
                         </label>
 
-                        <CourseImageField
-                          file={editCourseImageFile}
-                          currentImageUrl={editingCourse.imageUrl}
-                          status={editCourseImageStatus}
-                          onFileChange={setEditCourseImageFile}
-                        />
-
-                        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                          <div className="space-y-1.5">
-                            <span className={curriculumUi.label}>{creditsLabel()}</span>
-                            <input
-                              type="number"
-                              min="0"
-                              placeholder={creditsLabel()}
-                              value={editCourseForm.credits}
-                              onChange={(e) =>
+                        <div className="block space-y-2">
+                          <span className={curriculumUi.label}>Tarif du module</span>
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
                                 setEditCourseForm((prev) => ({
                                   ...prev,
-                                  credits: normalizeNumericInputValue(e.target.value),
+                                  isFree: true,
+                                  price: numericInputFromNumber(FREE_COURSE_PRICE),
+                                  freeAccessStartsAt: prev.freeAccessStartsAt || newCourseFreeAccessStartsAt,
+                                  freeAccessEndsAt: prev.freeAccessEndsAt || newCourseFreeAccessEndsAt,
                                 }))
                               }
-                              className={inputFocus}
-                            />
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <span className={curriculumUi.label}>Temps de formation estimé</span>
-                            <input
-                              placeholder="ex: 20 heures"
-                              value={editCourseForm.duration}
-                              onChange={(e) => setEditCourseForm((prev) => ({ ...prev, duration: e.target.value }))}
-                              className={inputFocus}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3 items-start">
-                    <label className="block space-y-1.5">
-                      <span className={curriculumUi.label}>Discipline</span>
-                      <select
-                        value={editCourseForm.disciplineId}
-                        onChange={(e) =>
-                          setEditCourseForm((prev) => ({ ...prev, disciplineId: parseInt(e.target.value) }))
-                        }
-                        className={`${inputFocus} text-slate-700`}
-                      >
-                        {allDisciplines.map((d) => (
-                          <option key={d.id} value={d.id}>
-                            {d.name}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-
-                    <div className="block space-y-2">
-                      <span className={curriculumUi.label}>Tarif du module</span>
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setEditCourseForm((prev) => ({
-                              ...prev,
-                              isFree: true,
-                              price: numericInputFromNumber(FREE_COURSE_PRICE),
-                              freeAccessStartsAt: prev.freeAccessStartsAt || newCourseFreeAccessStartsAt,
-                              freeAccessEndsAt: prev.freeAccessEndsAt || newCourseFreeAccessEndsAt,
-                            }))
-                          }
-                          className={priceModeButtonClass(editCourseForm.isFree)}
-                        >
-                          <Gift className="h-3.5 w-3.5" />
-                          Gratuit
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setEditCourseForm((prev) => ({
-                              ...prev,
-                              isFree: false,
-                              price: paidCoursePriceInputValue(prev.price),
-                            }))
-                          }
-                          className={priceModeButtonClass(!editCourseForm.isFree)}
-                        >
-                          <DollarSign className="h-3.5 w-3.5" />
-                          Payant
-                        </button>
-                      </div>
-                      {!editCourseForm.isFree && (
-                        <>
-                          <div className="relative">
-                            <span className="absolute left-3 top-3 text-xs font-bold text-slate-400">DH</span>
-                            <input
-                              type="number"
-                              min={MIN_PAID_COURSE_PRICE}
-                              step={COURSE_PRICE_STEP}
-                              placeholder={`min. ${formatMad(MIN_PAID_COURSE_PRICE)}`}
-                              value={editCourseForm.price}
-                              onChange={(e) =>
+                              className={priceModeButtonClass(editCourseForm.isFree)}
+                            >
+                              <Gift className="h-3.5 w-3.5" />
+                              Gratuit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
                                 setEditCourseForm((prev) => ({
                                   ...prev,
-                                  price: normalizeNumericInputValue(e.target.value),
-                                }))
-                              }
-                              onBlur={() =>
-                                setEditCourseForm((prev) => ({
-                                  ...prev,
+                                  isFree: false,
                                   price: paidCoursePriceInputValue(prev.price),
                                 }))
                               }
-                              className={`${curriculumUi.inputIcon} pl-8 ${getStepTheme(1).focus}`}
-                            />
+                              className={priceModeButtonClass(!editCourseForm.isFree)}
+                            >
+                              <DollarSign className="h-3.5 w-3.5" />
+                              Payant
+                            </button>
                           </div>
-                          <p className="text-[10px] font-semibold leading-relaxed text-slate-500">
-                            Payant : minimum {formatMad(MIN_PAID_COURSE_PRICE)}.
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  </div>
+                          {!editCourseForm.isFree && (
+                            <>
+                              <div className="relative">
+                                <span className="absolute left-3 top-3 text-xs font-bold text-slate-400">DH</span>
+                                <input
+                                  type="number"
+                                  min={MIN_PAID_COURSE_PRICE}
+                                  step={COURSE_PRICE_STEP}
+                                  placeholder={`min. ${formatMad(MIN_PAID_COURSE_PRICE)}`}
+                                  value={editCourseForm.price}
+                                  onChange={(e) =>
+                                    setEditCourseForm((prev) => ({
+                                      ...prev,
+                                      price: normalizeNumericInputValue(e.target.value),
+                                    }))
+                                  }
+                                  onBlur={() =>
+                                    setEditCourseForm((prev) => ({
+                                      ...prev,
+                                      price: paidCoursePriceInputValue(prev.price),
+                                    }))
+                                  }
+                                  className={`${curriculumUi.inputIcon} pl-8 ${getStepTheme(1).focus}`}
+                                />
+                              </div>
+                              <p className="text-[10px] font-semibold leading-relaxed text-slate-500">
+                                Payant : minimum {formatMad(MIN_PAID_COURSE_PRICE)}.
+                              </p>
+                            </>
+                          )}
+                        </div>
+                      </div>
 
-                  {editCourseForm.isFree && (
-                    <FreeAccessWindowFields
-                      startsAt={editCourseForm.freeAccessStartsAt}
-                      endsAt={editCourseForm.freeAccessEndsAt}
-                      onStartsAtChange={(value) =>
-                        setEditCourseForm((prev) => ({ ...prev, freeAccessStartsAt: value }))
-                      }
-                      onEndsAtChange={(value) => setEditCourseForm((prev) => ({ ...prev, freeAccessEndsAt: value }))}
-                      inputClassName={`${curriculumUi.input} ${getStepTheme(1).focus}`}
-                    />
-                  )}
-
-                  <div className="flex gap-2 pt-1">
-                    <button type="submit" className={`${curriculumUi.createBtn} flex-1`}>
-                      <Save className="h-4 w-4" /> Enregistrer
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditCourseImageFile(null);
-                        setEditingCourse(null);
-                      }}
-                      className="inline-flex items-center justify-center gap-1 rounded-xl border border-slate-700 bg-slate-900/60 px-4 py-3 text-xs font-black text-slate-300 transition-colors hover:bg-slate-800"
-                    >
-                      Annuler
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex min-w-0 flex-1 items-start gap-3">
-                      {course.imageUrl && (
-                        <img
-                          src={course.imageUrl}
-                          alt=""
-                          className="h-14 w-14 shrink-0 rounded-xl border border-slate-700 object-cover"
+                      {editCourseForm.isFree && (
+                        <FreeAccessWindowFields
+                          startsAt={editCourseForm.freeAccessStartsAt}
+                          endsAt={editCourseForm.freeAccessEndsAt}
+                          onStartsAtChange={(value) =>
+                            setEditCourseForm((prev) => ({ ...prev, freeAccessStartsAt: value }))
+                          }
+                          onEndsAtChange={(value) => setEditCourseForm((prev) => ({ ...prev, freeAccessEndsAt: value }))}
+                          inputClassName={`${curriculumUi.input} ${getStepTheme(1).focus}`}
                         />
                       )}
-                      <div className="min-w-0 space-y-2">
-                        <h4 className="text-base font-black text-white leading-snug">{course.title}</h4>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span
-                            className={`rounded border px-2.5 py-0.5 text-[9px] font-black uppercase ${getStepTheme(1).chip}`}
-                          >
-                            {course.discipline?.name || course.category}
-                          </span>
+
+                      <div className="flex gap-2 pt-1">
+                        <button type="submit" className={`${curriculumUi.createBtn} flex-1`}>
+                          <Save className="h-4 w-4" /> Enregistrer
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditCourseImageFile(null);
+                            setEditingCourse(null);
+                          }}
+                          className="inline-flex items-center justify-center gap-1 rounded-xl border border-slate-700 bg-slate-900/60 px-4 py-3 text-xs font-black text-slate-300 transition-colors hover:bg-slate-800"
+                        >
+                          Annuler
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex min-w-0 flex-1 items-start gap-3">
+                          {course.imageUrl && (
+                            <img
+                              src={course.imageUrl}
+                              alt=""
+                              className="h-14 w-14 shrink-0 rounded-xl border border-slate-700 object-cover"
+                            />
+                          )}
+                          <div className="min-w-0 space-y-2">
+                            <h4 className="text-base font-black text-white leading-snug">{course.title}</h4>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span
+                                className={`rounded border px-2.5 py-0.5 text-[9px] font-black uppercase ${getStepTheme(1).chip}`}
+                              >
+                                {course.discipline?.name || course.category}
+                              </span>
+                            </div>
+                            <p className="line-clamp-2 text-xs leading-relaxed text-slate-400">{course.description}</p>
+                          </div>
                         </div>
-                        <p className="line-clamp-2 text-xs leading-relaxed text-slate-400">{course.description}</p>
+
+                        <div className="flex flex-col items-end gap-1.5 shrink-0">
+                          <span className={publishedBadge(course.published ?? false)}>
+                            <span
+                              className={`h-1.5 w-1.5 rounded-full ${course.published ? "bg-emerald-400" : "bg-lime-400"}`}
+                            />
+                            {publishedLabel(course.published ?? false)}
+                          </span>
+                          {readiness.isReady ? (
+                            <span className="inline-flex items-center gap-1 rounded bg-emerald-950/60 px-2 py-0.5 text-[9px] font-bold text-emerald-300 border border-emerald-500/30">
+                              <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" /> Prêt
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded bg-amber-950/60 px-2 py-0.5 text-[9px] font-bold text-amber-300 border border-amber-500/30">
+                              <AlertCircle className="w-2.5 h-2.5 text-amber-400" /> {readiness.score}% prêt
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        <span className={curriculumUi.statPill}>
+                          <Award className="w-3.5 h-3.5 text-slate-500" />
+                          {formatCredits(course.credits)}
+                        </span>
+                        <span className={curriculumUi.statPill}>
+                          <Clock className="w-3.5 h-3.5 text-slate-500" />
+                          {course.duration}
+                        </span>
+                        <span className={course.price > 0 ? curriculumUi.statPrice : curriculumUi.statPill}>
+                          <DollarSign className="w-3.5 h-3.5" />
+                          {course.price > 0
+                            ? formatMad(course.price)
+                            : formatFreeAccessDurationLabel(
+                                course.freeAccessDurationDays,
+                                course.freeAccessStartsAt,
+                                course.freeAccessEndsAt,
+                              )}
+                        </span>
+                      </div>
+
+                      <div className={`flex flex-wrap items-center justify-between gap-3 pt-4 ${curriculumUi.divider}`}>
+                        <div className="flex flex-wrap gap-2">
+                          <a
+                            href={`/student/course?courseId=${course.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`${curriculumUi.ghostBtn} border-emerald-500/30 text-emerald-300 hover:text-white hover:bg-emerald-950/40`}
+                            title="Aperçu étudiant de ce module"
+                          >
+                            <ExternalLink className="h-3.5 w-3.5 text-emerald-400" />
+                            <span className="hidden sm:inline">Aperçu étudiant</span>
+                          </a>
+                          <button onClick={() => handleUpdateCourseDetails(course)} className={curriculumUi.ghostBtn}>
+                            <Edit3 className="h-3.5 w-3.5" />
+                            <span className="hidden sm:inline">Modifier</span>
+                          </button>
+                          <button
+                            onClick={() => handleToggleCoursePublished(course)}
+                            className={course.published ? curriculumUi.unpublishBtn : curriculumUi.ghostBtn}
+                          >
+                            {course.published ? (
+                              <>
+                                <EyeOff className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Dépublier</span>
+                              </>
+                            ) : (
+                              <>
+                                <Eye className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Publier</span>
+                              </>
+                            )}
+                          </button>
+                          <button onClick={() => handleDeleteCourse(course)} className={curriculumUi.dangerBtn}>
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">Supprimer</span>
+                          </button>
+                        </div>
+
+                        <button
+                          onClick={() =>
+                            handleSelectManagedCourse(course.id).then(() => setActiveCurriculumStep(chaptersStep))
+                          }
+                          className={curriculumUi.manageBtn}
+                        >
+                          Gérer le programme
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
-
-                    <span className={publishedBadge(course.published ?? false)}>
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full ${course.published ? "bg-emerald-400" : "bg-lime-400"}`}
-                      />
-                      {publishedLabel(course.published ?? false)}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    <span className={curriculumUi.statPill}>
-                      <Award className="w-3.5 h-3.5 text-slate-500" />
-                      {formatCredits(course.credits)}
-                    </span>
-                    <span className={curriculumUi.statPill}>
-                      <Clock className="w-3.5 h-3.5 text-slate-500" />
-                      {course.duration}
-                    </span>
-                    <span className={course.price > 0 ? curriculumUi.statPrice : curriculumUi.statPill}>
-                      <DollarSign className="w-3.5 h-3.5" />
-                      {course.price > 0
-                        ? formatMad(course.price)
-                        : formatFreeAccessDurationLabel(
-                            course.freeAccessDurationDays,
-                            course.freeAccessStartsAt,
-                            course.freeAccessEndsAt,
-                          )}
-                    </span>
-                  </div>
-
-                  <div className={`flex flex-wrap items-center justify-between gap-3 pt-4 ${curriculumUi.divider}`}>
-                    <div className="flex gap-2">
-                      <button onClick={() => handleUpdateCourseDetails(course)} className={curriculumUi.ghostBtn}>
-                        <Edit3 className="h-3.5 w-3.5" />
-                        <span className="hidden sm:inline">Modifier</span>
-                      </button>
-                      <button
-                        onClick={() => handleToggleCoursePublished(course)}
-                        className={course.published ? curriculumUi.unpublishBtn : curriculumUi.ghostBtn}
-                      >
-                        {course.published ? (
-                          <>
-                            <EyeOff className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">Dépublier</span>
-                          </>
-                        ) : (
-                          <>
-                            <Eye className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">Publier</span>
-                          </>
-                        )}
-                      </button>
-                      <button onClick={() => handleDeleteCourse(course)} className={curriculumUi.dangerBtn}>
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Supprimer</span>
-                      </button>
-                    </div>
-
-                    <button
-                      onClick={() =>
-                        handleSelectManagedCourse(course.id).then(() => setActiveCurriculumStep(chaptersStep))
-                      }
-                      className={curriculumUi.manageBtn}
-                    >
-                      Gérer le programme
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
+                  )}
                 </div>
-              )}
-            </div>
-          ))}
+              );
+            })
+          )}
         </div>
       </div>
     </div>

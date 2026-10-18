@@ -872,6 +872,40 @@ export function registerContentRoutes(app: Express, ctx: RouteContext): void {
     },
   );
 
+  // POST /api/courses/:courseId/reorder-sections
+  app.post(
+    "/api/courses/:courseId/reorder-sections",
+    requireAuth,
+    requireRbac,
+    validateBody(api.reorderSectionsSchema),
+    async (req, res) => {
+      const authUser = getAuthUser(req);
+      const courseId = parseInt(req.params.courseId);
+
+      if (!(await api.verifyCourseAccess(authUser, courseId))) {
+        res.status(403).json({ error: "Accès refusé pour modifier ce cours" });
+        return;
+      }
+
+      const { sectionIds } = req.body as { sectionIds: string[] };
+
+      await api.prisma.$transaction(
+        sectionIds.map((id, index) =>
+          api.prisma.contentSection.update({
+            where: { id },
+            data: { order: index },
+          })
+        )
+      );
+
+      api.logDb("INFO", "Content sections reordered", { courseId, count: sectionIds.length });
+
+      await refreshStudentCourseModules(courseId);
+
+      res.json({ success: true, count: sectionIds.length });
+    },
+  );
+
   // DELETE /api/lesson-contents/:id
 
   app.delete("/api/lesson-contents/:id", requireAuth, requireRbac, async (req, res) => {

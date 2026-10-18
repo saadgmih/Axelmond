@@ -910,6 +910,17 @@ export function useTeacherCurriculum({
     }
   };
 
+  const handleReorderSections = async (sectionIds: string[]) => {
+    if (!managedCourse || sectionIds.length === 0) return;
+    try {
+      await api.reorderSections(managedCourse.id, sectionIds);
+      await refreshCourseContent(managedCourse.id);
+      showCurriculumSuccess("Ordre des chapitres mis à jour.");
+    } catch (err: any) {
+      showCurriculumError(getClientErrorMessage(err, "Impossible de réorganiser les chapitres."));
+    }
+  };
+
   const managedCourse = managedCourses.find((course) => course.id === newSectionCourseId) || managedCourses[0] || null;
   const managedSections = flattenSectionsFn(courseContent.courseContentSections);
   const chapterSections = managedSections.filter((section) => !section.parentId);
@@ -1047,5 +1058,6 @@ export function useTeacherCurriculum({
     handleDeleteLessonContent,
     handleUpdateLessonContentTitle,
     handleReorderLessonContents,
+    handleReorderSections,
   };
 }

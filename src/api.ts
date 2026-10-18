@@ -547,6 +547,8 @@ export const api = {
     request<any>("PATCH", `/api/lesson-contents/${contentId}`, data),
   reorderLessonContents: (courseId: number, contentIds: string[]) =>
     request<{ success: boolean; count: number }>("POST", `/api/courses/${courseId}/reorder-contents`, { contentIds }),
+  reorderSections: (courseId: number, sectionIds: string[]) =>
+    request<{ success: boolean; count: number }>("POST", `/api/courses/${courseId}/reorder-sections`, { sectionIds }),
   deleteLessonContent: (contentId: string) => request<any>("DELETE", `/api/lesson-contents/${contentId}`),
   getLessonContentMediaSource: (contentId: string) =>
     request<{ sourceUrl: string; proxySourceUrl?: string; mimeType: string; brandedIntroDuration?: number }>(

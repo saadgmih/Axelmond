@@ -140,4 +140,5 @@ export interface TeacherCurriculumViewProps extends AdminAcademicTaxonomyViewPro
   handleDeleteLessonContent: (...args: any[]) => void | Promise<void>;
   handleUpdateLessonContentTitle?: (content: LessonContent, explicitTitle?: string) => void | Promise<void>;
   handleReorderLessonContents?: (contentIds: string[]) => void | Promise<void>;
+  handleReorderSections?: (sectionIds: string[]) => void | Promise<void>;
 }

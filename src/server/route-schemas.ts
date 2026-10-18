@@ -314,6 +314,10 @@ export const reorderLessonContentsSchema = z.object({
   contentIds: z.array(z.string().min(1)).min(1),
 });
 
+export const reorderSectionsSchema = z.object({
+  sectionIds: z.array(z.string().min(1)).min(1),
+});
+
 export const quizSchema = z.object({
   moduleId: z.number().int().positive().optional().nullable(),
   sectionId: z.string().trim().optional().nullable(),

@@ -241,6 +241,10 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
     return teacherSpaceRoles.includes(normalized);
   }
 
+  if (verb === "POST" && /^\/api\/courses\/\d+\/reorder-sections$/.test(cleanPath)) {
+    return teacherSpaceRoles.includes(normalized);
+  }
+
   if (verb === "PUT" && cleanPath === "/api/lesson-contents/reorder") {
     return teacherSpaceRoles.includes(normalized);
   }

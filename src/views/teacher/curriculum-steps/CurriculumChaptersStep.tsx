@@ -13,6 +13,8 @@ import {
   ArrowUp,
   ArrowDown,
   Copy,
+  ExternalLink,
+  X,
 } from "lucide-react";
 
 import { RASTER_IMAGE_ACCEPT } from "../../../avatar-security";
@@ -60,6 +62,7 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
     handleDeleteLessonContent,
     handleUpdateLessonContentTitle,
     handleReorderLessonContents,
+    handleReorderSections,
   } = props;
 
   const [mediaSourceTab, setMediaSourceTab] = useState<"upload" | "library">("upload");
@@ -77,6 +80,19 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
 
   const activeChapter = chapterSections.find((s) => s.id === uploadSectionId) || chapterSections[0] || null;
   const activeChapterContents = activeChapter?.contents?.length ? activeChapter.contents : selectedManagedContents;
+
+  const handleMoveChapter = async (index: number, direction: -1 | 1) => {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= chapterSections.length) return;
+    const newOrder = [...chapterSections];
+    const item = newOrder[index];
+    newOrder[index] = newOrder[targetIndex];
+    newOrder[targetIndex] = item;
+    const sectionIds = newOrder.map((s) => s.id);
+    if (handleReorderSections) {
+      await handleReorderSections(sectionIds);
+    }
+  };
 
   const handleMoveContent = async (index: number, direction: -1 | 1) => {
     const targetIndex = index + direction;
@@ -136,6 +152,32 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+      {managedCourse && (
+        <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl border border-teal-500/20 bg-[#031512]/90 backdrop-blur-md shadow-md">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="shrink-0 flex items-center justify-center w-8 h-8 rounded-xl bg-teal-500/20 text-teal-400 border border-teal-500/30 font-black text-xs font-mono">
+              #{managedCourse.id}
+            </span>
+            <div className="min-w-0">
+              <h2 className="text-sm font-extrabold text-white truncate">{managedCourse.title}</h2>
+              <p className="text-[11px] text-slate-400">
+                {chapterSections.length} chapitre{chapterSections.length !== 1 ? "s" : ""} · {managedCourse.discipline?.name || managedCourse.category || "Cours"}
+              </p>
+            </div>
+          </div>
+          <a
+            href={`/student/course?courseId=${managedCourse.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-300 hover:text-white px-3.5 py-2 text-xs font-bold transition-all shadow-sm active:scale-95 group"
+            title="Ouvrir l'aperçu du cours tel que les étudiants le voient"
+          >
+            <ExternalLink className="w-3.5 h-3.5 group-hover:scale-110 transition-transform text-emerald-400" />
+            <span>Aperçu étudiant</span>
+          </a>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Chapters Management */}
         <div className="lg:col-span-5 space-y-5 self-start">
@@ -204,7 +246,7 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
                   </p>
                 </div>
               ) : (
-                chapterSections.map((section) => {
+                chapterSections.map((section, chapterIndex) => {
                   const isSelected = activeChapter?.id === section.id;
                   const mediaCount = (section.contents ?? []).length;
                   return (
@@ -220,6 +262,9 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
                       <div className="flex items-start justify-between gap-3">
                         <div className="space-y-1 min-w-0 flex-1">
                           <div className="flex items-center gap-2">
+                            <span className="rounded px-2 py-0.5 text-[9px] font-black tracking-wider bg-teal-950 text-teal-300 border border-teal-500/40 font-mono">
+                              #{chapterIndex + 1}
+                            </span>
                             <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">
                               Chapitre
                             </span>
@@ -243,7 +288,32 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
                         className={`flex flex-wrap items-center justify-between gap-2 pt-3 ${curriculumUi.divider} mt-3`}
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <div className="flex flex-wrap gap-1.5">
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleMoveChapter(chapterIndex, -1)}
+                            disabled={chapterIndex === 0}
+                            className="inline-flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-900/80 px-2 py-1 text-[11px] font-bold text-slate-300 transition-colors hover:border-teal-500/40 hover:text-white disabled:opacity-25 disabled:cursor-not-allowed"
+                            title="Monter ce chapitre"
+                            aria-label="Monter ce chapitre"
+                          >
+                            <ArrowUp className="h-3.5 w-3.5 text-teal-400" />
+                            Monter
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleMoveChapter(chapterIndex, 1)}
+                            disabled={chapterIndex === chapterSections.length - 1}
+                            className="inline-flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-900/80 px-2 py-1 text-[11px] font-bold text-slate-300 transition-colors hover:border-teal-500/40 hover:text-white disabled:opacity-25 disabled:cursor-not-allowed"
+                            title="Descendre ce chapitre"
+                            aria-label="Descendre ce chapitre"
+                          >
+                            <ArrowDown className="h-3.5 w-3.5 text-teal-400" />
+                            Descendre
+                          </button>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-1.5">
                           <button
                             type="button"
                             onClick={() => handleUpdateSectionTitle(section)}
@@ -270,18 +340,18 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
                           >
                             Supprimer chapitre
                           </button>
+                          <button
+                            type="button"
+                            onClick={() => handleSetUploadSectionId(section.id)}
+                            className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[10px] font-black transition-colors ${
+                              isSelected ? "bg-teal-500 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                            }`}
+                          >
+                            <Video className="w-3 h-3" />
+                            Médias
+                            <ChevronRight className="w-3 h-3" />
+                          </button>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => handleSetUploadSectionId(section.id)}
-                          className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[10px] font-black transition-colors ${
-                            isSelected ? "bg-teal-500 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
-                          }`}
-                        >
-                          <Video className="w-3 h-3" />
-                          Médias
-                          <ChevronRight className="w-3 h-3" />
-                        </button>
                       </div>
                     </div>
                   );
@@ -447,6 +517,17 @@ export default function CurriculumChaptersStep(props: TeacherCurriculumViewProps
                         >
                           {isUploadingLessonAsset && <Loader2 className="inline h-4 w-4 animate-spin mr-2" />}
                           {uploadStatusMsg}
+                        </div>
+                      )}
+
+                      {isUploadingLessonAsset && (
+                        <div className="space-y-1.5 pt-1">
+                          <div className="h-2 w-full overflow-hidden rounded-full bg-slate-900 border border-teal-500/30">
+                            <div className="h-full rounded-full bg-gradient-to-r from-teal-500 via-emerald-400 to-teal-300 animate-pulse w-full" />
+                          </div>
+                          <p className="text-[10px] text-teal-300/80 font-medium">
+                            Téléversement sécurisé et confirmation en cours...
+                          </p>
                         </div>
                       )}
 
