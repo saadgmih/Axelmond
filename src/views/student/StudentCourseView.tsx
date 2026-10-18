@@ -558,6 +558,12 @@ export default function StudentCourseView({
                             </div>
                             <div>
                               <h4 className="text-sm font-bold text-white">{selectedLessonContent.title}</h4>
+                              {selectedLessonContent.type !== "VIDEO" &&
+                                selectedLessonContent.type !== "IMAGE" && (
+                                  <p className="text-[11px] text-slate-400">
+                                    Document pédagogique
+                                  </p>
+                                )}
                             </div>
                           </div>
                         </div>
