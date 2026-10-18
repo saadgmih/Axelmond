@@ -12,6 +12,8 @@ import {
   LazyStudentCenterPaymentsView,
 } from "../lazyViews";
 import { CHARITY_LOADING_LABEL } from "../charity-labels";
+import { IS_MESSAGING_TEMPORARILY_CLOSED } from "../feature-flags";
+import { MessagingClosedView } from "../views/shared/MessagingClosedView";
 import { getCourseIcon, getDomainIcon } from "./catalogIcons";
 import { NotificationsRoutePanel } from "./NotificationsRoutePanel";
 import {
@@ -160,11 +162,15 @@ export function StudentRouteSwitch() {
         </Suspense>
       )}
       {currentView === "messages" && (
-        <Suspense fallback={<RouteChunkFallback label="Chargement de la messagerie…" />}>
-          <div className="p-4 md:p-8">
-            <LazyMessagesView currentUserId={currentUser.id} role="student" />
-          </div>
-        </Suspense>
+        IS_MESSAGING_TEMPORARILY_CLOSED ? (
+          <MessagingClosedView onBackToDashboard={() => navigateTo("dashboard")} role="student" />
+        ) : (
+          <Suspense fallback={<RouteChunkFallback label="Chargement de la messagerie…" />}>
+            <div className="p-4 md:p-8">
+              <LazyMessagesView currentUserId={currentUser.id} role="student" />
+            </div>
+          </Suspense>
+        )
       )}
       {currentView === "notifications" && <NotificationsRoutePanel />}
       {currentView === "charity" && (

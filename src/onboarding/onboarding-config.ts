@@ -250,6 +250,12 @@ const onboardingSteps: Record<OnboardingFlow, OnboardingStep[]> = {
   ADMIN: adminSteps,
 };
 
+import { IS_MESSAGING_TEMPORARILY_CLOSED } from "../feature-flags";
+
 export function getOnboardingSteps(flow: OnboardingFlow): OnboardingStep[] {
-  return onboardingSteps[flow];
+  const steps = onboardingSteps[flow] || [];
+  if (IS_MESSAGING_TEMPORARILY_CLOSED) {
+    return steps.filter((step) => step.view !== "messages");
+  }
+  return steps;
 }

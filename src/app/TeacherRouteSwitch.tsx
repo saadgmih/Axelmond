@@ -17,6 +17,8 @@ import {
   RouteChunkFallback,
 } from "../lazyViews";
 import { CHARITY_LOADING_LABEL } from "../charity-labels";
+import { IS_MESSAGING_TEMPORARILY_CLOSED } from "../feature-flags";
+import { MessagingClosedView } from "../views/shared/MessagingClosedView";
 import { NotificationsRoutePanel } from "./NotificationsRoutePanel";
 import {
   usePlatformBindings,
@@ -149,11 +151,15 @@ export function TeacherRouteSwitch() {
           </Suspense>
         )}
         {teacherView === "messages" && (
-          <Suspense fallback={<RouteChunkFallback label="Chargement de la messagerie…" />}>
-            <div className="p-4 md:p-8">
-              <LazyMessagesView currentUserId={currentUser.id} role="teacher" />
-            </div>
-          </Suspense>
+          IS_MESSAGING_TEMPORARILY_CLOSED ? (
+            <MessagingClosedView onBackToDashboard={() => handleTeacherViewChange("dashboard")} role="teacher" />
+          ) : (
+            <Suspense fallback={<RouteChunkFallback label="Chargement de la messagerie…" />}>
+              <div className="p-4 md:p-8">
+                <LazyMessagesView currentUserId={currentUser.id} role="teacher" />
+              </div>
+            </Suspense>
+          )
         )}
         {teacherView === "notifications" && <NotificationsRoutePanel />}
         {teacherView === "live-control" && (

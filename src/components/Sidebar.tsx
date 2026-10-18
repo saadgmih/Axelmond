@@ -22,6 +22,7 @@ import {
   type SidebarNavGroup,
   type SidebarNavItem,
 } from "../navigation/sidebar-config";
+import { IS_MESSAGING_TEMPORARILY_CLOSED } from "../feature-flags";
 import { SidebarNavButton } from "./sidebar/SidebarNavButton";
 import AccessibilityControls from "./AccessibilityControls";
 import { UserProfileTrigger } from "./UserProfileViewer";
@@ -91,7 +92,7 @@ export default function Sidebar({
   }, [isDrawer, isMobileMenuOpen]);
 
   const conversations = useSidebarConversations(
-    Boolean(currentUser) && (isDrawer ? isMobileMenuOpen : isDockedVisible),
+    !IS_MESSAGING_TEMPORARILY_CLOSED && Boolean(currentUser) && (isDrawer ? isMobileMenuOpen : isDockedVisible),
   );
   const navGroups = useMemo(() => getSidebarNavGroups(role, currentUser?.role), [role, currentUser?.role]);
 
@@ -157,9 +158,11 @@ export default function Sidebar({
       );
     });
 
-  const messageUnreadCount = conversations.reduce((total, conversation) => total + conversation.unreadCount, 0);
+  const messageUnreadCount = IS_MESSAGING_TEMPORARILY_CLOSED
+    ? 0
+    : conversations.reduce((total, conversation) => total + conversation.unreadCount, 0);
   const communicationUnreadCount = messageUnreadCount + notificationUnreadCount;
-  const isMessagesActive = role === "student" ? currentView === "messages" : teacherView === "messages";
+  const isMessagesActive = !IS_MESSAGING_TEMPORARILY_CLOSED && (role === "student" ? currentView === "messages" : teacherView === "messages");
 
   const renderMessages = () => (
     <div className="space-y-1">
@@ -235,9 +238,9 @@ export default function Sidebar({
   const renderCategory = (group: SidebarNavGroup) => {
     const isOpen = openCategoryId === group.id;
     const hasActiveItem = group.items.some((item) => item.isActive(navContext));
-    const isActive = hasActiveItem || (group.id === "communication" && isMessagesActive);
+    const isActive = hasActiveItem || (!IS_MESSAGING_TEMPORARILY_CLOSED && group.id === "communication" && isMessagesActive);
     const badge = group.id === "communication" ? communicationUnreadCount : 0;
-    const onboardingTarget = group.id === "communication" ? "messages" : undefined;
+    const onboardingTarget = group.id === "communication" ? (IS_MESSAGING_TEMPORARILY_CLOSED ? undefined : "messages") : undefined;
     const contentId = `sidebar-category-${group.id}-content`;
     const GroupIcon = group.icon;
 
@@ -274,7 +277,7 @@ export default function Sidebar({
         {isOpen && (
           <div id={contentId} className="space-y-1 border-l border-teal-400/20 pb-1 pl-2" data-category-content>
             {renderNavItems(group.items)}
-            {group.id === "communication" && renderMessages()}
+            {group.id === "communication" && !IS_MESSAGING_TEMPORARILY_CLOSED && renderMessages()}
           </div>
         )}
       </section>
