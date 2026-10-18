@@ -609,23 +609,6 @@ export default function PremiumVideoPlayer({
           </div>
         </div>
 
-        <label className="course-video-speed hidden sm:flex shrink-0 items-center gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-300">
-          <span className="course-video-speed-label">Vitesse</span>
-          <select
-            value={playbackRate}
-            onChange={handlePlaybackRateChange}
-            aria-label="Vitesse de lecture"
-            className={`course-video-speed-select h-8 cursor-pointer rounded-lg border border-slate-700 bg-slate-900 px-2 font-mono text-[11px] text-white outline-none focus:ring-2 ${controlFocusClass}`}
-            title="Modifier la vitesse de lecture"
-          >
-            {COURSE_VIDEO_PLAYBACK_RATES.map((rate) => (
-              <option key={rate} value={rate}>
-                {rate}x
-              </option>
-            ))}
-          </select>
-        </label>
-
         {/* Settings button and popover (Quality & Speed) */}
         <div
           ref={settingsContainerRef}
@@ -743,6 +726,7 @@ export default function PremiumVideoPlayer({
                     >
                       <ChevronLeft className="w-3.5 h-3.5 text-slate-500" />
                       <span>Speed</span>
+                      <span className="sr-only">Vitesse</span>
                     </button>
                   </div>
                   <div
