@@ -32,22 +32,26 @@ describe("PremiumVideoPlayer Settings Popover (Quality & Speed)", () => {
     // Click Quality row
     fireEvent.click(screen.getByText("Quality"));
 
-    // Quality submenu is shown
+    // Quality submenu is shown with 4K, 2K, 1080p, 720p, 480p, 360p
+    expect(screen.getByText("2160p")).toBeInTheDocument();
+    expect(screen.getByText("4K")).toBeInTheDocument();
+    expect(screen.getByText("1440p")).toBeInTheDocument();
+    expect(screen.getByText("2K")).toBeInTheDocument();
     expect(screen.getByText("1080p")).toBeInTheDocument();
     expect(screen.getByText("720p")).toBeInTheDocument();
     expect(screen.getByText("480p")).toBeInTheDocument();
     expect(screen.getByText("360p")).toBeInTheDocument();
 
-    // Select 720p
-    fireEvent.click(screen.getByText("720p"));
+    // Select 4K
+    fireEvent.click(screen.getByText("4K"));
 
-    // Popover closes, and localStorage remembers 720p
-    expect(window.localStorage.getItem("axelmond-video-quality")).toBe("720p");
-    expect(screen.queryByText("1080p")).not.toBeInTheDocument();
+    // Popover closes, and localStorage remembers 4K
+    expect(window.localStorage.getItem("axelmond-video-quality")).toBe("4K");
+    expect(screen.queryByText("2160p")).not.toBeInTheDocument();
 
-    // Reopen settings menu
+    // Reopen settings menu - main row displays 4K
     fireEvent.click(settingsButton);
-    expect(screen.getByText("720p")).toBeInTheDocument();
+    expect(screen.getByText("4K")).toBeInTheDocument();
 
     // Click Speed row
     fireEvent.click(screen.getByText("Speed"));

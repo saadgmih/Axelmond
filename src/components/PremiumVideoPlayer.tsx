@@ -25,13 +25,15 @@ const VIDEO_RETRY_BASE_DELAY_MS = 500;
 const MAX_BRANDED_INTRO_DURATION_SECONDS = 30;
 const DEFAULT_BRANDED_INTRO_DURATION_SECONDS = 1.75;
 
-export type VideoQuality = "auto" | "1080p" | "720p" | "480p" | "360p";
+export type VideoQuality = "auto" | "4K" | "2K" | "1080p" | "720p" | "480p" | "360p";
 export type SettingsView = "main" | "quality" | "speed";
 
-export const VIDEO_QUALITY_OPTIONS: Array<{ value: VideoQuality; label: string; isHd?: boolean }> = [
+export const VIDEO_QUALITY_OPTIONS: Array<{ value: VideoQuality; label: string; badge?: string }> = [
   { value: "auto", label: "Auto" },
-  { value: "1080p", label: "1080p", isHd: true },
-  { value: "720p", label: "720p", isHd: true },
+  { value: "4K", label: "2160p", badge: "4K" },
+  { value: "2K", label: "1440p", badge: "2K" },
+  { value: "1080p", label: "1080p", badge: "HD" },
+  { value: "720p", label: "720p", badge: "HD" },
   { value: "480p", label: "480p" },
   { value: "360p", label: "360p" },
 ];
@@ -42,7 +44,7 @@ function readStoredVideoQuality(): VideoQuality {
   if (typeof window === "undefined") return "auto";
   try {
     const stored = window.localStorage.getItem(VIDEO_QUALITY_STORAGE_KEY) as VideoQuality | null;
-    if (stored && ["auto", "1080p", "720p", "480p", "360p"].includes(stored)) {
+    if (stored && ["auto", "4K", "2K", "1080p", "720p", "480p", "360p"].includes(stored)) {
       return stored;
     }
   } catch {
@@ -429,7 +431,9 @@ export default function PremiumVideoPlayer({
           setVideoLoadState("READY");
           const video = videoRef.current;
           if (video && video.videoHeight) {
-            if (video.videoHeight >= 1080) setDetectedResolution("1080p");
+            if (video.videoHeight >= 2160) setDetectedResolution("4K");
+            else if (video.videoHeight >= 1440) setDetectedResolution("2K");
+            else if (video.videoHeight >= 1080) setDetectedResolution("1080p");
             else if (video.videoHeight >= 720) setDetectedResolution("720p");
             else if (video.videoHeight >= 480) setDetectedResolution("480p");
             else setDetectedResolution("360p");
@@ -703,9 +707,17 @@ export default function PremiumVideoPlayer({
                               <span className="w-3.5 shrink-0" />
                             )}
                             <span>{opt.label}</span>
-                            {opt.isHd && (
-                              <span className="rounded bg-slate-100 px-1 py-0.5 text-[9px] font-black uppercase text-slate-500">
-                                HD
+                            {opt.badge && (
+                              <span
+                                className={`rounded px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider ${
+                                  opt.badge === "4K"
+                                    ? "bg-amber-100 text-amber-800 border border-amber-200/60"
+                                    : opt.badge === "2K"
+                                    ? "bg-sky-100 text-sky-800 border border-sky-200/60"
+                                    : "bg-slate-100 text-slate-500"
+                                }`}
+                              >
+                                {opt.badge}
                               </span>
                             )}
                           </div>
