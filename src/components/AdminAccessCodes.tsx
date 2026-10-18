@@ -123,6 +123,28 @@ export function AdminAccessCodes({
   } | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [deletingCodeId, setDeletingCodeId] = useState<string | null>(null);
+  const [codeSearch, setCodeSearch] = useState("");
+
+  const displayedCodes = useMemo(() => {
+    const q = codeSearch.trim().toLowerCase();
+    if (!q) return codes;
+    return codes.filter((c) => {
+      if (c.code.toLowerCase().includes(q)) return true;
+      if (c.internalName?.toLowerCase().includes(q)) return true;
+      if (c.modules?.some((m) => m.course.title.toLowerCase().includes(q))) return true;
+      if (
+        c.usages?.some(
+          (u) =>
+            u.user.fullName.toLowerCase().includes(q) ||
+            u.user.email.toLowerCase().includes(q) ||
+            u.course?.title.toLowerCase().includes(q),
+        )
+      ) {
+        return true;
+      }
+      return false;
+    });
+  }, [codes, codeSearch]);
 
   // Load courses if not provided
   useEffect(() => {
@@ -628,10 +650,24 @@ export function AdminAccessCodes({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <KeyRound className="h-4 w-4 text-emerald-400" />
-            <h3 className="text-sm font-bold text-white">Codes existants ({codes.length})</h3>
+            <h3 className="text-sm font-bold text-white">
+              Codes existants ({displayedCodes.length !== codes.length ? `${displayedCodes.length} / ${codes.length}` : codes.length})
+            </h3>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Quick search input */}
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+              <input
+                type="text"
+                value={codeSearch}
+                onChange={(e) => setCodeSearch(e.target.value)}
+                placeholder="Rechercher code, étudiant..."
+                className="w-44 sm:w-52 rounded-lg border border-white/10 bg-slate-900 pl-8 pr-2.5 py-1 text-xs text-white placeholder-slate-500 outline-none focus:border-emerald-400/50"
+              />
+            </div>
+
             {/* Filter by course */}
             <div className="flex items-center gap-1.5 text-xs text-slate-400">
               <Filter className="h-3.5 w-3.5" />
@@ -665,13 +701,13 @@ export function AdminAccessCodes({
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
           </div>
-        ) : codes.length === 0 ? (
+        ) : displayedCodes.length === 0 ? (
           <div className="rounded-xl border border-dashed border-white/10 p-8 text-center text-xs text-slate-500">
-            Aucun code d&apos;accès trouvé pour ce filtre.
+            {codeSearch ? "Aucun code ne correspond à votre recherche." : "Aucun code d'accès trouvé pour ce filtre."}
           </div>
         ) : (
           <div className="space-y-2.5">
-            {codes.map((c) => {
+            {displayedCodes.map((c) => {
               const used = c.totalConfirmedUses;
               const maxTotal = c.maxTotalUses ?? 1;
               const isExhausted = used >= maxTotal;

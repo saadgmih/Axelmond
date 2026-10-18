@@ -83,8 +83,9 @@ export function registerEnrollmentCodeRoutes(app: Express, ctx: RouteContext): v
    * GET /api/admin/access-codes
    * Admin: list all access codes across all modules with usage and module details.
    */
-  app.get("/api/admin/access-codes", requireAuth, requireAdmin, async (_req, res) => {
+  app.get("/api/admin/access-codes", requireAuth, requireAdmin, async (req, res) => {
     try {
+      const limit = req.query.limit ? Number(req.query.limit) : undefined;
       const codes = await ctx.deps.prisma.promoCode.findMany({
         where: {
           internalName: { startsWith: "[Code acces]" },
@@ -125,7 +126,7 @@ export function registerEnrollmentCodeRoutes(app: Express, ctx: RouteContext): v
           },
         },
         orderBy: { createdAt: "desc" },
-        take: 150,
+        ...(limit && limit > 0 ? { take: limit } : {}),
       });
 
       res.json(codes);
@@ -223,6 +224,7 @@ export function registerEnrollmentCodeRoutes(app: Express, ctx: RouteContext): v
       const courseId = api.parsePositiveInt(req.params.courseId);
       if (!courseId) return void res.status(400).json({ error: "Identifiant de module invalide" });
 
+      const limit = req.query.limit ? Number(req.query.limit) : undefined;
       const codes = await ctx.deps.prisma.promoCode.findMany({
         where: {
           internalName: { startsWith: "[Code acces]" },
@@ -264,7 +266,7 @@ export function registerEnrollmentCodeRoutes(app: Express, ctx: RouteContext): v
           },
         },
         orderBy: { createdAt: "desc" },
-        take: 100,
+        ...(limit && limit > 0 ? { take: limit } : {}),
       });
 
       res.json(codes);
