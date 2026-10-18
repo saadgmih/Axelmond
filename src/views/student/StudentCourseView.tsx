@@ -285,11 +285,7 @@ export default function StudentCourseView({
                         : mod.type === "image"
                           ? "Illustration"
                           : "Évaluation interactive"}
-                    {mod.attachmentName && mod.title !== mod.attachmentName
-                      ? ` • ${mod.attachmentName}`
-                      : mod.duration && mod.duration !== "—"
-                        ? ` • ${mod.duration}`
-                        : ""}
+                    {mod.duration && mod.duration !== "—" ? ` • ${mod.duration}` : ""}
                   </span>
                 </div>
               </button>
@@ -483,15 +479,7 @@ export default function StudentCourseView({
                               )}
                             </div>
                             <div>
-                              <p className="text-[10px] font-bold text-emerald-300 uppercase tracking-widest leading-none">
-                                Contenu publié — consultation sur la plateforme
-                              </p>
-                              <h4 className="text-sm font-bold text-white mt-1">{selectedLessonContent.title}</h4>
-                              {selectedLessonContent.type !== "VIDEO" && selectedLessonContent.type !== "IMAGE" && (
-                                <p className="text-[11px] text-slate-400">
-                                  {selectedLessonContent.attachments[0]?.fileName || "Contenu texte"}
-                                </p>
-                              )}
+                              <h4 className="text-sm font-bold text-white">{selectedLessonContent.title}</h4>
                             </div>
                           </div>
                         </div>
@@ -513,7 +501,7 @@ export default function StudentCourseView({
                             <PdfLessonViewer
                               contentId={selectedLessonContent.id}
                               title={selectedLessonContent.title}
-                              downloadFileName={selectedLessonContent.attachments[0]?.fileName}
+                              downloadFileName={`${selectedLessonContent.title}.pdf`}
                             />
                           </Suspense>
                         )}
@@ -531,7 +519,7 @@ export default function StudentCourseView({
                               title={selectedLessonContent.title}
                               mediaType="IMAGE"
                               documentUrl={safeAttachmentUrl || undefined}
-                              downloadFileName={selectedLessonContent.attachments[0]?.fileName}
+                              downloadFileName={selectedLessonContent.title}
                             />
                           </Suspense>
                         )}
@@ -673,7 +661,7 @@ export default function StudentCourseView({
                           </p>
                           <h4 className="text-sm font-bold text-white mt-1">{selectedModule.title}</h4>
                           <p className="text-[11px] text-slate-400">
-                            {selectedModule.attachmentName || "Document PDF"} •{" "}
+                            Document PDF •{" "}
                             <UserProfileTrigger
                               userId={selectedCourse.instructorProfile?.id || selectedCourse.createdById}
                               userName={selectedCourse.instructorProfile?.fullName || selectedCourse.instructor}
@@ -690,7 +678,7 @@ export default function StudentCourseView({
                         contentId={lessonContentIdFromModule(selectedModule.sectionId) || undefined}
                         documentUrl={selectedModule.attachmentUrl}
                         title={selectedModule.title}
-                        downloadFileName={selectedModule.attachmentName || undefined}
+                        downloadFileName={`${selectedModule.title}.pdf`}
                       />
                     </Suspense>
 
