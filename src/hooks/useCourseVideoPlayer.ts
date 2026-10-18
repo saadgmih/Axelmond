@@ -46,6 +46,8 @@ export function useCourseVideoPlayer(src: string, sourceVersion = 0) {
   const [volume, setVolume] = useState(readStoredCourseVideoVolume);
   const [isMuted, setIsMuted] = useState(() => readStoredCourseVideoVolume() === 0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isPip, setIsPip] = useState(false);
+  const isPipSupported = typeof document !== "undefined" && Boolean(document.pictureInPictureEnabled);
   const lastAudibleVolumeRef = useRef(volume > 0 ? volume : DEFAULT_UNMUTED_VIDEO_VOLUME);
 
   useEffect(() => {
@@ -60,11 +62,15 @@ export function useCourseVideoPlayer(src: string, sourceVersion = 0) {
     const handlePause = () => setIsPlaying(false);
     const handleTimeUpdate = () => setCurrentTime(video.currentTime);
     const handleDurationChange = () => setDuration(video.duration || 0);
+    const handleEnterPip = () => setIsPip(true);
+    const handleLeavePip = () => setIsPip(false);
 
     video.addEventListener("play", handlePlay);
     video.addEventListener("pause", handlePause);
     video.addEventListener("timeupdate", handleTimeUpdate);
     video.addEventListener("durationchange", handleDurationChange);
+    video.addEventListener("enterpictureinpicture", handleEnterPip);
+    video.addEventListener("leavepictureinpicture", handleLeavePip);
 
     if (video.duration) {
       setDuration(video.duration);
@@ -75,6 +81,8 @@ export function useCourseVideoPlayer(src: string, sourceVersion = 0) {
       video.removeEventListener("pause", handlePause);
       video.removeEventListener("timeupdate", handleTimeUpdate);
       video.removeEventListener("durationchange", handleDurationChange);
+      video.removeEventListener("enterpictureinpicture", handleEnterPip);
+      video.removeEventListener("leavepictureinpicture", handleLeavePip);
     };
   }, [src, sourceVersion]);
 
@@ -176,7 +184,10 @@ export function useCourseVideoPlayer(src: string, sourceVersion = 0) {
     if (isPlaying) {
       video.pause();
     } else {
-      video.play().catch((err) => console.error("Error playing video:", err));
+      const playPromise = video.play();
+      if (playPromise && typeof playPromise.catch === "function") {
+        playPromise.catch((err) => console.error("Error playing video:", err));
+      }
     }
   };
 
@@ -324,6 +335,47 @@ export function useCourseVideoPlayer(src: string, sourceVersion = 0) {
     }
   };
 
+  const togglePip = async (e?: MouseEvent) => {
+    if (e) e.stopPropagation();
+    const video = videoRef.current;
+    if (!video || !isPipSupported) return;
+    try {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+        setIsPip(false);
+      } else {
+        await video.requestPictureInPicture();
+        setIsPip(true);
+      }
+    } catch {
+      // Ignore PiP errors in unsupported or restricted frames
+    }
+  };
+
+  const seekTo = (seconds: number) => {
+    const video = videoRef.current;
+    if (!video) return;
+    const maxDuration = duration || video.duration || 0;
+    const target = maxDuration > 0 ? Math.min(maxDuration, Math.max(0, seconds)) : Math.max(0, seconds);
+    video.currentTime = target;
+    setCurrentTime(target);
+  };
+
+  const seekRelative = (seconds: number) => {
+    const video = videoRef.current;
+    if (!video) return;
+    seekTo(video.currentTime + seconds);
+  };
+
+  const adjustVolume = (delta: number) => {
+    const nextVolume = clampCourseVideoVolume(volume + delta);
+    if (nextVolume > 0) {
+      lastAudibleVolumeRef.current = nextVolume;
+    }
+    setVolume(nextVolume);
+    setIsMuted(nextVolume === 0);
+  };
+
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return {
@@ -336,15 +388,21 @@ export function useCourseVideoPlayer(src: string, sourceVersion = 0) {
     volume,
     isMuted,
     isFullscreen,
+    isPip,
+    isPipSupported,
     progressPercent,
     togglePlay,
     handleSeek,
+    seekTo,
+    seekRelative,
     toggleMute,
+    adjustVolume,
     handleVolumeChange,
     handlePlaybackRateChange,
     setPlaybackRate,
     setPlaybackSpeed,
     toggleFullscreen,
+    togglePip,
     formatTime: formatCourseVideoTime,
   };
 }

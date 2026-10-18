@@ -7,6 +7,7 @@ import {
   LoaderCircle,
   Maximize,
   PauseCircle,
+  PictureInPicture2,
   PlayCircle,
   RefreshCw,
   Settings,
@@ -138,16 +139,26 @@ export default function PremiumVideoPlayer({
     volume,
     isMuted,
     isFullscreen,
+    isPip,
+    isPipSupported,
     progressPercent,
     togglePlay,
     handleSeek,
+    seekTo,
+    seekRelative,
     toggleMute,
+    adjustVolume,
     handleVolumeChange,
     handlePlaybackRateChange,
     setPlaybackSpeed,
     toggleFullscreen,
+    togglePip,
     formatTime,
   } = useCourseVideoPlayer(resolvedSrc, sourceVersion);
+
+  const [hoverProgress, setHoverProgress] = useState<{ time: number; percent: number } | null>(null);
+  const [resumeNotice, setResumeNotice] = useState<{ time: number; label: string } | null>(null);
+  const lastSavedProgressTimeRef = useRef(0);
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsView, setSettingsView] = useState<SettingsView>("main");
@@ -492,6 +503,181 @@ export default function PremiumVideoPlayer({
     };
   }, [clearHideVolumeControlTimeout, finishVolumeInteraction]);
 
+  const progressStorageKey = contentId
+    ? `pa_video_progress_${contentId}`
+    : resolvedSrc
+      ? `pa_video_progress_${encodeURIComponent(resolvedSrc)}`
+      : "";
+
+  useEffect(() => {
+    if (!progressStorageKey || typeof window === "undefined") return;
+    try {
+      const saved = window.localStorage.getItem(progressStorageKey);
+      if (saved) {
+        const parsedTime = Number(saved);
+        if (Number.isFinite(parsedTime) && parsedTime > 5) {
+          setResumeNotice({
+            time: parsedTime,
+            label: formatTime(parsedTime),
+          });
+        }
+      }
+    } catch {
+      // Ignore storage errors
+    }
+  }, [progressStorageKey, formatTime]);
+
+  useEffect(() => {
+    if (!resumeNotice) return;
+    const timer = window.setTimeout(() => setResumeNotice(null), 8000);
+    return () => window.clearTimeout(timer);
+  }, [resumeNotice]);
+
+  useEffect(() => {
+    if (!progressStorageKey || typeof window === "undefined" || !duration) return;
+    const now = Date.now();
+    if (now - lastSavedProgressTimeRef.current < 2000) return;
+    lastSavedProgressTimeRef.current = now;
+
+    try {
+      if (currentTime >= 5 && currentTime < duration - 10) {
+        window.localStorage.setItem(progressStorageKey, String(Math.floor(currentTime)));
+      } else if (currentTime >= duration - 5) {
+        window.localStorage.removeItem(progressStorageKey);
+      }
+    } catch {
+      // Ignore storage errors
+    }
+  }, [currentTime, duration, progressStorageKey]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const tagName = target?.tagName?.toLowerCase();
+      if (tagName === "input" || tagName === "textarea" || tagName === "select" || target?.isContentEditable) {
+        return;
+      }
+
+      const isFocused =
+        container.matches(":hover") ||
+        container.contains(document.activeElement) ||
+        document.fullscreenElement === container;
+
+      if (!isFocused) return;
+
+      switch (e.key) {
+        case " ":
+        case "k":
+        case "K":
+          e.preventDefault();
+          togglePlay();
+          revealControlsTemporarily();
+          break;
+        case "f":
+        case "F":
+          e.preventDefault();
+          toggleFullscreen(e as any);
+          break;
+        case "m":
+        case "M":
+          e.preventDefault();
+          toggleMute(e as any);
+          revealControlsTemporarily();
+          break;
+        case "p":
+        case "P":
+          if (isPipSupported) {
+            e.preventDefault();
+            togglePip();
+          }
+          break;
+        case "ArrowLeft":
+          e.preventDefault();
+          seekRelative(-5);
+          revealControlsTemporarily();
+          break;
+        case "ArrowRight":
+          e.preventDefault();
+          seekRelative(5);
+          revealControlsTemporarily();
+          break;
+        case "j":
+        case "J":
+          e.preventDefault();
+          seekRelative(-10);
+          revealControlsTemporarily();
+          break;
+        case "l":
+        case "L":
+          e.preventDefault();
+          seekRelative(10);
+          revealControlsTemporarily();
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          adjustVolume(0.05);
+          revealControlsTemporarily();
+          break;
+        case "ArrowDown":
+          e.preventDefault();
+          adjustVolume(-0.05);
+          revealControlsTemporarily();
+          break;
+        case "0":
+        case "1":
+        case "2":
+        case "3":
+        case "4":
+        case "5":
+        case "6":
+        case "7":
+        case "8":
+        case "9":
+          if (duration > 0) {
+            e.preventDefault();
+            const pct = parseInt(e.key, 10) * 0.1;
+            seekTo(pct * duration);
+            revealControlsTemporarily();
+          }
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [
+    containerRef,
+    duration,
+    togglePlay,
+    toggleFullscreen,
+    toggleMute,
+    togglePip,
+    isPipSupported,
+    seekRelative,
+    seekTo,
+    adjustVolume,
+    revealControlsTemporarily,
+  ]);
+
+  const handleProgressMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    if (!rect.width || !duration) return;
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    setHoverProgress({
+      time: ratio * duration,
+      percent: ratio * 100,
+    });
+  };
+
+  const handleProgressMouseLeave = () => {
+    setHoverProgress(null);
+  };
+
   const handleSurfaceClick = () => {
     revealControlsTemporarily();
     if (settingsOpen) {
@@ -528,6 +714,7 @@ export default function PremiumVideoPlayer({
   return (
     <div
       ref={containerRef}
+      tabIndex={0}
       data-fullscreen={isFullscreen}
       onClick={handleSurfaceClick}
       onMouseEnter={() => revealControlsTemporarily()}
@@ -565,13 +752,33 @@ export default function PremiumVideoPlayer({
           }
         }}
         onCanPlay={() => setVideoLoadState(isPlaying ? "PLAYING" : "READY")}
-        onWaiting={() => setVideoLoadState("BUFFERING")}
-        onStalled={() => setVideoLoadState("BUFFERING")}
+        onWaiting={() => {
+          if (contentId) {
+            if (isPlaying) setVideoLoadState("BUFFERING");
+          } else {
+            setVideoLoadState("BUFFERING");
+          }
+        }}
+        onStalled={() => {
+          if (contentId) {
+            if (isPlaying) setVideoLoadState("BUFFERING");
+          } else {
+            setVideoLoadState("BUFFERING");
+          }
+        }}
         onPlaying={() => {
           automaticRetryCountRef.current = 0;
           setVideoLoadState("PLAYING");
         }}
         onPause={() => setVideoLoadState("PAUSED")}
+        onEnded={() => {
+          setVideoLoadState("PAUSED");
+          if (progressStorageKey && typeof window !== "undefined") {
+            try {
+              window.localStorage.removeItem(progressStorageKey);
+            } catch {}
+          }
+        }}
         onError={handleVideoError}
       />
 
@@ -618,6 +825,23 @@ export default function PremiumVideoPlayer({
               <RefreshCw className="h-4 w-4" /> Réessayer
             </button>
           </div>
+        ) : contentId && resolvedSrc && !isPlaying ? (
+          <div
+            className={`flex flex-col items-center gap-3 ${brandedIntroVisible && currentTime === 0 ? "pt-24 sm:pt-28" : ""}`}
+          >
+            <button
+              type="button"
+              onClick={togglePlay}
+              className={`course-video-overlay-button ${overlayButtonClass} flex cursor-pointer items-center justify-center rounded-full bg-white/95 text-emerald-900 shadow-lg transition-all hover:scale-105 hover:bg-slate-100`}
+            >
+              <PlayCircle className={`${overlayIconClass} ml-0.5 ${playButtonThemeClass}`} />
+            </button>
+            {showMetadata && (
+              <p className="course-video-metadata max-w-[90%] animate-in truncate rounded-lg border border-slate-700/50 bg-slate-900/80 px-3 py-1.5 font-mono text-xs font-bold tracking-wide text-white shadow-sm duration-200 fade-in">
+                {title} • {instructor} • {formatTime(duration)}
+              </p>
+            )}
+          </div>
         ) : videoLoadState === "LOADING" || videoLoadState === "BUFFERING" ? (
           <div
             className={`flex flex-col items-center gap-3 ${brandedIntroVisible ? "pt-24 sm:pt-28" : ""}`}
@@ -657,6 +881,40 @@ export default function PremiumVideoPlayer({
         )}
       </div>
 
+      {resumeNotice && (
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="absolute top-4 left-4 z-30 flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-slate-950/90 backdrop-blur-md px-3 py-2 shadow-2xl animate-in fade-in duration-300"
+        >
+          <span className="text-xs font-medium text-slate-200">
+            Reprendre à <span className="font-mono font-bold text-emerald-400">{resumeNotice.label}</span> ?
+          </span>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              seekTo(resumeNotice.time);
+              setResumeNotice(null);
+              if (!isPlaying) togglePlay();
+            }}
+            className="cursor-pointer rounded-lg bg-emerald-600 px-2.5 py-1 text-xs font-bold text-white hover:bg-emerald-500 transition-colors shadow-sm"
+          >
+            Reprendre
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setResumeNotice(null);
+            }}
+            className="cursor-pointer text-slate-400 hover:text-white text-sm px-1.5 py-0.5 rounded transition-colors"
+            aria-label="Fermer"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       <div
         onClick={(e) => e.stopPropagation()}
         onMouseMove={() => revealControlsTemporarily()}
@@ -668,7 +926,19 @@ export default function PremiumVideoPlayer({
           <span className="course-video-duration"> / {formatTime(duration)}</span>
         </span>
 
-        <div className="course-video-progress flex min-w-0 flex-1 items-center px-1">
+        <div
+          className="course-video-progress flex min-w-0 flex-1 relative items-center px-1"
+          onMouseMove={handleProgressMouseMove}
+          onMouseLeave={handleProgressMouseLeave}
+        >
+          {hoverProgress && duration > 0 && (
+            <div
+              className="pointer-events-none absolute bottom-full mb-2 -translate-x-1/2 rounded-md bg-slate-900/95 px-2 py-0.5 font-mono text-[11px] font-bold text-white shadow-md border border-slate-700/60"
+              style={{ left: `${hoverProgress.percent}%` }}
+            >
+              {formatTime(hoverProgress.time)}
+            </div>
+          )}
           <input
             type="range"
             min="0"
@@ -900,6 +1170,18 @@ export default function PremiumVideoPlayer({
             </div>
           )}
         </div>
+
+        {isPipSupported && (
+          <button
+            type="button"
+            onClick={togglePip}
+            className={`shrink-0 cursor-pointer rounded-lg p-1.5 transition-colors hover:text-slate-300 focus:outline-none focus:ring-2 ${controlFocusClass}`}
+            title={isPip ? "Quitter Incrustation (P)" : "Incrustation d'image (P)"}
+            aria-label="Image dans l'image"
+          >
+            <PictureInPicture2 className={`w-4 h-4 ${isPip ? "text-emerald-400" : ""}`} />
+          </button>
+        )}
 
         <button
           type="button"

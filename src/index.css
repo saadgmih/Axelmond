@@ -908,7 +908,7 @@ body {
   aspect-ratio: auto !important;
   border: none !important;
   border-radius: 0 !important;
-  background-color: #020617 !important;
+  background-color: #031512 !important;
 }
 
 .course-video-player:-webkit-full-screen {
@@ -919,7 +919,7 @@ body {
   aspect-ratio: auto !important;
   border: none !important;
   border-radius: 0 !important;
-  background-color: #020617 !important;
+  background-color: #031512 !important;
 }
 
 .course-video-player[data-fullscreen="true"] {
@@ -930,7 +930,7 @@ body {
   aspect-ratio: auto !important;
   border: none !important;
   border-radius: 0 !important;
-  background-color: #020617 !important;
+  background-color: #031512 !important;
 }
 
 @container course-video (max-width: 520px) {
