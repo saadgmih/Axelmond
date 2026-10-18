@@ -345,7 +345,46 @@ export default function StudentCatalogView({
       )}
 
       <div ref={catalogGridRef} data-tv-zone="catalog" className="space-y-6">
-        {!selectedDomain && (
+        {!selectedDomain && searchQuery.trim() && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-black text-slate-700 uppercase tracking-wider">
+                Résultats de la recherche ({catalogCourses.length})
+              </h2>
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="text-xs font-bold text-emerald-600 hover:text-emerald-700 cursor-pointer"
+              >
+                Effacer la recherche
+              </button>
+            </div>
+            {catalogCourses.length === 0 ? (
+              <div className="bg-white rounded-2xl p-10 border border-slate-200 text-center space-y-2">
+                <BookOpen className="w-10 h-10 text-slate-300 mx-auto" />
+                <h3 className="text-base font-black text-slate-800">Aucun module trouvé</h3>
+                <p className="text-xs text-slate-500">
+                  Aucun module ne correspond à « {searchQuery} ». Essayez un autre mot-clé ou parcourez les domaines académiques.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {catalogCourses.map((course) => (
+                  <CatalogCourseCard
+                    key={course.id}
+                    course={course}
+                    isEnrolled={enrolledCourses.includes(course.id)}
+                    getCourseIcon={getCourseIcon}
+                    navigateTo={navigateTo}
+                    setCourseToPurchase={setCourseToPurchase}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {!selectedDomain && !searchQuery.trim() && (
           <div className="grid grid-cols-1 items-stretch gap-5 pt-3 md:grid-cols-2 xl:grid-cols-3">
             {domains.map((domain) => (
               <DomainCatalogCard

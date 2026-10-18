@@ -339,7 +339,7 @@ export default function PremiumVideoPlayer({
 
   const handleVideoError = useCallback(() => {
     clearAutomaticRetryTimeout();
-    if (contentId && activeSourceKindRef.current === "DIRECT" && proxySrc) {
+    if (contentId && activeSourceKindRef.current === "DIRECT" && proxySrc && !isHlsSource(resolvedSrc)) {
       activeSourceKindRef.current = "PROXY";
       setVideoLoadState("LOADING");
       setResolvedSrc(proxySrc);
@@ -347,7 +347,7 @@ export default function PremiumVideoPlayer({
       return;
     }
     scheduleAutomaticRetry();
-  }, [clearAutomaticRetryTimeout, contentId, proxySrc, scheduleAutomaticRetry]);
+  }, [clearAutomaticRetryTimeout, contentId, proxySrc, resolvedSrc, scheduleAutomaticRetry]);
 
   useEffect(() => {
     clearAutomaticRetryTimeout();

@@ -5,6 +5,7 @@ import {
   FileText,
   HelpCircle,
   Info,
+  Keyboard,
   PanelLeftClose,
   PanelLeftOpen,
   PlayCircle,
@@ -24,6 +25,9 @@ import type { ContentSection, Course, CourseModule, LessonContent, QuizQuestion 
 import { formatCredits } from "../../utils/morocco-locale";
 import { getCourseContentProgress } from "../../utils/course-content-metrics";
 import { UserProfileTrigger } from "../../components/UserProfileViewer";
+import { StudentCourseBottomNav } from "./course/StudentCourseBottomNav";
+import { StudentCourseNotes } from "./course/StudentCourseNotes";
+import { StudentCourseShortcutsModal } from "./course/StudentCourseShortcutsModal";
 
 const PdfLessonViewer = lazy(() => import("../../components/PdfLessonViewer"));
 const PremiumVideoPlayer = lazy(() => import("../../components/PremiumVideoPlayer"));
@@ -88,6 +92,68 @@ export default function StudentCourseView({
   setCourseToPurchase,
 }: StudentCourseViewProps) {
   const [isModuleDrawerOpen, setIsModuleDrawerOpen] = useState(false);
+  const [showShortcutsModal, setShowShortcutsModal] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable ||
+          target.closest("[contenteditable='true']") ||
+          target.closest(".monaco-editor"))
+      ) {
+        return;
+      }
+
+      if (e.key === "Escape") {
+        setShowShortcutsModal(false);
+        setIsModuleDrawerOpen(false);
+        return;
+      }
+
+      if (e.key === "?") {
+        e.preventDefault();
+        setShowShortcutsModal((prev) => !prev);
+        return;
+      }
+
+      if (e.key.toLowerCase() === "m") {
+        e.preventDefault();
+        setIsModuleDrawerOpen((prev) => !prev);
+        return;
+      }
+
+      if (e.key.toLowerCase() === "c") {
+        e.preventDefault();
+        setShowSuccessCoach((prev) => !prev);
+        return;
+      }
+
+      if (e.key.toLowerCase() === "v") {
+        e.preventDefault();
+        markModuleCompleted(selectedModule.id, !selectedModule.completed);
+        return;
+      }
+
+      const currentIndex = selectedCourse.modules.findIndex((m) => m.id === selectedModule.id);
+      if (e.key === "ArrowLeft" && currentIndex > 0) {
+        e.preventDefault();
+        onModuleSelect(selectedCourse.modules[currentIndex - 1]);
+        return;
+      }
+      if (e.key === "ArrowRight" && currentIndex >= 0 && currentIndex < selectedCourse.modules.length - 1) {
+        e.preventDefault();
+        onModuleSelect(selectedCourse.modules[currentIndex + 1]);
+        return;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedCourse.modules, selectedModule.id, selectedModule.completed, onModuleSelect, markModuleCompleted, setShowSuccessCoach]);
 
   const openCoachBtnRef = useRef<HTMLButtonElement>(null);
   const prevShowSuccessCoach = useRef(showSuccessCoach);
@@ -373,16 +439,28 @@ export default function StudentCourseView({
               <h1 className="text-xl md:text-2xl font-black text-slate-800 leading-tight">{selectedModule.title}</h1>
             </div>
 
-            <button
-              ref={openCoachBtnRef}
-              type="button"
-              onClick={() => setShowSuccessCoach(!showSuccessCoach)}
-              aria-expanded={showSuccessCoach}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5 self-start cursor-pointer group"
-            >
-              <Target className="w-4 h-4 group-hover:scale-110 transition-transform" />
-              {showSuccessCoach ? "Masquer mon coach" : "Mon plan de réussite"}
-            </button>
+            <div className="flex items-center gap-2 self-start">
+              <button
+                type="button"
+                onClick={() => setShowShortcutsModal(true)}
+                title="Raccourcis clavier (?)"
+                className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 hover:text-slate-900 font-bold text-xs p-2.5 rounded-xl transition-all shadow-2xs flex items-center justify-center cursor-pointer"
+                aria-label="Raccourcis clavier"
+              >
+                <Keyboard className="w-4 h-4" />
+              </button>
+
+              <button
+                ref={openCoachBtnRef}
+                type="button"
+                onClick={() => setShowSuccessCoach(!showSuccessCoach)}
+                aria-expanded={showSuccessCoach}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer group"
+              >
+                <Target className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                {showSuccessCoach ? "Masquer mon coach" : "Mon plan de réussite"}
+              </button>
+            </div>
           </div>
 
           {enrollment && (
@@ -480,6 +558,12 @@ export default function StudentCourseView({
                             </div>
                             <div>
                               <h4 className="text-sm font-bold text-white">{selectedLessonContent.title}</h4>
+                              {selectedLessonContent.type !== "VIDEO" &&
+                                selectedLessonContent.type !== "IMAGE" && (
+                                  <p className="text-[11px] text-slate-400">
+                                    {selectedLessonContent.attachments[0]?.fileName || "Contenu texte"}
+                                  </p>
+                                )}
                             </div>
                           </div>
                         </div>
@@ -1088,6 +1172,29 @@ export default function StudentCourseView({
                       </div>
                     </div>
                   )}
+
+                {/* Personal Study Notes */}
+                <StudentCourseNotes
+                  courseId={selectedCourse.id}
+                  moduleId={selectedModule.id}
+                  courseTitle={selectedCourse.title}
+                  moduleTitle={selectedModule.title}
+                />
+
+                {/* Bottom Navigation (Previous / Next Lesson & Completion) */}
+                <StudentCourseBottomNav
+                  modules={selectedCourse.modules}
+                  currentModule={selectedModule}
+                  onSelectModule={onModuleSelect}
+                  onToggleCompleted={(completed) => markModuleCompleted(selectedModule.id, completed)}
+                  isCompleted={Boolean(selectedModule.completed)}
+                  isPending={isModuleProgressPending}
+                  completionLabel={
+                    selectedLessonContent
+                      ? getContentCompletionLabel(selectedLessonContent.type)
+                      : undefined
+                  }
+                />
               </div>
 
               {/* Personalized success coach inside the responsive course layout */}
@@ -1113,6 +1220,12 @@ export default function StudentCourseView({
           )}
         </div>
       </div>
+
+      {/* Keyboard Shortcuts Modal */}
+      <StudentCourseShortcutsModal
+        isOpen={showShortcutsModal}
+        onClose={() => setShowShortcutsModal(false)}
+      />
     </div>
   );
 }
