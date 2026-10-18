@@ -8,6 +8,8 @@ rulesTest("external-url-security", () => {
   assert.equal(sanitizeHttpsUrl("https://linkedin.com/in/demo"), "https://linkedin.com/in/demo");
   assert.equal(sanitizeHttpsUrl("http://example.com"), null);
   assert.equal(sanitizeCourseAttachmentUrl("https://utfs.io/f/demo.pdf"), "https://utfs.io/f/demo.pdf");
+  assert.equal(sanitizeCourseAttachmentUrl("/hls/lesson123/master.m3u8"), "/hls/lesson123/master.m3u8");
+  assert.equal(sanitizeCourseAttachmentUrl("https://perfacademy.ma/hls/lesson123/master.m3u8"), "https://perfacademy.ma/hls/lesson123/master.m3u8");
   assert.equal(sanitizeCourseAttachmentUrl("https://evil.example.com/file.pdf"), null);
 
   const links = sanitizeAcademicLinks({

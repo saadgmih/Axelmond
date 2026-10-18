@@ -16,6 +16,41 @@ import {
 import { COURSE_VIDEO_PLAYBACK_RATES, useCourseVideoPlayer } from "../hooks/useCourseVideoPlayer";
 import { api } from "../api";
 import { sanitizeCourseAttachmentUrl } from "../external-url-security";
+import Hls from "hls.js";
+
+function isHlsSource(url: unknown): boolean {
+  if (typeof url !== "string") return false;
+  const lower = url.trim().toLowerCase();
+  return lower.includes(".m3u8") || lower.includes("/hls/");
+}
+
+function qualityToTargetHeight(quality: VideoQuality): number {
+  switch (quality) {
+    case "4K":
+      return 2160;
+    case "2K":
+      return 1440;
+    case "1080p":
+      return 1080;
+    case "720p":
+      return 720;
+    case "480p":
+      return 480;
+    case "360p":
+      return 360;
+    default:
+      return 0;
+  }
+}
+
+function heightToResolutionLabel(height: number): VideoQuality {
+  if (height >= 2160) return "4K";
+  if (height >= 1440) return "2K";
+  if (height >= 1080) return "1080p";
+  if (height >= 720) return "720p";
+  if (height >= 480) return "480p";
+  return "360p";
+}
 
 const OVERLAY_HIDE_DELAY_MS = 500;
 const CONTROLS_HIDE_DELAY_MS = 1600;
@@ -158,6 +193,89 @@ export default function PremiumVideoPlayer({
     };
   }, [settingsOpen]);
 
+  const hlsRef = useRef<Hls | null>(null);
+
+  const applyHlsQuality = useCallback((hls: Hls, quality: VideoQuality) => {
+    if (!hls || !hls.levels || hls.levels.length === 0) return;
+    if (quality === "auto") {
+      hls.currentLevel = -1;
+      return;
+    }
+    const targetHeight = qualityToTargetHeight(quality);
+    let bestIdx = -1;
+    let minDiff = Infinity;
+    hls.levels.forEach((lvl, idx) => {
+      const diff = Math.abs((lvl.height || 0) - targetHeight);
+      if (diff < minDiff) {
+        minDiff = diff;
+        bestIdx = idx;
+      }
+    });
+    if (bestIdx !== -1) {
+      hls.currentLevel = bestIdx;
+      const chosen = hls.levels[bestIdx];
+      if (chosen && chosen.height) {
+        setDetectedResolution(heightToResolutionLabel(chosen.height));
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !resolvedSrc) return;
+
+    if (isHlsSource(resolvedSrc) && typeof window !== "undefined" && Hls.isSupported()) {
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+
+      const hls = new Hls({
+        enableWorker: true,
+        lowLatencyMode: false,
+        backBufferLength: 90,
+      });
+      hlsRef.current = hls;
+
+      hls.loadSource(resolvedSrc);
+      hls.attachMedia(video);
+
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        applyHlsQuality(hls, selectedQuality);
+      });
+
+      hls.on(Hls.Events.LEVEL_SWITCHED, (_event, data) => {
+        const lvl = hls.levels[data.level];
+        if (lvl && lvl.height) {
+          setDetectedResolution(heightToResolutionLabel(lvl.height));
+        }
+      });
+
+      hls.on(Hls.Events.ERROR, (_event, data) => {
+        if (data.fatal) {
+          switch (data.type) {
+            case Hls.ErrorTypes.NETWORK_ERROR:
+              hls.startLoad();
+              break;
+            case Hls.ErrorTypes.MEDIA_ERROR:
+              hls.recoverMediaError();
+              break;
+            default:
+              hls.destroy();
+              break;
+          }
+        }
+      });
+
+      return () => {
+        hls.destroy();
+        hlsRef.current = null;
+      };
+    } else if (isHlsSource(resolvedSrc) && video.canPlayType("application/vnd.apple.mpegurl")) {
+      video.src = resolvedSrc;
+    }
+  }, [resolvedSrc, sourceVersion, applyHlsQuality, selectedQuality]);
+
   const handleSelectQuality = useCallback((quality: VideoQuality) => {
     setSelectedQuality(quality);
     try {
@@ -165,9 +283,12 @@ export default function PremiumVideoPlayer({
     } catch {
       // Ignore storage errors
     }
+    if (hlsRef.current) {
+      applyHlsQuality(hlsRef.current, quality);
+    }
     setSettingsOpen(false);
     setSettingsView("main");
-  }, []);
+  }, [applyHlsQuality]);
 
   const handleSelectSpeed = useCallback((speed: number) => {
     setPlaybackSpeed(speed);
@@ -419,7 +540,11 @@ export default function PremiumVideoPlayer({
       <video
         key={`${resolvedSrc}-${sourceVersion}`}
         ref={videoRef}
-        src={resolvedSrc || undefined}
+        src={
+          isHlsSource(resolvedSrc) && typeof window !== "undefined" && Hls.isSupported()
+            ? undefined
+            : resolvedSrc || undefined
+        }
         preload="metadata"
         playsInline
         controlsList="nodownload"

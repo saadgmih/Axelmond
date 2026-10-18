@@ -52,7 +52,15 @@ export function sanitizeHttpsUrl(
   return trimmed;
 }
 
-export const UPLOAD_HOSTS = ["uploadthing.com", "ufs.sh", "utfs.io"] as const;
+export const UPLOAD_HOSTS = [
+  "uploadthing.com",
+  "ufs.sh",
+  "utfs.io",
+  "perfacademy.ma",
+  "www.perfacademy.ma",
+  "axelmond.com",
+  "www.axelmond.com",
+] as const;
 
 export const ACADEMIC_LINK_HOSTS = {
   linkedIn: ["linkedin.com", "www.linkedin.com"],
@@ -61,6 +69,12 @@ export const ACADEMIC_LINK_HOSTS = {
 } as const;
 
 export function sanitizeCourseAttachmentUrl(value: unknown): string | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (trimmed.startsWith("/hls/")) {
+      return trimmed.slice(0, 2048);
+    }
+  }
   return sanitizeHttpsUrl(value, { maxLength: 2048, allowedHosts: UPLOAD_HOSTS });
 }
 
