@@ -1,8 +1,19 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { LiveWhiteboardStroke } from "../../live/live-sync";
 import { createWhiteboardStrokeId, normalizeCanvasPoint, redrawWhiteboard } from "./live-whiteboard-canvas";
 
-const STROKE_WIDTH = 3;
+const AVAILABLE_COLORS = [
+  { label: "Émeraude", value: "#05C2A5" },
+  { label: "Noir Encre", value: "#0f172a" },
+  { label: "Rouge", value: "#dc2626" },
+  { label: "Bleu", value: "#2563eb" },
+] as const;
+
+const AVAILABLE_WIDTHS = [
+  { label: "Fin", value: 2 },
+  { label: "Moyen", value: 4 },
+  { label: "Large", value: 7 },
+] as const;
 
 interface LiveWhiteboardPanelProps {
   expanded: boolean;
@@ -23,6 +34,8 @@ export default function LiveWhiteboardPanel({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const isDrawingRef = useRef(false);
   const currentPointsRef = useRef<Array<{ x: number; y: number }>>([]);
+  const [selectedColor, setSelectedColor] = useState<string>("#05C2A5");
+  const [selectedWidth, setSelectedWidth] = useState<number>(3);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -79,9 +92,10 @@ export default function LiveWhiteboardPanel({
     const { x, y } = getCoordinates(event, canvas);
     isDrawingRef.current = true;
     currentPointsRef.current = [{ x, y }];
-    context.strokeStyle = "#05C2A5";
-    context.lineWidth = STROKE_WIDTH;
+    context.strokeStyle = selectedColor;
+    context.lineWidth = selectedWidth;
     context.lineCap = "round";
+    context.lineJoin = "round";
     context.beginPath();
     context.moveTo(x, y);
   };
@@ -109,14 +123,50 @@ export default function LiveWhiteboardPanel({
     onStrokeComplete({
       id: createWhiteboardStrokeId(localIdentity),
       tool: "draw",
-      color: "#05C2A5",
-      width: STROKE_WIDTH,
+      color: selectedColor,
+      width: selectedWidth,
       points: normalizedPoints,
     });
   };
 
   return (
     <div className={`flex h-full flex-col ${expanded ? "min-h-[min(72dvh,780px)]" : "min-h-[320px]"}`}>
+      {/* Palette d'outils du tableau */}
+      <div className="mb-2.5 flex items-center justify-between gap-2 rounded-xl border border-white/5 bg-zinc-900/80 px-3 py-2">
+        <div className="flex items-center gap-1.5" aria-label="Couleur du tracé">
+          {AVAILABLE_COLORS.map((c) => (
+            <button
+              key={c.value}
+              type="button"
+              onClick={() => setSelectedColor(c.value)}
+              title={c.label}
+              aria-label={c.label}
+              className={`h-5 w-5 rounded-full transition-transform ${
+                selectedColor === c.value ? "scale-125 ring-2 ring-white ring-offset-1 ring-offset-zinc-900" : "opacity-80 hover:opacity-100"
+              }`}
+              style={{ backgroundColor: c.value }}
+            />
+          ))}
+        </div>
+
+        <div className="flex items-center gap-1 border-l border-white/10 pl-2">
+          {AVAILABLE_WIDTHS.map((w) => (
+            <button
+              key={w.value}
+              type="button"
+              onClick={() => setSelectedWidth(w.value)}
+              className={`rounded-lg px-2 py-1 text-[10px] font-bold transition-colors ${
+                selectedWidth === w.value
+                  ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              {w.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div
         ref={containerRef}
         className="relative flex-1 overflow-hidden rounded-2xl border border-white/10 bg-[#eef2ff] shadow-inner"

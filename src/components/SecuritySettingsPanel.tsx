@@ -1,7 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
+  Check,
   CheckCircle2,
   ChevronRight,
+  Copy,
+  Download,
   KeyRound,
   Lock,
   Mail,
@@ -27,7 +30,7 @@ interface SecuritySettingsPanelProps {
   emailVerified?: boolean;
 }
 
-function computeSecurityScore(emailVerified: boolean, totpEnabled: boolean, passkeyCount: number) {
+export function computeSecurityScore(emailVerified: boolean, totpEnabled: boolean, passkeyCount: number) {
   let score = 25;
   if (emailVerified) score += 25;
   if (totpEnabled) score += 25;
@@ -35,7 +38,7 @@ function computeSecurityScore(emailVerified: boolean, totpEnabled: boolean, pass
   return score;
 }
 
-function scoreLabel(score: number) {
+export function scoreLabel(score: number) {
   if (score >= 100) return "Excellent";
   if (score >= 75) return "Bon";
   if (score >= 50) return "Moyen";
@@ -158,6 +161,31 @@ export default function SecuritySettingsPanel({
   const [passkeyDeviceName, setPasskeyDeviceName] = useState("Mon appareil");
   const [deletePassword, setDeletePassword] = useState("");
   const [showLearnMore, setShowLearnMore] = useState(false);
+  const [copiedRecoveryCodes, setCopiedRecoveryCodes] = useState(false);
+
+  const handleCopyRecoveryCodes = () => {
+    if (!recoveryCodes || recoveryCodes.length === 0) return;
+    const text = recoveryCodes.join("\n");
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(text).catch(() => undefined);
+    }
+    setCopiedRecoveryCodes(true);
+    setTimeout(() => setCopiedRecoveryCodes(false), 2500);
+  };
+
+  const handleDownloadRecoveryCodes = () => {
+    if (!recoveryCodes || recoveryCodes.length === 0) return;
+    const content = `Performance Académique — Codes de récupération TOTP\nDate: ${new Date().toLocaleString("fr-FR")}\n\nIMPORTANT: Conservez ces codes en lieu sûr. Chaque code ne peut être utilisé qu'une seule fois.\n\n${recoveryCodes.map((c, i) => `${i + 1}. ${c}`).join("\n")}\n`;
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `codes-recuperation-perfacademy-${Date.now()}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
   const refresh = async () => {
     setLoading(true);
@@ -361,11 +389,38 @@ export default function SecuritySettingsPanel({
           )}
 
           {recoveryCodes && (
-            <div className="mb-6 rounded-2xl border border-lime-500/30 bg-lime-500/10 p-4 text-xs text-lime-100">
-              <p className="font-bold">Codes de secours — enregistrez-les maintenant :</p>
-              <ul className="mt-2 grid grid-cols-2 gap-1 font-mono sm:grid-cols-4">
+            <div className="mb-6 rounded-2xl border border-emerald-500/30 bg-emerald-950/40 p-5 text-xs text-emerald-100 shadow-xl">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-emerald-500/20 pb-3">
+                <div>
+                  <p className="font-black text-sm text-emerald-200">Codes de secours d&apos;urgence (TOTP)</p>
+                  <p className="text-[11px] text-emerald-300/80 mt-0.5">
+                    Conservez ces codes en lieu sûr. Ils vous permettront de vous reconnecter si vous perdez l&apos;accès à votre authenticator.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={handleCopyRecoveryCodes}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/20 px-3 py-1.5 text-xs font-bold text-emerald-200 hover:bg-emerald-500/30 transition-colors"
+                  >
+                    {copiedRecoveryCodes ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                    <span>{copiedRecoveryCodes ? "Copié !" : "Copier les codes"}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDownloadRecoveryCodes}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/20 px-3 py-1.5 text-xs font-bold text-emerald-200 hover:bg-emerald-500/30 transition-colors"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    <span>Télécharger (.txt)</span>
+                  </button>
+                </div>
+              </div>
+              <ul className="mt-3.5 grid grid-cols-2 gap-2 font-mono sm:grid-cols-4">
                 {recoveryCodes.map((code) => (
-                  <li key={code}>{code}</li>
+                  <li key={code} className="rounded-lg bg-black/60 px-3 py-2 text-center text-xs font-bold tracking-wider text-emerald-200 border border-emerald-500/20">
+                    {code}
+                  </li>
                 ))}
               </ul>
             </div>
@@ -599,10 +654,30 @@ export default function SecuritySettingsPanel({
 
       {recoveryCodes && (
         <div className="rounded-xl border border-lime-200 bg-lime-50 p-4 text-xs text-lime-900">
-          <p className="font-bold">Codes de secours — enregistrez-les maintenant :</p>
-          <ul className="mt-2 grid grid-cols-2 gap-1 font-mono">
+          <div className="flex items-center justify-between gap-2 border-b border-lime-200 pb-2 mb-2">
+            <p className="font-bold">Codes de secours — enregistrez-les maintenant :</p>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                type="button"
+                onClick={handleCopyRecoveryCodes}
+                className="inline-flex items-center gap-1 rounded-lg border border-lime-300 bg-white px-2 py-1 text-[11px] font-bold text-lime-900 hover:bg-lime-100 transition-colors"
+              >
+                {copiedRecoveryCodes ? <Check className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
+                <span>{copiedRecoveryCodes ? "Copié !" : "Copier"}</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleDownloadRecoveryCodes}
+                className="inline-flex items-center gap-1 rounded-lg border border-lime-300 bg-white px-2 py-1 text-[11px] font-bold text-lime-900 hover:bg-lime-100 transition-colors"
+              >
+                <Download className="h-3 w-3" />
+                <span>Télécharger</span>
+              </button>
+            </div>
+          </div>
+          <ul className="mt-2 grid grid-cols-2 gap-1.5 font-mono">
             {recoveryCodes.map((code) => (
-              <li key={code}>{code}</li>
+              <li key={code} className="rounded bg-white/80 px-2 py-1 text-center font-bold">{code}</li>
             ))}
           </ul>
         </div>

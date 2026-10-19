@@ -1,3 +1,5 @@
+import LatexText from "../LazyLatexText";
+
 interface LivePollPanelProps {
   canModerate: boolean;
   pollQuestion: string;
@@ -37,7 +39,9 @@ export default function LivePollPanel({
           />
         </label>
       ) : (
-        <p className="text-sm font-bold text-white">{pollQuestion}</p>
+        <div className="text-sm font-bold text-white leading-relaxed">
+          <LatexText value={pollQuestion} compact />
+        </div>
       )}
 
       {pollActive && (
@@ -68,8 +72,10 @@ export default function LivePollPanel({
                 style={{ width: `${ratio}%` }}
               />
               <div className="relative flex items-center justify-between gap-3">
-                <span className="text-xs font-semibold text-zinc-100">{option}</span>
-                <span className="text-[10px] font-black text-emerald-300">
+                <span className="text-xs font-semibold text-zinc-100 min-w-0 flex-1 leading-snug">
+                  <LatexText value={option} compact />
+                </span>
+                <span className="text-[10px] font-black text-emerald-300 shrink-0">
                   {ratio}% ({votes})
                 </span>
               </div>

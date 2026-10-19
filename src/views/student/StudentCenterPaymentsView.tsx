@@ -3,8 +3,10 @@ import {
   AlertCircle,
   Building2,
   CalendarClock,
+  Check,
   CheckCircle2,
   Clock3,
+  Copy,
   CreditCard,
   FileText,
   Globe,
@@ -75,6 +77,15 @@ export default function StudentCenterPaymentsView({ invoices = [] }: StudentCent
   const [loading, setLoading] = useState(true);
   const [busyReference, setBusyReference] = useState("");
   const [error, setError] = useState("");
+  const [copiedRef, setCopiedRef] = useState<string | null>(null);
+
+  const handleCopyReference = useCallback((reference: string) => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(reference).catch(() => undefined);
+    }
+    setCopiedRef(reference);
+    setTimeout(() => setCopiedRef(null), 2500);
+  }, []);
 
   const isInitialLoadRef = useRef(true);
   const detailSectionRef = useRef<HTMLElement | null>(null);
@@ -417,7 +428,27 @@ export default function StudentCenterPaymentsView({ invoices = [] }: StudentCent
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="font-mono text-lg font-black text-emerald-200">{selectedCenterRequest.reference}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-mono text-lg font-black text-emerald-200">{selectedCenterRequest.reference}</p>
+                      <button
+                        type="button"
+                        onClick={() => handleCopyReference(selectedCenterRequest.reference)}
+                        className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-2 py-1 text-xs font-bold text-emerald-300 hover:bg-emerald-500/20 transition-colors"
+                        title="Copier la référence"
+                      >
+                        {copiedRef === selectedCenterRequest.reference ? (
+                          <>
+                            <Check className="h-3.5 w-3.5 text-emerald-400" />
+                            <span>Copié !</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-3.5 w-3.5" />
+                            <span>Copier</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                     <h2 className="mt-1 text-xl font-bold text-white">{selectedCenterRequest.module.title}</h2>
                   </div>
                   <span
@@ -486,14 +517,24 @@ export default function StudentCenterPaymentsView({ invoices = [] }: StudentCent
                 </div>
 
                 {selectedCenterRequest.status === "PENDING_PAYMENT" && (
-                  <button
-                    type="button"
-                    disabled={busyReference === selectedCenterRequest.reference}
-                    onClick={() => void cancelCenterRequest(selectedCenterRequest)}
-                    className="rounded-xl border border-red-400/25 px-4 py-2.5 text-sm font-bold text-red-200 hover:bg-red-500/10 disabled:opacity-50"
-                  >
-                    Annuler cette demande
-                  </button>
+                  <div className="flex flex-wrap items-center gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => window.print()}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/15 px-4 py-2.5 text-xs font-bold text-emerald-200 transition-colors hover:bg-emerald-500/25"
+                    >
+                      <Printer className="h-4 w-4" />
+                      Imprimer le bon de réservation
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busyReference === selectedCenterRequest.reference}
+                      onClick={() => void cancelCenterRequest(selectedCenterRequest)}
+                      className="rounded-xl border border-red-400/25 px-4 py-2.5 text-xs font-bold text-red-200 hover:bg-red-500/10 disabled:opacity-50 transition-colors"
+                    >
+                      Annuler cette demande
+                    </button>
+                  </div>
                 )}
                 {selectedCenterRequest.receipt && <CenterPaymentReceipt receipt={selectedCenterRequest.receipt} />}
               </section>
@@ -581,6 +622,18 @@ export default function StudentCenterPaymentsView({ invoices = [] }: StudentCent
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-mono text-xs font-black text-emerald-300">{tx.reference}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyReference(tx.reference)}
+                      className="inline-flex items-center text-slate-400 hover:text-emerald-300 p-0.5 transition-colors"
+                      title="Copier la référence"
+                    >
+                      {copiedRef === tx.reference ? (
+                        <Check className="h-3 w-3 text-emerald-400" />
+                      ) : (
+                        <Copy className="h-3 w-3" />
+                      )}
+                    </button>
                     <span className="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[9px] font-bold text-slate-300">
                       {tx.source === "center" ? "Paiement au centre" : "Paiement en ligne (PayPal)"}
                     </span>

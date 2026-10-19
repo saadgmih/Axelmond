@@ -1,5 +1,6 @@
 import { memo } from "react";
 import type { LiveChatMessage } from "../../livekit";
+import LatexText from "../LazyLatexText";
 
 interface LiveChatMessageRowProps {
   message: LiveChatMessage;
@@ -13,13 +14,13 @@ function LiveChatMessageRow({ message }: LiveChatMessageRowProps) {
         <span className="text-[9px] text-zinc-600 font-mono">{message.time}</span>
       </div>
       <div
-        className={`px-3 py-2 rounded-2xl max-w-[85%] text-sm shadow-sm ${
+        className={`px-3 py-2 rounded-2xl max-w-[85%] text-sm shadow-sm leading-relaxed ${
           message.isMe
             ? "bg-emerald-600 text-white rounded-tr-sm"
             : "bg-zinc-800 text-zinc-100 rounded-tl-sm border border-white/5"
         }`}
       >
-        {message.text}
+        <LatexText value={message.text} />
       </div>
     </div>
   );

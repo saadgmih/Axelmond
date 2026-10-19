@@ -564,16 +564,28 @@ export function useTeacherCurriculum({
     }
   };
 
-  const handleAddQuestion = async (e: FormEvent) => {
+  const handleAddQuestion = async (e: FormEvent): Promise<boolean> => {
     e.preventDefault();
-    if (!selectedQuizId || !newQuestionText.trim() || !newQuestionAnswer.trim() || !newQuestionExplanation.trim()) {
-      setQuizManagerError("Tous les champs du QCM sont requis.");
-      return;
+    if (!selectedQuizId) {
+      setQuizManagerError("Veuillez sélectionner un quiz avant d'ajouter une question.");
+      return false;
     }
-    const filledOptions = newQuestionOptions.filter((o) => o.trim());
+    if (!newQuestionText.trim()) {
+      setQuizManagerError("L'énoncé de la question est requis.");
+      return false;
+    }
+    const filledOptions = newQuestionOptions.map((o) => o.trim()).filter(Boolean);
     if (filledOptions.length < 2) {
       setQuizManagerError("Au moins 2 options de réponse sont requises.");
-      return;
+      return false;
+    }
+    if (!newQuestionAnswer.trim()) {
+      setQuizManagerError("Veuillez sélectionner au moins une bonne réponse.");
+      return false;
+    }
+    if (!newQuestionExplanation.trim()) {
+      setQuizManagerError("L'explication didactique est requise.");
+      return false;
     }
     const selectedAnswerList = newQuestionAnswer
       .split(",")
@@ -581,7 +593,7 @@ export function useTeacherCurriculum({
       .filter(Boolean);
     if (selectedAnswerList.length === 0 || !selectedAnswerList.every((ans) => filledOptions.includes(ans))) {
       setQuizManagerError("Chaque bonne réponse doit correspondre à l'une des options renseignées.");
-      return;
+      return false;
     }
     try {
       setQuizManagerError("");
@@ -641,8 +653,10 @@ export function useTeacherCurriculum({
       await loadTeacherQuizzes(quizCourseId);
       await loadSelectedQuizDetail(selectedQuizId);
       scheduleClear(() => setQuizManagerMsg(""), 4000);
+      return true;
     } catch (err: any) {
       setQuizManagerError(getClientErrorMessage(err, "Enregistrement du QCM impossible."));
+      return false;
     }
   };
 
@@ -1044,6 +1058,7 @@ export function useTeacherCurriculum({
     handleStartEditQuestion,
     handleCancelEditQuestion,
     loadTeacherQuizzes,
+    loadSelectedQuizDetail,
     handleCreateQuiz,
     handleAddQuestion,
     handleDeleteQuestion,

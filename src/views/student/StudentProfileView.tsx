@@ -149,12 +149,12 @@ export default function StudentProfileView({
             value: stats.completedQuizzes,
             suffix: "",
             icon: CheckCircle2,
-            accent: "from-lime-500 to-orange-600",
+            accent: "from-emerald-500 to-teal-500",
           },
         ].map((item) => (
           <div
             key={item.label}
-            className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+            className="group relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/60 p-5 shadow-sm backdrop-blur-sm transition-all hover:border-white/20"
           >
             <div
               className={`absolute -right-4 -top-4 h-20 w-20 rounded-full bg-gradient-to-br ${item.accent} opacity-10 transition-opacity group-hover:opacity-20`}
@@ -162,7 +162,7 @@ export default function StudentProfileView({
             <div className="relative flex items-start justify-between gap-3">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{item.label}</p>
-                <p className="mt-2 text-2xl font-black text-slate-900">
+                <p className="mt-2 text-2xl font-black text-white">
                   {item.value}
                   <span className="text-sm font-semibold text-slate-400">{item.suffix}</span>
                 </p>
@@ -178,13 +178,13 @@ export default function StudentProfileView({
       <div className="space-y-6">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-stretch">
           {/* Progression */}
-          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:col-span-8">
-            <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5 md:px-8">
+          <section className="overflow-hidden rounded-3xl border border-white/10 bg-slate-900/60 shadow-xl backdrop-blur-sm lg:col-span-8">
+            <div className="flex items-center justify-between border-b border-white/10 px-6 py-5 md:px-8">
               <div>
-                <h2 className="text-lg font-black text-slate-900">Progression académique</h2>
-                <p className="mt-0.5 text-xs text-slate-500">Suivi de vos modules inscrits</p>
+                <h2 className="text-lg font-black text-white">Progression académique</h2>
+                <p className="mt-0.5 text-xs text-slate-400">Suivi de vos modules inscrits</p>
               </div>
-              <div className="rounded-xl bg-emerald-50 p-2.5 text-emerald-600">
+              <div className="rounded-xl bg-emerald-500/15 p-2.5 text-emerald-400 border border-emerald-500/20">
                 <BookOpen className="h-5 w-5" />
               </div>
             </div>
@@ -192,30 +192,30 @@ export default function StudentProfileView({
             <div className="space-y-4 p-6 md:p-8">
               {enrolledList.length > 0 ? (
                 enrolledList.map((course) => (
-                  <div key={course.id} className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4">
+                  <div key={course.id} className="rounded-2xl border border-white/10 bg-black/40 p-4 transition-all hover:border-white/20">
                     <div className="mb-2 flex items-center justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-bold text-slate-800">{course.title}</p>
+                        <p className="truncate text-sm font-bold text-white">{course.title}</p>
                         <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
                           {formatCredits(course.credits)} · {course.level}
                         </p>
                       </div>
-                      <span className="shrink-0 rounded-lg bg-white px-2.5 py-1 text-xs font-black text-emerald-700 shadow-sm">
+                      <span className="shrink-0 rounded-lg border border-emerald-500/30 bg-emerald-500/15 px-2.5 py-1 text-xs font-black text-emerald-300 shadow-sm">
                         {course.progress}%
                       </span>
                     </div>
-                    <div className="h-2.5 overflow-hidden rounded-full bg-slate-200">
+                    <div className="h-2.5 overflow-hidden rounded-full bg-slate-800">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500"
+                        className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-500"
                         style={{ width: `${course.progress}%` }}
                       />
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-10 text-center">
-                  <BookOpen className="mx-auto h-10 w-10 text-slate-300" />
-                  <p className="mt-3 text-sm font-bold text-slate-600">Aucun module inscrit</p>
+                <div className="rounded-2xl border border-dashed border-white/15 bg-black/20 px-6 py-10 text-center">
+                  <BookOpen className="mx-auto h-10 w-10 text-emerald-400/60" />
+                  <p className="mt-3 text-sm font-bold text-slate-300">Aucun module inscrit</p>
                   <p className="mt-1 text-xs text-slate-400">
                     Parcourez le catalogue pour débloquer vos premiers modules.
                   </p>
@@ -225,10 +225,10 @@ export default function StudentProfileView({
           </section>
 
           {/* Academic status */}
-          <section className="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:col-span-4">
-            <div className="border-b border-slate-100 px-6 py-5">
-              <h3 className="flex items-center gap-2 text-sm font-black text-slate-900">
-                <Award className="h-4 w-4 text-lime-500" />
+          <section className="flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-slate-900/60 shadow-xl backdrop-blur-sm lg:col-span-4">
+            <div className="border-b border-white/10 px-6 py-5">
+              <h3 className="flex items-center gap-2 text-sm font-black text-white">
+                <Award className="h-4 w-4 text-emerald-400" />
                 Statut académique
               </h3>
             </div>
@@ -238,24 +238,24 @@ export default function StudentProfileView({
                   value: stats.validatedModules,
                   title: "Modules validés",
                   desc: "Leçons marquées comme terminées",
-                  color: "bg-lime-50 text-lime-700 border-lime-100",
+                  color: "bg-teal-500/15 text-teal-300 border-teal-500/30",
                 },
                 {
                   value: stats.completedQuizzes,
                   title: "Quiz complétés",
                   desc: "Évaluations réussies ou soumises",
-                  color: "bg-emerald-50 text-emerald-700 border-emerald-100",
+                  color: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
                 },
                 {
                   value: stats.enrolledCount,
                   title: "Modules actifs",
                   desc: "Inscriptions en cours sur votre compte",
-                  color: "bg-emerald-50 text-emerald-700 border-emerald-100",
+                  color: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
                 },
               ].map((item) => (
                 <div
                   key={item.title}
-                  className="flex items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50/50 p-3.5"
+                  className="flex items-start gap-3 rounded-2xl border border-white/10 bg-black/40 p-3.5 transition-all hover:border-white/20"
                 >
                   <div
                     className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border text-sm font-black ${item.color}`}
@@ -263,8 +263,8 @@ export default function StudentProfileView({
                     {item.value}
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-slate-800">{item.title}</h4>
-                    <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500">{item.desc}</p>
+                    <h4 className="text-xs font-bold text-white">{item.title}</h4>
+                    <p className="mt-0.5 text-[11px] leading-relaxed text-slate-400">{item.desc}</p>
                   </div>
                 </div>
               ))}

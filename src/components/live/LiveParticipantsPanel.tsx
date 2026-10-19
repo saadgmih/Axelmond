@@ -25,12 +25,31 @@ export default function LiveParticipantsPanel({
     <div className="space-y-4 animate-in fade-in duration-300">
       {raisedHandParticipants.length > 0 && (
         <div className="rounded-xl border border-lime-500/20 bg-lime-500/10 p-3">
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-lime-300">Mains levées</p>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-lime-300">
+              Mains levées ({raisedHandParticipants.length})
+            </p>
+          </div>
           <div className="space-y-2">
             {raisedHandParticipants.map((participant) => (
-              <div key={participant.identity} className="flex items-center gap-2 text-xs font-semibold text-lime-100">
-                <Hand className="h-4 w-4" />
-                <span>{participant.name}</span>
+              <div
+                key={participant.identity}
+                className="flex items-center justify-between gap-2 text-xs font-semibold text-lime-100 bg-lime-950/40 px-2.5 py-1.5 rounded-lg border border-lime-500/20"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <Hand className="h-4 w-4 shrink-0 text-lime-400" />
+                  <span className="truncate">{participant.name}</span>
+                </div>
+                {canModerate && (
+                  <button
+                    type="button"
+                    onClick={() => onModerateParticipant("GRANT_SPEECH", participant)}
+                    className="shrink-0 px-2 py-0.5 rounded bg-lime-500/20 hover:bg-lime-500/30 text-lime-300 text-[10px] font-bold border border-lime-400/30 transition-colors"
+                    title="Donner la parole"
+                  >
+                    Donner la parole
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -48,8 +67,26 @@ export default function LiveParticipantsPanel({
       </div>
       <div className="space-y-1.5">
         <div className="flex justify-between items-center mb-3 border-b border-white/5 pb-2">
-          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Membres de la session</p>
-          <span className="text-xs font-mono text-zinc-400">{filteredParticipants.length}</span>
+          <div className="flex items-center gap-1.5">
+            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Membres de la session</p>
+            <span className="text-xs font-mono text-zinc-400">({filteredParticipants.length})</span>
+          </div>
+          {canModerate && filteredParticipants.some((p) => !p.isLocal && p.hasAudio) && (
+            <button
+              type="button"
+              onClick={() => {
+                filteredParticipants
+                  .filter((p) => !p.isLocal && p.hasAudio)
+                  .forEach((p) => onModerateParticipant("MUTE_AUDIO", p));
+              }}
+              title="Couper les micros de tous les étudiants"
+              aria-label="Couper les micros de tous les étudiants"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-300 border border-red-500/20 text-[10px] font-bold transition-colors"
+            >
+              <VolumeX className="w-3.5 h-3.5" />
+              <span>Muet pour tous</span>
+            </button>
+          )}
         </div>
         {filteredParticipants.map((participant) => (
           <div

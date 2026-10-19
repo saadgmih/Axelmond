@@ -4,8 +4,10 @@ import {
   ArrowRight,
   BookOpen,
   Building2,
+  Check,
   CheckCircle2,
   Clock,
+  Copy,
   CreditCard,
   KeyRound,
   Lock,
@@ -63,6 +65,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
   const [centerConfigError, setCenterConfigError] = useState("");
   const [centerRequest, setCenterRequest] = useState<CenterPaymentRequestView | null>(null);
   const [studentNote, setStudentNote] = useState("");
+  const [copiedCenterRef, setCopiedCenterRef] = useState(false);
 
   // ── Access Code state ──────────────────────────────────────────────────────
   const [accessCode, setAccessCode] = useState("");
@@ -86,6 +89,7 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
   useEffect(() => {
     setCenterRequest(null);
     setStudentNote("");
+    setCopiedCenterRef(false);
     setPromoCode("");
     setAppliedPromo(null);
     setPromoError("");
@@ -751,12 +755,48 @@ export default function PaymentModal({ course, onClose, onSuccess }: PaymentModa
                         {centerConfigError ? (
                           <p className="text-xs text-red-400">{centerConfigError}</p>
                         ) : centerRequest ? (
-                          <div className="text-center space-y-2">
-                            <span className="text-xs text-emerald-300 font-bold">✓ Demande créée</span>
-                            <div className="rounded-xl bg-black/60 p-2 font-mono text-base font-black text-emerald-200">
-                              {centerRequest.reference}
+                          <div className="space-y-3 rounded-xl border border-emerald-500/30 bg-emerald-950/40 p-3.5 text-center">
+                            <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-emerald-300">
+                              <CheckCircle2 className="h-4 w-4" /> Demande enregistrée avec succès
                             </div>
-                            <p className="text-[10px] text-slate-400">Présentez ce code au centre</p>
+                            <div className="flex items-center justify-center gap-2 rounded-xl border border-emerald-500/25 bg-black/60 px-3 py-2">
+                              <span className="font-mono text-base font-black tracking-wider text-emerald-200">
+                                {centerRequest.reference}
+                              </span>
+                              <button
+                                type="button"
+                                title="Copier la référence"
+                                onClick={() => {
+                                  if (typeof navigator !== "undefined" && navigator.clipboard) {
+                                    navigator.clipboard.writeText(centerRequest.reference).catch(() => undefined);
+                                  }
+                                  setCopiedCenterRef(true);
+                                  setTimeout(() => setCopiedCenterRef(false), 2500);
+                                }}
+                                className="inline-flex items-center gap-1 rounded-lg bg-emerald-500/20 px-2 py-1 text-xs font-bold text-emerald-300 transition-colors hover:bg-emerald-500/30"
+                              >
+                                {copiedCenterRef ? (
+                                  <>
+                                    <Check className="h-3.5 w-3.5 text-emerald-400" />
+                                    <span>Copié !</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy className="h-3.5 w-3.5" />
+                                    <span>Copier</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                            <p className="text-[11px] leading-relaxed text-slate-300">
+                              Présentez cette référence au guichet du centre de formation à Rabat pour valider votre inscription.
+                            </p>
+                            {centerRequest.expiresAt && (
+                              <div className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-2.5 py-1 text-[10px] font-semibold text-amber-200 border border-amber-500/20">
+                                <Clock className="h-3 w-3" />
+                                <span>Valide jusqu&apos;au {new Date(centerRequest.expiresAt).toLocaleDateString("fr-MA")}</span>
+                              </div>
+                            )}
                           </div>
                         ) : (
                           <div className="space-y-3">

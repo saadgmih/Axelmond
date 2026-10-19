@@ -1,6 +1,6 @@
 import React, { lazy, Suspense, useState, useEffect } from "react";
 import { getClientErrorMessage } from "../client-errors";
-import { User, ShieldAlert, Mail, Lock, LogIn, UserPlus, KeyRound } from "lucide-react";
+import { User, ShieldAlert, Mail, Lock, LogIn, UserPlus, KeyRound, Eye, EyeOff } from "lucide-react";
 import { api, setSessionToken } from "../api";
 import AuthMfaStep from "./AuthMfaStep";
 import PasswordStrengthMeter, { isPasswordValid } from "./PasswordStrengthMeter";
@@ -35,6 +35,8 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [fullName, setFullName] = useState("");
   const [filiere, _setFiliere] = useState("");
   const [professorInviteCode, setProfessorInviteCode] = useState("");
@@ -48,6 +50,14 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
     email: string;
     passkeysAvailable?: boolean;
   } | null>(null);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const interval = setInterval(() => {
+      setResendCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [resendCooldown]);
 
   useEffect(() => {
     try {
@@ -174,6 +184,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
       setVerificationEmail(response.email || cleanEmail);
       setVerificationCode("");
       setSuccessMsg(response.message || "Code envoyé");
+      setResendCooldown(60);
       setIsLoading(false);
     } catch (err: any) {
       setErrorMsg(getClientErrorMessage(err, "Erreur lors de la création du compte."));
@@ -208,6 +219,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
   };
 
   const handleResendVerificationCode = async () => {
+    if (resendCooldown > 0) return;
     setErrorMsg("");
     setSuccessMsg("");
     setIsLoading(true);
@@ -216,6 +228,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
       const response = await api.resendVerificationCode(cleanEmail);
       setSuccessMsg(response.message || "Code envoyé");
       setVerificationCode("");
+      setResendCooldown(60);
       setIsLoading(false);
     } catch (err: any) {
       setErrorMsg(getClientErrorMessage(err, "Renvoi du code impossible."));
@@ -239,6 +252,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
       const response = await api.forgotPassword(cleanEmail);
       setSuccessMsg(response.message || "Code envoyé");
       setVerificationCode("");
+      setResendCooldown(60);
       setAuthMode("reset");
       setIsLoading(false);
     } catch (err: any) {
@@ -476,11 +490,11 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
 
                   <button
                     type="button"
-                    disabled={isLoading}
+                    disabled={isLoading || resendCooldown > 0}
                     onClick={handleResendVerificationCode}
                     className="w-full py-3 rounded-xl text-xs font-black uppercase tracking-wider text-slate-300 border border-slate-800 hover:bg-slate-900 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Renvoyer le code
+                    {resendCooldown > 0 ? `Renvoyer le code (${resendCooldown}s)` : "Renvoyer le code"}
                   </button>
                 </form>
               ) : authMode === "forgot" ? (
@@ -585,7 +599,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                       <input
                         id="auth-new-password"
                         name="newPassword"
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         autoComplete="new-password"
                         aria-invalid={Boolean(errorMsg)}
                         aria-describedby={errorMsg ? "auth-error-msg" : undefined}
@@ -593,9 +607,17 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                         placeholder="Saisir votre nouveau mot de passe"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-800 focus:border-slate-700 px-4 py-3 pl-11 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-700 transition-all"
+                        className="w-full bg-slate-900 border border-slate-800 focus:border-slate-700 px-4 py-3 pl-11 pr-11 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-700 transition-all"
                       />
                       <Lock className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors p-1"
+                        aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
                     </div>
                     <PasswordStrengthMeter password={password} isDark={true} />
                   </div>
@@ -695,7 +717,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                       <input
                         id="auth-password"
                         name="password"
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         autoComplete={authMode === "register" ? "new-password" : "current-password"}
                         aria-invalid={Boolean(errorMsg)}
                         aria-describedby={errorMsg ? "auth-error-msg" : undefined}
@@ -703,9 +725,17 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                         placeholder="Saisir votre mot de passe"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-800 focus:border-slate-700 px-4 py-3 pl-11 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-700 transition-all"
+                        className="w-full bg-slate-900 border border-slate-800 focus:border-slate-700 px-4 py-3 pl-11 pr-11 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-700 transition-all"
                       />
                       <Lock className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors p-1"
+                        aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
                     </div>
                     {authMode === "register" && <PasswordStrengthMeter password={password} isDark={true} />}
                   </div>

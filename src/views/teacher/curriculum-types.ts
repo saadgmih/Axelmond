@@ -121,13 +121,14 @@ export interface TeacherCurriculumViewProps extends AdminAcademicTaxonomyViewPro
   handleUploadLessonAsset: (...args: any[]) => void | Promise<void>;
   handleSelectManagedCourse: (courseId: number) => Promise<void>;
   loadTeacherQuizzes: (courseId?: number) => void | Promise<void>;
+  loadSelectedQuizDetail?: (quizId?: string) => Promise<void> | void;
   handleCreateQuiz: (...args: any[]) => void | Promise<void>;
   handleDeleteQuiz?: (quizId: string) => void | Promise<void>;
   handleUpdateQuizTitle?: (quiz: { id: string; title: string }) => void | Promise<void>;
   editingQuestionId?: string;
   handleStartEditQuestion?: (q: any) => void;
   handleCancelEditQuestion?: () => void;
-  handleAddQuestion: (...args: any[]) => void | Promise<void>;
+  handleAddQuestion: (...args: any[]) => boolean | void | Promise<boolean | void>;
   handleDeleteQuestion: (...args: any[]) => void | Promise<void>;
   handleUpdateCourseDetails: (...args: any[]) => void | Promise<void>;
   handleSaveEditCourse: (...args: any[]) => void | Promise<void>;

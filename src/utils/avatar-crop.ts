@@ -33,9 +33,12 @@ export function clampAvatarPan(
   const maxPanX = Math.max(0, (renderedW - circleSize) / 2);
   const maxPanY = Math.max(0, (renderedH - circleSize) / 2);
 
+  const clampedX = Math.min(maxPanX, Math.max(-maxPanX, panX));
+  const clampedY = Math.min(maxPanY, Math.max(-maxPanY, panY));
+
   return {
-    panX: Math.min(maxPanX, Math.max(-maxPanX, panX)),
-    panY: Math.min(maxPanY, Math.max(-maxPanY, panY)),
+    panX: Object.is(clampedX, -0) ? 0 : clampedX,
+    panY: Object.is(clampedY, -0) ? 0 : clampedY,
   };
 }
 
