@@ -402,15 +402,15 @@ export function canAccessApiRoute(role: unknown, method: string, path: string): 
   }
 
   if (
-    verb === "POST" &&
-    (cleanPath === "/api/livekit/token" ||
-      cleanPath === "/api/livekit/messages" ||
-      cleanPath === "/api/paypal/create-order" ||
-      cleanPath === "/api/paypal/capture-order" ||
-      cleanPath === "/api/paypal/cancel-order" ||
-      cleanPath === "/api/payments/enroll-mock" ||
-      cleanPath === "/api/contact" ||
-      cleanPath === "/api/support/tickets")
+    ((verb === "POST" &&
+      (cleanPath === "/api/livekit/token" ||
+        cleanPath === "/api/livekit/messages" ||
+        cleanPath === "/api/paypal/create-order" ||
+        cleanPath === "/api/paypal/capture-order" ||
+        cleanPath === "/api/paypal/cancel-order" ||
+        cleanPath === "/api/payments/enroll-mock" ||
+        cleanPath === "/api/contact")) ||
+      ((verb === "POST" || verb === "GET") && cleanPath === "/api/support/tickets"))
   ) {
     return true;
   }

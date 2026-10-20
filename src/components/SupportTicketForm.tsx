@@ -17,11 +17,13 @@ import { formatTicketReference } from "../utils/user-facing-labels";
 interface SupportTicketFormProps {
   defaultCategory?: string;
   submitLabel?: string;
+  onTicketCreated?: () => void;
 }
 
 export default function SupportTicketForm({
   defaultCategory = "Support Technique",
   submitLabel = "Envoyer le signalement",
+  onTicketCreated,
 }: SupportTicketFormProps) {
   const [subject, setSubject] = useState("");
   const [category, setCategory] = useState(defaultCategory);
@@ -119,6 +121,7 @@ export default function SupportTicketForm({
       });
       setSuccessMsg(response.message);
       setCreatedTicket(response.ticket);
+      if (onTicketCreated) onTicketCreated();
       setSubject("");
       setDescription("");
       setScreenshotUrl(null);

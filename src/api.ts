@@ -982,6 +982,8 @@ export const api = {
     description: string;
     screenshotUrl?: string | null;
   }) => request<any>("POST", "/api/support/tickets", data),
+  getSupportTickets: () =>
+    request<{ success: boolean; tickets: Array<{ id: string; subject: string; category: string; description: string; screenshotUrl: string | null; status: string; createdAt: string }> }>("GET", "/api/support/tickets"),
   getSchedule: () => request<any[]>("GET", "/api/me/schedule"),
   createScheduleSession: (data: {
     dayOfWeek: number;

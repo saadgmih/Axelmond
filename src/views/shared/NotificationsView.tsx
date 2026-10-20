@@ -1,8 +1,9 @@
-import React, { memo, useEffect } from "react";
-import { Bell, CheckCheck, Loader2, Radio } from "lucide-react";
+import React, { memo, useEffect, useMemo, useState } from "react";
+import { Bell, CheckCheck, Loader2, Radio, Volume2, VolumeX, Sparkles, Video, MessageSquare, BookOpen } from "lucide-react";
 import type { AppNotification } from "../../types/messaging";
 import { VirtualList } from "../../components/VirtualList";
 import { scheduleUi } from "../teacher/schedule-theme";
+import { playNotificationSound, isSoundEnabled, setSoundEnabled } from "../../utils/notification-sound";
 
 interface NotificationsViewProps {
   notifications: AppNotification[];
@@ -16,6 +17,8 @@ interface NotificationsViewProps {
   pushStatusKind?: "idle" | "success" | "error" | "info";
   onEnablePush?: () => void;
 }
+
+type NotificationCategoryFilter = "ALL" | "UNREAD" | "ACADEMIC" | "LIVE" | "MESSAGES";
 
 function typeLabel(type: string) {
   switch (type) {
@@ -102,9 +105,63 @@ export default function NotificationsView({
   pushStatusKind = "info",
   onEnablePush,
 }: NotificationsViewProps) {
+  const [filter, setFilter] = useState<NotificationCategoryFilter>("ALL");
+  const [soundActive, setSoundActive] = useState<boolean>(() => isSoundEnabled());
+
   useEffect(() => {
     onReload();
   }, [onReload]);
+
+  const handleToggleSound = () => {
+    const next = !soundActive;
+    setSoundActive(next);
+    setSoundEnabled(next);
+    if (next) {
+      playNotificationSound("alert");
+    }
+  };
+
+  const handleTestSound = () => {
+    playNotificationSound("message");
+  };
+
+  const counts = useMemo(() => {
+    const unread = notifications.filter((n) => !n.isRead).length;
+    const academic = notifications.filter((n) =>
+      ["NEW_COURSE", "COURSE_UPDATED", "NEW_MODULE", "NEW_CHAPTER", "NEW_SECTION", "NEW_CONTENT", "NEW_QUIZ", "NEW_HOMEWORK"].includes(n.type)
+    ).length;
+    const live = notifications.filter((n) =>
+      ["LIVE_STARTED", "LIVE_FINISHED", "LIVE_SOON", "LIVE_REPLAY_AVAILABLE"].includes(n.type)
+    ).length;
+    const messages = notifications.filter((n) => n.type === "NEW_MESSAGE").length;
+
+    return {
+      all: notifications.length,
+      unread,
+      academic,
+      live,
+      messages,
+    };
+  }, [notifications]);
+
+  const filteredNotifications = useMemo(() => {
+    switch (filter) {
+      case "UNREAD":
+        return notifications.filter((n) => !n.isRead);
+      case "ACADEMIC":
+        return notifications.filter((n) =>
+          ["NEW_COURSE", "COURSE_UPDATED", "NEW_MODULE", "NEW_CHAPTER", "NEW_SECTION", "NEW_CONTENT", "NEW_QUIZ", "NEW_HOMEWORK"].includes(n.type)
+        );
+      case "LIVE":
+        return notifications.filter((n) =>
+          ["LIVE_STARTED", "LIVE_FINISHED", "LIVE_SOON", "LIVE_REPLAY_AVAILABLE"].includes(n.type)
+        );
+      case "MESSAGES":
+        return notifications.filter((n) => n.type === "NEW_MESSAGE");
+      default:
+        return notifications;
+    }
+  }, [notifications, filter]);
 
   return (
     <div className={scheduleUi.page}>
@@ -117,7 +174,33 @@ export default function NotificationsView({
               Restez informé des nouveaux contenus, lives, messages et devoirs sans spam.
             </p>
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row">
+          <div className="flex flex-wrap items-center gap-2 sm:flex-row">
+            <button
+              type="button"
+              onClick={handleToggleSound}
+              className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                soundActive
+                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"
+                  : "border-white/10 bg-white/5 text-slate-400 hover:bg-white/10"
+              }`}
+              title={soundActive ? "Sons activés (cliquer pour couper)" : "Sons coupés (cliquer pour activer)"}
+            >
+              {soundActive ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+              <span>{soundActive ? "Sons activés" : "Sons coupés"}</span>
+            </button>
+
+            {soundActive && (
+              <button
+                type="button"
+                onClick={handleTestSound}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/10"
+                title="Tester le carillon audio Web Audio API"
+              >
+                <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+                <span>Tester le son</span>
+              </button>
+            )}
+
             {onEnablePush && (
               <button type="button" className={scheduleUi.editBtn} onClick={onEnablePush}>
                 <Radio className="mr-2 inline h-4 w-4" />
@@ -131,6 +214,89 @@ export default function NotificationsView({
           </div>
         </div>
       </section>
+
+      {/* Filter Tabs Bar */}
+      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-white/10 bg-[#07241e]/90 p-2 backdrop-blur-md">
+        <button
+          type="button"
+          onClick={() => setFilter("ALL")}
+          className={`flex items-center gap-2 rounded-xl px-3.5 py-1.5 text-xs font-bold transition ${
+            filter === "ALL"
+              ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20"
+              : "text-slate-300 hover:bg-white/5"
+          }`}
+        >
+          <span>Toutes</span>
+          <span className={`rounded-full px-1.5 py-0.2 text-[10px] ${filter === "ALL" ? "bg-slate-900/20 text-slate-950" : "bg-white/10 text-slate-400"}`}>
+            {counts.all}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setFilter("UNREAD")}
+          className={`flex items-center gap-2 rounded-xl px-3.5 py-1.5 text-xs font-bold transition ${
+            filter === "UNREAD"
+              ? "bg-red-500 text-white shadow-md shadow-red-500/20"
+              : "text-slate-300 hover:bg-white/5"
+          }`}
+        >
+          <span>Non lues</span>
+          {counts.unread > 0 && (
+            <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-black ${filter === "UNREAD" ? "bg-white/20 text-white" : "bg-red-500/20 text-red-300"}`}>
+              {counts.unread}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setFilter("ACADEMIC")}
+          className={`flex items-center gap-2 rounded-xl px-3.5 py-1.5 text-xs font-bold transition ${
+            filter === "ACADEMIC"
+              ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20"
+              : "text-slate-300 hover:bg-white/5"
+          }`}
+        >
+          <BookOpen className="h-3.5 w-3.5" />
+          <span>Pédagogie</span>
+          <span className={`rounded-full px-1.5 py-0.2 text-[10px] ${filter === "ACADEMIC" ? "bg-slate-900/20 text-slate-950" : "bg-white/10 text-slate-400"}`}>
+            {counts.academic}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setFilter("LIVE")}
+          className={`flex items-center gap-2 rounded-xl px-3.5 py-1.5 text-xs font-bold transition ${
+            filter === "LIVE"
+              ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20"
+              : "text-slate-300 hover:bg-white/5"
+          }`}
+        >
+          <Video className="h-3.5 w-3.5" />
+          <span>Direct & Live</span>
+          <span className={`rounded-full px-1.5 py-0.2 text-[10px] ${filter === "LIVE" ? "bg-slate-900/20 text-slate-950" : "bg-white/10 text-slate-400"}`}>
+            {counts.live}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setFilter("MESSAGES")}
+          className={`flex items-center gap-2 rounded-xl px-3.5 py-1.5 text-xs font-bold transition ${
+            filter === "MESSAGES"
+              ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20"
+              : "text-slate-300 hover:bg-white/5"
+          }`}
+        >
+          <MessageSquare className="h-3.5 w-3.5" />
+          <span>Messagerie</span>
+          <span className={`rounded-full px-1.5 py-0.2 text-[10px] ${filter === "MESSAGES" ? "bg-slate-900/20 text-slate-950" : "bg-white/10 text-slate-400"}`}>
+            {counts.messages}
+          </span>
+        </button>
+      </div>
 
       {pushStatus && (
         <div className={pushStatusKind === "error" ? scheduleUi.alertError : scheduleUi.alertSuccess}>{pushStatus}</div>
@@ -149,14 +315,24 @@ export default function NotificationsView({
               Une erreur est survenue lors de la récupération des notifications.
             </p>
           </div>
-        ) : notifications.length === 0 ? (
+        ) : filteredNotifications.length === 0 ? (
           <div className="flex flex-col items-center gap-3 p-12 text-center text-slate-500">
             <Bell className="h-10 w-10 text-slate-600" />
-            <p className="text-sm font-semibold">Aucune notification pour le moment.</p>
+            <p className="text-sm font-semibold">
+              {filter === "UNREAD"
+                ? "Toutes vos notifications sont à jour !"
+                : filter === "ACADEMIC"
+                ? "Aucune notification pédagogique pour le moment."
+                : filter === "LIVE"
+                ? "Aucun direct ou rediffusion récente."
+                : filter === "MESSAGES"
+                ? "Aucune notification de message."
+                : "Aucune notification pour le moment."}
+            </p>
           </div>
         ) : (
           <VirtualList
-            items={notifications}
+            items={filteredNotifications}
             estimateSize={96}
             minItemsToVirtualize={18}
             getKey={(notification) => notification.id}

@@ -39,9 +39,13 @@ import { MessageVideoAttachment } from "../../components/messaging/MessageVideoA
 import { canDeleteOwnMessage } from "../../message-delete-policy";
 import { VirtualList } from "../../components/VirtualList";
 import { useMessagingSocket } from "../../hooks/useMessagingSocket";
-import type { ChatMessage, ConversationSummary, MessagingUser } from "../../types/messaging";
+import type { ChatMessage, ConversationSummary, MessageAttachment, MessagingUser } from "../../types/messaging";
 import { scheduleUi } from "../teacher/schedule-theme";
 import { UserProfileTrigger } from "../../components/UserProfileViewer";
+import MessageAttachmentModal from "../../components/messaging/MessageAttachmentModal";
+import PendingAttachmentPreview from "../../components/messaging/PendingAttachmentPreview";
+import ConversationFilterTabs, { type ConversationFilter } from "../../components/messaging/ConversationFilterTabs";
+import { isSoundEnabled, setSoundEnabled, playNotificationSound } from "../../utils/notification-sound";
 
 interface MessagesViewProps {
   currentUserId: string;
@@ -101,18 +105,27 @@ function peerInitials(name: string) {
   return name.slice(0, 2).toUpperCase();
 }
 
-function renderAttachment(message: ChatMessage, role: "student" | "teacher", mine: boolean) {
+function renderAttachment(
+  message: ChatMessage,
+  role: "student" | "teacher",
+  mine: boolean,
+  onOpenAttachment?: (attachment: MessageAttachment) => void,
+) {
   const attachment = message.attachments[0];
   if (!attachment) return null;
   if (attachment.kind === "IMAGE") {
     return (
-      <a href={attachment.url} target="_blank" rel="noreferrer" className="mt-2 block max-w-full">
+      <button
+        type="button"
+        onClick={() => (onOpenAttachment ? onOpenAttachment(attachment) : window.open(attachment.url, "_blank"))}
+        className="mt-2 block max-w-full text-left overflow-hidden rounded-xl border border-white/10 group/img focus:outline-none focus:ring-2 focus:ring-emerald-400"
+      >
         <img
           src={attachment.url}
           alt={attachment.fileName}
-          className="max-h-64 max-w-full rounded-xl border border-white/10 object-cover"
+          className="max-h-64 max-w-full rounded-xl object-cover transition-transform duration-200 group-hover/img:scale-[1.02]"
         />
-      </a>
+      </button>
     );
   }
   if (attachment.kind === "VIDEO") {
@@ -126,15 +139,14 @@ function renderAttachment(message: ChatMessage, role: "student" | "teacher", min
     return <MessageAudioPlayer url={attachment.url} mine={mine} />;
   }
   return (
-    <a
-      href={attachment.url}
-      target="_blank"
-      rel="noreferrer"
-      className="mt-2 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs font-semibold text-emerald-200 hover:bg-black/30"
+    <button
+      type="button"
+      onClick={() => (onOpenAttachment ? onOpenAttachment(attachment) : window.open(attachment.url, "_blank"))}
+      className="mt-2 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs font-semibold text-emerald-200 hover:bg-black/30 transition-colors"
     >
       <FileText className="h-4 w-4" />
-      {attachment.fileName}
-    </a>
+      <span>{attachment.fileName}</span>
+    </button>
   );
 }
 
@@ -208,6 +220,7 @@ interface MessageBubbleProps {
   canDelete: boolean;
   deleting: boolean;
   onDelete: (messageId: string) => void;
+  onOpenAttachment?: (attachment: MessageAttachment) => void;
 }
 
 const MessageBubble = memo(function MessageBubble({
@@ -217,6 +230,7 @@ const MessageBubble = memo(function MessageBubble({
   canDelete,
   deleting,
   onDelete,
+  onOpenAttachment,
 }: MessageBubbleProps) {
   const attachment = message.attachments[0];
   const hasBody = Boolean(message.body?.trim());
@@ -261,7 +275,7 @@ const MessageBubble = memo(function MessageBubble({
             <p className="whitespace-pre-wrap text-sm">{message.body}</p>
           </div>
         )}
-        <div className="w-full min-w-[220px] max-w-[min(100%,280px)]">{renderAttachment(message, role, mine)}</div>
+        <div className="w-full min-w-[220px] max-w-[min(100%,280px)]">{renderAttachment(message, role, mine, onOpenAttachment)}</div>
         {metaRow}
       </div>
     );
@@ -294,7 +308,7 @@ const MessageBubble = memo(function MessageBubble({
         }`}
       >
         {message.body && <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{message.body}</p>}
-        {attachment && <div className={hasBody ? "mt-2" : ""}>{renderAttachment(message, role, mine)}</div>}
+        {attachment && <div className={hasBody ? "mt-2" : ""}>{renderAttachment(message, role, mine, onOpenAttachment)}</div>}
         <div
           className={`flex items-center gap-1.5 px-1 text-[10px] ${
             isAudioOnly ? "mt-1.5 pb-0.5" : "mt-2"
@@ -344,6 +358,18 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
   const [peerTyping, setPeerTyping] = useState(false);
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null);
   const [startingConversationId, setStartingConversationId] = useState<string | null>(null);
+  const [previewAttachment, setPreviewAttachment] = useState<MessageAttachment | null>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [conversationFilter, setConversationFilter] = useState<ConversationFilter>("all");
+  const [soundActive, setSoundActive] = useState(() => isSoundEnabled());
+
+  const handleToggleSound = useCallback(() => {
+    const next = !soundActive;
+    setSoundActive(next);
+    setSoundEnabled(next);
+    if (next) playNotificationSound("success");
+  }, [soundActive]);
+
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messagesScrollRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -360,6 +386,27 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
   const selectedConversation = useMemo(
     () => conversations.find((item) => item.id === selectedId) || null,
     [conversations, selectedId],
+  );
+
+  const filteredConversations = useMemo(() => {
+    let list = conversations;
+    if (conversationFilter === "unread") {
+      list = list.filter((c) => c.unreadCount > 0);
+    }
+    const q = searchUsers.trim().toLowerCase();
+    if (q.length > 0 && userResults.length === 0) {
+      list = list.filter((c) => {
+        const name = (c.peer?.fullName || "").toLowerCase();
+        const lastMsg = (c.lastMessage?.body || "").toLowerCase();
+        return name.includes(q) || lastMsg.includes(q);
+      });
+    }
+    return list;
+  }, [conversations, conversationFilter, searchUsers, userResults.length]);
+
+  const totalUnreadCount = useMemo(
+    () => conversations.reduce((acc, c) => acc + (c.unreadCount || 0), 0),
+    [conversations],
   );
 
   const openNewConversation = useCallback(() => {
@@ -463,6 +510,9 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
 
   const { joinConversation, leaveConversation, emitTypingStart, emitTypingStop } = useMessagingSocket(true, {
     onMessage: (message) => {
+      if (message.senderId !== currentUserId) {
+        playNotificationSound("message");
+      }
       setConversations((prev) => {
         const next = prev.map((item) => {
           if (item.id !== message.conversationId) return item;
@@ -694,11 +744,28 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
     onError: (message) => setError(message),
   });
 
-  const handleFilePick = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFilePick = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
-    await uploadAndSendAttachment(file);
+    const normalizedFile = normalizeMessageUploadFile(file);
+    const validationError = validateUploadFile(normalizedFile, "MESSAGE");
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    setError("");
+    setPendingFile(normalizedFile);
+  };
+
+  const handleSendDraft = async () => {
+    if (pendingFile) {
+      const fileToSend = pendingFile;
+      setPendingFile(null);
+      await uploadAndSendAttachment(fileToSend);
+    } else {
+      await sendMessage();
+    }
   };
 
   const accentBtn =
@@ -801,21 +868,36 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
             )}
           </div>
 
+          <ConversationFilterTabs
+            filter={conversationFilter}
+            onFilterChange={setConversationFilter}
+            totalCount={conversations.length}
+            unreadCount={totalUnreadCount}
+            soundActive={soundActive}
+            onToggleSound={handleToggleSound}
+          />
+
           <div className="relative flex min-h-0 flex-1 flex-col">
             {loadingConversations ? (
               <div className="flex flex-1 items-center justify-center p-8 text-slate-400">
                 <Loader2 className="h-5 w-5 animate-spin" />
               </div>
-            ) : conversations.length === 0 ? (
+            ) : filteredConversations.length === 0 ? (
               <div className="flex flex-1 flex-col items-center justify-center p-8 text-center">
                 <Inbox className="h-8 w-8 text-emerald-400/45" />
-                <p className="mt-3 text-sm font-bold text-slate-300">Aucune conversation</p>
-                <p className="mt-1 text-xs leading-relaxed text-slate-500">Recherchez un contact pour commencer.</p>
+                <p className="mt-3 text-sm font-bold text-slate-300">
+                  {conversationFilter === "unread" ? "Aucune conversation non lue" : "Aucune conversation"}
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                  {conversationFilter === "unread"
+                    ? "Toutes vos conversations sont à jour."
+                    : "Recherchez un contact pour commencer."}
+                </p>
               </div>
             ) : (
               <VirtualList
                 className="flex-1 overscroll-contain"
-                items={conversations}
+                items={filteredConversations}
                 estimateSize={82}
                 minItemsToVirtualize={20}
                 getKey={(conversation) => conversation.id}
@@ -1033,6 +1115,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
                               canDelete={mine && canDeleteOwnMessage(message, currentUserId)}
                               deleting={deletingMessageId === message.id}
                               onDelete={handleDeleteMessage}
+                              onOpenAttachment={setPreviewAttachment}
                             />
                           </div>
                         </div>
@@ -1081,6 +1164,9 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
                   </div>
                 )}
                 <div className="mx-auto max-w-4xl">
+                  {pendingFile && (
+                    <PendingAttachmentPreview file={pendingFile} onRemove={() => setPendingFile(null)} />
+                  )}
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -1123,23 +1209,23 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
                       rows={1}
                       maxLength={4000}
                       disabled={composerBusy || audioRecorder.isRecording}
-                      placeholder="Écrire un message…"
+                      placeholder={pendingFile ? "Ajouter une légende ou envoyer directement…" : "Écrire un message…"}
                       className="max-h-32 min-h-10 flex-1 resize-none bg-transparent px-2 py-2.5 text-sm leading-5 text-slate-100 outline-none placeholder:text-slate-600 disabled:cursor-not-allowed disabled:opacity-60"
                       onKeyDown={(event) => {
                         if (event.key === "Enter" && !event.shiftKey && !composerBusy) {
                           event.preventDefault();
-                          void sendMessage();
+                          void handleSendDraft();
                         }
                       }}
                     />
                     <button
                       type="button"
-                      disabled={composerBusy || audioRecorder.isRecording || !draft.trim()}
-                      onClick={() => sendMessage()}
+                      disabled={composerBusy || audioRecorder.isRecording || (!draft.trim() && !pendingFile)}
+                      onClick={() => void handleSendDraft()}
                       className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white shadow-lg transition active:scale-95 disabled:cursor-not-allowed disabled:bg-white/[0.05] disabled:text-slate-600 disabled:shadow-none ${accentBtn}`}
                       aria-label="Envoyer le message"
                     >
-                      {sending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-4 w-4" />}
+                      {sending || uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-4 w-4" />}
                     </button>
                   </div>
                   <div className="mt-2 flex items-center justify-between gap-3 px-1 text-[9px] font-semibold uppercase tracking-wider text-slate-600">
@@ -1164,6 +1250,7 @@ export default function MessagesView({ currentUserId, role }: MessagesViewProps)
           )}
         </section>
       </div>
+      <MessageAttachmentModal attachment={previewAttachment} onClose={() => setPreviewAttachment(null)} />
     </div>
   );
 }

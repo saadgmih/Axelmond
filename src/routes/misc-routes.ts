@@ -5,6 +5,7 @@ import type { RouteContext } from "../server/route-context";
 import { startupState } from "../server/startup-state";
 import { getCacheBackendKind } from "../cache";
 import * as api from "../server/route-deps";
+import { prisma } from "../db";
 
 export function registerMiscRoutes(app: Express, ctx: RouteContext): void {
   const { requireAuth, validateBody } = ctx.middleware;
@@ -68,6 +69,40 @@ export function registerMiscRoutes(app: Express, ctx: RouteContext): void {
     }
   });
 
+  // GET /api/support/tickets
+
+  app.get("/api/support/tickets", requireAuth, async (req, res) => {
+    const authUser = getAuthUser(req);
+    try {
+      const logs = await prisma.auditLog.findMany({
+        where: {
+          userId: authUser.id,
+          action: "SUPPORT_TICKET_CREATED",
+        },
+        orderBy: { createdAt: "desc" },
+        take: 50,
+      });
+
+      const tickets = logs.map((log) => {
+        const details = (log.details && typeof log.details === "object" ? log.details : {}) as any;
+        return {
+          id: log.resourceId || details.ticketId || `TK-${log.id.slice(-6).toUpperCase()}`,
+          subject: details.subject || "Ticket de support",
+          category: details.category || "Support Technique",
+          description: details.description || "",
+          screenshotUrl: details.screenshotUrl || null,
+          status: details.status || "Ouvert",
+          createdAt: log.createdAt.toISOString(),
+        };
+      });
+
+      res.json({ success: true, tickets });
+    } catch (err) {
+      console.error("Error fetching support tickets:", err);
+      res.status(500).json({ error: "Erreur lors de la récupération des tickets de support." });
+    }
+  });
+
   // POST /api/support/tickets
 
   app.post("/api/support/tickets", requireAuth, validateBody(api.supportTicketSchema), async (req, res) => {
@@ -82,6 +117,8 @@ export function registerMiscRoutes(app: Express, ctx: RouteContext): void {
     }
 
     try {
+      const ticketId = `TK-${Math.floor(100000 + Math.random() * 900000)}`;
+
       await api.logAudit(
         authUser.id,
 
@@ -91,16 +128,22 @@ export function registerMiscRoutes(app: Express, ctx: RouteContext): void {
 
         "SupportTicket",
 
-        null,
+        ticketId,
 
         {
+          ticketId,
+
           subject,
 
           category,
 
+          description,
+
           descriptionLength: description.length,
 
           screenshotUrl,
+
+          status: "Ouvert",
         },
 
         req.ip,
@@ -113,7 +156,7 @@ export function registerMiscRoutes(app: Express, ctx: RouteContext): void {
           "Votre ticket de support a été créé avec succès. Notre équipe technique l'examinera dans les plus brefs délais.",
 
         ticket: {
-          id: `TK-${Math.floor(100000 + Math.random() * 900000)}`,
+          id: ticketId,
 
           subject,
 
