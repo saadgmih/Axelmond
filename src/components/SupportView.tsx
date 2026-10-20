@@ -59,7 +59,7 @@ export default function SupportView({ navigateTo }: SupportViewProps) {
       const res = await api.getSupportTickets();
       setUserTickets(Array.isArray(res?.tickets) ? res.tickets : []);
     } catch {
-      setTicketsError("Impossible de récupérer vos tickets.");
+      setTicketsError("Connectez-vous pour consulter l'historique de vos tickets.");
     } finally {
       setLoadingTickets(false);
     }
@@ -332,7 +332,16 @@ export default function SupportView({ navigateTo }: SupportViewProps) {
                   <Loader2 className="w-6 h-6 animate-spin text-emerald-400" />
                 </div>
               ) : ticketsError ? (
-                <div className="p-6 text-center text-rose-400 text-xs">{ticketsError}</div>
+                <div className="p-8 text-center text-slate-400 space-y-3 border border-slate-800/80 rounded-2xl bg-slate-950/40">
+                  <Ticket className="w-8 h-8 mx-auto text-emerald-400/60" />
+                  <p className="text-sm font-semibold text-slate-300">{ticketsError}</p>
+                  <a
+                    href="/login"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow-lg shadow-emerald-900/30"
+                  >
+                    Se connecter à votre compte
+                  </a>
+                </div>
               ) : userTickets.length === 0 ? (
                 <div className="p-8 text-center text-slate-500 space-y-2 border border-dashed border-slate-800 rounded-2xl">
                   <Ticket className="w-8 h-8 mx-auto text-slate-600" />
