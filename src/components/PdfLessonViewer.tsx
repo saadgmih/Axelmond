@@ -72,25 +72,9 @@ function imageModeButtonClass(active: boolean) {
   return `${toolbarButtonClass} ${active ? "border-teal-500/50 bg-teal-500/10 text-teal-300" : ""}`;
 }
 
-function createResilientPdfBytes(bytes: Uint8Array): Uint8Array<ArrayBuffer> {
-  const backup = bytes.slice();
-  return new Proxy(bytes, {
-    get(target, prop, receiver) {
-      if (prop === "buffer") {
-        if (target.buffer.byteLength === 0) {
-          return backup.slice().buffer;
-        }
-        return target.buffer;
-      }
-      return Reflect.get(target, prop, receiver);
-    },
-  }) as Uint8Array<ArrayBuffer>;
-}
-
 async function readBlobBytes(blob: Blob): Promise<Uint8Array<ArrayBuffer>> {
   if (typeof blob.arrayBuffer === "function") {
-    const raw = new Uint8Array((await blob.arrayBuffer()) as ArrayBuffer);
-    return createResilientPdfBytes(raw);
+    return new Uint8Array((await blob.arrayBuffer()) as ArrayBuffer);
   }
 
   // Safari versions without Blob.arrayBuffer still support FileReader.
@@ -102,7 +86,7 @@ async function readBlobBytes(blob: Blob): Promise<Uint8Array<ArrayBuffer>> {
         reject(new Error("Le document reçu est illisible."));
         return;
       }
-      resolve(createResilientPdfBytes(new Uint8Array(reader.result)));
+      resolve(new Uint8Array(reader.result));
     };
     reader.readAsArrayBuffer(blob);
   });
