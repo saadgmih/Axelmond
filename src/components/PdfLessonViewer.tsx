@@ -72,9 +72,25 @@ function imageModeButtonClass(active: boolean) {
   return `${toolbarButtonClass} ${active ? "border-teal-500/50 bg-teal-500/10 text-teal-300" : ""}`;
 }
 
+function createResilientPdfBytes(bytes: Uint8Array): Uint8Array<ArrayBuffer> {
+  const backup = bytes.slice();
+  return new Proxy(bytes, {
+    get(target, prop, receiver) {
+      if (prop === "buffer") {
+        if (target.buffer.byteLength === 0) {
+          return backup.slice().buffer;
+        }
+        return target.buffer;
+      }
+      return Reflect.get(target, prop, receiver);
+    },
+  }) as Uint8Array<ArrayBuffer>;
+}
+
 async function readBlobBytes(blob: Blob): Promise<Uint8Array<ArrayBuffer>> {
   if (typeof blob.arrayBuffer === "function") {
-    return new Uint8Array((await blob.arrayBuffer()) as ArrayBuffer);
+    const raw = new Uint8Array((await blob.arrayBuffer()) as ArrayBuffer);
+    return createResilientPdfBytes(raw);
   }
 
   // Safari versions without Blob.arrayBuffer still support FileReader.
@@ -86,7 +102,7 @@ async function readBlobBytes(blob: Blob): Promise<Uint8Array<ArrayBuffer>> {
         reject(new Error("Le document reçu est illisible."));
         return;
       }
-      resolve(new Uint8Array(reader.result));
+      resolve(createResilientPdfBytes(new Uint8Array(reader.result)));
     };
     reader.readAsArrayBuffer(blob);
   });
@@ -102,6 +118,7 @@ export default function PdfLessonViewer({
 }: PdfLessonViewerProps) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [pdfFile, setPdfFile] = useState<PdfFile | null>(null);
+  const [pdfRenderer, setPdfRenderer] = useState<"REACT_PDF" | "BROWSER">("REACT_PDF");
   const [error, setError] = useState("");
   const [viewerState, setViewerState] = useState<ViewerState>("WAITING_FOR_SESSION");
   const [retryKey, setRetryKey] = useState(0);
@@ -295,11 +312,13 @@ export default function PdfLessonViewer({
   function retryDocumentLoad() {
     clearParseRetryTimeout();
     parseRetryCountRef.current = 0;
+    setPdfRenderer("REACT_PDF");
     setRetryKey((current) => current + 1);
   }
 
   useEffect(() => {
     parseRetryCountRef.current = 0;
+    setPdfRenderer("REACT_PDF");
     clearParseRetryTimeout();
     return clearParseRetryTimeout;
   }, [clearParseRetryTimeout, contentId, documentUrl, mediaType]);
@@ -749,12 +768,26 @@ export default function PdfLessonViewer({
                 <RefreshCw className="h-4 w-4" />
                 Réessayer
               </button>
+              {blobUrl && mediaType === "PDF" ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setError("");
+                    setPdfRenderer("BROWSER");
+                    setViewerState("READY");
+                  }}
+                  className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                >
+                  <FileText className="h-4 w-4" />
+                  Consulter dans le lecteur intégré
+                </button>
+              ) : null}
               {blobUrl ? (
                 <a
                   href={blobUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-lime-300 bg-white px-4 py-2 text-sm font-bold text-lime-900"
+                  className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-lime-300 bg-white px-4 py-2 text-sm font-bold text-lime-900 hover:bg-lime-100 transition-colors"
                 >
                   <ExternalLink className="h-4 w-4" />
                   Ouvrir dans un nouvel onglet
@@ -961,6 +994,74 @@ export default function PdfLessonViewer({
   );
   const resolvedDownloadFileName = downloadFileName || `${title}.pdf`;
 
+  if (pdfRenderer === "BROWSER" && blobUrl) {
+    const nativePdfUrl = `${blobUrl}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`;
+
+    return (
+      <div
+        ref={wrapperRef}
+        className={`flex flex-col overflow-hidden rounded-[24px] border border-[#202838] bg-slate-950 shadow-2xl transition-all ${
+          isExpandedView ? "fixed inset-0 z-[120] h-[100dvh] w-full rounded-none border-none" : "h-[80vh]"
+        }`}
+      >
+        <div
+          className={viewerToolbarClass}
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <div className={`${toolbarPillClass} min-w-0 gap-2 px-3 sm:px-4`}>
+            <FileText className="h-4 w-4 shrink-0 text-[#8175ff] sm:h-5 sm:w-5" />
+            <span className="truncate text-xs font-semibold text-slate-200 sm:text-sm">{title}</span>
+          </div>
+          <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setPdfRenderer("REACT_PDF");
+                retryDocumentLoad();
+              }}
+              className={toolbarButtonClass}
+              title="Réessayer avec le lecteur standard"
+              aria-label="Réessayer avec le lecteur standard"
+            >
+              <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.8} />
+            </button>
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              className={toolbarButtonClass}
+              title={isExpandedView ? "Quitter le plein écran" : "Plein écran"}
+              aria-label={isExpandedView ? "Quitter le plein écran" : "Plein écran"}
+            >
+              {isExpandedView ? (
+                <Minimize2 className={toolbarIconClass} strokeWidth={1.8} />
+              ) : (
+                <Fullscreen className={toolbarIconClass} strokeWidth={1.8} />
+              )}
+            </button>
+            {allowDownload ? (
+              <a
+                href={blobUrl}
+                download={resolvedDownloadFileName}
+                className={toolbarButtonClass}
+                title="Télécharger le PDF"
+                aria-label="Télécharger le PDF"
+              >
+                <Download className={toolbarIconClass} strokeWidth={1.8} />
+              </a>
+            ) : null}
+          </div>
+        </div>
+        <iframe
+          src={nativePdfUrl}
+          title={`Lecteur PDF intégré — ${title}`}
+          className="min-h-0 flex-1 border-0 bg-white w-full h-full"
+          referrerPolicy="same-origin"
+        />
+      </div>
+    );
+  }
+
   return (
     <div
       ref={wrapperRef}
@@ -1157,6 +1258,17 @@ export default function PdfLessonViewer({
           </button>
 
           <span className={toolbarDividerClass} aria-hidden="true" />
+
+          {/* Basculer vers le lecteur navigateur */}
+          <button
+            type="button"
+            onClick={() => setPdfRenderer("BROWSER")}
+            className={toolbarButtonClass}
+            title="Basculer vers le lecteur PDF alternatif"
+            aria-label="Basculer vers le lecteur PDF alternatif"
+          >
+            <BookOpen className={toolbarIconClass} strokeWidth={1.8} />
+          </button>
 
           {/* Immersive Fullscreen Mode */}
           <button
