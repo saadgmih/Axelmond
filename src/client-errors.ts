@@ -7,8 +7,17 @@ const UNSAFE_CLIENT_ERROR_PATTERNS = [
 ];
 
 export function sanitizeClientErrorMessage(message: unknown, fallback: string, status?: number): string {
+  if (status === 503) {
+    if (typeof message === "string") {
+      const trimmed = message.trim();
+      if (trimmed && trimmed.length <= 500 && !UNSAFE_CLIENT_ERROR_PATTERNS.some((pattern) => pattern.test(trimmed))) {
+        return trimmed;
+      }
+    }
+    return "Service temporairement indisponible. Veuillez réessayer dans quelques instants.";
+  }
   if (typeof message !== "string") {
-    return status !== undefined && status >= 500 ? fallback : fallback;
+    return fallback;
   }
   const trimmed = message.trim();
   if (!trimmed || trimmed.length > 500) return fallback;

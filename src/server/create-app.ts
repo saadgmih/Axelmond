@@ -4,6 +4,7 @@ import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import compression from "compression";
 import { createRouteHandler } from "uploadthing/express";
+import { patchExpressAsyncRoutes } from "../express-async";
 import * as routeDeps from "./route-deps";
 import { createRouteContext, type RouteContext } from "./route-context";
 import { registerApiRoutes } from "../routes/register-api-routes";
@@ -117,6 +118,7 @@ function buildCspConnectSrc(allowedOrigins: Set<string>, isProduction: boolean):
 
 export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
   const app = express();
+  patchExpressAsyncRoutes(app);
   app.set("trust proxy", parseTrustProxySetting(process.env.TRUST_PROXY));
   app.use(shutdownGuardMiddleware);
   const PORT = Number(options?.port ?? process.env.PORT) || 3000;

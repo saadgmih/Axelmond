@@ -201,107 +201,131 @@ export function registerRegisterLoginRoutes(app: Express, ctx: RouteContext): vo
       return;
     }
 
-    const user = await api.prisma.user.findUnique({
-      where: { email },
+    try {
+      const user = await api.prisma.user.findUnique({
+        where: { email },
 
-      include: api.APP_USER_BILLING_INCLUDE,
-    });
-
-    // Pour éviter la fuite d'informations sur l'existence des emails, on simule une comparaison de hash
-
-    if (!user) {
-      await api.bcrypt.compare(password, "$2b$10$abcdefghijklmnopqrstuvwxyzeeeeeeeeeeeeeeeeeeeeeee");
-
-      res.status(401).json({ error: "Identifiants incorrects" });
-
-      return;
-    }
-
-    if (user.lockoutUntil && user.lockoutUntil > new Date()) {
-      const remainingSeconds = Math.ceil((user.lockoutUntil.getTime() - Date.now()) / 1000);
-      api.logSecurity("WARN", "Login attempt on locked out account", { userId: user.id, remainingSeconds });
-
-      res.status(429).json({
-        error: `Compte temporairement verrouillé suite à de trop nombreuses tentatives. Réessayez dans ${remainingSeconds} seconde(s).`,
-        code: "ACCOUNT_LOCKED",
-        remainingSeconds,
+        include: api.APP_USER_BILLING_INCLUDE,
       });
 
-      return;
-    }
+      // Pour éviter la fuite d'informations sur l'existence des emails, on simule une comparaison de hash
 
-    if (!api.canLoginToRequestedRole(user.role, requestedRole)) {
-      api.logSecurity("WARN", "Login sector mismatch", { userId: user.id, requestedRole, actualRole: user.role });
+      if (!user) {
+        await api.bcrypt.compare(password, "$2b$10$abcdefghijklmnopqrstuvwxyzeeeeeeeeeeeeeeeeeeeeeee");
 
-      res.status(403).json({ error: "Ce compte n'est pas autorisé dans cet espace" });
+        res.status(401).json({ error: "Identifiants incorrects" });
 
-      return;
-    }
+        return;
+      }
 
-    const isValidPassword = await api.bcrypt.compare(password, user.passwordHash);
-
-    if (!isValidPassword) {
-      const failedLoginAttempts = user.failedLoginAttempts + 1;
-      const maxAttempts = getAuthMaxAttempts();
-      const lockoutWindowMs = getAuthLockoutWindowMs();
-      const isLocked = failedLoginAttempts >= maxAttempts;
-      const lockoutUntil = isLocked ? new Date(Date.now() + lockoutWindowMs) : null;
-
-      await api.prisma.user.update({
-        where: { id: user.id },
-
-        data: {
-          failedLoginAttempts,
-          ...(isLocked ? { lockoutUntil } : {}),
-        },
-      });
-
-      if (isLocked) {
-        api.logSecurity("ERROR", `SECURITY ALERT: Account locked out due to ${failedLoginAttempts} failed attempts`, {
-          userId: user.id,
-          email: user.email,
-          ip: getClientIp(req),
-          lockoutUntil,
-        });
+      if (user.lockoutUntil && user.lockoutUntil > new Date()) {
+        const remainingSeconds = Math.ceil((user.lockoutUntil.getTime() - Date.now()) / 1000);
+        api.logSecurity("WARN", "Login attempt on locked out account", { userId: user.id, remainingSeconds });
 
         res.status(429).json({
-          error: `Compte temporairement verrouillé suite à de trop nombreuses tentatives (${failedLoginAttempts}). Réessayez dans ${Math.ceil(lockoutWindowMs / 1000)} secondes.`,
+          error: `Compte temporairement verrouillé suite à de trop nombreuses tentatives. Réessayez dans ${remainingSeconds} seconde(s).`,
           code: "ACCOUNT_LOCKED",
-          remainingSeconds: Math.ceil(lockoutWindowMs / 1000),
+          remainingSeconds,
         });
 
         return;
       }
 
-      api.alertFailedLogins(user.email, getClientIp(req), failedLoginAttempts);
+      if (!api.canLoginToRequestedRole(user.role, requestedRole)) {
+        api.logSecurity("WARN", "Login sector mismatch", { userId: user.id, requestedRole, actualRole: user.role });
 
-      res.status(401).json({ error: "Identifiants incorrects" });
+        res.status(403).json({ error: "Ce compte n'est pas autorisé dans cet espace" });
 
-      return;
-    }
+        return;
+      }
 
-    if (!user.emailVerified) {
-      api.logSecurity("WARN", "Login blocked until email verification", { userId: user.id, role: user.role });
+      const isValidPassword = await api.bcrypt.compare(password, user.passwordHash);
 
-      res.status(403).json({
-        error: "E-mail non vérifié. Saisissez le code reçu par e-mail.",
+      if (!isValidPassword) {
+        const failedLoginAttempts = user.failedLoginAttempts + 1;
+        const maxAttempts = getAuthMaxAttempts();
+        const lockoutWindowMs = getAuthLockoutWindowMs();
+        const isLocked = failedLoginAttempts >= maxAttempts;
+        const lockoutUntil = isLocked ? new Date(Date.now() + lockoutWindowMs) : null;
 
-        verificationRequired: true,
+        await api.prisma.user.update({
+          where: { id: user.id },
 
-        email: user.email,
+          data: {
+            failedLoginAttempts,
+            ...(isLocked ? { lockoutUntil } : {}),
+          },
+        });
+
+        if (isLocked) {
+          api.logSecurity("ERROR", `SECURITY ALERT: Account locked out due to ${failedLoginAttempts} failed attempts`, {
+            userId: user.id,
+            email: user.email,
+            ip: getClientIp(req),
+            lockoutUntil,
+          });
+
+          res.status(429).json({
+            error: `Compte temporairement verrouillé suite à de trop nombreuses tentatives (${failedLoginAttempts}). Réessayez dans ${Math.ceil(lockoutWindowMs / 1000)} secondes.`,
+            code: "ACCOUNT_LOCKED",
+            remainingSeconds: Math.ceil(lockoutWindowMs / 1000),
+          });
+
+          return;
+        }
+
+        api.alertFailedLogins(user.email, getClientIp(req), failedLoginAttempts);
+
+        res.status(401).json({ error: "Identifiants incorrects" });
+
+        return;
+      }
+
+      if (!user.emailVerified) {
+        api.logSecurity("WARN", "Login blocked until email verification", { userId: user.id, role: user.role });
+
+        res.status(403).json({
+          error: "E-mail non vérifié. Saisissez le code reçu par e-mail.",
+
+          verificationRequired: true,
+
+          email: user.email,
+        });
+
+        return;
+      }
+
+      const { maybeRequireTotpAfterPassword } = await import("./mfa-routes");
+      const { issueAuthenticatedSession } = await import("../../auth-session");
+
+      if (await maybeRequireTotpAfterPassword(user, res)) {
+        return;
+      }
+
+      const body = await issueAuthenticatedSession(req, res, api, user);
+      res.json(body);
+    } catch (err: any) {
+      const isQuotaOrDbDown =
+        err?.code === "53000" ||
+        err?.cause?.code === "53000" ||
+        err?.cause?.originalCode === "53000" ||
+        String(err?.message || err).includes("quota") ||
+        err?.code === "P1001";
+
+      api.logDb("ERROR", "Login database query failed", { email, error: String(err) });
+
+      if (isQuotaOrDbDown) {
+        res.status(503).json({
+          error: "Service d'authentification temporairement indisponible (quota de base de données atteint). Réessayez ultérieurement.",
+          code: "DB_QUOTA_EXCEEDED",
+        });
+        return;
+      }
+
+      res.status(500).json({
+        error: "Erreur de connexion au serveur. Veuillez réessayer.",
+        code: "LOGIN_INTERNAL_ERROR",
       });
-
-      return;
     }
-
-    const { maybeRequireTotpAfterPassword } = await import("./mfa-routes");
-    const { issueAuthenticatedSession } = await import("../../auth-session");
-
-    if (await maybeRequireTotpAfterPassword(user, res)) {
-      return;
-    }
-
-    const body = await issueAuthenticatedSession(req, res, api, user);
-    res.json(body);
   });
 }

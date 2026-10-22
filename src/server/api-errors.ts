@@ -4,20 +4,40 @@ import { Prisma } from "@prisma/client";
 function errorFields(err: unknown): { code?: string; status?: number; message?: string } {
   if (err instanceof Prisma.PrismaClientValidationError) return { message: err.message };
   if (typeof err === "object" && err !== null) {
-    const { code, status, message } = err as { code?: unknown; status?: unknown; message?: unknown };
+    const obj = err as {
+      code?: unknown;
+      status?: unknown;
+      message?: unknown;
+      cause?: { code?: unknown; originalCode?: unknown; message?: unknown };
+    };
+    const code =
+      typeof obj.code === "string"
+        ? obj.code
+        : typeof obj.cause?.code === "string"
+          ? obj.cause.code
+          : typeof obj.cause?.originalCode === "string"
+            ? obj.cause.originalCode
+            : undefined;
+    const message =
+      typeof obj.message === "string"
+        ? obj.message
+        : typeof obj.cause?.message === "string"
+          ? obj.cause.message
+          : undefined;
     return {
-      code: typeof code === "string" ? code : undefined,
-      status: Number.isInteger(status) ? (status as number) : undefined,
-      message: typeof message === "string" ? message : undefined,
+      code,
+      status: Number.isInteger(obj.status) ? (obj.status as number) : undefined,
+      message,
     };
   }
   return {};
 }
 
+const DB_UNAVAILABLE_CODES = new Set(["P1000", "P1001", "P1002", "P1003", "P1008", "P1017", "P2021", "P2022", "53000"]);
+
 export function apiErrorStatus(err: unknown): number {
-  const dbUnavailableCodes = new Set(["P1000", "P1001", "P1002", "P1003", "P1008", "P1017", "P2021", "P2022"]);
-  const { code, status } = errorFields(err);
-  if (code && dbUnavailableCodes.has(code)) return 503;
+  const { code, status, message } = errorFields(err);
+  if ((code && DB_UNAVAILABLE_CODES.has(code)) || (message && message.includes("quota"))) return 503;
   if (code === "P2002") return 409;
   if (code === "P2025") return 404;
   if (err instanceof Prisma.PrismaClientValidationError) return 400;
@@ -25,10 +45,9 @@ export function apiErrorStatus(err: unknown): number {
 }
 
 export function apiErrorMessage(err: unknown): string {
-  const dbUnavailableCodes = new Set(["P1000", "P1001", "P1002", "P1003", "P1008", "P1017", "P2021", "P2022"]);
   const { code, message } = errorFields(err);
-  if (code && dbUnavailableCodes.has(code)) {
-    return "Service temporairement indisponible. Réessayez dans quelques minutes.";
+  if ((code && DB_UNAVAILABLE_CODES.has(code)) || (message && message.includes("quota"))) {
+    return "Service temporairement indisponible (base de données inaccessible ou quota atteint). Réessayez dans quelques minutes.";
   }
   if (code === "P2002") return "Cette action entre en conflit avec une donnée existante";
   if (code === "P2025") return "Ressource introuvable";

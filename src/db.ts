@@ -55,8 +55,13 @@ export function buildFixedDatabaseUrl(connectionString: string): { url: string; 
   const rawSchema = url.searchParams.get("schema")?.trim() || "";
   const schema = resolvePgSchema(connectionString);
 
+  const isLoopback = url.hostname === "localhost" || url.hostname === "127.0.0.1";
   const sslMode = url.searchParams.get("sslmode");
-  if (!sslMode) {
+  if (isLoopback && (!sslMode || sslMode === "disable")) {
+    url.searchParams.set("sslmode", "disable");
+  } else if (sslMode === "disable") {
+    url.searchParams.set("sslmode", "disable");
+  } else if (!sslMode) {
     url.searchParams.set("sslmode", "verify-full");
   } else if (/^(prefer|require|verify-ca)$/i.test(sslMode)) {
     url.searchParams.set("sslmode", "verify-full");
