@@ -29,3 +29,9 @@ list-users.ts
 videos/working/
 videos/original/
 videos/test_temp/
+
+# Mobile binaries
+*.apk
+public/*.apk
+dist.tar.gz
+scratch/

@@ -133,6 +133,24 @@ async function attachStaticOrVite(app: express.Express, isSecurityRuntimeTest: b
     return;
   }
 
+  const sendAndroidApk = (_req: express.Request, res: express.Response) => {
+    const distApkPath = path.join(process.cwd(), "dist", "perfacademy.apk");
+    const publicApkPath = path.join(process.cwd(), "public", "perfacademy.apk");
+    const finalApkPath = fs.existsSync(distApkPath) ? distApkPath : publicApkPath;
+
+    if (fs.existsSync(finalApkPath)) {
+      res.setHeader("Content-Disposition", 'attachment; filename="perfacademy.apk"');
+      res.setHeader("Content-Type", "application/vnd.android.package-archive");
+      res.sendFile(finalApkPath);
+    } else {
+      res.redirect(302, "https://expo.dev/artifacts/eas/MCV57jtNvQctwvUGppDjf_t8g6_RxGnewMLJwgL7-3w.apk");
+    }
+  };
+
+  app.get("/telecharger-android", sendAndroidApk);
+  app.get("/telecharger-app", sendAndroidApk);
+  app.get("/app-android", sendAndroidApk);
+
   if (!isProduction) {
     const vite = await createViteServer({
       server: { middlewareMode: true },
