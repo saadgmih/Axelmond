@@ -1,4 +1,9 @@
 import "./polyfills";
+import { isNativeApp } from "./utils/platform-app";
+
+if (typeof document !== "undefined" && isNativeApp()) {
+  document.documentElement.classList.add("is-axelmond-app");
+}
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";

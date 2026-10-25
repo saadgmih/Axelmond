@@ -99,6 +99,13 @@ export default function WebAppScreen() {
         originWhitelist={["https://*", "http://*"]}
         pullToRefreshEnabled={Platform.OS === "android"}
         startInLoadingState
+        injectedJavaScriptBeforeContentLoaded={`
+          window.IS_AXELMOND_APP = true;
+          if (document.documentElement) {
+            document.documentElement.classList.add('is-axelmond-app');
+          }
+          true;
+        `}
         userAgent={
           Platform.OS === "ios"
             ? undefined

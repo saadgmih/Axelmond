@@ -5,6 +5,7 @@ import { buildPlatformPath, parsePlatformPath, INSTITUTIONAL_VIEWS } from "../na
 import { getAllowedUiRole, getRedirectPathForRole, isStudentRole } from "../rbac";
 import { scrollAppToTopDeferred } from "../utils/scroll-app-to-top";
 import type { Course, CourseModule } from "../types";
+import { getLastConsultedRecord } from "../utils/student-consultation-history";
 
 export interface UsePlatformNavigationOptions {
   currentUser: AppUser | null;
@@ -98,12 +99,19 @@ export function usePlatformNavigation({
       if (parsed.studentView === "course") {
         const enrolled = courses.filter((course) => studentCourseIds.includes(course.id));
         if (enrolled.length > 0) {
+          const lastRecord = getLastConsultedRecord(currentUser?.id);
           setSelectedCourse((currentCourse) => {
             const activeCourse =
-              currentCourse && enrolled.some((c) => c.id === currentCourse.id) ? currentCourse : enrolled[0] ?? null;
+              currentCourse && enrolled.some((c) => c.id === currentCourse.id)
+                ? currentCourse
+                : ((lastRecord && enrolled.find((c) => c.id === lastRecord.courseId)) || enrolled[0]) ?? null;
             setSelectedModule((currentModule) => {
               const belongs = activeCourse?.modules?.some((m) => m.id === currentModule?.id);
               if (currentModule && belongs) return currentModule;
+              if (lastRecord && activeCourse?.id === lastRecord.courseId) {
+                const remembered = activeCourse.modules?.find((m) => m.id === lastRecord.moduleId);
+                if (remembered) return remembered;
+              }
               return activeCourse?.modules?.[0] ?? null;
             });
             return activeCourse;
@@ -142,7 +150,7 @@ export function usePlatformNavigation({
   ]);
 
   const navigateTo = useCallback(
-    (view: string, targetCourse: Course | null = null) => {
+    (view: string, targetCourse: Course | null = null, targetModule: CourseModule | null = null) => {
       if (INSTITUTIONAL_VIEWS.has(view)) {
         setCurrentView(view);
         setIsMobileMenuOpen(false);
@@ -167,7 +175,9 @@ export function usePlatformNavigation({
           return;
         }
         setSelectedCourse(targetCourse);
-        if (targetCourse.modules && targetCourse.modules.length > 0) {
+        if (targetModule && targetCourse.modules?.some((m) => m.id === targetModule.id)) {
+          setSelectedModule(targetModule);
+        } else if (targetCourse.modules && targetCourse.modules.length > 0) {
           setSelectedModule(targetCourse.modules[0]);
         } else {
           setSelectedModule(null);

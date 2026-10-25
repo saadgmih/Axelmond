@@ -27,11 +27,16 @@ import { loadProtectedResource, ProtectedResourceError } from "../protected-reso
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
+import { isNativeApp } from "../utils/platform-app";
 
 // Bundle the legacy PDF.js worker so older Safari / WebKit and iOS devices
 // can run the worker without crashing on missing ES2023+ features.
 const BUNDLED_PDF_WORKER_SRC = new URL("pdfjs-dist/legacy/build/pdf.worker.min.mjs", import.meta.url).toString();
-pdfjs.GlobalWorkerOptions.workerSrc = `${BUNDLED_PDF_WORKER_SRC}?v=5.4.296-legacy-v1`;
+const PDF_WORKER_SRC =
+  typeof window !== "undefined"
+    ? `${window.location.origin}/pdf.worker.min.mjs?v=5.4.296-legacy-v1`
+    : BUNDLED_PDF_WORKER_SRC;
+pdfjs.GlobalWorkerOptions.workerSrc = PDF_WORKER_SRC;
 
 interface PdfLessonViewerProps {
   contentId?: string;
@@ -306,6 +311,18 @@ export default function PdfLessonViewer({
     clearParseRetryTimeout();
     return clearParseRetryTimeout;
   }, [clearParseRetryTimeout, contentId, documentUrl, mediaType]);
+
+  useEffect(() => {
+    if (viewerState !== "VALIDATING_DOCUMENT") return;
+    const timeout = setTimeout(() => {
+      if (viewerState === "VALIDATING_DOCUMENT" && isNativeApp() && blobUrl) {
+        console.warn("[PdfLessonViewer] PDF parsing delayed in native app, switching to BROWSER renderer");
+        setPdfRenderer("BROWSER");
+        setViewerState("READY");
+      }
+    }, 4500);
+    return () => clearTimeout(timeout);
+  }, [viewerState, blobUrl]);
 
   function goToPage(targetPage: number) {
     const page = Math.max(1, Math.min(targetPage, numPages || 1));

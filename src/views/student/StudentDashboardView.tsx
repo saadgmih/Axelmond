@@ -1,11 +1,13 @@
-import { memo, useMemo, useRef } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   Activity,
   BookOpen,
+  Camera,
   CheckCircle2,
   ChevronRight,
   Clock,
+  FileText,
   GraduationCap,
   HelpCircle,
   Layers,
@@ -28,8 +30,9 @@ import { getCourseContentProgress } from "../../utils/course-content-metrics";
 import { prefetchCourseContent } from "../../utils/prefetch";
 import { useTvNavigation } from "../../hooks/useTvNavigation";
 import { UserProfileTrigger } from "../../components/UserProfileViewer";
+import { resolveContinueTarget, resolveLastActivity } from "../../utils/student-consultation-history";
 
-type NavigateTo = (view: string, targetCourse?: Course | null) => void;
+type NavigateTo = (view: string, targetCourse?: Course | null, targetModule?: CourseModule | null) => void;
 
 type CourseIconRenderer = (iconName: string, colorClass?: string) => ReactNode;
 
@@ -63,41 +66,7 @@ function parseQuizScore(score?: string): { correct: number; total: number } | nu
   return { correct, total };
 }
 
-function findContinueTarget(enrolledList: Course[]): {
-  course: Course;
 
-  nextModule: CourseModule | null;
-} | null {
-  if (enrolledList.length === 0) return null;
-
-  const sorted = [...enrolledList].sort((a, b) => {
-    if (a.progress >= 100 && b.progress < 100) return 1;
-
-    if (b.progress >= 100 && a.progress < 100) return -1;
-
-    return b.progress - a.progress;
-  });
-
-  const course = sorted.find((item) => item.progress < 100) || sorted[0];
-
-  const nextModule = course.modules.find((module) => !module.completed) || null;
-
-  return { course, nextModule };
-}
-
-function findLastActivity(enrolledList: Course[]): { courseTitle: string; moduleTitle: string } | null {
-  let last: { courseTitle: string; moduleTitle: string } | null = null;
-
-  for (const course of enrolledList) {
-    for (const module of course.modules) {
-      if (module.completed) {
-        last = { courseTitle: course.title, moduleTitle: module.title };
-      }
-    }
-  }
-
-  return last;
-}
 
 const DashboardStatCard = memo(function DashboardStatCard({
   label,
@@ -229,6 +198,18 @@ export default function StudentDashboardView({
   const dashboardGridRef = useRef<HTMLDivElement>(null);
   useTvNavigation(dashboardGridRef, true);
 
+  const [consultationRevision, setConsultationRevision] = useState(0);
+
+  useEffect(() => {
+    const handleUpdate = () => setConsultationRevision((r) => r + 1);
+    window.addEventListener("axelmond_consultation_updated", handleUpdate);
+    window.addEventListener("focus", handleUpdate);
+    return () => {
+      window.removeEventListener("axelmond_consultation_updated", handleUpdate);
+      window.removeEventListener("focus", handleUpdate);
+    };
+  }, []);
+
   const enrolledList = useMemo(
     () => courses.filter((course) => enrolledCourses.includes(course.id)),
 
@@ -273,9 +254,9 @@ export default function StudentDashboardView({
         ? Math.round(quizPercentages.reduce((sum, value) => sum + value, 0) / quizPercentages.length)
         : null;
 
-    const continueTarget = findContinueTarget(enrolledList);
+    const continueTarget = resolveContinueTarget(enrolledList, currentUser?.id);
 
-    const lastActivity = findLastActivity(enrolledList);
+    const lastActivity = resolveLastActivity(enrolledList, currentUser?.id);
 
     const activeModules = enrolledList
 
@@ -304,7 +285,7 @@ export default function StudentDashboardView({
 
       activeModules,
     };
-  }, [enrolledList]);
+  }, [enrolledList, currentUser?.id, consultationRevision]);
 
   const statCards = [
     {
@@ -467,22 +448,28 @@ export default function StudentDashboardView({
                 onClick={() => {
                   const target = progress.continueTarget;
                   if (!target) return;
-                  navigateTo("course", target.course);
+                  navigateTo("course", target.course, target.nextModule);
                 }}
                 className="inline-flex items-center justify-center gap-2 self-start rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs px-5 py-3 min-h-[44px] transition-colors shadow-lg shadow-emerald-950/40"
               >
-                <PlayCircle className="w-4 h-4 shrink-0" />
+                {progress.continueTarget.type === "pdf" ? (
+                  <FileText className="w-4 h-4 shrink-0 text-white" />
+                ) : progress.continueTarget.type === "quiz" ? (
+                  <HelpCircle className="w-4 h-4 shrink-0 text-white" />
+                ) : progress.continueTarget.type === "image" ? (
+                  <Camera className="w-4 h-4 shrink-0 text-white" />
+                ) : (
+                  <PlayCircle className="w-4 h-4 shrink-0 text-white" />
+                )}
 
                 <span className="text-left">
                   Continuer le cours
                   <span className="block text-[10px] font-semibold text-emerald-100/90 truncate max-w-[220px] sm:max-w-[280px]">
-                    {progress.continueTarget.nextModule
-                      ? progress.continueTarget.nextModule.title
-                      : progress.continueTarget.course.title}
+                    {progress.continueTarget.title}
                   </span>
                 </span>
 
-                <ChevronRight className="w-4 h-4 shrink-0" />
+                <ChevronRight className="w-4 h-4 shrink-0 text-white" />
               </button>
             ) : enrolledList.length === 0 ? (
               <button

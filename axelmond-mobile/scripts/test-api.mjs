@@ -4,7 +4,7 @@
  * Optional env: TEST_EMAIL, TEST_PASSWORD, API_BASE_URL
  */
 
-const API_BASE_URL = (process.env.API_BASE_URL || "https://axelmond.com").replace(/\/$/, "");
+const API_BASE_URL = (process.env.API_BASE_URL || "https://perfacademy.ma").replace(/\/$/, "");
 const MOBILE_CLIENT_KEY = (process.env.EXPO_PUBLIC_MOBILE_CLIENT_KEY || process.env.MOBILE_CLIENT_SECRET || "").trim();
 const MOBILE_HEADERS = {
   "Content-Type": "application/json",

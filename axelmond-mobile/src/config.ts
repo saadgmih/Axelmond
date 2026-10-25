@@ -1,5 +1,5 @@
 export const API_BASE_URL = (
-  process.env.EXPO_PUBLIC_API_BASE_URL || "https://axelmond.com"
+  process.env.EXPO_PUBLIC_API_BASE_URL || "https://perfacademy.ma"
 ).replace(/\/$/, "");
 
 /** URL du site web affiché dans l'app (même UI que le navigateur). */

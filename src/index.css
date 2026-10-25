@@ -1713,3 +1713,15 @@ body.printing-receipt .center-payment-receipt-print-wrapper {
   display: none !important;
 }
 
+/* ==========================================================================
+   Styles exclusifs pour l'application mobile (Play Store / App Store / APK)
+   Ne s'appliquent JAMAIS lors de l'ouverture dans un navigateur standard.
+   ========================================================================== */
+html.is-axelmond-app .layout-floating-toggle {
+  display: none !important;
+}
+
+html.is-axelmond-app .app-hide-in-native {
+  display: none !important;
+}
+

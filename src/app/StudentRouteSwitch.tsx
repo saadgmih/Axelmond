@@ -125,6 +125,7 @@ export function StudentRouteSwitch() {
         <Suspense fallback={<RouteChunkFallback label="Chargement du module…" />}>
           <div className="h-full min-h-0">
             <LazyStudentCourseView
+              currentUser={currentUser}
               selectedCourse={selectedCourse}
               selectedModule={selectedModule}
               navigateTo={navigateTo}

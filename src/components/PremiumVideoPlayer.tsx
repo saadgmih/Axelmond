@@ -17,6 +17,7 @@ import {
 import { COURSE_VIDEO_PLAYBACK_RATES, useCourseVideoPlayer } from "../hooks/useCourseVideoPlayer";
 import { api } from "../api";
 import { sanitizeCourseAttachmentUrl } from "../external-url-security";
+import { isNativeApp } from "../utils/platform-app";
 import Hls from "hls.js";
 
 function isHlsSource(url: unknown): boolean {
@@ -242,7 +243,7 @@ export default function PremiumVideoPlayer({
       }
 
       const hls = new Hls({
-        enableWorker: true,
+        enableWorker: !isNativeApp(),
         lowLatencyMode: false,
         backBufferLength: 90,
       });

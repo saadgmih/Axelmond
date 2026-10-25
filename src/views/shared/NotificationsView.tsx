@@ -4,6 +4,7 @@ import type { AppNotification } from "../../types/messaging";
 import { VirtualList } from "../../components/VirtualList";
 import { scheduleUi } from "../teacher/schedule-theme";
 import { playNotificationSound, isSoundEnabled, setSoundEnabled } from "../../utils/notification-sound";
+import { useIsNativeApp } from "../../hooks/useIsNativeApp";
 
 interface NotificationsViewProps {
   notifications: AppNotification[];
@@ -105,6 +106,7 @@ export default function NotificationsView({
   pushStatusKind = "info",
   onEnablePush,
 }: NotificationsViewProps) {
+  const isApp = useIsNativeApp();
   const [filter, setFilter] = useState<NotificationCategoryFilter>("ALL");
   const [soundActive, setSoundActive] = useState<boolean>(() => isSoundEnabled());
 
@@ -201,7 +203,7 @@ export default function NotificationsView({
               </button>
             )}
 
-            {onEnablePush && (
+            {!isApp && onEnablePush && (
               <button type="button" className={scheduleUi.editBtn} onClick={onEnablePush}>
                 <Radio className="mr-2 inline h-4 w-4" />
                 Activer les push
@@ -298,7 +300,7 @@ export default function NotificationsView({
         </button>
       </div>
 
-      {pushStatus && (
+      {!isApp && pushStatus && (
         <div className={pushStatusKind === "error" ? scheduleUi.alertError : scheduleUi.alertSuccess}>{pushStatus}</div>
       )}
       {error && <div className={scheduleUi.alertError}>{error}</div>}
@@ -329,6 +331,17 @@ export default function NotificationsView({
                 ? "Aucune notification de message."
                 : "Aucune notification pour le moment."}
             </p>
+          </div>
+        ) : isApp ? (
+          <div className="flex flex-col divide-y divide-white/[0.06] p-1">
+            {filteredNotifications.map((notification) => (
+              <NotificationListItem
+                key={notification.id}
+                notification={notification}
+                onMarkRead={onMarkRead}
+                onNavigate={onNavigate}
+              />
+            ))}
           </div>
         ) : (
           <VirtualList

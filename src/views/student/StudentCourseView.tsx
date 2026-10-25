@@ -6,6 +6,7 @@ import {
   HelpCircle,
   Info,
   Keyboard,
+  LoaderCircle,
   PanelLeftClose,
   PanelLeftOpen,
   PlayCircle,
@@ -15,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { LayoutFloatingToggle } from "../../components/LayoutFloatingToggle";
+import { useIsNativeApp } from "../../hooks/useIsNativeApp";
 import LatexText from "../../components/LazyLatexText";
 import SuccessCoachPanel from "../../components/SuccessCoachPanel";
 import { lessonContentIdFromModule } from "../../course-curriculum-utils";
@@ -25,7 +27,8 @@ import type { ContentSection, Course, CourseModule, LessonContent, QuizQuestion 
 import { formatCredits } from "../../utils/morocco-locale";
 import { getCourseContentProgress } from "../../utils/course-content-metrics";
 import { UserProfileTrigger } from "../../components/UserProfileViewer";
-import { StudentCourseBottomNav } from "./course/StudentCourseBottomNav";
+import type { AppUser } from "../../components/AuthScreen";
+import { recordConsultedElement } from "../../utils/student-consultation-history";
 import { StudentCourseNotes } from "./course/StudentCourseNotes";
 import { StudentCourseShortcutsModal } from "./course/StudentCourseShortcutsModal";
 
@@ -35,16 +38,18 @@ const PremiumVideoPlayer = lazy(() => import("../../components/PremiumVideoPlaye
 function CourseMediaFallback({ label }: { label: string }) {
   return (
     <div
-      className="flex min-h-48 items-center justify-center rounded-2xl border border-slate-800 bg-slate-950 px-6 text-center text-xs font-bold text-slate-400"
+      className="flex min-h-48 items-center justify-center gap-2.5 rounded-2xl border border-slate-800 bg-slate-950 px-6 text-center text-xs font-bold text-slate-300"
       role="status"
     >
-      {label}
+      <LoaderCircle className="h-4 w-4 animate-spin text-emerald-400" />
+      <span>{label}</span>
     </div>
   );
 }
 
-type NavigateTo = (view: string, targetCourse?: Course | null) => void;
+type NavigateTo = (view: string, targetCourse?: Course | null, targetModule?: CourseModule | null) => void;
 interface StudentCourseViewProps {
+  currentUser?: AppUser | null;
   selectedCourse: Course;
   selectedModule: CourseModule;
   courseContentSections: ContentSection[];
@@ -69,6 +74,7 @@ interface StudentCourseViewProps {
 }
 
 export default function StudentCourseView({
+  currentUser,
   selectedCourse,
   selectedModule,
   courseContentSections,
@@ -93,6 +99,7 @@ export default function StudentCourseView({
 }: StudentCourseViewProps) {
   const [isModuleDrawerOpen, setIsModuleDrawerOpen] = useState(false);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
+  const isApp = useIsNativeApp();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -273,6 +280,44 @@ export default function StudentCourseView({
     );
   }, [selectedLessonContentFromProps, selectedModule.sectionId, courseContentSections, moduleRootContents]);
 
+  useEffect(() => {
+    if (!selectedCourse || !selectedModule) return;
+
+    let effectiveType: "video" | "pdf" | "image" | "quiz" | "text" = "video";
+    if (selectedLessonContent?.type) {
+      const t = selectedLessonContent.type.toLowerCase();
+      if (t === "video" || t === "pdf" || t === "image" || t === "text") {
+        effectiveType = t;
+      }
+    } else if (selectedModule.type) {
+      const t = selectedModule.type.toLowerCase();
+      if (t === "video" || t === "pdf" || t === "image" || t === "quiz" || t === "text") {
+        effectiveType = t as any;
+      }
+    }
+
+    const title = selectedLessonContent?.title || selectedModule.title;
+
+    recordConsultedElement(currentUser?.id, {
+      courseId: selectedCourse.id,
+      courseTitle: selectedCourse.title,
+      moduleId: selectedModule.id,
+      moduleTitle: selectedModule.title,
+      contentTitle: title,
+      type: effectiveType,
+    });
+  }, [
+    currentUser?.id,
+    selectedCourse?.id,
+    selectedCourse?.title,
+    selectedModule?.id,
+    selectedModule?.title,
+    selectedModule?.type,
+    selectedLessonContent?.id,
+    selectedLessonContent?.title,
+    selectedLessonContent?.type,
+  ]);
+
   function getContentCompletionLabel(type: LessonContent["type"]): string {
     if (type === "VIDEO") return "Marquer comme terminée";
     if (type === "IMAGE") return "Marquer comme consultée";
@@ -440,15 +485,17 @@ export default function StudentCourseView({
             </div>
 
             <div className="flex items-center gap-2 self-start">
-              <button
-                type="button"
-                onClick={() => setShowShortcutsModal(true)}
-                title="Raccourcis clavier (?)"
-                className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 hover:text-slate-900 font-bold text-xs p-2.5 rounded-xl transition-all shadow-2xs flex items-center justify-center cursor-pointer"
-                aria-label="Raccourcis clavier"
-              >
-                <Keyboard className="w-4 h-4" />
-              </button>
+              {!isApp && (
+                <button
+                  type="button"
+                  onClick={() => setShowShortcutsModal(true)}
+                  title="Raccourcis clavier (?)"
+                  className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 hover:text-slate-900 font-bold text-xs p-2.5 rounded-xl transition-all shadow-2xs flex items-center justify-center cursor-pointer app-hide-in-native"
+                  aria-label="Raccourcis clavier"
+                >
+                  <Keyboard className="w-4 h-4" />
+                </button>
+              )}
 
               <button
                 ref={openCoachBtnRef}
@@ -1179,21 +1226,6 @@ export default function StudentCourseView({
                   moduleId={selectedModule.id}
                   courseTitle={selectedCourse.title}
                   moduleTitle={selectedModule.title}
-                />
-
-                {/* Bottom Navigation (Previous / Next Lesson & Completion) */}
-                <StudentCourseBottomNav
-                  modules={selectedCourse.modules}
-                  currentModule={selectedModule}
-                  onSelectModule={onModuleSelect}
-                  onToggleCompleted={(completed) => markModuleCompleted(selectedModule.id, completed)}
-                  isCompleted={Boolean(selectedModule.completed)}
-                  isPending={isModuleProgressPending}
-                  completionLabel={
-                    selectedLessonContent
-                      ? getContentCompletionLabel(selectedLessonContent.type)
-                      : undefined
-                  }
                 />
               </div>
 
