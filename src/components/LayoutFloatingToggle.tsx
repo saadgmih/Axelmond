@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { useDraggableFloatingControl, type FloatingAnchor } from "../hooks/useDraggableFloatingControl";
-import { isNativeApp } from "../utils/platform-app";
 
 interface LayoutFloatingToggleProps {
   anchor: FloatingAnchor;
@@ -25,10 +24,6 @@ export function LayoutFloatingToggle({
   inactive = false,
   children,
 }: LayoutFloatingToggleProps) {
-  if (isNativeApp()) {
-    return null;
-  }
-
   const drag = useDraggableFloatingControl(storageKey, anchor);
 
   return (
