@@ -15,6 +15,7 @@ import { OnboardingProvider } from "../onboarding/OnboardingProvider";
 import InstitutionalViewSwitch from "../views/InstitutionalViewSwitch";
 import PageNotFound from "../components/PageNotFound";
 import RouteMetadata from "../components/RouteMetadata";
+import UniOfficeStandaloneApp from "../components/unioffice/UniOfficeStandaloneApp";
 
 function PlatformLoadingScreen() {
   return (
@@ -126,6 +127,10 @@ export function PlatformAppRoot() {
     session.currentUser && !hasRenderedAuthenticatedApp.current && session.isLoginDataLoading,
   );
   const pathname = typeof window === "undefined" ? "/" : window.location.pathname;
+
+  if (pathname === "/unioffice" || pathname === "/unioffice-securpdf" || pathname.startsWith("/unioffice")) {
+    return <UniOfficeStandaloneApp />;
+  }
 
   if (session.isLoading || !session.isAuthReady || isInitialAuthenticatedDataLoading) {
     return <PlatformLoadingScreen />;
