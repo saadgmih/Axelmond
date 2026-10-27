@@ -633,6 +633,7 @@ export default function StudentCourseView({
                               contentId={selectedLessonContent.id}
                               title={selectedLessonContent.title}
                               downloadFileName={`${selectedLessonContent.title}.pdf`}
+                              currentUser={currentUser}
                             />
                           </Suspense>
                         )}
@@ -810,6 +811,7 @@ export default function StudentCourseView({
                         documentUrl={selectedModule.attachmentUrl}
                         title={selectedModule.title}
                         downloadFileName={`${selectedModule.title}.pdf`}
+                        currentUser={currentUser}
                       />
                     </Suspense>
 

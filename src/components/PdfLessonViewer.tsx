@@ -28,6 +28,11 @@ import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import { isNativeApp } from "../utils/platform-app";
+import UniOfficeRibbon from "./unioffice/UniOfficeRibbon";
+import UniOfficeAnnotationLayer from "./unioffice/UniOfficeAnnotationLayer";
+import UniOfficeWatermark from "./unioffice/UniOfficeWatermark";
+import UniOfficeProModal from "./unioffice/UniOfficeProModal";
+import type { AnnotationStroke, UniOfficeTab, UniOfficeTheme, UniOfficeTool } from "./unioffice/types";
 
 // Bundle the legacy PDF.js worker so older Safari / WebKit and iOS devices
 // can run the worker without crashing on missing ES2023+ features.
@@ -45,6 +50,12 @@ interface PdfLessonViewerProps {
   documentUrl?: string;
   downloadFileName?: string;
   allowDownload?: boolean;
+  currentUser?: {
+    id?: string;
+    fullName?: string;
+    email?: string;
+    role?: string;
+  } | null;
 }
 
 type ImageViewMode = "width" | "screen" | "actual";
@@ -104,6 +115,7 @@ export default function PdfLessonViewer({
   documentUrl,
   downloadFileName,
   allowDownload = false,
+  currentUser,
 }: PdfLessonViewerProps) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [pdfFile, setPdfFile] = useState<PdfFile | null>(null);
@@ -122,6 +134,30 @@ export default function PdfLessonViewer({
     return "continuous";
   });
   const [showSidebar, setShowSidebar] = useState(false);
+
+  // UniOfficeSecurPDF Suite State
+  const [activeTab, setActiveTab] = useState<UniOfficeTab>("lecture");
+  const [annotationTool, setAnnotationTool] = useState<UniOfficeTool>("select");
+  const [strokeColor, setStrokeColor] = useState<string>("#fde047");
+  const [strokeWidth, setStrokeWidth] = useState<number>(4);
+  const [strokesByPage, setStrokesByPage] = useState<Record<number, AnnotationStroke[]>>({});
+  const [pageAspectRatios, setPageAspectRatios] = useState<Record<number, number>>({});
+  const [isProModalOpen, setIsProModalOpen] = useState(false);
+  const [theme, setTheme] = useState<UniOfficeTheme>(() => {
+    if (typeof localStorage !== "undefined") {
+      const saved = localStorage.getItem("unioffice_theme");
+      if (saved === "dark" || saved === "sepia" || saved === "emerald" || saved === "normal") {
+        return saved;
+      }
+    }
+    return "normal";
+  });
+  const [isPro, setIsPro] = useState<boolean>(() => {
+    if (typeof localStorage !== "undefined") {
+      if (localStorage.getItem("unioffice_pro_unlocked") === "true") return true;
+    }
+    return currentUser?.role === "admin";
+  });
 
   const [scale, setScale] = useState(1.0);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -378,6 +414,106 @@ export default function PdfLessonViewer({
     setImageViewMode("actual");
     setScale(1.0);
     centerImageStage();
+  }
+
+  // UniOffice Handlers & Effects
+  useEffect(() => {
+    if (typeof localStorage === "undefined") return;
+    const docKey = contentId || title || "unioffice_doc";
+    const loaded: Record<number, AnnotationStroke[]> = {};
+    if (numPages) {
+      for (let p = 1; p <= numPages; p++) {
+        try {
+          const raw = localStorage.getItem(`unioffice_notes_${docKey}_p${p}`);
+          if (raw) {
+            loaded[p] = JSON.parse(raw);
+          }
+        } catch {}
+      }
+    }
+    setStrokesByPage(loaded);
+  }, [contentId, title, numPages]);
+
+  const handleUpdateStrokes = useCallback(
+    (page: number, strokes: AnnotationStroke[]) => {
+      setStrokesByPage((prev) => ({ ...prev, [page]: strokes }));
+      if (typeof localStorage === "undefined") return;
+      const docKey = contentId || title || "unioffice_doc";
+      try {
+        if (strokes.length === 0) {
+          localStorage.removeItem(`unioffice_notes_${docKey}_p${page}`);
+        } else {
+          localStorage.setItem(`unioffice_notes_${docKey}_p${page}`, JSON.stringify(strokes));
+        }
+      } catch (err) {
+        console.warn("[UniOffice] Failed to save annotations:", err);
+      }
+    },
+    [contentId, title],
+  );
+
+  const handleUndoStroke = useCallback(() => {
+    const currentStrokes = strokesByPage[pageNumber] || [];
+    if (currentStrokes.length > 0) {
+      const updated = currentStrokes.slice(0, -1);
+      handleUpdateStrokes(pageNumber, updated);
+    }
+  }, [strokesByPage, pageNumber, handleUpdateStrokes]);
+
+  const handleClearPageStrokes = useCallback(() => {
+    handleUpdateStrokes(pageNumber, []);
+  }, [pageNumber, handleUpdateStrokes]);
+
+  const handleSelectTheme = (newTheme: UniOfficeTheme) => {
+    setTheme(newTheme);
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("unioffice_theme", newTheme);
+    }
+  };
+
+  const handleTogglePro = () => {
+    setIsPro((prev) => {
+      const next = !prev;
+      if (typeof localStorage !== "undefined") {
+        localStorage.setItem("unioffice_pro_unlocked", next ? "true" : "false");
+      }
+      return next;
+    });
+  };
+
+  const handleSelectTool = (tool: UniOfficeTool) => {
+    setAnnotationTool(tool);
+    if (tool === "highlighter") {
+      setStrokeColor("#fde047");
+      setStrokeWidth(16);
+      if (touchZoomEnabled) setTouchZoomEnabled(false);
+    } else if (tool === "pen") {
+      setStrokeColor("#2563eb");
+      setStrokeWidth(4);
+      if (touchZoomEnabled) setTouchZoomEnabled(false);
+    } else if (tool === "eraser") {
+      if (touchZoomEnabled) setTouchZoomEnabled(false);
+    }
+  };
+
+  function getThemeStyle(selectedTheme: UniOfficeTheme): React.CSSProperties {
+    switch (selectedTheme) {
+      case "dark":
+        return {
+          filter: "invert(0.92) hue-rotate(180deg) contrast(0.95)",
+        };
+      case "sepia":
+        return {
+          filter: "sepia(0.60) contrast(0.96) brightness(0.96)",
+        };
+      case "emerald":
+        return {
+          filter: "sepia(0.35) hue-rotate(85deg) contrast(0.95)",
+        };
+      case "normal":
+      default:
+        return {};
+    }
   }
 
   function handleImagePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
@@ -1077,229 +1213,44 @@ export default function PdfLessonViewer({
         </div>
       )}
 
-      {/* Top Header Banner: Executive Performance Académique White-label */}
-      <div className="flex items-center justify-between border-b border-[#1c2433] bg-[#070b12] px-3 py-1.5 sm:px-4 sm:py-2 text-xs text-slate-400">
-        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-emerald-500/10 text-emerald-400">
-            <BookOpen className="h-3.5 w-3.5" />
-          </span>
-          <span className="truncate font-semibold text-slate-200 text-[11px] sm:text-xs">{title}</span>
-          <span className="hidden sm:inline-block text-[#324058]">•</span>
-          <span className="hidden sm:inline-block text-[11px] text-slate-400 font-medium">
-            Performance Académique • Support officiel
-          </span>
-        </div>
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-2">
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-950/60 px-2 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-800/40">
-            <ShieldCheck className="h-3 w-3" />
-            Lecture sécurisée
-          </span>
-        </div>
-      </div>
-
-      {/* Main Office/Acrobat-tier Toolbar */}
-      <div
-        className={viewerToolbarClass}
-        onPointerDown={(event) => event.stopPropagation()}
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="flex items-center gap-1 sm:gap-3 flex-wrap sm:flex-nowrap min-w-0">
-          {/* Sidebar Toggle for Page Thumbnails */}
-          <button
-            type="button"
-            onClick={() => setShowSidebar((prev) => !prev)}
-            className={`${toolbarButtonClass} ${showSidebar ? "border-emerald-500/60 bg-emerald-500/10 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]" : ""}`}
-            title="Miniatures des pages (volet latéral)"
-            aria-label="Miniatures des pages (volet latéral)"
-          >
-            <PanelLeft className={toolbarIconClass} strokeWidth={1.8} />
-          </button>
-
-          {/* Continuous Scroll vs Single Page Toggle */}
-          <button
-            type="button"
-            onClick={() => setScrollMode((prev) => (prev === "continuous" ? "single" : "continuous"))}
-            className={`${toolbarButtonClass} ${scrollMode === "continuous" ? "border-emerald-500/60 bg-emerald-500/10 text-emerald-400" : ""}`}
-            title={scrollMode === "continuous" ? "Mode défilement continu (actif)" : "Passer en défilement continu"}
-            aria-label={
-              scrollMode === "continuous" ? "Mode défilement continu (actif)" : "Passer en défilement continu"
-            }
-          >
-            <ScrollText className={toolbarIconClass} strokeWidth={1.8} />
-          </button>
-
-          {/* Page Indicator Pill with Navigation Buttons */}
-          {viewerState === "READY" && numPages ? (
-            <div className={toolbarPillClass}>
-              <button
-                type="button"
-                onClick={() => changePage(-1)}
-                disabled={pageNumber <= 1}
-                className={toolbarPillButtonClass}
-                title="Page précédente"
-                aria-label="Page précédente"
-              >
-                <ChevronLeft className={toolbarIconClass} strokeWidth={1.8} />
-              </button>
-              <span className="min-w-[3.6rem] px-1 text-center text-xs font-bold tabular-nums text-slate-100 sm:min-w-[5rem] sm:px-1.5 sm:text-lg">
-                {pageNumber} <span className="mx-0.5 font-medium text-slate-500">/</span> {numPages}
-              </span>
-              <button
-                type="button"
-                onClick={() => changePage(1)}
-                disabled={!numPages || pageNumber >= numPages}
-                className={toolbarPillButtonClass}
-                title="Page suivante"
-                aria-label="Page suivante"
-              >
-                <ChevronRight className={toolbarIconClass} strokeWidth={1.8} />
-              </button>
-            </div>
-          ) : (
-            <div
-              className={`${toolbarPillClass} gap-2 px-3 text-xs sm:gap-3 sm:px-4 sm:text-sm font-semibold text-slate-300`}
-              role="status"
-            >
-              <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent sm:h-4 sm:w-4" />
-              Chargement du document…
-            </div>
-          )}
-        </div>
-
-        {/* Right Controls: Zoom, Rotate, Fullscreen, Download (if allowed) */}
-        <div className="w-full sm:w-auto min-w-0 flex items-center justify-start sm:justify-end gap-1 sm:gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden overscroll-x-contain py-0.5">
-          <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
-            <button
-              type="button"
-              onClick={handleZoomOut}
-              className={toolbarButtonClass}
-              title="Zoom arrière"
-              aria-label="Zoom arrière"
-            >
-              <ZoomOut className={toolbarIconClass} strokeWidth={1.8} />
-            </button>
-            <span className="min-w-[2.4rem] px-0.5 text-center text-[11px] font-bold tabular-nums text-slate-300 sm:min-w-[3.2rem] sm:px-1 sm:text-sm">
-              {Math.round(scale * 100)}%
-            </span>
-            <button
-              type="button"
-              onClick={handleZoomIn}
-              className={toolbarButtonClass}
-              title="Zoom avant"
-              aria-label="Zoom avant"
-            >
-              <ZoomIn className={toolbarIconClass} strokeWidth={1.8} />
-            </button>
-          </div>
-
-          {/* Bouton Zoom tactile PDF */}
-          <button
-            type="button"
-            onClick={toggleTouchZoomMode}
-            className={`${toolbarButtonClass} ${
-              touchZoomEnabled
-                ? "border-emerald-500/80 bg-emerald-500/20 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.35)] ring-1 ring-emerald-500/50"
-                : "text-slate-400 hover:text-slate-200"
-            }`}
-            title={
-              touchZoomEnabled
-                ? "Zoom tactile PDF activé (pincez l'écran pour zoomer directement dans le document)"
-                : "Zoom tactile PDF désactivé (cliquez pour zoomer dans le document plutôt que sur le site)"
-            }
-            aria-label={touchZoomEnabled ? "Désactiver le zoom tactile PDF" : "Activer le zoom tactile PDF"}
-            aria-pressed={touchZoomEnabled}
-          >
-            <Hand className={toolbarIconClass} strokeWidth={1.8} />
-          </button>
-
-          <span className={toolbarDividerClass} aria-hidden="true" />
-
-          {/* Fit Width */}
-          <button
-            type="button"
-            onClick={handleImageFitWidth}
-            className={toolbarButtonClass}
-            title="Ajuster à la largeur"
-            aria-label="Ajuster à la largeur"
-          >
-            <MoveHorizontal className={toolbarIconClass} strokeWidth={1.8} />
-          </button>
-
-          {/* Fit Screen */}
-          <button
-            type="button"
-            onClick={handleImageFitScreen}
-            className={toolbarButtonClass}
-            title="Ajuster à l'écran"
-            aria-label="Ajuster à l'écran"
-          >
-            <Maximize2 className={toolbarIconClass} strokeWidth={1.8} />
-          </button>
-
-          {/* Reset Zoom */}
-          <button
-            type="button"
-            onClick={handleImageResetZoom}
-            className={toolbarButtonClass}
-            title="Réinitialiser le zoom à 100%"
-            aria-label="Réinitialiser le zoom à 100%"
-          >
-            <RotateCcw className={toolbarIconClass} strokeWidth={1.8} />
-          </button>
-
-          {/* 90 degree clockwise rotation */}
-          <button
-            type="button"
-            onClick={rotateClockwise}
-            className={toolbarButtonClass}
-            title="Pivoter de 90°"
-            aria-label="Pivoter de 90°"
-          >
-            <RotateCw className={toolbarIconClass} strokeWidth={1.8} />
-          </button>
-
-          <span className={toolbarDividerClass} aria-hidden="true" />
-
-          {/* Basculer vers le lecteur navigateur */}
-          <button
-            type="button"
-            onClick={() => setPdfRenderer("BROWSER")}
-            className={toolbarButtonClass}
-            title="Basculer vers le lecteur PDF alternatif"
-            aria-label="Basculer vers le lecteur PDF alternatif"
-          >
-            <BookOpen className={toolbarIconClass} strokeWidth={1.8} />
-          </button>
-
-          {/* Immersive Fullscreen Mode */}
-          <button
-            type="button"
-            onClick={toggleFullscreen}
-            className={toolbarButtonClass}
-            title={isExpandedView ? "Quitter le plein écran" : "Plein écran"}
-            aria-label={isExpandedView ? "Quitter le plein écran" : "Plein écran"}
-          >
-            {isExpandedView ? (
-              <Minimize2 className={toolbarIconClass} strokeWidth={1.8} />
-            ) : (
-              <Fullscreen className={toolbarIconClass} strokeWidth={1.8} />
-            )}
-          </button>
-
-          {/* Download Button ONLY if explicitly permitted (e.g. Legal Documents) */}
-          {allowDownload ? (
-            <a
-              href={blobUrl}
-              download={resolvedDownloadFileName}
-              className={toolbarButtonClass}
-              title="Télécharger le PDF"
-              aria-label="Télécharger le PDF"
-            >
-              <Download className={toolbarIconClass} strokeWidth={1.8} />
-            </a>
-          ) : null}
-        </div>
-      </div>
+      {/* UniOfficeSecurPDF Office Ribbon Toolbar */}
+      <UniOfficeRibbon
+        title={title}
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        pageNumber={pageNumber}
+        numPages={numPages}
+        onPageChange={changePage}
+        scrollMode={scrollMode}
+        onToggleScrollMode={() => setScrollMode((prev) => (prev === "continuous" ? "single" : "continuous"))}
+        showSidebar={showSidebar}
+        onToggleSidebar={() => setShowSidebar((prev) => !prev)}
+        scale={scale}
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
+        onFitWidth={handleImageFitWidth}
+        onFitScreen={handleImageFitScreen}
+        onResetZoom={handleImageResetZoom}
+        onRotateClockwise={rotateClockwise}
+        touchZoomEnabled={touchZoomEnabled}
+        onToggleTouchZoom={toggleTouchZoomMode}
+        isFullscreen={isExpandedView}
+        onToggleFullscreen={toggleFullscreen}
+        annotationTool={annotationTool}
+        onSelectTool={handleSelectTool}
+        strokeColor={strokeColor}
+        onSelectColor={setStrokeColor}
+        strokeWidth={strokeWidth}
+        onSelectStrokeWidth={setStrokeWidth}
+        onUndoStroke={handleUndoStroke}
+        onClearPageStrokes={handleClearPageStrokes}
+        hasStrokesOnPage={(strokesByPage[pageNumber] || []).length > 0}
+        theme={theme}
+        onSelectTheme={handleSelectTheme}
+        isPro={isPro}
+        onOpenProModal={() => setIsProModalOpen(true)}
+        onSwitchRenderer={() => setPdfRenderer("BROWSER")}
+      />
 
       {/* Main Reading Workspace with Collapsible Thumbnails Sidebar */}
       <div className="flex flex-1 overflow-hidden bg-[#090d14] relative">
@@ -1408,55 +1359,95 @@ export default function PdfLessonViewer({
               >
                 {Array.from({ length: numPages }, (_, index) => {
                   const p = index + 1;
+                  const curPageHeight = pageAspectRatios[p]
+                    ? Math.round(renderWidth * pageAspectRatios[p])
+                    : Math.round(renderWidth * 1.414);
                   return (
                     <div
                       key={`continuous-page-${p}`}
                       data-page-number={p}
-                      className="relative mx-auto shadow-[0_20px_50px_rgba(0,0,0,0.65)] ring-1 ring-white/10 transition-transform duration-200 rounded-sm bg-white"
+                      style={{ width: renderWidth }}
+                      className="relative mx-auto shadow-[0_20px_50px_rgba(0,0,0,0.65)] ring-1 ring-white/10 transition-transform duration-200 rounded-sm bg-white overflow-hidden"
                     >
-                      <Page
-                        key={`page-${p}`}
-                        pageNumber={p}
-                        width={renderWidth}
-                        rotate={rotation}
-                        devicePixelRatio={targetDevicePixelRatio}
-                        canvasBackground="rgb(255, 255, 255)"
-                        className="bg-white"
-                        loading={
-                          <div
-                            style={{
-                              width: renderWidth,
-                              minHeight: Math.min(Math.round(renderWidth * 1.35), 450),
-                            }}
-                            className="flex flex-col items-center justify-center bg-slate-900/60 rounded border border-white/5 p-6 text-center"
-                          >
-                            <div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent mb-2" />
-                            <span className="text-[11px] text-slate-400 font-medium">Chargement page {p}…</span>
-                          </div>
-                        }
-                        error={
-                          <div
-                            style={{ width: renderWidth, minHeight: 160 }}
-                            className="flex flex-col items-center justify-center bg-slate-900/90 border border-amber-500/30 rounded p-4 text-center text-xs text-amber-300"
-                          >
-                            <span>Impossible de charger la page {p}</span>
-                            <button
-                              type="button"
-                              onClick={() => setRetryKey((k) => k + 1)}
-                              className="mt-2 px-3 py-1 bg-emerald-700 hover:bg-emerald-600 text-white rounded text-xs font-semibold"
+                      <div style={getThemeStyle(theme)}>
+                        <Page
+                          key={`page-${p}`}
+                          pageNumber={p}
+                          width={renderWidth}
+                          rotate={rotation}
+                          devicePixelRatio={targetDevicePixelRatio}
+                          canvasBackground="rgb(255, 255, 255)"
+                          className="bg-white"
+                          onRenderSuccess={(page) => {
+                            if (page.width > 0 && page.height > 0) {
+                              setPageAspectRatios((prev) => ({
+                                ...prev,
+                                [p]: page.height / page.width,
+                              }));
+                            }
+                          }}
+                          loading={
+                            <div
+                              style={{
+                                width: renderWidth,
+                                minHeight: Math.min(Math.round(renderWidth * 1.35), 450),
+                              }}
+                              className="flex flex-col items-center justify-center bg-slate-900/60 rounded border border-white/5 p-6 text-center"
                             >
-                              Réessayer
-                            </button>
-                          </div>
-                        }
-                        renderTextLayer={true}
-                        renderAnnotationLayer={true}
-                        onRenderError={(err) => console.error(`[PdfViewer] Render error p${p}:`, err)}
-                        onRenderTextLayerError={(err) => console.warn(`[PdfViewer] TextLayer error p${p}:`, err)}
-                        onRenderAnnotationLayerError={(err) =>
-                          console.warn(`[PdfViewer] AnnotationLayer error p${p}:`, err)
-                        }
+                              <div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent mb-2" />
+                              <span className="text-[11px] text-slate-400 font-medium">Chargement page {p}…</span>
+                            </div>
+                          }
+                          error={
+                            <div
+                              style={{ width: renderWidth, minHeight: 160 }}
+                              className="flex flex-col items-center justify-center bg-slate-900/90 border border-amber-500/30 rounded p-4 text-center text-xs text-amber-300"
+                            >
+                              <span>Impossible de charger la page {p}</span>
+                              <button
+                                type="button"
+                                onClick={() => setRetryKey((k) => k + 1)}
+                                className="mt-2 px-3 py-1 bg-emerald-700 hover:bg-emerald-600 text-white rounded text-xs font-semibold"
+                              >
+                                Réessayer
+                              </button>
+                            </div>
+                          }
+                          renderTextLayer={true}
+                          renderAnnotationLayer={true}
+                          onRenderError={(err) => console.error(`[PdfViewer] Render error p${p}:`, err)}
+                          onRenderTextLayerError={(err) => console.warn(`[PdfViewer] TextLayer error p${p}:`, err)}
+                          onRenderAnnotationLayerError={(err) =>
+                            console.warn(`[PdfViewer] AnnotationLayer error p${p}:`, err)
+                          }
+                        />
+                      </div>
+
+                      {/* UniOffice Annotation Layer */}
+                      <UniOfficeAnnotationLayer
+                        pageNumber={p}
+                        contentId={contentId}
+                        width={renderWidth}
+                        height={curPageHeight}
+                        tool={annotationTool}
+                        color={strokeColor}
+                        strokeWidth={strokeWidth}
+                        strokes={strokesByPage[p] || []}
+                        onUpdateStrokes={handleUpdateStrokes}
+                        touchZoomEnabled={touchZoomEnabled}
                       />
+
+                      {/* Anti-leak dynamic watermark & brand logo (hidden if Pro) */}
+                      <UniOfficeWatermark
+                        info={{
+                          studentName: currentUser?.fullName,
+                          studentEmail: currentUser?.email,
+                          studentId: currentUser?.id,
+                          documentTitle: title,
+                        }}
+                        isPro={isPro}
+                      />
+
                       <div
                         className={`pointer-events-none absolute inset-0 z-10 ${
                           touchZoomEnabled ? "!pointer-events-auto cursor-grab" : ""
@@ -1482,50 +1473,93 @@ export default function PdfLessonViewer({
                 }
                 className="flex min-h-full items-center justify-center"
               >
-                <div className="relative mx-auto w-fit shadow-[0_20px_50px_rgba(0,0,0,0.65)] ring-1 ring-white/10 transition-transform duration-200 rounded-sm bg-white">
-                  <Page
-                    key={`single-page-${pageNumber}`}
-                    pageNumber={pageNumber}
-                    width={renderWidth}
-                    rotate={rotation}
-                    devicePixelRatio={targetDevicePixelRatio}
-                    canvasBackground="rgb(255, 255, 255)"
-                    className="bg-white"
-                    loading={
-                      <div
-                        style={{
-                          width: renderWidth,
-                          minHeight: Math.min(Math.round(renderWidth * 1.35), 450),
-                        }}
-                        className="flex flex-col items-center justify-center bg-slate-900/60 rounded border border-white/5 p-6 text-center"
-                      >
-                        <div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent mb-2" />
-                        <span className="text-[11px] text-slate-400 font-medium">Chargement page {pageNumber}…</span>
-                      </div>
-                    }
-                    error={
-                      <div
-                        style={{ width: renderWidth, minHeight: 160 }}
-                        className="flex flex-col items-center justify-center bg-slate-900/90 border border-amber-500/30 rounded p-4 text-center text-xs text-amber-300"
-                      >
-                        <span>Impossible de charger la page {pageNumber}</span>
-                        <button
-                          type="button"
-                          onClick={() => setRetryKey((k) => k + 1)}
-                          className="mt-2 px-3 py-1 bg-emerald-700 hover:bg-emerald-600 text-white rounded text-xs font-semibold"
+                <div
+                  style={{ width: renderWidth }}
+                  className="relative mx-auto w-fit shadow-[0_20px_50px_rgba(0,0,0,0.65)] ring-1 ring-white/10 transition-transform duration-200 rounded-sm bg-white overflow-hidden"
+                >
+                  <div style={getThemeStyle(theme)}>
+                    <Page
+                      key={`single-page-${pageNumber}`}
+                      pageNumber={pageNumber}
+                      width={renderWidth}
+                      rotate={rotation}
+                      devicePixelRatio={targetDevicePixelRatio}
+                      canvasBackground="rgb(255, 255, 255)"
+                      className="bg-white"
+                      onRenderSuccess={(page) => {
+                        if (page.width > 0 && page.height > 0) {
+                          setPageAspectRatios((prev) => ({
+                            ...prev,
+                            [pageNumber]: page.height / page.width,
+                          }));
+                        }
+                      }}
+                      loading={
+                        <div
+                          style={{
+                            width: renderWidth,
+                            minHeight: Math.min(Math.round(renderWidth * 1.35), 450),
+                          }}
+                          className="flex flex-col items-center justify-center bg-slate-900/60 rounded border border-white/5 p-6 text-center"
                         >
-                          Réessayer
-                        </button>
-                      </div>
+                          <div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent mb-2" />
+                          <span className="text-[11px] text-slate-400 font-medium">Chargement page {pageNumber}…</span>
+                        </div>
+                      }
+                      error={
+                        <div
+                          style={{ width: renderWidth, minHeight: 160 }}
+                          className="flex flex-col items-center justify-center bg-slate-900/90 border border-amber-500/30 rounded p-4 text-center text-xs text-amber-300"
+                        >
+                          <span>Impossible de charger la page {pageNumber}</span>
+                          <button
+                            type="button"
+                            onClick={() => setRetryKey((k) => k + 1)}
+                            className="mt-2 px-3 py-1 bg-emerald-700 hover:bg-emerald-600 text-white rounded text-xs font-semibold"
+                          >
+                            Réessayer
+                          </button>
+                        </div>
+                      }
+                      renderTextLayer={true}
+                      renderAnnotationLayer={true}
+                      onRenderError={(err) => console.error(`[PdfViewer] Render error p${pageNumber}:`, err)}
+                      onRenderTextLayerError={(err) => console.warn(`[PdfViewer] TextLayer error p${pageNumber}:`, err)}
+                      onRenderAnnotationLayerError={(err) =>
+                        console.warn(`[PdfViewer] AnnotationLayer error p${pageNumber}:`, err)
+                      }
+                    />
+                  </div>
+
+                  {/* UniOffice Annotation Layer */}
+                  <UniOfficeAnnotationLayer
+                    pageNumber={pageNumber}
+                    contentId={contentId}
+                    width={renderWidth}
+                    height={
+                      pageAspectRatios[pageNumber]
+                        ? Math.round(renderWidth * pageAspectRatios[pageNumber])
+                        : Math.round(renderWidth * 1.414)
                     }
-                    renderTextLayer={true}
-                    renderAnnotationLayer={true}
-                    onRenderError={(err) => console.error(`[PdfViewer] Render error p${pageNumber}:`, err)}
-                    onRenderTextLayerError={(err) => console.warn(`[PdfViewer] TextLayer error p${pageNumber}:`, err)}
-                    onRenderAnnotationLayerError={(err) =>
-                      console.warn(`[PdfViewer] AnnotationLayer error p${pageNumber}:`, err)
-                    }
+                    tool={annotationTool}
+                    color={strokeColor}
+                    strokeWidth={strokeWidth}
+                    strokes={strokesByPage[pageNumber] || []}
+                    onUpdateStrokes={handleUpdateStrokes}
+                    touchZoomEnabled={touchZoomEnabled}
                   />
+
+                  {/* Anti-leak dynamic watermark & brand logo (hidden if Pro) */}
+                  <UniOfficeWatermark
+                    info={{
+                      studentName: currentUser?.fullName,
+                      studentEmail: currentUser?.email,
+                      studentId: currentUser?.id,
+                      documentTitle: title,
+                    }}
+                    isPro={isPro}
+                  />
+
                   <div
                     className={`pointer-events-none absolute inset-0 z-10 ${
                       touchZoomEnabled ? "!pointer-events-auto cursor-grab" : ""
@@ -1538,6 +1572,14 @@ export default function PdfLessonViewer({
           </div>
         </Document>
       </div>
+
+      {/* UniOffice Pro / Monetization Modal */}
+      <UniOfficeProModal
+        isOpen={isProModalOpen}
+        onClose={() => setIsProModalOpen(false)}
+        isPro={isPro}
+        onTogglePro={handleTogglePro}
+      />
     </div>
   );
 }
