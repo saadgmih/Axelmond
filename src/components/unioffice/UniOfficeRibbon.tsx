@@ -154,28 +154,28 @@ export const UniOfficeRibbon: React.FC<UniOfficeRibbonProps> = ({
 
         {/* Pro Pill, Security Status & Quick Fullscreen */}
         <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-          {/* Pro / Watermark Status Pill */}
-          <button
-            type="button"
-            onClick={onOpenProModal}
-            className={`flex items-center gap-1 sm:gap-1.5 rounded-full px-2.5 py-1 text-[10px] sm:text-[11px] font-bold transition-all ${
-              isPro
-                ? "bg-amber-400/20 text-amber-300 border border-amber-400/50 shadow-[0_0_12px_rgba(245,158,11,0.25)]"
-                : isNativeApp()
-                ? "bg-amber-500/15 text-amber-300 border border-amber-400/50 hover:bg-amber-400/25"
-                : "bg-slate-800/80 text-emerald-400 border border-emerald-500/30 hover:border-emerald-500/60"
-            }`}
-            title={
-              isPro
-                ? "Licence UniOffice Pro active"
-                : isNativeApp()
-                ? "Passer à UniOffice Pro (Supprimer filigrane)"
-                : "Options UniOffice Pro"
-            }
-          >
-            <Crown className={`h-3 w-3 ${isPro ? "fill-amber-300" : ""}`} />
-            <span>{isPro ? "Pro VIP" : isNativeApp() ? "Supprimer filigrane" : "UniOffice HD"}</span>
-          </button>
+          {isNativeApp() ? (
+            /* Application Mobile (Android / iPhone) : Option suppression filigrane avec PayPal */
+            <button
+              type="button"
+              onClick={onOpenProModal}
+              className={`flex items-center gap-1 sm:gap-1.5 rounded-full px-2.5 py-1 text-[10px] sm:text-[11px] font-bold transition-all ${
+                isPro
+                  ? "bg-amber-400/20 text-amber-300 border border-amber-400/50 shadow-[0_0_12px_rgba(245,158,11,0.25)]"
+                  : "bg-amber-500/15 text-amber-300 border border-amber-400/50 hover:bg-amber-400/25"
+              }`}
+              title={isPro ? "Licence UniOffice Pro active" : "Passer à UniOffice Pro (Supprimer filigrane)"}
+            >
+              <Crown className={`h-3 w-3 ${isPro ? "fill-amber-300" : ""}`} />
+              <span>{isPro ? "Pro VIP" : "Supprimer filigrane"}</span>
+            </button>
+          ) : (
+            /* Site Web Performance Académique : 100% Inclus et Gratuit pour les étudiants */
+            <div className="flex items-center gap-1.5 rounded-full bg-emerald-950/50 px-2.5 py-1 text-[10px] sm:text-[11px] font-bold text-emerald-300 border border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.15)]">
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+              <span>Inclus avec votre formation</span>
+            </div>
+          )}
 
           {/* Certified Security Badge */}
           <div className="hidden md:flex items-center gap-1 rounded-full bg-emerald-950/40 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 border border-emerald-800/30">
@@ -645,14 +645,21 @@ export const UniOfficeRibbon: React.FC<UniOfficeRibbonProps> = ({
                 </button>
               )}
 
-              <button
-                type="button"
-                onClick={onOpenProModal}
-                className="flex h-8 items-center gap-1.5 rounded-lg bg-gradient-to-r from-amber-400 to-amber-500 px-3 text-xs font-black text-slate-950 shadow-md hover:scale-[1.02] transition-transform"
-              >
-                <Crown className="h-3.5 w-3.5 stroke-[2.5]" />
-                <span>{isPro ? "Gérer UniOffice Pro" : isNativeApp() ? "Supprimer le filigrane (Pro)" : "Options UniOffice Pro"}</span>
-              </button>
+              {isNativeApp() ? (
+                <button
+                  type="button"
+                  onClick={onOpenProModal}
+                  className="flex h-8 items-center gap-1.5 rounded-lg bg-gradient-to-r from-amber-400 to-amber-500 px-3 text-xs font-black text-slate-950 shadow-md hover:scale-[1.02] transition-transform"
+                >
+                  <Crown className="h-3.5 w-3.5 stroke-[2.5]" />
+                  <span>{isPro ? "Gérer UniOffice Pro" : "Supprimer le filigrane (PayPal)"}</span>
+                </button>
+              ) : (
+                <div className="flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-950/30 px-3 py-1 text-xs font-bold text-emerald-300">
+                  <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                  <span>Traitement PDF complet inclus sans filigrane</span>
+                </div>
+              )}
             </div>
           </div>
         )}
