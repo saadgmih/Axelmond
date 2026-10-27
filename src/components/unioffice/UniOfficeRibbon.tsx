@@ -73,8 +73,6 @@ interface UniOfficeRibbonProps {
   // Pro / VIP
   isPro: boolean;
   onOpenProModal: () => void;
-  // Switch to native browser reader
-  onSwitchRenderer?: () => void;
 }
 
 const HIGHLIGHTER_COLORS = [
@@ -126,7 +124,6 @@ export const UniOfficeRibbon: React.FC<UniOfficeRibbonProps> = ({
   onSelectTheme,
   isPro,
   onOpenProModal,
-  onSwitchRenderer,
 }) => {
   return (
     <header className="sticky top-0 z-30 flex flex-col border-b border-[#1f2838] bg-[#090d16] text-slate-200 shadow-[0_12px_32px_rgba(2,6,23,0.35)] select-none">
@@ -633,17 +630,6 @@ export const UniOfficeRibbon: React.FC<UniOfficeRibbonProps> = ({
             </div>
 
             <div className="flex items-center gap-2 ml-auto">
-              {onSwitchRenderer && (
-                <button
-                  type="button"
-                  onClick={onSwitchRenderer}
-                  className="flex h-8 items-center gap-1.5 rounded-lg border border-[#222c3d] bg-[#121827] px-2.5 text-xs text-slate-300 hover:text-white"
-                  title="Basculer vers le lecteur navigateur"
-                >
-                  <RefreshCw className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Lecteur Alternatif</span>
-                </button>
-              )}
 
               {isNativeApp() ? (
                 <button

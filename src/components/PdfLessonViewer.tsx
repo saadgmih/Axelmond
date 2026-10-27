@@ -119,7 +119,6 @@ export default function PdfLessonViewer({
 }: PdfLessonViewerProps) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [pdfFile, setPdfFile] = useState<PdfFile | null>(null);
-  const [pdfRenderer, setPdfRenderer] = useState<"REACT_PDF" | "BROWSER">("REACT_PDF");
   const [error, setError] = useState("");
   const [viewerState, setViewerState] = useState<ViewerState>("WAITING_FOR_SESSION");
   const [retryKey, setRetryKey] = useState(0);
@@ -337,28 +336,14 @@ export default function PdfLessonViewer({
   function retryDocumentLoad() {
     clearParseRetryTimeout();
     parseRetryCountRef.current = 0;
-    setPdfRenderer("REACT_PDF");
     setRetryKey((current) => current + 1);
   }
 
   useEffect(() => {
     parseRetryCountRef.current = 0;
-    setPdfRenderer("REACT_PDF");
     clearParseRetryTimeout();
     return clearParseRetryTimeout;
   }, [clearParseRetryTimeout, contentId, documentUrl, mediaType]);
-
-  useEffect(() => {
-    if (viewerState !== "VALIDATING_DOCUMENT") return;
-    const timeout = setTimeout(() => {
-      if (viewerState === "VALIDATING_DOCUMENT" && isNativeApp() && blobUrl) {
-        console.warn("[PdfLessonViewer] PDF parsing delayed in native app, switching to BROWSER renderer");
-        setPdfRenderer("BROWSER");
-        setViewerState("READY");
-      }
-    }, 4500);
-    return () => clearTimeout(timeout);
-  }, [viewerState, blobUrl]);
 
   function goToPage(targetPage: number) {
     const page = Math.max(1, Math.min(targetPage, numPages || 1));
@@ -905,20 +890,7 @@ export default function PdfLessonViewer({
                 <RefreshCw className="h-4 w-4" />
                 Réessayer
               </button>
-              {blobUrl && mediaType === "PDF" ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setError("");
-                    setPdfRenderer("BROWSER");
-                    setViewerState("READY");
-                  }}
-                  className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
-                >
-                  <FileText className="h-4 w-4" />
-                  Consulter dans le lecteur intégré
-                </button>
-              ) : null}
+
               {blobUrl ? (
                 <a
                   href={blobUrl}
@@ -1132,73 +1104,7 @@ export default function PdfLessonViewer({
       : 2;
   const resolvedDownloadFileName = downloadFileName || `${title}.pdf`;
 
-  if (pdfRenderer === "BROWSER" && blobUrl) {
-    const nativePdfUrl = `${blobUrl}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`;
 
-    return (
-      <div
-        ref={wrapperRef}
-        className={`flex flex-col overflow-hidden rounded-[24px] border border-[#202838] bg-slate-950 shadow-2xl transition-all ${
-          isExpandedView ? "fixed inset-0 z-[120] h-[100dvh] w-full rounded-none border-none" : "h-[80vh]"
-        }`}
-      >
-        <div
-          className={viewerToolbarClass}
-          onPointerDown={(event) => event.stopPropagation()}
-          onClick={(event) => event.stopPropagation()}
-        >
-          <div className={`${toolbarPillClass} min-w-0 gap-2 px-3 sm:px-4`}>
-            <FileText className="h-4 w-4 shrink-0 text-[#8175ff] sm:h-5 sm:w-5" />
-            <span className="truncate text-xs font-semibold text-slate-200 sm:text-sm">{title}</span>
-          </div>
-          <div className="ml-auto flex items-center gap-2 sm:gap-3">
-            <button
-              type="button"
-              onClick={() => {
-                setPdfRenderer("REACT_PDF");
-                retryDocumentLoad();
-              }}
-              className={toolbarButtonClass}
-              title="Réessayer avec le lecteur standard"
-              aria-label="Réessayer avec le lecteur standard"
-            >
-              <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.8} />
-            </button>
-            <button
-              type="button"
-              onClick={toggleFullscreen}
-              className={toolbarButtonClass}
-              title={isExpandedView ? "Quitter le plein écran" : "Plein écran"}
-              aria-label={isExpandedView ? "Quitter le plein écran" : "Plein écran"}
-            >
-              {isExpandedView ? (
-                <Minimize2 className={toolbarIconClass} strokeWidth={1.8} />
-              ) : (
-                <Fullscreen className={toolbarIconClass} strokeWidth={1.8} />
-              )}
-            </button>
-            {allowDownload ? (
-              <a
-                href={blobUrl}
-                download={resolvedDownloadFileName}
-                className={toolbarButtonClass}
-                title="Télécharger le PDF"
-                aria-label="Télécharger le PDF"
-              >
-                <Download className={toolbarIconClass} strokeWidth={1.8} />
-              </a>
-            ) : null}
-          </div>
-        </div>
-        <iframe
-          src={nativePdfUrl}
-          title={`Lecteur PDF intégré — ${title}`}
-          className="min-h-0 flex-1 border-0 bg-white w-full h-full"
-          referrerPolicy="same-origin"
-        />
-      </div>
-    );
-  }
 
   return (
     <div
@@ -1250,7 +1156,6 @@ export default function PdfLessonViewer({
         onSelectTheme={handleSelectTheme}
         isPro={isPro}
         onOpenProModal={() => setIsProModalOpen(true)}
-        onSwitchRenderer={() => setPdfRenderer("BROWSER")}
       />
 
       {/* Main Reading Workspace with Collapsible Thumbnails Sidebar */}
