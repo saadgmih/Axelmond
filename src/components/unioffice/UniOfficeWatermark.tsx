@@ -1,6 +1,7 @@
 import React from "react";
 import { ShieldCheck } from "lucide-react";
 import type { UniOfficeWatermarkInfo } from "./types";
+import { isNativeApp } from "../../utils/platform-app";
 
 interface UniOfficeWatermarkProps {
   info: UniOfficeWatermarkInfo;
@@ -8,7 +9,10 @@ interface UniOfficeWatermarkProps {
 }
 
 export const UniOfficeWatermark: React.FC<UniOfficeWatermarkProps> = ({ info, isPro = false }) => {
-  if (isPro) return null;
+  // Sur le site web, la lecture des modules est 100% SANS filigrane.
+  // Le filigrane de sécurité anti-fuite est actif uniquement dans l'application mobile (Android / iPhone),
+  // sauf si l'étudiant a activé UniOffice Pro.
+  if (isPro || !isNativeApp()) return null;
 
   const displayName = info.studentName || info.studentEmail || "Étudiant Certifié";
   const emailSub = info.studentEmail ? ` (${info.studentEmail})` : "";

@@ -30,6 +30,7 @@ import {
   ZoomOut,
 } from "lucide-react";
 import type { UniOfficeTab, UniOfficeTheme, UniOfficeTool } from "./types";
+import { isNativeApp } from "../../utils/platform-app";
 
 interface UniOfficeRibbonProps {
   title: string;
@@ -160,12 +161,20 @@ export const UniOfficeRibbon: React.FC<UniOfficeRibbonProps> = ({
             className={`flex items-center gap-1 sm:gap-1.5 rounded-full px-2.5 py-1 text-[10px] sm:text-[11px] font-bold transition-all ${
               isPro
                 ? "bg-amber-400/20 text-amber-300 border border-amber-400/50 shadow-[0_0_12px_rgba(245,158,11,0.25)]"
-                : "bg-slate-800/80 text-amber-300/90 border border-amber-400/30 hover:border-amber-400/70 hover:bg-amber-400/10"
+                : isNativeApp()
+                ? "bg-amber-500/15 text-amber-300 border border-amber-400/50 hover:bg-amber-400/25"
+                : "bg-slate-800/80 text-emerald-400 border border-emerald-500/30 hover:border-emerald-500/60"
             }`}
-            title={isPro ? "Licence UniOffice Pro active" : "Passer à UniOffice Pro (Supprimer filigrane)"}
+            title={
+              isPro
+                ? "Licence UniOffice Pro active"
+                : isNativeApp()
+                ? "Passer à UniOffice Pro (Supprimer filigrane)"
+                : "Options UniOffice Pro"
+            }
           >
             <Crown className={`h-3 w-3 ${isPro ? "fill-amber-300" : ""}`} />
-            <span>{isPro ? "Pro VIP" : "Supprimer filigrane"}</span>
+            <span>{isPro ? "Pro VIP" : isNativeApp() ? "Supprimer filigrane" : "UniOffice HD"}</span>
           </button>
 
           {/* Certified Security Badge */}
@@ -642,7 +651,7 @@ export const UniOfficeRibbon: React.FC<UniOfficeRibbonProps> = ({
                 className="flex h-8 items-center gap-1.5 rounded-lg bg-gradient-to-r from-amber-400 to-amber-500 px-3 text-xs font-black text-slate-950 shadow-md hover:scale-[1.02] transition-transform"
               >
                 <Crown className="h-3.5 w-3.5 stroke-[2.5]" />
-                <span>{isPro ? "Gérer UniOffice Pro" : "Supprimer le filigrane (Pro)"}</span>
+                <span>{isPro ? "Gérer UniOffice Pro" : isNativeApp() ? "Supprimer le filigrane (Pro)" : "Options UniOffice Pro"}</span>
               </button>
             </div>
           </div>

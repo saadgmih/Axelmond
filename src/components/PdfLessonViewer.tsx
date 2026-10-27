@@ -1125,10 +1125,11 @@ export default function PdfLessonViewer({
 
   const baseReadingWidth = Math.max(containerDimensions.width - 32, 280);
   const renderWidth = Math.round(baseReadingWidth * scale);
-  const targetDevicePixelRatio = Math.min(
-    typeof window !== "undefined" ? Math.max(1, Math.round(window.devicePixelRatio || 1)) : 1,
-    2,
-  );
+  // High-Definition (HD) device pixel ratio supersampling: minimum 2x for crystal-sharp text and formulas
+  const targetDevicePixelRatio =
+    typeof window !== "undefined"
+      ? Math.min(Math.max(2, Math.round(window.devicePixelRatio || 2)), 3)
+      : 2;
   const resolvedDownloadFileName = downloadFileName || `${title}.pdf`;
 
   if (pdfRenderer === "BROWSER" && blobUrl) {
