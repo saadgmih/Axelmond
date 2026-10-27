@@ -135,11 +135,8 @@ export const UniOfficeRibbon: React.FC<UniOfficeRibbonProps> = ({
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-tr from-emerald-600 via-teal-500 to-emerald-400 text-slate-950 shadow-[0_0_12px_rgba(16,185,129,0.4)]">
               <Shield className="h-4 w-4 fill-slate-950 stroke-[2.2]" />
             </span>
-            <div className="flex items-baseline gap-1">
+            <div className="flex items-baseline">
               <span className="text-xs sm:text-sm font-black tracking-tight text-white">UniOffice</span>
-              <span className="rounded bg-emerald-500/15 px-1 py-0.5 text-[10px] font-extrabold text-emerald-400 border border-emerald-500/30">
-                SecurPDF
-              </span>
             </div>
           </div>
 
@@ -240,19 +237,6 @@ export const UniOfficeRibbon: React.FC<UniOfficeRibbonProps> = ({
               {theme}
             </span>
           )}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => onSelectTab("securite")}
-          className={`flex items-center gap-1.5 px-3 py-2 border-b-2 transition-colors whitespace-nowrap ${
-            activeTab === "securite"
-              ? "border-emerald-400 text-emerald-300 font-bold bg-white/[0.02]"
-              : "border-transparent text-slate-400 hover:text-slate-200"
-          }`}
-        >
-          <ShieldCheck className="h-3.5 w-3.5" />
-          <span>Sécurité & Pro</span>
         </button>
       </div>
 
@@ -611,42 +595,6 @@ export const UniOfficeRibbon: React.FC<UniOfficeRibbonProps> = ({
             <span className="text-[11px] text-slate-400 ml-auto hidden md:inline">
               Protection anti-fatigue oculaire intégrée
             </span>
-          </div>
-        )}
-
-        {/* TAB: SÉCURITÉ & PRO */}
-        {activeTab === "securite" && (
-          <div className="flex items-center justify-between gap-2 w-full flex-wrap sm:flex-nowrap">
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400">
-                <ShieldCheck className="h-4 w-4" />
-              </div>
-              <div className="text-xs">
-                <span className="font-bold text-slate-200">Anti-copie & Filigrane actif</span>
-                <span className="text-slate-400 ml-1.5 hidden sm:inline">
-                  — Document certifié sous licence académique protégée.
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 ml-auto">
-
-              {isNativeApp() ? (
-                <button
-                  type="button"
-                  onClick={onOpenProModal}
-                  className="flex h-8 items-center gap-1.5 rounded-lg bg-gradient-to-r from-amber-400 to-amber-500 px-3 text-xs font-black text-slate-950 shadow-md hover:scale-[1.02] transition-transform"
-                >
-                  <Crown className="h-3.5 w-3.5 stroke-[2.5]" />
-                  <span>{isPro ? "Gérer UniOffice Pro" : "Supprimer le filigrane (PayPal)"}</span>
-                </button>
-              ) : (
-                <div className="flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-950/30 px-3 py-1 text-xs font-bold text-emerald-300">
-                  <ShieldCheck className="h-4 w-4 text-emerald-400" />
-                  <span>Traitement PDF complet inclus sans filigrane</span>
-                </div>
-              )}
-            </div>
           </div>
         )}
       </div>

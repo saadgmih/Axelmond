@@ -1,4 +1,4 @@
-export type UniOfficeTab = "lecture" | "annotation" | "confort" | "securite";
+export type UniOfficeTab = "lecture" | "annotation" | "confort";
 
 export type UniOfficeTheme = "normal" | "dark" | "sepia" | "emerald";
 
