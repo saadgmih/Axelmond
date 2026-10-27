@@ -127,117 +127,72 @@ export const UniOfficeRibbon: React.FC<UniOfficeRibbonProps> = ({
 }) => {
   return (
     <header className="sticky top-0 z-30 flex flex-col border-b border-[#1f2838] bg-[#090d16] text-slate-200 shadow-[0_12px_32px_rgba(2,6,23,0.35)] select-none">
-      {/* 1. Brand Top Bar: UniOfficeSecurPDF */}
-      <div className="flex h-11 sm:h-12 items-center justify-between border-b border-[#18202d] bg-[#060910] px-3 sm:px-4">
-        {/* Brand Logo & Title */}
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          <div className="flex items-center gap-1.5 shrink-0">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-tr from-emerald-600 via-teal-500 to-emerald-400 text-slate-950 shadow-[0_0_12px_rgba(16,185,129,0.4)]">
-              <Shield className="h-4 w-4 fill-slate-950 stroke-[2.2]" />
-            </span>
-            <div className="flex items-baseline">
-              <span className="text-xs sm:text-sm font-black tracking-tight text-white">UniOffice</span>
-            </div>
-          </div>
-
-          <span className="hidden sm:inline-block text-slate-600">•</span>
-          <span className="truncate text-xs font-semibold text-slate-300 max-w-[140px] sm:max-w-xs md:max-w-md">
-            {title}
-          </span>
-        </div>
-
-        {/* Pro Pill, Security Status & Quick Fullscreen */}
-        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-          {isNativeApp() ? (
-            /* Application Mobile (Android / iPhone) : Option suppression filigrane avec PayPal */
-            <button
-              type="button"
-              onClick={onOpenProModal}
-              className={`flex items-center gap-1 sm:gap-1.5 rounded-full px-2.5 py-1 text-[10px] sm:text-[11px] font-bold transition-all ${
-                isPro
-                  ? "bg-amber-400/20 text-amber-300 border border-amber-400/50 shadow-[0_0_12px_rgba(245,158,11,0.25)]"
-                  : "bg-amber-500/15 text-amber-300 border border-amber-400/50 hover:bg-amber-400/25"
-              }`}
-              title={isPro ? "Licence UniOffice Pro active" : "Passer à UniOffice Pro (Supprimer filigrane)"}
-            >
-              <Crown className={`h-3 w-3 ${isPro ? "fill-amber-300" : ""}`} />
-              <span>{isPro ? "Pro VIP" : "Supprimer filigrane"}</span>
-            </button>
-          ) : (
-            /* Site Web Performance Académique : 100% Inclus et Gratuit pour les étudiants */
-            <div className="flex items-center gap-1.5 rounded-full bg-emerald-950/50 px-2.5 py-1 text-[10px] sm:text-[11px] font-bold text-emerald-300 border border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.15)]">
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-              <span>Inclus avec votre formation</span>
-            </div>
-          )}
-
-          {/* Certified Security Badge */}
-          <div className="hidden md:flex items-center gap-1 rounded-full bg-emerald-950/40 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 border border-emerald-800/30">
-            <ShieldCheck className="h-3 w-3" />
-            <span>Protégé</span>
-          </div>
-
-          {/* Fullscreen Button */}
+      {/* Office Tabs Header (Lecture | Annotation | Confort) */}
+      <div className="flex items-center justify-between border-b border-[#18202d] bg-[#0c121e] px-2 sm:px-4 text-xs font-semibold">
+        <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <button
             type="button"
-            onClick={onToggleFullscreen}
-            className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg border border-[#222c3d] bg-[#121827] text-slate-300 hover:border-emerald-500/50 hover:text-emerald-300 transition-colors"
-            title={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
-            aria-label={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
+            onClick={() => onSelectTab("lecture")}
+            className={`flex items-center gap-1.5 px-3 py-2 border-b-2 transition-colors whitespace-nowrap ${
+              activeTab === "lecture"
+                ? "border-emerald-400 text-emerald-300 font-bold bg-white/[0.02]"
+                : "border-transparent text-slate-400 hover:text-slate-200"
+            }`}
           >
-            {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Fullscreen className="h-4 w-4" />}
+            <BookOpen className="h-3.5 w-3.5" />
+            <span>Lecture</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onSelectTab("annotation")}
+            className={`flex items-center gap-1.5 px-3 py-2 border-b-2 transition-colors whitespace-nowrap relative ${
+              activeTab === "annotation"
+                ? "border-emerald-400 text-emerald-300 font-bold bg-white/[0.02]"
+                : "border-transparent text-slate-400 hover:text-slate-200"
+            }`}
+          >
+            <Highlighter className="h-3.5 w-3.5" />
+            <span>Annotation</span>
+            {annotationTool !== "select" && (
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onSelectTab("confort")}
+            className={`flex items-center gap-1.5 px-3 py-2 border-b-2 transition-colors whitespace-nowrap ${
+              activeTab === "confort"
+                ? "border-emerald-400 text-emerald-300 font-bold bg-white/[0.02]"
+                : "border-transparent text-slate-400 hover:text-slate-200"
+            }`}
+          >
+            <Eye className="h-3.5 w-3.5" />
+            <span>Confort visuel</span>
+            {theme !== "normal" && (
+              <span className="rounded bg-emerald-500/20 px-1 text-[9px] text-emerald-300 capitalize">
+                {theme}
+              </span>
+            )}
           </button>
         </div>
-      </div>
 
-      {/* 2. Office Tabs Header (Lecture | Annotation | Confort | Sécurité) */}
-      <div className="flex items-center gap-1 sm:gap-2 border-b border-[#18202d] bg-[#0c121e] px-2 sm:px-4 text-xs font-semibold overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <button
-          type="button"
-          onClick={() => onSelectTab("lecture")}
-          className={`flex items-center gap-1.5 px-3 py-2 border-b-2 transition-colors whitespace-nowrap ${
-            activeTab === "lecture"
-              ? "border-emerald-400 text-emerald-300 font-bold bg-white/[0.02]"
-              : "border-transparent text-slate-400 hover:text-slate-200"
-          }`}
-        >
-          <BookOpen className="h-3.5 w-3.5" />
-          <span>Lecture</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => onSelectTab("annotation")}
-          className={`flex items-center gap-1.5 px-3 py-2 border-b-2 transition-colors whitespace-nowrap relative ${
-            activeTab === "annotation"
-              ? "border-emerald-400 text-emerald-300 font-bold bg-white/[0.02]"
-              : "border-transparent text-slate-400 hover:text-slate-200"
-          }`}
-        >
-          <Highlighter className="h-3.5 w-3.5" />
-          <span>Annotation</span>
-          {annotationTool !== "select" && (
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          )}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => onSelectTab("confort")}
-          className={`flex items-center gap-1.5 px-3 py-2 border-b-2 transition-colors whitespace-nowrap ${
-            activeTab === "confort"
-              ? "border-emerald-400 text-emerald-300 font-bold bg-white/[0.02]"
-              : "border-transparent text-slate-400 hover:text-slate-200"
-          }`}
-        >
-          <Eye className="h-3.5 w-3.5" />
-          <span>Confort visuel</span>
-          {theme !== "normal" && (
-            <span className="rounded bg-emerald-500/20 px-1 text-[9px] text-emerald-300 capitalize">
-              {theme}
-            </span>
-          )}
-        </button>
+        {isNativeApp() && (
+          <button
+            type="button"
+            onClick={onOpenProModal}
+            className={`flex items-center gap-1 sm:gap-1.5 rounded-full px-2.5 py-1 text-[10px] sm:text-[11px] font-bold transition-all shrink-0 ml-2 ${
+              isPro
+                ? "bg-amber-400/20 text-amber-300 border border-amber-400/50 shadow-[0_0_12px_rgba(245,158,11,0.25)]"
+                : "bg-amber-500/15 text-amber-300 border border-amber-400/50 hover:bg-amber-400/25"
+            }`}
+            title={isPro ? "Licence UniOffice Pro active" : "Passer à UniOffice Pro (Supprimer filigrane)"}
+          >
+            <Crown className={`h-3 w-3 ${isPro ? "fill-amber-300" : ""}`} />
+            <span>{isPro ? "Pro VIP" : "Supprimer filigrane"}</span>
+          </button>
+        )}
       </div>
 
       {/* 3. Ribbon Controls Content for Active Tab */}
@@ -333,8 +288,17 @@ export const UniOfficeRibbon: React.FC<UniOfficeRibbonProps> = ({
               <Hand className="h-4 w-4" />
             </button>
 
-            {/* Fit Width / Screen / Reset */}
-            <div className="flex items-center gap-1 ml-auto">
+            {/* Fit Width / Screen / Reset / Fullscreen */}
+            <div className="flex items-center gap-1 ml-auto shrink-0">
+              <button
+                type="button"
+                onClick={onToggleFullscreen}
+                className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg border border-[#222c3d] bg-[#121827] text-slate-300 hover:border-emerald-500/50 hover:text-emerald-300 transition-colors"
+                title={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
+                aria-label={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
+              >
+                {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Fullscreen className="h-4 w-4" />}
+              </button>
               <button
                 type="button"
                 onClick={onFitWidth}
@@ -502,8 +466,18 @@ export const UniOfficeRibbon: React.FC<UniOfficeRibbonProps> = ({
               </div>
             )}
 
-            {/* Actions: Undo & Clear Page */}
-            <div className="flex items-center gap-1 ml-auto">
+            {/* Actions: Undo, Clear Page & Fullscreen */}
+            <div className="flex items-center gap-1 ml-auto shrink-0">
+              <button
+                type="button"
+                onClick={onToggleFullscreen}
+                className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg border border-[#222c3d] bg-[#121827] text-slate-300 hover:border-emerald-500/50 hover:text-emerald-300 transition-colors"
+                title={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
+                aria-label={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
+              >
+                {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Fullscreen className="h-4 w-4" />}
+              </button>
+
               <button
                 type="button"
                 onClick={onUndoStroke}
@@ -592,9 +566,20 @@ export const UniOfficeRibbon: React.FC<UniOfficeRibbonProps> = ({
               <span>Émeraude Académique</span>
             </button>
 
-            <span className="text-[11px] text-slate-400 ml-auto hidden md:inline">
-              Protection anti-fatigue oculaire intégrée
-            </span>
+            <div className="flex items-center gap-1 ml-auto shrink-0">
+              <span className="text-[11px] text-slate-400 hidden md:inline mr-2">
+                Protection anti-fatigue oculaire intégrée
+              </span>
+              <button
+                type="button"
+                onClick={onToggleFullscreen}
+                className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg border border-[#222c3d] bg-[#121827] text-slate-300 hover:border-emerald-500/50 hover:text-emerald-300 transition-colors"
+                title={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
+                aria-label={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
+              >
+                {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Fullscreen className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
         )}
       </div>
