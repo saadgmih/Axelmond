@@ -7,6 +7,7 @@ import {
   LazyCookiesView,
   LazyLegalView,
   LazyPrivacyView,
+  LazyPublicResourceView,
   LazySupportView,
   LazyTermsView,
   RouteChunkFallback,
@@ -43,6 +44,12 @@ export default function InstitutionalViewSwitch({
   if (currentView === "terms") return withInstitutionalSuspense("Chargement…", <LazyTermsView />);
   if (currentView === "cookies") return withInstitutionalSuspense("Chargement…", <LazyCookiesView />);
   if (currentView === "legal") return withInstitutionalSuspense("Chargement…", <LazyLegalView />);
+  if (currentView === "ressource" || currentView === "apercu" || currentView === "media") {
+    return withInstitutionalSuspense(
+      "Chargement de la ressource…",
+      <LazyPublicResourceView currentUser={currentUser} navigateTo={navigateTo} />,
+    );
+  }
   return (
     <div className="mx-auto max-w-xl p-8 text-center text-slate-300">
       <p className="text-sm font-semibold">Page introuvable.</p>

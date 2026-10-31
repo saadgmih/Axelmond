@@ -1,6 +1,6 @@
 import React, { lazy, Suspense, useState, useEffect } from "react";
 import { getClientErrorMessage } from "../client-errors";
-import { User, ShieldAlert, Mail, Lock, LogIn, UserPlus, KeyRound, Eye, EyeOff } from "lucide-react";
+import { User, ShieldAlert, Mail, Lock, LogIn, UserPlus, KeyRound, Eye, EyeOff, Fingerprint, Smartphone } from "lucide-react";
 import { api, setSessionToken } from "../api";
 import AuthMfaStep from "./AuthMfaStep";
 import PasswordStrengthMeter, { isPasswordValid } from "./PasswordStrengthMeter";
@@ -33,7 +33,14 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
   const [activeSector, setActiveSector] = useState<"student" | "teacher">("student");
   const [authMode, setAuthMode] = useState<"login" | "register" | "forgot" | "reset">("register");
 
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => {
+    if (typeof localStorage === "undefined") return "";
+    return localStorage.getItem("axelmond_saved_email") || "";
+  });
+  const [trustDevice, setTrustDevice] = useState<boolean>(() => {
+    if (typeof localStorage === "undefined") return true;
+    return localStorage.getItem("axelmond_trusted_device") !== "false";
+  });
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
@@ -82,6 +89,17 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
   }, []);
 
   const finishAuthSuccess = (user: AppUser) => {
+    if (trustDevice) {
+      try {
+        localStorage.setItem("axelmond_trusted_device", "true");
+        if (email.trim()) localStorage.setItem("axelmond_saved_email", email.trim().toLowerCase());
+      } catch {}
+    } else {
+      try {
+        localStorage.removeItem("axelmond_trusted_device");
+        localStorage.removeItem("axelmond_saved_email");
+      } catch {}
+    }
     setSessionToken(user.token, user.csrfToken);
     setSuccessMsg("Connexion réussie ! Chargement de votre espace...");
     setTimeout(() => onLoginSuccess(user), 800);
@@ -105,6 +123,15 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
   const handlePasskeyLogin = async () => {
     setErrorMsg("");
     setSuccessMsg("");
+
+    // Vérifier si le navigateur actuel supporte l'API WebAuthn
+    if (typeof window === "undefined" || !window.PublicKeyCredential) {
+      setErrorMsg(
+        "La biométrie (empreinte / Face ID) n'est pas disponible sur ce navigateur mobile. Connectez-vous avec votre mot de passe et cochez « Faire confiance à cet appareil » pour rester connecté."
+      );
+      return;
+    }
+
     setIsLoading(true);
     const normalizedEmail = email.trim().toLowerCase();
     try {
@@ -115,7 +142,18 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
       finishAuthSuccess(user);
     } catch (err: any) {
       setIsLoading(false);
-      setErrorMsg(getClientErrorMessage(err, "Connexion Passkey impossible."));
+      const msg = String(err?.message || err || "");
+      if (msg.includes("not supported") || msg.includes("WebAuthn is not supported")) {
+        setErrorMsg(
+          "La biométrie (empreinte / Face ID) n'est pas supportée par ce navigateur mobile. Veuillez utiliser votre mot de passe et cocher « Faire confiance à cet appareil »."
+        );
+      } else if (err?.name === "NotAllowedError" || msg.includes("timed out") || msg.includes("not allowed")) {
+        setErrorMsg("Authentification biométrique annulée ou délai dépassé.");
+      } else if (msg.includes("excludeCredentials") || msg.includes("No credentials") || msg.includes("Passkey")) {
+        setErrorMsg("Aucune empreinte / Face ID configurée sur cet appareil pour ce compte. Connectez-vous d'abord avec votre mot de passe.");
+      } else {
+        setErrorMsg(getClientErrorMessage(err, "Connexion biométrique impossible sur cet appareil."));
+      }
     }
   };
 
@@ -764,6 +802,24 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                     </div>
                   )}
 
+                  {authMode === "login" && (
+                    <div className="flex items-center justify-between pt-1 pb-1">
+                      <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-slate-300 hover:text-white transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={trustDevice}
+                          onChange={(e) => setTrustDevice(e.target.checked)}
+                          className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-950 accent-emerald-500"
+                        />
+                        <span className="flex items-center gap-1.5 font-medium">
+                          <Smartphone className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                          Faire confiance à cet appareil
+                        </span>
+                      </label>
+                      <span className="text-[10px] text-slate-500 hidden sm:inline">Rester connecté</span>
+                    </div>
+                  )}
+
                   <button
                     type="submit"
                     disabled={isLoading}
@@ -775,9 +831,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                   >
                     {authMode === "login" ? <LogIn className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
                     {authMode === "login"
-                      ? activeSector === "student"
-                        ? "Se connecter"
-                        : "Se connecter"
+                      ? "Se connecter"
                       : "Créer mon Compte Académique"}
                   </button>
 
@@ -788,8 +842,8 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                       onClick={() => void handlePasskeyLogin()}
                       className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900 py-3 text-xs font-bold text-slate-200 transition-all hover:border-emerald-500/40"
                     >
-                      <KeyRound className="h-4 w-4" />
-                      Se connecter avec une Passkey
+                      <Fingerprint className="h-4 w-4 text-emerald-400" />
+                      Se connecter avec Empreinte / Passkey
                     </button>
                   )}
                 </form>

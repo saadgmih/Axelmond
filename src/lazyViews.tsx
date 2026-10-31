@@ -44,3 +44,4 @@ export const LazyCookiesView = lazy(() => import("./components/CookiesView"));
 export const LazyLegalView = lazy(() => import("./components/LegalView"));
 export const LazyContactView = lazy(() => import("./components/ContactView"));
 export const LazySupportView = lazy(() => import("./components/SupportView"));
+export const LazyPublicResourceView = lazy(() => import("./components/PublicResourceView"));

@@ -124,12 +124,36 @@ export const PUBLIC_ROUTE_METADATA: Record<string, RouteMetadata> = {
 
     jsonLd: [webPageJsonLd("/legal", "Mentions légales", "Mentions légales de la plateforme.")],
   },
+  "/ressource": {
+    title: "Ressource académique ouverte | Performance Académique",
+    description: "Consultez en libre accès nos cours, vidéos, résumés PDF et exercices universitaires sur Performance Académique.",
+    canonical: `${SITE_ORIGIN}/ressource`,
+    robots: "index, follow",
+    jsonLd: [webPageJsonLd("/ressource", "Ressource académique", "Contenu pédagogique en libre accès sans abonnement.")],
+  },
+  "/apercu": {
+    title: "Aperçu de la ressource | Performance Académique",
+    description: "Consultez en libre accès nos cours, vidéos, résumés PDF et exercices universitaires sur Performance Académique.",
+    canonical: `${SITE_ORIGIN}/apercu`,
+    robots: "index, follow",
+    jsonLd: [webPageJsonLd("/apercu", "Aperçu de la ressource", "Contenu pédagogique en libre accès sans abonnement.")],
+  },
+  "/media": {
+    title: "Média académique | Performance Académique",
+    description: "Consultez en libre accès nos cours, vidéos, résumés PDF et exercices universitaires sur Performance Académique.",
+    canonical: `${SITE_ORIGIN}/media`,
+    robots: "index, follow",
+    jsonLd: [webPageJsonLd("/media", "Média académique", "Contenu pédagogique en libre accès sans abonnement.")],
+  },
 };
 
 export function getRouteMetadata(pathname: string): RouteMetadata {
   const normalized = pathname.replace(/\/+$/, "") || "/";
   const publicMetadata = PUBLIC_ROUTE_METADATA[normalized];
   if (publicMetadata) return publicMetadata;
+  if (normalized.startsWith("/ressource/") || normalized.startsWith("/apercu/") || normalized.startsWith("/media/")) {
+    return PUBLIC_ROUTE_METADATA["/ressource"];
+  }
   return {
     title: /^\/(student|teacher|professor|admin)(?:\/|$)/.test(normalized)
       ? "Espace académique | Performance Académique"

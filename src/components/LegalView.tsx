@@ -307,7 +307,7 @@ export default function LegalView() {
                   L'infrastructure d'hébergement est soumise aux mêmes exigences de conformité prévues par la loi n°
                   09-08 que la plateforme elle-même. Les données des utilisateurs sont traitées conformément aux
                   obligations réglementaires marocaines applicables. Pour toute question relative à l'hébergement,
-                  contactez <strong className="text-white">support@perfacademy.ma</strong> (ou support@axelmond.com).
+                  contactez <strong className="text-white">support@perfacademy.ma</strong>.
                 </p>
               </div>
             </InstitutionalCard>
@@ -517,7 +517,7 @@ export default function LegalView() {
                   />
                   <InstitutionalInfoRow
                     label="Contact DPO / Confidentialité"
-                    value="privacy@perfacademy.ma (privacy@axelmond.com)"
+                    value="privacy@perfacademy.ma"
                     icon={<Mail className="w-3.5 h-3.5" />}
                     mono
                   />
@@ -549,7 +549,7 @@ export default function LegalView() {
                   {
                     icon: <Mail className="w-5 h-5 text-emerald-400" />,
                     title: "Demandes juridiques",
-                    contact: "legal@perfacademy.ma (legal@axelmond.com)",
+                    contact: "legal@perfacademy.ma",
                     objet: "Demande juridique — Mentions légales",
                     delay: "10 jours ouvrables",
                     color: "border-emerald-800/30 bg-emerald-950/15",
@@ -557,7 +557,7 @@ export default function LegalView() {
                   {
                     icon: <Shield className="w-5 h-5 text-emerald-400" />,
                     title: "Demandes données personnelles",
-                    contact: "privacy@perfacademy.ma (privacy@axelmond.com)",
+                    contact: "privacy@perfacademy.ma",
                     objet: "Exercice de droits — loi 09-08",
                     delay: "30 jours calendaires (loi 09-08)",
                     color: "border-emerald-800/30 bg-emerald-950/15",
@@ -565,7 +565,7 @@ export default function LegalView() {
                   {
                     icon: <Copyright className="w-5 h-5 text-lime-400" />,
                     title: "Droits d'auteur & PI",
-                    contact: "legal@perfacademy.ma (legal@axelmond.com)",
+                    contact: "legal@perfacademy.ma",
                     objet: "Demande PI — Propriété intellectuelle",
                     delay: "15 jours ouvrables",
                     color: "border-lime-800/30 bg-lime-950/15",

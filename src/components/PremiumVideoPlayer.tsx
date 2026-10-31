@@ -19,6 +19,7 @@ import { api } from "../api";
 import { sanitizeCourseAttachmentUrl } from "../external-url-security";
 import { isNativeApp } from "../utils/platform-app";
 import Hls from "hls.js";
+import { AntiCaptureShield, useContentProtection } from "./security/ContentProtection";
 
 function isHlsSource(url: unknown): boolean {
   if (typeof url !== "string") return false;
@@ -111,6 +112,7 @@ interface PremiumVideoPlayerProps {
   activeSector: string;
   showMetadata?: boolean;
   contentId?: string;
+  currentUser?: { fullName?: string | null; email?: string | null; id?: string | null } | null;
 }
 
 export default function PremiumVideoPlayer({
@@ -120,6 +122,7 @@ export default function PremiumVideoPlayer({
   activeSector,
   showMetadata = true,
   contentId,
+  currentUser,
 }: PremiumVideoPlayerProps) {
   const [sourceVersion, setSourceVersion] = useState(0);
   const [sourceResolutionVersion, setSourceResolutionVersion] = useState(0);
@@ -156,6 +159,11 @@ export default function PremiumVideoPlayer({
     togglePip,
     formatTime,
   } = useCourseVideoPlayer(resolvedSrc, sourceVersion);
+
+  const { shieldActive, dismissShield } = useContentProtection({
+    enabled: true,
+    videoRef,
+  });
 
   const [hoverProgress, setHoverProgress] = useState<{ time: number; percent: number } | null>(null);
   const [resumeNotice, setResumeNotice] = useState<{ time: number; label: string } | null>(null);
@@ -807,6 +815,9 @@ export default function PremiumVideoPlayer({
           </div>
         </div>
       )}
+
+      {/* Pitch-Black Anti-Capture Screen Shield */}
+      <AntiCaptureShield active={shieldActive} onDismiss={dismissShield} />
 
       <div
         className={`course-video-center-overlay absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-950/20 transition-opacity duration-300 ${centerOverlayVisible ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}

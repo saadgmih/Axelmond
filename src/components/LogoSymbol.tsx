@@ -15,6 +15,12 @@ export default function LogoSymbol({ className = "w-10 h-10" }: LogoSymbolProps)
       fetchPriority="high"
       decoding="async"
       draggable={false}
+      onError={(e) => {
+        const target = e.currentTarget;
+        if (!target.src.endsWith("/performance-logo-003a24a4-192.png")) {
+          target.src = "/performance-logo-003a24a4-192.png";
+        }
+      }}
     />
   );
 }

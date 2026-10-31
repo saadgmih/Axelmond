@@ -9,9 +9,7 @@ interface UniOfficeWatermarkProps {
 }
 
 export const UniOfficeWatermark: React.FC<UniOfficeWatermarkProps> = ({ info, isPro = false }) => {
-  // Sur le site web, la lecture des modules est 100% SANS filigrane.
-  // Le filigrane de sécurité anti-fuite est actif uniquement dans l'application mobile (Android / iPhone),
-  // sauf si l'étudiant a activé UniOffice Pro.
+  // Sur le site web, aucun filigrane n'est affiché.
   if (isPro || !isNativeApp()) return null;
 
   const displayName = info.studentName || info.studentEmail || "Étudiant Certifié";

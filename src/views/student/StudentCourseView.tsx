@@ -623,6 +623,7 @@ export default function StudentCourseView({
                               title={selectedLessonContent.title}
                               instructor={selectedCourse.instructor}
                               activeSector="student"
+                              currentUser={currentUser}
                             />
                           </Suspense>
                         )}
@@ -715,6 +716,7 @@ export default function StudentCourseView({
                               title={selectedModule.title}
                               instructor={selectedCourse.instructor}
                               activeSector="student"
+                              currentUser={currentUser}
                             />
                           </Suspense>
                         ) : (

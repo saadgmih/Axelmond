@@ -28,7 +28,11 @@ const HETZNER_OVERRIDES = {
   PORT: "3000",
   APP_URL: "https://perfacademy.ma",
   EMAIL_VERIFICATION_URL: "https://perfacademy.ma",
-  ALLOWED_ORIGINS: "https://www.perfacademy.ma,https://perfacademy.ma,https://www.axelmond.com,https://axelmond.com",
+  ALLOWED_ORIGINS: "https://www.perfacademy.ma,https://perfacademy.ma",
+  WEBAUTHN_RP_ID: "perfacademy.ma",
+  WEBAUTHN_RP_NAME: "Performance Académique",
+  UPLOADTHING_CALLBACK_URL: "https://perfacademy.ma/api/uploadthing",
+  VAPID_SUBJECT: "mailto:support@perfacademy.ma",
   TRUST_PROXY: "1",
 
   // Google Gmail / Workspace SMTP (Remplace définitivement Resend & Hostinger)

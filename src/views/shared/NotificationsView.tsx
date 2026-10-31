@@ -1,7 +1,6 @@
 import React, { memo, useEffect, useMemo, useState } from "react";
 import { Bell, CheckCheck, Loader2, Radio, Volume2, VolumeX, Sparkles, Video, MessageSquare, BookOpen } from "lucide-react";
 import type { AppNotification } from "../../types/messaging";
-import { VirtualList } from "../../components/VirtualList";
 import { scheduleUi } from "../teacher/schedule-theme";
 import { playNotificationSound, isSoundEnabled, setSoundEnabled } from "../../utils/notification-sound";
 import { useIsNativeApp } from "../../hooks/useIsNativeApp";
@@ -64,28 +63,28 @@ const NotificationListItem = memo(function NotificationListItem({
   onNavigate?: (notification: AppNotification) => void;
 }) {
   return (
-    <div>
+    <div className="w-full">
       <button
         type="button"
         onClick={() => {
           if (!notification.isRead) onMarkRead(notification.id);
           if (notification.actionUrl && onNavigate) onNavigate(notification);
         }}
-        className={`flex w-full items-start gap-4 px-5 py-4 text-left transition hover:bg-white/[0.03] ${notification.isRead ? "opacity-70" : "bg-emerald-500/5"}`}
+        className={`flex w-full items-start gap-3 sm:gap-4 px-3.5 sm:px-5 py-3.5 sm:py-4 text-left transition hover:bg-white/[0.03] ${notification.isRead ? "opacity-70" : "bg-emerald-500/5"}`}
       >
         <div
-          className={`mt-1 flex h-10 w-10 items-center justify-center rounded-2xl ${notification.isRead ? "bg-slate-800" : "bg-emerald-600/20"}`}
+          className={`mt-0.5 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl sm:rounded-2xl flex-shrink-0 ${notification.isRead ? "bg-slate-800" : "bg-emerald-600/20"}`}
         >
           <Bell className={`h-4 w-4 ${notification.isRead ? "text-slate-400" : "text-emerald-300"}`} />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-sm font-black text-white">{notification.title}</p>
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <p className="text-xs sm:text-sm font-black text-white break-words leading-snug">{notification.title}</p>
             <span className={scheduleUi.typeBadge}>{typeLabel(notification.type)}</span>
-            {!notification.isRead && <span className="h-2 w-2 rounded-full bg-red-500" aria-label="Non lue" />}
+            {!notification.isRead && <span className="h-2 w-2 rounded-full bg-red-500 flex-shrink-0" aria-label="Non lue" />}
           </div>
-          <p className="mt-1 text-sm text-slate-400">{notification.body}</p>
-          <p className="mt-2 text-[11px] font-semibold text-slate-500">
+          <p className="mt-1 text-xs sm:text-sm text-slate-400 break-words leading-relaxed">{notification.body}</p>
+          <p className="mt-1.5 sm:mt-2 text-[10px] sm:text-[11px] font-semibold text-slate-500">
             {new Date(notification.createdAt).toLocaleString("fr-FR")}
           </p>
         </div>
@@ -332,7 +331,7 @@ export default function NotificationsView({
                 : "Aucune notification pour le moment."}
             </p>
           </div>
-        ) : isApp ? (
+        ) : (
           <div className="flex flex-col divide-y divide-white/[0.06] p-1">
             {filteredNotifications.map((notification) => (
               <NotificationListItem
@@ -343,16 +342,6 @@ export default function NotificationsView({
               />
             ))}
           </div>
-        ) : (
-          <VirtualList
-            items={filteredNotifications}
-            estimateSize={96}
-            minItemsToVirtualize={18}
-            getKey={(notification) => notification.id}
-            renderItem={(notification) => (
-              <NotificationListItem notification={notification} onMarkRead={onMarkRead} onNavigate={onNavigate} />
-            )}
-          />
         )}
       </div>
     </div>

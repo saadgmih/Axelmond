@@ -7,7 +7,7 @@ import { APP_USER_BILLING_INCLUDE } from "./course-payments";
 
 const DEFAULT_AUTH_TOKEN_SECRET = "axelmond-dev-secret";
 
-export const REFRESH_TOKEN_TTL_DAYS = 7;
+export const REFRESH_TOKEN_TTL_DAYS = 30;
 export const REFRESH_TOKEN_TTL_MS = REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000;
 
 export type AuthTokenSession = {

@@ -158,14 +158,20 @@ export function PlatformAppRoot() {
     const navigatePublic = (view: string) => {
       window.location.href = INSTITUTIONAL_VIEWS.has(view) ? `/${view}` : "/";
     };
+    const isPublicResourceView =
+      navigation.currentView === "ressource" ||
+      navigation.currentView === "apercu" ||
+      navigation.currentView === "media";
     return (
       <div className="min-h-screen bg-slate-950 text-slate-100">
         <RouteMetadata pathname={pathname} />
-        <header className="border-b border-emerald-400/20 bg-[#052820] px-6 py-4">
-          <a href="/" className="font-black text-emerald-200">
-            Performance Académique
-          </a>
-        </header>
+        {!isPublicResourceView && (
+          <header className="border-b border-emerald-400/20 bg-[#052820] px-6 py-4">
+            <a href="/" className="font-black text-emerald-200">
+              Performance Académique
+            </a>
+          </header>
+        )}
         <InstitutionalViewSwitch currentView={navigation.currentView} navigateTo={navigatePublic} />
       </div>
     );

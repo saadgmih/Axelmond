@@ -716,27 +716,27 @@ export default function AboutView() {
                 {[
                   {
                     icon: <Cpu className="w-4 h-4 text-emerald-400" />,
-                    title: "Architecture",
-                    value: "Full-stack TypeScript",
-                    sub: "Monorepo React + Express",
+                    title: "Infrastructure",
+                    value: "Haute Performance",
+                    sub: "Serveurs Cloud sécurisés & redondants",
                   },
                   {
                     icon: <Shield className="w-4 h-4 text-emerald-400" />,
                     title: "Sécurité",
-                    value: "Niveau Production",
-                    sub: "RBAC · JWT · Argon2 · Rate Limit",
+                    value: "Protection Avancée",
+                    sub: "Chiffrement SSL/TLS & sessions protégées",
                   },
                   {
                     icon: <Globe className="w-4 h-4 text-teal-400" />,
                     title: "Disponibilité",
                     value: "99.9% Uptime",
-                    sub: "Monitoring continu + alertes",
+                    sub: "Supervision continue 24h/24 & 7j/7",
                   },
                   {
                     icon: <BarChart className="w-4 h-4 text-teal-400" />,
                     title: "Conformité",
-                    value: "Loi 09-08",
-                    sub: "Données protégées · Audit trail",
+                    value: "Loi 09-08 (CNDP)",
+                    sub: "Protection stricte des données personnelles",
                   },
                 ].map(({ icon, title, value, sub }) => (
                   <div

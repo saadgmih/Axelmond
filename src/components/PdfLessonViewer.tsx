@@ -32,6 +32,7 @@ import UniOfficeRibbon from "./unioffice/UniOfficeRibbon";
 import UniOfficeAnnotationLayer from "./unioffice/UniOfficeAnnotationLayer";
 import UniOfficeWatermark from "./unioffice/UniOfficeWatermark";
 import UniOfficeProModal from "./unioffice/UniOfficeProModal";
+import { AntiCaptureShield, useContentProtection } from "./security/ContentProtection";
 import type { AnnotationStroke, UniOfficeTab, UniOfficeTheme, UniOfficeTool } from "./unioffice/types";
 
 // Bundle the legacy PDF.js worker so older Safari / WebKit and iOS devices
@@ -238,6 +239,10 @@ export default function PdfLessonViewer({
     observer.observe(containerRef.current);
     return () => observer.disconnect();
   }, [viewerState, blobUrl, mediaType]);
+
+  const { shieldActive: antiCaptureActive, dismissShield: dismissAntiCapture } = useContentProtection({
+    enabled: true,
+  });
 
   // Anti-download keyboard shortcuts interceptor for student protection
   useEffect(() => {
@@ -915,6 +920,7 @@ export default function PdfLessonViewer({
         ref={wrapperRef}
         className={`flex flex-col overflow-hidden rounded-[24px] border border-[#202838] bg-slate-950 shadow-lg select-none transition-all relative ${isExpandedView ? "fixed inset-0 z-[120] h-[100dvh] w-full rounded-none border-none" : "h-[75vh]"}`}
       >
+        <AntiCaptureShield active={antiCaptureActive} onDismiss={dismissAntiCapture} />
         {touchFeedbackMsg && (
           <div className="absolute top-16 left-1/2 -translate-x-1/2 z-40 px-3.5 py-1.5 rounded-full bg-slate-900/95 border border-emerald-500/40 text-emerald-300 text-[11px] font-bold shadow-2xl backdrop-blur-md pointer-events-none animate-in fade-in slide-in-from-top-2 duration-200 flex items-center gap-2 max-w-[90%] text-center">
             <Hand className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
@@ -1112,6 +1118,7 @@ export default function PdfLessonViewer({
       className={`flex flex-col overflow-hidden rounded-[24px] border border-[#202838] bg-slate-950 shadow-2xl select-none transition-all relative ${isExpandedView ? "fixed inset-0 z-[120] h-[100dvh] w-full rounded-none border-none" : "h-[80vh]"}`}
       onContextMenu={(event) => event.preventDefault()}
     >
+      <AntiCaptureShield active={antiCaptureActive} onDismiss={dismissAntiCapture} />
       {/* Toast de confirmation du mode de zoom tactile */}
       {touchFeedbackMsg && (
         <div className="absolute top-16 left-1/2 -translate-x-1/2 z-40 px-3.5 py-1.5 rounded-full bg-slate-900/95 border border-emerald-500/40 text-emerald-300 text-[11px] font-bold shadow-2xl backdrop-blur-md pointer-events-none animate-in fade-in slide-in-from-top-2 duration-200 flex items-center gap-2 max-w-[90%] text-center">

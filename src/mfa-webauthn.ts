@@ -14,21 +14,27 @@ import { hashWebAuthnCredentialId } from "./mfa-crypto";
 import { createSecurityChallenge, consumeSecurityChallenge } from "./mfa-challenge";
 
 function readAppUrl(env: NodeJS.ProcessEnv = process.env): string {
-  const url = env.APP_URL?.trim() || "http://localhost:5173";
+  const url = env.APP_URL?.trim() || "https://perfacademy.ma";
   return url.replace(/\/+$/, "");
 }
 
 export function getWebAuthnConfig(env: NodeJS.ProcessEnv = process.env) {
-  const origin = readAppUrl(env);
+  const configuredAppUrl = readAppUrl(env);
   let rpID = env.WEBAUTHN_RP_ID?.trim();
-  if (!rpID) {
+  if (!rpID || rpID === "axelmond.com") {
     try {
-      rpID = new URL(origin).hostname;
+      rpID = new URL(configuredAppUrl).hostname.replace(/^www\./, "");
     } catch {
-      rpID = "localhost";
+      rpID = "perfacademy.ma";
     }
   }
+  if (!rpID || rpID === "axelmond.com") {
+    rpID = "perfacademy.ma";
+  }
   const rpName = env.WEBAUTHN_RP_NAME?.trim() || "Performance Académique";
+  const origin = Array.from(
+    new Set([configuredAppUrl, "https://perfacademy.ma", "https://www.perfacademy.ma"])
+  );
   return { origin, rpID, rpName };
 }
 

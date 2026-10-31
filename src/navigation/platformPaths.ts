@@ -1,4 +1,15 @@
-export const INSTITUTIONAL_VIEWS = new Set(["about", "contact", "support", "privacy", "terms", "cookies", "legal"]);
+export const INSTITUTIONAL_VIEWS = new Set([
+  "about",
+  "contact",
+  "support",
+  "privacy",
+  "terms",
+  "cookies",
+  "legal",
+  "ressource",
+  "apercu",
+  "media",
+]);
 export const STANDALONE_VIEWS = new Set(["unioffice", "unioffice-securpdf"]);
 
 export const STUDENT_VIEWS = new Set([
@@ -37,7 +48,7 @@ export function isKnownPlatformPath(pathname: string): boolean {
   const normalized = pathname.replace(/\/+$/, "") || "/";
   const segments = normalized.split("/").filter(Boolean);
   if (segments.length === 0) return true;
-  if (segments.length === 1 && (INSTITUTIONAL_VIEWS.has(segments[0]) || STANDALONE_VIEWS.has(segments[0]))) return true;
+  if ((segments.length === 1 || segments.length === 2) && (INSTITUTIONAL_VIEWS.has(segments[0]) || STANDALONE_VIEWS.has(segments[0]))) return true;
   if (segments.length === 1 && ["student", "teacher", "professor", "admin"].includes(segments[0])) return true;
   if (segments.length !== 2) return false;
   if (segments[0] === "student") return STUDENT_VIEWS.has(segments[1]);
@@ -93,7 +104,7 @@ export function parsePlatformPath(pathname: string) {
     };
   }
 
-  if (segments.length === 1 && (INSTITUTIONAL_VIEWS.has(segments[0]) || STANDALONE_VIEWS.has(segments[0]))) {
+  if ((segments.length === 1 || segments.length === 2) && (INSTITUTIONAL_VIEWS.has(segments[0]) || STANDALONE_VIEWS.has(segments[0]))) {
     return {
       studentView: segments[0],
       teacherView: "dashboard" as const,

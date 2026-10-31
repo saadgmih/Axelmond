@@ -22,6 +22,7 @@ import { registerOnboardingRoutes } from "./onboarding-routes";
 import { registerCenterPaymentRoutes } from "./center-payment-routes";
 import { registerPromoCodeRoutes } from "./promo-code-routes";
 import { registerEnrollmentCodeRoutes } from "./enrollment-code-routes";
+import { registerPublicResourceRoutes } from "./public-resource-routes";
 import type { RouteContext } from "../server/route-context";
 
 export function registerApiRoutes(app: Express, ctx: RouteContext): void {
@@ -44,6 +45,7 @@ export function registerApiRoutes(app: Express, ctx: RouteContext): void {
   registerCenterPaymentRoutes(app, ctx);
   registerPromoCodeRoutes(app, ctx);
   registerEnrollmentCodeRoutes(app, ctx);
+  registerPublicResourceRoutes(app, ctx);
   registerMiscRoutes(app, ctx);
   registerMessagingRoutes(app, ctx.middleware);
   registerOnboardingRoutes(app, ctx);

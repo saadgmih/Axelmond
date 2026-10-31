@@ -25,10 +25,10 @@ const PLACEHOLDER_PATTERN = /^(MY_|CHANGE_ME|CHANGEME|TODO|YOUR_|EXAMPLE_|DEFAUL
 
 const PRODUCTION_OVERRIDES = {
   NODE_ENV: "production",
-  APP_URL: "https://axelmond.com",
-  EMAIL_VERIFICATION_URL: "https://axelmond.com",
+  APP_URL: "https://perfacademy.ma",
+  EMAIL_VERIFICATION_URL: "https://perfacademy.ma",
   UPLOADTHING_IS_DEV: "false",
-  UPLOADTHING_CALLBACK_URL: "https://axelmond.com/api/uploadthing",
+  UPLOADTHING_CALLBACK_URL: "https://perfacademy.ma/api/uploadthing",
   PAYPAL_ENV: "live",
   RUN_STARTUP_SEED: "false",
   RUN_STARTUP_PURGES: "false",
@@ -122,8 +122,8 @@ for (const [key, value] of Object.entries(PRODUCTION_OVERRIDES)) {
 }
 
 if (!entries.get("WEBAUTHN_RP_ID")) {
-  entries.set("WEBAUTHN_RP_ID", "axelmond.com");
-  notes.push("Set WEBAUTHN_RP_ID=axelmond.com");
+  entries.set("WEBAUTHN_RP_ID", "perfacademy.ma");
+  notes.push("Set WEBAUTHN_RP_ID=perfacademy.ma");
 }
 
 if (!entries.get("HEALTH_CHECK_TOKEN")) {

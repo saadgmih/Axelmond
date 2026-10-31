@@ -38,6 +38,10 @@ export default function AuthMfaStep({ mfaToken, email, role, passkeysAvailable, 
 
   const handlePasskeyLogin = async () => {
     setErrorMsg("");
+    if (typeof window === "undefined" || !window.PublicKeyCredential) {
+      setErrorMsg("La biométrie n'est pas disponible sur ce navigateur mobile.");
+      return;
+    }
     setIsLoading(true);
     try {
       const { options, challengeId } = await api.beginPasskeyLogin(email);
@@ -46,7 +50,14 @@ export default function AuthMfaStep({ mfaToken, email, role, passkeysAvailable, 
       const user = await api.completePasskeyLogin(challengeId, response, role);
       completeSession(user);
     } catch (err: unknown) {
-      setErrorMsg(getClientErrorMessage(err, "Connexion Passkey impossible."));
+      const msg = String((err as any)?.message || err || "");
+      if (msg.includes("not supported") || msg.includes("WebAuthn is not supported")) {
+        setErrorMsg("La biométrie n'est pas supportée par ce navigateur mobile.");
+      } else if ((err as any)?.name === "NotAllowedError" || msg.includes("timed out")) {
+        setErrorMsg("Authentification biométrique annulée.");
+      } else {
+        setErrorMsg(getClientErrorMessage(err, "Connexion Passkey impossible."));
+      }
       setIsLoading(false);
     }
   };
