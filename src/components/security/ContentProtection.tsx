@@ -26,40 +26,85 @@ interface UseContentProtectionOptions {
   enabled?: boolean;
   videoRef?: React.RefObject<HTMLVideoElement | null>;
   onCaptureAttempt?: () => void;
+  blockKeyboardWhilePlaying?: boolean;
 }
 
 /**
- * Hook to detect screen capture, window blur, DevTools or PrintScreen attempts.
+ * Hook to detect screen capture, window blur, DevTools, PrintScreen attempts,
+ * and keyboard interactions while video playback is in progress.
  * Automatically blanks the screen to pitch-black when recording or capture is suspected.
  */
 export function useContentProtection({
   enabled = true,
   videoRef,
   onCaptureAttempt,
+  blockKeyboardWhilePlaying = true,
 }: UseContentProtectionOptions = {}) {
   const [shieldActive, setShieldActive] = useState<boolean>(false);
+  const shieldActiveRef = useRef<boolean>(false);
+  const wasPlayingRef = useRef<boolean>(false);
   const blurTimeoutRef = useRef<number | null>(null);
 
   const activateShield = useCallback(() => {
     if (!enabled) return;
+    shieldActiveRef.current = true;
     setShieldActive(true);
-    if (videoRef?.current && !videoRef.current.paused) {
+    const activeVideo = videoRef?.current || (typeof document !== "undefined" ? document.querySelector("video") : null);
+    if (activeVideo && !activeVideo.paused && !activeVideo.ended) {
+      wasPlayingRef.current = true;
       try {
-        videoRef.current.pause();
+        activeVideo.pause();
       } catch {}
     }
     onCaptureAttempt?.();
   }, [enabled, videoRef, onCaptureAttempt]);
 
   const dismissShield = useCallback(() => {
+    shieldActiveRef.current = false;
     setShieldActive(false);
-  }, []);
+    if (wasPlayingRef.current) {
+      wasPlayingRef.current = false;
+      const activeVideo = videoRef?.current || (typeof document !== "undefined" ? document.querySelector("video") : null);
+      if (activeVideo && activeVideo.paused) {
+        try {
+          const playPromise = activeVideo.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(() => {});
+          }
+        } catch {}
+      }
+    }
+  }, [videoRef]);
 
   useEffect(() => {
     if (!enabled) return;
 
-    // 1. Detect PrintScreen / screenshot shortcut key presses
+    // 1. Detect keyboard actions (PrintScreen, capture hotkeys, and ANY keyboard key while video is playing)
     const handleKeyDown = (e: KeyboardEvent) => {
+      // If shield is already active, allow normal key events (e.g. Enter on "Reprendre la lecture")
+      if (shieldActiveRef.current) return;
+
+      // Don't intercept if user is typing in an editable field
+      const target = e.target as HTMLElement | null;
+      const isInput =
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable ||
+          target.getAttribute("contenteditable") === "true");
+      if (isInput) return;
+
+      // Check if a video is currently playing ("quand la vidéo est en cours")
+      const activeVideo = videoRef?.current || (typeof document !== "undefined" ? document.querySelector("video") : null);
+      const isVideoPlaying = Boolean(activeVideo && !activeVideo.paused && !activeVideo.ended && activeVideo.readyState > 1);
+
+      if (blockKeyboardWhilePlaying && isVideoPlaying) {
+        e.preventDefault();
+        e.stopPropagation();
+        activateShield();
+        return;
+      }
+
       // PrintScreen key
       if (e.key === "PrintScreen" || e.keyCode === 44) {
         activateShield();
@@ -90,8 +135,13 @@ export function useContentProtection({
         return;
       }
 
-      // Ctrl+Shift+I / F12 (Inspect)
-      if (e.key === "F12" || ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "i" || e.key === "I" || e.key === "c" || e.key === "C" || e.key === "j" || e.key === "J"))) {
+      // Ctrl+Shift+I / F12 (Inspect / DevTools)
+      if (
+        e.key === "F12" ||
+        ((e.ctrlKey || e.metaKey) &&
+          e.shiftKey &&
+          (e.key === "i" || e.key === "I" || e.key === "c" || e.key === "C" || e.key === "j" || e.key === "J"))
+      ) {
         activateShield();
         return;
       }
@@ -188,8 +238,8 @@ export const AntiCaptureShield: React.FC<AntiCaptureShieldProps> = ({
       </h4>
 
       <p className="text-xs sm:text-sm text-slate-400 max-w-md mb-6 leading-relaxed">
-        L&apos;affichage de la ressource est automatiquement masqué lors de l&apos;utilisation d&apos;outils
-        de capture d&apos;écran ou lorsque la fenêtre n&apos;est plus active.
+        L&apos;affichage de la ressource est automatiquement masqué lors de l&apos;utilisation du clavier pendant la lecture,
+        d&apos;outils de capture d&apos;écran ou lorsque la fenêtre n&apos;est plus active.
       </p>
 
       <button

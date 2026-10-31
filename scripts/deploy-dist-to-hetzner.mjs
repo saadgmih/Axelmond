@@ -49,7 +49,7 @@ conn
           console.log('dist.tar.gz uploaded successfully!');
 
           const extractCmd =
-            'mkdir -p /var/www/axelmond/dist && tar -xzf /var/www/axelmond/dist.tar.gz -C /var/www/axelmond/dist && rm -f /var/www/axelmond/dist.tar.gz && pm2 reload all';
+            'mkdir -p /var/www/axelmond/dist && tar -xzf /var/www/axelmond/dist.tar.gz -C /var/www/axelmond/dist && rm -f /var/www/axelmond/dist.tar.gz && cd /var/www/axelmond && pm2 reload ecosystem.config.cjs --update-env && pm2 save';
           console.log(`Executing remote command: ${extractCmd}`);
 
           conn.exec(extractCmd, (err, stream) => {
