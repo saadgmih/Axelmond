@@ -20,6 +20,7 @@ import { sanitizeCourseAttachmentUrl } from "../external-url-security";
 import { isNativeApp } from "../utils/platform-app";
 import Hls from "hls.js";
 import { AntiCaptureShield, useContentProtection } from "./security/ContentProtection";
+import { useVideoPinchZoom } from "../hooks/useVideoPinchZoom";
 
 function isHlsSource(url: unknown): boolean {
   if (typeof url !== "string") return false;
@@ -163,6 +164,19 @@ export default function PremiumVideoPlayer({
   const { shieldActive, dismissShield } = useContentProtection({
     enabled: true,
     videoRef,
+  });
+
+  const {
+    scale: zoomScale,
+    isZoomed,
+    showIndicator: showZoomIndicator,
+    resetZoom,
+    zoomStyle,
+    wasJustZoomGesturing,
+  } = useVideoPinchZoom({
+    containerRef,
+    videoRef,
+    enabled: true,
   });
 
   const [hoverProgress, setHoverProgress] = useState<{ time: number; percent: number } | null>(null);
@@ -652,6 +666,14 @@ export default function PremiumVideoPlayer({
             revealControlsTemporarily();
           }
           break;
+        case "Escape":
+          if (isZoomed) {
+            e.preventDefault();
+            resetZoom();
+            revealControlsTemporarily();
+            break;
+          }
+          break;
         default:
           break;
       }
@@ -671,6 +693,8 @@ export default function PremiumVideoPlayer({
     seekTo,
     adjustVolume,
     revealControlsTemporarily,
+    isZoomed,
+    resetZoom,
   ]);
 
   const handleProgressMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -688,6 +712,7 @@ export default function PremiumVideoPlayer({
   };
 
   const handleSurfaceClick = () => {
+    if (wasJustZoomGesturing()) return;
     revealControlsTemporarily();
     if (settingsOpen) {
       setSettingsOpen(false);
@@ -725,10 +750,12 @@ export default function PremiumVideoPlayer({
       ref={containerRef}
       tabIndex={0}
       data-fullscreen={isFullscreen}
+      data-zoomed={isZoomed}
       onClick={handleSurfaceClick}
       onMouseEnter={() => revealControlsTemporarily()}
       onMouseMove={() => revealControlsTemporarily()}
       onTouchStart={() => revealControlsTemporarily()}
+      style={{ touchAction: isZoomed ? "none" : "manipulation" }}
       className={`course-video-player group relative flex ${
         isFullscreen ? "fixed inset-0 z-50 h-screen w-screen !aspect-auto !rounded-none" : "aspect-video w-full"
       } cursor-pointer select-none flex-col items-center justify-center overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 shadow-md`}
@@ -736,6 +763,7 @@ export default function PremiumVideoPlayer({
       <video
         key={`${resolvedSrc}-${sourceVersion}`}
         ref={videoRef}
+        style={zoomStyle}
         src={
           isHlsSource(resolvedSrc) && typeof window !== "undefined" && Hls.isSupported()
             ? undefined
@@ -924,6 +952,25 @@ export default function PremiumVideoPlayer({
           >
             ×
           </button>
+        </div>
+      )}
+
+      {/* Pinch Zoom Indicator & Quick Reset (YouTube-style) */}
+      {isZoomed && (
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+            resetZoom();
+          }}
+          className={`pointer-events-auto absolute top-3 right-3 sm:top-4 sm:right-4 z-30 flex items-center gap-1.5 sm:gap-2 rounded-full border border-emerald-500/40 bg-slate-950/85 px-3 py-1.5 text-xs font-bold text-white shadow-xl backdrop-blur-md transition-all duration-200 hover:bg-slate-900 hover:border-emerald-500/70 cursor-pointer ${
+            showZoomIndicator || controlsVisible ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
+          }`}
+          title="Cliquer pour réinitialiser le zoom (1x)"
+        >
+          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="font-mono text-emerald-300 text-xs font-black">{zoomScale.toFixed(1)}x</span>
+          <span className="text-[11px] text-slate-300 font-medium hidden sm:inline">Réinitialiser</span>
+          <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white/15 text-[10px] text-slate-300 hover:bg-white/25 ml-0.5">✕</span>
         </div>
       )}
 
