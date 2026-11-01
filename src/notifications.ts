@@ -133,11 +133,12 @@ export async function getUnreadNotificationCount(userId: string) {
   });
 }
 
-export async function listUserNotifications(userId: string, limit = 50) {
+export async function listUserNotifications(userId: string, limit = 200) {
+  const safeLimit = Math.min(Math.max(1, limit), 500);
   return prisma.notification.findMany({
     where: { userId },
     orderBy: { createdAt: "desc" },
-    take: limit,
+    take: safeLimit,
   });
 }
 
