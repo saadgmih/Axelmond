@@ -7,20 +7,27 @@ import type { BounceType, SuppressionRecord } from "../../packages/shared-types"
 import { normalizeEmail } from "../../packages/validation";
 
 export class SuppressionService {
-  private static inMemoryStore = new Map<string, SuppressionRecord>();
+  private inMemoryStore = new Map<string, SuppressionRecord>();
+  private static globalStore = new Map<string, SuppressionRecord>();
 
   /**
    * Check if an email address is suppressed (blocked from sending).
+   * Supports both instance and static calls.
    */
-  public static async isSuppressed(email: string): Promise<boolean> {
+  public isSuppressed(email: string): boolean {
     const clean = normalizeEmail(email);
-    return this.inMemoryStore.has(clean);
+    return this.inMemoryStore.has(clean) || SuppressionService.globalStore.has(clean);
+  }
+
+  public static isSuppressed(email: string): boolean {
+    const clean = normalizeEmail(email);
+    return SuppressionService.globalStore.has(clean);
   }
 
   /**
    * Add an email address to the suppression list.
    */
-  public static async add(email: string, reason: BounceType = "HARD", details?: string): Promise<SuppressionRecord> {
+  public add(email: string, reason: BounceType = "HARD", details?: string): SuppressionRecord {
     const clean = normalizeEmail(email);
     const record: SuppressionRecord = {
       email: clean,
@@ -29,36 +36,81 @@ export class SuppressionService {
       createdAt: new Date(),
     };
     this.inMemoryStore.set(clean, record);
+    SuppressionService.globalStore.set(clean, record);
+    return record;
+  }
+
+  public static add(email: string, reason: BounceType = "HARD", details?: string): SuppressionRecord {
+    const clean = normalizeEmail(email);
+    const record: SuppressionRecord = {
+      email: clean,
+      reason,
+      details,
+      createdAt: new Date(),
+    };
+    SuppressionService.globalStore.set(clean, record);
     return record;
   }
 
   /**
    * Remove an email from the suppression list (admin override / unblock).
    */
-  public static async remove(email: string): Promise<boolean> {
+  public remove(email: string): boolean {
     const clean = normalizeEmail(email);
-    return this.inMemoryStore.delete(clean);
+    const inst = this.inMemoryStore.delete(clean);
+    const glob = SuppressionService.globalStore.delete(clean);
+    return inst || glob;
+  }
+
+  public static remove(email: string): boolean {
+    const clean = normalizeEmail(email);
+    return SuppressionService.globalStore.delete(clean);
   }
 
   /**
    * Get suppression details for an email.
    */
-  public static async get(email: string): Promise<SuppressionRecord | null> {
+  public get(email: string): SuppressionRecord | null {
     const clean = normalizeEmail(email);
-    return this.inMemoryStore.get(clean) || null;
+    return this.inMemoryStore.get(clean) || SuppressionService.globalStore.get(clean) || null;
+  }
+
+  public static get(email: string): SuppressionRecord | null {
+    const clean = normalizeEmail(email);
+    return SuppressionService.globalStore.get(clean) || null;
   }
 
   /**
-   * List all current suppressions.
+   * Return all currently suppressed addresses.
    */
-  public static async list(): Promise<SuppressionRecord[]> {
-    return Array.from(this.inMemoryStore.values());
+  public getAllSuppressed(): SuppressionRecord[] {
+    const combined = new Map<string, SuppressionRecord>();
+    for (const [k, v] of SuppressionService.globalStore) combined.set(k, v);
+    for (const [k, v] of this.inMemoryStore) combined.set(k, v);
+    return Array.from(combined.values());
+  }
+
+  public list(): SuppressionRecord[] {
+    return this.getAllSuppressed();
+  }
+
+  public static getAllSuppressed(): SuppressionRecord[] {
+    return Array.from(SuppressionService.globalStore.values());
+  }
+
+  public static list(): SuppressionRecord[] {
+    return Array.from(SuppressionService.globalStore.values());
   }
 
   /**
    * Reset store (for testing purposes).
    */
-  public static clear(): void {
+  public clear(): void {
     this.inMemoryStore.clear();
+    SuppressionService.globalStore.clear();
+  }
+
+  public static clear(): void {
+    SuppressionService.globalStore.clear();
   }
 }

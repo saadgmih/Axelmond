@@ -101,3 +101,4 @@ export interface DomainDeliveryPolicy {
   rateLimitPerMinute: number;
   backoffDelayMs: number;
 }
+

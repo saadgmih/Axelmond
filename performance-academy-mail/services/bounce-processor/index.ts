@@ -15,10 +15,46 @@ export interface ParsedBounceResult {
   action: "SUPPRESS" | "RETRY" | "NONE";
 }
 
+export interface SmtpParsedError {
+  isPermanent: boolean;
+  code: number;
+  enhancedCode?: string;
+  rawResponse: string;
+  action: "SUPPRESS" | "RETRY" | "NONE";
+}
+
 export class BounceProcessor {
+  private suppressionService?: SuppressionService;
+
+  constructor(suppressionService?: SuppressionService) {
+    this.suppressionService = suppressionService;
+  }
+
+  /**
+   * Parse an SMTP Error object from nodemailer / MTA.
+   */
+  public parseSmtpError(err: any): SmtpParsedError {
+    const rawResponse = String(err?.response || err?.message || "").trim();
+    const code = Number(err?.responseCode) || parseInt(rawResponse.slice(0, 3), 10) || 500;
+    const isPermanent = code >= 500 && code < 600;
+
+    const parsed = BounceProcessor.parse(rawResponse, code);
+    return {
+      isPermanent,
+      code,
+      enhancedCode: parsed.enhancedCode,
+      rawResponse: rawResponse || `SMTP Error ${code}`,
+      action: parsed.action,
+    };
+  }
+
   /**
    * Parse an SMTP response string or error code.
    */
+  public parse(response: string, statusCode?: number): ParsedBounceResult {
+    return BounceProcessor.parse(response, statusCode);
+  }
+
   public static parse(response: string, statusCode?: number): ParsedBounceResult {
     const text = String(response || "").trim();
     const code = statusCode || parseInt(text.slice(0, 3), 10) || 0;
@@ -93,12 +129,51 @@ export class BounceProcessor {
   }
 
   /**
-   * Process a bounce and update suppression if necessary.
+   * Process a bounce and update suppression list.
    */
+  public async processBounce(input: {
+    messageId?: string;
+    recipient: string;
+    recipientDomain?: string;
+    status?: string;
+    responseCode?: number;
+    smtpResponse?: string;
+    isPermanent?: boolean;
+    actionTaken?: string;
+    timestamp?: Date;
+  } | string, response?: string, statusCode?: number): Promise<ParsedBounceResult> {
+    if (typeof input === "string") {
+      const email = input;
+      const result = BounceProcessor.parse(response || "", statusCode);
+      if (result.action === "SUPPRESS") {
+        if (this.suppressionService) {
+          this.suppressionService.add(email, result.type, result.description);
+        } else {
+          SuppressionService.add(email, result.type, result.description);
+        }
+      }
+      return result;
+    }
+
+    const email = input.recipient;
+    const resText = input.smtpResponse || "";
+    const code = input.responseCode || 550;
+    const result = BounceProcessor.parse(resText, code);
+
+    if (input.isPermanent || result.action === "SUPPRESS") {
+      if (this.suppressionService) {
+        this.suppressionService.add(email, result.type, result.description);
+      } else {
+        SuppressionService.add(email, result.type, result.description);
+      }
+    }
+    return result;
+  }
+
   public static async processBounce(email: string, response: string, statusCode?: number): Promise<ParsedBounceResult> {
-    const result = this.parse(response, statusCode);
+    const result = BounceProcessor.parse(response, statusCode);
     if (result.action === "SUPPRESS") {
-      await SuppressionService.add(email, result.type, result.description);
+      SuppressionService.add(email, result.type, result.description);
     }
     return result;
   }

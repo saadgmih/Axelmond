@@ -7,7 +7,9 @@ import net from "node:net";
 
 export interface DeliveredMockMessage {
   from: string;
+  mailFrom: string;
   to: string[];
+  rcptTo: string[];
   data: string;
   timestamp: Date;
 }
@@ -23,16 +25,21 @@ export class MockSmtpServer {
   private deliveredMessages: DeliveredMockMessage[] = [];
   private port: number;
   private host: string;
-  private simulatedBehavior: "OK" | "DEFER_421" | "BOUNCE_550" | "SPAM_554";
+  private defaultBehavior: "OK" | "DEFER_421" | "BOUNCE_550" | "SPAM_554";
+  private recipientBehaviors = new Map<string, "OK" | "DEFER_421" | "BOUNCE_550" | "SPAM_554">();
 
   constructor(options: MockSmtpServerOptions = {}) {
-    this.port = options.port || 2525;
+    this.port = options.port ?? 0; // 0 = dynamic free port from OS
     this.host = options.host || "127.0.0.1";
-    this.simulatedBehavior = options.simulatedBehavior || "OK";
+    this.defaultBehavior = options.simulatedBehavior || "OK";
   }
 
   public setBehavior(behavior: "OK" | "DEFER_421" | "BOUNCE_550" | "SPAM_554") {
-    this.simulatedBehavior = behavior;
+    this.defaultBehavior = behavior;
+  }
+
+  public setBehaviorForRecipient(recipient: string, behavior: "OK" | "DEFER_421" | "BOUNCE_550" | "SPAM_554") {
+    this.recipientBehaviors.set(recipient.toLowerCase(), behavior);
   }
 
   public getDeliveredMessages(): DeliveredMockMessage[] {
@@ -66,7 +73,9 @@ export class MockSmtpServer {
               const fullData = dataBuffer.slice(0, dataBuffer.indexOf("\r\n.\r\n"));
               this.deliveredMessages.push({
                 from,
+                mailFrom: from,
                 to: [...recipients],
+                rcptTo: [...recipients],
                 data: fullData,
                 timestamp: new Date(),
               });
@@ -87,7 +96,7 @@ export class MockSmtpServer {
             } else if (upper.startsWith("MAIL FROM:")) {
               from = line.slice(10).trim().replace(/[<>]/g, "");
 
-              if (this.simulatedBehavior === "DEFER_421") {
+              if (this.defaultBehavior === "DEFER_421") {
                 socket.write("421 4.7.0 Try again later, service is busy\r\n");
                 return;
               }
@@ -96,13 +105,19 @@ export class MockSmtpServer {
               state = "RCPT";
             } else if (upper.startsWith("RCPT TO:")) {
               const rcpt = line.slice(8).trim().replace(/[<>]/g, "");
+              const behavior = this.recipientBehaviors.get(rcpt.toLowerCase()) || this.defaultBehavior;
 
-              if (this.simulatedBehavior === "BOUNCE_550") {
+              if (behavior === "BOUNCE_550") {
                 socket.write("550 5.1.1 <" + rcpt + ">: Recipient address rejected: User unknown in virtual mailbox table\r\n");
                 return;
               }
 
-              if (this.simulatedBehavior === "SPAM_554") {
+              if (behavior === "DEFER_421") {
+                socket.write("421 4.7.0 <" + rcpt + ">: Try again later, mailbox concurrency limit reached\r\n");
+                return;
+              }
+
+              if (behavior === "SPAM_554") {
                 socket.write("554 5.7.1 Message rejected due to content policy violation\r\n");
                 return;
               }

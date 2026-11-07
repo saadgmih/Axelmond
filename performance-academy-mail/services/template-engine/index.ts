@@ -77,6 +77,18 @@ const templateRegistry: Record<string, TemplateRenderer> = {
 };
 
 export class TemplateEngine {
+  public render(templateName: string, variables: Record<string, any> = {}): RenderedEmail {
+    return TemplateEngine.render(templateName, variables);
+  }
+
+  public register(templateName: string, renderer: TemplateRenderer): void {
+    TemplateEngine.register(templateName, renderer);
+  }
+
+  public has(templateName: string): boolean {
+    return TemplateEngine.has(templateName);
+  }
+
   public static render(templateName: string, variables: Record<string, any> = {}): RenderedEmail {
     const renderer = templateRegistry[templateName];
     if (!renderer) {
@@ -93,3 +105,4 @@ export class TemplateEngine {
     return Boolean(templateRegistry[templateName]);
   }
 }
+

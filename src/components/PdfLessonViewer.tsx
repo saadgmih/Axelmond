@@ -402,20 +402,28 @@ export default function PdfLessonViewer({
     const page = Math.max(1, Math.min(targetPage, numPages || 1));
     setPageNumber(page);
 
-    // Instantly mark target page and its immediate neighbors visible, purging distant pages from memory
-    const activeNeighbors = new Set<number>([page]);
-    if (page > 1) activeNeighbors.add(page - 1);
-    if (page < (numPages || 1)) activeNeighbors.add(page + 1);
-    setVisiblePages(activeNeighbors);
+    // Keep target page and generous adjacent neighbors visible for instant scrolling
+    const activeNeighbors = new Set<number>();
+    for (let i = Math.max(1, page - 3); i <= Math.min(numPages || 1, page + 3); i++) {
+      activeNeighbors.add(i);
+    }
+    setVisiblePages((prev) => {
+      const merged = new Set(prev);
+      for (const p of activeNeighbors) merged.add(p);
+      return merged;
+    });
 
     if (scrollMode === "continuous" && containerRef.current) {
       isProgrammaticScrollRef.current = true;
       if (programmaticScrollTimeoutRef.current !== null) {
         window.clearTimeout(programmaticScrollTimeoutRef.current);
       }
-      const pageEl = containerRef.current.querySelector(`[data-page-number="${page}"]`);
+      const pageEl = containerRef.current.querySelector(`[data-page-number="${page}"]`) as HTMLElement | null;
       if (pageEl) {
-        pageEl.scrollIntoView({ behavior: "smooth", block: "start" });
+        containerRef.current.scrollTo({
+          top: pageEl.offsetTop - 16,
+          behavior: "smooth",
+        });
       }
       programmaticScrollTimeoutRef.current = window.setTimeout(() => {
         isProgrammaticScrollRef.current = false;
@@ -1263,19 +1271,12 @@ export default function PdfLessonViewer({
 
   const containerInnerWidth = Math.max(containerDimensions.width - 32, 280);
   const baseReadingWidth = Math.min(containerInnerWidth, 900);
-  const renderScale = debouncedScale;
-  const renderWidth = Math.min(Math.round(baseReadingWidth * renderScale), 2800);
-  const zoomVisualRatio = renderScale > 0 ? Number((scale / renderScale).toFixed(4)) : 1;
+  const renderWidth = Math.min(Math.round(baseReadingWidth * scale), 3200);
 
   // Razor-sharp vector supersampling matching Microsoft Edge & Adobe Acrobat
   const systemDpr = typeof window !== "undefined" ? (window.devicePixelRatio || 1) : 1;
   // Supersample at minimum 2.0x (up to 2.5x) so font curves and equations are crystal clear
-  const idealDpr = Math.min(2.5, Math.max(2.0, systemDpr * 1.5));
-  // Safe GPU texture limit: max canvas width 2880px to prevent browser canvas memory drops
-  const targetDevicePixelRatio = Math.max(
-    1.0,
-    Math.min(idealDpr, Number((2880 / Math.max(renderWidth, 1)).toFixed(2)))
-  );
+  const targetDevicePixelRatio = Math.min(2.5, Math.max(2.0, systemDpr));
   const resolvedDownloadFileName = downloadFileName || `${title}.pdf`;
 
   return (
@@ -1438,16 +1439,9 @@ export default function PdfLessonViewer({
                       willChange: "transform",
                       transition: "none",
                     }
-                    : zoomVisualRatio !== 1
-                      ? {
-                        transform: `scale(${zoomVisualRatio})`,
-                        transformOrigin: "top center",
-                        willChange: "transform",
-                        transition: "transform 50ms ease-out",
-                      }
-                      : undefined
+                    : undefined
                 }
-                className="flex flex-col items-center gap-6 py-4 min-h-full min-w-full w-max mx-auto"
+                className="min-w-full min-h-full flex flex-col items-center justify-start gap-6 py-6 px-4 m-auto w-fit"
               >
                 {Array.from({ length: numPages }, (_, index) => {
                   const p = index + 1;
@@ -1528,7 +1522,7 @@ export default function PdfLessonViewer({
                               </button>
                             </div>
                           }
-                          renderTextLayer={false}
+                          renderTextLayer={true}
                           renderAnnotationLayer={false}
                           onRenderError={(err) => console.error(`[PdfViewer] Render error p${p}:`, err)}
                         />
@@ -1579,16 +1573,9 @@ export default function PdfLessonViewer({
                       willChange: "transform",
                       transition: "none",
                     }
-                    : zoomVisualRatio !== 1
-                      ? {
-                        transform: `scale(${zoomVisualRatio})`,
-                        transformOrigin: "center center",
-                        willChange: "transform",
-                        transition: "transform 50ms ease-out",
-                      }
-                      : undefined
+                    : undefined
                 }
-                className="flex min-h-full min-w-full w-max mx-auto items-center justify-center p-4"
+                className="min-w-full min-h-full flex flex-col items-center justify-start p-4 sm:p-8 m-auto w-fit"
               >
                 <div
                   style={{ width: renderWidth }}
@@ -1639,7 +1626,7 @@ export default function PdfLessonViewer({
                           </button>
                         </div>
                       }
-                      renderTextLayer={false}
+                      renderTextLayer={true}
                       renderAnnotationLayer={false}
                       onRenderError={(err) => console.error(`[PdfViewer] Render error p${pageNumber}:`, err)}
                     />

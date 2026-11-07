@@ -1,0 +1,55 @@
+# Performance Academy Mail (PAM) - Postfix Main Configuration
+# Autonomous SMTP MTA for perfacademy.ma
+# Security Rule: STRICTLY NO OPEN RELAY. Listens on 127.0.0.1 loopback only.
+
+# ─── Identity ───────────────────────────────────────────────────────────────
+myhostname = mail.perfacademy.ma
+mydomain = perfacademy.ma
+myorigin = /etc/mailname
+smtpd_banner = $myhostname ESMTP Performance Academy Mail (PAM)
+biff = no
+append_dot_mydomain = no
+readme_directory = no
+
+# ─── Network & Anti-Relay Lockdown ───────────────────────────────────────────
+# CRITICAL SECURITY: Listen on local loopback only for PAM submission.
+# External access from untrusted networks is completely rejected.
+inet_interfaces = 127.0.0.1, [::1]
+inet_protocols = all
+mydestination = $myhostname, perfacademy.ma, localhost.$mydomain, localhost
+mynetworks = 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128
+
+# Relay Restrictions: only clients in mynetworks (127.0.0.1) can submit emails
+smtpd_relay_restrictions = permit_mynetworks, reject
+smtpd_recipient_restrictions = permit_mynetworks, reject_unauth_destination
+
+# ─── TLS / Cryptography ─────────────────────────────────────────────────────
+# Opportunistic TLS for outbound delivery to recipient MX (Gmail, Outlook, etc.)
+smtp_tls_security_level = may
+smtp_tls_loglevel = 1
+smtp_tls_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1, TLSv1.2, TLSv1.3
+smtp_tls_ciphers = high
+smtp_tls_CAfile = /etc/ssl/certs/ca-certificates.crt
+
+# Inbound TLS (submission)
+smtpd_tls_security_level = may
+smtpd_tls_cert_file = /etc/letsencrypt/live/perfacademy.ma/fullchain.pem
+smtpd_tls_key_file = /etc/letsencrypt/live/perfacademy.ma/privkey.pem
+smtpd_tls_protocols = TLSv1.2, TLSv1.3
+
+# ─── Queue, Limits & Resilience ─────────────────────────────────────────────
+message_size_limit = 26214400
+mailbox_size_limit = 0
+recipient_delimiter = +
+
+# Minimal retry and backoff tuning for transactional performance
+minimal_backoff_time = 300s
+maximal_backoff_time = 3600s
+maximal_queue_lifetime = 2d
+bounce_queue_lifetime = 1d
+
+# ─── OpenDKIM Milter Integration ────────────────────────────────────────────
+milter_default_action = accept
+milter_protocol = 6
+smtpd_milters = inet:127.0.0.1:8891
+non_smtpd_milters = inet:127.0.0.1:8891

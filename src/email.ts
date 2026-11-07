@@ -2,6 +2,7 @@ import net from "node:net";
 import tls from "node:tls";
 import nodemailer from "nodemailer";
 import { buildAbsoluteAppUrl, sanitizeInternalAppPath } from "./internal-url-security";
+import { isPamEnabled, sendViaPam } from "./pam-client";
 
 // ─── Interfaces ──────────────────────────────────────────────────────────────
 
@@ -658,16 +659,48 @@ export function buildVerificationEmailContent(input: VerificationEmailContentInp
 }
 
 export async function sendVerificationEmail(input: VerificationEmailInput, env: NodeJS.ProcessEnv = process.env) {
-  if (!isSmtpConfigured(env)) {
-    return { sent: false, reason: "SMTP_NOT_CONFIGURED" as const };
-  }
-
   const content = buildVerificationEmailContent({
     fullName: input.fullName,
     code: input.code,
     expiresInMinutes: input.expiresInMinutes,
     verifyUrl: getVerificationUrl(env, input.to, input.code),
   });
+
+  // 1. If PAM is enabled, send via autonomous Performance Academy Mail Gateway
+  if (isPamEnabled(env)) {
+    try {
+      const pamRes = await sendViaPam({
+        from: env.EMAIL_VERIFICATION_FROM || env.EMAIL_FROM || "Performance Académique <verification@perfacademy.ma>",
+        replyTo: env.EMAIL_VERIFICATION_REPLY_TO || env.EMAIL_REPLY_TO || "verification@perfacademy.ma",
+        to: input.to,
+        subject: "Code de vérification de votre compte — Performance Académique",
+        text: content.text,
+        html: content.html,
+        priority: "critical",
+      });
+
+      return {
+        sent: true as const,
+        delivery: {
+          smtp: { host: "mail.perfacademy.ma", port: 25, secure: false, user: "pam", from: "verification@perfacademy.ma", configured: true },
+          messageId: pamRes.messageId,
+          accepted: [input.to],
+          rejected: [],
+          acceptedCount: 1,
+          rejectedCount: 0,
+          response: `250 2.0.0 Enqueued in PAM (${pamRes.priority} queue)`,
+          providerStatus: "QUEUED",
+        },
+      };
+    } catch (pamErr) {
+      console.warn("[email] PAM send failed, falling back to legacy transport:", pamErr);
+    }
+  }
+
+  // 2. Fallback to standard SMTP if PAM is disabled or unreachable
+  if (!isSmtpConfigured(env)) {
+    return { sent: false, reason: "SMTP_NOT_CONFIGURED" as const };
+  }
 
   const delivery = await sendMailWithDiagnostics(
     {
@@ -779,7 +812,6 @@ export function buildResetPasswordEmailContent(input: {
 }
 
 export async function sendResetPasswordEmail(input: ResetPasswordEmailInput, env: NodeJS.ProcessEnv = process.env) {
-  if (!isSmtpConfigured(env)) return { sent: false, reason: "SMTP_NOT_CONFIGURED" as const };
   const resetUrl = input.resetUrl || getVerificationUrl(env);
   const content = buildResetPasswordEmailContent({
     fullName: input.fullName,
@@ -787,6 +819,38 @@ export async function sendResetPasswordEmail(input: ResetPasswordEmailInput, env
     resetUrl,
     expiresInMinutes: input.expiresInMinutes,
   });
+
+  if (isPamEnabled(env)) {
+    try {
+      const pamRes = await sendViaPam({
+        from: env.EMAIL_FROM || "Performance Académique <verification@perfacademy.ma>",
+        replyTo: env.EMAIL_REPLY_TO || "verification@perfacademy.ma",
+        to: input.to,
+        subject: "Réinitialisation de votre mot de passe — Performance Académique",
+        text: content.text,
+        html: content.html,
+        priority: "critical",
+      });
+
+      return {
+        sent: true as const,
+        delivery: {
+          smtp: { host: "mail.perfacademy.ma", port: 25, secure: false, user: "pam", from: "verification@perfacademy.ma", configured: true },
+          messageId: pamRes.messageId,
+          accepted: [input.to],
+          rejected: [],
+          acceptedCount: 1,
+          rejectedCount: 0,
+          response: `250 2.0.0 Enqueued in PAM (${pamRes.priority} queue)`,
+          providerStatus: "QUEUED",
+        },
+      };
+    } catch (pamErr) {
+      console.warn("[email] PAM reset password send failed, falling back to legacy transport:", pamErr);
+    }
+  }
+
+  if (!isSmtpConfigured(env)) return { sent: false, reason: "SMTP_NOT_CONFIGURED" as const };
   const delivery = await sendMailWithDiagnostics(
     {
       from: env.EMAIL_FROM,

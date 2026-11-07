@@ -30,15 +30,26 @@ export function hashApiKey(key: string): string {
 
 /**
  * Constant-time comparison to prevent timing attacks.
+ * Accepts a single stored hash string OR a Set of authorized hashes.
  */
-export function verifyApiKey(candidateKey: string, storedHash: string): boolean {
-  if (!candidateKey || !storedHash) return false;
+export function verifyApiKey(candidateKey: string, storedHashOrSet: string | Set<string>): boolean {
+  if (!candidateKey || !storedHashOrSet) return false;
   const candidateHash = hashApiKey(candidateKey);
   const bufA = Buffer.from(candidateHash, "hex");
-  const bufB = Buffer.from(storedHash, "hex");
 
-  if (bufA.length !== bufB.length) return false;
-  return crypto.timingSafeEqual(bufA, bufB);
+  if (typeof storedHashOrSet === "string") {
+    const bufB = Buffer.from(storedHashOrSet, "hex");
+    if (bufA.length !== bufB.length) return false;
+    return crypto.timingSafeEqual(bufA, bufB);
+  }
+
+  for (const hash of storedHashOrSet) {
+    const bufB = Buffer.from(hash, "hex");
+    if (bufA.length === bufB.length && crypto.timingSafeEqual(bufA, bufB)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /**
