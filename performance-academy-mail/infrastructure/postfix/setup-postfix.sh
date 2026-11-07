@@ -45,6 +45,7 @@ SignatureAlgorithm      rsa-sha256
 # Socket listening for Postfix Milter
 Socket                  inet:8891@127.0.0.1
 PidFile                 /run/opendkim/opendkim.pid
+UserID                  opendkim:opendkim
 
 # Tables
 KeyTable                /etc/opendkim/KeyTable
