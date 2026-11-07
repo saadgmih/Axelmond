@@ -1,4 +1,7 @@
+import fs from "node:fs";
+import path from "node:path";
 import { isAllowedRasterImageUpload } from "./avatar-security";
+import { getMediaRootDir } from "./server/native-storage-routes";
 import {
   detectMessageAttachmentKind,
   normalizeMessageAttachmentMimeType,
@@ -46,6 +49,24 @@ export async function resolveConfirmedMessageAttachment(
   }
   if (kind === "IMAGE" && !isAllowedRasterImageUpload(fileName, mimeType)) {
     throw new MessageAttachmentConfirmationError("Type de fichier non autorisé", 400);
+  }
+
+  // 1. Check if the file exists in local native storage
+  try {
+    const root = getMediaRootDir();
+    const localFile = path.join(root, "attachments", path.basename(storageKey));
+    if (fs.existsSync(localFile)) {
+      return {
+        kind,
+        fileName,
+        mimeType,
+        sizeBytes: input.sizeBytes,
+        url: `/media/attachments/${path.basename(storageKey)}`,
+        storageKey,
+      };
+    }
+  } catch {
+    // If local check fails, continue
   }
 
   let remoteFiles: Awaited<ReturnType<GetFileUrls>>;

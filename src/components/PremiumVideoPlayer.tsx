@@ -6,6 +6,7 @@ import {
   ChevronRight,
   LoaderCircle,
   Maximize,
+  Pause,
   PauseCircle,
   PictureInPicture2,
   PlayCircle,
@@ -58,6 +59,8 @@ function heightToResolutionLabel(height: number): VideoQuality {
 
 const OVERLAY_HIDE_DELAY_MS = 500;
 const CONTROLS_HIDE_DELAY_MS = 1600;
+const INTERACTIVE_OVERLAY_HIDE_DELAY_MS = 3500;
+const INTERACTIVE_CONTROLS_HIDE_DELAY_MS = 3500;
 const VOLUME_CONTROL_CLOSE_DELAY_MS = 250;
 const VIDEO_MAX_AUTOMATIC_RETRIES = 2;
 const VIDEO_RETRY_BASE_DELAY_MS = 500;
@@ -166,6 +169,16 @@ export default function PremiumVideoPlayer({
     videoRef,
   });
 
+  useEffect(() => {
+    if (shieldActive && videoRef.current) {
+      videoRef.current.muted = true;
+      videoRef.current.volume = 0;
+      try {
+        videoRef.current.pause();
+      } catch {}
+    }
+  }, [shieldActive]);
+
   const {
     scale: zoomScale,
     isZoomed,
@@ -188,6 +201,33 @@ export default function PremiumVideoPlayer({
   const [selectedQuality, setSelectedQuality] = useState<VideoQuality>(readStoredVideoQuality);
   const [detectedResolution, setDetectedResolution] = useState<string | null>(null);
   const settingsContainerRef = useRef<HTMLDivElement>(null);
+  const [playerHeight, setPlayerHeight] = useState<number>(0);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const measure = () => {
+      const h = container.clientHeight;
+      if (h > 0) setPlayerHeight(h);
+    };
+
+    measure();
+
+    if (typeof ResizeObserver !== "undefined") {
+      const ro = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const h = entry.contentRect.height;
+          if (h > 0) setPlayerHeight(h);
+        }
+      });
+      ro.observe(container);
+      return () => ro.disconnect();
+    } else {
+      window.addEventListener("resize", measure);
+      return () => window.removeEventListener("resize", measure);
+    }
+  }, []);
 
   const isStudent = activeSector === "student";
   const themeAccentClass = isStudent ? "accent-emerald-500" : "accent-emerald-500";
@@ -195,12 +235,26 @@ export default function PremiumVideoPlayer({
   const controlFocusClass = isStudent ? "focus:ring-emerald-400" : "focus:ring-emerald-400";
   const [controlsVisible, setControlsVisible] = useState(true);
   const [overlayVisible, setOverlayVisible] = useState(true);
+  const hasStartedRef = useRef(false);
   const [volumeControlOpen, setVolumeControlOpen] = useState(false);
   const hideControlsTimeoutRef = useRef<number | null>(null);
   const hideOverlayTimeoutRef = useRef<number | null>(null);
   const hideVolumeControlTimeoutRef = useRef<number | null>(null);
   const volumeDraggingRef = useRef(false);
   const volumeHasFocusRef = useRef(false);
+
+  // YouTube-style double-tap / double-click seek tracking (+10s right / -10s left)
+  const lastTapRef = useRef<{ time: number; x: number; y: number; side: "left" | "right" | "center" } | null>(null);
+  const singleTapTimerRef = useRef<number | null>(null);
+  const [doubleTapFeedback, setDoubleTapFeedback] = useState<{ direction: "left" | "right"; seconds: number } | null>(null);
+  const feedbackTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (singleTapTimerRef.current) window.clearTimeout(singleTapTimerRef.current);
+      if (feedbackTimerRef.current) window.clearTimeout(feedbackTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (!settingsOpen) return;
@@ -233,6 +287,7 @@ export default function PremiumVideoPlayer({
     if (!hls || !hls.levels || hls.levels.length === 0) return;
     if (quality === "auto") {
       hls.currentLevel = -1;
+      hls.loadLevel = -1;
       return;
     }
     const targetHeight = qualityToTargetHeight(quality);
@@ -247,6 +302,7 @@ export default function PremiumVideoPlayer({
     });
     if (bestIdx !== -1) {
       hls.currentLevel = bestIdx;
+      hls.loadLevel = bestIdx;
       const chosen = hls.levels[bestIdx];
       if (chosen && chosen.height) {
         setDetectedResolution(heightToResolutionLabel(chosen.height));
@@ -268,6 +324,7 @@ export default function PremiumVideoPlayer({
         enableWorker: !isNativeApp(),
         lowLatencyMode: false,
         backBufferLength: 90,
+        capLevelToPlayerSize: false,
       });
       hlsRef.current = hls;
 
@@ -449,22 +506,22 @@ export default function PremiumVideoPlayer({
     }
   }, []);
 
-  const scheduleHideOverlay = useCallback(() => {
+  const scheduleHideOverlay = useCallback((delay: number = INTERACTIVE_OVERLAY_HIDE_DELAY_MS) => {
     clearHideOverlayTimeout();
     setOverlayVisible(true);
     hideOverlayTimeoutRef.current = window.setTimeout(() => {
       setOverlayVisible(false);
-    }, OVERLAY_HIDE_DELAY_MS);
+    }, delay);
   }, [clearHideOverlayTimeout]);
 
-  const revealControlsTemporarily = useCallback(() => {
+  const revealControlsTemporarily = useCallback((delay: number = INTERACTIVE_CONTROLS_HIDE_DELAY_MS) => {
     setControlsVisible(true);
     clearHideControlsTimeout();
 
     if (isPlaying && showMetadata) {
       hideControlsTimeoutRef.current = window.setTimeout(() => {
         setControlsVisible(false);
-      }, CONTROLS_HIDE_DELAY_MS);
+      }, delay);
     }
   }, [clearHideControlsTimeout, isPlaying, showMetadata]);
 
@@ -490,7 +547,13 @@ export default function PremiumVideoPlayer({
   }, [scheduleVolumeControlClose]);
 
   useEffect(() => {
-    if (!isPlaying) {
+    if (isPlaying) {
+      hasStartedRef.current = true;
+    }
+  }, [isPlaying]);
+
+  useEffect(() => {
+    if (!isPlaying && !hasStartedRef.current) {
       clearHideOverlayTimeout();
       setOverlayVisible(true);
       return;
@@ -501,7 +564,7 @@ export default function PremiumVideoPlayer({
   }, [clearHideOverlayTimeout, isPlaying, scheduleHideOverlay]);
 
   useEffect(() => {
-    if (!isPlaying) {
+    if (!isPlaying && !hasStartedRef.current) {
       clearHideControlsTimeout();
       setControlsVisible(true);
       return;
@@ -711,9 +774,7 @@ export default function PremiumVideoPlayer({
     setHoverProgress(null);
   };
 
-  const handleSurfaceClick = () => {
-    if (wasJustZoomGesturing()) return;
-    revealControlsTemporarily();
+  const executeSingleTap = useCallback(() => {
     if (settingsOpen) {
       setSettingsOpen(false);
       setSettingsView("main");
@@ -723,13 +784,128 @@ export default function PremiumVideoPlayer({
       retryVideoManually();
       return;
     }
-    if (isPlaying && (videoLoadState === "LOADING" || videoLoadState === "BUFFERING")) return;
-    togglePlay();
+    if (isPlaying) {
+      // Quand la vidéo est en cours de lecture :
+      // Cliquer sur la vidéo affiche les contrôles et le bouton pause au centre SANS stopper la vidéo.
+      // Si les contrôles étaient déjà visibles, un clic supplémentaire sur la surface les masque.
+      // La vidéo ne stoppe QUE si l'utilisateur clique explicitement sur le bouton pause !
+      if (overlayVisible) {
+        clearHideOverlayTimeout();
+        setOverlayVisible(false);
+        clearHideControlsTimeout();
+        setControlsVisible(false);
+      } else {
+        revealControlsTemporarily();
+        scheduleHideOverlay();
+      }
+      return;
+    }
+
+    // Quand la vidéo est en pause :
+    if (currentTime === 0) {
+      togglePlay();
+      return;
+    }
+
+    // Après stop/pause : le bouton d'activation au centre ne doit pas rester affiché en continu.
+    // Il s'affiche quand on clique dans la vidéo (comme YouTube), et un clic suivant sur la surface le masque pour lire le contenu.
+    if (!overlayVisible) {
+      revealControlsTemporarily();
+      scheduleHideOverlay();
+    } else {
+      clearHideOverlayTimeout();
+      setOverlayVisible(false);
+      clearHideControlsTimeout();
+      setControlsVisible(false);
+    }
+  }, [
+    clearHideControlsTimeout,
+    clearHideOverlayTimeout,
+    currentTime,
+    isPlaying,
+    overlayVisible,
+    retryVideoManually,
+    revealControlsTemporarily,
+    scheduleHideOverlay,
+    settingsOpen,
+    togglePlay,
+    videoLoadState,
+  ]);
+
+  const handleSurfaceClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (wasJustZoomGesturing()) return;
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const ratio = clickX / Math.max(1, rect.width);
+    const side: "left" | "right" | "center" =
+      ratio <= 0.35 ? "left" : ratio >= 0.65 ? "right" : "center";
+
+    const now = Date.now();
+
+    // YouTube-style double-click / double-tap detection (+10s right / -10s left)
+    if (
+      lastTapRef.current &&
+      now - lastTapRef.current.time < 320 &&
+      lastTapRef.current.side === side &&
+      (side === "left" || side === "right")
+    ) {
+      // Double tap confirmed: cancel pending single tap so play/pause doesn't fire
+      if (singleTapTimerRef.current) {
+        window.clearTimeout(singleTapTimerRef.current);
+        singleTapTimerRef.current = null;
+      }
+
+      const delta = side === "right" ? 10 : -10;
+      const targetTime = Math.max(0, Math.min(duration, currentTime + delta));
+      seekTo(targetTime);
+
+      // Trigger YouTube animated ripple
+      setDoubleTapFeedback((prev) => {
+        const nextSeconds = prev && prev.direction === side ? prev.seconds + 10 : 10;
+        return { direction: side, seconds: nextSeconds };
+      });
+
+      if (feedbackTimerRef.current) {
+        window.clearTimeout(feedbackTimerRef.current);
+      }
+      feedbackTimerRef.current = window.setTimeout(() => {
+        setDoubleTapFeedback(null);
+      }, 700);
+
+      lastTapRef.current = { time: now, x: clickX, y: e.clientY - rect.top, side };
+      return;
+    }
+
+    lastTapRef.current = { time: now, x: clickX, y: e.clientY - rect.top, side };
+
+    // Center zone tap executes immediately without delay
+    if (side === "center") {
+      executeSingleTap();
+      return;
+    }
+
+    // Left or right side: wait 260ms to distinguish single tap from double tap
+    if (singleTapTimerRef.current) {
+      window.clearTimeout(singleTapTimerRef.current);
+    }
+    singleTapTimerRef.current = window.setTimeout(() => {
+      executeSingleTap();
+      singleTapTimerRef.current = null;
+    }, 260);
   };
 
-  const chromeVisible = !isPlaying || controlsVisible || volumeControlOpen || settingsOpen || !showMetadata;
+  const chromeVisible =
+    (!hasStartedRef.current && !isPlaying && currentTime === 0) ||
+    controlsVisible ||
+    volumeControlOpen ||
+    settingsOpen ||
+    !showMetadata;
   const centerOverlayVisible =
-    !isPlaying ||
+    (!hasStartedRef.current && !isPlaying && currentTime === 0) ||
     overlayVisible ||
     videoLoadState === "LOADING" ||
     videoLoadState === "BUFFERING" ||
@@ -757,13 +933,18 @@ export default function PremiumVideoPlayer({
       onTouchStart={() => revealControlsTemporarily()}
       style={{ touchAction: isZoomed ? "none" : "manipulation" }}
       className={`course-video-player group relative flex ${
-        isFullscreen ? "fixed inset-0 z-50 h-screen w-screen !aspect-auto !rounded-none" : "aspect-video w-full"
-      } cursor-pointer select-none flex-col items-center justify-center overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 shadow-md`}
+        isFullscreen
+          ? "fixed inset-0 z-50 h-screen w-screen !aspect-auto !rounded-none"
+          : "w-full aspect-video min-h-[220px] xs:min-h-[240px] sm:min-h-[280px] rounded-none sm:rounded-2xl border-y sm:border border-slate-800"
+      } cursor-pointer select-none flex-col items-center justify-center overflow-hidden bg-slate-950 shadow-md`}
     >
       <video
         key={`${resolvedSrc}-${sourceVersion}`}
         ref={videoRef}
-        style={zoomStyle}
+        style={{
+          ...zoomStyle,
+          filter: isZoomed ? "contrast(100.001%)" : undefined,
+        }}
         src={
           isHlsSource(resolvedSrc) && typeof window !== "undefined" && Hls.isSupported()
             ? undefined
@@ -825,29 +1006,43 @@ export default function PremiumVideoPlayer({
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 z-[1] flex items-center justify-center bg-slate-950"
         >
-          <div
-            className={`flex flex-col items-center gap-4 transition-[opacity,transform] duration-200 ease-out ${
-              !isPlaying && currentTime === 0 ? "pb-20 sm:pb-24" : ""
-            }`}
-            style={{ opacity: brandSignatureOpacity, transform: `scale(${brandSignatureScale})` }}
-          >
-            <img
-              src="/performance-logo-003a24a4-192.png"
-              alt=""
-              className="h-auto w-24 drop-shadow-[0_10px_24px_rgba(16,185,129,0.18)] sm:w-28 lg:w-32"
-              draggable={false}
-            />
-            <p className="text-center text-xs font-black uppercase tracking-[0.035em] text-emerald-50 sm:text-sm lg:text-base">
-              Performance Académique
-            </p>
-          </div>
+          {isPlaying && (
+            <div
+              className="flex flex-col items-center gap-3 sm:gap-4 transition-[opacity,transform] duration-200 ease-out"
+              style={{ opacity: brandSignatureOpacity, transform: `scale(${brandSignatureScale})` }}
+            >
+              <img
+                src="/performance-logo-003a24a4-192.png"
+                alt=""
+                className="h-auto w-24 drop-shadow-[0_10px_24px_rgba(16,185,129,0.18)] sm:w-28 lg:w-32"
+                draggable={false}
+              />
+              <p className="text-center text-xs font-black uppercase tracking-[0.035em] text-emerald-50 sm:text-sm lg:text-base">
+                Performance Académique
+              </p>
+            </div>
+          )}
         </div>
       )}
 
       {/* Pitch-Black Anti-Capture Screen Shield */}
-      <AntiCaptureShield active={shieldActive} onDismiss={dismissShield} />
+      <AntiCaptureShield active={shieldActive} onDismiss={dismissShield} contentType="video" />
 
       <div
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            clearHideOverlayTimeout();
+            setOverlayVisible(false);
+            clearHideControlsTimeout();
+            setControlsVisible(false);
+            if (singleTapTimerRef.current) {
+              window.clearTimeout(singleTapTimerRef.current);
+              singleTapTimerRef.current = null;
+            }
+          }
+        }}
+        onMouseEnter={() => clearHideOverlayTimeout()}
+        onMouseMove={() => scheduleHideOverlay(INTERACTIVE_OVERLAY_HIDE_DELAY_MS)}
         className={`course-video-center-overlay absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-950/20 transition-opacity duration-300 ${centerOverlayVisible ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}
       >
         {videoLoadState === "ERROR" ? (
@@ -866,44 +1061,73 @@ export default function PremiumVideoPlayer({
             </button>
           </div>
         ) : contentId && resolvedSrc && !isPlaying ? (
-          <div
-            className={`flex flex-col items-center gap-3 ${brandedIntroVisible && currentTime === 0 ? "pt-24 sm:pt-28" : ""}`}
-          >
+          <div className="flex flex-col items-center gap-2 sm:gap-3">
+            {currentTime === 0 && (
+              <div className="pointer-events-none flex flex-col items-center gap-1 sm:gap-1.5 animate-in fade-in duration-300">
+                <img
+                  src="/performance-logo-003a24a4-192.png"
+                  alt="Performance Académique"
+                  className="h-auto w-10 drop-shadow-[0_10px_24px_rgba(16,185,129,0.18)] sm:w-14 lg:w-16"
+                  draggable={false}
+                />
+                <p className="text-center font-black uppercase tracking-[0.035em] text-emerald-50 text-[10px] sm:text-xs lg:text-sm">
+                  Performance Académique
+                </p>
+              </div>
+            )}
             <button
               type="button"
-              onClick={togglePlay}
+              onClick={(e) => {
+                e.stopPropagation();
+                togglePlay();
+              }}
+              onMouseEnter={() => clearHideOverlayTimeout()}
+              onMouseLeave={() => scheduleHideOverlay(INTERACTIVE_OVERLAY_HIDE_DELAY_MS)}
               className={`course-video-overlay-button ${overlayButtonClass} flex cursor-pointer items-center justify-center rounded-full bg-white/95 text-emerald-900 shadow-lg transition-all hover:scale-105 hover:bg-slate-100`}
             >
               <PlayCircle className={`${overlayIconClass} ml-0.5 ${playButtonThemeClass}`} />
             </button>
-            {showMetadata && (
+            {showMetadata && currentTime === 0 && (
               <p className="course-video-metadata max-w-[90%] animate-in truncate rounded-lg border border-slate-700/50 bg-slate-900/80 px-3 py-1.5 font-mono text-xs font-bold tracking-wide text-white shadow-sm duration-200 fade-in">
                 {title} • {instructor} • {formatTime(duration)}
               </p>
             )}
           </div>
         ) : videoLoadState === "LOADING" || videoLoadState === "BUFFERING" ? (
-          <div
-            className={`flex flex-col items-center gap-3 ${brandedIntroVisible ? "pt-24 sm:pt-28" : ""}`}
-            role="status"
-          >
+          <div className="flex flex-col items-center gap-3" role="status">
             <LoaderCircle className="h-10 w-10 animate-spin text-emerald-300" />
             <p className="text-xs font-bold text-white">
               {videoLoadState === "BUFFERING" ? "Mise en mémoire tampon…" : "Chargement de la vidéo…"}
             </p>
           </div>
         ) : !isPlaying ? (
-          <div
-            className={`flex flex-col items-center gap-3 ${brandedIntroVisible && currentTime === 0 ? "pt-24 sm:pt-28" : ""}`}
-          >
+          <div className="flex flex-col items-center gap-2 sm:gap-3">
+            {currentTime === 0 && (
+              <div className="pointer-events-none flex flex-col items-center gap-1 sm:gap-1.5 animate-in fade-in duration-300">
+                <img
+                  src="/performance-logo-003a24a4-192.png"
+                  alt="Performance Académique"
+                  className="h-auto w-10 drop-shadow-[0_10px_24px_rgba(16,185,129,0.18)] sm:w-14 lg:w-16"
+                  draggable={false}
+                />
+                <p className="text-center font-black uppercase tracking-[0.035em] text-emerald-50 text-[10px] sm:text-xs lg:text-sm">
+                  Performance Académique
+                </p>
+              </div>
+            )}
             <button
               type="button"
-              onClick={togglePlay}
+              onClick={(e) => {
+                e.stopPropagation();
+                togglePlay();
+              }}
+              onMouseEnter={() => clearHideOverlayTimeout()}
+              onMouseLeave={() => scheduleHideOverlay(INTERACTIVE_OVERLAY_HIDE_DELAY_MS)}
               className={`course-video-overlay-button ${overlayButtonClass} flex cursor-pointer items-center justify-center rounded-full bg-white/95 text-emerald-900 shadow-lg transition-all hover:scale-105 hover:bg-slate-100`}
             >
               <PlayCircle className={`${overlayIconClass} ml-0.5 ${playButtonThemeClass}`} />
             </button>
-            {showMetadata && (
+            {showMetadata && currentTime === 0 && (
               <p className="course-video-metadata max-w-[90%] animate-in truncate rounded-lg border border-slate-700/50 bg-slate-900/80 px-3 py-1.5 font-mono text-xs font-bold tracking-wide text-white shadow-sm duration-200 fade-in">
                 {title} • {instructor} • {formatTime(duration)}
               </p>
@@ -912,11 +1136,16 @@ export default function PremiumVideoPlayer({
         ) : (
           <button
             type="button"
-            onClick={togglePlay}
-            className={`course-video-overlay-button ${overlayButtonClass} flex cursor-pointer items-center justify-center rounded-full bg-white/95 text-slate-950 shadow-lg transition-all hover:scale-105 hover:bg-slate-100`}
+            onClick={(e) => {
+              e.stopPropagation();
+              togglePlay();
+            }}
+            onMouseEnter={() => clearHideOverlayTimeout()}
+            onMouseLeave={() => scheduleHideOverlay(INTERACTIVE_OVERLAY_HIDE_DELAY_MS)}
+            className={`course-video-overlay-button ${overlayButtonClass} flex cursor-pointer items-center justify-center rounded-full bg-emerald-950/80 border-2 border-emerald-500/40 text-emerald-300 shadow-[0_0_35px_rgba(16,185,129,0.35)] backdrop-blur-md transition-all duration-200 hover:scale-110 hover:bg-emerald-900/90 hover:border-emerald-400 hover:text-white active:scale-95`}
             title="Mettre en pause"
           >
-            <PauseCircle className={overlayIconClass} />
+            <Pause className={overlayIconClass} />
           </button>
         )}
       </div>
@@ -952,6 +1181,37 @@ export default function PremiumVideoPlayer({
           >
             ×
           </button>
+        </div>
+      )}
+
+      {/* YouTube-style Double Tap / Double Click Seek Feedback (+10s / -10s) */}
+      {doubleTapFeedback && (
+        <div
+          aria-hidden="true"
+          className={`pointer-events-none absolute inset-y-0 ${
+            doubleTapFeedback.direction === "right" ? "right-0 rounded-l-full" : "left-0 rounded-r-full"
+          } z-20 flex w-[35%] items-center justify-center bg-white/10 backdrop-blur-[2px] transition-all duration-300 animate-in fade-in`}
+        >
+          <div className="flex flex-col items-center gap-1 text-white">
+            <div className="flex items-center">
+              {doubleTapFeedback.direction === "right" ? (
+                <>
+                  <ChevronRight className="h-7 w-7 text-white" />
+                  <ChevronRight className="h-7 w-7 -ml-4 text-white" />
+                </>
+              ) : (
+                <>
+                  <ChevronLeft className="h-7 w-7 text-white" />
+                  <ChevronLeft className="h-7 w-7 -ml-4 text-white" />
+                </>
+              )}
+            </div>
+            <span className="text-xs font-black uppercase tracking-widest text-white shadow-sm font-mono">
+              {doubleTapFeedback.direction === "right"
+                ? `+${doubleTapFeedback.seconds}s`
+                : `-${doubleTapFeedback.seconds}s`}
+            </span>
+          </div>
         </div>
       )}
 
@@ -1096,7 +1356,10 @@ export default function PremiumVideoPlayer({
           {settingsOpen && (
             <div
               onClick={(e) => e.stopPropagation()}
-              className="absolute bottom-[calc(100%+0.65rem)] right-0 z-30 w-56 overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-1.5 text-slate-800 shadow-2xl backdrop-blur-md animate-in fade-in zoom-in-95 duration-150"
+              style={{
+                maxHeight: playerHeight ? `${Math.max(120, Math.min(300, playerHeight - 56))}px` : undefined,
+              }}
+              className="absolute bottom-[calc(100%+0.5rem)] right-0 z-30 w-52 sm:w-56 flex flex-col max-h-[140px] xs:max-h-[160px] sm:max-h-[240px] md:max-h-[280px] overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-1.5 text-slate-800 shadow-2xl backdrop-blur-md animate-in fade-in zoom-in-95 duration-150"
             >
               {settingsView === "main" && (
                 <div className="space-y-0.5">
@@ -1104,9 +1367,9 @@ export default function PremiumVideoPlayer({
                   <button
                     type="button"
                     onClick={() => setSettingsView("quality")}
-                    className="flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-left font-bold text-slate-800 hover:bg-slate-100/90 transition-colors group cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left font-bold text-slate-800 hover:bg-slate-100/90 transition-colors group cursor-pointer"
                   >
-                    <span className="text-[13px] font-bold text-slate-800 tracking-tight">Quality</span>
+                    <span className="text-xs font-bold text-slate-800 tracking-tight">Quality</span>
                     <div className="flex items-center gap-1.5 text-slate-600 font-semibold text-xs">
                       <span>{currentQualityLabel}</span>
                       <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 transition-colors" />
@@ -1117,9 +1380,9 @@ export default function PremiumVideoPlayer({
                   <button
                     type="button"
                     onClick={() => setSettingsView("speed")}
-                    className="flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-left font-bold text-slate-800 hover:bg-slate-100/90 transition-colors group cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left font-bold text-slate-800 hover:bg-slate-100/90 transition-colors group cursor-pointer"
                   >
-                    <span className="text-[13px] font-bold text-slate-800 tracking-tight">Speed</span>
+                    <span className="text-xs font-bold text-slate-800 tracking-tight">Speed</span>
                     <div className="flex items-center gap-1.5 text-slate-600 font-semibold text-xs">
                       <span>{currentSpeedLabel}</span>
                       <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 transition-colors" />
@@ -1129,8 +1392,8 @@ export default function PremiumVideoPlayer({
               )}
 
               {settingsView === "quality" && (
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1.5 border-b border-slate-100 pb-2 mb-1 px-2 pt-1">
+                <div className="flex flex-col min-h-0 flex-1">
+                  <div className="shrink-0 flex items-center gap-1.5 border-b border-slate-100 pb-1.5 mb-1 px-2 pt-0.5">
                     <button
                       type="button"
                       onClick={() => setSettingsView("main")}
@@ -1140,7 +1403,7 @@ export default function PremiumVideoPlayer({
                       <span>Quality</span>
                     </button>
                   </div>
-                  <div className="max-h-56 overflow-y-auto space-y-0.5">
+                  <div className="flex-1 min-h-0 overflow-y-auto space-y-0.5 pr-0.5">
                     {VIDEO_QUALITY_OPTIONS.map((opt) => {
                       const isSelected = selectedQuality === opt.value;
                       return (
@@ -1148,7 +1411,7 @@ export default function PremiumVideoPlayer({
                           type="button"
                           key={opt.value}
                           onClick={() => handleSelectQuality(opt.value)}
-                          className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-semibold transition-colors cursor-pointer ${
+                          className={`flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-left text-xs font-semibold transition-colors cursor-pointer ${
                             isSelected
                               ? "bg-emerald-50 text-emerald-800 font-bold"
                               : "text-slate-700 hover:bg-slate-100"
@@ -1183,8 +1446,8 @@ export default function PremiumVideoPlayer({
               )}
 
               {settingsView === "speed" && (
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1.5 border-b border-slate-100 pb-2 mb-1 px-2 pt-1">
+                <div className="flex flex-col min-h-0 flex-1">
+                  <div className="shrink-0 flex items-center gap-1.5 border-b border-slate-100 pb-1.5 mb-1 px-2 pt-0.5">
                     <button
                       type="button"
                       onClick={() => setSettingsView("main")}
@@ -1196,7 +1459,7 @@ export default function PremiumVideoPlayer({
                     </button>
                   </div>
                   <div
-                    className="max-h-56 overflow-y-auto space-y-0.5"
+                    className="flex-1 min-h-0 overflow-y-auto space-y-0.5 pr-0.5"
                     aria-label="Vitesse de lecture"
                   >
                     {COURSE_VIDEO_PLAYBACK_RATES.map((rate) => {
@@ -1206,7 +1469,7 @@ export default function PremiumVideoPlayer({
                           type="button"
                           key={rate}
                           onClick={() => handleSelectSpeed(rate)}
-                          className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-semibold transition-colors cursor-pointer ${
+                          className={`flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-left text-xs font-semibold transition-colors cursor-pointer ${
                             isSelected
                               ? "bg-emerald-50 text-emerald-800 font-bold"
                               : "text-slate-700 hover:bg-slate-100"

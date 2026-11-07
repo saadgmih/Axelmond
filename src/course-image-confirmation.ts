@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { isAllowedAvatarUrl } from "./avatar-security";
 import { utapi } from "./uploadthing-api";
+import { prisma } from "./db";
 
 const COURSE_IMAGE_CUSTOM_ID_PREFIX = "course-image-v1";
 
@@ -61,6 +62,22 @@ export async function resolveConfirmedCourseImage(
   const normalizedCustomId = String(customId || "").trim();
   if (!isCourseImageCustomIdFor(normalizedCustomId, courseId, userId)) {
     throw new CourseImageConfirmationError("Confirmation de l'image du module invalide", 403);
+  }
+
+  // 1. Check if course already has this native image set by native storage
+  try {
+    const course = await prisma.course.findUnique({
+      where: { id: courseId },
+      select: { imageUrl: true, imageKey: true },
+    });
+    if (course?.imageUrl && course?.imageKey && isAllowedAvatarUrl(course.imageUrl)) {
+      return {
+        imageUrl: course.imageUrl,
+        imageKey: course.imageKey,
+      };
+    }
+  } catch {
+    // If DB check fails or in unit tests, proceed to getFileUrls
   }
 
   let remoteFiles: Awaited<ReturnType<GetFileUrls>>;

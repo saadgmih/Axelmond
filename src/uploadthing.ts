@@ -1,7 +1,10 @@
+import fs from "node:fs";
+import path from "node:path";
 import { createUploadthing, type FileRouter, UTFiles } from "uploadthing/express";
 import { UploadThingError } from "uploadthing/server";
 import { z } from "zod";
 import { prisma } from "./db";
+import { getMediaRootDir } from "./server/native-storage-routes";
 import { verifyAuthToken } from "./auth-token";
 import { canManageContent, isTeacherSpaceRole, normalizeRole } from "./rbac";
 import { isAllowedAvatarUrl, isAllowedRasterImageMime, isAllowedRasterImageUpload } from "./avatar-security";
@@ -90,12 +93,33 @@ export async function deleteCloudFiles(fileKeys: string | string[]) {
   try {
     const keys = Array.isArray(fileKeys) ? fileKeys : [fileKeys];
     if (keys.length === 0) return;
-    await utapi.deleteFiles(keys);
-    console.log(
-      `[${new Date().toISOString()}] [INFO] [uploadthing] Cloud files deleted successfully: ${JSON.stringify(keys)}`,
-    );
+    const mediaRoot = getMediaRootDir();
+    for (const key of keys) {
+      if (!key) continue;
+      const cleanKey = key.replace(/^\/media\//, "").replace(/\.\./g, "");
+      const candidates = [
+        path.join(mediaRoot, cleanKey),
+        path.join(mediaRoot, "images", cleanKey),
+        path.join(mediaRoot, "documents", cleanKey),
+        path.join(mediaRoot, "videos", cleanKey),
+        path.join(mediaRoot, "avatars", cleanKey),
+        path.join(mediaRoot, "attachments", cleanKey),
+      ];
+      for (const p of candidates) {
+        if (fs.existsSync(p)) {
+          try {
+            await fs.promises.unlink(p);
+            console.log(`[storage] Local file deleted successfully: ${p}`);
+          } catch {}
+          break;
+        }
+      }
+    }
+    if (process.env.UPLOADTHING_TOKEN) {
+      await utapi.deleteFiles(keys).catch(() => undefined);
+    }
   } catch (err) {
-    console.error(`[${new Date().toISOString()}] [ERROR] [uploadthing] Cloud deletion failed: ${String(err)}`);
+    console.error(`[storage] File deletion failed: ${String(err)}`);
   }
 }
 

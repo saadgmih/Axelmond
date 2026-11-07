@@ -106,8 +106,9 @@ describe("PdfLessonViewer state machine and validation", () => {
     fireEvent.click(screen.getByRole("button", { name: "Simuler le chargement du PDF" }));
 
     // Now ready, page 1 of 5
-    const previousPageButton = screen.getByRole("button", { name: "Page précédente" });
-    expect(previousPageButton.parentElement?.textContent).toContain("1 / 5");
+    const previousPageButtons = screen.getAllByRole("button", { name: "Page précédente" });
+    expect(previousPageButtons.length).toBeGreaterThan(0);
+    expect(previousPageButtons[0].parentElement?.textContent).toContain("1 / 5");
   });
 
   it("handles strict PDF validation error correctly and supports retry", async () => {

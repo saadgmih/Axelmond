@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { execFile } from "child_process";
 import { prisma } from "../db";
-import { utapi } from "../uploadthing-api";
+import { getMediaRootDir, ensureMediaDirectories } from "../server/native-storage-routes";
 import { getBrandingConfig, VideoIntroConfig } from "./video-branding-config";
 import { syncPublishedLessonModules } from "../course-curriculum-sync";
 import { notifyPublishedLessonContent } from "../academic-notifications";
@@ -481,33 +481,30 @@ export async function processVideoJob(jobId: string, signal?: AbortSignal): Prom
       "-y",
     ]);
 
-    // 7. Upload final video and thumbnail to UploadThing
+    // 7. Store final video and thumbnail in native Hetzner storage
     await prisma.videoProcessingJob.update({
       where: { id: jobId },
-      data: { status: "ENCODING", currentStep: "Téléversement des fichiers finaux..." },
+      data: { status: "ENCODING", currentStep: "Enregistrement des fichiers finaux..." },
     });
 
-    console.log(`[branding-service] Uploading final files to UploadThing...`);
-    const finalVideoBuffer = fs.readFileSync(finalOutputPath);
-    const finalVideoFile = new globalThis.File([finalVideoBuffer], `${jobId}-final.mp4`, { type: "video/mp4" });
+    console.log(`[branding-service] Saving final files to native Hetzner storage...`);
+    ensureMediaDirectories();
+    const mediaRoot = getMediaRootDir();
+    const destVideoPath = path.join(mediaRoot, "videos", `${jobId}-final.mp4`);
+    const destThumbPath = path.join(mediaRoot, "images", `${jobId}-thumb.jpg`);
 
-    const thumbBuffer = fs.readFileSync(thumbnailPath);
-    const thumbFile = new globalThis.File([thumbBuffer], `${jobId}-thumb.jpg`, { type: "image/jpeg" });
+    fs.copyFileSync(finalOutputPath, destVideoPath);
+    fs.copyFileSync(thumbnailPath, destThumbPath);
 
-    const uploadResults = await utapi.uploadFiles([finalVideoFile, thumbFile]);
+    const videoStat = fs.statSync(destVideoPath);
+    const videoUrl = `/media/videos/${jobId}-final.mp4`;
+    const videoKey = `${jobId}-final.mp4`;
+    const thumbUrl = `/media/images/${jobId}-thumb.jpg`;
     throwIfJobAborted();
-    const videoUpload = uploadResults[0];
-    const thumbUpload = uploadResults[1];
 
-    if (!videoUpload?.data || !thumbUpload?.data) {
-      throw new Error(
-        `Upload to UploadThing failed. Video: ${JSON.stringify(videoUpload?.error)}, Thumb: ${JSON.stringify(thumbUpload?.error)}`,
-      );
-    }
-
-    console.log(`[branding-service] Final upload complete:`, {
-      videoUrl: videoUpload.data.url,
-      thumbUrl: thumbUpload.data.url,
+    console.log(`[branding-service] Final storage complete:`, {
+      videoUrl,
+      thumbUrl,
     });
 
     // 8. Update database and publish
@@ -519,15 +516,14 @@ export async function processVideoJob(jobId: string, signal?: AbortSignal): Prom
       });
 
       if (content) {
-        // Delete old attachment from UploadThing
         const oldAttachment = content.attachments[0];
         if (oldAttachment) {
           await tx.attachment.update({
             where: { id: oldAttachment.id },
             data: {
-              url: videoUpload.data.url,
-              fileKey: videoUpload.data.key,
-              size: finalVideoBuffer.length,
+              url: videoUrl,
+              fileKey: videoKey,
+              size: videoStat.size,
             },
           });
         }
@@ -562,9 +558,9 @@ export async function processVideoJob(jobId: string, signal?: AbortSignal): Prom
       data: {
         status: "READY",
         currentStep: "Traitement terminé avec succès !",
-        outputVideoPath: videoUpload.data.url,
+        outputVideoPath: videoUrl,
         outputDuration: finalInfo.duration,
-        outputSizeBytes: finalVideoBuffer.length,
+        outputSizeBytes: videoStat.size,
         progressPercent: 100,
         completedAt: new Date(),
       },

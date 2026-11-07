@@ -19,7 +19,7 @@ const CSRF_EXEMPT_PATHS = new Set([
   "/api/auth/mfa/passkey/login/verify",
 ]);
 
-const CSRF_EXEMPT_PREFIXES = ["/api/uploadthing", "/api/paypal/webhook"];
+const CSRF_EXEMPT_PREFIXES = ["/api/uploadthing", "/api/storage", "/api/paypal/webhook"];
 
 function isCsrfExempt(req: Request): boolean {
   if (!UNSAFE_METHODS.has(req.method)) return true;

@@ -13,7 +13,6 @@ const REQUIRED_PRODUCTION_ENV = [
   "LIVEKIT_URL",
   "LIVEKIT_API_KEY",
   "LIVEKIT_API_SECRET",
-  "UPLOADTHING_TOKEN",
   "SMTP_HOST",
   "SMTP_USER",
   "SMTP_PASS",
@@ -28,7 +27,6 @@ const HIGH_ENTROPY_SECRET_ENV = [
   "EMAIL_VERIFICATION_SECRET",
   "MFA_ENCRYPTION_KEY",
   "LIVEKIT_API_SECRET",
-  "UPLOADTHING_TOKEN",
   "VAPID_PRIVATE_KEY",
   "MOBILE_CLIENT_SECRET",
 ] as const;
@@ -39,7 +37,6 @@ const DISTINCT_SECRET_ENV = [
   "MFA_ENCRYPTION_KEY",
   "PAYPAL_CLIENT_SECRET",
   "LIVEKIT_API_SECRET",
-  "UPLOADTHING_TOKEN",
   "SMTP_PASS",
   "VAPID_PRIVATE_KEY",
   "MOBILE_CLIENT_SECRET",
@@ -118,10 +115,6 @@ export function validateProductionConfiguration(env: NodeJS.ProcessEnv = process
 
   if (readEnv(env, "PAYPAL_ENV").toLowerCase() !== "live") {
     issues.push("PAYPAL_ENV must be live in production");
-  }
-
-  if (readEnv(env, "UPLOADTHING_IS_DEV").toLowerCase() === "true") {
-    issues.push("UPLOADTHING_IS_DEV must be false in production");
   }
 
   if (!readEnv(env, "MOBILE_CLIENT_SECRET")) {

@@ -175,7 +175,15 @@ const dbMocks = vi.hoisted(() => {
         return { count };
       }),
       findUnique: vi.fn().mockImplementation(async ({ where }) => jobs[where.id] || null),
-      findFirst: vi.fn().mockImplementation(async () => Object.values(jobs)[0] || null),
+      findFirst: vi.fn().mockImplementation(async ({ where }) => {
+        if (!where) return Object.values(jobs)[0] || null;
+        return (
+          Object.values(jobs).find((j: any) => {
+            if (where.contentId && j.contentId !== where.contentId) return false;
+            return true;
+          }) || null
+        );
+      }),
       delete: vi.fn().mockImplementation(async ({ where }) => {
         const job = jobs[where.id];
         delete jobs[where.id];
@@ -537,7 +545,7 @@ describe("Video Branding Automatic Pipeline", () => {
       // 3. Assertions
       const updatedJob = await prisma.videoProcessingJob.findUnique({ where: { id: job.id } });
       expect(updatedJob?.status).toBe("READY");
-      expect(updatedJob?.outputVideoPath).toBe("https://example.com/mock-video.mp4");
+      expect(updatedJob?.outputVideoPath).toBe(`/media/videos/${job.id}-final.mp4`);
       expect(updatedJob?.outputDuration).toBeDefined();
 
       const updatedLesson = await prisma.lessonContent.findUnique({
@@ -545,7 +553,7 @@ describe("Video Branding Automatic Pipeline", () => {
         include: { attachments: true },
       });
       expect(updatedLesson?.status).toBe("READY");
-      expect(updatedLesson?.attachments[0]?.url).toBe("https://example.com/mock-video.mp4");
+      expect(updatedLesson?.attachments[0]?.url).toBe(`/media/videos/${job.id}-final.mp4`);
 
       // Cleanup
       await prisma.videoProcessingJob.delete({ where: { id: job.id } });

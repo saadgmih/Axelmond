@@ -71,7 +71,8 @@ export const ACADEMIC_LINK_HOSTS = {
 export function sanitizeCourseAttachmentUrl(value: unknown): string | null {
   if (typeof value === "string") {
     const trimmed = value.trim();
-    if (trimmed.startsWith("/hls/")) {
+    if (trimmed.startsWith("/hls/") || trimmed.startsWith("/media/")) {
+      if (trimmed.includes("..") || trimmed.includes("<") || trimmed.includes(">")) return null;
       return trimmed.slice(0, 2048);
     }
   }

@@ -228,9 +228,9 @@ export default function PublicResourceView({ currentUser, navigateTo }: PublicRe
       </header>
 
       {/* ── Main Content Area ─────────────────────────────────────────── */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-5 sm:space-y-6 min-w-0">
-        {/* Title & Metadata Card */}
-        <div className="bg-[#052820]/90 border border-emerald-500/20 rounded-3xl p-5 sm:p-7 shadow-xl shadow-black/40 space-y-3">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 py-3 sm:py-8 space-y-4 sm:space-y-6 min-w-0">
+        {/* ── Title & Metadata Card (Positionné en premier) ───────────── */}
+        <div className="mx-3 sm:mx-0 bg-[#052820]/90 border border-emerald-500/20 rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-xl shadow-black/40 space-y-3">
           <div className="flex flex-wrap items-center gap-2.5">
             <span className="px-2.5 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider bg-emerald-600 text-white shadow-sm">
               {resource.moduleName}
@@ -267,7 +267,7 @@ export default function PublicResourceView({ currentUser, navigateTo }: PublicRe
             )}
           </div>
 
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight leading-snug">
+          <h1 className="text-lg sm:text-2xl md:text-3xl font-black text-white tracking-tight leading-snug">
             {resource.title}
           </h1>
 
@@ -279,10 +279,10 @@ export default function PublicResourceView({ currentUser, navigateTo }: PublicRe
           )}
         </div>
 
-        {/* ── Player / Media Viewer Container ─────────────────────────── */}
-        <div className="w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-black border border-emerald-500/25 shadow-2xl">
+        {/* ── Player / Media Viewer Container (Positionné au milieu, pleine largeur bord à bord sur mobile) ── */}
+        <div className="w-full sm:rounded-3xl overflow-hidden bg-black border-y sm:border border-emerald-500/25 shadow-2xl">
           {loading ? (
-            <div className="aspect-video w-full flex flex-col items-center justify-center bg-black/80 gap-3 text-emerald-300">
+            <div className="aspect-video w-full flex flex-col items-center justify-center bg-black/80 gap-3 text-emerald-300 min-h-[220px] sm:min-h-[280px]">
               <div className="w-10 h-10 border-4 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin" />
               <p className="text-xs font-semibold">Chargement de la ressource...</p>
             </div>
@@ -298,7 +298,7 @@ export default function PublicResourceView({ currentUser, navigateTo }: PublicRe
             />
           ) : resource.type === "PDF" ? (
             <div className="relative flex flex-col bg-slate-950 p-4 sm:p-6 space-y-4 overflow-hidden">
-              <AntiCaptureShield active={docShieldActive} onDismiss={dismissDocShield} />
+              <AntiCaptureShield active={docShieldActive} onDismiss={dismissDocShield} contentType="pdf" />
               <div className="flex items-center justify-between gap-4">
                 <span className="text-xs font-semibold text-slate-300">Aperçu du document PDF :</span>
                 <div className="flex items-center gap-2">
@@ -329,7 +329,7 @@ export default function PublicResourceView({ currentUser, navigateTo }: PublicRe
             </div>
           ) : (
             <div className="relative p-4 sm:p-8 flex flex-col items-center justify-center bg-slate-950 overflow-hidden">
-              <AntiCaptureShield active={docShieldActive} onDismiss={dismissDocShield} />
+              <AntiCaptureShield active={docShieldActive} onDismiss={dismissDocShield} contentType="image" />
               <img
                 src={resource.url}
                 alt={resource.title}
@@ -339,8 +339,8 @@ export default function PublicResourceView({ currentUser, navigateTo }: PublicRe
           )}
         </div>
 
-        {/* ── Training Invitation Card ─────────────────────────────────── */}
-        <div className="rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-[#04241d] via-[#031c16] to-[#02130f] p-6 sm:p-8 shadow-xl relative overflow-hidden">
+        {/* ── Training Invitation Card (En bas) ─────────────────────────────────── */}
+        <div className="mx-3 sm:mx-0 rounded-2xl sm:rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-[#04241d] via-[#031c16] to-[#02130f] p-5 sm:p-8 shadow-xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
@@ -414,17 +414,15 @@ export default function PublicResourceView({ currentUser, navigateTo }: PublicRe
                           key={vid.id}
                           href={vid.publicPath}
                           onClick={() => setPlaylistDrawerOpen(false)}
-                          className={`p-3.5 rounded-xl border flex items-center justify-between text-xs transition-all ${
-                            isActive
+                          className={`p-3.5 rounded-xl border flex items-center justify-between text-xs transition-all ${isActive
                               ? "bg-emerald-600 border-emerald-400 text-white font-bold shadow-md shadow-emerald-950/40"
                               : "bg-slate-900/60 border-slate-800 text-slate-300 hover:bg-emerald-950/50 hover:text-white hover:border-emerald-500/30"
-                          }`}
+                            }`}
                         >
                           <div className="flex items-center gap-2.5 min-w-0 pr-2">
                             <span
-                              className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
-                                isActive ? "bg-white/20 text-white" : "bg-slate-800 text-slate-400"
-                              }`}
+                              className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${isActive ? "bg-white/20 text-white" : "bg-slate-800 text-slate-400"
+                                }`}
                             >
                               {idx + 1}
                             </span>

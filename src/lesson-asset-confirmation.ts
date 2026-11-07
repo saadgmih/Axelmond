@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { isAllowedAvatarUrl } from "./avatar-security";
 import { utapi } from "./uploadthing-api";
+import { prisma } from "./db";
 
 const LESSON_ASSET_CUSTOM_ID_PREFIX = "lesson-asset-v1";
 
@@ -100,6 +101,23 @@ export async function resolveConfirmedLessonAsset(
   const normalizedCustomId = String(customId || "").trim();
   if (!isLessonAssetCustomIdFor(normalizedCustomId, intent, userId)) {
     throw new LessonAssetConfirmationError("Confirmation du média pédagogique invalide", 403);
+  }
+
+  // 1. Check if the asset was already created and persisted natively in the database
+  const contentId = lessonAssetContentId(normalizedCustomId);
+  try {
+    const existingContent = await prisma.lessonContent.findUnique({
+      where: { id: contentId },
+      include: { attachments: true },
+    });
+    if (existingContent && existingContent.attachments.length > 0) {
+      const attachment = existingContent.attachments[0];
+      if (attachment.fileKey && attachment.url && isAllowedAvatarUrl(attachment.url)) {
+        return { fileKey: attachment.fileKey, url: attachment.url };
+      }
+    }
+  } catch {
+    // If DB check fails or in unit tests, proceed to getFileUrls
   }
 
   let remoteFiles: Awaited<ReturnType<GetFileUrls>>;

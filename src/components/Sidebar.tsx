@@ -423,6 +423,7 @@ export default function Sidebar({
       storageKey="axelmond_sidebar_toggle_position"
       ariaLabel={sidebarToggleLabel}
       ariaPressed={isDrawer ? isMobileMenuOpen : isDockedHidden}
+      inactive={isDrawer && isMobileMenuOpen}
       title="Glisser pour déplacer, cliquer pour basculer la barre latérale"
       onActivate={handleSidebarToggle}
       className="sidebar-collapse-toggle"
@@ -469,10 +470,12 @@ export default function Sidebar({
   if (isDrawer) {
     return (
       <>
-        {floatingSidebarToggle}
-        <div className="sidebar-shell sidebar-shell-drawer relative z-[80] h-full w-0 shrink-0">
+        <div className="relative z-[10000000]">
+          {floatingSidebarToggle}
+        </div>
+        <div className="sidebar-shell sidebar-shell-drawer relative z-[10000001] h-full w-0 shrink-0">
           <aside
-            className={`sidebar-glass sidebar-drawer fixed z-[80] flex h-full w-[var(--sidebar-expanded-width)] flex-col text-white transition-transform duration-300 ease-out ${
+            className={`sidebar-glass sidebar-drawer fixed z-[10000002] flex h-full w-[var(--sidebar-expanded-width)] flex-col text-white transition-transform duration-300 ease-out ${
               isMobileMenuOpen ? "translate-x-0" : "pointer-events-none -translate-x-[calc(100%+1.5rem)]"
             }`}
             aria-label="Barre latérale de navigation"

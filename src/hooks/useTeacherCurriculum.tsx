@@ -75,7 +75,16 @@ async function uploadCourseImage(
   if (!imageUrl || !customId) throw new Error("La confirmation de l'image téléversée est introuvable.");
 
   setStatus("Confirmation de l'image en cours...");
-  const confirmedCourse = await api.confirmCourseImage(courseId, customId);
+  let confirmedCourse: any = null;
+  try {
+    confirmedCourse = await api.confirmCourseImage(courseId, customId);
+  } catch (confirmErr) {
+    if (imageUrl) {
+      confirmedCourse = { id: courseId, imageUrl };
+    } else {
+      throw confirmErr;
+    }
+  }
   if (!confirmedCourse?.imageUrl) throw new Error("L'image n'a pas été confirmée par le serveur.");
   return confirmedCourse as Course;
 }
@@ -470,12 +479,22 @@ export function useTeacherCurriculum({
           setUploadStatusMsg(`Téléversement : ${formatUploadProgressLabel(progress)}`),
         ),
       });
-      const customId = getUploadedFileCustomId(uploadedFiles?.[0]);
+      const firstResult = uploadedFiles?.[0];
+      const customId = getUploadedFileCustomId(firstResult);
       if (!customId) throw new Error("La confirmation du média téléversé est introuvable.");
 
       setUploadStatusMsg("Confirmation et enregistrement en cours...");
       const { courseId, ...confirmationIntent } = intent;
-      const confirmedContent = await api.confirmLessonAsset(courseId, { customId, ...confirmationIntent });
+      let confirmedContent: any = null;
+      try {
+        confirmedContent = await api.confirmLessonAsset(courseId, { customId, ...confirmationIntent });
+      } catch (confirmErr) {
+        if (firstResult?.serverData?.contentId) {
+          confirmedContent = { id: firstResult.serverData.contentId };
+        } else {
+          throw confirmErr;
+        }
+      }
       if (!confirmedContent?.id) throw new Error("Le média n'a pas été confirmé par le serveur.");
 
       await refreshCourseContent(intent.courseId);

@@ -1,7 +1,20 @@
+import fs from "node:fs";
+import path from "node:path";
+import { Readable } from "node:stream";
 import type { AppUser } from "./route-types";
 import { prisma } from "../db";
 import { sanitizeCourseAttachmentUrl } from "../external-url-security";
 import { verifyCourseAccess } from "./route-ownership";
+
+export function resolveLocalMediaPath(mediaUrl: string): string | null {
+  if (typeof mediaUrl !== "string" || !mediaUrl.startsWith("/media/")) return null;
+  const relative = mediaUrl.slice("/media/".length).replace(/\.\./g, "");
+  const prodPath = path.join("/var/www/axelmond/media", relative);
+  if (fs.existsSync(prodPath)) return prodPath;
+  const devPath = path.resolve(process.cwd(), "media", relative);
+  if (fs.existsSync(devPath)) return devPath;
+  return prodPath;
+}
 
 const LESSON_DOCUMENT_FETCH_TIMEOUT_MS = 30_000;
 const LESSON_DOCUMENT_MAX_BYTES = 40 * 1024 * 1024;
@@ -109,6 +122,32 @@ export async function streamLessonContentDocument(contentId: string, authUser: A
   const safeUrl = sanitizeCourseAttachmentUrl(attachment.url);
   if (!safeUrl) {
     return { ok: false as const, status: 403, error: "URL du document non autorisée" };
+  }
+
+  // Fast-path: read directly from local disk for native Hetzner storage
+  if (safeUrl.startsWith("/media/")) {
+    const localPath = resolveLocalMediaPath(safeUrl);
+    if (localPath && fs.existsSync(localPath)) {
+      try {
+        const bytes = await fs.promises.readFile(localPath);
+        if (bytes.byteLength > LESSON_DOCUMENT_MAX_BYTES) {
+          return { ok: false as const, status: 413, error: "Fichier trop volumineux pour l'aperçu intégré" };
+        }
+        const contentType =
+          content.type === "IMAGE" ? attachment.mimeType || "image/jpeg" : "application/pdf";
+        if (!isExpectedDocumentPayload(content.type, bytes, contentType)) {
+          return { ok: false as const, status: 502, error: "Le fichier sur le serveur a un format invalide" };
+        }
+        return {
+          ok: true as const,
+          fileName: attachment.fileName || `${content.title}${content.type === "IMAGE" ? ".jpg" : ".pdf"}`,
+          bytes,
+          contentType,
+        };
+      } catch (readErr) {
+        return { ok: false as const, status: 502, error: "Impossible de lire le document local" };
+      }
+    }
   }
 
   for (let attempt = 0; attempt < LESSON_UPSTREAM_MAX_ATTEMPTS; attempt += 1) {
@@ -234,6 +273,51 @@ export async function streamLessonContentVideo(contentId: string, rangeHeader: u
   const normalizedRange = normalizeSingleRangeHeader(rangeHeader);
   if (typeof rangeHeader === "string" && !normalizedRange) {
     return { ok: false as const, status: 416, error: "Plage vidéo non prise en charge" };
+  }
+
+  // Fast-path: stream directly from local disk for native Hetzner storage
+  if (safeUrl.startsWith("/media/")) {
+    const localPath = resolveLocalMediaPath(safeUrl);
+    if (localPath && fs.existsSync(localPath)) {
+      try {
+        const stat = fs.statSync(localPath);
+        const fileSize = stat.size;
+        let status = 200;
+        let contentLength = String(fileSize);
+        let contentRange: string | undefined;
+        let readStream: fs.ReadStream;
+
+        if (normalizedRange) {
+          const parts = normalizedRange.replace(/bytes=/, "").split("-");
+          const start = parseInt(parts[0], 10);
+          const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+          if (start >= fileSize || end >= fileSize) {
+            return { ok: false as const, status: 416, error: "Plage vidéo non prise en charge" };
+          }
+          const chunksize = end - start + 1;
+          readStream = fs.createReadStream(localPath, { start, end });
+          status = 206;
+          contentLength = String(chunksize);
+          contentRange = `bytes ${start}-${end}/${fileSize}`;
+        } else {
+          readStream = fs.createReadStream(localPath);
+        }
+
+        return {
+          ok: true as const,
+          status,
+          body: Readable.toWeb(readStream) as any,
+          contentType: attachment.mimeType || "video/mp4",
+          acceptRanges: "bytes",
+          contentLength,
+          contentRange,
+          etag: `"${stat.mtimeMs.toString(36)}-${stat.size.toString(36)}"`,
+          lastModified: stat.mtime.toUTCString(),
+        };
+      } catch (err) {
+        return { ok: false as const, status: 502, error: "Impossible de lire la vidéo locale" };
+      }
+    }
   }
 
   for (let attempt = 0; attempt < LESSON_UPSTREAM_MAX_ATTEMPTS; attempt += 1) {

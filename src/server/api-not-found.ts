@@ -24,7 +24,8 @@ export function createUnknownApiRouteGuard(app: express.Express): express.Reques
           layer.regexp.test(pathname),
       ),
     );
-    const isRegisteredMiddlewareRoute = pathname.startsWith("/api/uploadthing");
+    const isRegisteredMiddlewareRoute =
+      pathname.startsWith("/api/uploadthing") || pathname.startsWith("/api/storage");
     if (!isRegisteredRoute && !isRegisteredMiddlewareRoute) {
       res.status(404).json({ error: "Route API introuvable", code: "API_ROUTE_NOT_FOUND" });
       return;

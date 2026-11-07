@@ -230,6 +230,14 @@ export function UserProfileViewerProvider({
   const close = useCallback(() => setTarget(null), []);
   const openUserProfile = useCallback((userId: string, fallbackName = "Utilisateur") => {
     if (!userId) return;
+    // Pause any background video/audio cleanly when opening professor profile modal
+    if (typeof document !== "undefined") {
+      document.querySelectorAll("video, audio").forEach((el) => {
+        try {
+          (el as HTMLMediaElement).pause();
+        } catch {}
+      });
+    }
     setSaveStatus("");
     setSaveError("");
     setTarget({ userId, fallbackName });
@@ -308,7 +316,8 @@ export function UserProfileViewerProvider({
       {target &&
         createPortal(
           <div
-            className="fixed inset-0 z-[180] flex items-center justify-center bg-black/75 p-3 backdrop-blur-md sm:p-6"
+            data-internal-modal="true"
+            className="user-profile-modal fixed inset-0 z-[180] flex items-center justify-center bg-black/75 p-3 backdrop-blur-md sm:p-6"
             onMouseDown={(event) => {
               if (event.target === event.currentTarget) close();
             }}

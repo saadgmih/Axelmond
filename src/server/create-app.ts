@@ -10,6 +10,7 @@ import { createRouteContext, type RouteContext } from "./route-context";
 import { registerApiRoutes } from "../routes/register-api-routes";
 import { registerPayPalWebhook } from "../routes/payments-routes";
 import { uploadRouter } from "../uploadthing";
+import { registerNativeStorageRoutes, getMediaRootDir } from "./native-storage-routes";
 import { requestTimingMiddleware } from "../performance";
 import {
   JSON_BODY_LIMIT,
@@ -201,7 +202,13 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
   }
 
   app.use((_req, res, next) => {
-    res.setHeader("Permissions-Policy", "camera=(self), microphone=(self), geolocation=(), payment=(self)");
+    res.setHeader(
+      "Permissions-Policy",
+      "camera=(self), microphone=(self), geolocation=(), payment=(self), display-capture=(self), screen-wake-lock=(self)"
+    );
+    res.setHeader("X-Permitted-Cross-Domain-Policies", "none");
+    res.setHeader("X-Download-Options", "noopen");
+    res.setHeader("X-XSS-Protection", "1; mode=block");
     next();
   });
 
@@ -559,6 +566,7 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
   app.use("/api/auth/mfa/passkey/login/options", authRateLimiter);
   app.use("/api/auth/mfa/passkey/login/verify", authRateLimiter);
   app.use("/api/uploadthing", uploadRateLimiter);
+  app.use("/api/storage/upload", uploadRateLimiter);
   app.use("/api/me/avatar", uploadRateLimiter);
   app.use("/api/livekit/token", liveKitRateLimiter);
   app.use("/api/livekit/moderation", liveKitModerationRateLimiter);
@@ -572,18 +580,24 @@ export function createAxelmondApp(options?: { port?: number }): AxelmondApp {
   app.use("/api/admin", adminRouteRateLimiter);
   app.use("/api/test-email", adminDiagnosticRateLimiter);
 
-  app.use(
-    "/api/uploadthing",
-    createRouteHandler({
-      router: uploadRouter,
-      config: {
-        token: process.env.UPLOADTHING_TOKEN,
-        callbackUrl: uploadThingCallbackUrl,
-        isDev: isUploadThingDevMode,
-        logLevel: process.env.LOG_LEVEL === "debug" ? "Debug" : "Info",
-      },
-    }),
-  );
+  // Native Hetzner media storage
+  app.use("/media", express.static(getMediaRootDir(), { maxAge: "1d" }));
+  registerNativeStorageRoutes(app);
+
+  if (process.env.UPLOADTHING_TOKEN) {
+    app.use(
+      "/api/uploadthing",
+      createRouteHandler({
+        router: uploadRouter,
+        config: {
+          token: process.env.UPLOADTHING_TOKEN,
+          callbackUrl: uploadThingCallbackUrl,
+          isDev: isUploadThingDevMode,
+          logLevel: process.env.LOG_LEVEL === "debug" ? "Debug" : "Info",
+        },
+      }),
+    );
+  }
 
   app.use("/api", (req, res, next) => {
     res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");

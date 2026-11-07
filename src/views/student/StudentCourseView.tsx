@@ -102,6 +102,16 @@ export default function StudentCourseView({
   const isApp = useIsNativeApp();
 
   useEffect(() => {
+    if (isModuleDrawerOpen && typeof document !== "undefined") {
+      document.querySelectorAll("video, audio").forEach((el) => {
+        try {
+          (el as HTMLMediaElement).pause();
+        } catch {}
+      });
+    }
+  }, [isModuleDrawerOpen]);
+
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
       if (
@@ -364,9 +374,8 @@ export default function StudentCourseView({
                   onModuleSelect(mod);
                   setIsModuleDrawerOpen(false);
                 }}
-                className={`w-full text-left px-3.5 py-3 min-h-[44px] rounded-xl text-xs font-semibold flex items-start gap-2.5 transition-all ${
-                  isCurrent ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"
-                }`}
+                className={`w-full text-left px-3.5 py-3 min-h-[44px] rounded-xl text-xs font-semibold flex items-start gap-2.5 transition-all ${isCurrent ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"
+                  }`}
               >
                 <div className="mt-0.5 flex-shrink-0">
                   {mod.completed ? (
@@ -385,12 +394,11 @@ export default function StudentCourseView({
                 <div className="flex-1 min-w-0">
                   <p className="truncate leading-tight font-bold">{mod.title}</p>
                   <span
-                    className={`text-[10px] block mt-1 uppercase font-semibold truncate ${
-                      isCurrent ? "text-emerald-300" : "text-slate-400"
-                    }`}
+                    className={`text-[10px] block mt-1 uppercase font-semibold truncate ${isCurrent ? "text-emerald-300" : "text-slate-400"
+                      }`}
                   >
                     {mod.type === "video"
-                      ? "Module Vidéo"
+                      ? "Vidéo"
                       : mod.type === "pdf"
                         ? "Document PDF"
                         : mod.type === "image"
@@ -423,12 +431,13 @@ export default function StudentCourseView({
 
   return (
     <div className="flex flex-col lg:flex-row h-full min-h-0 overflow-hidden">
-      <div className="lg:hidden">
+      <div className="lg:hidden relative z-[10000000]">
         <LayoutFloatingToggle
           anchor="module"
           storageKey="axelmond_module_plan_toggle_position"
           ariaLabel={isModuleDrawerOpen ? "Fermer le plan du cours" : "Ouvrir le plan du cours"}
           ariaPressed={isModuleDrawerOpen}
+          inactive={isModuleDrawerOpen}
           title="Glisser pour déplacer, cliquer pour basculer le plan du cours"
           onActivate={() => setIsModuleDrawerOpen((open) => !open)}
           className="module-plan-collapse-toggle"
@@ -444,15 +453,17 @@ export default function StudentCourseView({
       {isModuleDrawerOpen && (
         <button
           type="button"
+          data-internal-modal="true"
           aria-label="Fermer le plan du cours"
-          className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+          className="fixed inset-0 z-[10000001] bg-black/60 lg:hidden"
           onClick={() => setIsModuleDrawerOpen(false)}
         />
       )}
 
       {/* Left Column: Modules menu hierarchy */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-[min(320px,88vw)] bg-white border-r border-slate-200 flex flex-col overflow-hidden flex-shrink-0 transform transition-transform duration-200 lg:relative lg:translate-x-0 lg:w-80 lg:z-auto ${
+        data-internal-modal={isModuleDrawerOpen ? "true" : undefined}
+        className={`module-plan-drawer fixed inset-y-0 left-0 z-[10000002] w-[min(320px,88vw)] bg-white border-r border-slate-200 flex flex-col overflow-hidden flex-shrink-0 transform transition-transform duration-200 lg:relative lg:translate-x-0 lg:w-80 lg:z-auto ${
           isModuleDrawerOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
@@ -616,22 +627,26 @@ export default function StudentCourseView({
                         </div>
 
                         {selectedLessonContent.type === "VIDEO" && safeAttachmentUrl && (
-                          <Suspense fallback={<CourseMediaFallback label="Chargement de la vidéo…" />}>
-                            <PremiumVideoPlayer
-                              src={safeAttachmentUrl}
-                              contentId={selectedLessonContent.id}
-                              title={selectedLessonContent.title}
-                              instructor={selectedCourse.instructor}
-                              activeSector="student"
-                              currentUser={currentUser}
-                            />
-                          </Suspense>
+                          <div className="-mx-3 sm:mx-0 w-[calc(100%+1.5rem)] sm:w-full overflow-hidden rounded-none sm:rounded-2xl">
+                            <Suspense fallback={<CourseMediaFallback label="Chargement de la vidéo…" />}>
+                              <PremiumVideoPlayer
+                                src={safeAttachmentUrl}
+                                contentId={selectedLessonContent.id}
+                                title={selectedLessonContent.title}
+                                instructor={selectedCourse.instructor}
+                                activeSector="student"
+                                currentUser={currentUser}
+                              />
+                            </Suspense>
+                          </div>
                         )}
 
                         {selectedLessonContent.type === "PDF" && (
                           <Suspense fallback={<CourseMediaFallback label="Chargement du document…" />}>
                             <PdfLessonViewer
+                              key={selectedLessonContent.id}
                               contentId={selectedLessonContent.id}
+                              documentUrl={safeAttachmentUrl || undefined}
                               title={selectedLessonContent.title}
                               downloadFileName={`${selectedLessonContent.title}.pdf`}
                               currentUser={currentUser}
@@ -710,15 +725,17 @@ export default function StudentCourseView({
                     return (
                       <div className="space-y-5">
                         {safeModuleVideoUrl ? (
-                          <Suspense fallback={<CourseMediaFallback label="Chargement de la vidéo…" />}>
-                            <PremiumVideoPlayer
-                              src={safeModuleVideoUrl}
-                              title={selectedModule.title}
-                              instructor={selectedCourse.instructor}
-                              activeSector="student"
-                              currentUser={currentUser}
-                            />
-                          </Suspense>
+                          <div className="-mx-3 sm:mx-0 w-[calc(100%+1.5rem)] sm:w-full overflow-hidden rounded-none sm:rounded-2xl">
+                            <Suspense fallback={<CourseMediaFallback label="Chargement de la vidéo…" />}>
+                              <PremiumVideoPlayer
+                                src={safeModuleVideoUrl}
+                                title={selectedModule.title}
+                                instructor={selectedCourse.instructor}
+                                activeSector="student"
+                                currentUser={currentUser}
+                              />
+                            </Suspense>
+                          </div>
                         ) : (
                           <div className="relative w-full aspect-video bg-slate-950 rounded-2xl overflow-hidden shadow-md border border-slate-800 flex flex-col items-center justify-center gap-3 px-6 text-center">
                             <Video className="w-12 h-12 text-emerald-400" />
@@ -765,9 +782,9 @@ export default function StudentCourseView({
 
                         {/* Additional content description notes */}
                         <div className="bg-white border border-slate-100 rounded-2xl p-6 space-y-3.5">
-                          <h3 className="font-extrabold text-slate-800">À propos de ce module vidéo</h3>
+                          <h3 className="font-extrabold text-slate-800">À propos de cette vidéo</h3>
                           <p className="text-xs text-slate-500 leading-relaxed">
-                            Ce module vidéo interactif est préparé par la faculté d'informatique théorique de
+                            Cette vidéo interactive est préparée par la faculté d'informatique théorique de
                             Performance Académique. Il récapitule les grands principes scientifiques du sujet et
                             contient de précieux exercices pratiques à faire dans votre propre terminal.
                           </p>
@@ -1023,9 +1040,9 @@ export default function StudentCourseView({
                           {quizQuestions.map((q, idx) => {
                             const correctAnswers = q.answer
                               ? q.answer
-                                  .split(",")
-                                  .map((a) => a.trim())
-                                  .filter(Boolean)
+                                .split(",")
+                                .map((a) => a.trim())
+                                .filter(Boolean)
                               : [];
                             const isCorrect =
                               correctAnswers.includes((quizAnswers[idx] || "").trim()) || quizAnswers[idx] === q.answer;
@@ -1056,8 +1073,7 @@ export default function StudentCourseView({
                                         disabled={quizSubmitted}
                                         aria-pressed={isSelected}
                                         onClick={() => handleQuizAnswerSelect(idx, option)}
-                                        className={`group flex min-h-[76px] w-full cursor-pointer items-center justify-between gap-3 rounded-2xl border p-3.5 text-left text-xs font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#061c18] disabled:cursor-default ${
-                                          isSelected
+                                        className={`group flex min-h-[76px] w-full cursor-pointer items-center justify-between gap-3 rounded-2xl border p-3.5 text-left text-xs font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#061c18] disabled:cursor-default ${isSelected
                                             ? quizSubmitted
                                               ? isCorrect
                                                 ? "border-emerald-400/60 bg-emerald-400/[0.12] text-emerald-50 ring-1 ring-inset ring-emerald-400/20"
@@ -1066,11 +1082,10 @@ export default function StudentCourseView({
                                             : quizSubmitted && isOptionCorrect
                                               ? "border-emerald-400/50 bg-emerald-400/10 text-emerald-100 ring-1 ring-inset ring-emerald-400/15"
                                               : "border-white/[0.08] bg-[#0a2a23] text-emerald-50/85 hover:-translate-y-0.5 hover:border-emerald-300/35 hover:bg-[#0d352c] hover:text-white hover:shadow-[0_14px_28px_-22px_rgba(52,211,153,0.7)]"
-                                        }`}
+                                          }`}
                                       >
                                         <span
-                                          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[11px] font-black transition-colors ${
-                                            isSelected
+                                          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[11px] font-black transition-colors ${isSelected
                                               ? quizSubmitted
                                                 ? isCorrect
                                                   ? "bg-emerald-300 text-emerald-950"
@@ -1079,7 +1094,7 @@ export default function StudentCourseView({
                                               : quizSubmitted && isOptionCorrect
                                                 ? "bg-emerald-300 text-emerald-950"
                                                 : "border border-white/[0.06] bg-white/[0.06] text-emerald-100/55 group-hover:bg-emerald-300/15 group-hover:text-emerald-200"
-                                          }`}
+                                            }`}
                                         >
                                           {String.fromCharCode(65 + oIdx)}
                                         </span>
@@ -1131,11 +1146,10 @@ export default function StudentCourseView({
                               <>
                                 <div className="flex items-center gap-3">
                                   <div
-                                    className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border font-mono text-lg font-black ${
-                                      quizScore === quizQuestions!.length
+                                    className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border font-mono text-lg font-black ${quizScore === quizQuestions!.length
                                         ? "border-emerald-300/30 bg-emerald-300/15 text-emerald-200"
                                         : "border-teal-300/25 bg-teal-300/10 text-teal-200"
-                                    }`}
+                                      }`}
                                   >
                                     {quizScore}/{quizQuestions!.length}
                                   </div>

@@ -1,4 +1,3 @@
-import { genUploader } from "uploadthing/client";
 import { isAllowedRasterImageMime, isAllowedRasterImageUpload } from "./avatar-security";
 import {
   detectMessageAttachmentKind,
@@ -7,13 +6,91 @@ import {
   MESSAGE_VIDEO_MIME_TYPES,
   normalizeMessageAttachmentMimeType,
 } from "./message-attachment-utils";
-import type { OurFileRouter } from "./uploadthing";
 
 const viteEnv = (import.meta as any).env as { VITE_API_BASE_URL?: string };
 const apiBaseUrl = (viteEnv.VITE_API_BASE_URL || "").replace(/\/$/, "");
-export const uploadthingApiUrl = `${apiBaseUrl}/api/uploadthing`;
+export const uploadthingApiUrl = `${apiBaseUrl}/api/storage/upload`;
 
-export const { uploadFiles } = genUploader<OurFileRouter>({ url: uploadthingApiUrl });
+export interface NativeUploadOptions {
+  files: (File | Blob)[];
+  input?: any;
+  headers?: Record<string, string>;
+  onUploadProgress?: (progress: { progress: number; file?: File | Blob }) => void;
+}
+
+export async function uploadFiles(endpoint: string, options: NativeUploadOptions): Promise<any[]> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    const url = `${apiBaseUrl}/api/storage/upload?endpoint=${encodeURIComponent(endpoint)}`;
+    xhr.open("POST", url);
+
+    if (options.headers) {
+      for (const [key, val] of Object.entries(options.headers)) {
+        if (key.toLowerCase() !== "content-type") {
+          xhr.setRequestHeader(key, val);
+        }
+      }
+    }
+
+    if (options.onUploadProgress) {
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable && event.total > 0) {
+          const percent = Math.min(100, Math.max(0, Math.round((event.loaded / event.total) * 100)));
+          options.onUploadProgress?.({ progress: percent, file: options.files[0] });
+        }
+      };
+    }
+
+    xhr.onload = () => {
+      let data: any;
+      try {
+        data = JSON.parse(xhr.responseText);
+      } catch {
+        data = null;
+      }
+
+      if (xhr.status >= 200 && xhr.status < 300 && Array.isArray(data)) {
+        resolve(data);
+      } else {
+        const errorMsg =
+          data?.error ||
+          data?.message ||
+          (xhr.status === 413
+            ? "Fichier trop volumineux pour le serveur."
+            : xhr.status === 401
+              ? "Session expirée ou non autorisée."
+              : `Échec du téléversement (${xhr.status})`);
+        const err = new Error(errorMsg);
+        (err as any).serverData = data;
+        (err as any).status = xhr.status;
+        reject(err);
+      }
+    };
+
+    xhr.onerror = () => {
+      reject(new Error("Erreur de connexion réseau lors du téléversement."));
+    };
+
+    xhr.ontimeout = () => {
+      reject(new Error("Délai de téléversement dépassé."));
+    };
+
+    const formData = new FormData();
+    for (const f of options.files) {
+      if (f instanceof File) {
+        formData.append("files", f, f.name);
+      } else {
+        formData.append("files", f, "blob.bin");
+      }
+    }
+
+    if (options.input !== undefined) {
+      formData.append("input", JSON.stringify(options.input));
+    }
+
+    xhr.send(formData);
+  });
+}
 
 export {
   bindUploadProgress,

@@ -38,6 +38,9 @@ function isAllowedAvatarHost(hostname: string): boolean {
   if (host === "uploadthing.com" || host.endsWith(".uploadthing.com")) return true;
   if (host === "ufs.sh" || host.endsWith(".ufs.sh")) return true;
   if (host === "utfs.io" || host.endsWith(".utfs.io")) return true;
+  if (host === "perfacademy.ma" || host.endsWith(".perfacademy.ma")) return true;
+  if (host === "axelmond.com" || host.endsWith(".axelmond.com")) return true;
+  if (host === "localhost" || host === "127.0.0.1") return true;
   return false;
 }
 
@@ -49,6 +52,11 @@ export function isAllowedAvatarUrl(url: string): boolean {
   if (typeof url !== "string") return false;
   const trimmed = url.trim();
   if (!trimmed) return false;
+
+  // Allow native local media paths
+  if (trimmed.startsWith("/media/") || trimmed.startsWith("/hls/")) {
+    return !trimmed.includes("..") && !trimmed.includes("<") && !trimmed.includes(">");
+  }
 
   const lower = trimmed.toLowerCase();
   if (lower.startsWith("javascript:") || lower.startsWith("data:") || lower.startsWith("http://")) {

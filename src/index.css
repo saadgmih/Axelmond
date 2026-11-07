@@ -2,6 +2,62 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* UniOffice Ribbon responsive layouts: mobile-first with single clean breakpoint */
+.ribbon-desktop {
+  display: none !important;
+}
+
+.ribbon-mobile {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.ribbon-mobile-grid {
+  display: grid !important;
+}
+
+/* Tab Lecture: multi-line layout applied up to 640px (including 539px as requested in Image 1) */
+.ribbon-lecture-desktop {
+  display: none !important;
+}
+
+.ribbon-lecture-mobile {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+@media (min-width: 480px) {
+  /* Annotation and Confort tabs switch to single row at 480px */
+  .ribbon-desktop {
+    display: flex !important;
+  }
+  .ribbon-mobile {
+    display: none !important;
+  }
+  .ribbon-mobile-grid {
+    display: none !important;
+  }
+}
+
+@media (min-width: 640px) {
+  /* Lecture tab switches to single row at 640px (at 539px it stays multi-line) */
+  .ribbon-lecture-desktop {
+    display: flex !important;
+  }
+  .ribbon-lecture-mobile {
+    display: none !important;
+  }
+}
+
+/* High-Fidelity Vector PDF Canvas Rendering with Subpixel Antialiasing */
+.react-pdf__Page__canvas {
+  display: block;
+  user-select: none;
+  background-color: #ffffff;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
 .onboarding-card {
   border-color: rgba(15, 118, 110, 0.22);
   background: rgba(255, 255, 255, 0.98);
@@ -1330,8 +1386,8 @@ body {
 }
 
 .layout-floating-toggle {
-  position: fixed;
-  z-index: 95;
+  position: fixed !important;
+  z-index: 10000000 !important;
   touch-action: none;
   cursor: grab;
 }

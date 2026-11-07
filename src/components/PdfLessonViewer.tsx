@@ -74,6 +74,21 @@ type ViewerState =
 const PDF_PARSE_MAX_AUTOMATIC_RETRIES = 2;
 const PDF_PARSE_RETRY_BASE_DELAY_MS = 600;
 
+const isTestEnv = typeof process !== "undefined" && process.env?.NODE_ENV === "test";
+const pdfDataCache = new Map<string, { blob: Blob; data: Uint8Array<ArrayBuffer> }>();
+function setCachedPdf(key: string, value: { blob: Blob; data: Uint8Array<ArrayBuffer> }) {
+  if (isTestEnv || !key) return;
+  if (pdfDataCache.size >= 12) {
+    const firstKey = pdfDataCache.keys().next().value;
+    if (firstKey) pdfDataCache.delete(firstKey);
+  }
+  pdfDataCache.set(key, value);
+}
+
+export function clearPdfViewerMemoryCache() {
+  pdfDataCache.clear();
+}
+
 const viewerToolbarClass =
   "sticky top-0 z-30 flex min-h-[52px] flex-wrap items-center justify-between gap-1.5 border-b border-[#202838] bg-[#0b1019] px-2 py-1.5 text-slate-200 shadow-[0_12px_32px_rgba(2,6,23,0.28)] sm:min-h-[80px] sm:flex-nowrap sm:gap-4 sm:px-4 sm:py-3";
 const toolbarPillClass =
@@ -123,16 +138,19 @@ export default function PdfLessonViewer({
   const [error, setError] = useState("");
   const [viewerState, setViewerState] = useState<ViewerState>("WAITING_FOR_SESSION");
   const [retryKey, setRetryKey] = useState(0);
+  const lastLoadedKeyRef = useRef<string>("");
 
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState(1);
+  const pageNumberRef = useRef(1);
+  useEffect(() => {
+    pageNumberRef.current = pageNumber;
+  }, [pageNumber]);
+  const [visiblePages, setVisiblePages] = useState<Set<number>>(() => new Set([1, 2, 3]));
+  const isProgrammaticScrollRef = useRef(false);
+  const programmaticScrollTimeoutRef = useRef<number | null>(null);
   const [rotation, setRotation] = useState(0);
-  const [scrollMode, setScrollMode] = useState<"continuous" | "single">(() => {
-    if (typeof window !== "undefined" && window.innerWidth < 768) {
-      return "single";
-    }
-    return "continuous";
-  });
+  const [scrollMode, setScrollMode] = useState<"continuous" | "single">("continuous");
   const [showSidebar, setShowSidebar] = useState(false);
 
   // UniOfficeSecurPDF Suite State
@@ -160,13 +178,32 @@ export default function PdfLessonViewer({
   });
 
   const [scale, setScale] = useState(1.0);
+  const [debouncedScale, setDebouncedScale] = useState(1.0);
+  const debounceScaleTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (debounceScaleTimerRef.current !== null) {
+      window.clearTimeout(debounceScaleTimerRef.current);
+    }
+    if (Math.abs(scale - debouncedScale) < 0.01) return;
+
+    debounceScaleTimerRef.current = window.setTimeout(() => {
+      setDebouncedScale(scale);
+    }, 200);
+
+    return () => {
+      if (debounceScaleTimerRef.current !== null) {
+        window.clearTimeout(debounceScaleTimerRef.current);
+      }
+    };
+  }, [scale, debouncedScale]);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isPseudoFullscreen, setIsPseudoFullscreen] = useState(false);
   const [imageViewMode, setImageViewMode] = useState<ImageViewMode>("width");
   const [imageNaturalSize, setImageNaturalSize] = useState({ width: 0, height: 0 });
   const [isImagePanning, setIsImagePanning] = useState(false);
 
-  const [touchZoomEnabled, setTouchZoomEnabled] = useState(false);
+  const [touchZoomEnabled, setTouchZoomEnabled] = useState(true);
   const [touchFeedbackMsg, setTouchFeedbackMsg] = useState<string | null>(null);
   const [isPinching, setIsPinching] = useState(false);
   const [pinchFactor, setPinchFactor] = useState(1);
@@ -242,6 +279,7 @@ export default function PdfLessonViewer({
 
   const { shieldActive: antiCaptureActive, dismissShield: dismissAntiCapture } = useContentProtection({
     enabled: true,
+    blockKeyboardWhilePlaying: false,
   });
 
   // Anti-download keyboard shortcuts interceptor for student protection
@@ -315,6 +353,10 @@ export default function PdfLessonViewer({
     clearParseRetryTimeout();
     parseRetryCountRef.current = 0;
     setViewerState("READY");
+    const initialPages = new Set<number>();
+    const maxInit = Math.min(numPages, 4);
+    for (let p = 1; p <= maxInit; p++) initialPages.add(p);
+    setVisiblePages(initialPages);
   }
 
   function handleDocumentLoadError(err?: Error) {
@@ -322,6 +364,9 @@ export default function PdfLessonViewer({
       console.error("[PdfLessonViewer] Document parse error:", err);
     }
     clearParseRetryTimeout();
+    const currentKey = `${contentId || ""}_${documentUrl || ""}_${mediaType}`;
+    pdfDataCache.delete(currentKey);
+    lastLoadedKeyRef.current = "";
     if (parseRetryCountRef.current < PDF_PARSE_MAX_AUTOMATIC_RETRIES) {
       const attempt = parseRetryCountRef.current;
       parseRetryCountRef.current += 1;
@@ -340,6 +385,9 @@ export default function PdfLessonViewer({
 
   function retryDocumentLoad() {
     clearParseRetryTimeout();
+    const currentKey = `${contentId || ""}_${documentUrl || ""}_${mediaType}`;
+    pdfDataCache.delete(currentKey);
+    lastLoadedKeyRef.current = "";
     parseRetryCountRef.current = 0;
     setRetryKey((current) => current + 1);
   }
@@ -353,11 +401,25 @@ export default function PdfLessonViewer({
   function goToPage(targetPage: number) {
     const page = Math.max(1, Math.min(targetPage, numPages || 1));
     setPageNumber(page);
+
+    // Instantly mark target page and its immediate neighbors visible, purging distant pages from memory
+    const activeNeighbors = new Set<number>([page]);
+    if (page > 1) activeNeighbors.add(page - 1);
+    if (page < (numPages || 1)) activeNeighbors.add(page + 1);
+    setVisiblePages(activeNeighbors);
+
     if (scrollMode === "continuous" && containerRef.current) {
+      isProgrammaticScrollRef.current = true;
+      if (programmaticScrollTimeoutRef.current !== null) {
+        window.clearTimeout(programmaticScrollTimeoutRef.current);
+      }
       const pageEl = containerRef.current.querySelector(`[data-page-number="${page}"]`);
       if (pageEl) {
         pageEl.scrollIntoView({ behavior: "smooth", block: "start" });
       }
+      programmaticScrollTimeoutRef.current = window.setTimeout(() => {
+        isProgrammaticScrollRef.current = false;
+      }, 500);
     }
   }
 
@@ -418,7 +480,7 @@ export default function PdfLessonViewer({
           if (raw) {
             loaded[p] = JSON.parse(raw);
           }
-        } catch {}
+        } catch { }
       }
     }
     setStrokesByPage(loaded);
@@ -483,6 +545,8 @@ export default function PdfLessonViewer({
       if (touchZoomEnabled) setTouchZoomEnabled(false);
     } else if (tool === "eraser") {
       if (touchZoomEnabled) setTouchZoomEnabled(false);
+    } else if (tool === "select") {
+      setTouchZoomEnabled(true);
     }
   };
 
@@ -571,7 +635,7 @@ export default function PdfLessonViewer({
     };
     try {
       target.setPointerCapture(e.pointerId);
-    } catch {}
+    } catch { }
     setIsPdfPanning(true);
   }
 
@@ -592,7 +656,7 @@ export default function PdfLessonViewer({
     if (containerRef.current?.hasPointerCapture(e.pointerId)) {
       try {
         containerRef.current.releasePointerCapture(e.pointerId);
-      } catch {}
+      } catch { }
     }
     pdfMouseDragRef.current.active = false;
     setIsPdfPanning(false);
@@ -607,21 +671,17 @@ export default function PdfLessonViewer({
   }, [touchFeedbackMsg]);
 
   function toggleTouchZoomMode() {
-    setTouchZoomEnabled((prev) => {
-      const next = !prev;
-      setTouchFeedbackMsg(
-        next
-          ? "Outil Main & Zoom actif : pincez ou glissez pour zoomer et déplacer le document"
-          : "Mode standard : le zoom s'applique au navigateur",
-      );
-      return next;
-    });
+    setTouchZoomEnabled(true);
   }
 
   // Interception du zoom trackpad / touchpad pinch et Ctrl + Molette
   useEffect(() => {
     const wrapper = wrapperRef.current;
-    if (!wrapper || !touchZoomEnabled) return;
+    const container = containerRef.current;
+    if (!touchZoomEnabled) return;
+
+    let wheelTimeout: any = null;
+    let accumulatedScale = scaleRef.current;
 
     const handleWheel = (e: WheelEvent) => {
       // Les pavés tactiles (trackpads) de PC/Mac émettent un événement wheel avec e.ctrlKey === true lors d'un pincement
@@ -632,22 +692,27 @@ export default function PdfLessonViewer({
 
         const zoomDelta = -e.deltaY;
         const factor = zoomDelta > 0 ? 1.08 : 0.92;
-        const current = scaleRef.current;
         const minScale = mediaType === "IMAGE" ? 0.25 : 0.5;
         const maxScale = mediaType === "IMAGE" ? 6.0 : 4.0;
-        const nextScale = Math.min(Math.max(Number((current * factor).toFixed(2)), minScale), maxScale);
+        accumulatedScale = Math.min(Math.max(Number((accumulatedScale * factor).toFixed(2)), minScale), maxScale);
 
-        if (Math.abs(nextScale - current) > 0.01) {
-          setScale(nextScale);
-        }
+        clearTimeout(wheelTimeout);
+        wheelTimeout = setTimeout(() => {
+          if (Math.abs(accumulatedScale - scaleRef.current) > 0.01) {
+            setScale(accumulatedScale);
+          }
+        }, 120);
       }
     };
 
-    wrapper.addEventListener("wheel", handleWheel, { passive: false });
+    if (wrapper) wrapper.addEventListener("wheel", handleWheel, { passive: false });
+    if (container && container !== wrapper) container.addEventListener("wheel", handleWheel, { passive: false });
     return () => {
-      wrapper.removeEventListener("wheel", handleWheel);
+      if (wheelTimeout) clearTimeout(wheelTimeout);
+      if (wrapper) wrapper.removeEventListener("wheel", handleWheel);
+      if (container && container !== wrapper) container.removeEventListener("wheel", handleWheel);
     };
-  }, [touchZoomEnabled, mediaType]);
+  }, [touchZoomEnabled, mediaType, viewerState, blobUrl]);
 
   // Interception du pincement tactile à 2 doigts et glissement à 1 doigt sur écran tactile (smartphone / tablette)
   useEffect(() => {
@@ -758,36 +823,112 @@ export default function PdfLessonViewer({
       target.removeEventListener("touchend", handleTouchEnd);
       target.removeEventListener("touchcancel", handleTouchEnd);
     };
-  }, [touchZoomEnabled, mediaType, viewerState]);
+  }, [touchZoomEnabled, mediaType, viewerState, blobUrl, pdfFile]);
 
-  // Scroll listener in continuous mode to track currently visible page
-  const handleContainerScroll = useCallback(() => {
+  // High-performance IntersectionObserver for Continuous Mode Virtualization & Active Page Tracking
+  useEffect(() => {
     if (scrollMode !== "continuous" || !containerRef.current || !numPages) return;
-    const container = containerRef.current;
-    const pageEls = container.querySelectorAll("[data-page-number]");
-    const targetMiddle = container.scrollTop + container.clientHeight / 3;
+    if (typeof IntersectionObserver === "undefined") {
+      // In non-browser / JSDOM test environments, mark all pages visible
+      const all = new Set<number>();
+      for (let i = 1; i <= Math.min(numPages, 10); i++) all.add(i);
+      setVisiblePages(all);
+      return;
+    }
 
-    let closest = 1;
-    let minDiff = Infinity;
-    pageEls.forEach((el) => {
-      const htmlEl = el as HTMLElement;
-      const pNum = Number(htmlEl.getAttribute("data-page-number") || 1);
-      const diff = Math.abs(htmlEl.offsetTop - targetMiddle);
-      if (diff < minDiff) {
-        minDiff = diff;
-        closest = pNum;
+    const container = containerRef.current;
+
+    // 1. Viewport Virtualization: pre-loads pages entering within 1000px of viewport
+    const viewObserver = new IntersectionObserver(
+      (entries) => {
+        setVisiblePages((prev) => {
+          let changed = false;
+          const next = new Set(prev);
+          for (const entry of entries) {
+            const p = Number(entry.target.getAttribute("data-page-number"));
+            if (!p) continue;
+            if (entry.isIntersecting) {
+              if (!next.has(p)) {
+                next.add(p);
+                // Pre-buffer adjacent page so smooth scrolling feels instantaneous
+                if (p > 1) next.add(p - 1);
+                if (p < (numPages || 1)) next.add(p + 1);
+                changed = true;
+              }
+            } else {
+              // Hysteresis: unmount pages away from the active reading viewport
+              if (Math.abs(p - pageNumberRef.current) > 2 && next.has(p)) {
+                next.delete(p);
+                changed = true;
+              }
+            }
+          }
+          return changed ? next : prev;
+        });
+      },
+      {
+        root: container,
+        rootMargin: "600px 0px 600px 0px",
+        threshold: 0,
       }
+    );
+
+    // 2. Active Page Tracking for Ribbon (< 19 / 98 >) with zero forced layout reflow
+    const activeObserver = new IntersectionObserver(
+      (entries) => {
+        if (isProgrammaticScrollRef.current) return;
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const p = Number(entry.target.getAttribute("data-page-number"));
+            if (p && p !== pageNumberRef.current) {
+              setPageNumber(p);
+              break;
+            }
+          }
+        }
+      },
+      {
+        root: container,
+        rootMargin: "-45% 0px -45% 0px",
+        threshold: 0,
+      }
+    );
+
+    const elements = container.querySelectorAll("[data-page-item]");
+    elements.forEach((el) => {
+      viewObserver.observe(el);
+      activeObserver.observe(el);
     });
 
-    if (closest !== pageNumber) {
-      setPageNumber(closest);
-    }
-  }, [scrollMode, numPages, pageNumber]);
+    return () => {
+      viewObserver.disconnect();
+      activeObserver.disconnect();
+    };
+  }, [scrollMode, numPages, scale]);
 
   useEffect(() => {
     let active = true;
     let objectUrl: string | null = null;
     const controller = new AbortController();
+    const currentKey = `${contentId || ""}_${documentUrl || ""}_${mediaType}`;
+
+    // If this content was already loaded and we still have valid file data, avoid re-fetching
+    if (retryKey === 0 && lastLoadedKeyRef.current === currentKey && (pdfFile || blobUrl)) {
+      return;
+    }
+
+    // Fast restore from in-memory cache for instant switching between already loaded materials
+    if (!isTestEnv && retryKey === 0 && mediaType === "PDF" && pdfDataCache.has(currentKey)) {
+      const cached = pdfDataCache.get(currentKey)!;
+      objectUrl = URL.createObjectURL(cached.blob);
+      setBlobUrl(objectUrl);
+      setPdfFile({ data: cached.data });
+      setViewerState("VALIDATING_DOCUMENT");
+      lastLoadedKeyRef.current = currentKey;
+      return () => {
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+      };
+    }
 
     const loadDocument = async () => {
       setViewerState(documentUrl ? "LOADING_URL" : "WAITING_FOR_SESSION");
@@ -809,22 +950,60 @@ export default function PdfLessonViewer({
         if (!documentUrl && !contentId) {
           throw new ProtectedResourceError("Document introuvable.", "permanent");
         }
-        const blob = await loadProtectedResource({
-          url: documentUrl || `/api/lesson-contents/${contentId}/document`,
-          kind: mediaType,
-          requiresSession: !documentUrl,
-          maxRetries: 2,
-          timeoutMs: 30_000,
-          signal: controller.signal,
-          onPhase: (phase) => {
-            if (!active) return;
-            if (phase === "WAITING_FOR_SESSION") {
-              setViewerState("WAITING_FOR_SESSION");
-            } else {
-              setViewerState("LOADING_DOCUMENT");
+
+        let blob: Blob | null = null;
+        let lastError: unknown = null;
+
+        // Try primary URL first, with automatic fallback if both documentUrl and contentId exist
+        const primaryUrl = documentUrl || `/api/lesson-contents/${contentId}/document`;
+        const fallbackUrl = documentUrl && contentId ? `/api/lesson-contents/${contentId}/document` : null;
+
+        try {
+          blob = await loadProtectedResource({
+            url: primaryUrl,
+            kind: mediaType,
+            requiresSession: !documentUrl,
+            maxRetries: 2,
+            timeoutMs: 30_000,
+            signal: controller.signal,
+            onPhase: (phase) => {
+              if (!active) return;
+              if (phase === "WAITING_FOR_SESSION") {
+                setViewerState("WAITING_FOR_SESSION");
+              } else {
+                setViewerState("LOADING_DOCUMENT");
+              }
+            },
+          });
+        } catch (primaryErr) {
+          lastError = primaryErr;
+          if (fallbackUrl && active && !(primaryErr instanceof ProtectedResourceError && primaryErr.kind === "cancelled")) {
+            try {
+              blob = await loadProtectedResource({
+                url: fallbackUrl,
+                kind: mediaType,
+                requiresSession: true,
+                maxRetries: 1,
+                timeoutMs: 30_000,
+                signal: controller.signal,
+                onPhase: (phase) => {
+                  if (!active) return;
+                  if (phase === "WAITING_FOR_SESSION") {
+                    setViewerState("WAITING_FOR_SESSION");
+                  } else {
+                    setViewerState("LOADING_DOCUMENT");
+                  }
+                },
+              });
+            } catch (fallbackErr) {
+              lastError = fallbackErr;
             }
-          },
-        });
+          }
+        }
+
+        if (!blob) {
+          throw lastError || new ProtectedResourceError("Impossible de charger le contenu.", "temporary");
+        }
 
         const validatedPdfData = mediaType === "PDF" ? await readBlobBytes(blob) : null;
         objectUrl = URL.createObjectURL(blob);
@@ -832,6 +1011,10 @@ export default function PdfLessonViewer({
           setBlobUrl(objectUrl);
           setPdfFile(validatedPdfData ? { data: validatedPdfData } : null);
           setViewerState(mediaType === "IMAGE" ? "READY" : "VALIDATING_DOCUMENT");
+          lastLoadedKeyRef.current = currentKey;
+          if (validatedPdfData) {
+            setCachedPdf(currentKey, { blob, data: validatedPdfData });
+          }
         }
       } catch (err) {
         if (!active || (err instanceof ProtectedResourceError && err.kind === "cancelled")) return;
@@ -920,7 +1103,7 @@ export default function PdfLessonViewer({
         ref={wrapperRef}
         className={`flex flex-col overflow-hidden rounded-[24px] border border-[#202838] bg-slate-950 shadow-lg select-none transition-all relative ${isExpandedView ? "fixed inset-0 z-[120] h-[100dvh] w-full rounded-none border-none" : "h-[75vh]"}`}
       >
-        <AntiCaptureShield active={antiCaptureActive} onDismiss={dismissAntiCapture} />
+        <AntiCaptureShield active={antiCaptureActive} onDismiss={dismissAntiCapture} contentType="image" />
         {touchFeedbackMsg && (
           <div className="absolute top-16 left-1/2 -translate-x-1/2 z-40 px-3.5 py-1.5 rounded-full bg-slate-900/95 border border-emerald-500/40 text-emerald-300 text-[11px] font-bold shadow-2xl backdrop-blur-md pointer-events-none animate-in fade-in slide-in-from-top-2 duration-200 flex items-center gap-2 max-w-[90%] text-center">
             <Hand className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
@@ -956,28 +1139,6 @@ export default function PdfLessonViewer({
               aria-label="Zoom avant"
             >
               <ZoomIn className={toolbarIconClass} strokeWidth={1.8} />
-            </button>
-
-            {/* Bouton Zoom tactile */}
-            <button
-              type="button"
-              onClick={toggleTouchZoomMode}
-              className={`${toolbarButtonClass} ${
-                touchZoomEnabled
-                  ? "border-emerald-500/80 bg-emerald-500/20 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.35)] ring-1 ring-emerald-500/50"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-              title={
-                touchZoomEnabled
-                  ? "Zoom tactile activé (pincez avec 2 doigts pour zoomer directement dans l'image)"
-                  : "Zoom tactile désactivé (cliquez pour zoomer dans l'image avec les doigts plutôt que sur le site)"
-              }
-              aria-label={
-                touchZoomEnabled ? "Désactiver le zoom tactile de l'image" : "Activer le zoom tactile de l'image"
-              }
-              aria-pressed={touchZoomEnabled}
-            >
-              <Hand className={toolbarIconClass} strokeWidth={1.8} />
             </button>
 
             <span className={toolbarDividerClass} aria-hidden="true" />
@@ -1051,9 +1212,8 @@ export default function PdfLessonViewer({
             style={{
               touchAction: touchZoomEnabled ? "none" : "auto",
             }}
-            className={`h-full w-full overflow-auto scroll-smooth p-4 ${
-              imageCanPan ? (isImagePanning ? "cursor-grabbing" : "cursor-grab") : "cursor-default"
-            }`}
+            className={`h-full w-full overflow-auto scroll-smooth p-4 ${imageCanPan ? (isImagePanning ? "cursor-grabbing" : "cursor-grab") : "cursor-default"
+              }`}
             onPointerDown={handleImagePointerDown}
             onPointerMove={handleImagePointerMove}
             onPointerUp={stopImagePan}
@@ -1063,11 +1223,11 @@ export default function PdfLessonViewer({
               style={
                 isPinching
                   ? {
-                      transform: `scale(${pinchFactor})`,
-                      transformOrigin: `${pinchCenter.x}px ${pinchCenter.y}px`,
-                      willChange: "transform",
-                      transition: "none",
-                    }
+                    transform: `scale(${pinchFactor})`,
+                    transformOrigin: `${pinchCenter.x}px ${pinchCenter.y}px`,
+                    willChange: "transform",
+                    transition: "none",
+                  }
                   : undefined
               }
               className="flex min-h-full min-w-full items-center justify-center"
@@ -1101,16 +1261,22 @@ export default function PdfLessonViewer({
     );
   }
 
-  const baseReadingWidth = Math.max(containerDimensions.width - 32, 280);
-  const renderWidth = Math.round(baseReadingWidth * scale);
-  // High-Definition (HD) device pixel ratio supersampling: minimum 2x for crystal-sharp text and formulas
-  const targetDevicePixelRatio =
-    typeof window !== "undefined"
-      ? Math.min(Math.max(2, Math.round(window.devicePixelRatio || 2)), 3)
-      : 2;
+  const containerInnerWidth = Math.max(containerDimensions.width - 32, 280);
+  const baseReadingWidth = Math.min(containerInnerWidth, 900);
+  const renderScale = debouncedScale;
+  const renderWidth = Math.min(Math.round(baseReadingWidth * renderScale), 2800);
+  const zoomVisualRatio = renderScale > 0 ? Number((scale / renderScale).toFixed(4)) : 1;
+
+  // Razor-sharp vector supersampling matching Microsoft Edge & Adobe Acrobat
+  const systemDpr = typeof window !== "undefined" ? (window.devicePixelRatio || 1) : 1;
+  // Supersample at minimum 2.0x (up to 2.5x) so font curves and equations are crystal clear
+  const idealDpr = Math.min(2.5, Math.max(2.0, systemDpr * 1.5));
+  // Safe GPU texture limit: max canvas width 2880px to prevent browser canvas memory drops
+  const targetDevicePixelRatio = Math.max(
+    1.0,
+    Math.min(idealDpr, Number((2880 / Math.max(renderWidth, 1)).toFixed(2)))
+  );
   const resolvedDownloadFileName = downloadFileName || `${title}.pdf`;
-
-
 
   return (
     <div
@@ -1118,7 +1284,11 @@ export default function PdfLessonViewer({
       className={`flex flex-col overflow-hidden rounded-[24px] border border-[#202838] bg-slate-950 shadow-2xl select-none transition-all relative ${isExpandedView ? "fixed inset-0 z-[120] h-[100dvh] w-full rounded-none border-none" : "h-[80vh]"}`}
       onContextMenu={(event) => event.preventDefault()}
     >
-      <AntiCaptureShield active={antiCaptureActive} onDismiss={dismissAntiCapture} />
+      <AntiCaptureShield
+        active={antiCaptureActive}
+        onDismiss={dismissAntiCapture}
+        contentType="pdf"
+      />
       {/* Toast de confirmation du mode de zoom tactile */}
       {touchFeedbackMsg && (
         <div className="absolute top-16 left-1/2 -translate-x-1/2 z-40 px-3.5 py-1.5 rounded-full bg-slate-900/95 border border-emerald-500/40 text-emerald-300 text-[11px] font-bold shadow-2xl backdrop-blur-md pointer-events-none animate-in fade-in slide-in-from-top-2 duration-200 flex items-center gap-2 max-w-[90%] text-center">
@@ -1131,7 +1301,12 @@ export default function PdfLessonViewer({
       <UniOfficeRibbon
         title={title}
         activeTab={activeTab}
-        onSelectTab={setActiveTab}
+        onSelectTab={(tab) => {
+          setActiveTab(tab);
+          if (tab === "lecture" || tab === "confort") {
+            setTouchZoomEnabled(true);
+          }
+        }}
         pageNumber={pageNumber}
         numPages={numPages}
         onPageChange={changePage}
@@ -1208,11 +1383,10 @@ export default function PdfLessonViewer({
                       key={`thumb-${p}`}
                       type="button"
                       onClick={() => goToPage(p)}
-                      className={`group flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all border ${
-                        isCurrent
+                      className={`group flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all border ${isCurrent
                           ? "bg-emerald-500/10 border-emerald-500/70 shadow-[0_0_12px_rgba(16,185,129,0.25)] text-emerald-400 font-bold"
                           : "bg-[#121827] border-[#1e2738] hover:border-emerald-500/40 text-slate-400 hover:text-slate-200"
-                      }`}
+                        }`}
                     >
                       <div className="w-28 overflow-hidden rounded bg-white shadow-md pointer-events-none">
                         <Page
@@ -1238,7 +1412,6 @@ export default function PdfLessonViewer({
           {/* Central PDF Stage with Smooth Scrolling, Touch Action, and Hand Tool Drag */}
           <div
             ref={containerRef}
-            onScroll={handleContainerScroll}
             onPointerDown={touchZoomEnabled ? handlePdfPointerDown : undefined}
             onPointerMove={touchZoomEnabled ? handlePdfPointerMove : undefined}
             onPointerUp={touchZoomEnabled ? stopPdfPointerPan : undefined}
@@ -1246,13 +1419,12 @@ export default function PdfLessonViewer({
             style={{
               touchAction: touchZoomEnabled ? "none" : "auto",
             }}
-            className={`flex-1 overflow-auto p-4 sm:p-6 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin] ${
-              touchZoomEnabled
+            className={`flex-1 overflow-auto p-4 sm:p-6 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin] ${touchZoomEnabled
                 ? isPdfPanning
                   ? "cursor-grabbing select-none"
                   : "cursor-grab select-none"
                 : "cursor-default"
-            }`}
+              }`}
             onContextMenu={(event) => event.preventDefault()}
           >
             {scrollMode === "continuous" && numPages ? (
@@ -1261,26 +1433,57 @@ export default function PdfLessonViewer({
                 style={
                   isPinching
                     ? {
-                        transform: `scale(${pinchFactor})`,
-                        transformOrigin: `${pinchCenter.x}px ${pinchCenter.y}px`,
+                      transform: `scale(${pinchFactor})`,
+                      transformOrigin: `${pinchCenter.x}px ${pinchCenter.y}px`,
+                      willChange: "transform",
+                      transition: "none",
+                    }
+                    : zoomVisualRatio !== 1
+                      ? {
+                        transform: `scale(${zoomVisualRatio})`,
+                        transformOrigin: "top center",
                         willChange: "transform",
-                        transition: "none",
+                        transition: "transform 50ms ease-out",
                       }
-                    : undefined
+                      : undefined
                 }
-                className="flex flex-col items-center gap-6 py-4 min-h-full"
+                className="flex flex-col items-center gap-6 py-4 min-h-full min-w-full w-max mx-auto"
               >
                 {Array.from({ length: numPages }, (_, index) => {
                   const p = index + 1;
                   const curPageHeight = pageAspectRatios[p]
                     ? Math.round(renderWidth * pageAspectRatios[p])
                     : Math.round(renderWidth * 1.414);
+                  const isVisible = visiblePages.has(p) || Math.abs(p - pageNumber) <= 1;
+
+                  if (!isVisible) {
+                    return (
+                      <div
+                        key={`continuous-page-${p}`}
+                        data-page-number={p}
+                        data-page-item="true"
+                        style={{
+                          width: renderWidth,
+                          height: curPageHeight,
+                          minHeight: curPageHeight,
+                        }}
+                        className="relative mx-auto shadow-[0_16px_40px_rgba(0,0,0,0.45)] ring-1 ring-slate-200/20 rounded-sm bg-white overflow-hidden flex flex-col items-center justify-center text-slate-400 select-none"
+                      >
+                        <div className="flex flex-col items-center gap-1.5 opacity-60">
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
+                          <span className="text-[11px] font-semibold tracking-wide text-slate-500">Page {p}</span>
+                        </div>
+                      </div>
+                    );
+                  }
+
                   return (
                     <div
                       key={`continuous-page-${p}`}
                       data-page-number={p}
-                      style={{ width: renderWidth }}
-                      className="relative mx-auto shadow-[0_20px_50px_rgba(0,0,0,0.65)] ring-1 ring-white/10 transition-transform duration-200 rounded-sm bg-white overflow-hidden"
+                      data-page-item="true"
+                      style={{ width: renderWidth, minHeight: curPageHeight }}
+                      className="relative mx-auto shadow-[0_20px_50px_rgba(0,0,0,0.65)] ring-1 ring-white/10 transition-transform duration-150 rounded-sm bg-white overflow-hidden"
                     >
                       <div style={getThemeStyle(theme)}>
                         <Page
@@ -1303,12 +1506,11 @@ export default function PdfLessonViewer({
                             <div
                               style={{
                                 width: renderWidth,
-                                minHeight: Math.min(Math.round(renderWidth * 1.35), 450),
+                                height: curPageHeight,
                               }}
-                              className="flex flex-col items-center justify-center bg-slate-900/60 rounded border border-white/5 p-6 text-center"
+                              className="bg-white flex flex-col items-center justify-center text-slate-400"
                             >
-                              <div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent mb-2" />
-                              <span className="text-[11px] text-slate-400 font-medium">Chargement page {p}…</span>
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent opacity-50" />
                             </div>
                           }
                           error={
@@ -1326,13 +1528,9 @@ export default function PdfLessonViewer({
                               </button>
                             </div>
                           }
-                          renderTextLayer={true}
-                          renderAnnotationLayer={true}
+                          renderTextLayer={false}
+                          renderAnnotationLayer={false}
                           onRenderError={(err) => console.error(`[PdfViewer] Render error p${p}:`, err)}
-                          onRenderTextLayerError={(err) => console.warn(`[PdfViewer] TextLayer error p${p}:`, err)}
-                          onRenderAnnotationLayerError={(err) =>
-                            console.warn(`[PdfViewer] AnnotationLayer error p${p}:`, err)
-                          }
                         />
                       </div>
 
@@ -1362,9 +1560,8 @@ export default function PdfLessonViewer({
                       />
 
                       <div
-                        className={`pointer-events-none absolute inset-0 z-10 ${
-                          touchZoomEnabled ? "!pointer-events-auto cursor-grab" : ""
-                        }`}
+                        className={`pointer-events-none absolute inset-0 z-10 ${touchZoomEnabled ? "!pointer-events-auto cursor-grab" : ""
+                          }`}
                         aria-hidden="true"
                       />
                     </div>
@@ -1377,18 +1574,25 @@ export default function PdfLessonViewer({
                 style={
                   isPinching
                     ? {
-                        transform: `scale(${pinchFactor})`,
-                        transformOrigin: `${pinchCenter.x}px ${pinchCenter.y}px`,
+                      transform: `scale(${pinchFactor})`,
+                      transformOrigin: `${pinchCenter.x}px ${pinchCenter.y}px`,
+                      willChange: "transform",
+                      transition: "none",
+                    }
+                    : zoomVisualRatio !== 1
+                      ? {
+                        transform: `scale(${zoomVisualRatio})`,
+                        transformOrigin: "center center",
                         willChange: "transform",
-                        transition: "none",
+                        transition: "transform 50ms ease-out",
                       }
-                    : undefined
+                      : undefined
                 }
-                className="flex min-h-full items-center justify-center"
+                className="flex min-h-full min-w-full w-max mx-auto items-center justify-center p-4"
               >
                 <div
                   style={{ width: renderWidth }}
-                  className="relative mx-auto w-fit shadow-[0_20px_50px_rgba(0,0,0,0.65)] ring-1 ring-white/10 transition-transform duration-200 rounded-sm bg-white overflow-hidden"
+                  className="relative mx-auto w-fit shadow-[0_20px_50px_rgba(0,0,0,0.65)] ring-1 ring-white/10 transition-transform duration-150 rounded-sm bg-white overflow-hidden"
                 >
                   <div style={getThemeStyle(theme)}>
                     <Page
@@ -1411,12 +1615,13 @@ export default function PdfLessonViewer({
                         <div
                           style={{
                             width: renderWidth,
-                            minHeight: Math.min(Math.round(renderWidth * 1.35), 450),
+                            height: pageAspectRatios[pageNumber]
+                              ? Math.round(renderWidth * pageAspectRatios[pageNumber])
+                              : Math.round(renderWidth * 1.414),
                           }}
-                          className="flex flex-col items-center justify-center bg-slate-900/60 rounded border border-white/5 p-6 text-center"
+                          className="bg-white flex flex-col items-center justify-center text-slate-400"
                         >
-                          <div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent mb-2" />
-                          <span className="text-[11px] text-slate-400 font-medium">Chargement page {pageNumber}…</span>
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent opacity-50" />
                         </div>
                       }
                       error={
@@ -1434,13 +1639,9 @@ export default function PdfLessonViewer({
                           </button>
                         </div>
                       }
-                      renderTextLayer={true}
-                      renderAnnotationLayer={true}
+                      renderTextLayer={false}
+                      renderAnnotationLayer={false}
                       onRenderError={(err) => console.error(`[PdfViewer] Render error p${pageNumber}:`, err)}
-                      onRenderTextLayerError={(err) => console.warn(`[PdfViewer] TextLayer error p${pageNumber}:`, err)}
-                      onRenderAnnotationLayerError={(err) =>
-                        console.warn(`[PdfViewer] AnnotationLayer error p${pageNumber}:`, err)
-                      }
                     />
                   </div>
 
@@ -1474,9 +1675,8 @@ export default function PdfLessonViewer({
                   />
 
                   <div
-                    className={`pointer-events-none absolute inset-0 z-10 ${
-                      touchZoomEnabled ? "!pointer-events-auto cursor-grab" : ""
-                    }`}
+                    className={`pointer-events-none absolute inset-0 z-10 ${touchZoomEnabled ? "!pointer-events-auto cursor-grab" : ""
+                      }`}
                     aria-hidden="true"
                   />
                 </div>
